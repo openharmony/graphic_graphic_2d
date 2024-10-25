@@ -1135,6 +1135,17 @@ bool RSProperties::GetBorderColorIsTransparent() const
     return false;
 }
 
+bool RSProperties::GetBorderIsSolid() const
+{
+    if (GetBorderStyle().x_ == static_cast<uint32_t>(BorderStyle::SOLID) &&
+        GetBorderStyle().y_ == static_cast<uint32_t>(BorderStyle::SOLID) &&
+        GetBorderStyle().z_ == static_cast<uint32_t>(BorderStyle::SOLID) &&
+        GetBorderStyle().w_ == static_cast<uint32_t>(BorderStyle::SOLID)) {
+        return true;
+    }
+    return false;
+}
+
 void RSProperties::SetOutlineColor(Vector4<Color> color)
 {
     if (!outline_) {

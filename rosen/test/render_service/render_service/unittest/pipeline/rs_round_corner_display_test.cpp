@@ -1060,6 +1060,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManager_AddRcd, TestSize.Le
     rcdInstance.RemoveRoundCornerDisplay(1);
     res = rcdInstance.CheckExist(1);
     EXPECT_TRUE(res == false);
+    rcdInstance.RemoveRCDResource(1);
+    res = rcdInstance.CheckExist(1);
+    EXPECT_TRUE(res == false);
 }
 
 /*
@@ -1078,11 +1081,11 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManager_AddLayer, TestSize.
     auto topName = std::string("TopLayer");
 
     rcdInstance.AddLayer(topName, id, top);
-    auto LayerInfo = rcdInstance.GetNodeId(topName);
+    auto LayerInfo = rcdInstance.GetLayerPair(topName);
     EXPECT_TRUE(LayerInfo.first == id && LayerInfo.second == top);
     rcdInstance.RemoveRCDLayerInfo(id);
-    rcdInstance.RemoveRCDLayerInfo(id);
-    LayerInfo = rcdInstance.GetNodeId(topName);
+    rcdInstance.RemoveRCDResource(id);
+    LayerInfo = rcdInstance.GetLayerPair(topName);
     EXPECT_TRUE(LayerInfo.second == RoundCornerDisplayManager::RCDLayerType::INVALID);
 }
 
@@ -1170,10 +1173,12 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayManagerDraw, TestSize.Level
     rcdInstance.AddRoundCornerDisplay(id);
     rcdInstance.AddLayer(topName, id, top);
     rcdInstance.AddLayer(bottomName, id, bottom);
+    EXPECT_TRUE(rcdInstance.CheckLayerIsRCD(std::string("InvalidName")) == false);
+    EXPECT_TRUE(rcdInstance.CheckLayerIsRCD(topName) == true);
     std::vector<std::string> renderLayersName = {topName, bottomName, std::string("InvalidName")};
     std::vector<std::pair<NodeId, RoundCornerDisplayManager::RCDLayerType>> renderTargetNodeInfoList;
     for (auto& layerName : renderLayersName) {
-        auto nodeInfo = rcdInstance.GetNodeId(layerName);
+        auto nodeInfo = rcdInstance.GetLayerPair(layerName);
         renderTargetNodeInfoList.push_back(nodeInfo);
     }
     auto baseCanvas = std::make_shared<Drawing::Canvas>();
@@ -1210,9 +1215,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     rcdManagerInstance.InitInstance();
     NodeId id = 1;
     EXPECT_TRUE(rcdManagerInstance.GetRcdRenderEnabled() == true);
-    auto topLayer = rcdManagerInstance.GetContentSurfaceNodes(id);
+    auto topLayer = rcdManagerInstance.GetTopSurfaceNode(id);
     EXPECT_TRUE(topLayer == nullptr);
-    auto bottomLayer = rcdManagerInstance.GetBackgroundSurfaceNodes(id);
+    auto bottomLayer = rcdManagerInstance.GetBottomSurfaceNode(id);
     EXPECT_TRUE(bottomLayer == nullptr);
 
     RcdProcessInfo info{};
@@ -1239,6 +1244,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     rcdManagerInstance.CheckRenderTargetNode(context);
     context.nodeMap.renderNodeMap_ = {{id, std::make_shared<RSRenderNode>(id + 1)}};
     rcdManagerInstance.CheckRenderTargetNode(context);
+    rcdManagerInstance.RemoveRcdResource(id);
     context.nodeMap.renderNodeMap_.clear();
     rcdManagerInstance.topSurfaceNodeMap_.clear();
     rcdManagerInstance.bottomSurfaceNodeMap_.clear();

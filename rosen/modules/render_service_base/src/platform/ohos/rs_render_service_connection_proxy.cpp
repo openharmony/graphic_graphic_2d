@@ -2707,7 +2707,8 @@ void RSRenderServiceConnectionProxy::ReportGameStateData(GameStateData info)
     }
 }
 
-void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2724,6 +2725,9 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
     if (!data.WriteUint8(static_cast<uint8_t>(selfDrawingType))) {
         return;
     }
+    if (!data.WriteBool(dynamicHardwareEnable)) {
+        return;
+    }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -2731,6 +2735,30 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetHardwareEnabled: Send Request err.");
         return;
     }
+}
+
+uint32_t RSRenderServiceConnectionProxy::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return static_cast<uint32_t>(RSInterfaceErrorCode::WRITE_PARCEL_ERROR);
+    }
+    if (!data.WriteUint64(id)) {
+        return static_cast<uint32_t>(RSInterfaceErrorCode::WRITE_PARCEL_ERROR);
+    }
+    if (!data.WriteBool(needHidePrivacyContent)) {
+        return static_cast<uint32_t>(RSInterfaceErrorCode::WRITE_PARCEL_ERROR);
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetHidePrivacyContent: Send Request err.");
+        return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+    }
+    return reply.ReadUint32();
 }
 
 void RSRenderServiceConnectionProxy::NotifyLightFactorStatus(bool isSafe)

@@ -42,7 +42,8 @@ void CmdListFuzzTest000(const uint8_t* data, size_t size)
 
     size_t length = GetObject<size_t>() % ARRAY_MAX_SIZE + 1;
     size_t arrSize = GetObject<size_t>() % MATH_TEN;
-    uint32_t offset = GetObject<uint32_t>();
+    size_t offset = GetObject<size_t>();
+    size_t dataSize = GetObject<size_t>();
 
     char* obj = new char[length];
     for (size_t i = 0; i < length; i++) {
@@ -56,14 +57,14 @@ void CmdListFuzzTest000(const uint8_t* data, size_t size)
 
     cmdList->GetType();
     cmdList->AddCmdListData(cmdListData);
-    cmdList->GetCmdListData(offset);
+    cmdList->GetCmdListData(offset, dataSize);
     cmdList->GetData();
     cmdList->SetUpImageData(obj, arrSize);
     cmdList->AddImageData(obj, arrSize);
-    cmdList->GetImageData(offset);
+    cmdList->GetImageData(offset, dataSize);
     cmdList->GetAllImageData();
     cmdList->AddBitmapData(obj, arrSize);
-    cmdList->GetBitmapData(offset);
+    cmdList->GetBitmapData(offset, dataSize);
     cmdList->SetUpBitmapData(obj, arrSize);
     cmdList->GetAllBitmapData();
     std::shared_ptr<ExtendObject> object = cmdList->GetExtendObject(offset);

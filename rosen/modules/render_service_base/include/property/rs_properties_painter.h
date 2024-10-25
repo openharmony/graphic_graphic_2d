@@ -87,6 +87,7 @@ public:
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat);
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
+    static Drawing::RoundRect RRect2DrawingRRectBorder(const RRect& rr_outer, const RRect& rr_inner);
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
@@ -116,7 +117,7 @@ private:
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosMap);
+        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosVec);
     static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);

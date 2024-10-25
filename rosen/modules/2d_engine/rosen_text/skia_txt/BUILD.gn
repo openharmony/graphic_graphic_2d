@@ -231,7 +231,10 @@ ohos_source_set("skia_paragraph") {
 
   if (!is_cross_platform) {
     defines += [ "OHOS_TEXT_ENABLE" ]
-    external_deps += [ "init:libbegetutil" ]
+    external_deps += [
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
+    ]
   }
 }
 

@@ -38,19 +38,19 @@ public:
 
     void addAnimationFrameTrace(const uint64_t nodeId, const std::string& nodeName, const uint64_t animationId,
         const uint64_t propertyId, const float fraction, const std::shared_ptr<RSRenderPropertyBase>& value,
-        const int64_t time) const;
+        const int64_t time, const int dur, const int repeat) const;
 
     void addRenderNodeTrace(const RSRenderNode& node, const std::string name = "") const;
     void addSpringInitialVelocityTrace(const uint64_t propertyId, const uint64_t animationId,
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
         const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
+    std::string ParseRenderPropertyVaule(const std::shared_ptr<RSRenderPropertyBase>& value,
+        const RSRenderPropertyType type = RSRenderPropertyType::INVALID) const;
+
 private:
     RSAnimationTraceUtils();
     ~RSAnimationTraceUtils() = default;
-
-    std::string ParseRenderPropertyVaule(const std::shared_ptr<RSRenderPropertyBase>& value,
-        const RSRenderPropertyType type = RSRenderPropertyType::INVALID) const;
 
     std::string ParseRenderPropertyVauleInner(const std::shared_ptr<RSRenderPropertyBase>& value,
         const RSRenderPropertyType type = RSRenderPropertyType::INVALID) const;

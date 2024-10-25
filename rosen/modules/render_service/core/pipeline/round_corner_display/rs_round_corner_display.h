@@ -108,8 +108,9 @@ public:
     rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
     {
         std::unique_lock<std::shared_mutex> lock(resourceMut_);
-        if (hardInfo_.resourceChanged)
+        if (hardInfo_.resourceChanged) {
             hardInfo_.resourcePreparing = true;
+        }
         return hardInfo_;
     }
 
@@ -124,8 +125,6 @@ public:
     void InitOnce();
 
 private:
-    int resourceDesyncCnt = 0;
-    
     NodeId renderTargetId_ = 0;
     bool isInit = false;
     // load config

@@ -75,9 +75,12 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+    bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+        SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
     void SetPaint(Drawing::Paint paint) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
@@ -110,6 +113,7 @@ public:
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -176,6 +180,12 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
     virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -203,6 +213,12 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
     virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;

@@ -28,13 +28,16 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
+// reduce the app refresh rate by ratio on the frame rate of entire system.
+// if frame rate is 120, ratio of 1 means 120, 2 means 60, 3 means 40, 4 means 30
 // vsync rate table, first dimension means the balance level as one frame duration increased
+// second dimension means the occlusion level
 constexpr int VSYNC_RATE_TABLE[][4] = {
-    {1, 1, 2,  2},
-    {1, 2, 2,  3},
-    {2, 3, 4,  6},
-    {2, 4, 6,  12},
-    {3, 6, 10, 20},
+    {1, 1, 2, 2},
+    {1, 2, 2, 3},
+    {2, 2, 3, 3},
+    {2, 2, 3, 4},
+    {2, 3, 4, 4},
 };
 constexpr float V_VAL_MIN = 0.0f;
 constexpr float V_VAL_MAX = 1.0f;
@@ -61,7 +64,60 @@ constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t SIMI_VISIBLE_RATE = 2;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
+constexpr int32_t MIN_REFRESH_RATE = 30;
 } // Anonymous namespace
+
+void RSVsyncRateReduceManager::SetFocusedNodeId(NodeId focusedNodeId)
+{
+    if (!vRateReduceEnabled_) {
+        return;
+    }
+    focusedNodeId_ = focusedNodeId;
+}
+
+void RSVsyncRateReduceManager::PushWindowNodeId(NodeId nodeId)
+{
+    if (!vRateReduceEnabled_) {
+        return;
+    }
+    curAllMainAndLeashWindowNodesIds_.emplace_back(nodeId);
+}
+
+void RSVsyncRateReduceManager::ClearLastVisMapForVsyncRate()
+{
+    if (!vRateReduceEnabled_) {
+        return;
+    }
+    lastVisMapForVSyncVisLevel_.clear();
+}
+
+void RSVsyncRateReduceManager::FrameDurationBegin()
+{
+    if (!vRateConditionQualified_) {
+        return;
+    }
+    curTime_ = Now();
+}
+
+void RSVsyncRateReduceManager::FrameDurationEnd()
+{
+    if (!vRateConditionQualified_) {
+        return;
+    }
+    if (oneFramePeriod_ > 0) {
+        float val = static_cast<float>(Now() - curTime_) / static_cast<float>(oneFramePeriod_);
+        EnqueueFrameDuration(val);
+    }
+    curTime_ = 0;
+}
+
+void RSVsyncRateReduceManager::SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes)
+{
+    if (!vRateReduceEnabled_) {
+        return;
+    }
+    isReduceBySystemAnimatedScenes_ = isReduceBySystemAnimatedScenes;
+}
 
 void RSVsyncRateReduceManager::EnqueueFrameDuration(float duration)
 {
@@ -74,16 +130,13 @@ void RSVsyncRateReduceManager::EnqueueFrameDuration(float duration)
 
 void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& surfaceNode)
 {
-    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
+    if (!vRateConditionQualified_) {
         return;
     }
     if (surfaceNode.IsHardwareEnabledTopSurface()) {
         return;
     }
-    if (isSystemAnimatedScenes_ && (surfaceNode.GetDstRect().IsEmpty() || surfaceNode.IsLeashWindow())) {
-        return;
-    }
-    if (!isSystemAnimatedScenes_ && !surfaceNode.IsSCBNode()) {
+    if (!surfaceNode.IsSCBNode() || surfaceNode.GetDstRect().IsEmpty() || surfaceNode.IsLeashWindow()) {
         return;
     }
     const auto& nodeId = surfaceNode.GetId();
@@ -109,7 +162,7 @@ void RSVsyncRateReduceManager::CollectSurfaceVsyncInfo(const ScreenInfo& screenI
 
 void RSVsyncRateReduceManager::SetUniVsync()
 {
-    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
+    if (!vRateConditionQualified_) {
         return;
     }
     RS_TRACE_FUNC();
@@ -216,7 +269,7 @@ void RSVsyncRateReduceManager::NotifyVRates()
 int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
     if (vVal <= 0) {
-        return rsRefreshRate_;
+        return std::numeric_limits<int>::max();
     }
     if (vVal >= V_VAL_INTERVALS[0]) {
         return DEFAULT_RATE;
@@ -225,13 +278,14 @@ int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
         RS_LOGE("GetRateByBalanceLevel curRatesLevel error");
         return DEFAULT_RATE;
     }
+    int minRate = rsRefreshRate_ / MIN_REFRESH_RATE;
     auto& rates = VSYNC_RATE_TABLE[curRatesLevel_];
     for (int i = 1; i < sizeof(V_VAL_INTERVALS); ++i) {
         if (vVal > V_VAL_INTERVALS[i]) {
-            return rates[i - 1];
+            return std::min(minRate, rates[i - 1]);
         }
     }
-    return rsRefreshRate_;
+    return std::numeric_limits<int>::max();
 }
 
 inline Occlusion::Rect RSVsyncRateReduceManager::GetMaxVerticalRect(const Occlusion::Region &region)
@@ -328,7 +382,7 @@ uint64_t RSVsyncRateReduceManager::Now()
 void RSVsyncRateReduceManager::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
     std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
 {
-    if (!vsyncControlEnabled_ || appVSyncDistributor_ == nullptr) {
+    if (!vRateConditionQualified_) {
         return;
     }
     if (!RSMainThread::Instance()->IsSystemAnimatedScenesListEmpty()) {
@@ -368,6 +422,13 @@ bool RSVsyncRateReduceManager::CheckNeedNotify()
     }
     if (needRefresh) {
         isReduceBySystemAnimatedScenes_ = false;
+    }
+    if (surfaceIdsChanged || needRefresh) {
+        for (const auto& [nodeId, rate]: lastVSyncRateMap_) {
+            if (vSyncRateMap_.find(nodeId) == vSyncRateMap_.end()) {
+                vSyncRateMap_.emplace(nodeId, DEFAULT_RATE);
+            }
+        }
     }
     if (isSystemAnimatedScenes_) {
         isReduceBySystemAnimatedScenes_ = true;
@@ -425,23 +486,28 @@ void RSVsyncRateReduceManager::Init(const sptr<VSyncDistributor>& appVSyncDistri
 {
     appVSyncDistributor_ = appVSyncDistributor;
     deviceType_ = RSMainThread::Instance()->GetDeviceType();
-    vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
+    vRateReduceEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
 }
 
 void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
 {
-    if (!vsyncControlEnabled_ || rsRefreshRate < 1) {
+    vRateConditionQualified_ = false;
+    if (!vRateReduceEnabled_) {
         return;
     }
     focusedNodeId_ = 0;
-    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / rsRefreshRate;
-    rsRefreshRate_ = rsRefreshRate;
     surfaceVRateMap_.clear();
     isSystemAnimatedScenes_ = !RSMainThread::Instance()->IsSystemAnimatedScenesListEmpty();
     vSyncRatesChanged_ = false;
     vSyncRateMap_.clear();
     curAllMainAndLeashWindowNodesIds_.clear();
     visMapForVSyncVisLevel_.clear();
+    vRateConditionQualified_ = rsRefreshRate > 0 && appVSyncDistributor_ != nullptr;
+    if (!vRateConditionQualified_) {
+        return;
+    }
+    oneFramePeriod_ = PERIOD_CHECK_THRESHOLD / rsRefreshRate;
+    rsRefreshRate_ = rsRefreshRate;
 }
 } // namespace Rosen
 } // namespace OHOS

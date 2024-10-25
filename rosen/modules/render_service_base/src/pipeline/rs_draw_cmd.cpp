@@ -19,6 +19,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
@@ -125,6 +126,13 @@ void RSExtendImageObject::SetPaint(Drawing::Paint paint)
     }
 }
 
+void RSExtendImageObject::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
@@ -196,7 +204,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            if (GetRsImageCache(canvas, pixelMap,
+                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -232,6 +241,34 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
+}
+#endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+{
+    if (pixelMap == nullptr) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Image> imageCache = nullptr;
+    if (!pixelMap->IsEditable()) {
+        imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
+            rsImage_->GetUniqueId(), gettid());
+    }
+    if (imageCache) {
+        this->image_ = imageCache;
+    } else {
+        bool ret = MakeFromTextureForVK(
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace);
+        if (ret && image_ && !pixelMap->IsEditable()) {
+            SKResourceManager::Instance().HoldResource(image_);
+            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
+                rsImage_->GetUniqueId(), image_, gettid());
+        }
+        return ret;
+    }
+    return true;
 }
 #endif
 
@@ -431,6 +468,13 @@ void RSExtendImageBaseObj::SetNodeId(NodeId id)
     }
 }
 
+void RSExtendImageBaseObj::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
+    }
+}
+
 bool RSExtendImageBaseObj::Marshalling(Parcel &parcel) const
 {
     bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
@@ -467,8 +511,8 @@ RSExtendDrawFuncObj *RSExtendDrawFuncObj::Unmarshalling(Parcel &parcel)
 
 namespace Drawing {
 /* DrawImageWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM, DrawImageWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM,
+    DrawImageWithParmOpItem::Unmarshalling, sizeof(DrawImageWithParmOpItem::ConstructorHandle));
 
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(
     const DrawCmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
@@ -529,8 +573,8 @@ void DrawImageWithParmOpItem::Dump(std::string& out) const
 }
 
 /* DrawPixelMapWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM,
+    DrawPixelMapWithParmOpItem::Unmarshalling, sizeof(DrawPixelMapWithParmOpItem::ConstructorHandle));
 
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const DrawCmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
@@ -587,7 +631,8 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
 }
 
 /* DrawPixelMapRectOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
+    DrawPixelMapRectOpItem::Unmarshalling, sizeof(DrawPixelMapRectOpItem::ConstructorHandle));
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
@@ -643,7 +688,8 @@ void DrawPixelMapRectOpItem::DumpItems(std::string& out) const
 }
 
 /* DrawFuncOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM, DrawFuncOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM,
+    DrawFuncOpItem::Unmarshalling, sizeof(DrawFuncOpItem::ConstructorHandle));
 
 DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
@@ -676,8 +722,8 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 #ifdef ROSEN_OHOS
 /* DrawSurfaceBufferOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM, DrawSurfaceBufferOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
+    DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)

@@ -32,6 +32,8 @@ public:
 
     void SetIsCustom(const bool isCustom);
 
+    void DumpAnimationInfo(std::string& dumpInfo) const override;
+
 protected:
     RSPropertyAnimation(std::shared_ptr<RSPropertyBase> property);
 

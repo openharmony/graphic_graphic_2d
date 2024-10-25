@@ -50,7 +50,8 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
+constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
+constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
 
@@ -104,7 +105,7 @@ bool RSRenderService::Init()
     int64_t offset = 0;
     if (!HgmCore::Instance().GetLtpoEnabled()) {
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            offset = UNI_RENDER_VSYNC_OFFSET;
+            offset = HgmCore::Instance().IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
         }
         rsVSyncController_ = new VSyncController(generator, offset);
         appVSyncController_ = new VSyncController(generator, offset);

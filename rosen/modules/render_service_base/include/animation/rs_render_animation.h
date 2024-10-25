@@ -58,7 +58,7 @@ public:
     bool IsPaused() const;
     bool IsFinished() const;
     void DumpAnimation(std::string& out) const;
-    virtual void DumpAnimationType(std::string& out) const;
+    virtual void DumpAnimationInfo(std::string& out) const;
 
     void SetAnimationId(AnimationId id)
     {

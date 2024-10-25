@@ -25,7 +25,11 @@ group("unittest") {
 ohos_unittest("RSSystemParametersTest") {
   module_out_path = module_output_path
   sources = [ "rs_system_parameters_test.cpp" ]
-  include_dirs = [ "./../../../../../modules/render_service/core" ]
+  include_dirs = [
+    "./../../../../../modules/render_service/core",
+    "$graphic_surface_root/interfaces/inner_api/surface",
+    "$graphic_surface_root/interfaces/inner_api/common",
+  ]
 
   deps = [
     "./../../../../../modules/render_service:librender_service",

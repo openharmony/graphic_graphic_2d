@@ -194,5 +194,19 @@ bool RSSystemParameters::GetTcacheEnabled()
     static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
     return flag;
 }
+
+int RSSystemParameters::GetDumpCanvasDrawingNodeEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.canvasDrawingEnabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
+bool RSSystemParameters::IsNeedScRGBForP3(const GraphicColorGamut& currentGamut)
+{
+    static bool isSupportScRGBForP3_ = system::GetBoolParameter("persist.sys.graphic.scrgb.enabled", false);
+    return isSupportScRGBForP3_ && (currentGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -74,7 +74,7 @@ void RSAnimationBaseTest::InitAnimationWindow()
         return;
     }
     sptr<WindowOption> option = new WindowOption();
-    option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
+    option->SetWindowType(WindowType::WINDOW_TYPE_PANEL);
     option->SetWindowMode(WindowMode::WINDOW_MODE_FLOATING);
     option->SetWindowRect({ 0, 0, 720, 1280 });
     window = Window::Create("animation_ut", option);

@@ -414,6 +414,43 @@ HWTEST_F(RSSurfaceRenderNodeTest, FingerprintTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HDRPresentTest
+ * @tc.desc: SetHDRPresent and GetHDRPresent
+ * @tc.type:FUNC
+ * @tc.require: issueI6Z3YK
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, rsContext);
+    auto leashWindowNode = std::make_shared<RSSurfaceRenderNode>(id + 2, rsContext);
+    ASSERT_NE(childNode, nullptr);
+    ASSERT_NE(parentNode, nullptr);
+    ASSERT_NE(leashWindowNode, nullptr);
+
+    rsContext->GetMutableNodeMap().renderNodeMap_[childNode->GetId()] = childNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    rsContext->GetMutableNodeMap().renderNodeMap_[leashWindowNode->GetId()] = leashWindowNode;
+
+    parentNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    childNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    leashWindowNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+
+    leashWindowNode->AddChild(parentNode);
+    parentNode->AddChild(childNode);
+    leashWindowNode->SetIsOnTheTree(true);
+    parentNode->SetIsOnTheTree(true);
+    childNode->SetIsOnTheTree(true);
+    
+    childNode->SetHDRPresent(false);
+    EXPECT_EQ(childNode->GetHDRPresent(), false);
+    leashWindowNode->SetHDRPresent(true);
+    EXPECT_EQ(leashWindowNode->GetHDRPresent(), true);
+}
+
+/**
  * @tc.name: ShouldPrepareSubnodesTest
  * @tc.desc: function test
  * @tc.type:FUNC
@@ -837,6 +874,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo006, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CornerRadiusInfoForDRMTest
+ * @tc.desc: Test SetCornerRadiusInfoForDRM and GetCornerRadiusInfoForDRM
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2NE
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CornerRadiusInfoForDRMTest, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+    std::vector<float> cornerRadiusInfo = {};
+    node->SetCornerRadiusInfoForDRM(cornerRadiusInfo);
+    ASSERT_TRUE(node->GetCornerRadiusInfoForDRM().empty());
+}
+
+/**
  * @tc.name: GetFirstLevelNodeId001
  * @tc.desc: Test GetFirstLevelNode for single app window node
  * @tc.type: FUNC
@@ -1135,21 +1189,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
     testNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     testNode->CollectSurface(node, vec, true, true);
     ASSERT_FALSE(testNode->isSubSurfaceEnabled_);
-}
-
-/**
- * @tc.name: CollectSurfaceForUIFirstSwitchTest
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitchTest
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceForUIFirstSwitchTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    uint32_t leashWindowCount = 0;
-    uint32_t minNodeNum = 5;
-    testNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
-    ASSERT_EQ(leashWindowCount, 0);
 }
 
 /**

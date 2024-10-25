@@ -36,11 +36,11 @@ void RSRenderPathAnimationTest::SetUp() {}
 void RSRenderPathAnimationTest::TearDown() {}
 
 /**
- * @tc.name: DumpAnimationTypeTest
- * @tc.desc: test results of DumpAnimationType
+ * @tc.name: DumpAnimationInfoTest
+ * @tc.desc: test results of DumpAnimationInfo
  * @tc.type: FUNC
  */
-HWTEST_F(RSRenderPathAnimationTest, DumpAnimationTypeTest, Level1)
+HWTEST_F(RSRenderPathAnimationTest, DumpAnimationInfoTest, Level1)
 {
     auto originPosition = std::make_shared<RSRenderPropertyBase>();
     auto startPosition = std::make_shared<RSRenderPropertyBase>();
@@ -49,7 +49,7 @@ HWTEST_F(RSRenderPathAnimationTest, DumpAnimationTypeTest, Level1)
     std::string out = "Out";
     RSRenderPathAnimation rsRenderPathAnimation(
         0, 0, originPosition, startPosition, endPosition, 0.f, animationPath);
-    rsRenderPathAnimation.DumpAnimationType(out);
+    rsRenderPathAnimation.DumpAnimationInfo(out);
     EXPECT_TRUE(true);
 }
 

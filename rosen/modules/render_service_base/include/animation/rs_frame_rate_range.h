@@ -21,11 +21,15 @@
 
 namespace OHOS {
 namespace Rosen {
+// different ltpo frame rate vote type
 constexpr int32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
 constexpr int32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
 constexpr int32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
 constexpr int32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
 constexpr int32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
+// extent info of ltpo frame rate vote: it indicates the frame contains the first frame of animation,
+// its value should be independent from above types
+constexpr int32_t ANIMATION_STATE_FIRST_FRAME = 0x1000;
 
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
@@ -104,7 +108,7 @@ public:
             return std::string("COMPONENT_") + componentName + "_ASSURANCE";
         }
         std::string extInfo = "";
-        switch (type_) {
+        switch (type_ & ~ANIMATION_STATE_FIRST_FRAME) {
             case RS_ANIMATION_FRAME_RATE_TYPE:
                 extInfo = "RS_ANIMATION";
                 break;
@@ -122,6 +126,9 @@ public:
                 break;
             default:
                 return "";
+        }
+        if ((type_ & ANIMATION_STATE_FIRST_FRAME) != 0) {
+            extInfo += "FIRST_FRAME";
         }
         return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
     }
@@ -144,8 +151,7 @@ public:
 
     bool operator!=(const FrameRateRange& other) const
     {
-        return this->min_ != other.min_ || this->max_ != other.max_ ||
-            this->preferred_ != other.preferred_ || this->type_ != other.type_;
+        return !operator==(other);
     }
 
     int min_ = 0;

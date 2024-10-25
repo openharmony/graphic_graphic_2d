@@ -73,6 +73,11 @@ public:
         return nodeMap;
     }
 
+    const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetAnimatingNodeList() const
+    {
+        return animatingNodeList_;
+    }
+
     RSRenderFrameRateLinkerMap& GetMutableFrameRateLinkerMap()
     {
         return frameRateLinkerMap;

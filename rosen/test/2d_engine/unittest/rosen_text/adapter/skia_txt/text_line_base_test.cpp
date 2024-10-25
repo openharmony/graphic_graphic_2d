@@ -116,5 +116,58 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest004, TestSize.Level
     EXPECT_EQ(textLineImpl->GetTextRange().rightIndex, 0);
     EXPECT_EQ(textLineImpl->GetTextRange().leftIndex, 0);
 }
+
+/*
+ * @tc.name: OHDrawingTextLineBaseTest005
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level1)
+{
+    std::string ellipsisStr;
+    std::unique_ptr<TextLineBase> line
+        = textLine_[0]->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
+    EXPECT_NE(line, nullptr);
+    EXPECT_EQ(line->GetGlyphCount(), 7);
+
+    line = textLine_[0]->CreateTruncatedLine(10, static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
+    EXPECT_EQ(line, nullptr);
+
+    double ascent = 0;
+    double descent = 0;
+    double leading = 0;
+    EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 49.377823);
+    EXPECT_FLOAT_EQ(ascent, 12.992);
+    EXPECT_FLOAT_EQ(descent, 3.4160001);
+    EXPECT_FLOAT_EQ(leading, 0.000000);
+
+    EXPECT_EQ(textLine_[0]->GetImageBounds().GetLeft(), 1);
+}
+
+/*
+ * @tc.name: TextLineBaseTest006
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest006, TestSize.Level1)
+{
+    std::unique_ptr<TextLineBase> textLineBase = std::make_unique<AdapterTxt::TextLineBaseImpl>(nullptr);
+
+    std::string ellipsisStr;
+    std::unique_ptr<TextLineBase> line
+        = textLineBase->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
+    EXPECT_EQ(line, nullptr);
+
+    double ascent = 0;
+    double descent = 0;
+    double leading = 0;
+    EXPECT_FLOAT_EQ(textLineBase->GetTypographicBounds(&ascent, &descent, &leading), 0.0);
+    EXPECT_FLOAT_EQ(ascent, 0.0);
+    EXPECT_FLOAT_EQ(descent, 0.0);
+    EXPECT_FLOAT_EQ(leading, 0.0);
+
+    EXPECT_EQ(textLineBase->GetImageBounds().GetLeft(), 0);
+    EXPECT_FLOAT_EQ(textLineBase->GetTrailingSpaceWidth(), 0.0);
+}
 } // namespace Rosen
 } // namespace OHOS

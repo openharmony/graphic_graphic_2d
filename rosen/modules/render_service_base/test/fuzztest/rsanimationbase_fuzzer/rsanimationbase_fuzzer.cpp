@@ -223,9 +223,10 @@ namespace OHOS {
             nodeId, nodeName, propertyId, animationId, animationType, propertyType, startValue, endValue,
             animationDelay, animationDur, repeat);
         RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
-            nodeId, nodeName, animationId, propertyId, fraction, value, time);
+            nodeId, nodeName, animationId, propertyId, fraction, value, time, animationDur, repeat);
         RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(
             propertyId, animationId, initialVelocity, value);
+        RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(value);
     }
 
     void RSCubicBezierInterpolatorFuzzerTest()
@@ -316,7 +317,7 @@ namespace OHOS {
         // test
         auto animation = std::make_shared<RSRenderCurveAnimation>(
             animationId, propertyId, property, startValue, endValue);
-        animation->DumpAnimationType(out);
+        animation->DumpAnimationInfo(out);
         auto interpolator = std::make_shared<RSStepsInterpolator>(steps, position);
         animation->SetInterpolator(interpolator);
         animation->GetInterpolator();
@@ -369,7 +370,7 @@ namespace OHOS {
         // test
         auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
             animationId, propertyId, property, startValue, endValue);
-        animation->DumpAnimationType(out);
+        animation->DumpAnimationInfo(out);
         animation->SetSpringParameters(response, dampingRatio, normalizedInitialVelocity, minimumAmplitudeRatio);
         animation->SetZeroThreshold(zeroThreshold);
         Parcel parcel;
@@ -397,7 +398,7 @@ namespace OHOS {
 
         // test
         auto animation = std::make_shared<RSRenderKeyframeAnimation>(animationId, propertyId, property);
-        animation->DumpAnimationType(out);
+        animation->DumpAnimationInfo(out);
         auto interpolator = std::make_shared<RSStepsInterpolator>(steps, position);
         animation->AddKeyframe(fraction, startValue, interpolator);
         keyframes.push_back({ fraction, startValue, interpolator });
@@ -429,7 +430,7 @@ namespace OHOS {
         // test
         auto animation = std::make_shared<RSRenderPathAnimation>(
             animationId, propertyId, property, startValue, endValue, originRotation, RSPath::CreateRSPath());
-        animation->DumpAnimationType(out);
+        animation->DumpAnimationInfo(out);
         auto interpolator = std::make_shared<RSStepsInterpolator>(steps, position);
         animation->SetInterpolator(interpolator);
         animation->GetInterpolator();
@@ -575,7 +576,7 @@ namespace OHOS {
         std::shared_ptr<RSRenderTransitionEffect> child = std::make_shared<RSTransitionFade>(alpha);
         std::vector<std::shared_ptr<RSRenderTransitionEffect>> vec = { child };
         auto renderTransition = std::make_shared<RSRenderTransition>(animationId, vec, isTransitionIn);
-        renderTransition->DumpAnimationType(str);
+        renderTransition->DumpAnimationInfo(str);
         renderTransition->SetInterpolator(interpolator);
         Parcel parcel;
         renderTransition->Marshalling(parcel);
@@ -650,7 +651,7 @@ namespace OHOS {
             std::make_shared<RSRenderCurveAnimation>(animationId, propertyId, originValue, startValue, endValue);
         auto springAnimation =
             std::make_shared<RSRenderSpringAnimation>(animationId, propertyId, originValue, startValue, endValue);
-        springAnimation->DumpAnimationType(str);
+        springAnimation->DumpAnimationInfo(str);
         springAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
         springAnimation->SetZeroThreshold(zeroThreshold);
         springAnimation->SetInitialVelocity(velocity);

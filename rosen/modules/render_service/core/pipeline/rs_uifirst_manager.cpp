@@ -399,7 +399,14 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     bool isHdrOn = displayParams->GetHDRPresent();
     ScreenId id = displayParams->GetScreenId();
     drawable->SetHDRPresent(isHdrOn);
-    if (isHdrOn) {
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(displayParams->GetNewColorSpace()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool changeColorSpace = drawable->GetTargetColorGamut() != displayParams->GetNewColorSpace();
+    if (isHdrOn || isScRGBEnable || changeColorSpace) {
+        if (isScRGBEnable && changeColorSpace) {
+            RS_LOGD("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface");
+            drawable->ClearCacheSurfaceInThread();
+        }
         drawable->SetScreenId(id);
         drawable->SetTargetColorGamut(displayParams->GetNewColorSpace());
     }
@@ -466,8 +473,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
 
-        bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
-            node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
+        bool staticContent = drawable->IsCurFrameStatic(deviceType);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
             (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
             !drawable->IsSubThreadSkip()) {
@@ -855,6 +861,10 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 // post in drawframe sync time
 void RSUifirstManager::PostUifistSubTasks()
 {
+    // if screen is power-off, uifirst sub thread can be suspended.
+    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
+        return;
+    }
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
     if (sortedSubThreadNodeIds_.size() > 0) {
@@ -1324,6 +1334,9 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
             UifirstStateChange(node, MultiThreadCacheType::NONE);   // mark as draw win in RT thread
             node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
             node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT
+
+            // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
+            node.SetHwcChildrenDisabledStateByUifirst();
         } else {
             UifirstStateChange(node, MultiThreadCacheType::NONFOCUS_WINDOW);
         }

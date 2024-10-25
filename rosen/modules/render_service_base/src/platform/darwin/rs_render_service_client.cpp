@@ -544,8 +544,14 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
+}
+
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    return {};
 }
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)

@@ -44,6 +44,7 @@ public:
 
     static void NodeDestructor(RSRenderNode* ptr);
     void NodeDestructorInner(RSRenderNode* ptr);
+    bool IsBucketQueueEmpty();
     void ReleaseNodeBucket();
     void ReleaseNodeMemory();
     void SetMainTask(gcTask hook) {

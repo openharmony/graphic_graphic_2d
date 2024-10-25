@@ -18,14 +18,4 @@
 namespace OHOS::Rosen {
 RSCanvasDrawingRenderParams::RSCanvasDrawingRenderParams(NodeId id) : RSRenderParams(id) {}
 
-void RSCanvasDrawingRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
-{
-    auto targetCanvasDrawingParam = static_cast<RSCanvasDrawingRenderParams*>(target.get());
-    if (targetCanvasDrawingParam == nullptr) {
-        RS_LOGE("targetCanvasDrawingParam::OnSync targetCanvasDrawingParam is null");
-        return;
-    }
-    targetCanvasDrawingParam->isNeedProcess_.store(isNeedProcess_);
-    RSRenderParams::OnSync(target);
-}
 } // namespace OHOS::Rosen

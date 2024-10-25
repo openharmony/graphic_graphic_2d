@@ -536,11 +536,11 @@ void RSProfiler::DumpNodeAnimation(const RSRenderAnimation& animation, JsonWrite
     out.PushObject();
     out["id"] = animation.id_;
     std::string type;
-    animation.DumpAnimationType(type);
+    animation.DumpAnimationInfo(type);
     out["type"] = type;
     out["AnimationState"] = static_cast<int>(animation.state_);
-    out["StartDelay"] = animation.animationFraction_.GetDuration();
-    out["Duration"] = animation.animationFraction_.GetStartDelay();
+    out["Duration"] = animation.animationFraction_.GetDuration();
+    out["StartDelay"] = animation.animationFraction_.GetStartDelay();
     out["Speed"] = animation.animationFraction_.GetSpeed();
     out["RepeatCount"] = animation.animationFraction_.GetRepeatCount();
     out["AutoReverse"] = animation.animationFraction_.GetAutoReverse();

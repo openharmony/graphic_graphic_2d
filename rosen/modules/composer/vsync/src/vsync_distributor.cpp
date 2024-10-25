@@ -256,6 +256,26 @@ VsyncError VSyncConnection::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return distributor->SetUiDvsyncSwitch(dvsyncSwitch, this);
 }
 
+VsyncError VSyncConnection::SetNativeDVSyncSwitch(bool dvsyncSwitch)
+{
+    sptr<VSyncDistributor> distributor;
+    {
+        std::unique_lock<std::mutex> locker(mutex_);
+        if (isDead_) {
+            VLOGE("%{public}s VSync Client Connection is dead, name:%{public}s.", __func__, info_.name_.c_str());
+            return VSYNC_ERROR_API_FAILED;
+        }
+        if (distributor_ == nullptr) {
+            return VSYNC_ERROR_NULLPTR;
+        }
+        distributor = distributor_.promote();
+        if (distributor == nullptr) {
+            return VSYNC_ERROR_NULLPTR;
+        }
+    }
+    return distributor->SetNativeDVSyncSwitch(dvsyncSwitch, this);
+}
+
 VsyncError VSyncConnection::SetUiDvsyncConfig(int32_t bufferCount)
 {
     sptr<VSyncDistributor> distributor;
@@ -824,8 +844,9 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
         }
 #endif
         SCOPED_DEBUG_TRACE_FMT("CollectConnectionsLTPO, i:%d, name:%s, rate:%d, vsyncPulseFreq:%u"
-            ", referencePulseCount:%ld, vsyncCount:%d", i, connections_[i]->info_.name_.c_str(), connections_[i]->rate_,
-            connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_, vsyncCount);
+            ", referencePulseCount:%ld, vsyncCount:%d, highPriorityRate_:%d", i, connections_[i]->info_.name_.c_str(),
+            connections_[i]->rate_, connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_,
+            vsyncCount, connections_[i]->highPriorityRate_);
         if (!connections_[i]->triggerThisTime_ && connections_[i]->rate_ <= 0) {
             continue;
         }
@@ -1165,7 +1186,7 @@ VsyncError VSyncDistributor::SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSy
 {
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
-    dvsync_->RuntimeMark(dvsyncSwitch ? connection : nullptr);
+    dvsync_->RuntimeMark(connection, dvsyncSwitch);
 #endif
     return VSYNC_ERROR_OK;
 }
@@ -1175,6 +1196,15 @@ VsyncError VSyncDistributor::SetUiDvsyncConfig(int32_t bufferCount)
 #if defined(RS_ENABLE_DVSYNC)
     std::lock_guard<std::mutex> locker(mutex_);
     dvsync_->SetUiDvsyncConfig(bufferCount);
+#endif
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncDistributor::SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    std::lock_guard<std::mutex> locker(mutex_);
+    dvsync_->RuntimeMark(connection, dvsyncSwitch, true);
 #endif
     return VSYNC_ERROR_OK;
 }
@@ -1222,6 +1252,16 @@ void VSyncDistributor::UpdatePendingReferenceTime(int64_t &timeStamp)
         dvsync_->UpdatePendingReferenceTime(timeStamp);
     }
 #endif
+}
+
+uint64_t VSyncDistributor::GetRealTimeOffsetOfDvsync(int64_t time)
+{
+#if defined(RS_ENABLE_DVSYNC)
+    if (IsDVsyncOn()) {
+        return dvsync_->GetRealTimeOffsetOfDvsync(time);
+    }
+#endif
+    return 0;
 }
 
 void VSyncDistributor::SetHardwareTaskNum(uint32_t num)

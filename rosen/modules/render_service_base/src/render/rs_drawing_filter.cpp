@@ -170,13 +170,16 @@ std::string RSDrawingFilter::GetDetailedDescription()
     return filterString;
 }
 
-Drawing::Brush RSDrawingFilter::GetBrush() const
+Drawing::Brush RSDrawingFilter::GetBrush(float brushAlpha) const
 {
     Drawing::Brush brush;
     brush.SetAntiAlias(true);
-    Drawing::Filter filter;
-    filter.SetImageFilter(imageFilter_);
-    brush.SetFilter(filter);
+    auto imageFilter = ProcessImageFilter(brushAlpha);
+    if (imageFilter) {
+        Drawing::Filter filter;
+        filter.SetImageFilter(imageFilter);
+        brush.SetFilter(filter);
+    }
     return brush;
 }
 
@@ -269,8 +272,23 @@ void RSDrawingFilter::InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderF
     shaderFilters_.emplace_back(shaderFilter);
 }
 
+std::shared_ptr<Drawing::ImageFilter> RSDrawingFilter::ProcessImageFilter(float brushAlpha) const
+{
+    std::shared_ptr<Drawing::ImageFilter> resFilter = imageFilter_;
+    if (!ROSEN_EQ(brushAlpha, 1.0f)) {
+        Drawing::ColorMatrix alphaMatrix;
+        alphaMatrix.SetScale(1.0f, 1.0f, 1.0f, brushAlpha);
+        std::shared_ptr<Drawing::ColorFilter> alphaFilter =
+            Drawing::ColorFilter::CreateMatrixColorFilter(alphaMatrix, Drawing::Clamp::NO_CLAMP);
+        auto alphaImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*alphaFilter, nullptr);
+        resFilter = resFilter ? Drawing::ImageFilter::CreateComposeImageFilter(alphaImageFilter, resFilter) :
+            alphaImageFilter;
+    }
+    return resFilter;
+}
+
 void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-    const Drawing::Rect& src, const Drawing::Rect& dst)
+    const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha)
 {
     if (image == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::ApplyColorFilter image is nullptr");
@@ -278,9 +296,10 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
     }
 
     Drawing::Brush brush;
-    if (imageFilter_) {
+    std::shared_ptr<Drawing::ImageFilter> resFilter = ProcessImageFilter(brushAlpha);
+    if (resFilter) {
         Drawing::Filter filter;
-        filter.SetImageFilter(imageFilter_);
+        filter.SetImageFilter(resFilter);
         brush.SetFilter(filter);
     }
     canvas.AttachBrush(brush);
@@ -291,21 +310,21 @@ void RSDrawingFilter::ApplyColorFilter(Drawing::Canvas& canvas, const std::share
 }
 
 void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-    const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer, const Drawing::Rect& src,
-    const Drawing::Rect& dst)
+    const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
+    const DrawImageRectAttributes& attr)
 {
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     if (geRender == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect geRender is null");
         return;
     }
-    auto outImage =
-        geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
+    auto outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, attr.src, attr.src,
+        Drawing::SamplingOptions());
     if (outImage == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
         return;
     }
-    auto brush = GetBrush();
+    auto brush = GetBrush(attr.brushAlpha);
     std::shared_ptr<RSShaderFilter> kawaseShaderFilter = GetShaderFilterWithType(RSShaderFilter::KAWASE);
     if (kawaseShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(kawaseShaderFilter);
@@ -313,50 +332,55 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
 
         static constexpr float epsilon = 0.999f;
         if (ROSEN_LE(radius, epsilon)) {
-            ApplyColorFilter(canvas, outImage, src, dst);
+            ApplyColorFilter(canvas, outImage, attr.src, attr.dst, attr.brushAlpha);
             return;
         }
-        auto hpsParam = Drawing::HpsBlurParameter(src, dst, radius, saturationForHPS_, brightnessForHPS_);
+        auto hpsParam = Drawing::HpsBlurParameter(attr.src, attr.dst, radius, saturationForHPS_, brightnessForHPS_);
         if (RSSystemProperties::GetHpsBlurEnabled() && GetFilterType() == RSFilter::MATERIAL &&
-            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam, brush.GetColor().GetAlphaF(),
-                brush.GetFilter().GetColorFilter())) {
+            HpsBlurFilter::GetHpsBlurFilter().ApplyHpsBlur(canvas, outImage, hpsParam,
+                brush.GetColor().GetAlphaF() * attr.brushAlpha, brush.GetFilter().GetColorFilter())) {
             RS_OPTIONAL_TRACE_NAME("ApplyHPSBlur " + std::to_string(radius));
         } else {
             auto effectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
             tmpFilter->GenerateGEVisualEffect(effectContainer);
             auto blurImage = geRender->ApplyImageEffect(
-                canvas, *effectContainer, outImage, src, src, Drawing::SamplingOptions());
+                canvas, *effectContainer, outImage, attr.src, attr.src, Drawing::SamplingOptions());
             if (blurImage == nullptr) {
                 ROSEN_LOGE("RSDrawingFilter::DrawImageRect blurImage is null");
                 return;
             }
             canvas.AttachBrush(brush);
-            canvas.DrawImageRect(*blurImage, src, dst, Drawing::SamplingOptions());
+            canvas.DrawImageRect(*blurImage, attr.src, attr.dst, Drawing::SamplingOptions());
             canvas.DetachBrush();
             RS_OPTIONAL_TRACE_NAME("ApplyKawaseBlur " + std::to_string(radius));
         }
         return;
     }
     canvas.AttachBrush(brush);
-    canvas.DrawImageRect(*outImage, src, dst, Drawing::SamplingOptions());
+    canvas.DrawImageRect(*outImage, attr.src, attr.dst, Drawing::SamplingOptions());
     canvas.DetachBrush();
 }
 
-void RSDrawingFilter::UpdateAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas)
+float RSDrawingFilter::PrepareAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas)
 {
     // if canvas alpha is 1.0 or 0.0 - result is same
     float canvasAlpha = paintFilterCanvas.GetAlpha();
+    float newAlpha = 1.0f;
+    if (ROSEN_EQ(canvasAlpha, 1.0f) || ROSEN_EQ(canvasAlpha, 0.0f)) {
+        return newAlpha;
+    }
     std::shared_ptr<RSShaderFilter> maskColorShaderFilter = GetShaderFilterWithType(RSShaderFilter::MASK_COLOR);
     if (maskColorShaderFilter != nullptr) {
         auto maskColorFilter = std::static_pointer_cast<RSMaskColorShaderFilter>(maskColorShaderFilter);
         float postAlpha = maskColorFilter->GetPostProcessAlpha();
-        float newAlpha = (1.0f - postAlpha) / (1.0f - postAlpha  * canvasAlpha);
-        paintFilterCanvas.MultiplyAlpha(newAlpha);
+        newAlpha = (1.0f - postAlpha) / (1.0f - postAlpha  * canvasAlpha);
     }
+    paintFilterCanvas.SetAlpha(1.0f);
+    return newAlpha * canvasAlpha;
 }
 
 void RSDrawingFilter::DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-    const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas)
+    const DrawImageRectAttributes& attr)
 {
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
     bool kawaseHpsFilter = false;
@@ -371,25 +395,27 @@ void RSDrawingFilter::DrawImageRectInternal(Drawing::Canvas& canvas, const std::
         }
         filter->GenerateGEVisualEffect(visualEffectContainer);
     }
-    auto brush = GetBrush();
-    if (discardCanvas && kawaseHpsFilter && brush.GetColor().GetAlphaF() == 1.0) {
+    auto brush = GetBrush(attr.brushAlpha);
+    if (attr.discardCanvas && kawaseHpsFilter && ROSEN_EQ(brush.GetColor().GetAlphaF(), 1.0f)) {
         canvas.Discard();
     }
-    ApplyImageEffect(canvas, image, visualEffectContainer, src, dst);
+    ApplyImageEffect(canvas, image, visualEffectContainer, attr);
 }
 
 void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
     const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params)
 {
     float canvasAlpha = canvas.GetAlpha();
+    DrawImageRectAttributes attr = { src, dst, params.discardCanvas, 1.0f };
     if (params.offscreenDraw || ROSEN_EQ(canvasAlpha, 1.0f) || ROSEN_EQ(canvasAlpha, 0.0f)) {
-        DrawImageRectInternal(canvas, image, src, dst, params.discardCanvas);
+        DrawImageRectInternal(canvas, image, attr);
         return;
     }
+    // Only RSPaintFilterCanvas can have non-zero alpha stack
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore autoCanvasRestore(paintFilterCanvas, RSPaintFilterCanvas::kAlpha);
-    UpdateAlphaForOnScreenDraw(*paintFilterCanvas);
-    DrawImageRectInternal(canvas, image, src, dst, params.discardCanvas);
+    attr.brushAlpha = PrepareAlphaForOnScreenDraw(*paintFilterCanvas);
+    DrawImageRectInternal(canvas, image, attr);
 }
 
 void RSDrawingFilter::PreProcess(std::shared_ptr<Drawing::Image>& image)

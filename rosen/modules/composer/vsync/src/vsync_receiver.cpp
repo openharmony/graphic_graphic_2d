@@ -367,5 +367,14 @@ VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount)
     VLOGI("%{public}s bufferCount:%{public}d", __func__, bufferCount);
     return connection_->SetUiDvsyncConfig(bufferCount);
 }
+
+VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return connection_->SetNativeDVSyncSwitch(dvsyncSwitch);
+}
 } // namespace Rosen
 } // namespace OHOS

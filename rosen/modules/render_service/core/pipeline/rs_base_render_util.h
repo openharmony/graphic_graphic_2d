@@ -131,6 +131,7 @@ public:
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
         const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
     static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
+    static bool InitPreScalingMode(RSSurfaceRenderNode& node);
 
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
@@ -178,6 +179,7 @@ public:
     static Rect MergeBufferDamages(const std::vector<Rect>& damages);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Surface> surface, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
+    static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo);
 
     static int GetAccumulatedBufferCount();
     static void IncAcquiredBufferCount();

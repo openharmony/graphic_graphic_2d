@@ -413,6 +413,27 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006
 }
 
 /**
+ * @tc.name: HardCursorCreateLayer
+ * @tc.desc: Test HardCursorCreateLayer
+ * @tc.type: FUNC
+ * @tc.require: #IAX2SN
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    ASSERT_NE(processor, nullptr);
+
+    auto result = displayDrawable_->HardCursorCreateLayer(processor);
+    ASSERT_EQ(result, false);
+}
+
+/**
  * @tc.name: CheckDisplayNodeSkip
  * @tc.desc: Test CheckDisplayNodeSkip
  * @tc.type: FUNC
@@ -678,80 +699,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, WiredScreenProjectionTest, TestSize.Le
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     displayDrawable_->WiredScreenProjection(*params, virtualProcesser);
-}
-
-/**
- * @tc.name: SkipDisplayIfScreenOff
- * @tc.desc: Test SkipDisplayIfScreenOff, corner case (node is nullptr), return false
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff001, TestSize.Level1)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-    drawable_->renderNode_.reset();
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-}
-
-/**
- * @tc.name: SkipDisplayIfScreenOff
- * @tc.desc: Test SkipDisplayIfScreenOff, if power off, return true
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff002, TestSize.Level1)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-
-    ScreenId screenId = 1;
-    renderNode_->SetScreenId(screenId);
-
-    auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-}
-
-/**
- * @tc.name: SkipDisplayIfScreenOff
- * @tc.desc: Test SkipDisplayIfScreenOff, if power off and render one more frame, return true
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff003, TestSize.Level1)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-
-    ScreenId screenId = 1;
-    renderNode_->SetScreenId(screenId);
-
-    auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManager->MarkPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManager->MarkPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-
-    screenManager->ResetPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManager->ResetPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
 }
 
 /**
@@ -1200,5 +1147,19 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrame, TestSize.Level1)
     ASSERT_FALSE(res);
     res = displayDrawable_->SkipFrame(1, 2);
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: EnablescRGBForP3AndUiFirstTest
+ * @tc.desc: Test ScRGB For P3 Controller
+ * @tc.type: FUNC
+ * @tc.require: issueIAWIC7
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, EnablescRGBForP3AndUiFirstTest, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    auto result = displayDrawable_->EnablescRGBForP3AndUiFirst(currentGamut);
+    EXPECT_FALSE(result);
 }
 }

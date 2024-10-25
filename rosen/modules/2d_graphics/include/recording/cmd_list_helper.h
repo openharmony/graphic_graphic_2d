@@ -129,9 +129,9 @@ public:
     }
 
     template<typename Type>
-    static std::pair<uint32_t, size_t> AddVectorToCmdList(CmdList& cmdList, const std::vector<Type>& vec)
+    static std::pair<size_t, size_t> AddVectorToCmdList(CmdList& cmdList, const std::vector<Type>& vec)
     {
-        std::pair<uint32_t, size_t> ret(0, 0);
+        std::pair<size_t, size_t> ret(0, 0);
         if (!vec.empty()) {
             const void* data = static_cast<const void*>(vec.data());
             size_t size = vec.size() * sizeof(Type);
@@ -143,10 +143,10 @@ public:
     }
 
     template<typename Type>
-    static std::vector<Type> GetVectorFromCmdList(const CmdList& cmdList, std::pair<uint32_t, size_t> info)
+    static std::vector<Type> GetVectorFromCmdList(const CmdList& cmdList, std::pair<size_t, size_t> info)
     {
         std::vector<Type> ret;
-        const auto* values = static_cast<const Type*>(cmdList.GetCmdListData(info.first));
+        const auto* values = static_cast<const Type*>(cmdList.GetCmdListData(info.first, info.second));
         auto size = info.second / sizeof(Type);
         if (values != nullptr && size > 0) {
             for (size_t i = 0; i < size; i++) {
@@ -166,7 +166,7 @@ public:
             return std::make_shared<CmdListType>();
         }
 
-        const void* childData = cmdList.GetCmdListData(childHandle.offset);
+        const void* childData = cmdList.GetCmdListData(childHandle.offset, childHandle.size);
         if (childData == nullptr) {
             return nullptr;
         }
@@ -176,8 +176,9 @@ public:
             return nullptr;
         }
 
-        if (childHandle.imageSize > 0 && cmdList.GetImageData(childHandle.imageOffset) != nullptr) {
-            if (!childCmdList->SetUpImageData(cmdList.GetImageData(childHandle.imageOffset), childHandle.imageSize)) {
+        const void* childImageData = cmdList.GetImageData(childHandle.imageOffset, childHandle.imageSize);
+        if (childHandle.imageSize > 0 && childImageData != nullptr) {
+            if (!childCmdList->SetUpImageData(childImageData, childHandle.imageSize)) {
                 LOGD("set up child image data failed!");
             }
         }

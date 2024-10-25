@@ -97,13 +97,14 @@ public:
      * held by the MemAllocator based on the addr.
      * @param addr To get the offset from the header pointer.
      */
-    uint32_t AddrToOffset(const void* addr) const;
+    size_t AddrToOffset(const void* addr) const;
 
     /**
      * @brief Gets the address of the contiguous memory buffer held by the memory allocator from the offset.
      * @param offset To get the address of the offset.
+     * @param size The desirable size to used.
      */
-    void* OffsetToAddr(size_t offset) const;
+    void* OffsetToAddr(size_t offset, size_t size) const;
 
     void ClearData();
 

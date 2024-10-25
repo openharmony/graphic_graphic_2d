@@ -23,8 +23,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -92,6 +92,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PixelStretchPercen
 
     std::vector<Vector4f> pixelStretchList = { { 0, 0, 0, 0 }, { 0, 0.10, 0, 0 }, { 0, 0, 0.5, 0 }, { 0, 0, 0, 1.0 },
         { 0.1, 0.2, 0.3, 0.4 } };
+    Vector4f midVal = { 0.5, 0.5, 0.5, 0.5 };
     std::vector<Drawing::TileMode> modeList = { Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         Drawing::TileMode::REPEAT, Drawing::TileMode::MIRROR, Drawing::TileMode::DECAL };
 
@@ -103,6 +104,8 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_PixelStretchPercen
         testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
         testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
         testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+        // Set PixelStretch to a middle value, DTS2024092542149
+        testNodeBackGround->SetPixelStretchPercent(midVal, modeList[i]);
         testNodeBackGround->SetPixelStretchPercent(pixelStretchList[i], modeList[i]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);

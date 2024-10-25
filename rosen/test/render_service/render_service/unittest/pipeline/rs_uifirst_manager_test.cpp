@@ -46,13 +46,30 @@ void RSUifirstManagerTest::SetUpTestCase()
     if (mainThread_) {
         uifirstManager_.mainThread_ = mainThread_;
     }
-}
-
-void RSUifirstManagerTest::TearDownTestCase() {}
-void RSUifirstManagerTest::SetUp()
-{
     RSTestUtil::InitRenderNodeGC();
 }
+
+void RSUifirstManagerTest::TearDownTestCase()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (!mainThread || !mainThread->context_) {
+        return;
+    }
+    auto& renderNodeMap = mainThread->context_->GetMutableNodeMap();
+    renderNodeMap.renderNodeMap_.clear();
+    renderNodeMap.surfaceNodeMap_.clear();
+    renderNodeMap.residentSurfaceNodeMap_.clear();
+    renderNodeMap.displayNodeMap_.clear();
+    renderNodeMap.canvasDrawingNodeMap_.clear();
+    renderNodeMap.uiExtensionSurfaceNodes_.clear();
+
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.markForceUpdateByUifirst_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.pendingResetNodes_.clear();
+}
+void RSUifirstManagerTest::SetUp() {}
 
 void RSUifirstManagerTest::TearDown() {}
 

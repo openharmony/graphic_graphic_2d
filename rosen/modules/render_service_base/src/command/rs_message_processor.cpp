@@ -38,6 +38,8 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& 
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     if (!transactionMap_.count(pid)) {
         std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+        transactionDataIndex_++;
+        transactionData->SetIndex(transactionDataIndex_);
         transactionMap_[pid] = transactionData;
     }
     transactionMap_[pid]->AddCommand(std::move(command), 0, FollowType::NONE);
@@ -48,6 +50,8 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&&
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     if (!transactionMap_.count(pid)) {
         std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+        transactionDataIndex_++;
+        transactionData->SetIndex(transactionDataIndex_);
         transactionMap_[pid] = transactionData;
     }
     transactionMap_[pid]->AddCommand(std::move(command), 0, FollowType::NONE);
@@ -79,10 +83,12 @@ std::shared_ptr<RSTransactionData> RSMessageProcessor::GetTransaction(uint32_t p
     }
 }
 
-std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& RSMessageProcessor::GetAllTransactions()
+std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> RSMessageProcessor::GetAllTransactions()
 {
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    return std::move(transactionMap_);
+    auto ret = std::move(transactionMap_);
+    transactionMap_.clear();
+    return ret;
 }
 
 } // namespace Rosen

@@ -279,13 +279,40 @@ bool SkiaFont::GetPathForGlyph(uint16_t glyph, Path* path) const
 void SkiaFont::GetTextPath(const void* text, size_t length, TextEncoding encoding,
     float x, float y, Path* path) const
 {
-    if (!path || !text) {
+    if (path == nullptr || text == nullptr) {
         LOGE("param is invalid, fatal error");
         return;
     }
     auto skPathImpl = path->GetImpl<SkiaPath>();
+    if (skPathImpl == nullptr) {
+        LOGE("skPathImpl is nullptr");
+        return;
+    }
     SkPath& skpath = skPathImpl->GetMutablePath();
-    SkTextUtils::GetPath(text, length, static_cast<SkTextEncoding>(encoding), x, y, skFont_, &skpath);
+
+    size_t strLength = 0;
+    switch (encoding) {
+        case TextEncoding::UTF8: {
+            strLength = std::char_traits<char>::length(static_cast<const char*>(text)) * sizeof(char);
+            break;
+        }
+        case TextEncoding::UTF16: {
+            strLength = std::char_traits<char16_t>::length(static_cast<const char16_t*>(text)) * sizeof(char16_t);
+            break;
+        }
+        case TextEncoding::UTF32: {
+            strLength = std::char_traits<char32_t>::length(static_cast<const char32_t*>(text)) * sizeof(char32_t);
+            break;
+        }
+        case TextEncoding::GLYPH_ID: {
+            strLength = length;
+            break;
+        }
+        default:
+            break;
+    }
+    SkTextUtils::GetPath(text, std::min(strLength, length), static_cast<SkTextEncoding>(encoding), x, y, skFont_,
+        &skpath);
 }
 
 const SkFont& SkiaFont::GetFont() const

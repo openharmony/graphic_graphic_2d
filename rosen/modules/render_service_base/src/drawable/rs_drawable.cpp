@@ -628,7 +628,8 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
         }
     }
     if (bgFilterDrawable->FuzePixelStretch(node)) {
-        pixelStretchDrawable->SetPixelStretch(std::nullopt);
+        float INFTY = std::numeric_limits<float>::infinity();
+        pixelStretchDrawable->SetPixelStretch(Vector4f{ INFTY, INFTY, INFTY, INFTY });
         return true;
     }
 

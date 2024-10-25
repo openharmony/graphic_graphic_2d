@@ -61,6 +61,7 @@ public:
     void TearDown() {}
     void SetMultiAppStrategy(MultiAppStrategyType multiAppStrategyType, const std::string& strategyName = "");
     std::vector<std::string> CreateVotePkgs();
+    HgmErrCode GetTouchVoteInfo(VoteInfo& touchVoteInfo);
 
     std::vector<PkgParam> pkgParams_;
     std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
@@ -119,6 +120,24 @@ std::vector<std::string> HgmMultiAppStrategyTest::CreateVotePkgs()
     return pkgs;
 }
 
+HgmErrCode HgmMultiAppStrategyTest::GetTouchVoteInfo(VoteInfo& touchVoteInfo)
+{
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return HGM_ERROR;
+    }
+    auto iter = frameRateMgr->voteRecord_.find("VOTER_TOUCH");
+    if (iter == frameRateMgr->voteRecord_.end()) {
+        return HGM_ERROR;
+    }
+    auto& [voteInfos, _] = iter->second;
+    if (voteInfos.empty()) {
+        return HGM_ERROR;
+    }
+    touchVoteInfo = voteInfos.back();
+    return EXEC_SUCCESS;
+}
+
 /**
  * @tc.name: SingleAppTouch001
  * @tc.desc: Verify the result of SingleAppTouch001 function
@@ -132,6 +151,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Leve
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
+        VoteInfo touchVoteInfo;
         HgmErrCode res;
         SetMultiAppStrategy(MultiAppStrategyType::USE_MAX);
 
@@ -149,28 +169,23 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch001, Function | SmallTest | Leve
                 .upExpectFps = OLED_120_HZ,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
-            ASSERT_EQ(strategyConfig.min, downFps0);
-            ASSERT_EQ(strategyConfig.max, downFps0);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, downFps0);
+            ASSERT_EQ(touchVoteInfo.max, downFps0);
 
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
-            ASSERT_EQ(strategyConfig.min, fps0);
-            ASSERT_EQ(strategyConfig.max, fps0);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, downFps0);
+            ASSERT_EQ(touchVoteInfo.max, downFps0);
 
             touchInfo = {
                 .touchState = TouchState::IDLE_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
-            ASSERT_EQ(strategyConfig.min, fps0);
-            ASSERT_EQ(strategyConfig.max, fps0);
+            ASSERT_NE(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
         }
     }
 }
@@ -189,6 +204,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
+        VoteInfo touchVoteInfo;
         HgmErrCode res;
         SetMultiAppStrategy(MultiAppStrategyType::USE_MAX);
 
@@ -206,10 +222,9 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
                 .upExpectFps = OLED_120_HZ,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
-            ASSERT_EQ(strategyConfig.min, OLED_144_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_144_HZ);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, OLED_144_HZ);
+            ASSERT_EQ(touchVoteInfo.max, OLED_144_HZ);
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
             };
@@ -218,8 +233,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch002, Function | SmallTest | Leve
                 .touchState = TouchState::IDLE_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
+            ASSERT_NE(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
         }
     }
 }
@@ -238,6 +252,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
         std::vector<std::string> voteParam = { pkgParam.pkgName + ":" + std::to_string(pkgParam.pid), };
 
         PolicyConfigData::StrategyConfig strategyConfig;
+        VoteInfo touchVoteInfo;
         HgmErrCode res;
         SetMultiAppStrategy(MultiAppStrategyType::USE_MAX);
 
@@ -260,10 +275,9 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
                 .upExpectFps = OLED_120_HZ,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
-            ASSERT_EQ(strategyConfig.min, OLED_144_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_144_HZ);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, OLED_144_HZ);
+            ASSERT_EQ(touchVoteInfo.max, OLED_144_HZ);
 
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
@@ -273,10 +287,7 @@ HWTEST_F(HgmMultiAppStrategyTest, SingleAppTouch003, Function | SmallTest | Leve
                 .touchState = TouchState::IDLE_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            res = multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(res, EXEC_SUCCESS);
-            ASSERT_EQ(strategyConfig.min, OLED_NULL_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_120_HZ);
+            ASSERT_NE(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
         }
     }
 }
@@ -291,6 +302,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
+        VoteInfo touchVoteInfo;
         SetMultiAppStrategy(MultiAppStrategyType::USE_MAX);
         STEP("1. pkg vote") {
             multiAppStrategy_->HandlePkgsEvent(CreateVotePkgs());
@@ -305,9 +317,9 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level
                 .upExpectFps = OLED_120_HZ,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, downFps0);
-            ASSERT_EQ(strategyConfig.max, downFps0);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, downFps0);
+            ASSERT_EQ(touchVoteInfo.max, downFps0);
 
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
@@ -317,10 +329,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch001, Function | SmallTest | Level
                 .touchState = TouchState::IDLE_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, fps1);
-            ASSERT_EQ(strategyConfig.max, fps1);
+            ASSERT_NE(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
         }
     }
 }
@@ -335,6 +344,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
+        VoteInfo touchVoteInfo;
         SetMultiAppStrategy(MultiAppStrategyType::USE_MAX);
         STEP("1. pkg vote") {
             multiAppStrategy_->HandlePkgsEvent(CreateVotePkgs());
@@ -346,9 +356,9 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
                 .upExpectFps = OLED_120_HZ,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, downFps1);
-            ASSERT_EQ(strategyConfig.max, downFps1);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, downFps1);
+            ASSERT_EQ(touchVoteInfo.max, downFps1);
 
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
@@ -358,10 +368,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch002, Function | SmallTest | Level
                 .touchState = TouchState::IDLE_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, fps1);
-            ASSERT_EQ(strategyConfig.max, fps1);
+            ASSERT_NE(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
         }
     }
 }
@@ -376,6 +383,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level
 {
     PART("CaseDescription") {
         PolicyConfigData::StrategyConfig strategyConfig;
+        VoteInfo touchVoteInfo;
         SetMultiAppStrategy(MultiAppStrategyType::USE_MAX);
         STEP("1. pkg vote") {
             multiAppStrategy_->HandlePkgsEvent(CreateVotePkgs());
@@ -387,9 +395,9 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level
                 .upExpectFps = OLED_120_HZ,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, OLED_144_HZ);
-            ASSERT_EQ(strategyConfig.max, OLED_144_HZ);
+            ASSERT_EQ(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
+            ASSERT_EQ(touchVoteInfo.min, OLED_144_HZ);
+            ASSERT_EQ(touchVoteInfo.max, OLED_144_HZ);
 
             touchInfo = {
                 .touchState = TouchState::UP_STATE,
@@ -399,10 +407,7 @@ HWTEST_F(HgmMultiAppStrategyTest, MultiAppTouch003, Function | SmallTest | Level
                 .touchState = TouchState::IDLE_STATE,
             };
             multiAppStrategy_->HandleTouchInfo(touchInfo);
-
-            multiAppStrategy_->GetVoteRes(strategyConfig);
-            ASSERT_EQ(strategyConfig.min, fps1);
-            ASSERT_EQ(strategyConfig.max, fps1);
+            ASSERT_NE(GetTouchVoteInfo(touchVoteInfo), EXEC_SUCCESS);
         }
     }
 }
@@ -603,6 +608,8 @@ HWTEST_F(HgmMultiAppStrategyTest, SpecialBranch, Function | SmallTest | Level1)
         multiAppStrategy->AnalyzePkgParam("com.app10:a"); // err pid
         multiAppStrategy->AnalyzePkgParam("com.app10:0:0");
         multiAppStrategy->AnalyzePkgParam("com.app10:0:a"); // err appType
+        auto [pkgName, pid, appType] = multiAppStrategy->AnalyzePkgParam("com.app10");
+        ASSERT_EQ(pkgName, "com.app10");
     }
     STEP("OnStrategyChange") {
         multiAppStrategy->RegisterStrategyChangeCallback([] (const PolicyConfigData::StrategyConfig&) {});

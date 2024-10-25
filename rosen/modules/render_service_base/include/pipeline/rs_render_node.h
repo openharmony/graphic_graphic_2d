@@ -102,7 +102,6 @@ public:
                                 std::vector<RSRenderNode::SharedPtr>& vec,
                                 bool isUniRender,
                                 bool onlyFirstLevel);
-    virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
@@ -183,6 +182,11 @@ public:
     inline RectI GetFilterRegion() const
     {
         return filterRegion_;
+    }
+
+    inline bool IsWaitSync() const
+    {
+        return waitSync_;
     }
 
     using ChildrenListSharedPtr = std::shared_ptr<const std::vector<std::shared_ptr<RSRenderNode>>>;
@@ -657,10 +661,7 @@ public:
         isChildSupportUifirst_ = isChildSupportUifirst_ && b;
     }
 
-    virtual bool GetUifirstSupportFlag()
-    {
-        return !GetRenderProperties().GetSandBox() && isChildSupportUifirst_ && isUifirstNode_;
-    }
+    virtual bool GetUifirstSupportFlag();
 
     virtual void MergeOldDirtyRect()
     {
@@ -758,6 +759,25 @@ public:
         return isFullChildrenListValid_;
     }
 
+    virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
+
+    int32_t GetCurDisplayOffsetX() const
+    {
+        return curDisplayOffsetX_;
+    }
+    void SetCurDisplayOffsetX(int32_t offsetX)
+    {
+        curDisplayOffsetX_ = offsetX;
+    }
+    int32_t GetCurDisplayOffsetY() const
+    {
+        return curDisplayOffsetY_;
+    }
+    void SetCurDisplayOffsetY(int32_t offsetY)
+    {
+        curDisplayOffsetY_ = offsetY;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -790,6 +810,9 @@ protected:
     virtual void OnSync();
     virtual void OnSkipSync() {};
     virtual void ClearResource() {};
+    virtual void ClearNeverOnTree() {};
+
+    void UpdateDrawableVecV2();
 
     mutable std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> renderDrawable_;
     NodeId drawingCacheRootId_ = INVALID_NODEID;
@@ -807,6 +830,7 @@ protected:
     std::atomic<bool> isStaticCached_ = false;
     bool lastFrameHasVisibleEffect_ = false;
     RectI filterRegion_;
+    bool waitSync_ = false;
 
     inline void DrawPropertyDrawable(RSPropertyDrawableSlot slot, RSPaintFilterCanvas& canvas)
     {
@@ -834,7 +858,7 @@ protected:
     ModifierDirtyTypes curDirtyTypes_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
     bool lastFrameSynced_ = true;
-    bool clipAbsDrawRectChange_ = false;
+    bool absDrawRectChange_ = false;
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
@@ -843,6 +867,8 @@ private:
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
+    int32_t curDisplayOffsetX_ = 0;
+    int32_t curDisplayOffsetY_ = 0;
     bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
@@ -1010,7 +1036,7 @@ private:
 
     void SetParent(WeakPtr parent);
     void ResetParent();
-    void UpdateClipAbsDrawRectChangeState(const RectI& clipRect);
+    void UpdateAbsDrawRectChangeState();
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
@@ -1049,7 +1075,6 @@ private:
 
     void UpdateDrawableVec();
     void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
-    void UpdateDrawableVecV2();
     void UpdateDisplayList();
     void UpdateShadowRect();
 
@@ -1079,6 +1104,10 @@ struct SharedTransitionParam {
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    bool IsInAppTranSition() const
+    {
+        return !crossApplication_;
+    }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
 

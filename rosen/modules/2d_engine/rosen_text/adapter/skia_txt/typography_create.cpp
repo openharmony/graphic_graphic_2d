@@ -14,6 +14,7 @@
  */
 
 #include "typography_create.h"
+#include "utils/text_trace.h"
 
 #include "convert.h"
 #include "line_typography.h"
@@ -39,6 +40,7 @@ TypographyCreate::TypographyCreate(const TypographyStyle& style,
 
 void TypographyCreate::PushStyle(const TextStyle& style)
 {
+    TEXT_TRACE_FUNC();
     auto txtTextStyle = Convert(style);
     builder_->PushStyle(txtTextStyle);
 }
@@ -50,6 +52,7 @@ void TypographyCreate::PopStyle()
 
 void TypographyCreate::AppendText(const std::u16string& text)
 {
+    TEXT_TRACE_FUNC();
     builder_->AddText(text);
 }
 
@@ -69,6 +72,7 @@ std::vector<uint16_t> TypographyCreate::SymbolToUTF16(const std::vector<uint32_t
 
 void TypographyCreate::AppendSymbol(const uint32_t& symbolId)
 {
+    TEXT_TRACE_FUNC();
     std::vector<uint32_t> symbolUnicode = {symbolId};
     std::vector<uint16_t> symbolUnicode16 = SymbolToUTF16(symbolUnicode);
     std::u16string text;
@@ -84,12 +88,14 @@ void TypographyCreate::AppendPlaceholder(const PlaceholderSpan& span)
 
 std::unique_ptr<OHOS::Rosen::Typography> TypographyCreate::CreateTypography()
 {
+    TEXT_TRACE_FUNC();
     auto paragraph = builder_->Build();
     return std::make_unique<Typography>(std::move(paragraph));
 }
 
 std::unique_ptr<OHOS::Rosen::LineTypography> TypographyCreate::CreateLineTypography()
 {
+    TEXT_TRACE_FUNC();
     auto lineFetcher = builder_->BuildLineFetcher();
     if (lineFetcher == nullptr) {
         return nullptr;

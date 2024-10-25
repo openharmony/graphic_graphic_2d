@@ -152,8 +152,13 @@ public:
         if ((size <= 0) || (size > Rosen::Image::maxSize)) {
             return false;
         }
+        if (!image) {
+            return false;
+        }
 
-        base = new uint8_t[size];
+        allocType = AllocatorType::HEAP_ALLOC;
+
+        base = new (std::nothrow) uint8_t[size];
         if (!base) {
             return false;
         }

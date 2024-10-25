@@ -86,6 +86,8 @@ sptr<VSyncGenerator> CreateVSyncGenerator();
 void DestroyVSyncGenerator();
 
 namespace impl {
+uint32_t CalculateRefreshRate(int64_t period);
+
 class VSyncGenerator : public OHOS::Rosen::VSyncGenerator {
 public:
     static sptr<OHOS::Rosen::VSyncGenerator> GetInstance() noexcept;

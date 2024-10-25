@@ -113,10 +113,7 @@ public:
         return isNodeDirty_;
     }
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+    bool IsHardwareEnabledTopSurface() const;
 
     void SetLayerTop(bool isTop);
 
@@ -132,13 +129,19 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface() || IsLayerTop();
+            IsLayerTop();
     }
 
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
+    bool IsDynamicHardwareEnable() const
+    {
+        return dynamicHardwareEnable_;
+    }
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true)
     {
         isHardwareEnabledNode_ = isEnabled;
         selfDrawingType_ = selfDrawingType;
+        dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
@@ -155,7 +158,7 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
             (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
-                name_ == "VMLinuxXComponentSurface");
+                name_ == "VMLinuxXComponentSurface" || name_.find("HwStylusFeature") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
@@ -262,7 +265,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isProtectedLayer_) {
+        // a protected node not on the tree need to release buffer when producer produce buffers
+        // release buffer in ReleaseSelfDrawingNodeBuffer function
+        if (isProtectedLayer_ && IsOnTheTree()) {
             return false;
         }
         return isHardwareForcedDisabled_ ||
@@ -399,7 +404,6 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
-    void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
@@ -414,7 +418,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsSCBNode() const;
-    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
@@ -447,6 +451,7 @@ public:
     bool GetGlobalPositionEnabled() const;
 
     void SetSecurityLayer(bool isSecurityLayer);
+    void SetLeashPersistentId(uint64_t leashPersistentId);
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
@@ -456,16 +461,18 @@ public:
     bool GetSkipLayer() const;
     bool GetSnapshotSkipLayer() const;
     bool GetProtectedLayer() const;
+    LeashPersistentId GetLeashPersistentId() const;
 
     // set ability state that surfaceNode belongs to as foreground or background
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
-    RSSurfaceNodeAbilityState GetAbilityState() const;
+    RSSurfaceNodeAbilityState GetAbilityState() const override;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
     bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
+    bool GetHasPrivacyContentLayer() const;
 
     void ResetSpecialLayerChangedFlag()
     {
@@ -482,6 +489,7 @@ public:
     void SyncOnTheTreeInfoToFirstLevelNode();
     void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
+    void SyncPrivacyContentInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -553,6 +561,11 @@ public:
     Occlusion::Region& GetTransparentRegion()
     {
         return transparentRegion_;
+    }
+
+    const Occlusion::Region& GetRoundedCornerRegion() const
+    {
+        return roundedCornerRegion_;
     }
 
     const Occlusion::Region& GetOpaqueRegion() const
@@ -855,7 +868,7 @@ public:
         const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
-    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius) const;
+    void SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius);
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
     bool CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
@@ -1178,6 +1191,7 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(int32_t sdrNit);
     void SetDisplayNit(int32_t displayNit);
@@ -1192,6 +1206,12 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
                nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    }
+
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadius);
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
@@ -1215,12 +1235,15 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     const std::unordered_map<std::string, bool>& GetWatermark() const;
     bool IsWatermarkEmpty() const;
+
     template<class... Args>
-    void SetIntersectedRoundCornerAABBs(Args&& ...args) {
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
+    {
         std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
-
-    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const {
+    
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
+    {
         return intersectedRoundCornerAABBs_;
     }
 
@@ -1285,6 +1308,7 @@ private:
     std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
 
@@ -1300,6 +1324,7 @@ private:
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -1323,6 +1348,7 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
+    uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
@@ -1350,6 +1376,8 @@ private:
     Occlusion::Region extraDirtyRegionAfterAlignment_;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
 
+    // region of rounded corner
+    Occlusion::Region roundedCornerRegion_;
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
     bool opaqueRegionChanged_ = false;
@@ -1424,6 +1452,7 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     RectI originalDstRect_;
@@ -1505,6 +1534,7 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+    bool needHidePrivacyContent_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};

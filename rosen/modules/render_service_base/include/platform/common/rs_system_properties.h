@@ -138,6 +138,7 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetRsMemoryOptimizeEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -179,6 +180,7 @@ public:
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
+    static bool GetHardCursorEnabled();
 
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();

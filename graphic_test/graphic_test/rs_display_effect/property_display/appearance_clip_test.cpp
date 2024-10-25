@@ -24,8 +24,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -37,33 +37,38 @@ public:
 
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipRRect_Test_1)
 {
-    Vector4f rect[] = {
+    const Vector4f rect[] = {
         { 0.0, 0.0, 250.0, 250.0 },
         { 100.0, 100.0, 450.0, 450.0 },
         { 100.0, 100.0, 200.0, 200.0 },
     };
-    Vector4f radius[] = {
+    const Vector4f radius[] = {
         { 100.0, 100.0, 100.0, 100.0 },
         { 250.0, 250.0, 250.0, 250.0 },
         { 500.0, 500.0, 500.0, 500.0 },
     };
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+    const int counts = 3;
+    for (int i = 0; i < counts; i++) {
+        for (int j = 0; j < counts; j++) {
+            Vector4f bounds = { i * 410.0, j * 500.0, 400.0, 400.0 };
+            const int nodeSize = 400;
+            const int fontSize = 50;
+
             auto testFaNode = RSCanvasNode::Create();
-            testFaNode->SetBounds({ i * 410.0, j * 500.0, 400.0, 400.0 });
-            testFaNode->SetFrame({ i * 410.0, j * 500.0, 400.0, 400.0 });
+            testFaNode->SetBounds(bounds);
+            testFaNode->SetFrame(bounds);
             auto imageModifier = std::make_shared<ImageCustomModifier>();
-            imageModifier->SetWidth(400);
-            imageModifier->SetHeight(400);
+            imageModifier->SetWidth(nodeSize);
+            imageModifier->SetHeight(nodeSize);
             imageModifier->SetPixelMapPath("/data/local/tmp/fg_test.jpg");
             testFaNode->AddModifier(imageModifier);
             auto textModifier = std::make_shared<TextCustomModifier>();
             textModifier->SetText("TestText");
-            textModifier->SetFontSize(50.0);
+            textModifier->SetFontSize(fontSize);
             testFaNode->AddModifier(textModifier);
             testFaNode->SetClipToBounds(true);
             auto testNode = RSCanvasNode::Create();
-            testNode->SetBounds({ 0.0, 50.0, 400.0, 400.0 });
+            testNode->SetBounds({ 0.0, fontSize, nodeSize, nodeSize });
             testNode->SetBackgroundColor(0xff00ff00);
             testFaNode->AddChild(testNode);
             testFaNode->SetClipRRect(rect[i], radius[j]);
@@ -76,28 +81,33 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipRRect_Test_1)
 
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, ClipRRect_Test_2)
 {
-    Vector4f rect[] = {
+    const Vector4f rect[] = {
         { 0.0, 0.0, 250.0, 250.0 },
         { 100.0, 100.0, 450.0, 450.0 },
         { 100.0, 100.0, 200.0, 200.0 },
     };
-    Vector4f radius[] = {
+    const Vector4f radius[] = {
         { 100.0, 100.0, 100.0, 100.0 },
         { 250.0, 250.0, 250.0, 250.0 },
         { 500.0, 500.0, 500.0, 500.0 },
     };
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
+    const int counts = 3;
+    for (int i = 0; i < counts; i++) {
+        for (int j = 0; j < counts; j++) {
+            Vector4f bounds = { i * 410.0, j * 500.0, 400.0, 400.0 };
+            const int nodeSize = 400;
+            const int nodePosY = 50;
+
             auto testFaNode = RSCanvasNode::Create();
-            testFaNode->SetBounds({ i * 410.0, j * 500.0, 400.0, 400.0 });
+            testFaNode->SetBounds(bounds);
             auto imageModifier = std::make_shared<ImageCustomModifier>();
-            imageModifier->SetWidth(400);
-            imageModifier->SetHeight(400);
+            imageModifier->SetWidth(nodeSize);
+            imageModifier->SetHeight(nodeSize);
             imageModifier->SetPixelMapPath("/data/local/tmp/fg_test.jpg");
             testFaNode->AddModifier(imageModifier);
             testFaNode->SetClipToBounds(false);
             auto testNode = RSCanvasNode::Create();
-            testNode->SetBounds({ 0.0, 50.0, 400.0, 400.0 });
+            testNode->SetBounds({ 0.0, nodePosY, nodeSize, nodeSize });
             testNode->SetBackgroundColor(0xff00ff00);
             testFaNode->AddChild(testNode);
             testFaNode->SetClipRRect(rect[i], radius[j]);

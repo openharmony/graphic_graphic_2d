@@ -76,7 +76,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Test_1)
 
     // set background image alpha
     const std::string imgPath = "/data/local/tmp/appearance_test.jpg";
-    for (int i = 0; i < columnCount; i++) {
+    for (int i = 0; i < rowCount; i++) {
         int x = (i % rowCount) * (nodeWidth + nodeGap);
         int y = (columnCount + columnCount) * (nodeHeight + nodeGap);
         auto testNodeBgImg = SetUpNodeBgImage(imgPath, { x, y, nodeWidth, nodeHeight });
@@ -157,7 +157,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Offscreen_Te
             RegisterNode(testNodeParent);
 
             auto testNodeChild = RSCanvasNode::Create();
-            testNodeChild->SetBounds({ x, y, nodeSize, nodeSize });
+            testNodeChild->SetBounds({ 0, 0, nodeSize, nodeSize });
             testNodeChild->SetTranslate(0, 50, 0); // Set Y-Position to 50
             testNodeChild->SetAlpha(0.2); // Set alpha to 0.2
             testNodeChild->SetBackgroundColor(colorList[i]);
@@ -180,7 +180,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Alpha_Offscreen_Te
             RegisterNode(testNodeParent);
 
             auto testNodeChild = RSCanvasNode::Create();
-            testNodeChild->SetBounds({ x, y, nodeSize, nodeSize });
+            testNodeChild->SetBounds({ 0, 0, nodeSize, nodeSize });
             testNodeChild->SetTranslate(0, 50, 0); // Set Y-Position to 50
             testNodeChild->SetAlpha(0.2); // Set alpha = 0.2
             testNodeChild->SetBackgroundColor(colorList[i]);

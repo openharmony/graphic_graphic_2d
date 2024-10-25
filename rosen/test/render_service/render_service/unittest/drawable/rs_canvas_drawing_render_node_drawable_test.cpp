@@ -133,8 +133,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
-    drawable->PlaybackInCorrespondThread();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 }
 
@@ -392,7 +393,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     Drawing::Rect* rect = nullptr;
     uint64_t tid = INVALID_NODEID;
@@ -552,7 +554,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetCurrentContextAndImageTest, T
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     int width = 1;

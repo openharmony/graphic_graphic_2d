@@ -303,5 +303,81 @@ HWTEST_F(HgmIdleDetectorTest, GetUiFrameworkTypeTable, Function | SmallTest | Le
         }
     }
 }
+
+/**
+ * @tc.name: UpdateAndGetAceAnimatorExpectedFrameRate001
+ * @tc.desc: Verify the result of UpdateAndGetAceAnimatorExpectedFrameRate001 function
+ * @tc.type: FUNC
+ * @tc.require: IAW09K
+ */
+HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate001, Function | SmallTest | Level1)
+{
+    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
+
+    PART("CaseDescription") {
+        STEP("1. get an idleDetector") {
+            STEP_ASSERT_NE(idleDetector, nullptr);
+        }
+        STEP("2. update ace animator expected frame rate") {
+            // verify out of range conditions
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(-2);
+        }
+        STEP("3. get ace animator expected frame rate") {
+            int32_t ret = idleDetector->GetAceAnimatorExpectedFrameRate();
+            STEP_ASSERT_EQ(ret, ANIMATOR_NOT_RUNNING);
+        }
+    }
+}
+
+/**
+ * @tc.name: UpdateAndGetAceAnimatorExpectedFrameRate002
+ * @tc.desc: Verify the result of UpdateAndGetAceAnimatorExpectedFrameRate002 function
+ * @tc.type: FUNC
+ * @tc.require: IAW09K
+ */
+HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate002, Function | SmallTest | Level1)
+{
+    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
+
+    PART("CaseDescription") {
+        STEP("1. get an idleDetector") {
+            STEP_ASSERT_NE(idleDetector, nullptr);
+        }
+        STEP("2. update ace animator expected frame rate") {
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(60);
+        }
+        STEP("3. get ace animator expected frame rate") {
+            int32_t ret = idleDetector->GetAceAnimatorExpectedFrameRate();
+            STEP_ASSERT_EQ(ret, 60);
+        }
+    }
+}
+
+/**
+ * @tc.name: ResetAceAnimatorExpectedFrameRate
+ * @tc.desc: Verify the result of ResetAceAnimatorExpectedFrameRate function
+ * @tc.type: FUNC
+ * @tc.require: IAW09K
+ */
+HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | SmallTest | Level1)
+{
+    std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
+
+    PART("CaseDescription") {
+        STEP("1. get an idleDetector") {
+            STEP_ASSERT_NE(idleDetector, nullptr);
+        }
+        STEP("2. update ace animator expected frame rate") {
+            idleDetector->UpdateAceAnimatorExpectedFrameRate(120);
+        }
+        STEP("3. reset ace animator expected frame rate") {
+            idleDetector->ResetAceAnimatorExpectedFrameRate();
+        }
+        STEP("4. get ace animator expected frame rate") {
+            int32_t ret = idleDetector->GetAceAnimatorExpectedFrameRate();
+            STEP_ASSERT_EQ(ret, ANIMATOR_NOT_RUNNING);
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

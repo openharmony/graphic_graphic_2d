@@ -41,6 +41,15 @@ constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 RSImage::~RSImage()
 {}
 
+inline void ReMapPixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef ROSEN_OHOS
+    if (pixelMap && pixelMap->IsUnMap()) {
+        pixelMap->ReMap();
+    }
+#endif
+}
+
 bool RSImage::IsEqual(const RSImage& other) const
 {
     bool radiusEq = true;
@@ -114,6 +123,8 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
+    bool isFitMatrixValid = !isBackground && imageFit_ == ImageFit::MATRIX &&
+                                fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());
@@ -124,8 +135,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             ApplyImageFit();
             ApplyCanvasClip(canvas);
         }
-        bool isFitMatrixValid = !isBackground && imageFit_ == ImageFit::MATRIX &&
-                                fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
         if (isFitMatrixValid) {
             canvas.Save();
             canvas.ConcatMatrix(fitMatrix_.value());
@@ -135,11 +144,16 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             canvas.Restore();
         }
     } else {
-        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
+        bool needCanvasRestore = HasRadius() || (pixelMap_ != nullptr && pixelMap_->IsAstc()) ||
+                                 isFitMatrixValid;
+        Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
         if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Save();
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
         }
+        if (isFitMatrixValid) {
+            canvas.ConcatMatrix(fitMatrix_.value());
+        }
+        ReMapPixelMap(pixelMap_);
         if (image_) {
             if (!isBackground) {
                 ApplyCanvasClip(canvas);
@@ -152,9 +166,6 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
                 canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                     Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
             }
-        }
-        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Restore();
         }
     }
     lastRect_ = rect;
@@ -417,6 +428,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
+    ReMapPixelMap(pixelMap_);
     int minX = 0;
     int minY = 0;
     int maxX = 0;
@@ -515,6 +527,7 @@ void RSImage::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
 {
     isDrawn_ = false;
     compressData_ = compressData;
+    canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
 }
 #endif
 

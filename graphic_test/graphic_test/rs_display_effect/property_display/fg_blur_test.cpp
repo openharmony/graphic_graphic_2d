@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "parameters_defination.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
@@ -26,8 +27,8 @@ namespace OHOS::Rosen {
 
 class ForegroundTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -40,10 +41,10 @@ public:
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_ForegroundEffectRadius_Test_1)
 {
     float radiusList[] = { 0, 10.0, 100.0 };
-    for (int i = 0; i < 3; i++) {
-        int x = (i % 2) * 510;
-        int y = (i / 2) * 510;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 500, 500 });
+    for (int i = 0; i < THREE_; i++) {
+        int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
+        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNode->SetForegroundEffectRadius(radiusList[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
@@ -54,10 +55,10 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_Saturation_Test_1)
 {
     float radiusList[] = { 10.0, 0.0, 10.0, 10.0 };
     float degreeList[] = { 0.0, 0.5, 0.5, 5.0 };
-    for (int i = 0; i < 4; i++) {
-        int x = (i % 2) * 510;
-        int y = (i / 2) * 510;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 500, 500 });
+    for (int i = 0; i < FOUR_; i++) {
+        int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
+        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNode->SetForegroundBlurRadius(radiusList[i]);
         testNode->SetForegroundBlurSaturation(degreeList[i]);
         GetRootNode()->AddChild(testNode);
@@ -69,10 +70,10 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_Brightness_Test_1)
 {
     float radiusList[] = { 10.0, 0.0, 10.0, 10.0 };
     float degreeList[] = { 0.0, 0.5, 0.5, 1.5 };
-    for (int i = 0; i < 4; i++) {
-        int x = (i % 2) * 510;
-        int y = (i / 2) * 510;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 500, 500 });
+    for (int i = 0; i < FOUR_; i++) {
+        int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
+        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNode->SetForegroundBlurRadius(radiusList[i]);
         testNode->SetForegroundBlurBrightness(degreeList[i]);
         GetRootNode()->AddChild(testNode);
@@ -84,10 +85,10 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_Color_Test_1)
 {
     float radiusList[] = { 10.0, 0.0, 10.0 };
     uint32_t colorList[] = { 0x00ffffff, 0x0000ff00, 0x7d00ff00 };
-    for (int i = 0; i < 3; i++) {
-        int x = (i % 2) * 510;
-        int y = (i / 2) * 510;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 500, 500 });
+    for (int i = 0; i < THREE_; i++) {
+        int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
+        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
         testNode->SetForegroundBlurRadius(radiusList[i]);
         testNode->SetForegroundBlurMaskColor(RSColor::FromArgbInt(colorList[i]));
         GetRootNode()->AddChild(testNode);
@@ -97,11 +98,11 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_Color_Test_1)
 
 GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_ColorMode_Test_1)
 {
-    for (int i = 0; i < 3; i++) {
-        int x = (i % 2) * 510;
-        int y = (i / 2) * 510;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 500, 500 });
-        testNode->SetForegroundBlurRadius(10.f);
+    for (int i = 0; i < THREE_; i++) {
+        int x = (i % TWO_) * FIVE_HUNDRED_TEN_;
+        int y = (i / TWO_) * FIVE_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+        testNode->SetForegroundBlurRadius(TEN_);
         testNode->SetForegroundBlurMaskColor(RSColor::FromArgbInt(0x7dff0000));
         testNode->SetForegroundBlurColorMode(i);
         GetRootNode()->AddChild(testNode);
@@ -113,10 +114,10 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_RadiusXY_Test_1)
 {
     float radiusX[] = { 0.0, 1.1, 10.0, 10.0 };
     float radiusY[] = { 0.0, 10.0, 1.1, 10.0 };
-    for (int i = 0; i < 4; i++) {
-        int x = (i % 2) * 610;
-        int y = (i / 2) * 610;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 600, 600 });
+    for (int i = 0; i < FOUR_; i++) {
+        int x = (i % TWO_) * SIX_HUNDRED_TEN_;
+        int y = (i / TWO_) * SIX_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, SIX_HUNDRED_, SIX_HUNDRED_ });
         testNode->SetForegroundBlurRadiusX(radiusX[i]);
         testNode->SetForegroundBlurRadiusY(radiusY[i]);
         GetRootNode()->AddChild(testNode);
@@ -140,13 +141,13 @@ GRAPHIC_TEST(ForegroundTest, CONTENT_DISPLAY_TEST, Blur_LinearGradientBlur_Test_
         { std::make_pair(0.0, 0.0), std::make_pair(1.0, 1.0) },
         { std::make_pair(0.0, 0.0), std::make_pair(1.0, 0.5), std::make_pair(0.0, 1.0) },
     };
-    for (int i = 0; i < 5; i++) {
-        int x = (i % 2) * 610;
-        int y = (i / 2) * 610;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, 600, 600 });
-        testNode->SetFrame({ x, y, 600, 600 });
+    for (int i = 0; i < FIVE_; i++) {
+        int x = (i % TWO_) * SIX_HUNDRED_TEN_;
+        int y = (i / TWO_) * SIX_HUNDRED_TEN_;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, SIX_HUNDRED_, SIX_HUNDRED_ });
+        testNode->SetFrame({ x, y, SIX_HUNDRED_, SIX_HUNDRED_ });
         std::shared_ptr<RSLinearGradientBlurPara> param(
-            std::make_shared<Rosen::RSLinearGradientBlurPara>(100.f, fractionStops[i], direction[i]));
+            std::make_shared<Rosen::RSLinearGradientBlurPara>(ONE_HUNDRED_, fractionStops[i], direction[i]));
         testNode->SetLinearGradientBlurPara(param);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);

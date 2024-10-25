@@ -67,6 +67,9 @@ public:
     bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
+    uint64_t GetActualTimestamp() const;
+    uint64_t GetVsyncId() const;
+    bool GetForceRefreshFlag() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
 
@@ -77,7 +80,7 @@ public:
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
-    void ResetClearMemoryTask();
+    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids);
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -208,6 +211,7 @@ private:
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
+    std::unordered_set<NodeId> nodesNeedToBeClearMemory_;
     DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;

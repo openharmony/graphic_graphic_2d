@@ -212,6 +212,15 @@ void RSCustomModifierDrawable::OnSync()
     needSync_ = false;
 }
 
+void RSCustomModifierDrawable::OnPurge()
+{
+    for (auto &drawCmdList : drawCmdListVec_) {
+        if (drawCmdList) {
+            drawCmdList->Purge();
+        }
+    }
+}
+
 Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());

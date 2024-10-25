@@ -193,3 +193,9 @@ RENDER_MEMORY_OVER_ERROR:
   CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
   GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
   TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}
+
+RS_HARDWARE_THREAD_LOAD_WARNING:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: add load warning for rs hardwarethread}
+  FRAME_RATE: {type: UINT16, desc: the refresh rate you set}
+  MISSED_FRAMES: {type: UINT32, desc: number of dropped frames}
+  FRAME_TIME: {type: UINT64, desc: frame length}
