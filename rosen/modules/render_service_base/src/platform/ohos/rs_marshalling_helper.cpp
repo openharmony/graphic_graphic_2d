@@ -1518,7 +1518,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
     if (cmdListData.second > LARGE_MALLOC) {
-        ROSEN_LOGW("RSMarshallingHelper::Marshalling this time malloc memory, size:%{public}lu", cmdListData.second);
+        ROSEN_LOGW("RSMarshallingHelper::Marshalling this time malloc memory, size:%{public}zu", cmdListData.second);
     }
     parcel.WriteInt32(val->GetWidth());
     parcel.WriteInt32(val->GetHeight());
