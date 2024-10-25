@@ -38,7 +38,6 @@ public:
     std::shared_ptr<RSGraphicRootNode> GetRootNode() const;
     Vector2f GetScreenSize() const;
     void SetSurfaceBounds(const Vector4f& bounds);
-    void SetScreenSurfaceBounds(const Vector4f& bounds);
     void SetSurfaceColor(const RSColor& color);
 
     static RSGraphicTestDirector& Instance();

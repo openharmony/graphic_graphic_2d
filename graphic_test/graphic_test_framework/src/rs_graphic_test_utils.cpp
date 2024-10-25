@@ -17,8 +17,6 @@
 #include "rs_graphic_log.h"
 #include "rs_graphic_test_utils.h"
 
-namespace OHOS {
-namespace Rosen {
 static bool WriteToPng(const std::string &filename, const WriteToPngParam &param)
 {
     if (filename.empty()) {
@@ -83,7 +81,4 @@ void WaitTimeout(int ms)
 {
     auto time = std::chrono::milliseconds(ms);
     std::this_thread::sleep_for(time);
-}
-
-}
 }
