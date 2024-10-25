@@ -338,27 +338,27 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
         }
-        std::unique_lock<std::mutex> lock(animationMutex_);
         RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_);
         target->AddAnimationInner(std::move(animation));
     }
-    std::unique_lock<std::mutex> lock(animationMutex_);
     animations_.clear();
 }
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     if (auto it = animatingPropertyNum_.find(animation->GetPropertyId()); it != animatingPropertyNum_.end()) {
         it->second--;
         if (it->second == 0) {
@@ -371,6 +371,7 @@ void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 
 void RSNode::FinishAnimationByProperty(const PropertyId& id)
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (const auto& [animationId, animation] : animations_) {
         if (animation->GetPropertyId() == id) {
             animation->Finish();
@@ -380,16 +381,10 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
 
 void RSNode::CancelAnimationByProperty(const PropertyId& id, const bool needForceSync)
 {
-    animatingPropertyNum_.erase(id);
     std::vector<std::shared_ptr<RSAnimation>> toBeRemoved;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_, std::defer_lock);
-        if (!lock.try_lock()) {
-            // The Arkui component has logic to cancel animation within the callback of another animation. However, this
-            // approach may cause a deadlock. Although it is a dirty workaround, it currently works as intended.
-            FinishAnimationByProperty(id);
-            return;
-        }
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        animatingPropertyNum_.erase(id);
         EraseIf(animations_, [id, &toBeRemoved](const auto& pair) {
             if (pair.second && (pair.second->GetPropertyId() == id)) {
                 toBeRemoved.emplace_back(pair.second);
@@ -438,7 +433,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
     auto animationId = animation->GetId();
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
         if (animations_.find(animationId) != animations_.end()) {
             ROSEN_LOGE("Failed to add animation, animation already exists!");
             return;
@@ -452,10 +447,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         FinishAnimationByProperty(animation->GetPropertyId());
     }
 
-    {
-        std::unique_lock<std::mutex> lock(animationMutex_);
-        AddAnimationInner(animation);
-    }
+    AddAnimationInner(animation);
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
@@ -465,6 +457,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
 void RSNode::RemoveAllAnimations()
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (const auto& [id, animation] : animations_) {
         RemoveAnimation(animation);
     }
@@ -477,11 +470,13 @@ void RSNode::RemoveAnimation(const std::shared_ptr<RSAnimation>& animation)
         return;
     }
 
-    if (animations_.find(animation->GetId()) == animations_.end()) {
-        ROSEN_LOGE("Failed to remove animation, animation not exists!");
-        return;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        if (animations_.find(animation->GetId()) == animations_.end()) {
+            ROSEN_LOGE("Failed to remove animation, animation not exists!");
+            return;
+        }
     }
-
     animation->Finish();
 }
 
@@ -504,14 +499,14 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 
 bool RSNode::HasPropertyAnimation(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     auto it = animatingPropertyNum_.find(id);
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
 std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     std::vector<AnimationId> animations;
     for (auto& [animateId, animation] : animations_) {
         if (animation->GetPropertyId() == id) {
@@ -2030,7 +2025,7 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
 {
     std::shared_ptr<RSAnimation> animation = nullptr;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
         auto animationItr = animations_.find(animationId);
         if (animationItr == animations_.end()) {
             ROSEN_LOGE("Failed to find animation[%{public}" PRIu64 "]!", animationId);

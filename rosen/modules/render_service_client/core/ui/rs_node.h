@@ -588,7 +588,7 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;
