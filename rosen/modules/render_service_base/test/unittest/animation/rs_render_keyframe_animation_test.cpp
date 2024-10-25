@@ -210,5 +210,23 @@ HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimate001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 end";
 }
 
+ 
+/**
+ * @tc.name: InitValueEstimatorTest001
+ * @tc.desc: Test valueEstimator_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderKeyframeAnimationTest, InitValueEstimatorTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest InitValueEstimatorTest001 start";
+ 
+    RSRenderKeyframeAnimation animation;
+    auto property = std::make_shared<RSRenderPropertyBase>();
+    animation.property_ = property;
+    animation.InitValueEstimator();
+    EXPECT_TRUE(animation.valueEstimator_ == nullptr);
+ 
+    GTEST_LOG_(INFO) << "RSRenderKeyframeAnimationTest InitValueEstimatorTest001 end";
+}
 } // namespace Rosen
 } // namespace OHOS
