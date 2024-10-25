@@ -49,11 +49,7 @@ RSImageBase::~RSImageBase()
 #endif
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
-            if (renderServiceImage_) {
-                RSImageCache::Instance().CollectUniqueId(uniqueId_);
-            } else {
-                RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
-            }
+            RSImageCache::Instance().CollectUniqueId(uniqueId_);
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
