@@ -2143,7 +2143,7 @@ bool RSMarshallingHelper::WriteToParcel(Parcel& parcel, const void* data, size_t
         return false;
     }
     if (size > MAX_DATA_SIZE) {
-        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%{public}zu", size);
+        ROSEN_LOGD("RSMarshallingHelper::WriteToParcel data exceed MAX_DATA_SIZE, size:%{public}lu", size);
     }
 
     if (!parcel.WriteUint32(size)) {
