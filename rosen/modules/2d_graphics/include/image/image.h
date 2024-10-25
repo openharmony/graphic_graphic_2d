@@ -434,6 +434,8 @@ public:
      */
     void HintCacheGpuResource() const;
 
+    inline void Dump(std::string& out) const;
+
     template<typename T>
     T* GetImpl() const
     {
