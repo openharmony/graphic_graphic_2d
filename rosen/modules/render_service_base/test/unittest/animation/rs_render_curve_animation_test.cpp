@@ -177,5 +177,22 @@ HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling003 end";
 }
 
+/**
+ * @tc.name: InitValueEstimatorTest001
+ * @tc.desc: Test valueEstimator_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, InitValueEstimatorTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest InitValueEstimatorTest001 start";
+ 
+    RSRenderCurveAnimation renderCurveAnimation;
+    auto property = std::make_shared<RSRenderPropertyBase>();
+    renderCurveAnimation.property_ = property;
+    renderCurveAnimation.InitValueEstimator();
+    EXPECT_TRUE(renderCurveAnimation.valueEstimator_ == nullptr);
+ 
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest InitValueEstimatorTest001 end";
+}
 } // namespace Rosen
 } // namespace OHOS
