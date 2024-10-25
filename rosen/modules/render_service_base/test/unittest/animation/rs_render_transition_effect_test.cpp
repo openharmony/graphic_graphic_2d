@@ -203,5 +203,6 @@ HWTEST_F(RSRenderTransitionEffectTest, UpdateFractionTest001, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSRenderTransitionEffectTest UpdateFractionTest001 end";
 }
+
 } // namespace Rosen
 } // namespace OHOS

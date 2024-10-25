@@ -390,5 +390,6 @@ HWTEST_F(RSRenderSpringAnimationTest, OnSetFraction001, TestSize.Level1)
     EXPECT_EQ(true, renderSpringAnimationMock->IsCalculateAniamtionValue());
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnSetFraction001 end";
 }
+
 } // namespace Rosen
 } // namespace OHOS

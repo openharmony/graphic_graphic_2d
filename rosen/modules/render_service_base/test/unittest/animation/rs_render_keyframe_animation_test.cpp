@@ -209,5 +209,6 @@ HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimate001, TestSize.Level1)
     EXPECT_TRUE(renderKeyframeAnimationMock != nullptr);
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 end";
 }
+
 } // namespace Rosen
 } // namespace OHOS

@@ -176,5 +176,6 @@ HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling003, TestSize.Level1)
     EXPECT_TRUE(animation == nullptr);
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling003 end";
 }
+
 } // namespace Rosen
 } // namespace OHOS
