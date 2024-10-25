@@ -112,9 +112,9 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
-    ScalingMode scalingMode = params.GetPreScalingMode();
+    ScalingMode scalingMode = params.GetScalingMode();
     if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params.SetPreScalingMode(scalingMode);
+        params.SetScalingMode(scalingMode);
     }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
@@ -283,7 +283,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-    layer->SetScalingMode(params.GetPreScalingMode());
+    layer->SetScalingMode(params.GetScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;

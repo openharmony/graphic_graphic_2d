@@ -1376,7 +1376,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
             if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                RSBaseRenderUtil::InitPreScalingMode(*surfaceNode);
+                RSBaseRenderUtil::SetScalingMode(*surfaceNode);
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,

@@ -473,8 +473,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeByTransform_002, TestSize.Level2)
     auto nodeParams = static_cast<RSSurfaceRenderParams*>(node->GetStagingRenderParams().get());
     ASSERT_NE(nodeParams, nullptr);
     ScalingMode preScalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
-    nodeParams->SetPreScalingMode(preScalingMode);
-    ASSERT_EQ(nodeParams->GetPreScalingMode(), SCALING_MODE_SCALE_TO_WINDOW); // SetPreScalingMode succeed
+    nodeParams->SetScalingMode(preScalingMode);
+    ASSERT_EQ(nodeParams->GetScalingMode(), SCALING_MODE_SCALE_TO_WINDOW); // SetScalingMode succeed
     const auto& buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
     rsUniRenderVisitor->UpdateHwcNodeByTransform(*node);
@@ -503,17 +503,17 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeByTransform_003, TestSize.Level2)
     ASSERT_NE(nodeParams, nullptr);
 
     ScalingMode preScalingMode = ScalingMode::SCALING_MODE_SCALE_CROP;
-    nodeParams->SetPreScalingMode(preScalingMode);
+    nodeParams->SetScalingMode(preScalingMode);
     auto& buffer = node->surfaceHandler_->buffer_.buffer;
     auto surface = static_cast<ConsumerSurface*>(node->surfaceHandler_->consumer_.refs_);
     ASSERT_NE(surface, nullptr);
 
     surface->consumer_ = nullptr;
     ASSERT_EQ(surface->GetScalingMode(buffer->GetSeqNum(), preScalingMode), GSERROR_INVALID_ARGUMENTS);
-    ASSERT_EQ(nodeParams->GetPreScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
+    ASSERT_EQ(nodeParams->GetScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
 
     rsUniRenderVisitor->UpdateHwcNodeByTransform(*node);
-    ASSERT_EQ(nodeParams->GetPreScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
+    ASSERT_EQ(nodeParams->GetScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
 }
 
 /**
@@ -538,17 +538,17 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeByTransform_004, TestSize.Level2)
     ASSERT_NE(nodeParams, nullptr);
 
     ScalingMode preScalingMode = ScalingMode::SCALING_MODE_SCALE_FIT;
-    nodeParams->SetPreScalingMode(preScalingMode);
+    nodeParams->SetScalingMode(preScalingMode);
     auto& buffer = node->surfaceHandler_->buffer_.buffer;
     auto surface = static_cast<ConsumerSurface*>(node->surfaceHandler_->consumer_.refs_);
     ASSERT_NE(surface, nullptr);
 
     surface->consumer_ = nullptr;
     ASSERT_EQ(surface->GetScalingMode(buffer->GetSeqNum(), preScalingMode), GSERROR_INVALID_ARGUMENTS);
-    ASSERT_EQ(nodeParams->GetPreScalingMode(), ScalingMode::SCALING_MODE_SCALE_FIT);
+    ASSERT_EQ(nodeParams->GetScalingMode(), ScalingMode::SCALING_MODE_SCALE_FIT);
 
     rsUniRenderVisitor->UpdateHwcNodeByTransform(*node);
-    ASSERT_EQ(nodeParams->GetPreScalingMode(), ScalingMode::SCALING_MODE_SCALE_FIT);
+    ASSERT_EQ(nodeParams->GetScalingMode(), ScalingMode::SCALING_MODE_SCALE_FIT);
 }
 
 /*

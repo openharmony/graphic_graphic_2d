@@ -1210,30 +1210,30 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
-bool RSBaseRenderUtil::InitPreScalingMode(RSSurfaceRenderNode& node)
+bool RSBaseRenderUtil::SetScalingMode(RSSurfaceRenderNode& node)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     if (surfaceHandler == nullptr) {
-        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode surfaceHandler is nullptr");
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode surfaceHandler is nullptr");
         return false;
     }
     auto consumer = surfaceHandler->GetConsumer();
     auto buffer = surfaceHandler->GetBuffer();
     if (consumer == nullptr || buffer == nullptr) {
-        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode consumer or buffer is nullptr");
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode consumer or buffer is nullptr");
         return false;
     }
     auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     if (nodeParams == nullptr) {
-        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode nodeParams is nullptr");
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode nodeParams is nullptr");
         return false;
     }
-    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     auto ret = consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode);
     if (ret == GSERROR_OK) {
-        nodeParams->SetPreScalingMode(scalingMode);
+        nodeParams->SetScalingMode(scalingMode);
     } else {
-        RS_LOGE("RSBaseRenderUtil::InitPreScalingMode GetScalingMode Error: %{public}d", ret);
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode GetScalingMode Error: %{public}d", ret);
         return false;
     }
     return true;
