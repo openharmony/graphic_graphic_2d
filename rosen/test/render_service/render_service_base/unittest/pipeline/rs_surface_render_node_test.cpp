@@ -1175,21 +1175,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectSurfaceForUIFirstSwitchTest
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitchTest
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, CollectSurfaceForUIFirstSwitchTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    uint32_t leashWindowCount = 0;
-    uint32_t minNodeNum = 5;
-    testNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
-    ASSERT_EQ(leashWindowCount, 0);
-}
-
-/**
  * @tc.name: ClearChildrenCache
  * @tc.desc: test results of ClearChildrenCache
  * @tc.type: FUNC

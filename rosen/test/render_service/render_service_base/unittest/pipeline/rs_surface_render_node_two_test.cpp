@@ -291,28 +291,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsYUVBufferFormatTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectSurfaceForUIFirstSwitchTest
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitchTest
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, CollectSurfaceForUIFirstSwitchTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    uint32_t leashWindowCount = 0;
-    renderNode->nodeType_ = RSSurfaceNodeType::DEFAULT;
-    renderNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, 0);
-    EXPECT_FALSE(renderNode->IsLeashWindow());
-    EXPECT_FALSE(renderNode->IsStartingWindow());
-    renderNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    renderNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, 0);
-    EXPECT_TRUE(renderNode->IsLeashWindow());
-    renderNode->nodeType_ = RSSurfaceNodeType::STARTING_WINDOW_NODE;
-    renderNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, 0);
-    EXPECT_TRUE(renderNode->IsStartingWindow());
-}
-
-/**
  * @tc.name: ClearChildrenCache
  * @tc.desc: test results of ClearChildrenCache
  * @tc.type: FUNC
