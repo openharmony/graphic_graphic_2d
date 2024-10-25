@@ -95,9 +95,9 @@ bool RSDisplayRenderParams::GetHDRPresent() const
     return hasHdrPresent_;
 }
 
-void RSDisplayRenderParams::SetBrightnessRatio (float brightnessRatio)
+void RSDisplayRenderParams::SetBrightnessRatio(float brightnessRatio)
 {
-    if (brightnessRatio_ == brightnessRatio) {
+    if (ROSEN_EQ(brightnessRatio_, brightnessRatio)) {
         return;
     }
     brightnessRatio_ = brightnessRatio;
