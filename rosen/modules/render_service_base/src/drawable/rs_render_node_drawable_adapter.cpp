@@ -296,6 +296,14 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
     return !(deviceClipRegion.IsIntersects(dstRegion));
 }
 
+void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas)
+{
+    if (drawCmdList_.empty() || curDrawingCacheRoot_ == nullptr) {
+        return;
+    }
+    curDrawingCacheRoot_->withoutFilterMatrixMap_[GetId()] = canvas.GetTotalMatrix();
+}
+
 void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
@@ -318,9 +326,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-                if (curDrawingCacheRoot_ != nullptr) {
-                    curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
-                }
+                UpdateFilterInfoForNodeGroup(curCanvas);
             } else {
                 drawCmdList_[index](&canvas, &bounds);
             }
@@ -332,11 +338,24 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             Drawing::AutoCanvasRestore arc(*curCanvas, true);
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-            if (curDrawingCacheRoot_ != nullptr) {
-                curDrawingCacheRoot_->filterRects_.emplace_back(curCanvas->GetDeviceClipBounds());
-            }
+            UpdateFilterInfoForNodeGroup(curCanvas);
         } else {
             drawCmdList_[index](&canvas, &bounds);
+        }
+    }
+}
+
+void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
+{
+    if (curDrawingCacheRoot_ != nullptr) {
+        auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
+            curDrawingCacheRoot_->filterInfoVec_.end(),
+            [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
+        if (iter != curDrawingCacheRoot_->filterInfoVec_.end()) {
+            iter->rectVec_.emplace_back(curCanvas->GetDeviceClipBounds());
+        } else {
+            curDrawingCacheRoot_->filterInfoVec_.emplace_back(
+                FilterNodeInfo(GetId(), curCanvas->GetTotalMatrix(), { curCanvas->GetDeviceClipBounds() }));
         }
     }
 }
@@ -350,9 +369,6 @@ void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
     } else {
         DrawRangeImpl(
             canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
-    }
-    if (curDrawingCacheRoot_) {
-        curDrawingCacheRoot_->ReduceFilterRectSize(GetCountOfClipHoleForCache(params));
     }
 }
 
@@ -397,14 +413,6 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
     return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
            drawCmdIndex_.useEffectIndex_ != -1;
-}
-
-int RSRenderNodeDrawableAdapter::GetCountOfClipHoleForCache(const RSRenderParams& params) const
-{
-    int count = drawCmdIndex_.shadowIndex_ != -1 && !params.GetShadowRect().IsEmpty() ? 1 : 0;
-    count += drawCmdIndex_.shadowIndex_ != -1 ? 1 : 0;
-    count += drawCmdIndex_.useEffectIndex_ != -1 ? 1 : 0;
-    return count;
 }
 
 int8_t RSRenderNodeDrawableAdapter::GetSkipIndex() const
