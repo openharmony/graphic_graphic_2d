@@ -269,6 +269,8 @@ private:
 
     bool SetAncoForceDoDirect(bool direct) override;
 
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
     static inline BrokerDelegator<RSRenderServiceConnectionProxy> delegator_;
 
     pid_t pid_ = GetRealPid();

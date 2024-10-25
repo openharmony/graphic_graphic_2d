@@ -60,6 +60,11 @@ void RSRenderServiceListener::OnBufferAvailable()
             " RT buffer available", node->GetId());
         node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
     }
+    if (node->IsLayerTop()) {
+        // Ensure that the compose task is completed within single frame
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return;
+    }
     RSMainThread::Instance()->RequestNextVSync();
 }
 

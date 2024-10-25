@@ -140,6 +140,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1711,6 +1712,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .isSync = true,
             };
             reply.WriteBool(CreateNode(config, id));
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
+            std::string nodeIdStr = data.ReadString();
+            bool isTop = data.ReadBool();
+            SetLayerTop(nodeIdStr, isTop);
             break;
         }
         default: {

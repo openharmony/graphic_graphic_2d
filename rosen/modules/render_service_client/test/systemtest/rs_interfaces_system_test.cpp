@@ -200,6 +200,30 @@ HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus002, Function | Medi
 {
     RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(false);
 }
+
+/**
+ * @tc.name: SetLayerTop001
+ * @tc.desc: Test SetLayerTop interface.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesSystemTest, SetLayerTop001, Function | MediumTest | Level2)
+{
+    std::string nodeIdStr = "123456";
+    RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, false);
+}
+
+/**
+ * @tc.name: SetLayerTop002
+ * @tc.desc: Test SetLayerTop interface.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesSystemTest, SetLayerTop002, Function | MediumTest | Level2)
+{
+    std::string nodeIdStr = "123456";
+    RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, true);
+}
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -43,6 +43,7 @@
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #endif
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,6 +115,13 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
 
+    void SetLayerTop(bool isTop);
+
+    bool IsLayerTop() const
+    {
+        return isLayerTop_;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -121,7 +129,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface();
+            IsHardwareEnabledTopSurface() || IsLayerTop();
     }
 
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
@@ -143,7 +151,8 @@ public:
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb");
+            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" ||
+            name_.find("HwStylusFeature") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
@@ -1274,6 +1283,7 @@ private:
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;

@@ -277,6 +277,8 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

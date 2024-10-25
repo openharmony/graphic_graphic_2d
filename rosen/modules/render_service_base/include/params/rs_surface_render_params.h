@@ -347,6 +347,9 @@ public:
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     bool GetHidePrivacyContent() const;
 
+    void SetLayerTop(bool isTop);
+    bool IsLayerTop() const;
+
     void SetPreScalingMode(ScalingMode scalingMode) override
     {
         if (preScalingMode_ == scalingMode) {
@@ -534,6 +537,7 @@ private:
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
+    bool isLayerTop_ = false;
     ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;

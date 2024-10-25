@@ -166,6 +166,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
     usleep(usleepTime);
 
+    std::string nodeIdStr = GetData<std::string>();
+    bool isTop = GetData<bool>();
+    rsInterfaces.SetLayerTop(nodeIdStr, isTop);
     return true;
 }
 

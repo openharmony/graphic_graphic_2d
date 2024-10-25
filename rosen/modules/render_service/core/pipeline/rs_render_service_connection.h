@@ -286,6 +286,8 @@ private:
 
     bool SetAncoForceDoDirect(bool direct) override;
 
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

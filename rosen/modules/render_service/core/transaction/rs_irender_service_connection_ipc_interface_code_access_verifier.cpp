@@ -339,6 +339,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_DISPLAY_NODE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LAYER_TOP): {
+            hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP");
+            break;
+        }
         default: {
             break;
         }
