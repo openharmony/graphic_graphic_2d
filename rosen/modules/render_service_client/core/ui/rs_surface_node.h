@@ -26,10 +26,6 @@
 #include "surface_type.h"
 #endif
 
-#ifndef ROSEN_CROSS_PLATFORM
-#include "surface_delegate.h"
-#endif
-
 #ifdef NEW_RENDER_CONTEXT
 #include "rs_render_surface.h"
 #else
