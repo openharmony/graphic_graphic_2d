@@ -1,0 +1,103 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic_2d/graphic_test/graphic_test"
+
+drawing_engine_sources = []
+hardware_manager_sources = []
+open_capability_sources = []
+rs_display_effect_sources = [
+  "rs_display_effect/content_display/content_effectnode_test.cpp",
+  "rs_display_effect/property_display/appearance_alpha_test.cpp",
+  "rs_display_effect/property_display/appearance_border_radius_test.cpp",
+  "rs_display_effect/property_display/appearance_border_test.cpp",
+  "rs_display_effect/property_display/appearance_clip_test.cpp",
+  "rs_display_effect/property_display/appearance_outlineborder_radius_test.cpp",
+  "rs_display_effect/property_display/appearance_outlineborder_test.cpp",
+  "rs_display_effect/property_display/appearance_shadow_test.cpp",
+  "rs_display_effect/property_display/appearance_spherize_test.cpp",
+  "rs_display_effect/property_display/fg_blur_test.cpp",
+  "rs_display_effect/property_display/fg_colorbrightness_test.cpp",
+  "rs_display_effect/property_display/fg_colorfilter_test.cpp",
+  "rs_display_effect/property_display/fg_dynamicdimdegree_test.cpp",
+  "rs_display_effect/property_display/fg_dynamiclightup_test.cpp",
+  "rs_display_effect/property_display/fg_envfgcolor_test.cpp",
+  "rs_display_effect/property_display/fg_fgcolor_test.cpp",
+  "rs_display_effect/property_display/fg_lightupeffect_test.cpp",
+  "rs_display_effect/property_display/fg_mask_test.cpp",
+  "rs_display_effect/property_display/geom_cameradistance_test.cpp",
+  "rs_display_effect/property_display/geom_clip_test.cpp",
+  "rs_display_effect/property_display/geom_cornerradius_test.cpp",
+  "rs_display_effect/property_display/geom_persp_test.cpp",
+  "rs_display_effect/property_display/geom_pivotandrotation_test.cpp",
+  "rs_display_effect/property_display/geom_scale_test.cpp",
+  "rs_display_effect/property_display/geom_translation_test.cpp",
+  "rs_display_effect/property_display/test_Appearance_PixelStretch.cpp",
+  "rs_display_effect/property_display/test_G2_CornerRadius.cpp",
+  "rs_display_effect/property_display/test_Geometry_Transform_Test.cpp",
+  "rs_display_effect/property_display/test_RSBackground_BeginBlender.cpp",
+  "rs_display_effect/property_display/test_RSBackground_Color.cpp",
+  "rs_display_effect/property_display/test_RSBackground_Filter.cpp",
+  "rs_display_effect/property_display/test_RSBackground_GreyCoef.cpp",
+  "rs_display_effect/property_display/test_RSBackground_Image.cpp",
+  "rs_display_effect/property_display/test_RSBackground_UseEffect.cpp",
+  "rs_display_effect/property_display/test_RSBackground_WaterRipple.cpp",
+]
+rs_framework_sources = []
+rs_func_feature_sources = [ "rs_func_feature/component_capture/demo.cpp" ]
+rs_perform_feature_sources = []
+
+group("test") {
+  testonly = true
+  deps = [ ":RSGraphicTest" ]
+}
+
+## Build RSGraphicTest
+ohos_unittest("RSGraphicTest") {
+  module_out_path = module_output_path
+  sources = []
+  sources += drawing_engine_sources
+  sources += hardware_manager_sources
+  sources += open_capability_sources
+  sources += rs_display_effect_sources
+  sources += rs_framework_sources
+  sources += rs_func_feature_sources
+  sources += rs_perform_feature_sources
+
+  deps = [
+    "$graphic_2d_root/graphic_test/graphic_test_framework:rs_graphic_test_main",
+  ]
+
+  defines = []
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "init:libbegetutil",
+  ]
+
+  defines += gpu_defines
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
