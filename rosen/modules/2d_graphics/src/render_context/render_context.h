@@ -139,6 +139,7 @@ public:
     sk_sp<SkColorSpace> ColorSpace() const { return color_space_; }
     bool UpdateStorageSizeIfNecessary();
     bool ResourceMakeCurrent();
+    static const EGLContext GetResourceContext();
 #endif
     static sk_sp<SkColorSpace> ConvertColorGamutToSkColorSpace(GraphicColorGamut colorGamut);
 
@@ -155,7 +156,9 @@ protected:
 #ifdef ROSEN_IOS
     sk_sp<SkColorSpace> color_space_ = nullptr;
     void *layer_ = nullptr;
-    EGLContext resource_context_ = EGL_NO_CONTEXT;
+    static EGLContext resourceContext;
+    static std::mutex resourceContextMutex;
+
     uint32_t framebuffer_ = 0;
     uint32_t colorbuffer_ = 0;
     int32_t storage_width_ = 0;
