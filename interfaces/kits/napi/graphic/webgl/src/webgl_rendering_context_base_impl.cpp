@@ -2804,7 +2804,7 @@ GLenum WebGLRenderingContextBaseImpl::GetBoundFrameBufferColorFormat(napi_env en
 
 VertexAttribInfo* WebGLRenderingContextBaseImpl::GetVertexAttribInfo(GLint index)
 {
-    if (index >= static_cast<GLint>(arrayVertexAttribs_.size())) {
+    if (index < 0 || index >= static_cast<GLint>(arrayVertexAttribs_.size())) {
         LOGE("Invalid index for VertexAttrib %{public}d, max %{public}zu",
             index, arrayVertexAttribs_.size());
         return nullptr;
