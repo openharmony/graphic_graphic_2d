@@ -418,6 +418,24 @@ uint64_t RSUniRenderThread::GetCurrentTimestamp() const
     return renderThreadParams ? renderThreadParams->GetCurrentTimestamp() : 0;
 }
 
+uint64_t RSUniRenderThread::GetActualTimestamp() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetActualTimestamp() : 0;
+}
+
+uint64_t RSUniRenderThread::GetVsyncId() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetVsyncId() : 0;
+}
+
+bool RSUniRenderThread::GetForceRefreshFlag() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetForceRefreshFlag() : false;
+}
+
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();

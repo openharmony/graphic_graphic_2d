@@ -118,6 +118,36 @@ public:
         return timestamp_;
     }
 
+    void SetActualTimestamp(uint64_t timestamp)
+    {
+        actualTimestamp_ = timestamp;
+    }
+
+    uint64_t GetActualTimestamp() const
+    {
+        return actualTimestamp_;
+    }
+
+    void SetVsyncId(uint64_t vsyncId)
+    {
+        vsyncId_ = vsyncId;
+    }
+
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_;
+    }
+
+    void SetForceRefreshFlag(bool isForceRefresh)
+    {
+        isForceRefresh_ = isForceRefresh;
+    }
+
+    bool GetForceRefreshFlag() const
+    {
+        return isForceRefresh_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -357,6 +387,9 @@ public:
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
+    uint64_t actualTimestamp_ = 0;
+    uint64_t vsyncId_ = 0;
+    bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx

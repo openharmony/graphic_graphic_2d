@@ -67,6 +67,9 @@ public:
     bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
+    uint64_t GetActualTimestamp() const;
+    uint64_t GetVsyncId() const;
+    bool GetForceRefreshFlag() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
 

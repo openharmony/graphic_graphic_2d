@@ -183,6 +183,7 @@ void RSDrawFrame::UnblockMainThread()
 
 void RSDrawFrame::Render()
 {
+    RS_TRACE_NAME_FMT("Render vsyncId: %lu", unirenderInstance_.GetVsyncId());
     unirenderInstance_.Render();
 }
 

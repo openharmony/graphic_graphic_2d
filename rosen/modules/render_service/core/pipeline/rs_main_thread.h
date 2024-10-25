@@ -510,6 +510,9 @@ private:
 
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
+    // Used for CommitAndReleaseLayers task
+    void SetFrameInfo(uint64_t frameCount);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -745,6 +748,8 @@ private:
 
     // graphic config
     bool isBlurSwitchOpen_ = true;
+
+    bool isForceRefresh_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
