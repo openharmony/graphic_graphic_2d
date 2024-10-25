@@ -14,6 +14,8 @@
  */
 #include "render/rs_colorspace_convert.h"
 
+#include <dlfcn.h>
+
 #include "effect/image_filter.h"
 #include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
@@ -47,13 +49,62 @@ float CalScaler(const float& maxContentLightLevel)
 
 RSColorSpaceConvert::RSColorSpaceConvert()
 {
-    colorSpaceConverterDisplay_ = VPEConvert::Create();
+    handle_ = dlopen("libvideoprocessingengine.z.so", RTLD_LAZY);
+    if (handle_ == nullptr) {
+        RS_LOGW("[%{public}s]:load library failed, reason: %{public}s", __func__, dlerror());
+        return;
+    }
+    colorSpaceConvertDisplayCreate_ = reinterpret_cast<VPEColorSpaceConvertDisplayCreate>(
+        dlsym(handle_, "ColorSpaceConvertDisplayCreate"));
+    if (colorSpaceConvertDisplayCreate_ == nullptr) {
+        RS_LOGW("[%{public}s]:load func failed, reason: %{public}s", __func__, dlerror());
+        if (dlclose(handle_) != 0) {
+            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
+        }
+        handle_ = nullptr;
+        return;
+    }
+    colorSpaceConvertDisplayDestroy_ = reinterpret_cast<VPEColorSpaceConvertDisplayDestroy>(
+        dlsym(handle_, "ColorSpaceConvertDisplayDestroy"));
+    if (colorSpaceConvertDisplayDestroy_ == nullptr) {
+        RS_LOGW("[%{public}s]:load func failed, reason: %{public}s", __func__, dlerror());
+        if (dlclose(handle_) != 0) {
+            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
+        }
+        handle_ = nullptr;
+        return;
+    }
+    colorSpaceConvertDisplayHandle_ = colorSpaceConvertDisplayCreate_();
+    if (colorSpaceConvertDisplayHandle_ == nullptr) {
+        RS_LOGE("ColorSpaceConvertDisplayCreate failed, return nullptr");
+        if (dlclose(handle_) != 0) {
+            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
+        }
+        handle_ = nullptr;
+        return;
+    }
+    colorSpaceConverterDisplay_ = static_cast<ColorSpaceConvertDisplayHandleImpl *>(
+        colorSpaceConvertDisplayHandle_)->obj;
 }
 
 RSColorSpaceConvert::~RSColorSpaceConvert()
-{}
+{
+    if (colorSpaceConvertDisplayHandle_) {
+        colorSpaceConvertDisplayDestroy_(colorSpaceConvertDisplayHandle_);
+        colorSpaceConvertDisplayHandle_ = nullptr;
+    }
+    if (handle_) {
+        if (dlclose(handle_) != 0) {
+            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
+        }
+        handle_ = nullptr;
+    }
+    colorSpaceConvertDisplayCreate_ = nullptr;
+    colorSpaceConvertDisplayDestroy_ = nullptr;
+    colorSpaceConverterDisplay_ = nullptr;
+}
 
-RSColorSpaceConvert RSColorSpaceConvert::Instance()
+RSColorSpaceConvert& RSColorSpaceConvert::Instance()
 {
     static RSColorSpaceConvert instance;
     return instance;
@@ -81,6 +132,11 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
+
+    if (colorSpaceConverterDisplay_ == nullptr) {
+        RS_LOGE("colorSpaceConverterDisplay_ is nullptr.");
+        return false;
+    }
     auto convRet = colorSpaceConverterDisplay_->Process(inputShader, outputShader, parameter);
     if (convRet != Media::VideoProcessingEngine::VPE_ALGO_ERR_OK) {
         RS_LOGE("bhdr failed with %{public}u.", convRet);
