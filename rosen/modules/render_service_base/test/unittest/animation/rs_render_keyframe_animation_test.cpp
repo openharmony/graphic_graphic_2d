@@ -210,7 +210,6 @@ HWTEST_F(RSRenderKeyframeAnimationTest, OnAnimate001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderSpringAnimationTest OnAnimate001 end";
 }
 
- 
 /**
  * @tc.name: InitValueEstimatorTest001
  * @tc.desc: Test valueEstimator_
