@@ -311,6 +311,7 @@ struct RSSurfaceExtConfig {
 using RSSurfaceTextureConfig = RSSurfaceExtConfig;
 using RSSurfaceTextureAttachCallBack = std::function<void(int64_t textureId, bool attach)>;
 using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
+using RSSurfaceTextureInitTypeCallBack = std::function<void(int32_t&)>;
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;
