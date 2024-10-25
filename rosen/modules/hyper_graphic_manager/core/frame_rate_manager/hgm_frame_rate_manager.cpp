@@ -45,7 +45,6 @@ namespace {
     constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
     constexpr int32_t LAST_TOUCH_CNT = 1;
-    constexpr ScreenId SCREEN_ID_FULL = 0;
     
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
@@ -855,12 +854,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     } else if (status == ScreenPowerStatus::POWER_STATUS_SUSPEND) {
         ReportHiSysEvent({.voterName = "SCREEN_POWER", .extInfo = "OFF"});
     }
-
-    //Record the internal screen status to determin dual-screen display
-    static int fullScreenStatus = -1;
-    if (id == SCREEN_ID_FULL) {
-        fullScreenStatus = status;
-    }
     if (status != ScreenPowerStatus::POWER_STATUS_ON || curScreenId_ == id) {
         return;
     }
@@ -875,10 +868,6 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
     std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
     if (configData->screenStrategyConfigs_.find(curScreenName) == configData->screenStrategyConfigs_.end()) {
-        return;
-    }
-    if (fullScreenStatus == ScreenPowerStatus::POWER_STATUS_ON && id != SCREEN_ID_FULL) {
-        // determine dual-screen display
         return;
     }
     curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
