@@ -2007,8 +2007,9 @@ void RSUniRenderVisitor::UpdateLeashWindowVisibleRegionEmpty(RSSurfaceRenderNode
             // leash window is visible when child app has visible region
             if (!childSurfaceNode->GetVisibleRegion().IsEmpty()) {
                 isVisibleRegionEmpty = false;
+            } else {
+                RS_OPTIONAL_TRACE_NAME_FMT("%s's visible region is empty", childSurfaceNode->GetName().c_str());
             }
-            RS_OPTIONAL_TRACE_NAME_FMT("%s's visible region is empty", childSurfaceNode->GetName().c_str());
         } else {
             // leash window is visible when child is not app window node
             isVisibleRegionEmpty = false;

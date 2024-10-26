@@ -636,6 +636,7 @@ public:
             return;
         }
         isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+        SetLeashWindowVisibleRegionEmptyParam();
     }
 
     bool GetLeashWindowVisibleRegionEmpty() const
