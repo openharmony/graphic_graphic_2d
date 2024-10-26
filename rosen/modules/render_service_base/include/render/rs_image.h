@@ -103,7 +103,7 @@ public:
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
     void SetPaint(Drawing::Paint paint);
-    void SetDyamicRangeMode(uint32_t dynamicRangeMode);
+    void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
     
@@ -148,7 +148,7 @@ private:
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
         Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
-        bool& hasFitMatrix, Drawing::Matrix& fitMatrix);
+        bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode);
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif

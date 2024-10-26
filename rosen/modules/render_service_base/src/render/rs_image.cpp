@@ -74,7 +74,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         return false;
     }
     if (!pixelMap_->IsHdr()) {
-        RS_LOGE("bhdr pixelMap_ is not hdr");
+        RS_LOGD("bhdr pixelMap_ is not hdr");
         return false;
     }
 
@@ -567,7 +567,7 @@ void RSImage::SetPaint(Drawing::Paint paint)
     paint_ = paint;
 }
 
-void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
+void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 {
     dynamicRangeMode_ = dynamicRangeMode;
 }
@@ -634,6 +634,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
                    RSMarshallingHelper::Marshalling(parcel, scale_) &&
+                   RSMarshallingHelper::Marshalling(parcel, dynamicRangeMode_) &&
                    parcel.WriteBool(fitMatrix_.has_value()) &&
                    fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
     return success;
@@ -666,7 +667,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     double scale;
     bool hasFitMatrix;
     Drawing::Matrix fitMatrix;
-    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale, hasFitMatrix, fitMatrix)) {
+    uint32_t dynamicRangeMode = 0;
+    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale,
+        hasFitMatrix, fitMatrix, dynamicRangeMode)) {
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -678,6 +681,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetImageRepeat(repeatNum);
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
+    rsImage->SetDynamicRangeMode(dynamicRangeMode);
     rsImage->SetNodeId(nodeId);
     if (hasFitMatrix && !fitMatrix.IsIdentity()) {
         rsImage->SetFitMatrix(fitMatrix);
@@ -702,7 +706,7 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
 
 bool RSImage::UnmarshalImageProperties(
     Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
-    bool& hasFitMatrix, Drawing::Matrix& fitMatrix)
+    bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode)
 {
     if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
         RS_LOGE("RSImage::Unmarshalling fitNum fail");
@@ -725,6 +729,11 @@ bool RSImage::UnmarshalImageProperties(
     }
 
     if (!RSMarshallingHelper::Unmarshalling(parcel, hasFitMatrix)) {
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, dynamicRangeMode)) {
+        RS_LOGE("RSImage::Unmarshalling dynamicRangeMode fail");
         return false;
     }
 
