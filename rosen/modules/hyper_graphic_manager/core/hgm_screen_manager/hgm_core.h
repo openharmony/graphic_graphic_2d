@@ -116,13 +116,13 @@ public:
     }
 
     // called by RSMainThread
-    void SetActualTimestamp(uint64_t timestamp)
+    void SetActualTimestamp(int64_t timestamp)
     {
         actualTimestamp_.store(timestamp);
     }
 
     // called by RSMainThread/RSUniRenderThread
-    uint64_t GetActualTimestamp() const
+    int64_t GetActualTimestamp() const
     {
         return actualTimestamp_.load();
     }
@@ -308,7 +308,7 @@ private:
     std::atomic<uint32_t> screenRefreshRateImme_{ 0 };
     std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
     std::atomic<uint64_t> timestamp_{ 0 };
-    std::atomic<uint64_t> actualTimestamp_{ 0 };
+    std::atomic<int64_t> actualTimestamp_{ 0 };
     std::atomic<uint64_t> vsyncId_{ 0 };
     std::atomic<bool> isForceRefresh_{ false };
     bool isDelayMode_ = false;

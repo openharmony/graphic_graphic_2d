@@ -71,8 +71,9 @@ constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
 constexpr uint32_t HARD_JANK_TWO_TIME = 2;
 constexpr int64_t REFRESH_PERIOD = 16667; // 16667us == 16.667ms
 constexpr int64_t REPORT_LOAD_WARNING_INTERVAL_TIME = 5000000; // 5s == 5000000us
-constexpr uint64_t RESERVE_TIME = 1000000; // we reserve 1ms more for the composition
+constexpr int64_t RESERVE_TIME = 1000000; // we reserve 1ms more for the composition
 constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
+constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
 }
@@ -252,25 +253,25 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
     RS_LOGI_IF(DEBUG_COMPOSER,
         "RSHardwareThread::CommitAndReleaseData hgmCore's LtpoEnabled is %{public}d", hgmCore.GetLtpoEnabled());
-    uint64_t currTime = SystemTime();
+    int64_t currTime = SystemTime();
     if (IsDelayRequired(hgmCore, param, output, hasGameScene)) {
         CalculateDelayTime(hgmCore, param, currentRate, currTime);
     }
 
     // We need to ensure the order of composition frames, postTaskTime(n + 1) must > postTaskTime(n),
     // and we give a delta time more between two composition tasks.
-    uint64_t currCommitTime = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
+    int64_t currCommitTime = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
     if (currCommitTime <= lastCommitTime_) {
         delayTime_ = delayTime_ +
-            std::round(static_cast<int64_t>(lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
+            std::round((lastCommitTime_ - currCommitTime) * 1.0f / NS_MS_UNIT_CONVERSION) +
             COMMIT_DELTA_TIME;
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers vsyncId: %{public}" PRIu64 ", " \
-            "update delayTime: %{public}" PRIu64 ", currCommitTime: %{public}" PRIu64 ", " \
-            "lastCommitTime: %{public}" PRIu64, param.vsyncId, delayTime_, currCommitTime, lastCommitTime_);
-        RS_TRACE_NAME_FMT("update delayTime: %ld, currCommitTime: %lu, lastCommitTime: %lu",
+            "update delayTime: %{public}" PRId64 ", currCommitTime: %{public}" PRId64 ", " \
+            "lastCommitTime: %{public}" PRId64, param.vsyncId, delayTime_, currCommitTime, lastCommitTime_);
+        RS_TRACE_NAME_FMT("update delayTime: %lld, currCommitTime: %lld, lastCommitTime: %lld",
             delayTime_, currCommitTime, lastCommitTime_);
     }
-    if (delayTime_ < 0) {
+    if (delayTime_ < 0 || delayTime_ >= MAX_DELAY_TIME) {
         delayTime_ = 0;
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
@@ -308,16 +309,16 @@ bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRat
 }
 
 void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param, uint32_t currentRate,
-    uint64_t currTime)
+    int64_t currTime)
 {
     int64_t frameOffset = 0;
     int64_t vsyncOffset = 0;
     int64_t pipelineOffset = 0;
-    uint64_t expectCommitTime = 0;
+    int64_t expectCommitTime = 0;
     int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
-    auto period  = CreateVSyncSampler()->GetHardwarePeriod();
+    int64_t period  = CreateVSyncSampler()->GetHardwarePeriod();
     uint64_t dvsyncOffset = RSMainThread::Instance()->GetRealTimeOffsetOfDvsync(param.frameTimestamp);
-    uint64_t compositionTime = static_cast<uint64_t>(period);
+    int64_t compositionTime = period;
 
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
@@ -325,20 +326,19 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         frameOffset = 2 * period + vsyncOffset;
     } else {
         pipelineOffset = hgmCore.GetPipelineOffset();
-        frameOffset = pipelineOffset + dvsyncOffset;
+        frameOffset = pipelineOffset + static_cast<int64_t>(dvsyncOffset);
     }
-    expectCommitTime = static_cast<uint64_t>(param.actualTimestamp +
-        static_cast<uint64_t>(frameOffset) - compositionTime - RESERVE_TIME);
-    int64_t diffTime = static_cast<int64_t>(expectCommitTime - currTime);
+    expectCommitTime = param.actualTimestamp + frameOffset - compositionTime - RESERVE_TIME;
+    int64_t diffTime = expectCommitTime - currTime;
     if (diffTime > 0 && period > 0) {
         delayTime_ = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
     }
-    RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %ld, " \
-        "actualTimestamp: %lu, expectCommitTime: %lu, currTime: %lu, diffTime: %ld, " \
-        "delayTime: %ld, frameOffset: %ld, dvsyncOffset: %lu, vsyncOffset: %ld, idealPeriod: %ld, period: %ld",
-        pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime,
-        delayTime_, frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period);
-    RS_LOGD("RSHardwareThread::CalculateDelayTime period:%{public}" PRIu64 " delayTime:%{public}" PRIu64,
+    RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %lld, " \
+        "actualTimestamp: %lld, expectCommitTime: %lld, currTime: %lld, diffTime: %lld, delayTime: %lld, " \
+        "frameOffset: %lld, dvsyncOffset: %llu, vsyncOffset: %lld, idealPeriod: %lld, period: %lld",
+        pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
+        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period);
+    RS_LOGD("RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64,
         period, delayTime_);
 }
 

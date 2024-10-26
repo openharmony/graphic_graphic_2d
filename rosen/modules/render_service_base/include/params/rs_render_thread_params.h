@@ -118,12 +118,12 @@ public:
         return timestamp_;
     }
 
-    void SetActualTimestamp(uint64_t timestamp)
+    void SetActualTimestamp(int64_t timestamp)
     {
         actualTimestamp_ = timestamp;
     }
 
-    uint64_t GetActualTimestamp() const
+    int64_t GetActualTimestamp() const
     {
         return actualTimestamp_;
     }
@@ -387,7 +387,7 @@ public:
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
-    uint64_t actualTimestamp_ = 0;
+    int64_t actualTimestamp_ = 0;
     uint64_t vsyncId_ = 0;
     bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;

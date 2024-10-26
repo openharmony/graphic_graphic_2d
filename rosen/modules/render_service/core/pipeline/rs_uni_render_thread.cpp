@@ -418,7 +418,7 @@ uint64_t RSUniRenderThread::GetCurrentTimestamp() const
     return renderThreadParams ? renderThreadParams->GetCurrentTimestamp() : 0;
 }
 
-uint64_t RSUniRenderThread::GetActualTimestamp() const
+int64_t RSUniRenderThread::GetActualTimestamp() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams ? renderThreadParams->GetActualTimestamp() : 0;

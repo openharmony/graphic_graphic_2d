@@ -4361,7 +4361,7 @@ uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
 void RSMainThread::SetFrameInfo(uint64_t frameCount)
 {
     // use the same function as vsync to get current time
-    uint64_t currentTimestamp = SystemTime();
+    int64_t currentTimestamp = SystemTime();
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
