@@ -15,6 +15,8 @@
 
 #include "draw/color.h"
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 
 namespace OHOS {
 namespace Rosen {
