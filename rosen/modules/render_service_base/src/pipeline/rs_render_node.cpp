@@ -663,6 +663,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         if (surfaceNode->HasSubSurfaceNodes()) {
             out += surfaceNode->SubSurfaceNodesDump();
         }
+        out += ", abilityState: " +
+            std::string(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ?
+            "foreground" : "background");
     }
     if (sharedTransitionParam_) {
         out += sharedTransitionParam_->Dump();
@@ -1205,13 +1208,20 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
     }
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
     
+    // Animation on surfaceNode is always on foreground ability state.
     // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
-    if (auto instanceRootNode = GetInstanceRootNode()) {
-        abilityState = instanceRootNode->GetAbilityState();
-        RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate node id: [" + std::to_string(GetId()) +
-            "], instanceRootNode id: [" + std::to_string(instanceRootNode->GetId()) +
+    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            abilityState = instanceRootNode->GetAbilityState();
+            RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate node id: [" + std::to_string(GetId()) +
+                "], instanceRootNode id: [" + std::to_string(instanceRootNode->GetId()) +
+                "], abilityState: " +
+                std::string(abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
+        }
+    } else {
+        RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate surfaceNode id: [" + std::to_string(GetId()) +
             "], abilityState: " +
-            std::string(abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
+            std::string(GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
     }
     
     RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");

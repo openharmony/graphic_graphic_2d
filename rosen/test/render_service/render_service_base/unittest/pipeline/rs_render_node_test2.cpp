@@ -193,6 +193,8 @@ HWTEST_F(RSRenderNodeTest2, Animate, TestSize.Level1)
     std::weak_ptr<RSContext> context2 = context_shared;
     RSRenderNode node2(id, context2);
     node2.Animate(timestamp, period, isDisplaySyncEnabled);
+    RSSurfaceRenderNode node3(id, context2);
+    node3.Animate(timestamp, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }
 
