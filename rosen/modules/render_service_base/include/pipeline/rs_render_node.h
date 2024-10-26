@@ -778,6 +778,16 @@ public:
         curDisplayOffsetY_ = offsetY;
     }
 
+
+    void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+    {
+        isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
+    }
+
+    bool IsAccessibilityConfigChanged() const
+    {
+        return isAccessibilityConfigChanged_;
+    }
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -1033,6 +1043,7 @@ private:
     bool isOccluded_ = false;
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
+    bool isAccessibilityConfigChanged_ = false;
 
     void SetParent(WeakPtr parent);
     void ResetParent();

@@ -146,8 +146,6 @@ public:
 
     void SurfaceOcclusionCallbackToWMS();
 
-    static void ClearRenderGroupCache();
-
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
     const std::unordered_set<NodeId> GetCurrentBlackList() const;
@@ -195,6 +193,7 @@ private:
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
+    bool IsAccessibilityConfigChanged() const;
     bool IsWatermarkFlagChanged() const;
     void UpdateDisplayZoomState();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
@@ -284,7 +283,7 @@ private:
 
     bool ForcePrepareSubTree()
     {
-        return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
+        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged();
     }
     bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
     {

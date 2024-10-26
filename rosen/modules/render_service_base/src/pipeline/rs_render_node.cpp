@@ -1054,7 +1054,7 @@ void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
     }
     RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfo id:%llu contentDirty:%d subTreeDirty:%d nodeGroupType:%d",
         GetId(), IsContentDirty(), IsSubTreeDirty(), nodeGroupType_);
-    SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty()));
+    SetDrawingCacheChanged((IsContentDirty() || IsSubTreeDirty() || IsAccessibilityConfigChanged()));
     stagingRenderParams_->SetDrawingCacheIncludeProperty(nodeGroupIncludeProperty_);
 }
 
