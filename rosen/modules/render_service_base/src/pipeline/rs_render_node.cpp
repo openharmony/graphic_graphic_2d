@@ -1447,7 +1447,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
             }
-            UpdateAbsDrawRectChangeState();
+            UpdateSrcOrClipedAbsDrawRectChangeState(clipRect);
         }
     }
     // 3. update dirtyRegion if needed
@@ -1458,7 +1458,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     // Only when satisfy following conditions, absDirtyRegion should update:
     // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
-    if ((IsDirty() || absDrawRectChange_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
+    if ((IsDirty() || srcOrClipedAbsDrawRectChangeFlag_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
         parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_)) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
@@ -4116,19 +4116,21 @@ void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
 
 void RSRenderNode::ResetChangeState()
 {
-    absDrawRectChange_ = false;
+    srcOrClipedAbsDrawRectChangeFlag_ = false;
     geometryChangeNotPerceived_ = false;
 }
 
-void RSRenderNode::UpdateAbsDrawRectChangeState()
+void RSRenderNode::UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect)
 {
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         if (geometryChangeNotPerceived_) {
-            absDrawRectChange_ = false;
+            srcOrClipedAbsDrawRectChangeFlag_ = false;
             return;
         }
     }
-    absDrawRectChange_ = (absDrawRect_ != oldAbsDrawRect_);
+    auto clipedAbsDrawRect = absDrawRect_.IntersectRect(clipRect);
+    // The old dirty In surface is equivalent to the old clipped absolute draw rectangle
+    srcOrClipedAbsDrawRectChangeFlag_ = (absDrawRect_ != oldAbsDrawRect_ || clipedAbsDrawRect != oldDirtyInSurface_);
 }
 
 void RSRenderNode::OnSync()
