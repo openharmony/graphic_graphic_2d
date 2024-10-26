@@ -1693,7 +1693,8 @@ void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties,
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeBinarizationShader(float low, float high,
-    float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+    float thresholdLow, float thresholdHigh,
+    std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     static constexpr char prog[] = R"(
         uniform mediump float ubo_low;
@@ -1723,6 +1724,7 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeBinarizationShad
     }
     std::shared_ptr<Drawing::RuntimeShaderBuilder> builder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(binarizationShaderEffect_);
+    // aviod zero-divide in shader
     thresholdHigh = thresholdHigh <= thresholdLow ? thresholdHigh + 1e-6 : thresholdHigh;
     builder->SetChild("imageShader", imageShader);
     builder->SetUniform("ubo_low", low);
