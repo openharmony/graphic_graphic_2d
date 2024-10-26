@@ -1926,5 +1926,34 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
 }
+
+std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
+    std::shared_ptr<RSRenderNode> hwcNode)
+{
+    if (!hwcNode) {
+        return std::nullopt;
+    }
+    auto relativeMat = Drawing::Matrix();
+    auto& property = hwcNode->GetRenderProperties();
+    if (auto geo = property.GetBoundsGeometry()) {
+        if (LIKELY(!property.GetSandBox().has_value())) {
+            relativeMat = geo->GetMatrix();
+        } else {
+            auto parent = hwcNode->GetParent().lock();
+            if (!parent) {
+                return std::nullopt;
+            }
+            if (auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry()) {
+                auto invertAbsParentMatrix = Drawing::Matrix();
+                parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+                relativeMat = geo->GetAbsMatrix();
+                relativeMat.PostConcat(invertAbsParentMatrix);
+            }
+        }
+    } else {
+        return std::nullopt;
+    }
+    return relativeMat;
+}
 } // namespace Rosen
 } // namespace OHOS
