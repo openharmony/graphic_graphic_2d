@@ -84,6 +84,8 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
         return nullptr;
     }
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
+    canvas->ResetMatrix();
+    canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
 #endif
     drawCallList->Playback(*canvas);
     return pixelmap;
