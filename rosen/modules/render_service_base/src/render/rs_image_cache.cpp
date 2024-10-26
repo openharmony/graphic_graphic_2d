@@ -163,19 +163,31 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
     pixelMap.reset();
 }
 
-int RSImageCache::ReleasePixelMapCacheUnique(uint64_t uniqueId)
+int RSImageCache::CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn,
+                                                  const std::shared_ptr<Drawing::Image>& image)
 {
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    int refCount = -1;
+    constexpr int IMAGE_USE_COUNT_FOR_PURGE = 2;
+    int refCount = IMAGE_USE_COUNT_FOR_PURGE;
+    if (!pixelMapIn || !image) {
+        return refCount;
+    }
     {
         // release the pixelMap if no RSImage holds it
         std::lock_guard<std::mutex> lock(mutex_);
+        int originUseCount = static_cast<int>(image.use_count());
+        if (originUseCount > IMAGE_USE_COUNT_FOR_PURGE) {
+            return originUseCount;  // skip purge if multi object holds this image
+        }
         auto it = pixelMapCache_.find(uniqueId);
         if (it != pixelMapCache_.end()) {
-            if (it->second.second > 1) { // release unique pixelmap in cache
-                return it->second.second; // pixelmap's ref count
+            if (it->second.second > 1) {
+                return it->second.second; // skip purge if multi object holds this pixelMap
             }
             pixelMap = it->second.first;
+            if (pixelMap != pixelMapIn) {
+                return refCount; // skip purge if pixelMap mismatch
+            }
             bool shouldCount = pixelMap && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC;
             pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
             if (shouldCount && pid) {
@@ -185,9 +197,14 @@ int RSImageCache::ReleasePixelMapCacheUnique(uint64_t uniqueId)
                 MemorySnapshot::Instance().RemoveCpuMemory(pid, realSize);
             }
             pixelMapCache_.erase(it);
-            refCount = 0;
         }
         ReleaseDrawingImageCacheByPixelMapId(uniqueId);
+        refCount = image.use_count();
+#ifdef ROSEN_OHOS
+        if (refCount == 1) { // purge pixelMap & image only if no more reference
+            pixelMapIn->UnMap();
+        }
+#endif
     }
     pixelMap.reset();
     return refCount;

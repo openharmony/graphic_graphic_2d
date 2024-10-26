@@ -1044,6 +1044,7 @@ private:
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
+    const bool isPurgeable_;
 
     void SetParent(WeakPtr parent);
     void ResetParent();
@@ -1090,6 +1091,9 @@ private:
     void UpdateShadowRect();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+    // purge resource
+    inline void SetPurgeStatus(bool flag);
+    inline void SyncPurgeFunc();
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;

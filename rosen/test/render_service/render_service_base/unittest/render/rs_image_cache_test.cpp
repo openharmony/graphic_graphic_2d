@@ -188,6 +188,25 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckRefCntAndReleaseImageCacheTest
+ * @tc.desc: Verify function CheckRefCntAndReleaseImageCache
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
+    EXPECT_TRUE(true);
+    auto img = std::make_shared<Drawing::Image>();
+    imageCache.CacheDrawingImage(1, img);
+    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
+}
+
+/**
  * @tc.name: CacheRenderDrawingImageByPixelMapIdTest
  * @tc.desc: Verify function CacheRenderDrawingImageByPixelMapId
  * @tc.type:FUNC
