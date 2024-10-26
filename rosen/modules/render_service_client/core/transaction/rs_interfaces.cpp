@@ -26,6 +26,7 @@
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -187,6 +188,12 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         return false;
     }
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+}
+
+bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    return renderServiceClient_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,

@@ -49,6 +49,7 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_vector4.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
@@ -83,6 +84,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/sk_resource_manager.h"
+#include "pipeline/rs_pointer_drawing_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -1998,8 +2000,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
         RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
     });
+    bool pointerSkip = !RSPointerDrawingManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
-        && !isCachedSurfaceUpdated_) {
+        && !isCachedSurfaceUpdated_ && pointerSkip) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
         if (isHardwareEnabledBufferUpdated_) {
             needTraverseNodeTree = !DoDirectComposition(rootNode, !isLastFrameDirectComposition_);
@@ -2028,6 +2031,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
         RSUifirstManager::Instance().ProcessForceUpdateNode();
+        RSPointerDrawingManager::Instance().UpdatePointerInfo();
         doDirectComposition_ = false;
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);

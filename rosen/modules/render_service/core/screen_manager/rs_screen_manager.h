@@ -59,6 +59,8 @@ public:
 
     virtual void SetDefaultScreenId(ScreenId id) = 0;
 
+    virtual uint32_t GetCurrentVirtualScreenNum() = 0;
+
     virtual void SetScreenMirror(ScreenId id, ScreenId toMirror) = 0;
 
     virtual ScreenId CreateVirtualScreen(
@@ -444,6 +446,11 @@ public:
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
     static void ReleaseScreenDmaBuffer(uint64_t screenId);
+
+    uint32_t GetCurrentVirtualScreenNum() override
+    {
+        return currentVirtualScreenNum_;
+    }
 
 private:
     RSScreenManager();

@@ -1084,6 +1084,7 @@ private:
     friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
+    friend class RSPointerDrawingManager;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;

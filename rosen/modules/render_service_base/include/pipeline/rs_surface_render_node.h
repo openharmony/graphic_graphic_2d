@@ -82,6 +82,11 @@ public:
 
     void ResetRenderParams();
 
+    ScreenId GetScreenId() const
+    {
+        return screenId_;
+    }
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -920,6 +925,8 @@ public:
 
     bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
 
+    void FindScreenId();
+
     void OnTreeStateChanged() override;
 
     void SetDrawingGPUContext(Drawing::GPUContext* grContext)
@@ -1295,6 +1302,8 @@ private:
     std::mutex mutex_;
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
+
+    ScreenId screenId_ = -1;
 
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;

@@ -264,6 +264,18 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
     return true;
 }
 
+bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::SetHwcNodeBounds renderService is null!");
+        return false;
+    }
+    renderService->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
+    return true;
+}
+
 int32_t RSRenderServiceClient::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {

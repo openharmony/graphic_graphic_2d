@@ -25,6 +25,7 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "pipeline/rs_pointer_drawing_manager.h"
 
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -987,6 +988,30 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         }
     };
     mainThread_->PostTask(captureTask);
+}
+
+void RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    if (!mainThread_) {
+        return;
+    }
+
+    // adapt video scene pointer
+    if (screenManager_->GetCurrentVirtualScreenNum() > 0 ||
+        !RSPointerDrawingManager::Instance().GetIsPointerEnableHwc()) {
+        // when has virtual screen or pointer is enable hwc, we can't skip
+        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(false);
+        RSMainThread::Instance()->RequestNextVSync();
+    } else {
+        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(true);
+    }
+
+    // record status here
+    std::lock_guard<std::mutex> lock(RSPointerDrawingManager::Instance().mtx_);
+    RSPointerDrawingManager::Instance().SetBoundHasUpdate(true);
+    RSPointerDrawingManager::Instance().SetBound({positionX, positionY, positionZ, positionW});
+    RSPointerDrawingManager::Instance().SetRsNodeId(rsNodeId);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)

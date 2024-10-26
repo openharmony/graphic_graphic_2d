@@ -132,6 +132,9 @@ public:
         const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
+    void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+        float positionZ, float positionW) override;
+
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;

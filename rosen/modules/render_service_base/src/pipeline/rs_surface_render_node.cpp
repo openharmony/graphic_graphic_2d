@@ -30,6 +30,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_handler.h"
+#include "pipeline/rs_display_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties_painter.h"
@@ -355,6 +356,24 @@ void RSSurfaceRenderNode::ClearChildrenCache()
     OnTreeStateChanged();
 }
 
+void RSSurfaceRenderNode::FindScreenId()
+{
+    // The results found across screen windows are inaccurate
+    auto nodeTemp = GetParent().lock();
+    screenId_ = -1;
+    while (nodeTemp != nullptr) {
+        if (nodeTemp->GetId() == 0) {
+            break;
+        }
+        if (nodeTemp->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+            auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(nodeTemp);
+            screenId_ = displayNode->GetScreenId();
+            break;
+        }
+        nodeTemp = nodeTemp->GetParent().lock();
+    }
+}
+
 void RSSurfaceRenderNode::OnTreeStateChanged()
 {
     NotifyTreeStateChange();
@@ -373,6 +392,8 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
                 context->MarkNeedPurge(ClearMemoryMoment::SCENEBOARD_SURFACE_NODE_HIDE, RSContext::PurgeType::STRONGLY);
             }
         }
+    } else if (GetName() == "pointer window") {
+        FindScreenId();
     }
 #endif
     if (IsAbilityComponent()) {

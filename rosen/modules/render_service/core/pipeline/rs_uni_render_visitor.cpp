@@ -42,6 +42,7 @@
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uifirst_manager.h"
+#include "pipeline/rs_pointer_drawing_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -798,7 +799,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     PostPrepare(node, !isSubTreeNeedPrepare);
     if (node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
-        UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
+        RSUniRenderUtil::UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     CheckMergeFilterDirtyByIntersectWithDirty(curSurfaceNoBelowDirtyFilter_, false);
     curAlpha_ = prevAlpha;
@@ -1533,103 +1534,6 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
     hwcRects.emplace_back(dst);
 }
 
-void RSUniRenderVisitor::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode)
-{
-    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
-    if (!hwcNodeGeo) {
-        RS_LOGE("hwcNode Geometry is not prepared.");
-        return;
-    }
-    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
-    std::vector<RectI> currIntersectedRoundCornerAABBs = {};
-    float alpha = hwcNode->GetRenderProperties().GetAlpha();
-    Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
-    auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
-    bool isNodeRenderByDrawingCache = false;
-    RSUniRenderUtil::TraverseParentNodeAndReduce(hwcNode,
-        [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
-            if (isNodeRenderByDrawingCache) {
-                return;
-            }
-            // if the parent node of hwcNode is marked freeze or nodegroup, RS closes hardware composer of hwcNode.
-            isNodeRenderByDrawingCache = isNodeRenderByDrawingCache || parent->IsStaticCached() ||
-                (parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
-        },
-        [&alpha](std::shared_ptr<RSRenderNode> parent) {
-            auto& parentProperty = parent->GetRenderProperties();
-            alpha *= parentProperty.GetAlpha();
-        },
-        [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
-            if (auto opt = RSUniRenderUtil::GetMatrix(parent)) {
-                totalMatrix.PostConcat(opt.value());
-            } else {
-                return;
-            }
-        },
-        [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
-            auto& parentProperty = parent->GetRenderProperties();
-            auto cornerRadius = parentProperty.GetCornerRadius();
-            auto maxCornerRadius = *std::max_element(std::begin(cornerRadius.data_), std::end(cornerRadius.data_));
-            auto parentGeo = parentProperty.GetBoundsGeometry();
-            static const std::array offsetVecs {
-                UIPoint { 0, 0 },
-                UIPoint { 1, 0 },
-                UIPoint { 0, 1 },
-                UIPoint { 1, 1 }
-            };
-            // The logic here is to calculate whether the HWC Node affects
-            // the round corner property of the parent node.
-            // The method is calculating the rounded AABB of each HWC node
-            // with respect to all parent nodes above it and storing the results.
-            // When a HWC node is found below, the AABBs and the HWC node
-            // are checked for intersection. If there is an intersection,
-            // the node above it is disabled from taking the HWC pipeline.
-            auto checkIntersectWithRoundCorner = [&currIntersectedRoundCornerAABBs, hwcNodeRect](
-                const RectI& rect, float radiusX, float radiusY) {
-                if (radiusX <= 0 || radiusY <= 0) {
-                    return;
-                }
-                UIPoint offset { rect.GetWidth() - radiusX, rect.GetHeight() - radiusY };
-                UIPoint anchorPoint { rect.GetLeft(), rect.GetTop() };
-                std::for_each(std::begin(offsetVecs), std::end(offsetVecs),
-                    [&currIntersectedRoundCornerAABBs, hwcNodeRect, offset,
-                        radiusX, radiusY, anchorPoint](auto offsetVec) {
-                        auto res = anchorPoint + offset * offsetVec;
-                        auto roundCornerAABB = RectI(res.x_, res.y_, radiusX, radiusY);
-                        if (!roundCornerAABB.IntersectRect(hwcNodeRect).IsEmpty()) {
-                            currIntersectedRoundCornerAABBs.push_back(roundCornerAABB);
-                        }
-                    }
-                );
-            };
-            if (parentGeo) {
-                auto parentRect = parentGeo->GetAbsRect();
-                checkIntersectWithRoundCorner(parentRect, maxCornerRadius, maxCornerRadius);
-
-                if (parentProperty.GetClipToRRect()) {
-                    RRect parentClipRRect = parentProperty.GetClipRRect();
-                    RectI parentClipRect = parentGeo->MapAbsRect(parentClipRRect.rect_);
-                    float maxClipRRectCornerRadiusX = 0, maxClipRRectCornerRadiusY = 0;
-                    constexpr size_t radiusVecSize = 4;
-                    for (size_t i = 0; i < radiusVecSize; ++i) {
-                        maxClipRRectCornerRadiusX = std::max(maxClipRRectCornerRadiusX, parentClipRRect.radius_[i].x_);
-                        maxClipRRectCornerRadiusY = std::max(maxClipRRectCornerRadiusY, parentClipRRect.radius_[i].y_);
-                    }
-                    checkIntersectWithRoundCorner(parentClipRect, maxClipRRectCornerRadiusX, maxClipRRectCornerRadiusY);
-                }
-            }
-        }
-    );
-    if (isNodeRenderByDrawingCache) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache",
-            hwcNode->GetName().c_str(), hwcNode->GetId());
-        hwcNode->SetHardwareForcedDisabledState(isNodeRenderByDrawingCache);
-    }
-    hwcNode->SetTotalMatrix(totalMatrix);
-    hwcNode->SetGlobalAlpha(alpha);
-    hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
-}
-
 void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& hwcNode)
 {
     auto alpha = hwcNode->GetGlobalAlpha();
@@ -1706,7 +1610,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             if (hwcNodePtr->GetProtectedLayer()) {
                 drmNodes_.emplace_back(hwcNode);
             }
-            UpdateHwcNodeProperty(hwcNodePtr);
+            RSUniRenderUtil::UpdateHwcNodeProperty(hwcNodePtr);
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
             ProcessAncoNode(hwcNodePtr, ancoNodes, ancoHasGpu);
@@ -1919,8 +1823,10 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     if (pointSurfaceHandler) {
         // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
-        auto checkHardCursorEnable = CheckIfHardCursorEnable();
+        auto checkHardCursorEnable = CheckIfHardCursorEnable() && pointWindow->ShouldPaint() &&
+            pointWindow->IsHardwareEnabledTopSurface();
         pointWindow->SetHardwareForcedDisabledState(true);
+        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(checkHardCursorEnable);
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
         pointWindow->UpdateHwcNodeLayerInfo(transform, checkHardCursorEnable);
         if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {

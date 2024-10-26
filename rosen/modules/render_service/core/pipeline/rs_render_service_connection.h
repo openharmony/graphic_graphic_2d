@@ -153,6 +153,9 @@ private:
         const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
+    void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+        float positionZ, float positionW) override;
+
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
