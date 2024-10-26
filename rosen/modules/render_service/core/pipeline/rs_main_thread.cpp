@@ -1572,15 +1572,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
         });
 }
 
-void RSMainThread::CollectInfoForHardCursor(NodeId id,
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable)
-{
-    if (!isUniRender_) {
-        return;
-    }
-    hardCursorDrawables_.push_back({ id, cursorDrawable });
-}
-
 bool RSMainThread::IsLastFrameUIFirstEnabled(NodeId appNodeId) const
 {
     for (auto& node : subThreadNodes_) {
@@ -2023,7 +2014,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
-            renderThreadParams_->hardCursorDrawables_ = std::move(hardCursorDrawables_);
+            renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
             return;
         }
     }
@@ -2045,7 +2036,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
-        renderThreadParams_->hardCursorDrawables_ = std::move(hardCursorDrawables_);
+        renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
@@ -3872,7 +3863,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
         selfDrawables_.clear();
-        hardCursorDrawables_.clear();
+        RSPointerWindowManager::Instance().ResetHardCursorDrawables();
     }
 }
 

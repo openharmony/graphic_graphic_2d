@@ -158,7 +158,7 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-    const std::vector<HardCursorInfo>& GetHardCursorDrawables() const
+    const HardCursorInfo& GetHardCursorDrawables() const
     {
         return hardCursorDrawables_;
     }
@@ -414,7 +414,7 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
-    std::vector<HardCursorInfo> hardCursorDrawables_;
+    HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

@@ -353,24 +353,27 @@ static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool cl
 
 bool RSDisplayRenderNodeDrawable::HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor)
 {
-    bool ret = false;
-    auto& hardCursorDrawables = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardCursorDrawables();
-    RS_OPTIONAL_TRACE_NAME_FMT("HardCursorCreateLayer size:%d", static_cast<int>(hardCursorDrawables.size()));
-    for (const auto& drawable : hardCursorDrawables) {
-        if (drawable.id != GetId() || !drawable.drawablePtr) {
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable.drawablePtr->GetRenderParams().get());
-        if (!surfaceParams) {
-            continue;
-        }
-        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable.drawablePtr);
-        if (surfaceParams->IsHardCursorEnabled()) {
-            processor->CreateLayerForRenderThread(*surfaceDrawable);
-            ret = true;
-        }
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (!uniParam) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::HardCursorCreateLayer uniParam is null");
+        return false;
     }
-    return ret;
+    auto& hardCursorDrawable = uniParam->GetHardCursorDrawables();
+    if (hardCursorDrawable.id != GetId() || !hardCursorDrawable.drawablePtr) {
+        return false;
+    }
+    auto surfaceParams =
+        static_cast<RSSurfaceRenderParams*>(hardCursorDrawable.drawablePtr->GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::HardCursorCreateLayer surfaceParams is null");
+        return false;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable.drawablePtr);
+    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+        processor->CreateLayerForRenderThread(*surfaceDrawable);
+        return true;
+    }
+    return false;
 }
 
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
@@ -543,13 +546,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         drawable->GetRenderParams()->SetLayerCreated(false);
     }
-    auto& hardCursorDrawables = uniParam->GetHardCursorDrawables();
-    for (const auto& drawable : hardCursorDrawables) {
-        if (drawable.id != GetId() || !drawable.drawablePtr ||
-            !drawable.drawablePtr->GetRenderParams()) {
-            continue;
-        }
-        drawable.drawablePtr->GetRenderParams()->SetLayerCreated(false);
+    auto& hardCursorDrawable = uniParam->GetHardCursorDrawables();
+    if (hardCursorDrawable.id == GetId() && hardCursorDrawable.drawablePtr &&
+        hardCursorDrawable.drawablePtr->GetRenderParams()) {
+        hardCursorDrawable.drawablePtr->GetRenderParams()->SetLayerCreated(false);
     }
     // if screen power off, skip on draw, needs to draw one more frame.
     if (params && RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId())) {
@@ -1441,19 +1441,19 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams
             params.GetHardwareEnabledDrawables().emplace_back(drawable);
         }
     }
-    auto& hardCursorDrawables = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardCursorDrawables();
-    for (const auto& drawable : hardCursorDrawables) {
-        if (drawable.id != GetId() || !drawable.drawablePtr) {
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable.drawablePtr->GetRenderParams().get());
-        if (!surfaceParams) {
-            continue;
-        }
-        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable.drawablePtr);
-        if (surfaceParams->IsHardCursorEnabled()) {
-            params.GetHardwareEnabledTopDrawables().emplace_back(drawable.drawablePtr);
-        }
+    auto& hardCursorDrawable = RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardCursorDrawables();
+    if (hardCursorDrawable.id != GetId() || !hardCursorDrawable.drawablePtr) {
+        return;
+    }
+    auto surfaceParams =
+        static_cast<RSSurfaceRenderParams*>(hardCursorDrawable.drawablePtr->GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes surfaceParams is null");
+        return;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable.drawablePtr);
+    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+        params.GetHardwareEnabledTopDrawables().emplace_back(surfaceDrawable);
     }
 }
 
