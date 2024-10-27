@@ -233,5 +233,66 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level
     EXPECT_EQ(firstLineMetrics.startIndex, 0);
     EXPECT_EQ(firstLineMetrics.endIndex, text.size());
 }
-} // namespace Rosen
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest009
+ * @tc.desc: test for GetEllipsisTextRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    auto textStyle = typographyStyle.GetTextStyle();
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"text";
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+
+    Boundary range = typography->GetEllipsisTextRange();
+    ASSERT_EQ(range, Boundary(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+    typography->Layout(maxWidth);
+
+    Boundary range1 = typography->GetEllipsisTextRange();
+    ASSERT_EQ(range1, Boundary(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.maxLines = 1;
+    std::u16string ellipsisStr = TypographyStyle::ELLIPSIS;
+    typographyStyle1.ellipsis = ellipsisStr;
+    auto textStyle = typographyStyle.GetTextStyle();
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection);
+    std::u16string text1 = u"text is too long";
+    typographyCreate1->AppendText(text1);
+    OHOS::Rosen::TextStyle typographyTextStyle1;
+    typographyCreate1->PushStyle(typographyTextStyle1);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+    Boundary range2 = typography1->GetEllipsisTextRange();
+    ASSERT_EQ(range2, Boundary(5, 16));
+
+    //For branch coverage
+    OHOS::Rosen::TypographyStyle typographyStyle2;
+    typographyStyle2.maxLines = 1;
+    typographyStyle2.ellipsis = ellipsisStr;
+    typographyStyle2.ellipsisModal = EllipsisModal::MIDDLE;
+    auto textStyle = typographyStyle.GetTextStyle();
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle2, fontCollection);
+    typographyCreate2->AppendText(text1);
+    OHOS::Rosen::TextStyle typographyTextStyle2;
+    typographyCreate2->PushStyle(typographyTextStyle2);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    typography2->Layout(maxWidth);
+    Boundary range3 = typography2->GetEllipsisTextRange();
+    ASSERT_EQ(range3, Boundary(2, 14));
+    typography2->GetEllipsisTextRange();
+}
+}// namespace Rosen
 } // namespace OHOS
