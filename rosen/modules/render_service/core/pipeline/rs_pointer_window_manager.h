@@ -19,6 +19,7 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_processor_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,10 +59,18 @@ public:
     {
         hardCursorDrawables_.id = INVALID_NODEID;
         hardCursorDrawables_.drawablePtr = nullptr;
+        hardCursorNodes_ = nullptr;
     }
+
+    void SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode);
+    const std::shared_ptr<RSSurfaceRenderNode>& GetHardCursorNode() const;
+
+    void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
+
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;
+    std::shared_ptr<RSSurfaceRenderNode> hardCursorNodes_;
 };
 } // namespace Rosen
 } // namespace OHOS

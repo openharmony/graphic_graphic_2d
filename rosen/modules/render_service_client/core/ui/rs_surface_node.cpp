@@ -964,7 +964,7 @@ void RSSurfaceNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
     }
     abilityState_ = abilityState;
     transactionProxy->AddCommand(command, true);
-    ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
+    ROSEN_LOGI("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
         GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
 }
 

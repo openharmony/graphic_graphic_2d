@@ -304,8 +304,8 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
-    virtual ScalingMode GetPreScalingMode() const
+    virtual void SetScalingMode(ScalingMode scalingMode) {}
+    virtual ScalingMode GetScalingMode() const
     {
         return ScalingMode::SCALING_MODE_FREEZE;
     }

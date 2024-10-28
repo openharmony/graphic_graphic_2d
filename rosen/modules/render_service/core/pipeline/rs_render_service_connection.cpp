@@ -1348,6 +1348,9 @@ int32_t RSRenderServiceConnection::SetScreenCorrection(ScreenId id, ScreenRotati
         return StatusCode::SCREEN_NOT_FOUND;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (id == screenManager_->GetDefaultScreenId()) {
+        RSSystemProperties::SetDefaultScreenRotationOffset(RSBaseRenderUtil::RotateEnumToInt(screenRotation));
+    }
     return screenManager_->SetScreenCorrection(id, screenRotation);
 }
 

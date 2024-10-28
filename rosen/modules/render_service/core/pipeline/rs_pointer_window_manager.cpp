@@ -14,6 +14,7 @@
  */
 
 #include "pipeline/rs_pointer_window_manager.h"
+#include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
 
 namespace OHOS {
@@ -44,6 +45,37 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
         } else {
             isNeedForceCommitByPointer_ = false;
         }
+    }
+}
+
+void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode)
+{
+    if (!hardCursorNode) {
+        return;
+    }
+    if (!hardCursorNode->IsHardwareEnabledTopSurface() || !hardCursorNode->ShouldPaint()) {
+        return;
+    }
+    hardCursorNodes_ = hardCursorNode;
+}
+
+const std::shared_ptr<RSSurfaceRenderNode>& RSPointerWindowManager::GetHardCursorNode() const
+{
+    return hardCursorNodes_;
+}
+
+void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor)
+{
+    auto hardCursorNode = GetHardCursorNode();
+    if (hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface()) {
+        auto surfaceHandler = hardCursorNode->GetRSSurfaceHandler();
+        auto params = static_cast<RSSurfaceRenderParams*>(hardCursorNode->GetStagingRenderParams().get());
+        if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
+            params->SetPreBuffer(nullptr);
+            hardCursorNode->AddToPendingSyncList();
+        }
+        RS_OPTIONAL_TRACE_NAME("HardCursorCreateLayerForDirect create layer");
+        processor->CreateLayer(*hardCursorNode, *params);
     }
 }
 } // namespace Rosen

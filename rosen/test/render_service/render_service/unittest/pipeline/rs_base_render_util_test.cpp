@@ -156,12 +156,12 @@ HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_002, TestSize.Level2)
 }
 
 /*
- * @tc.name: InitPreScalingMode_001
+ * @tc.name: SetScalingMode_001
  * @tc.desc: Test InitPreScalingMode
  * @tc.type: FUNC
  * @tc.require: issueIAZEU6
  */
-HWTEST_F(RSBaseRenderUtilTest, InitPreScalingMode_001, TestSize.Level2)
+HWTEST_F(RSBaseRenderUtilTest, SetScalingMode_001, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
@@ -184,8 +184,8 @@ HWTEST_F(RSBaseRenderUtilTest, InitPreScalingMode_001, TestSize.Level2)
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, GSERROR_OK);
     surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp);
-    RSBaseRenderUtil::InitPreScalingMode(*rsSurfaceRenderNode);
-    ASSERT_EQ(rsSurfaceRenderNode->GetStagingRenderParams()->GetPreScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
+    RSBaseRenderUtil::SetScalingMode(*rsSurfaceRenderNode);
+    ASSERT_EQ(rsSurfaceRenderNode->GetStagingRenderParams()->GetScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
 }
 
 /*
