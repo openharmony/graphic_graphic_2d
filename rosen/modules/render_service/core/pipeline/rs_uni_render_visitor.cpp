@@ -1268,8 +1268,8 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
     }
-    if (node.IsHardwareEnabledTopSurface() && node.ShouldPaint()) {
-        RSPointerWindowManager::Instance().CollectInfoForHardCursor(curDisplayNode_->GetId(),
+    if (node.IsHardwareEnabledTopSurface()) {
+        RSMainThread::Instance()->CollectInfoForHardCursor(curDisplayNode_->GetId(),
             node.GetRenderDrawable());
     }
     node.setQosCal((RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) &&
@@ -1747,24 +1747,99 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
     }
 }
 
+bool RSUniRenderVisitor::HasMirrorDisplay() const
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
+        return false;
+    }
+    for (auto& child : *rootNode->GetSortedChildren()) {
+        if (!child || !child->IsInstanceOf<RSDisplayRenderNode>()) {
+            continue;
+        }
+        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (!displayNode) {
+            continue;
+        }
+        if (displayNode->IsMirrorDisplay()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool RSUniRenderVisitor::HasVirtualDisplay() const
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
+        return false;
+    }
+    bool hasVirtualDisplay = false;
+    for (auto& child : *rootNode->GetSortedChildren()) {
+        if (!child || !child->IsInstanceOf<RSDisplayRenderNode>()) {
+            continue;
+        }
+        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (!displayNode) {
+            continue;
+        }
+        auto screenManager = CreateOrGetScreenManager();
+        if (!screenManager) {
+            return false;
+        }
+        RSScreenType screenType;
+        screenManager->GetScreenType(displayNode->GetScreenId(), screenType);
+        if (screenType == RSScreenType::VIRTUAL_TYPE_SCREEN) {
+            hasVirtualDisplay = true;
+        }
+    }
+    return hasVirtualDisplay;
+}
+
+bool RSUniRenderVisitor::CheckIfHardCursorEnable() const
+{
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        return false;
+    }
+    std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (rootNode == nullptr) {
+        RS_LOGE("CheckIfHardCursorEnable rootNode is nullptr");
+        return false;
+    }
+    auto childCount = rootNode->GetChildrenCount();
+    if (childCount == 1) {
+        return true;
+    } else if (childCount < 1) {
+        return false;
+    }
+    bool hasMirrorDisplay = HasMirrorDisplay();
+    bool hasVirtualDisplay = HasVirtualDisplay();
+    RS_LOGD("CheckIfHardCursorEnable childCount:%{public}d, hasMirrorDisplay:%{public}d, hasVirtualDisplay:%{public}d",
+        childCount, hasMirrorDisplay, hasVirtualDisplay);
+    // For expand physical screen.
+    if (!hasMirrorDisplay || (hasMirrorDisplay && hasVirtualDisplay)) {
+        return true;
+    }
+    return false;
+}
+
 void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow)
 {
-    if (!pointWindow->IsHardwareEnabledTopSurface() || !pointWindow->ShouldPaint()) {
-        pointWindow->SetHardCursorStatus(false);
-        return;
-    }
     std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
     if (pointSurfaceHandler) {
         // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
-        bool isHardCursor = RSPointerWindowManager::Instance().CheckIsHardCursor();
+        auto checkHardCursorEnable = CheckIfHardCursorEnable() && pointWindow->ShouldPaint() &&
+            pointWindow->IsHardwareEnabledTopSurface();
         pointWindow->SetHardwareForcedDisabledState(true);
-        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(isHardCursor);
+        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(checkHardCursorEnable);
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
-        pointWindow->SetHardCursorStatus(isHardCursor);
-        pointWindow->UpdateHwcNodeLayerInfo(transform, isHardCursor);
+        pointWindow->UpdateHwcNodeLayerInfo(transform, checkHardCursorEnable);
         if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-            RSPointerWindowManager::Instance().UpdatePointerDirtyToGlobalDirty(pointWindow, curDisplayNode_);
+            pointerWindowManager_.UpdatePointerDirtyToGlobalDirty(pointWindow, curDisplayNode_);
         }
     }
 }
@@ -1824,7 +1899,9 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
         // 0. update hwc node dirty region and create layer
         UpdateHwcNodeDirtyRegionAndCreateLayer(surfaceNode);
-        UpdatePointWindowDirtyStatus(surfaceNode);
+        if (surfaceNode->IsHardwareEnabledTopSurface()) {
+            UpdatePointWindowDirtyStatus(surfaceNode);
+        }
         // 1. calculate abs dirtyrect and update partialRenderParams
         // currently only sync visible region info
         surfaceNode->UpdatePartialRenderParams();
@@ -2048,7 +2125,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNo
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const
 {
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
-        surfaceNode.IsHardwareEnabledTopSurface() && surfaceNode.GetHardCursorStatus()) {
+        surfaceNode.IsHardwareEnabledTopSurface() && !surfaceNode.IsHardwareForcedDisabled()) {
         return;
     }
     RectI lastFrameSurfacePos = curDisplayNode_->GetLastFrameSurfacePos(surfaceNode.GetId());
@@ -2909,8 +2986,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isVirtualDirtyDfxEnabled_ = isVirtualDirtyDfxEnabled_;
     renderThreadParams->isExpandScreenDirtyEnabled_ = isExpandScreenDirtyEnabled_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
-    renderThreadParams->isForceCommitLayer_ |=
-        RSPointerWindowManager::Instance().IsNeedForceCommitByPointer();
+    renderThreadParams->isForceCommitLayer_ |= pointerWindowManager_.IsNeedForceCommitByPointer();
 }
 
 void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)

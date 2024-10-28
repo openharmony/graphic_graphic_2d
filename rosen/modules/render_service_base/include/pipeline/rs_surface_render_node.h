@@ -119,9 +119,6 @@ public:
     }
 
     bool IsHardwareEnabledTopSurface() const;
-    void SetHardCursorStatus(bool status);
-    bool GetHardCursorStatus() const;
-    bool GetHardCursorLastStatus() const;
 
     void SetLayerTop(bool isTop);
 
@@ -1524,10 +1521,6 @@ private:
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
-
-    // point window
-    bool isHardCursor_ = false;
-    bool isLastHardCursor_ = false;
 
     bool needDrawFocusChange_ = false;
 

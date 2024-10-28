@@ -167,18 +167,18 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
-void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
+void RSSurfaceRenderParams::SetHardCursorEnabled(bool enabled)
 {
-    if (isHardCursor_ == status) {
+    if (isHardCursorEnabled_ == enabled) {
         return;
     }
-    isHardCursor_ = status;
+    isHardCursorEnabled_ = enabled;
     needSync_ = true;
 }
 
-bool RSSurfaceRenderParams::GetHardCursorStatus() const
+bool RSSurfaceRenderParams::IsHardCursorEnabled() const
 {
-    return isHardCursor_;
+    return isHardCursorEnabled_;
 }
 
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
@@ -466,7 +466,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
-    targetSurfaceParams->isHardCursor_ = isHardCursor_;
+    targetSurfaceParams->isHardCursorEnabled_ = isHardCursorEnabled_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;

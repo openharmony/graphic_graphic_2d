@@ -134,6 +134,10 @@ public:
         screenInfo_ = screenInfo;
     }
 
+    bool CheckIfHardCursorEnable() const;
+    bool HasMirrorDisplay() const;
+    bool HasVirtualDisplay() const;
+
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
@@ -424,6 +428,7 @@ private:
     std::vector<RectI> globalFilterRects_;
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
+    RSPointerWindowManager pointerWindowManager_;
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
 

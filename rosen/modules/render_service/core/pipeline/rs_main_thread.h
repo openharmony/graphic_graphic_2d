@@ -361,6 +361,8 @@ public:
 
     bool IsHardwareEnabledNodesNeedSync();
     bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
+    void CollectInfoForHardCursor(NodeId id,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
@@ -630,6 +632,7 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
+    std::vector<HardCursorInfo> hardCursorDrawables_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {

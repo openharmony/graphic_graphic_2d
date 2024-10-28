@@ -1167,9 +1167,9 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->GetHardwareEnabled());
 
-    surfaceParams->isHardCursor_ = true;
+    surfaceParams->isHardCursorEnabled_ = true;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
-    ASSERT_TRUE(surfaceParams->GetHardCursorStatus());
+    ASSERT_TRUE(surfaceParams->IsHardCursorEnabled());
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabledTopSurface());
 
     surfaceParams->isLayerTop_ = true;

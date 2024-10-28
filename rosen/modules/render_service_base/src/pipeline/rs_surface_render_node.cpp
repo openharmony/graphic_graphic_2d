@@ -1176,34 +1176,8 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
 
 bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
 {
-    return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+    return ShouldPaint() && nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
         GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
-}
-
-void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
-{
-    if (isHardCursor_ == status) {
-        isLastHardCursor_ = isHardCursor_;
-        return;
-    }
-    RS_LOGI("RSSurfaceRenderNode::SetHardCursorStatus status:%{public}d", status);
-    isLastHardCursor_ = isHardCursor_;
-    isHardCursor_ = status;
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams) {
-        surfaceParams->SetHardCursorStatus(status);
-        AddToPendingSyncList();
-    }
-}
-
-bool RSSurfaceRenderNode::GetHardCursorStatus() const
-{
-    return isHardCursor_;
-}
-
-bool RSSurfaceRenderNode::GetHardCursorLastStatus() const
-{
-    return isLastHardCursor_;
 }
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
@@ -1631,7 +1605,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
     layer.matrix = totalMatrix_;
     layer.alpha = GetGlobalAlpha();
     layer.arsrTag = GetArsrTag();
-    if (isHardCursorEnable && RSSystemProperties::IsPcType()) {
+    if (IsHardwareEnabledTopSurface() && RSSystemProperties::IsPcType()) {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR;
     } else {
         layer.layerType = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
@@ -1659,6 +1633,7 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
 #endif
     surfaceParams->SetLayerInfo(layer);
     surfaceParams->SetHardwareEnabled(!IsHardwareForcedDisabled());
+    surfaceParams->SetHardCursorEnabled(IsHardwareEnabledTopSurface() && isHardCursorEnable);
     surfaceParams->SetLastFrameHardwareEnabled(isLastFrameHwcEnabled_);
     surfaceParams->SetInFixedRotation(isInFixedRotation_);
     // 1 means need source tuning

@@ -1175,22 +1175,5 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, ProcessAnimatePropertyBeforeChildren, Tes
     node->ProcessAnimatePropertyBeforeChildren(filterCanvas, true);
     ASSERT_FALSE(properties.GetCornerRadius().IsZero());
 }
-
-/**
- * @tc.name: SetHardCursorStatus
- * @tc.desc: SetHardCursorStatus and GetHardCursorStatus and GetHardCursorLastStatus test
- * @tc.type:FUNC
- * @tc.require: issueIAX2SN
- */
-HWTEST_F(RSSurfaceRenderNodeThreeTest, SetHardCursorStatusTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->SetHardCursorStatus(true);
-    EXPECT_EQ(node->GetHardCursorStatus(), true);
-    EXPECT_EQ(node->GetHardCursorLastStatus(), false);
-    node->SetHardCursorStatus(false);
-    EXPECT_EQ(node->GetHardCursorStatus(), false);
-    EXPECT_EQ(node->GetHardCursorLastStatus(), true);
-}
 } // namespace Rosen
 } // namespace OHOS
