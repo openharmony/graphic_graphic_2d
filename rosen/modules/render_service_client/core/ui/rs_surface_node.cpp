@@ -245,6 +245,24 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     }
 }
 
+void RSSurfaceNode::SetLeashPersistentId(LeashPersistentId leashPersistentId)
+{
+    leashPersistentId_ = leashPersistentId;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSurfaceNodeSetLeashPersistentId>(GetId(), leashPersistentId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetLeashPersistentId, \
+        surfaceNodeId:[%{public}" PRIu64 "] leashPersistentId:[%{public}" PRIu64 "]", GetId(), leashPersistentId);
+}
+
+LeashPersistentId RSSurfaceNode::GetLeashPersistentId() const
+{
+    return leashPersistentId_;
+}
+
 void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
 {
     isSecurityLayer_ = isSecurityLayer;
