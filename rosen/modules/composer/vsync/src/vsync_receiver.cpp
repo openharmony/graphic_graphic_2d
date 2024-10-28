@@ -205,8 +205,6 @@ VsyncError VSyncReceiver::Init()
     }
 
     listener_->SetName(name_);
-
-    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     listener_->RegisterFdShutDownCallback([this](int32_t fileDescriptor) {
         std::lock_guard<std::mutex> locker(initMutex_);
         if (fileDescriptor != fd_) {
@@ -215,6 +213,8 @@ VsyncError VSyncReceiver::Init()
         }
         RemoveAndCloseFdLocked();
     });
+
+    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
     return VSYNC_ERROR_OK;
 }
@@ -236,8 +236,8 @@ void VSyncReceiver::ThreadCreateNotify()
 
 VSyncReceiver::~VSyncReceiver()
 {
-    std::lock_guard<std::mutex> locker(initMutex_);
     listener_->RegisterFdShutDownCallback(nullptr);
+    std::lock_guard<std::mutex> locker(initMutex_);
     RemoveAndCloseFdLocked();
     DestroyLocked();
 }
