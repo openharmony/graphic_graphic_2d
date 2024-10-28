@@ -100,7 +100,7 @@ private:
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-    
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
@@ -285,7 +285,6 @@ private:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     bool SetAncoForceDoDirect(bool direct) override;
-
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     pid_t remotePid_;
@@ -328,7 +327,6 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
-
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
