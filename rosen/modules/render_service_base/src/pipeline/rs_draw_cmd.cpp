@@ -455,8 +455,8 @@ RSExtendDrawFuncObj *RSExtendDrawFuncObj::Unmarshalling(Parcel &parcel)
 
 namespace Drawing {
 /* DrawImageWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM, DrawImageWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM,
+    DrawImageWithParmOpItem::Unmarshalling, sizeof(DrawImageWithParmOpItem::ConstructorHandle));
 
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(
     const DrawCmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
@@ -506,8 +506,8 @@ void DrawImageWithParmOpItem::SetNodeId(NodeId id)
 }
 
 /* DrawPixelMapWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM,
+    DrawPixelMapWithParmOpItem::Unmarshalling, sizeof(DrawPixelMapWithParmOpItem::ConstructorHandle));
 
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const DrawCmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
@@ -558,7 +558,8 @@ void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
 }
 
 /* DrawPixelMapRectOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
+    DrawPixelMapRectOpItem::Unmarshalling, sizeof(DrawPixelMapRectOpItem::ConstructorHandle));
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
@@ -608,7 +609,8 @@ void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
 }
 
 /* DrawFuncOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM, DrawFuncOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM,
+    DrawFuncOpItem::Unmarshalling, sizeof(DrawFuncOpItem::ConstructorHandle));
 
 DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
@@ -641,8 +643,8 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 #ifdef ROSEN_OHOS
 /* DrawSurfaceBufferOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM, DrawSurfaceBufferOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
+    DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)

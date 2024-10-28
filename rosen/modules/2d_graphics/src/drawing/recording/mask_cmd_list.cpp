@@ -45,7 +45,7 @@ bool MaskCmdList::Playback(MaskPlayer &player) const
             LOGD("MaskCmdList::Playback size error");
             return false;
         }
-        void* itemPtr = opAllocator_.OffsetToAddr(offset);
+        void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         OpItem* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr != nullptr) {
             if (!player.Playback(curOpItemPtr->GetType(), itemPtr, totalSize - offset)) {

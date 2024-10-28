@@ -231,14 +231,14 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
-    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr);
+    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr, 0);
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
         globalUniqueId, 0, 0, paintHandle};
-    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle);
-    player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle);
+    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
+    player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0);
 }
 
 /**
