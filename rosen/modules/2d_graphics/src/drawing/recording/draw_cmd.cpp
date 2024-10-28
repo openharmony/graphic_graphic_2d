@@ -14,10 +14,10 @@
  */
 
 #include "recording/draw_cmd.h"
+
 #include <cstdint>
 #include <sstream>
 
-#include "platform/common/rs_system_properties.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "recording/mem_allocator.h"
