@@ -228,6 +228,11 @@ public:
         return bufferAvailableCount_;
     }
 
+    void SetAvailableBufferCount(const int32_t bufferAvailableCount)
+    {
+        bufferAvailableCount_ = bufferAvailableCount;
+    }
+
     int64_t GetTimestamp() const
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -291,11 +296,6 @@ public:
         }
     }
     void ConsumeAndUpdateBuffer(SurfaceBufferEntry buffer);
-    void ConsumeAndUpdateBuffer(const uint64_t& vsyncTimestamp);
-    void CacheBuffer(SurfaceBufferEntry buffer);
-    RSSurfaceHandler::SurfaceBufferEntry GetBufferFromCache(uint64_t vsyncTimestamp);
-    bool HasBufferCache() const;
-    void ClearBufferCache();
 #endif
 
 protected:
@@ -305,9 +305,7 @@ protected:
     bool isCurrentFrameBufferConsumed_ = false;
 
 private:
-    void ReleaseBuffer(SurfaceBufferEntry& buffer);
     void ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer);
-    void GetBufferFromCacheLocked(const uint64_t& vsyncTimestamp, RSSurfaceHandler::SurfaceBufferEntry& buffer);
 
 #ifndef ROSEN_CROSS_PLATFORM
     ScalingMode scalingModePre = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
@@ -321,7 +319,6 @@ private:
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
     bool bufferTransformTypeChanged_ = false;
-    std::map<uint64_t, SurfaceBufferEntry> bufferCache_;
     std::shared_ptr<SurfaceBufferEntry> holdBuffer_ = nullptr;
 };
 }

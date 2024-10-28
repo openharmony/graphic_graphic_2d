@@ -1750,5 +1750,31 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
 }
+
+/*
+ * @tc.name: SetLayerTop_001
+ * @tc.desc: Test SetLayerTop with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetLayerTop_002
+ * @tc.desc: Test SetLayerTop with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, true);
+}
 } // namespace Rosen
 } // namespace OHOS

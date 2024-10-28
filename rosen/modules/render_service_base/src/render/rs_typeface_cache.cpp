@@ -21,6 +21,7 @@
 #include "src/core/SkLRUCache.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include <sstream>
 #include <algorithm>
 
 // after 5 vsync count, destory it
@@ -297,5 +298,78 @@ void RSTypefaceCache::Dump() const
     }
     RS_LOGI("RSTypefaceCache ]");
 }
+
+void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)
+{
+    size_t fontCount = 0;
+    ss.write(reinterpret_cast<const char*>(&fontCount), sizeof(fontCount));
+
+    for (auto co : typefaceHashCode_) {
+        if (typefaceHashMap_.find(co.second) != typefaceHashMap_.end()) {
+            auto [typeface, ref] = typefaceHashMap_.at(co.second);
+
+            if (auto data = typeface->Serialize()) {
+                const void* stream = data->GetData();
+                size_t size = data->GetSize();
+
+                ss.write(reinterpret_cast<const char*>(&co.first), sizeof(co.first));
+                ss.write(reinterpret_cast<const char*>(&size), sizeof(size));
+                ss.write(reinterpret_cast<const char*>(stream), size);
+                fontCount++;
+            }
+        }
+    }
+
+    ss.seekp(0, std::ios_base::beg);
+    ss.write(reinterpret_cast<const char*>(&fontCount), sizeof(fontCount));
+    ss.seekp(0, std::ios_base::end);
+}
+
+void RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
+{
+    constexpr int bitNumber = 30 + 32;
+    uint64_t replayMask = (uint64_t)1 << bitNumber;
+    size_t fontCount;
+    uint64_t uniqueId;
+    size_t dataSize;
+    std::vector<uint8_t> data;
+
+    ss.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
+    for (size_t i = 0; i < fontCount; i++) {
+        ss.read(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
+        ss.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
+
+        // Check if the stream is not empty and data size is not too large (2 MiB).
+        constexpr size_t maxDataSize = 2 * 1024 * 1024;
+        if (ss.eof() || (dataSize > maxDataSize)) {
+            break;
+        }
+        data.resize(dataSize);
+        ss.read(reinterpret_cast<char*>(data.data()), dataSize);
+
+        std::shared_ptr<Drawing::Typeface> typeface;
+        typeface = Drawing::Typeface::Deserialize(data.data(), dataSize);
+        if (typeface) {
+            uniqueId |= replayMask;
+            CacheDrawingTypeface(uniqueId, typeface);
+        }
+    }
+}
+
+void RSTypefaceCache::ReplayClear()
+{
+    std::vector<uint64_t> removeId;
+    constexpr int bitNumber = 30 + 32;
+    uint64_t replayMask = (uint64_t)1 << bitNumber;
+    for (auto co : typefaceHashCode_) {
+        if (co.first & replayMask) {
+            removeId.emplace_back(co.first);
+        }
+    }
+    for (auto uniqueId : removeId) {
+        RemoveDrawingTypefaceByGlobalUniqueId(uniqueId);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

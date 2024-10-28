@@ -1305,8 +1305,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
         surfaceNode->ResetSpecialLayerChangedFlag();
-        // Update self-drawing surface color space into to its parent surface, to decouple prepare skip.
-        surfaceNode->UpdateColorSpaceToIntanceRootNode();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
@@ -1325,7 +1323,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
         }
         surfaceHandler->ResetCurrentFrameBufferConsumed();
-        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, false, timestamp_)) {
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_)) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -1384,7 +1382,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
 #endif
         // still have buffer(s) to consume.
-        if (surfaceHandler->GetAvailableBufferCount() > 0 || surfaceHandler->HasBufferCache()) {
+        if (surfaceHandler->GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
         if (!hasHdrVideo) {

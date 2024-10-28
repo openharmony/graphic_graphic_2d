@@ -740,7 +740,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     if (surfaceParams.GetHardwareEnabled() && !RSUniRenderThread::IsInCaptureProcess()) {
-        if (!IsHardwareEnabledTopSurface()) {
+        if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }
         return;

@@ -589,5 +589,9 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
 {
     return false;
 }
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -43,6 +43,7 @@
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #endif
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,6 +115,13 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
 
+    void SetLayerTop(bool isTop);
+
+    bool IsLayerTop() const
+    {
+        return isLayerTop_;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -121,7 +129,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface();
+            IsHardwareEnabledTopSurface() || IsLayerTop();
     }
 
     void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
@@ -143,7 +151,8 @@ public:
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb");
+            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" ||
+            name_.find("HwStylusFeature") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
@@ -164,8 +173,6 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
-
-    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -252,7 +259,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isProtectedLayer_) {
+        // a protected node not on the tree need to release buffer when producer produce buffers
+        // release buffer in ReleaseSelfDrawingNodeBuffer function
+        if (isProtectedLayer_ && IsOnTheTree()) {
             return false;
         }
         return isHardwareForcedDisabled_ ||
@@ -629,6 +638,7 @@ public:
             return;
         }
         isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+        SetLeashWindowVisibleRegionEmptyParam();
     }
 
     bool GetLeashWindowVisibleRegionEmpty() const
@@ -671,9 +681,7 @@ public:
     GraphicColorGamut GetColorSpace() const;
 
     // Only call this if the node is self-drawing surface node.
-    void UpdateColorSpaceToIntanceRootNode();
-    GraphicColorGamut GetSubSurfaceColorSpace() const;
-    void ResetSubSurfaceColorSpace();
+    void UpdateColorSpaceWithMetadata();
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
@@ -1276,9 +1284,12 @@ private:
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
+    // This variable can be set in two cases:
+    // 1. The upper-layer IPC interface directly sets window colorspace.
+    // 2. If it is a self-drawing node, the colorspace will be refreshed after hardware-enable calculation.
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif

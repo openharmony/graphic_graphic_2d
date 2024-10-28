@@ -1230,7 +1230,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
             return nullptr;
         }
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) ||
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer RSDisplayRenderNodeDrawable consume buffer failed. %{public}d",
             !surfaceHandler->GetBuffer());
@@ -1274,7 +1274,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSDisplayRenderNode& node)
     }
     RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayNode id:%{public}" PRIu64 " available buffer:%{public}d",
         node.GetId(), surfaceHandler->GetAvailableBufferCount());
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) ||
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) ||
         !surfaceHandler->GetBuffer()) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;

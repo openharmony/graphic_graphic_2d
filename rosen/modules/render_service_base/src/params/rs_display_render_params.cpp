@@ -137,6 +137,20 @@ GraphicPixelFormat RSDisplayRenderParams::GetNewPixelFormat() const
     return newPixelFormat_;
 }
 
+void RSDisplayRenderParams::SetZoomed(bool isZoomed)
+{
+    if (isZoomed_ == isZoomed) {
+        return;
+    }
+    needSync_ = true;
+    isZoomed_ = isZoomed;
+}
+
+bool RSDisplayRenderParams::GetZoomed() const
+{
+    return isZoomed_;
+}
+
 void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
 {
     auto targetDisplayParams = static_cast<RSDisplayRenderParams*>(target.get());
@@ -178,7 +192,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;
     targetDisplayParams->brightnessRatio_ = brightnessRatio_;
     targetDisplayParams->zOrder_ = zOrder_;
-    targetDisplayParams->isMouseDirty_ = isMouseDirty_;
+    targetDisplayParams->isZoomed_ = isZoomed_;
     RSRenderParams::OnSync(target);
 }
 

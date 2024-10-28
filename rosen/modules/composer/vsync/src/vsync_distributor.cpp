@@ -569,12 +569,12 @@ void VSyncDistributor::OnDVSyncTrigger(int64_t now, int64_t period, uint32_t ref
     dvsync_->RecordVSync(now, period, refreshRate);
     dvsync_->NotifyPreexecuteWait();
 
+    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     // when dvsync switch to vsync, skip all vsync events within one period from the pre-rendered timestamp
     if (dvsync_->NeedSkipDVsyncPrerenderedFrame()) {
         return;
     }
 
-    SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
     // When vsync switches to dvsync, need to handle pending RNVs during vsync
     if (!IsDVsyncOn() || pendingRNVInVsync_) {
         event_.timestamp = now;

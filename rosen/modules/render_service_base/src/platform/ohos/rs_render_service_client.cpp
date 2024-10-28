@@ -1519,5 +1519,13 @@ void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
         iter->second->OnFinish(uid, surfaceBufferIds);
     }
 }
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

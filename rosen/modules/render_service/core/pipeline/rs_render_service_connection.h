@@ -289,6 +289,7 @@ private:
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) override;
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

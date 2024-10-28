@@ -356,10 +356,8 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSUniRenderThread::Instance().SetSkipJankAnimatorFrame(true);
 #endif
     auto pendingDrawables = RSUifirstManager::Instance().GetPendingPostDrawables();
-    auto disPlayRenderParams = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
-    bool isMouseDirty = disPlayRenderParams->GetIsMouseDirty();
     if (!RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetForceCommitLayer() &&
-        pendingDrawables.size() == 0 && !isMouseDirty) {
+        pendingDrawables.size() == 0) {
         RS_TRACE_NAME("DisplayNodeSkip skip commit");
         return true;
     }
@@ -540,8 +538,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
     const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable [%" PRIu64 "] %d %d %d %d", paramScreenId,
-        dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_);
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable[%" PRIu64 "](%d, %d, %d, %d), zoomed(%d)", paramScreenId,
+        dirtyRegion.left_, dirtyRegion.top_, dirtyRegion.width_, dirtyRegion.height_, params->GetZoomed());
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
@@ -698,6 +696,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     curCanvas_->SetTargetColorGamut(params->GetNewColorSpace());
     curCanvas_->SetScreenId(screenId);
+    curCanvas_->SetDisableFilterCache(params->GetZoomed());
+
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (autoCacheEnable_) {
         screenRectInfo_ = {0, 0, screenInfo.width, screenInfo.height};
@@ -1417,7 +1417,7 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams
         // execute "param set rosen.dumpsurfacetype.enabled 4 && setenforce 0 && param set rosen.afbc.enabled 0"
         auto buffer = surfaceParams->GetBuffer();
         RSBaseRenderUtil::WriteSurfaceBufferToPng(buffer, surfaceParams->GetId());
-        if (surfaceNodeDrawable->IsHardwareEnabledTopSurface()) {
+        if (surfaceNodeDrawable->IsHardwareEnabledTopSurface() || surfaceParams->IsLayerTop()) {
             // surfaceNode which should be drawn above displayNode like pointer window
             params.GetHardwareEnabledTopDrawables().emplace_back(drawable);
         } else {

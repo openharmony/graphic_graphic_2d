@@ -956,5 +956,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterUIExtensionCallback, TestSi
     ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, nullptr), INVALID_ARGUMENTS);
     ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, callback), RS_CONNECTION_ERROR);
 }
+
+/**
+ * @tc.name: SetLayerTop Test
+ * @tc.desc: SetLayerTop Test
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
+{
+    const std::string nodeIdStr = "123456";
+    proxy->SetLayerTop(nodeIdStr, true);
+    proxy->SetLayerTop(nodeIdStr, false);
+    ASSERT_TRUE(true);
+}
 } // namespace Rosen
 } // namespace OHOS
