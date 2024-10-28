@@ -19,7 +19,6 @@
 #include <atomic>
 #include <string>
 #include <vector>
-#include <optional>
 
 #include "common/rs_macros.h"
 #include "utils/system_properties.h"
@@ -174,11 +173,8 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
-#ifndef ROSEN_CROSS_PLATFORM
     static void SetDefaultDeviceRotationOffset(uint32_t offset);
-    static void SetDefaultScreenRotationOffset(uint32_t offset);
     static uint32_t GetDefaultDeviceRotationOffset();
-#endif
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
@@ -295,10 +291,7 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
-#ifndef ROSEN_CROSS_PLATFORM
-    inline static std::atomic<std::optional<uint32_t>> defaultDeviceRotationOffset_;
-    inline static uint32_t defaultScreenRotationOffset_ = 0;
-#endif
+    inline static std::atomic<uint32_t> defaultDeviceRotationOffset_ = 0;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;
