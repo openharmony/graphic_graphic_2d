@@ -2630,13 +2630,18 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
         }
         return;
     }
-    auto dst = hwcNode->GetDstRect();
+    auto absBound = RectI();
+    if (auto geo = hwcNode->GetRenderProperties().GetBoundsGeometry()) {
+        absBound = geo->GetAbsRect();
+    } else {
+        return;
+    }
     if (hwcNode->GetAncoForceDoDirect() || !isIntersectWithRoundCorner) {
-        hwcRects.emplace_back(dst);
+        hwcRects.emplace_back(absBound);
         return;
     }
     for (const auto& rect : hwcRects) {
-        if (dst.Intersect(rect)) {
+        if (absBound.Intersect(rect)) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by corner radius + hwc node below",
                 hwcNode->GetName().c_str(), hwcNode->GetId());
             if (hwcNode->GetProtectedLayer()) {
@@ -2651,7 +2656,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
             return;
         }
     }
-    hwcRects.emplace_back(dst);
+    hwcRects.emplace_back(absBound);
 }
 
 void RSUniRenderVisitor::UpdateSurfaceOcclusionInfo()
