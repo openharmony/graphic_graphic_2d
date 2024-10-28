@@ -100,9 +100,12 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
         uiEndTimeStamp = uiDrawFrame.endTimeStamp;
         frameMsg.abilityName = uiDrawFrame.abilityName;
     }
-
-    frameMsg.uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
-    frameMsg.renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
+    if (uiEndTimeStamp > uiStartTimeStamp) {
+        frameMsg.uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
+    }
+    if (renderEndTimeStamp > renderStartTimeStamp) {
+        frameMsg.renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
+    }
     // Currently, we do not consider the time consumption of UI thread
     frameMsg.totalTime = frameMsg.renderDrawTime;
     uiDrawFrames_.clear();
