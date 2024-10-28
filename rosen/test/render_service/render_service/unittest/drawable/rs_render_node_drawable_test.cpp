@@ -425,6 +425,8 @@ HWTEST_F(RSRenderNodeDrawableTest, GenerateCacheIfNeedTest, TestSize.Level1)
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
     drawable->GenerateCacheIfNeed(canvas, params);
     ASSERT_FALSE(params.GetRSFreezeFlag());
     params.freezeFlag_ = true;
@@ -735,6 +737,7 @@ HWTEST_F(RSRenderNodeDrawableTest, UpdateCacheSurfaceTest, TestSize.Level1)
     Drawing::Canvas canvas;
     const RSRenderParams params(RSRenderNodeDrawableTest::id);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->InitCachedSurface(paintFilterCanvas.GetGPUContext().get(), params.GetCacheSize(), 0xFF);
 
     drawable->UpdateCacheSurface(canvas, params);
     ASSERT_EQ(drawable->cachedImage_, nullptr);

@@ -488,6 +488,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, GetChildrenNeedFilterRectsCacheValid, Tes
 HWTEST_F(RSSurfaceRenderNodeThreeTest, CheckOpaqueRegionBaseInfo, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    node->InitRenderParams();
     RectI screeninfo;
     RectI absRect;
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
