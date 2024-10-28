@@ -440,6 +440,7 @@ napi_value JsFontCollection::LoadFontAsync(napi_env env, napi_callback_info info
 napi_value JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_info info)
 {
     sptr<FontArgumentsConcreteContext> context = sptr<FontArgumentsConcreteContext>::MakeSptr();
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
         NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,
