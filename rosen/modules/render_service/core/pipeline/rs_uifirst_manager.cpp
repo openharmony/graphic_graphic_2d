@@ -39,6 +39,7 @@ namespace {
     const std::string CLEAR_CACHE_TASK_PREFIX = "uifirst_clear_cache_";
     constexpr std::string_view ARKTSCARDNODE_NAME = "ArkTSCardNode";
     constexpr std::string_view EVENT_DISABLE_UIFIRST = "APP_LIST_FLING";
+    constexpr std::string_view SOFTKEY_BOARD = "softKeyboard";
     inline int64_t GetCurSysTime()
     {
         auto curTime = std::chrono::system_clock::now().time_since_epoch();
@@ -1282,8 +1283,9 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     }
 
     std::string surfaceName = node.GetName();
+    bool isSoftKeyboard = (surfaceName.find(SOFTKEY_BOARD) != std::string::npos);
     bool needFilterSCB = node.GetSurfaceWindowType() == SurfaceWindowType::SYSTEM_SCB_WINDOW;
-    if (!node.GetForceUIFirst() && (needFilterSCB || node.IsSelfDrawingType())) {
+    if (!node.GetForceUIFirst() && (needFilterSCB || node.IsSelfDrawingType() || isSoftKeyboard)) {
         return false;
     }
     if ((node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()) ||
