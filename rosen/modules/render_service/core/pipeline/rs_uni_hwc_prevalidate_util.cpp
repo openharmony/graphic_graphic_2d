@@ -102,7 +102,6 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     } else {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
-
     if (CheckIfDoArsrPre(node)) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
         node->SetArsrTag(true);
@@ -323,6 +322,7 @@ bool RSUniHwcPrevalidateUtil::CheckIfDoArsrPre(const RSSurfaceRenderNode::Shared
     static const std::unordered_set<std::string> videoLayers {
         "xcomponentIdSurface",
         "componentIdSurface",
+        "SceneViewer Model totemweather0",
     };
     if (IsYUVBufferFormat(node) || (videoLayers.count(node->GetName()) > 0)) {
         return true;
