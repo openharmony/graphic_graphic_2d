@@ -45,6 +45,10 @@
 #include "drawable/rs_canvas_render_node_drawable.h"
 #include "pipeline/rs_canvas_render_node.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
@@ -117,7 +121,17 @@ bool RSUiCaptureTaskParallel::CreateResources()
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderNodeType!");
         return false;
     }
-
+#ifdef RS_ENABLE_VK
+    float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
+    float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
+    int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
+    int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
+    if (width * height > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) {
+        RS_LOGE("RSUiCaptureTaskParallel::CreateResources: image is too large, width:%{public}u, height::%{public}u",
+            width, height);
+        return false;
+    }
+#endif
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         // Determine whether cache can be used
         auto curNode = surfaceNode;

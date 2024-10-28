@@ -341,6 +341,10 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump the refresh rate counts info\n")
         .append("clearFpsCount                  ")
         .append("|clear the refresh rate counts info\n")
+#ifdef RS_ENABLE_VK
+        .append("vktextureLimit                 ")
+        .append("|dump vk texture limit info\n")
+#endif
         .append("flushJankStatsRs")
         .append("|flush rs jank stats hisysevent\n");
 }
@@ -557,6 +561,23 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
     dumpString.append("flush done\n");
 }
 
+#ifdef RS_ENABLE_VK
+void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    dumpString.append("-- vktextureLimit:\n");
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    uint32_t maxTextureWidth = deviceProperties.limits.maxImageDimension2D;
+    uint32_t maxTextureHeight = deviceProperties.limits.maxImageDimension2D;
+    dumpString.append(
+        "width: " + std::to_string(maxTextureWidth) + "height: " + std::to_string(maxTextureHeight) + "\n");
+}
+#endif
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!mainThread_ || !screenManager_) {
@@ -585,6 +606,9 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg19(u"flushJankStatsRs");
     std::u16string arg20(u"client");
     std::u16string arg21(u"client-server");
+#ifdef RS_ENABLE_VK
+    std::u16string arg22(u"vktextureLimit");
+#endif
     if (argSets.count(arg21)) {
         argSets.insert(arg9);
         argSets.insert(arg20);
@@ -681,6 +705,12 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             }).wait();
         mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     }
+#ifdef RS_ENABLE_VK
+    if (argSets.count(arg22) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpVkTextureLimit(dumpString); }).wait();
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS
