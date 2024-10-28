@@ -383,7 +383,6 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
     if (originalCanvas && !paintFilterCanvas->GetOffscreenDataList().empty()) {
         originalCanvas->GetTotalMatrix().MapRect(dst, dst);
     }
-    auto deviceClipRegion = paintFilterCanvas->GetCurDirtyRegion();
     Drawing::Region dstRegion;
     if (!dstRegion.SetRect(dst.RoundOut()) && !dst.IsEmpty()) {
         RS_LOGW("invalid dstDrawRect: %{public}s, RoundOut: %{public}s",
@@ -392,7 +391,7 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
             dst.ToString().c_str(), dst.RoundOut().ToString().c_str());
         return false;
     }
-    return !(deviceClipRegion.IsIntersects(dstRegion));
+    return !(paintFilterCanvas->GetCurDirtyRegion().IsIntersects(dstRegion));
 }
 
 void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas)
