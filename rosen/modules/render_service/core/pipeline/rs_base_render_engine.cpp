@@ -758,7 +758,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
         params.paint.SetShaderEffect(imageShader);
-        ColorSpaceConvertor(imageShader, params);
+        ColorSpaceConvertor(imageShader, params, parameter);
     }
     canvas.AttachBrush(params.paint);
     canvas.DrawRect(params.dstRect);
