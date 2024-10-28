@@ -612,6 +612,7 @@ private:
     bool isSubNodeOfSurfaceInProcess_ = false;
 
     uint32_t appWindowNum_ = 0;
+    bool hasSkippedSpecialLayer_ = false;
 
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
