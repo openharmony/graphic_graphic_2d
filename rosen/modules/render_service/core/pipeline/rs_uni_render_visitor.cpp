@@ -2208,7 +2208,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
     for (auto rect : hwcRects) {
         if (dst.Intersect(rect) && (shouldDisable || hasSkippedSpecialLayer_)) {
             if (RsCommonHook::Instance().GetVideoSurfaceFlag() &&
-                ((dst.GetBottom() - rect.GetTop() <= MIN_OVERLAP && dst.GetBottom() - rect.GetTop() >= 0) || 
+                ((dst.GetBottom() - rect.GetTop() <= MIN_OVERLAP && dst.GetBottom() - rect.GetTop() >= 0) ||
                 (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() -  dst.GetTop() >= 0 ))) {
                 return;
             }
@@ -2220,8 +2220,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
             return;
         }
     }
-    if(!shouldDisable ||
-        (RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() && hwcNode->IsRosenWeb())){
+    if (!shouldDisable ||
+        (RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() && hwcNode->IsRosenWeb())) {
         hasSkippedSpecialLayer_ = true;
     }
     hwcRects.emplace_back(dst);
@@ -2662,7 +2662,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
     for (const auto& rect : hwcRects) {
         for (auto& roundCornerAABB : hwcNode->GetIntersectedRoundCornerAABBs()) {
             if (!roundCornerAABB.IntersectRect(rect).IsEmpty()) {
-                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by corner radius + hwc node below",
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
+                    " disabled by corner radius + hwc node below",
                     hwcNode->GetName().c_str(), hwcNode->GetId());
                 if (hwcNode->GetProtectedLayer()) {
                     continue;

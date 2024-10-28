@@ -1202,22 +1202,22 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
-   template<class... Args>
-   void SetIntersectedRoundCornerAABBs(Args&& ...args)
-   {
-        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);   
-   }
+    template<class... Args>
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
+    {
+        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
+    }
 
-   const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
-   {
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
+    {
         return intersectedRoundCornerAABBs_;
-   }
+    }
 
-   size_t GetIntersectedRoundCornerAABBsSize() const
-   {
+    size_t GetIntersectedRoundCornerAABBsSize() const
+    {
         return intersectedRoundCornerAABBs_.size();
-   }
-   
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
