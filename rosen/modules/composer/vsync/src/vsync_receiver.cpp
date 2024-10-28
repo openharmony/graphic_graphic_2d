@@ -50,6 +50,14 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     HandleVsyncCallbacks(data, dataCount);
 }
 
+void VSyncCallBackListener::OnShutdown(int32_t fileDescriptor)
+{
+    std::lock_guard<std::mutex> locker(cbMutex_);
+    if (fdShutDownCallback_ != nullptr) {
+        fdShutDownCallback_(fileDescriptor);
+    }
+}
+
 VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount)
 {
     std::lock_guard<std::mutex> locker(fdMutex_);
@@ -139,11 +147,15 @@ int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
     return expectedEnd;
 }
 
-void VSyncCallBackListener::CloseFd(int32_t fd)
+void VSyncCallBackListener::SetFdClosedFlagLocked(bool fdClosed)
 {
-    std::lock_guard<std::mutex> locker(fdMutex_);
-    close(fd);
-    fdClosed_ = true;
+    fdClosed_ = fdClosed;
+}
+
+void VSyncCallBackListener::RegisterFdShutDownCallback(FdShutDownCallback cb)
+{
+    std::lock_guard<std::mutex> locker(cbMutex_);
+    fdShutDownCallback_ = cb;
 }
 
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
@@ -195,6 +207,14 @@ VsyncError VSyncReceiver::Init()
     listener_->SetName(name_);
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    listener_->RegisterFdShutDownCallback([this](int32_t fileDescriptor) {
+        std::lock_guard<std::mutex> locker(initMutex_);
+        if (fileDescriptor != fd_) {
+            VLOGE("Invalid fileDescriptor:%{public}d, fd_:%{public}d", fileDescriptor, fd_);
+            return;
+        }
+        RemoveAndCloseFdLocked();
+    });
     init_ = true;
     return VSYNC_ERROR_OK;
 }
@@ -216,11 +236,24 @@ void VSyncReceiver::ThreadCreateNotify()
 
 VSyncReceiver::~VSyncReceiver()
 {
-    if (fd_ != INVALID_FD) {
+    std::lock_guard<std::mutex> locker(initMutex_);
+    listener_->RegisterFdShutDownCallback(nullptr);
+    RemoveAndCloseFdLocked();
+    DestroyLocked();
+}
+
+void VSyncReceiver::RemoveAndCloseFdLocked()
+{
+    if (looper_ != nullptr) {
         looper_->RemoveFileDescriptorListener(fd_);
-        listener_->CloseFd(fd_);
+        VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
+    }
+
+    std::lock_guard<std::mutex> locker(listener_->fdMutex_);
+    if (fd_ >= 0) {
+        close(fd_);
+        listener_->SetFdClosedFlagLocked(true);
         fd_ = INVALID_FD;
-        Destroy();
     }
 }
 
@@ -320,20 +353,11 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
 void VSyncReceiver::CloseVsyncReceiverFd()
 {
     std::lock_guard<std::mutex> locker(initMutex_);
-    if (looper_ != nullptr) {
-        looper_->RemoveFileDescriptorListener(fd_);
-        VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
-    }
-
-    if (fd_ >= 0) {
-        close(fd_);
-        fd_ = INVALID_FD;
-    }
+    RemoveAndCloseFdLocked();
 }
 
-VsyncError VSyncReceiver::Destroy()
+VsyncError VSyncReceiver::DestroyLocked()
 {
-    std::lock_guard<std::mutex> locker(initMutex_);
     if (connection_ == nullptr) {
         return VSYNC_ERROR_API_FAILED;
     }

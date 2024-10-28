@@ -34,6 +34,7 @@ class VSyncCallBackListener : public OHOS::AppExecFwk::FileDescriptorListener {
 public:
     using VSyncCallback = std::function<void(int64_t, void*)>;
     using VSyncCallbackWithId = std::function<void(int64_t, int64_t, void*)>;
+    using FdShutDownCallback = std::function<void(int32_t)>;
     struct FrameCallback {
         void *userData_;
         VSyncCallback callback_;
@@ -99,10 +100,14 @@ public:
         frameCallbacks_.push_back(cb);
     }
 
-    void CloseFd(int32_t fd);
+    void RegisterFdShutDownCallback(FdShutDownCallback cb);
 
+    void SetFdClosedFlagLocked(bool fdClosed);
+
+    std::mutex fdMutex_;
 private:
     void OnReadable(int32_t fileDescriptor) override;
+    void OnShutdown(int32_t fileDescriptor) override;
     int64_t CalculateExpectedEndLocked(int64_t now);
     void HandleVsyncCallbacks(int64_t data[], ssize_t dataCount);
     VsyncError ReadFdInternal(int32_t fd, int64_t (&data)[3], ssize_t &dataCount);
@@ -117,8 +122,9 @@ private:
     thread_local static inline int64_t periodShared_ = 0;
     thread_local static inline int64_t timeStampShared_ = 0;
     std::vector<FrameCallback> frameCallbacks_ = {};
-    std::mutex fdMutex_;
     bool fdClosed_ = false;
+    FdShutDownCallback fdShutDownCallback_ = nullptr;
+    std::mutex cbMutex_;
 };
 
 #ifdef __OHOS__
@@ -158,7 +164,8 @@ public:
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
 private:
-    VsyncError Destroy();
+    VsyncError DestroyLocked();
+    void RemoveAndCloseFdLocked();
     sptr<IVSyncConnection> connection_;
     sptr<IRemoteObject> token_;
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> looper_;
