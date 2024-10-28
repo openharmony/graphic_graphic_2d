@@ -644,5 +644,89 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
 }
+
+/**
+ * @tc.name: SetActualTimestamp
+ * @tc.desc: Verify the result of SetActualTimestamp function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    uint64_t timestamp = 1700;
+    hgmCore.SetActualTimestamp(timestamp);
+    EXPECT_EQ(hgmCore.actualTimestamp_ == timestamp, true);
+}
+
+/**
+ * @tc.name: GetActualTimestamp
+ * @tc.desc: Verify the result of GetActualTimestamp function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, GetActualTimestamp, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    uint64_t timestamp = 1800;
+    hgmCore.SetActualTimestamp(timestamp);
+    EXPECT_EQ(hgmCore.GetActualTimestamp() == timestamp, true);
+}
+
+/**
+ * @tc.name: SetVsyncId
+ * @tc.desc: Verify the result of SetVsyncId function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    uint64_t vsyncId = 1900;
+    hgmCore.SetVsyncId(vsyncId);
+    EXPECT_EQ(hgmCore.vsyncId_ == vsyncId, true);
+}
+
+/**
+ * @tc.name: GetVsyncId
+ * @tc.desc: Verify the result of GetVsyncId function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, GetVsyncId, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    uint64_t vsyncId = 1900;
+    hgmCore.SetVsyncId(vsyncId);
+    EXPECT_EQ(hgmCore.GetVsyncId() == vsyncId, true);
+}
+
+/**
+ * @tc.name: SetForceRefreshFlag
+ * @tc.desc: Verify the result of SetForceRefreshFlag function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    bool isForceRefresh = false;
+    hgmCore.SetForceRefreshFlag(isForceRefresh);
+    EXPECT_EQ(hgmCore.isForceRefresh_ == isForceRefresh, true);
+}
+
+/**
+ * @tc.name: GetForceRefreshFlag
+ * @tc.desc: Verify the result of GetForceRefreshFlag function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, GetForceRefreshFlag, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    bool isForceRefresh = false;
+    hgmCore.SetForceRefreshFlag(isForceRefresh);
+    EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
+}
 } // namespace Rosen
 } // namespace OHOS
