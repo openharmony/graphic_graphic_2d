@@ -654,7 +654,6 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
 HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Level2)
 {
     auto &hgmCore = HgmCore::Instance();
-    EXPECT_NE(hgmCore, nullptr);
     int64_t timestamp = 1700;
     hgmCore.SetActualTimestamp(timestamp);
     EXPECT_EQ(hgmCore.GetActualTimestamp() == timestamp, true);
@@ -669,7 +668,6 @@ HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Lev
 HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level2)
 {
     auto &hgmCore = HgmCore::Instance();
-    EXPECT_NE(hgmCore, nullptr);
     uint64_t vsyncId = 1800;
     hgmCore.SetVsyncId(vsyncId);
     EXPECT_EQ(hgmCore.GetVsyncId() == vsyncId, true);
@@ -684,7 +682,6 @@ HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level2)
 HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Level2)
 {
     auto &hgmCore = HgmCore::Instance();
-    EXPECT_NE(hgmCore, nullptr);
     bool isForceRefresh = false;
     hgmCore.SetForceRefreshFlag(isForceRefresh);
     EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
