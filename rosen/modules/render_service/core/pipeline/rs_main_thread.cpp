@@ -1494,6 +1494,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
                 selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
+                RSPointerWindowManager::Instance().SetHardCursorNodeInfo(surfaceNode);
             }
 
             if (!surfaceNode->GetDoDirectComposition()) {
@@ -2134,6 +2135,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             processor->CreateLayer(*surfaceNode, *params);
         }
     }
+    RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
