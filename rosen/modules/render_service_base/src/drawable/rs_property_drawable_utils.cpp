@@ -1043,6 +1043,8 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
     }
 
     // save layer mode
+    CeilMatrixTrans(&canvas);
+
     Drawing::Brush blendBrush_;
     blendBrush_.SetAlphaF(canvas.GetAlpha());
     blendBrush_.SetBlender(blender);
