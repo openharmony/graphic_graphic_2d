@@ -345,7 +345,7 @@ public:
     }
 
     bool IsHardwareEnabledNodesNeedSync();
-    bool IsOcclusionNodesNeedSync(NodeId id);
+    bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);

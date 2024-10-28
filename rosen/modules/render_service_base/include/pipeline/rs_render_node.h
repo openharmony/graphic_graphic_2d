@@ -752,6 +752,11 @@ public:
     }
     void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
     virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
+    bool GetIsFullChildrenListValid() const
+    {
+        return isFullChildrenListValid_;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);

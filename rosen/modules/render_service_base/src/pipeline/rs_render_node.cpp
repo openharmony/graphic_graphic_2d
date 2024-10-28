@@ -313,16 +313,6 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    // When a child node is deleted, if the parent node is not on the tree,
-    // then clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
-    if (!isOnTheTree_) {
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
-        stagingDrawCmdList_.clear();
-        drawCmdListNeedSync_ = true;
-        uifirstNeedSync_ = true;
-        AddToPendingSyncList();
-    }
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -3327,6 +3317,16 @@ void RSRenderNode::OnTreeStateChanged()
     if (!isOnTheTree_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] off the tree", GetId());
         MarkForceClearFilterCacheWithInvisible();
+    }
+    // Clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
+    if (!isOnTheTree_) {
+        isFullChildrenListValid_ = false;
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
+        stagingDrawCmdList_.clear();
+        drawCmdListNeedSync_ = true;
+        uifirstNeedSync_ = true;
+        AddToPendingSyncList();
     }
 }
 

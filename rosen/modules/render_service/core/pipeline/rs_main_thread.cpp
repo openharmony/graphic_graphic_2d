@@ -3640,12 +3640,24 @@ bool RSMainThread::IsHardwareEnabledNodesNeedSync()
     return needSync;
 }
 
-bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id)
+bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
 {
     auto nodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
         GetContext().GetNodeMap().GetRenderNode(id));
     if (nodePtr == nullptr) {
         return false;
+    }
+
+    if (useCurWindow == false) {
+        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
+        if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
+            nodePtr = parentNode;
+        }
+    }
+
+    if (nodePtr->GetIsFullChildrenListValid() == false) {
+        nodePtr->PrepareSelfNodeForApplyModifiers();
+        return true;
     }
 
     bool needSync = false;
