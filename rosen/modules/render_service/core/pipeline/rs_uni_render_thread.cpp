@@ -779,8 +779,8 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (UNLIKELY(!grContext)) {
             return;
         }
-        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
-        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+        RS_LOGD("Clear memory cache %{public}d", moment);
+        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
@@ -803,9 +803,10 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         }
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
+        } else {
+            this->isDefaultCleanTaskFinished_ = true;
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
-        this->exitedPidSet_.clear();
         this->clearMemDeeply_ = false;
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
     };
@@ -825,6 +826,16 @@ void RSUniRenderThread::ResetClearMemoryTask()
     }
     RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
     DefaultClearMemoryCache();
+}
+
+void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
+{
+    isDefaultCleanTaskFinished_ = isFinished;
+}
+
+bool RSUniRenderThread::IsDefaultClearMemroyFinished()
+{
+    return isDefaultCleanTaskFinished_;
 }
 
 void RSUniRenderThread::PurgeCacheBetweenFrames()
