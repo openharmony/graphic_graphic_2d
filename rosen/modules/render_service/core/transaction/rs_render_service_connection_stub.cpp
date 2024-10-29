@@ -1326,11 +1326,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
+            bool result = false;
             uint64_t uniqueId = data.ReadUint64();
             uint32_t hash = data.ReadUint32();
             RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
-            bool ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
-            reply.WriteBool(ret);
+            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
+                result = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                        "no permission NEED_REGISTER_TYPEFACE", callingPid);
+            }
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
