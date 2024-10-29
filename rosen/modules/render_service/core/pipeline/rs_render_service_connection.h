@@ -285,6 +285,10 @@ private:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     bool SetAncoForceDoDirect(bool direct) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     pid_t remotePid_;
@@ -327,6 +331,7 @@ private:
     std::unordered_set<ScreenId> virtualScreenIds_;
     sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
