@@ -1154,12 +1154,14 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
             instance->PostTask([instance] () {
+                RS_TRACE_NAME("RSUniRenderUtil::PostReleaseSurfaceTask");
                 instance->ReleaseSurface();
             });
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
             instance->PostTask([instance] () {
+                RS_TRACE_NAME("RSUniRenderUtil::PostReleaseSurfaceTask");
                 instance->ReleaseSurface();
             });
         }

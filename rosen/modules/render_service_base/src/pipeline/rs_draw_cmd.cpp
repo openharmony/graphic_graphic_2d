@@ -414,6 +414,7 @@ RSExtendImageObject::~RSExtendImageObject()
         RSTaskDispatcher::GetInstance().PostTask(tid_, [texId = texId_,
                                                         nativeWindowBuffer = nativeWindowBuffer_,
                                                         eglImage = eglImage_]() {
+            RS_TRACE_NAME("RSExtendImageObject::~RSExtendImageObject");
             if (texId != 0U) {
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glDeleteTextures(1, &texId);
@@ -432,6 +433,7 @@ RSExtendImageObject::~RSExtendImageObject()
     if (RSSystemProperties::IsUseVukan()) {
         RSTaskDispatcher::GetInstance().PostTask(tid_, [nativeWindowBuffer = nativeWindowBuffer_,
             cleanupHelper = cleanUpHelper_]() {
+            RS_TRACE_NAME("RSExtendImageObject::~RSExtendImageObject");
             if (nativeWindowBuffer != nullptr) {
                 DestroyNativeWindowBuffer(nativeWindowBuffer);
             }
