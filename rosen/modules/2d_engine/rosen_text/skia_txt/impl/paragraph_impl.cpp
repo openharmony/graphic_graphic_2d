@@ -314,7 +314,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
         if ((0 <= backgroundId) && (backgroundId < static_cast<int>(paints_.size()))) {
             txt.background = paints_[backgroundId];
         } else {
-            TEXT_LOGW("Invalid background Id: %{public}d", backgroundId);
+            TEXT_LOGW("Invalid background Id:%{public}d", backgroundId);
         }
     }
     if (skStyle.hasForeground()) {
@@ -322,7 +322,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
         if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
             txt.foreground = paints_[foregroundId];
         } else {
-            TEXT_LOGW("Invalid foreground Id: %{public}d", foregroundId);
+            TEXT_LOGW("Invalid foreground Id:%{public}d", foregroundId);
         }
     }
 
