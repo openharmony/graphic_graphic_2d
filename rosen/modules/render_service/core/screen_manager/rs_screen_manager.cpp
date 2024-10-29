@@ -1462,32 +1462,39 @@ int32_t RSScreenManager::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32
 
 int32_t RSScreenManager::GetScreenBacklight(ScreenId id) const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenBacklightLocked(id);
 }
 
 int32_t RSScreenManager::GetScreenBacklightLocked(ScreenId id) const
 {
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return INVALID_BACKLIGHT_VALUE;
+    std::shared_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(id);
+        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+            return INVALID_BACKLIGHT_VALUE;
+        }
+        screen = screensIt->second;
     }
-
-    int32_t level = screensIt->second->GetScreenBacklight();
+    int32_t level = screen->GetScreenBacklight();
     return level;
 }
 
 void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return;
+    std::shared_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(id);
+        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+            return;
+        }
+        screenBacklight_[id] = level;
+        screen = screensIt->second;
     }
-    screenBacklight_[id] = level;
-    screensIt->second->SetScreenBacklight(level);
+    screen->SetScreenBacklight(level);
 }
 
 ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const

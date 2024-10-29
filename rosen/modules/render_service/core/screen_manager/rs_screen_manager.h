@@ -520,7 +520,7 @@ private:
     mutable std::mutex blackListMutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
+    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
     uint32_t virtualScreenCount_ = 0;
     uint32_t currentVirtualScreenNum_ = 0;
