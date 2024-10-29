@@ -574,7 +574,7 @@ void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
     uint32_t maxTextureWidth = deviceProperties.limits.maxImageDimension2D;
     uint32_t maxTextureHeight = deviceProperties.limits.maxImageDimension2D;
     dumpString.append(
-        "width: " + std::to_string(maxTextureWidth) + "height: " + std::to_string(maxTextureHeight) + "\n");
+        "width: " + std::to_string(maxTextureWidth) + " height: " + std::to_string(maxTextureHeight) + "\n");
 }
 #endif
 
