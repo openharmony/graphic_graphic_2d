@@ -313,8 +313,8 @@ private:
     NodeId id_ = 0;
     // mutex buffer_ & preBuffer_ & bufferCache_
     mutable std::mutex mutex_;
-    SurfaceBufferEntry buffer_;    //GUARDED BY bufMutex_
-    SurfaceBufferEntry preBuffer_; //GUARDED BY bufMutex_
+    SurfaceBufferEntry buffer_;
+    SurfaceBufferEntry preBuffer_;
     float globalZOrder_ = 0.0f;
     std::atomic<int> bufferAvailableCount_ = 0;
     bool bufferSizeChanged_ = false;
