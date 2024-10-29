@@ -88,16 +88,19 @@ napi_value JsFontCollection::Init(napi_env env, napi_value exportObj)
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
         sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to define class");
         return nullptr;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to create reference");
         return nullptr;
     }
 
     status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
+        TEXT_LOGE("Failed to set named property");
         return nullptr;
     }
     return exportObj;
@@ -208,7 +211,7 @@ bool JsFontCollection::GetResourcePartData(napi_env env, ResourceInfo& info, nap
             napi_get_value_string_utf8(env, indexValue, indexStr.get(), strLen, &ret);
             info.params.emplace_back(indexStr.get());
         } else if (valueType == napi_number) {
-            int32_t num;
+            int32_t num = 0;
             napi_get_value_int32(env, indexValue, &num);
             info.params.emplace_back(std::to_string(num));
         } else {

@@ -28,7 +28,7 @@ napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info
     napi_value jsThis = nullptr;
     napi_value argv[ARGC_TWO] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argCount, argv, &jsThis, nullptr);
-    if (status != napi_ok || argCount < ARGC_ONE || argCount > ARGC_TWO) {
+    if (status != napi_ok || argCount != ARGC_TWO) {
         TEXT_LOGE("JsParagraphBuilder::Constructor Argc is invalid: %{public}zu", argCount);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
@@ -228,7 +228,7 @@ napi_value JsParagraphBuilder::Build(napi_env env, napi_callback_info info)
 napi_value JsParagraphBuilder::OnBuild(napi_env env, napi_callback_info info)
 {
     if (typographyCreate_ == nullptr) {
-        TEXT_LOGE("JsParagraphBuilder::OnAddPlaceholder typographyCreate_ is null");
+        TEXT_LOGE("Typography builder is null");
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
