@@ -429,6 +429,15 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     return true;
 }
 
+void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
+{
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (unirenderThread.IsDefaultClearMemroyFinished()) {
+        unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
+        unirenderThread.SetDefaultClearMemoryFinished(false);
+    }
+}
+
 void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag)
 {
     isDisplayNodeSkipStatusChanged_ = (isDisplayNodeSkip_ != flag);
@@ -555,6 +564,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;
     }
+
+    PostClearMemoryTask();
 
     // dfx
     RSRenderNodeDrawable::InitDfxForCacheInfo();
