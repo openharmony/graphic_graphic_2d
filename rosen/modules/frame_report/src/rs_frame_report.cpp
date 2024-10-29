@@ -206,6 +206,7 @@ void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, in
     if (setFrameParamFunc_ == nullptr) {
         setFrameParamFunc_ = (SetFrameParamFunc)LoadSymbol("SetFrameParam");
     }
+
     if (setFrameParamFunc_ != nullptr) {
         setFrameParamFunc_(requestId, load, schedFrameNum, value);
     } else {
