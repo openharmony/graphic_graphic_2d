@@ -76,7 +76,8 @@ public:
     void DefaultClearMemoryCache();
     void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
     void MemoryManagementBetweenFrames();
-    void AsyncFreeVMAMemoryBetweenFrames();
+    void FlushGpuMemoryInWaitQueueBetweenFrames();
+    void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask();
     bool GetClearMemoryFinished() const;
     void SetClearMemoryFinished();

@@ -921,19 +921,22 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return blurExtraFilterEnabled;
 }
 
-bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
-    static bool purgeResourcesEveryEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.purge_between_frames_enabled", "1").c_str()) != 0);
-    return purgeResourcesEveryEnabled;
+    static bool gpuMemoryAsyncReclaimerEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
+            0);
+    return gpuMemoryAsyncReclaimerEnabled;
 }
 
-bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
 {
-    static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.async_free_between_frames_enabled", "1").c_str()) !=
+    static bool gpuCacheSuppressWindowEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
             0);
-    return AsyncFreeVMAMemoryBetweenFramesEnabled;
+    return gpuCacheSuppressWindowEnabled;
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =

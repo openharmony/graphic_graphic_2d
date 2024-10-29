@@ -376,6 +376,60 @@ void SkiaGPUContext::StoreVkPipelineCacheData()
 }
 #endif
 
+void SkiaGPUContext::BeginFrame()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::BeginFrame, grContext_ is nullptr");
+        return;
+    }
+    grContext_->beginFrame();
+}
+
+void SkiaGPUContext::EndFrame()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::EndFrame, grContext_ is nullptr");
+        return;
+    }
+    grContext_->endFrame();
+}
+
+void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SetGpuCacheSuppressWindowSwitch, grContext_ is nullptr");
+        return;
+    }
+    grContext_->setGpuCacheSuppressWindowSwitch(enabled);
+}
+
+void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch, grContext_ is nullptr");
+        return;
+    }
+    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled);
+}
+
+void SkiaGPUContext::FlushGpuMemoryInWaitQueue()
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::FlushGpuMemoryInWaitQueue, grContext_ is nullptr");
+        return;
+    }
+    grContext_->flushGpuMemoryInWaitQueue();
+}
+
+void SkiaGPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::SuppressGpuCacheBelowCertainRatio, grContext_ is nullptr");
+        return;
+    }
+    grContext_->suppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
+}
+
 std::unordered_map<uintptr_t, std::function<void(const std::function<void()>& task)>>
     SkiaGPUContext::contextPostMap_ = {};
 
