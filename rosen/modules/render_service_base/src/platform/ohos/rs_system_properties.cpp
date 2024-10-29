@@ -921,6 +921,13 @@ bool RSSystemProperties::GetBlurExtraFilterEnabled()
     return blurExtraFilterEnabled;
 }
 
+bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
+{
+    static bool purgeResourcesEveryEnabled =
+        (std::atoi(system::GetParameter("persist.sys.graphic.mem.purge_between_frames_enabled", "1").c_str()) != 0);
+    return purgeResourcesEveryEnabled;
+}
+
 bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
     static bool gpuMemoryAsyncReclaimerEnabled =
