@@ -419,6 +419,7 @@ ohos_executable("render_service") {
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

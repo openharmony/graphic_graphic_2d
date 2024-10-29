@@ -92,6 +92,7 @@ ohos_shared_library("libcomposer") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "graphic_2d"

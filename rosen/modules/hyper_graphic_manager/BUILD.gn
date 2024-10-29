@@ -100,6 +100,7 @@ ohos_shared_library("libhyper_graphic_manager") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "libxml2:libxml2",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(graphic_2d_hgm_configs.vendor_root)) {

@@ -45,6 +45,9 @@ ohos_source_set("render_frame_trace") {
       "ipc:ipc_single",
       "qos_manager:concurrent_task_client",
     ]
+    if (!is_mingw) {
+      external_deps += [ "samgr:samgr_proxy" ]
+    }
     if (!is_arkui_x) {
       defines = [ "QOS_MANAGER" ]
     }
