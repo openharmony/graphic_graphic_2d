@@ -195,10 +195,10 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isNeedUnMap = system::GetParameter("persist.rosen.rsmemory.optimize.enabled", "1") != "0";
-    return isNeedUnMap;
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    return isPurgeable;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()

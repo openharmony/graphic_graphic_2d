@@ -813,7 +813,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
-        if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
             auto purgeDrawables =
                 DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
             for (auto& drawable : purgeDrawables) {
@@ -825,9 +825,6 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             this->clearMemoryFinished_ = true;
         } else {
             this->isDefaultCleanTaskFinished_ = true;
-            if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
-                grContext->PurgeUnlockedResources(false);
-            }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();

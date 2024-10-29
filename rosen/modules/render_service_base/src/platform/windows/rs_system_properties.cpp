@@ -72,7 +72,7 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
 }
