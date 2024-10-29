@@ -26,9 +26,9 @@ using ProcessCommandsStartFunc = void(*)();
 using AnimateStartFunc = void(*)();
 using RenderStartFunc = void(*)(uint64_t);
 using ParallelRenderStartFunc = void(*)();
+using ParallelRenderEndFunc = void(*)();
 using RenderEndFunc = void(*)();
 using SendCommandsStartFunc = void(*)();
-using ParallelRenderEndFunc = void(*)();
 using SetFrameParamFunc = void(*)(int, int, int, int);
 class RsFrameReport final {
 public:
