@@ -52,9 +52,13 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 
 void VSyncCallBackListener::OnShutdown(int32_t fileDescriptor)
 {
-    std::lock_guard<std::mutex> locker(cbMutex_);
-    if (fdShutDownCallback_ != nullptr) {
-        fdShutDownCallback_(fileDescriptor);
+    FdShutDownCallback fdShutDownCallback = nullptr;
+    {
+        std::lock_guard<std::mutex> locker(cbMutex_);
+        fdShutDownCallback = fdShutDownCallback_;
+    }
+    if (fdShutDownCallback != nullptr) {
+        fdShutDownCallback(fileDescriptor);
     }
 }
 
