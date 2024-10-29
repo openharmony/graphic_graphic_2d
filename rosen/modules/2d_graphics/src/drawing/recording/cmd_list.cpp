@@ -36,7 +36,7 @@ CmdList::~CmdList()
 #endif
 }
 
-uint32_t CmdList::AddCmdListData(const CmdListData& data)
+size_t CmdList::AddCmdListData(const CmdListData& data)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!lastOpItemOffset_.has_value()) {
@@ -55,9 +55,9 @@ uint32_t CmdList::AddCmdListData(const CmdListData& data)
     return opAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetCmdListData(uint32_t offset) const
+const void* CmdList::GetCmdListData(size_t offset, size_t size) const
 {
-    return opAllocator_.OffsetToAddr(offset);
+    return opAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetData() const
@@ -70,7 +70,7 @@ bool CmdList::SetUpImageData(const void* data, size_t size)
     return imageAllocator_.BuildFromDataWithCopy(data, size);
 }
 
-uint32_t CmdList::AddImageData(const void* data, size_t size)
+size_t CmdList::AddImageData(const void* data, size_t size)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = imageAllocator_.Add(data, size);
@@ -81,9 +81,9 @@ uint32_t CmdList::AddImageData(const void* data, size_t size)
     return imageAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetImageData(uint32_t offset) const
+const void* CmdList::GetImageData(size_t offset, size_t size) const
 {
-    return imageAllocator_.OffsetToAddr(offset);
+    return imageAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetAllImageData() const
@@ -113,8 +113,8 @@ OpDataHandle CmdList::AddImage(const Image& image)
         LOGD("CmdList AddImageData failed!");
         return ret;
     }
-    uint32_t offset = imageAllocator_.AddrToOffset(addr);
-    imageHandleVec_.push_back(std::pair<uint32_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
+    size_t offset = imageAllocator_.AddrToOffset(addr);
+    imageHandleVec_.push_back(std::pair<size_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
 
     return {offset, data->GetSize()};
 }
@@ -132,7 +132,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
         return nullptr;
     }
 
-    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset);
+    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset, imageHandle.size);
     if (ptr == nullptr) {
         LOGD("get image data failed");
         return nullptr;
@@ -149,7 +149,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
     return image;
 }
 
-uint32_t CmdList::AddBitmapData(const void* data, size_t size)
+size_t CmdList::AddBitmapData(const void* data, size_t size)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = bitmapAllocator_.Add(data, size);
@@ -160,9 +160,9 @@ uint32_t CmdList::AddBitmapData(const void* data, size_t size)
     return bitmapAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetBitmapData(uint32_t offset) const
+const void* CmdList::GetBitmapData(size_t offset, size_t size) const
 {
-    return bitmapAllocator_.OffsetToAddr(offset);
+    return bitmapAllocator_.OffsetToAddr(offset, size);
 }
 
 bool CmdList::SetUpBitmapData(const void* data, size_t size)
