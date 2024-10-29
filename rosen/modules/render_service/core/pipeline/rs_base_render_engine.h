@@ -183,9 +183,6 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
 
-    void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
-        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
-
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
@@ -296,6 +293,9 @@ private:
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace = nullptr);
+
+    static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
 #if defined(NEW_RENDER_CONTEXT)
     std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
