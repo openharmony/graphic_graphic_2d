@@ -3310,8 +3310,8 @@ void RSMainThread::OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t
         } else {
             data = result;
         }
+        nodeTreeDumpCondVar_.notify_all();
     }
-    nodeTreeDumpCondVar_.notify_all();
 
     RS_LOGI("OnDumpClientNodeTree task[%{public}u] dataSize[%{public}zu] pid[%d]",
         taskId, result.size(), pid);
