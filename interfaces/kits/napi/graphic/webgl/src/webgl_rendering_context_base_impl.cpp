@@ -2768,7 +2768,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribPointer(napi_env env, con
     // check offset
     WebGLBuffer* webGLBuffer = GetBoundBuffer(env, WebGLRenderingContextBase::ARRAY_BUFFER);
     if (webGLBuffer == nullptr || webGLBuffer->GetBufferSize() == 0) {
-        LOGE("WebGL vertexAttribPointer can not bind buffer %{public}p ", webGLBuffer);
+        LOGE("WebGL vertexAttribPointer can not bind buffer");
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
 
