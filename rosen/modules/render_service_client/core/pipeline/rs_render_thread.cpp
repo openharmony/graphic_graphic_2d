@@ -148,8 +148,10 @@ RSRenderThread::RSRenderThread()
         thread.detach();
     });
 #endif
+#ifdef ROSEN_OHOS
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+#endif
 }
 
 RSRenderThread::~RSRenderThread()

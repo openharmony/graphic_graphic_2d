@@ -537,7 +537,7 @@ void RSMainThread::Init()
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
-    RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task){
+    RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
         RSHardwareThread::Instance().PostTask(task);
     });
 

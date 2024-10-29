@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-+#ifndef RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
-+#define RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#ifndef RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#define RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
 
 #include <functional>
 #include <map>
@@ -62,7 +62,7 @@ private:
     std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> stagingSurfaceBufferIds_;
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
-    std::function<void(std::function<void()>) runPolicy_ = [](auto task) {
+    std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
         std::invoke(task);
     };
 
