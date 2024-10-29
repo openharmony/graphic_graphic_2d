@@ -1827,12 +1827,14 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
     FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
-void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     if (!mainThread_) {
         return;
     }
-    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, isEnabled, selfDrawingType]() -> void {
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, isEnabled, selfDrawingType,
+        dynamicHardwareEnable]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (!connection) {
             return;
@@ -1840,7 +1842,7 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
         auto& context = connection->mainThread_->GetContext();
         auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
         if (node) {
-            node->SetHardwareEnabled(isEnabled, selfDrawingType);
+            node->SetHardwareEnabled(isEnabled, selfDrawingType, dynamicHardwareEnable);
         }
     };
     mainThread_->PostTask(task);

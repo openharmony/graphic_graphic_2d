@@ -510,7 +510,8 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
 }
 

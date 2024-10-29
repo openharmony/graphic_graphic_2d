@@ -667,12 +667,12 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
     }
 }
 
-void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable)
 {
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
-        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType);
+        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
 }
 

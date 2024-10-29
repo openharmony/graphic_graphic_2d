@@ -313,7 +313,7 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType);
+    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 

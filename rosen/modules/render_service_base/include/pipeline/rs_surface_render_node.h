@@ -124,10 +124,17 @@ public:
             IsHardwareEnabledTopSurface();
     }
 
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
+    bool IsDynamicHardwareEnable() const
+    {
+        return dynamicHardwareEnable_;
+    }
+
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+       bool dynamicHardwareEnable = true)
     {
         isHardwareEnabledNode_ = isEnabled;
         selfDrawingType_ = selfDrawingType;
+        dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
@@ -1408,6 +1415,7 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     RectI originalDstRect_;

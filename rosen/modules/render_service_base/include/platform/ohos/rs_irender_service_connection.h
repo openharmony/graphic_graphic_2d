@@ -257,7 +257,8 @@ public:
 
     virtual void ReportGameStateData(GameStateData info) = 0;
 
-    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
+    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) = 0;
 
     virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
 
