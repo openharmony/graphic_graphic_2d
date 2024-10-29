@@ -21,6 +21,7 @@
 
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_divided_ui_capture.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
@@ -687,11 +688,19 @@ bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
         return false;
     }
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
+        new (std::nothrow) RSDefaultSurfaceBufferCallback (
+            [callback](uint64_t uid, const std::vector<uint32_t>& bufferIds) {
+                callback->OnFinish(uid, bufferIds);
+            }
+        )
+    );
     return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
 bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 

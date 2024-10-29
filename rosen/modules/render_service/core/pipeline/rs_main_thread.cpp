@@ -537,6 +537,10 @@ void RSMainThread::Init()
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
+    RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task){
+        RSHardwareThread::Instance().PostTask(task);
+    });
+
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_, WATCHDOG_TIMEVAL);
