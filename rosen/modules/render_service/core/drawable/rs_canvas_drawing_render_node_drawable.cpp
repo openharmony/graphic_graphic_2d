@@ -588,6 +588,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
 #endif
     canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     drawCmdList->Playback(*canvas, rect);
+    canvas->Flush();
     auto pixelmapImage = surface->GetImageSnapshot();
     if (!WriteSkImageToPixelmap(pixelmapImage, info, pixelmap, rect)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: readPixels failed");
