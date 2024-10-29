@@ -497,7 +497,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, CheckOpaqueRegionBaseInfo, TestSize.Level
     ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
     node->containerConfig_.Update(hasContainer, rrect);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     node->addedToPendingSyncList_ = true;
     node->isHardwareForcedDisabled_ = true;
     node->UpdateHardwareDisabledState(true);
