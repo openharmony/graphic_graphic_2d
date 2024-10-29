@@ -15,10 +15,10 @@
 
 
 #include "rs_frame_report_ext.h"
-#include <dlfcn.h>
 #include <cstdio>
-#include <unistd.h>
+#include <dlfcn.h>
 #include <hilog/log.h>
+#include <unistd.h>
 
 namespace OHOS {
 namespace Rosen {

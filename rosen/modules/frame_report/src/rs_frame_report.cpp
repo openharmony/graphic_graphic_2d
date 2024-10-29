@@ -93,7 +93,6 @@ void *RsFrameReport::LoadSymbol(const char *symName)
         LOGE("RsFrameReport:[loadSymbol]libframe_ui_intf.so not loaded.\n");
         return nullptr;
     }
-
     void *funcSym = dlsym(frameSchedHandle_, symName);
     if (funcSym == nullptr) {
         LOGE("RsFrameReport:[loadSymbol]Get %{public}s symbol failed: %{public}s\n", symName, dlerror());
@@ -147,7 +146,6 @@ void RsFrameReport::RenderStart(uint64_t timestamp)
     if (renderStartFunc_ == nullptr) {
         renderStartFunc_ = (RenderStartFunc)LoadSymbol("RenderStart");
     }
-
     if (renderStartFunc_ != nullptr) {
         renderStartFunc_(timestamp);
     } else {
@@ -158,7 +156,7 @@ void RsFrameReport::RenderStart(uint64_t timestamp)
 void RsFrameReport::RSRenderStart()
 {
     if (parallelRenderStartFunc_ == nullptr) {
-        parallelRenderStartFunc_ = reinterpret_cast<ParallelRenderStartFunc>(LoadSymbol("RSRenderStart"));
+        parallelRenderStartFunc_ = (ParallelRenderStartFunc)(LoadSymbol("RSRenderStart"));
     }
     if (parallelRenderStartFunc_ != nullptr) {
         parallelRenderStartFunc_();
@@ -172,7 +170,6 @@ void RsFrameReport::RenderEnd()
     if (renderEndFunc_ == nullptr) {
         renderEndFunc_ = (RenderEndFunc)LoadSymbol("RenderEnd");
     }
-
     if (renderEndFunc_ != nullptr) {
         renderEndFunc_();
     } else {
@@ -183,7 +180,7 @@ void RsFrameReport::RenderEnd()
 void RsFrameReport::RSRenderEnd()
 {
     if (parallelRenderEndFunc_ == nullptr) {
-        parallelRenderEndFunc_ = reinterpret_cast<ParallelRenderEndFunc>(LoadSymbol("RSRenderEnd"));
+        parallelRenderEndFunc_ = (ParallelRenderEndFunc)(LoadSymbol("RSRenderEnd"));
     }
     if (parallelRenderEndFunc_ != nullptr) {
         parallelRenderEndFunc_();
@@ -197,7 +194,6 @@ void RsFrameReport::SendCommandsStart()
     if (sendCommandsStartFunc_ == nullptr) {
         sendCommandsStartFunc_ = (SendCommandsStartFunc)LoadSymbol("SendCommandsStart");
     }
-
     if (sendCommandsStartFunc_ != nullptr) {
         sendCommandsStartFunc_();
     } else {
