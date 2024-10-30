@@ -324,7 +324,7 @@ HWTEST_F(HgmIdleDetectorTest, UpdateAndGetAceAnimatorExpectedFrameRate001, Funct
         }
         STEP("3. get ace animator expected frame rate") {
             int32_t ret = idleDetector->GetAceAnimatorExpectedFrameRate();
-            STEP_ASSERT_EQ(ret, ANIMATOR_NOT_RUNNING);
+            STEP_ASSERT_EQ(ret, HgmIdleDetector::ANIMATOR_NOT_RUNNING);
         }
     }
 }
@@ -375,7 +375,7 @@ HWTEST_F(HgmIdleDetectorTest, ResetAceAnimatorExpectedFrameRate, Function | Smal
         }
         STEP("4. get ace animator expected frame rate") {
             int32_t ret = idleDetector->GetAceAnimatorExpectedFrameRate();
-            STEP_ASSERT_EQ(ret, ANIMATOR_NOT_RUNNING);
+            STEP_ASSERT_EQ(ret, HgmIdleDetector::ANIMATOR_NOT_RUNNING);
         }
     }
 }

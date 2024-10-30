@@ -23,9 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 
-constexpr int32_t ANIMATOR_NOT_RUNNING = -1;
-constexpr int32_t ANIMATOR_NO_EXPECTED_FRAME_RATE = 0;
-
 enum class UIFWKType : int32_t {
     FROM_UNKNOWN = 0,
     FROM_SURFACE = 1,
@@ -33,6 +30,8 @@ enum class UIFWKType : int32_t {
 
 class HgmIdleDetector {
 public:
+    static constexpr int32_t ANIMATOR_NOT_RUNNING = -1;
+
     HgmIdleDetector() = default;
     ~HgmIdleDetector() = default;
 
