@@ -71,6 +71,8 @@ public:
     bool HasMirrorDisplay() const;
     bool HasVirtualDisplay() const;
 
+    bool CheckHardCursorSupport(uint32_t screenId);
+
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;

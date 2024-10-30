@@ -2180,6 +2180,17 @@ VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id) const
     }
     return screensIt->second->GetVirtualScreenStatus();
 }
+
+bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screensIt = screens_.find(screenId);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGD("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu32 ".", __func__, screenId);
+        return false;
+    }
+    return screensIt->second->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+}
 } // namespace impl
 
 sptr<RSScreenManager> CreateOrGetScreenManager()

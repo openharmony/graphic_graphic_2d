@@ -155,5 +155,15 @@ bool RSPointerWindowManager::CheckIsHardCursor() const
     }
     return false;
 }
+
+bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        return false;
+    }
+    uint64_t propertyValue = 0;
+    return screenManager->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+}
 } // namespace Rosen
 } // namespace OHOS

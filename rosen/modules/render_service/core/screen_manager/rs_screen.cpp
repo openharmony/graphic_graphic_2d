@@ -1095,6 +1095,14 @@ const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
 {
     return securityExemptionList_;
 }
+
+bool RSScreen::GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue)
+{
+    if (hdiScreen_) {
+        return hdiScreen_->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+    }
+    return false;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS
