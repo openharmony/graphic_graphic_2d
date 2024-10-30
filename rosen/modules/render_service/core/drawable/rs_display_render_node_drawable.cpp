@@ -671,7 +671,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, screenInfo);
             DrawExpandScreen(*expandProcessor);
-            rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
+            if (curCanvas_) {
+                rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
+            }
             uniParam->SetOpDropped(isOpDropped);
         }
         processor->PostProcess();
@@ -814,7 +816,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             DrawWatermarkIfNeed(*params, *curCanvas_);
             SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
         }
-        rsDirtyRectsDfx.OnDraw(curCanvas_);
+        rsDirtyRectsDfx.OnDraw(*curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
             && !params->IsRotationChanged()) {
             offscreenSurface_ = nullptr;
@@ -1039,7 +1041,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     RSUniRenderThread::ResetCaptureParam();
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
-    rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
+    rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     RSUniRenderThread::Instance().SetBlackList({});
     RSUniRenderThread::Instance().SetWhiteList({});
     uniParam.SetSecExemption(false);
@@ -1085,7 +1087,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     uniParam.SetOpDropped(isOpDropped);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
-    rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
+    rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
 }
 
 void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& processor)
@@ -1150,7 +1152,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
             *mirroredDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
     }
     curCanvas_->Restore();
-    rsDirtyRectsDfx.OnDrawVirtual(curCanvas_);
+    rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
     renderFrame->Flush();
     processor->ProcessDisplaySurfaceForRenderThread(*this);
     processor->PostProcess();
@@ -1314,6 +1316,8 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
         RSRenderNodeDrawable::OnCapture(canvas);
         DrawWatermarkIfNeed(*params, *rscanvas);
+        RSDirtyRectsDfx rsDirtyRectsDfx(*this);
+        rsDirtyRectsDfx.OnDraw(*rscanvas);
     } else {
         DrawHardwareEnabledNodes(canvas, *params);
     }
