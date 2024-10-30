@@ -68,7 +68,6 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_font.cpp",
       "$drawing_ndk_src_dir/drawing_font_collection.cpp",
       "$drawing_ndk_src_dir/drawing_font_mgr.cpp",
-      "$drawing_ndk_src_dir/drawing_gpu_context.cpp",
       "$drawing_ndk_src_dir/drawing_image.cpp",
       "$drawing_ndk_src_dir/drawing_image_filter.cpp",
       "$drawing_ndk_src_dir/drawing_mask_filter.cpp",
@@ -104,6 +103,7 @@ template("drawing_ndk_source_set") {
     }
     if (rs_enable_gpu) {
       defines += [ "RS_ENABLE_GPU" ]
+      sources += [ "$drawing_ndk_src_dir/drawing_gpu_context.cpp" ]
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
