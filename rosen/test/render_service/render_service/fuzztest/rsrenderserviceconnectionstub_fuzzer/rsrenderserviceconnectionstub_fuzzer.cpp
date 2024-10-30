@@ -68,10 +68,6 @@ bool DoOnRemoteRequest(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -100,10 +96,6 @@ bool DoOnRemoteRequest(const uint8_t* data, size_t size)
 bool DoSetScreenGamutMap(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -137,10 +129,6 @@ bool DoGetScreenGamutMap(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -168,10 +156,6 @@ bool DoGetScreenGamutMap(const uint8_t* data, size_t size)
 bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -205,10 +189,6 @@ bool DoGetScreenType(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -239,10 +219,6 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -268,10 +244,6 @@ bool DoGetBitmap(const uint8_t* data, size_t size)
 bool DoSetAppWindowNum(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -305,10 +277,6 @@ bool DoShowWatermark(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -336,10 +304,6 @@ bool DoShowWatermark(const uint8_t* data, size_t size)
 bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -374,10 +338,6 @@ bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -406,10 +366,6 @@ bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 bool DoGetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -444,10 +400,6 @@ bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -476,10 +428,6 @@ bool DoSetRefreshRateMode(const uint8_t* data, size_t size)
 bool DoGetScreenSupportedRefreshRates(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -514,10 +462,6 @@ bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -546,10 +490,6 @@ bool DoGetScreenSupportedModes(const uint8_t* data, size_t size)
 bool DoGetScreenCapability(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -584,10 +524,6 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -616,10 +552,6 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
 bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -654,10 +586,6 @@ bool DoRemoveVirtualScreen(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -686,10 +614,6 @@ bool DoRemoveVirtualScreen(const uint8_t* data, size_t size)
 bool DoGetScreenData(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -724,10 +648,6 @@ bool DoGetScreenBacklight(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -756,10 +676,6 @@ bool DoGetScreenBacklight(const uint8_t* data, size_t size)
 bool DoSetScreenBacklight(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -794,10 +710,6 @@ bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -826,10 +738,6 @@ bool DoGetScreenColorGamut(const uint8_t* data, size_t size)
 bool DoSetScreenColorGamut(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -864,10 +772,6 @@ bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -896,10 +800,6 @@ bool DoSetAncoForceDoDirect(const uint8_t* data, size_t size)
 bool DoGetActiveDirtyRegionInfo(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -934,10 +834,6 @@ bool DoGetGlobalDirtyRegionInfo(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -969,10 +865,6 @@ bool DoGetLayerComposeInfo(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -1001,10 +893,6 @@ bool DoGetLayerComposeInfo(const uint8_t* data, size_t size)
 bool DoGetHwcDisabledReasonInfo(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
@@ -1040,10 +928,6 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
         return false;
     }
 
-    if (size < MAX_SIZE) {
-        return false;
-    }
-
     // initialize
     g_data = data;
     g_size = size;
@@ -1073,10 +957,6 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
 bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
-        return false;
-    }
-
-    if (size < MAX_SIZE) {
         return false;
     }
 
