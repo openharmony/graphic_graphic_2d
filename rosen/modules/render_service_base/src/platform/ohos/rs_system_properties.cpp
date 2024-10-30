@@ -195,10 +195,10 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isNeedUnMap = system::GetParameter("persist.rosen.rsmemory.optimize.enabled", "1") != "0";
-    return isNeedUnMap;
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    return isPurgeable;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -458,12 +458,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
-void RSSystemProperties::SetDefaultScreenRotationOffset(uint32_t offset)
-{
-    defaultScreenRotationOffset_ = offset;
-}
-
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
     defaultDeviceRotationOffset_ = offset;
@@ -471,9 +465,8 @@ void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 
 uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 {
-    return defaultDeviceRotationOffset_.load().value_or(defaultScreenRotationOffset_);
+    return defaultDeviceRotationOffset_;
 }
-#endif
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {

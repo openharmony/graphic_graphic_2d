@@ -179,7 +179,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     ASSERT_NE(displayDrawable_, nullptr);
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
-        rtThread.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     }
     NodeId id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(id);

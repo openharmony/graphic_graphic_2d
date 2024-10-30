@@ -24,14 +24,14 @@ int32_t Graphic2dXmlParser::LoadConfiguration(const char* fileDir)
     xmlDocument_ = xmlReadFile(fileDir, nullptr, 0);
     if (!xmlDocument_) {
         RS_LOGE("Graphic2dXmlParser xmlReadFile failed");
-        return XML_FILE_LOAD_FAIL;
+        return G2C_XML_FILE_LOAD_FAIL;
     }
 
     if (!mParsedData_) {
         mParsedData_ = std::make_unique<Graphic2dConfigData>();
     }
 
-    return EXEC_SUCCESS;
+    return G2C_EXEC_SUCCESS;
 }
 
 int32_t Graphic2dXmlParser::Parse()
@@ -44,13 +44,13 @@ int32_t Graphic2dXmlParser::Parse()
     xmlNode *root = xmlDocGetRootElement(xmlDocument_);
     if (root == nullptr) {
         RS_LOGE("Graphic2dXmlParser xmlDocGetRootElement failed");
-        return XML_GET_ROOT_FAIL;
+        return G2C_XML_GET_ROOT_FAIL;
     }
 
     if (ParseInternal(*root) == false) {
-        return XML_PARSE_INTERNAL_FAIL;
+        return G2C_XML_PARSE_INTERNAL_FAIL;
     }
-    return EXEC_SUCCESS;
+    return G2C_EXEC_SUCCESS;
 }
 
 void Graphic2dXmlParser::Destroy()
@@ -71,13 +71,13 @@ bool Graphic2dXmlParser::ParseInternal(xmlNode &node)
         return false;
     }
     currNode = currNode->xmlChildrenNode;
-    int32_t parseSuccess = EXEC_SUCCESS;
+    int32_t parseSuccess = G2C_EXEC_SUCCESS;
 
     for (; currNode; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
-        if (parseSuccess != EXEC_SUCCESS) {
+        if (parseSuccess != G2C_EXEC_SUCCESS) {
             return false;
         }
         int xmlParamType = GetG2cXmlNodeAsInt(*currNode);
@@ -106,25 +106,25 @@ int32_t Graphic2dXmlParser::ParseParams(xmlNode &node)
 {
     std::string paraName = ExtractPropertyValue("name", node);
     if (paraName.empty()) {
-        return XML_PARSE_INTERNAL_FAIL;
+        return G2C_XML_PARSE_INTERNAL_FAIL;
     }
     if (!mParsedData_) {
         RS_LOGE("Graphic2dConfigure mParsedData_ is not initialized");
         return G2C_ERROR;
     }
 
-    int32_t setResult = EXEC_SUCCESS;
+    int32_t setResult = G2C_EXEC_SUCCESS;
     
     if (paraName == "graphic_2d_config") {
         RS_LOGD("Graphic2dConfigure Graphic2dXmlParser paraName ParseGraphic2dConfig");
         setResult = ParseSimplex(node, mParsedData_->graphic2dConfig_);
     }
 
-    if (setResult != EXEC_SUCCESS) {
+    if (setResult != G2C_EXEC_SUCCESS) {
         RS_LOGD("Graphic2dXmlParser failed to ParseParams %{public}s", paraName.c_str());
     }
     
-    return EXEC_SUCCESS;
+    return G2C_EXEC_SUCCESS;
 }
 
 int32_t Graphic2dXmlParser::ParseSimplex(xmlNode &node, std::unordered_map<std::string, std::string> &config,
@@ -148,7 +148,7 @@ int32_t Graphic2dXmlParser::ParseSimplex(xmlNode &node, std::unordered_map<std::
         auto key = ExtractPropertyValue(keyName, *currNode);
         auto value = ExtractPropertyValue(valueName, *currNode);
         if (key.empty() || value.empty()) {
-            return XML_PARSE_INTERNAL_FAIL;
+            return G2C_XML_PARSE_INTERNAL_FAIL;
         }
         config[key] = value;
 
@@ -156,7 +156,7 @@ int32_t Graphic2dXmlParser::ParseSimplex(xmlNode &node, std::unordered_map<std::
                 keyName.c_str(), key.c_str(), valueName.c_str(), config[key].c_str());
     }
 
-    return EXEC_SUCCESS;
+    return G2C_EXEC_SUCCESS;
 }
 
 std::string Graphic2dXmlParser::ExtractPropertyValue(const std::string &propName, xmlNode &node)

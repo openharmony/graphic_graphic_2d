@@ -77,7 +77,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
 }
@@ -180,12 +180,7 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-void RSSystemProperties::SetDefaultScreenRotationOffset(uint32_t offset)
 {
 }
 
@@ -193,7 +188,6 @@ uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 {
     return {};
 }
-#endif
 
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()

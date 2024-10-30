@@ -45,7 +45,9 @@ RSImageBase::~RSImageBase()
 {
     if (pixelMap_) {
 #ifdef ROSEN_OHOS
-        pixelMap_->DecreaseUseCount();
+        if (renderServiceImage_) {
+            pixelMap_->DecreaseUseCount();
+        }
 #endif
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
@@ -154,22 +156,16 @@ void RSImageBase::MarkYUVImage()
 
 void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
+#ifdef ROSEN_OHOS
+    if (pixelMap_) {
+        pixelMap_->DecreaseUseCount();
+    }
+#endif
     pixelMap_ = pixelmap;
     if (pixelMap_) {
         srcRect_.SetAll(0.0, 0.0, pixelMap_->GetWidth(), pixelMap_->GetHeight());
         image_ = nullptr;
         GenUniqueId(pixelMap_->GetUniqueId());
-#ifdef ROSEN_OHOS
-        pixelMap_->IncreaseUseCount();
-        if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED &&
-            RSSystemProperties::GetRsMemoryOptimizeEnabled() &&
-            (pixelMap_->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
-            !pixelMap_->IsEditable() &&
-            !pixelMap_->IsAstc() &&
-            !pixelMap_->IsHdr()) {
-            canPurgeShareMemFlag_ = CanPurgeFlag::ENABLED;
-        }
-#endif
     }
 }
 
@@ -227,35 +223,21 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
 void RSImageBase::Purge()
 {
 #ifdef ROSEN_OHOS
-    if (!pixelMap_ || pixelMap_->GetAllocatorType() != Media::AllocatorType::SHARE_MEM_ALLOC) {
-        return;
-    }
-
     if (canPurgeShareMemFlag_ != CanPurgeFlag::ENABLED ||
-        pixelMap_->GetUseCount() > 1 ||
         image_ == nullptr ||
-        uniqueId_ <= 0 ||
-        !renderServiceImage_) {
+        uniqueId_ <= 0) {
         return;
     }
-    constexpr int IMAGE_USE_COUNT_FOR_PURGE = 2;
-    int originUseCount = static_cast<int>(image_.use_count());
-    if (originUseCount > IMAGE_USE_COUNT_FOR_PURGE) {
+    if (!pixelMap_ || pixelMap_->IsUnMap() ||
+        pixelMap_->GetAllocatorType() != Media::AllocatorType::SHARE_MEM_ALLOC) {
         return;
     }
 
-    int refCount = RSImageCache::Instance().ReleasePixelMapCacheUnique(uniqueId_);
+    int refCount = RSImageCache::Instance().CheckRefCntAndReleaseImageCache(uniqueId_, pixelMap_, image_);
     if (refCount > 1) { // skip purge if multi RsImage Holds this PixelMap
         return;
     }
-
-    if (image_.use_count() > 1) { // skip purge if image_ not unique
-        return;
-    }
-
-    pixelMap_->UnMap();
     isDrawn_ = false;
-
     image_ = nullptr;
 #endif
 }
@@ -263,6 +245,20 @@ void RSImageBase::Purge()
 void RSImageBase::MarkRenderServiceImage()
 {
     renderServiceImage_ = true;
+#ifdef ROSEN_OHOS
+    if (!pixelMap_) {
+        return;
+    }
+    pixelMap_->IncreaseUseCount();
+    if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED &&
+        RSSystemProperties::GetRenderNodePurgeEnabled() &&
+        (pixelMap_->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
+        !pixelMap_->IsEditable() &&
+        !pixelMap_->IsAstc() &&
+        !pixelMap_->IsHdr()) {
+        canPurgeShareMemFlag_ = CanPurgeFlag::ENABLED;
+    }
+#endif
 }
 
 #ifdef ROSEN_OHOS

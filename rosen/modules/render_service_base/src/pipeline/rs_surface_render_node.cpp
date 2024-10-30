@@ -1258,35 +1258,25 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 #endif
 }
 
-void RSSurfaceRenderNode::OnSkipSync()
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams && surfaceParams->IsBufferDirty()) {
-        auto preBuffer = surfaceParams->GetPreBuffer();
-        if (!preBuffer) {
-            return;
-        }
-        auto context = GetContext().lock();
-        if (context && !surfaceParams->GetHardwareEnabled()) {
-            context->GetMutableSkipSyncBuffer().push_back({ GetFirstLevelNodeId(), preBuffer,
-                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
-            surfaceParams->SetPreBuffer(nullptr);
-            RS_LOGD("CollectSkipSyncBuffer fId[%" PRIu64"], sId[%" PRIu64"]",
-                GetFirstLevelNodeId(), surfaceParams->GetId());
-        }
-    }
-#endif
-}
-
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
     const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParams->IsBufferSynced()) {
+        auto curBuffer = surfaceParams->GetBuffer();
+        auto consumer = GetRSSurfaceHandler()->GetConsumer();
+        if (curBuffer && consumer) {
+            auto fence = surfaceParams->GetAcquireFence();
+            consumer->ReleaseBuffer(curBuffer, fence);
+        }
+    } else {
+        surfaceParams->SetPreBuffer(preBuffer);
+    }
+
     surfaceParams->SetBuffer(buffer, damageRect);
     surfaceParams->SetAcquireFence(acquireFence);
-    surfaceParams->SetPreBuffer(preBuffer);
+    surfaceParams->SetBufferSynced(false);
     AddToPendingSyncList();
 }
 

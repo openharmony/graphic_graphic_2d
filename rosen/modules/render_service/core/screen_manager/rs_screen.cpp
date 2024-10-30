@@ -685,6 +685,7 @@ void RSScreen::SetScreenBacklight(uint32_t level)
 
     RS_LOGD("RSScreen_%{public}" PRIu64 " SetScreenBacklight, level is %{public}u", id_, level);
     if (hdiScreen_->SetScreenBacklight(level) < 0) {
+        RS_LOGE("RSScreen_%{public}" PRIu64 " SetScreenBacklight error.", id_);
         return;
     }
     screenBacklightLevel_ = static_cast<int32_t>(level);
@@ -1093,6 +1094,14 @@ void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExe
 const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
 {
     return securityExemptionList_;
+}
+
+bool RSScreen::GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue)
+{
+    if (hdiScreen_) {
+        return hdiScreen_->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+    }
+    return false;
 }
 } // namespace impl
 } // namespace Rosen

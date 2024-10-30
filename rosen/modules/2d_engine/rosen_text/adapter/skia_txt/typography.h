@@ -76,6 +76,7 @@ public:
     std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
     void UpdateColor(size_t from, size_t to, const Drawing::Color& color) override;
     void* GetParagraph() override { return reinterpret_cast<void*>(paragraph_.get()); }
+    Drawing::RectI GeneratePaintRegion(double x, double y) const override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

@@ -251,7 +251,7 @@ HWTEST_F(RSUniRenderThreadTest, IsIdleAndSync001, TestSize.Level1)
     bool res = instance.IsIdle();
     EXPECT_TRUE(res);
 
-    instance.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     EXPECT_TRUE(instance.GetRSRenderThreadParams());
 }
 

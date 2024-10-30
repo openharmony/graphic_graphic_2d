@@ -67,6 +67,8 @@ public:
 
     void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
 
+    bool CheckHardCursorSupport(uint32_t screenId);
+
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;

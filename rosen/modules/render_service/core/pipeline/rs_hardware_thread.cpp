@@ -692,7 +692,7 @@ void RSHardwareThread::AddRefreshRateCount()
 
 void RSHardwareThread::SubScribeSystemAbility()
 {
-    RS_LOGD("%{public}s", __func__);
+    RS_LOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {

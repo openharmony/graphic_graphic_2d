@@ -1272,7 +1272,6 @@ public:
     }
 protected:
     void OnSync() override;
-    void OnSkipSync() override;
 
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right

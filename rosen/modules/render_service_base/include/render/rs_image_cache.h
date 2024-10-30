@@ -46,7 +46,8 @@ public:
     std::shared_ptr<Media::PixelMap> GetPixelMapCache(uint64_t uniqueId) const;
     void IncreasePixelMapCacheRefCount(uint64_t uniqueId);
     void ReleasePixelMapCache(uint64_t uniqueId);
-    int ReleasePixelMapCacheUnique(uint64_t uniqueId);
+    int CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn,
+        const std::shared_ptr<Drawing::Image>& image);
 
     void CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img, pid_t tid = -1);
     std::shared_ptr<Drawing::Image> GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid = -1) const;

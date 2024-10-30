@@ -245,43 +245,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateSurfaceDefaultSize, TestSize.Level2)
 }
 
 /**
- * @tc.name: OnSkipSync
- * @tc.desc: test results of OnSkipSync
- * @tc.type:FUNC OnSkipSync
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, OnSkipSync, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->OnSkipSync();
-    ASSERT_EQ(node->stagingRenderParams_, nullptr);
-    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
-    node->OnSkipSync();
-    ASSERT_FALSE(node->stagingRenderParams_->IsBufferDirty());
-    node->stagingRenderParams_->dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
-    node->OnSkipSync();
-    ASSERT_TRUE(node->stagingRenderParams_->IsBufferDirty());
-    ASSERT_FALSE(node->stagingRenderParams_->GetHardwareEnabled());
-    ASSERT_EQ(node->stagingRenderParams_->GetPreBuffer(), nullptr);
-    auto params = std::make_unique<RSSurfaceRenderParams>(id);
-    params->preBuffer_ = SurfaceBuffer::Create();
-    node->stagingRenderParams_ = std::move(params);
-    node->stagingRenderParams_->dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
-    node->OnSkipSync();
-    ASSERT_TRUE(node->stagingRenderParams_->IsBufferDirty());
-    ASSERT_FALSE(node->stagingRenderParams_->GetHardwareEnabled());
-    params = std::make_unique<RSSurfaceRenderParams>(id);
-    params->preBuffer_ = SurfaceBuffer::Create();
-    params->SetHardwareEnabled(true);
-    node->stagingRenderParams_ = std::move(params);
-    node->stagingRenderParams_->dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
-    node->OnSkipSync();
-    ASSERT_TRUE(node->stagingRenderParams_->IsBufferDirty());
-    ASSERT_TRUE(node->stagingRenderParams_->GetHardwareEnabled());
-}
-
-/**
  * @tc.name: NeedClearBufferCache
  * @tc.desc: test results of NeedClearBufferCache
  * @tc.type:FUNC NeedClearBufferCache

@@ -72,7 +72,7 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
 }
@@ -182,12 +182,7 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-#ifndef ROSEN_CROSS_PLATFORM
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-void RSSystemProperties::SetDefaultScreenRotationOffset(uint32_t offset)
 {
 }
 
@@ -195,7 +190,6 @@ uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 {
     return {};
 }
-#endif
 
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {

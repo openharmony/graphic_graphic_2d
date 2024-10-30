@@ -400,6 +400,7 @@ private:
     bool needRequestNextVsync_ = true;
     DirtyRegionDebugType dirtyRegionDebugType_;
     std::vector<std::string> dfxTargetSurfaceNames_;
+    bool isHardCursorSupport_ = false;
 
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
     std::stack<std::shared_ptr<RSSurfaceRenderNode>> surfaceNode_;
