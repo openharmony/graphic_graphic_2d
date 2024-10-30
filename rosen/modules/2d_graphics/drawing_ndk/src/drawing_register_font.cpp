@@ -119,7 +119,7 @@ uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& 
     }
     if (size <= 0) {
         ifs.close();
-        return ERROR_GET_SIZE_FAILED;
+        return ERROR_BUFFER_SIZE_ZERO;
     }
     ifs.seekg(ifs.beg);
     if (!ifs.good()) {
