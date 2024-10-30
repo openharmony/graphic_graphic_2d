@@ -176,6 +176,11 @@ public:
         return privacyContentLayerIds_.size() != 0;
     }
 
+    LeashPersistentId GetLeashPersistentId() const
+    {
+        return leashPersistentId_;
+    }
+
     std::string GetName() const
     {
         return name_;
@@ -495,6 +500,8 @@ private:
     RRect rrect_;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
+
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;

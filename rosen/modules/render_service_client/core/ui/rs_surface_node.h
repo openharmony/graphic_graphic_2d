@@ -77,6 +77,8 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetLeashPersistentId(LeashPersistentId leashPersistentId);
+    LeashPersistentId GetLeashPersistentId() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
     void SetFingerprint(bool hasFingerprint);
@@ -188,6 +190,7 @@ private:
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
