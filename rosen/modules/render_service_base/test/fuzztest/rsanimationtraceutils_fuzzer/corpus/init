@@ -11,11 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "rswindowanimation_fuzzer:fuzztest",
-    "rswindowanimationtarget_fuzzer:fuzztest",
-  ]
-}
+FUZZ
