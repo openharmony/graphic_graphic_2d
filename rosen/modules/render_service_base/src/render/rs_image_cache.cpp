@@ -156,6 +156,8 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
                 pixelMapCache_.erase(it);
                 ReleaseDrawingImageCacheByPixelMapId(uniqueId);
             }
+        } else {
+            ReleaseDrawingImageCacheByPixelMapId(uniqueId);
         }
     }
     pixelMap.reset();
