@@ -122,10 +122,16 @@ int32_t HdiLayer::CreateLayer(const LayerInfoPtr &layerInfo)
 
     sptr<IConsumerSurface> surface = layerInfo->GetSurface();
     if (surface == nullptr) {
-        HLOGE("Create layer failed because the consumer surface is nullptr.");
-        return GRAPHIC_DISPLAY_NULL_PTR;
+        if (layerInfo->GetCompositionType() ==
+            GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+            bufferCacheCountMax_ = 0;
+        } else {
+            HLOGE("Create layer failed because the consumer surface is nullptr.");
+            return GRAPHIC_DISPLAY_NULL_PTR;
+        }
+    } else {
+        bufferCacheCountMax_ = surface->GetQueueSize();
     }
-    bufferCacheCountMax_ = surface->GetQueueSize();
     uint32_t layerId = INT_MAX;
     GraphicLayerInfo hdiLayerInfo = {
         .width = layerInfo->GetLayerSize().w,

@@ -65,6 +65,16 @@ bool RsCommonHook::GetHardwareEnabledByBackgroundAlphaFlag() const
     return hardwareEnabledByBackgroundAlphaSkippedFlag_;
 }
 
+bool RsCommonHook::GetHardwareEnabledBySolidColorLayerFlag() const
+{
+    return hardwareEnabledBySolidColorLayerFlag_;
+}
+    
+void RsCommonHook::SetHardwareEnabledBySolidColorLayerFlag(bool hardwareEnabledByPureColorLayerFlag)
+{
+    hardwareEnabledBySolidColorLayerFlag_ = hardwareEnabledByPureColorLayerFlag;
+}
+
 void RsCommonHook::SetComponentPowerFpsFunc(std::function<void(FrameRateRange& range)> func)
 {
     componentPowerFpsFunc_ = func;

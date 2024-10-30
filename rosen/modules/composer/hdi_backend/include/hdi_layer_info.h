@@ -536,6 +536,10 @@ public:
                 std::to_string(dirtyRegions_[i].w) + ", " +
                 std::to_string(dirtyRegions_[i].h) + "], ";
         }
+        result += "layerColor = [R:" + std::to_string(layerColor_.r) + ", G:" +
+            std::to_string(layerColor_.g) + ", B:" +
+            std::to_string(layerColor_.b) + ", A:" +
+            std::to_string(layerColor_.a) + "],";
         if (cSurface_ != nullptr) {
             cSurface_->Dump(result);
         }

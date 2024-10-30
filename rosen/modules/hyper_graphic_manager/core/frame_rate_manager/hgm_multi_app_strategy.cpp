@@ -438,8 +438,10 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
+    rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
-    if (videoConfigFromHgm.empty() || pkgs.size() > 1) {
+    std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
+    if (videoConfigFromHgm.empty() || solidLayerConfigFromHgm.empty() || pkgs.size() > 1) {
         return;
     }
     for (auto &param: pkgs) {
@@ -451,6 +453,9 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
+        // solidLayerConfigFromHgm 1 means enable hardware by solid color layer
+        } else if (solidLayerConfigFromHgm[pkgNameForCheck] == "1") {
+            rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(true);
         }
     }
 }

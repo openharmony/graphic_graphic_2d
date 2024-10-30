@@ -40,6 +40,8 @@ public:
     bool GetHardwareEnabledByBackgroundAlphaFlag() const;
     void SetComponentPowerFpsFunc(std::function<void(FrameRateRange& range)> func);
     void GetComponentPowerFps(FrameRateRange& range);
+    bool GetHardwareEnabledBySolidColorLayerFlag() const;
+    void SetHardwareEnabledBySolidColorLayerFlag(bool hardwareEnabledBySolidColorLayerFlag);
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
@@ -49,6 +51,7 @@ private:
     // use in updating hwcnode hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
+    std::atomic<bool> hardwareEnabledBySolidColorLayerFlag_{false};
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 };
 } // namespace OHOS::Rosen

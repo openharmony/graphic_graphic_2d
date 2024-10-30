@@ -122,6 +122,7 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
 
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
+    CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
 }
@@ -132,7 +133,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     if (!paramsSp) {
         return;
     }
-    auto& params = *paramsSp;
+    auto& params = *(static_cast<RSSurfaceRenderParams*>(paramsSp.get()));
     auto buffer = params.GetBuffer();
     if (buffer == nullptr) {
         return;
@@ -165,6 +166,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
+    CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
 }
@@ -199,6 +201,25 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
         layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h, layerInfo.zOrder,
         static_cast<int>(layerInfo.layerType));
+}
+
+void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params)
+{
+    if (auto color = params.GetBackgroundColor(); color != RgbPalette::Black() &&
+        color != RgbPalette::Transparent()) {
+        auto solidColorLayer = HdiLayerInfo::CreateHdiLayerInfo();
+        solidColorLayer->CopyLayerInfo(layer);
+        if (layer->GetZorder() > 0) {
+            solidColorLayer->SetZorder(layer->GetZorder() - 1);
+        }
+        solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
+        solidColorLayer->SetLayerColor({color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()});
+        solidColorLayer->SetSurface({});
+        solidColorLayer->SetBuffer({}, {});
+        solidColorLayer->SetPreBuffer({});
+        solidColorLayer->SetMetaData({});
+        layers_.emplace_back(solidColorLayer);
+    }
 }
 
 bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)

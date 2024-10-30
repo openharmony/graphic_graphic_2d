@@ -1383,6 +1383,13 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
+    } else {
+        if (!RsCommonHook::Instance().GetHardwareEnabledBySolidColorLayerFlag() &&
+            node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
+            node.SetHardwareForcedDisabledState(true);
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by solid background color",
+                node.GetName().c_str(), node.GetId());
+        }
     }
 }
 
@@ -1724,6 +1731,11 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
         hwcNodePtr->SetHardWareDisabledByReverse(false);
         surfaceHandler->SetGlobalZOrder(hwcNodePtr->IsHardwareForcedDisabled() && !hwcNodePtr->GetProtectedLayer()
             ? -1.f : globalZOrder_++);
+        if (surfaceHandler->GetGlobalZOrder() >= 0 &&
+            hwcNodePtr->GetRenderProperties().GetBackgroundColor() != RgbPalette::Black() &&
+            hwcNodePtr->GetRenderProperties().GetBackgroundColor() != RgbPalette::Transparent()) {
+            surfaceHandler->SetGlobalZOrder(globalZOrder_++);
+        }
         auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo_);
         hwcNodePtr->UpdateHwcNodeLayerInfo(transform);
     }
