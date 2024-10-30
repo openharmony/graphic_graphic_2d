@@ -1759,12 +1759,11 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     if (pointSurfaceHandler) {
         // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
-        bool isHardCursor = RSPointerWindowManager::Instance().CheckIsHardCursor();
         pointWindow->SetHardwareForcedDisabledState(true);
-        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(isHardCursor);
+        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(true);
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
-        pointWindow->SetHardCursorStatus(isHardCursor);
-        pointWindow->UpdateHwcNodeLayerInfo(transform, isHardCursor);
+        pointWindow->SetHardCursorStatus(true);
+        pointWindow->UpdateHwcNodeLayerInfo(transform, true);
         if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
             RSPointerWindowManager::Instance().UpdatePointerDirtyToGlobalDirty(pointWindow, curDisplayNode_);
         }
