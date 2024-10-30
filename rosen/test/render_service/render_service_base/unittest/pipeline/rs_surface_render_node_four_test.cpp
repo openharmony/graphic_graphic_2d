@@ -18,6 +18,7 @@
 #include "pipeline/rs_context.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_render_thread_visitor.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -527,6 +528,46 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetAbilityState, TestSize.Level2)
     node->abilityState_ = RSSurfaceNodeAbilityState::BACKGROUND;
     abilityState = node->GetAbilityState();
     ASSERT_FALSE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+}
+
+/**
+ * @tc.name: QuickPrepareTest001
+ * @tc.desc: QuickPrepareTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, QuickPrepareTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderThreadVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->childrenBlurBehindWindow_.emplace(id + 1);
+    node->QuickPrepare(visitor);
+    ASSERT_TRUE(node->oldHasChildrenBlurBehindWindow_);
+}
+
+/**
+ * @tc.name: ChildrenBlurBehindWindowTest
+ * @tc.desc: Test ChildrenBlurBehindWindow and NeedUpdateDrawableBehindWindow
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    NodeId idOne = 1;
+    NodeId idTwo = 2;
+    node->AddChildBlurBehindWindow(idOne);
+    ASSERT_TRUE(!node->childrenBlurBehindWindow_.empty());
+    ASSERT_TRUE(node->NeedUpdateDrawableBehindWindow());
+    ASSERT_TRUE(node->GetMutableRenderProperties().GetNeedDrawBehindWindow());
+    ASSERT_TRUE(node->NeedDrawBehindWindow());
+    node->RemoveChildBlurBehindWindow(idTwo);
+    ASSERT_TRUE(node->NeedDrawBehindWindow());
+    node->RemoveChildBlurBehindWindow(idOne);
+    ASSERT_FALSE(node->NeedDrawBehindWindow());
 }
 } // namespace Rosen
 } // namespace OHOS

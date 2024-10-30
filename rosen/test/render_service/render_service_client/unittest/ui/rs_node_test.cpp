@@ -5827,6 +5827,19 @@ HWTEST_F(RSNodeTest, SetUseEffect, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUseEffectType
+ * @tc.desc: test results of SetUseEffectType
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSNodeTest, SetUseEffectType, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetUseEffectType(UseEffectType::EFFECT_COMPONENT);
+    rsNode->SetUseEffectType(UseEffectType::BEHIND_WINDOW);
+}
+
+/**
  * @tc.name: SetUseShadowBatching
  * @tc.desc: test results of SetUseShadowBatching
  * @tc.type: FUNC

@@ -1020,6 +1020,30 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateFilterCacheWithSelfDirty002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
+{
+    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    auto& properties = node.GetMutableRenderProperties();
+    properties.needDrawBehindWindow_ = true;
+    RectI inRegion(10, 10, 20, 20);
+    RectI outRegion(90, 90, 110, 110);
+    RectI lastRegion(0, 0, 100, 100);
+    node.filterRegion_ = inRegion;
+    node.lastFilterRegion_ = lastRegion;
+    node.UpdateFilterCacheWithSelfDirty();
+    node.filterRegion_ = outRegion;
+    node.UpdateFilterCacheWithSelfDirty();
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: IsBackgroundInAppOrNodeSelfDirty
  * @tc.desc: test
  * @tc.type: FUNC
@@ -1061,6 +1085,28 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
     properties.backgroundFilter_ = std::make_shared<RSFilter>();
     properties.filter_ = std::make_shared<RSFilter>();
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: PostPrepareForBlurFilterNode002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
+{
+    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    RSRenderNode node(id, context);
+    bool needRequestNextVsync = true;
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    auto& properties = node.GetMutableRenderProperties();
+    properties.needDrawBehindWindow_ = true;
+    node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    node.drawableVec_[static_cast<uint32_t>(slot)] = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
+    ASSERT_NE(node.GetFilterDrawable(false), nullptr);
     ASSERT_TRUE(true);
 }
 
@@ -1331,6 +1377,67 @@ HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalDistortionEffectRecttest, TestS
     EXPECT_TRUE(node.renderContent_->renderProperties_.GetDistortionDirty());
     node.CollectAndUpdateLocalDistortionEffectRect();
     EXPECT_FALSE(node.renderContent_->renderProperties_.GetDistortionDirty());
+}
+
+/**
+ * @tc.name: ChildrenBlurBehindWindowTest
+ * @tc.desc: ChildrenBlurBehindWindowTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderNodeTest2, ChildrenBlurBehindWindowTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    NodeId idOne = 1;
+    NodeId idTwo = 2;
+    node->AddChildBlurBehindWindow(idOne);
+    ASSERT_FALSE(node->NeedDrawBehindWindow());
+    node->RemoveChildBlurBehindWindow(idTwo);
+    ASSERT_FALSE(node->NeedDrawBehindWindow());
+    node->RemoveChildBlurBehindWindow(idOne);
+    ASSERT_FALSE(node->NeedDrawBehindWindow());
+}
+
+/**
+ * @tc.name: ProcessBehindWindowOnTreeStateChangedTest
+ * @tc.desc: ProcessBehindWindowOnTreeStateChangedTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowOnTreeStateChangedTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->ProcessBehindWindowOnTreeStateChanged();
+    auto rootNode = std::make_shared<RSRenderNode>(1);
+    rsContext->nodeMap.renderNodeMap_.emplace(1, rootNode);
+    node->renderContent_->renderProperties_.SetUseEffect(true);
+    node->renderContent_->renderProperties_.SetUseEffectType(1);
+    node->isOnTheTree_ = true;
+    node->ProcessBehindWindowOnTreeStateChanged();
+    node->isOnTheTree_ = false;
+    node->ProcessBehindWindowOnTreeStateChanged();
+}
+
+/**
+ * @tc.name: ProcessBehindWindowAfterApplyModifiersTest
+ * @tc.desc: ProcessBehindWindowAfterApplyModifiersTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowAfterApplyModifiersTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->ProcessBehindWindowAfterApplyModifiers();
+    auto rootNode = std::make_shared<RSRenderNode>(1);
+    rsContext->nodeMap.renderNodeMap_.emplace(1, rootNode);
+    node->renderContent_->renderProperties_.SetUseEffect(false);
+    node->ProcessBehindWindowAfterApplyModifiers();
+    node->renderContent_->renderProperties_.SetUseEffect(true);
+    node->renderContent_->renderProperties_.SetUseEffectType(1);
+    node->ProcessBehindWindowAfterApplyModifiers();
 }
 } // namespace Rosen
 } // namespace OHOS

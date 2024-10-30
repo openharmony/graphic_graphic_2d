@@ -986,5 +986,35 @@ HWTEST_F(PropertiesTest, GetDistortionDirtyTest, TestSize.Level1)
     properties.SetDistortionK(0.7f);
     ASSERT_TRUE(properties.GetDistortionDirty());
 }
+
+/**
+ * @tc.name: SetGetUseEffectTypeTest
+ * @tc.desc: SetGetUseEffectTypeTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(PropertiesTest, SetGetUseEffectTypeTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetUseEffectType(1);
+    ASSERT_EQ(properties.GetUseEffectType(), 1);
+    ASSERT_EQ(properties.isDrawn_, true);
+    ASSERT_EQ(properties.contentDirty_, true);
+}
+
+/**
+ * @tc.name: NeedDrawBehindWindowTest
+ * @tc.desc: Test NeedDrawBehindWindow Get, Set and UpdateFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(PropertiesTest, SetGetNeedDrawBehindWindowTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetNeedDrawBehindWindow(true);
+    ASSERT_EQ(properties.GetNeedDrawBehindWindow(), true);
+    properties.UpdateFilter();
+    ASSERT_TRUE(properties.needFilter_);
+}
 } // namespace Rosen
 } // namespace OHOS
