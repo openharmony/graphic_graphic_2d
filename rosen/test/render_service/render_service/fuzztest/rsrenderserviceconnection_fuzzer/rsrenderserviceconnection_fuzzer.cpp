@@ -44,7 +44,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr size_t MAX_SIZE = 4;
 constexpr size_t SCREEN_WIDTH = 100;
 constexpr size_t SCREEN_HEIGHT = 100;
 

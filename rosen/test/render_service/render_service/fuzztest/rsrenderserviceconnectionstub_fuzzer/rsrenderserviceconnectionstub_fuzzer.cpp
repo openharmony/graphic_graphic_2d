@@ -33,7 +33,6 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr size_t MAX_SIZE = 4;
 DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 
 namespace {
