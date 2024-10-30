@@ -17,7 +17,6 @@
 
 #include <memory>
 #include "memory/rs_tag_tracker.h"
-#include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"

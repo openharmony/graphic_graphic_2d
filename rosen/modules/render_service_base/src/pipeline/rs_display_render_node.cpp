@@ -228,7 +228,6 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->offsetX_ = GetDisplayOffsetX();
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
-    displayParams->mirrorSource_ = GetMirrorSource();
     RSRenderNode::UpdateRenderParams();
 }
 
