@@ -46,7 +46,7 @@ public:
     std::shared_ptr<Media::PixelMap> pixelmap_;
 
     // Save the ARGB val of picture.
-    std::shared_ptr<uint32_t> colorVal_ = nullptr;
+    std::vector<uint32_t> colorVal_;
     uint32_t colorValLen_ = 0;
     uint32_t grayMsd_ = 0;
     float contrastToWhite_ = 0;
@@ -57,9 +57,9 @@ public:
     // Specified number of extracted theme colors, default value is 10;
     int specifiedFeatureColorNum_ = 10;
 
-    std::shared_ptr<uint32_t> hist_ = nullptr;
+    std::vector<uint32_t> hist_;
     int distinctColorCount_ = 0;
-    std::shared_ptr<uint32_t> colors_ = nullptr;
+    std::vector<uint32_t> colors_;
 
     static constexpr uint8_t ARGB_MASK = 0xFF;
     static constexpr uint8_t ARGB_A_SHIFT = 24;
@@ -134,8 +134,8 @@ private:
         // Recomputes the boundaries of this box to tightly fit the color within the box.
         void fitBox()
         {
-            uint32_t *colors = colorExtract_->colors_.get();
-            uint32_t *hist = colorExtract_->hist_.get();
+            uint32_t *colors = colorExtract_->colors_.data();
+            uint32_t *hist = colorExtract_->hist_.data();
 
             uint32_t minR = UINT32_MAX;
             uint32_t minG = UINT32_MAX;
@@ -211,8 +211,8 @@ private:
         int FindSplitPoint()
         {
             int longestDimension = GetLongestColorDimension();
-            uint32_t *colors = colorExtract_->colors_.get();
-            uint32_t *hist = colorExtract_->hist_.get();
+            uint32_t *colors = colorExtract_->colors_.data();
+            uint32_t *hist = colorExtract_->hist_.data();
 
             // Sort the color in the box based on the longest color dimension
             ModifySignificantOctet(colors, longestDimension, lowerIndex_, upperIndex_);
@@ -262,8 +262,8 @@ private:
         // Return the average color of the box
         std::pair<uint32_t, uint32_t> GetAverageColor()
         {
-            uint32_t *colors = colorExtract_->colors_.get();
-            uint32_t *hist = colorExtract_->hist_.get();
+            uint32_t *colors = colorExtract_->colors_.data();
+            uint32_t *hist = colorExtract_->hist_.data();
             uint32_t redSum = 0;
             uint32_t greenSum = 0;
             uint32_t blueSum = 0;

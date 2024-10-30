@@ -40,7 +40,7 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     }
 
     sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp = 0;
     Rect damage;
     auto ret = consumer->AcquireBuffer(buffer, acquireFence, timestamp, damage);
@@ -76,10 +76,11 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
     }
 }
 
-void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
-    bool resourceChanged)
+void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
+    RSRcdSurfaceRenderNode &node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged)
 {
-    if (uniProcessor_ == nullptr || node.IsInvalidSurface()) {
+    std::lock_guard<std::mutex> lock(bufferMut_);
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface() || renderEngine_ == nullptr) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
         return;
     }
@@ -110,13 +111,8 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& nod
         return;
     }
 
-#ifdef NEW_RENDER_CONTEXT
-    auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSRenderSurfaceOhos>(rsSurface),
-        node.GetHardenBufferRequestConfig(), true, false);
-#else
     auto renderFrame = renderEngine_->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface),
         node.GetHardenBufferRequestConfig(), true, false);
-#endif
     if (renderFrame == nullptr) {
         RS_LOGE("RSRcdRenderVisitor Request Frame Failed");
         return;

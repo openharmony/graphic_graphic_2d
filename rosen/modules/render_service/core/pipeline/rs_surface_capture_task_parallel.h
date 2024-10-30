@@ -46,10 +46,10 @@ public:
     ~RSSurfaceCaptureTaskParallel() = default;
 
     // Confirm whether the node is occlusive which should apply modifiers
-    static void CheckModifiers(NodeId id);
+    static void CheckModifiers(NodeId id, bool useCurWindow);
     // Do capture pipeline task
     static void Capture(NodeId id,
-        sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+        sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling);
 
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
@@ -58,8 +58,8 @@ public:
 #endif
 
     bool CreateResources();
-    
-    bool Run(sptr<RSISurfaceCaptureCallback> callback);
+
+    bool Run(sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling);
 
 private:
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap);

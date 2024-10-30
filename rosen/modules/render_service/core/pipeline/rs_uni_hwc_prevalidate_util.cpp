@@ -13,23 +13,29 @@
  * limitations under the License.
  */
 
+#include "pipeline/rs_uni_hwc_prevalidate_util.h"
+
 #include <dlfcn.h>
 #include <functional>
 #include <string>
 
-#include "common/rs_common_hook.h"
-#include "common/rs_obj_abs_geometry.h"
 #include "rs_base_render_util.h"
 #include "rs_uni_render_util.h"
+
+#include "common/rs_common_hook.h"
+#include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_uni_hwc_prevalidate_util.h"
 #include "platform/common/rs_log.h"
-#include "drawable/rs_display_render_node_drawable.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr uint32_t ROTATION_360 = 360;
+constexpr uint64_t USAGE_HARDWARE_CURSOR = 1ULL << 61;
+constexpr uint64_t USAGE_UNI_LAYER = 1ULL << 60;
+}
 RSUniHwcPrevalidateUtil& RSUniHwcPrevalidateUtil::GetInstance()
 {
     static RSUniHwcPrevalidateUtil instance;
@@ -47,21 +53,37 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     if (preValidateFunc_ == nullptr) {
         RS_LOGW("[%{public}s_%{public}d]:load func failed, reason: %{public}s", __func__, __LINE__, dlerror());
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
+        return;
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
-    loadSuccess = true;
+    loadSuccess_ = true;
+    isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled();
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
 {
     if (preValidateHandle_) {
         dlclose(preValidateHandle_);
+        preValidateHandle_ = nullptr;
     }
 }
 
-bool RSUniHwcPrevalidateUtil::IsLoadSuccess() const
+bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable(const ScreenId& screenId)
 {
-    return loadSuccess;
+    if (!loadSuccess_) {
+        return false;
+    }
+    if (!isPrevalidateHwcNodeEnable_) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager && screenManager->GetDefaultScreenId() != screenId) {
+        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::IsPrevalidateEnable"
+            " %{public}" PRIu64 " isn't default screen", screenId);
+        return false;
+    }
+    return true;
 }
 
 bool RSUniHwcPrevalidateUtil::PreValidate(
@@ -87,7 +109,9 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     auto dst = node->GetDstRect();
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
     info.zOrder = zorder;
-    info.usage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
+    auto usage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();
+    info.usage = node->IsHardwareEnabledTopSurface() && RSSystemProperties::IsPcType() ?
+        usage | USAGE_HARDWARE_CURSOR : usage;
     info.format = node->GetRSSurfaceHandler()->GetBuffer()->GetFormat();
     info.fps = fps;
     info.transform = static_cast<int>(transform);
@@ -219,6 +243,7 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
     std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
     uint32_t curFps, uint32_t &zOrder, const ScreenInfo& screenInfo)
 {
+    std::shared_ptr<RSSurfaceRenderNode> pointerWindow = nullptr;
     for (auto it = surfaceNodes.rbegin(); it != surfaceNodes.rend(); it++) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (!surfaceNode) {
@@ -230,18 +255,43 @@ void RSUniHwcPrevalidateUtil::CollectSurfaceNodeLayerInfo(
         }
         for (auto& hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
-            if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree() || hwcNodePtr->IsHardwareForcedDisabled()
-                || hwcNodePtr->GetAncoForceDoDirect()) {
+            if (!RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(hwcNodePtr, pointerWindow)) {
                 continue;
             }
-            auto transform = RSUniRenderUtil::GetLayerTransform(*hwcNodePtr, screenInfo);
-            RequestLayerInfo surfaceLayer;
-            if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
-                zOrder++, hwcNodePtr, transform, curFps, surfaceLayer)) {
-                prevalidLayers.emplace_back(surfaceLayer);
-            }
+            RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, hwcNodePtr, curFps, zOrder, screenInfo);
         }
     }
+    if (pointerWindow && pointerWindow->ShouldPaint()) {
+        RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(prevalidLayers, pointerWindow, curFps, zOrder, screenInfo);
+    }
+}
+
+void RSUniHwcPrevalidateUtil::EmplaceSurfaceNodeLayer(
+    std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
+    uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo)
+{
+    auto transform = RSUniRenderUtil::GetLayerTransform(*node, screenInfo);
+    RequestLayerInfo surfaceLayer;
+    if (RSUniHwcPrevalidateUtil::GetInstance().CreateSurfaceNodeLayerInfo(
+        zOrder++, node, transform, curFps, surfaceLayer)) {
+        prevalidLayers.emplace_back(surfaceLayer);
+    }
+}
+
+bool RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(
+    const RSSurfaceRenderNode::SharedPtr& node, RSSurfaceRenderNode::SharedPtr& pointerWindow)
+{
+    if (!node || !node->IsOnTheTree()) {
+        return false;
+    }
+    if (node->IsHardwareEnabledTopSurface()) {
+        pointerWindow = node;
+        return false;
+    }
+    if (node->IsHardwareForcedDisabled() || node->GetAncoForceDoDirect()) {
+        return false;
+    }
+    return true;
 }
 
 void RSUniHwcPrevalidateUtil::CollectUIFirstLayerInfo(std::vector<RequestLayerInfo>& uiFirstLayers,

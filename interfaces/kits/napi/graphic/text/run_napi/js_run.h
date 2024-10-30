@@ -37,6 +37,10 @@ public:
     static napi_value GetOffsets(napi_env env, napi_callback_info info);
     static napi_value GetFont(napi_env env, napi_callback_info info);
     static napi_value Paint(napi_env env, napi_callback_info info);
+    static napi_value GetStringRange(napi_env env, napi_callback_info info);
+    static napi_value GetStringIndices(napi_env env, napi_callback_info info);
+    static napi_value GetImageBounds(napi_env env, napi_callback_info info);
+    static napi_value GetTypographicBounds(napi_env env, napi_callback_info info);
     void SetParagraph(std::shared_ptr<Typography> paragraph);
 
 private:
@@ -47,6 +51,10 @@ private:
     napi_value OnGetOffsets(napi_env env, napi_callback_info info);
     napi_value OnGetFont(napi_env env, napi_callback_info info);
     napi_value OnPaint(napi_env env, napi_callback_info info);
+    napi_value OnGetStringRange(napi_env env, napi_callback_info info);
+    napi_value OnGetStringIndices(napi_env env, napi_callback_info info);
+    napi_value OnGetImageBounds(napi_env env, napi_callback_info info);
+    napi_value OnGetTypographicBounds(napi_env env, napi_callback_info info);
 
     std::unique_ptr<Run> run_;
     std::shared_ptr<Typography> paragraph_ = nullptr;

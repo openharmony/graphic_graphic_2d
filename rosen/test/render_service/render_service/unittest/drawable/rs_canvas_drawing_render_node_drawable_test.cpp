@@ -90,12 +90,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     ASSERT_TRUE(drawable->renderParams_->GetCanvasDrawingSurfaceChanged());
 
     canvas.recordingState_ = true;
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->OnDraw(canvas);
-    RSUniRenderThread::Instance().renderThreadParams_->isOpDropped_ = true;
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isOpDropped_ = true;
     drawable->OnDraw(canvas);
     ASSERT_NE(drawable->renderParams_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
+    RSUniRenderThread::Instance().Sync(nullptr);
 }
 
 /**
@@ -111,7 +111,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     Drawing::Canvas canvas;
     const Drawing::Rect dst(1.0f, 1.0f, 1.0f, 1.0f);
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
-    RSUniRenderThread::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     drawable->DrawRenderContent(canvas, dst);
 
     drawable->renderParams_->frameRect_ = { 0.f, 0.f, 1.f, 1.f }; // for test
@@ -122,7 +122,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
     drawable->image_ = std::make_shared<Drawing::Image>();
     drawable->DrawRenderContent(canvas, dst);
     EXPECT_NE(drawable->image_, nullptr);
-    RSUniRenderThread::Instance().renderThreadParams_ = nullptr;
+    RSUniRenderThread::Instance().Sync(nullptr);
 }
 
 /**
@@ -133,8 +133,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
-    drawable->PlaybackInCorrespondThread();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 }
 
@@ -392,7 +393,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetBitmapTest, TestSize.Level1)
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
     Drawing::Rect* rect = nullptr;
     uint64_t tid = INVALID_NODEID;
@@ -552,7 +554,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetCurrentContextAndImageTest, T
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, TestSize.Level1)
 {
-    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     int width = 1;

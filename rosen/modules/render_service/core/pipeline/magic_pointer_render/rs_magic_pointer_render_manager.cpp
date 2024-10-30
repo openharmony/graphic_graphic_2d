@@ -137,7 +137,7 @@ bool RSMagicPointerRenderManager::CheckColorPickerEnabled()
         ROSEN_LOGE("RSMagicPointerRenderManager::CheckColorPickerEnabled threadParams == nullptr");
         return false;
     }
-    auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
+    const auto& hardwareDrawables = threadParams->GetHardwareEnabledTypeDrawables();
 
     for (const auto& drawable : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
@@ -180,7 +180,7 @@ void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor
 
 bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
-    auto& hardwareDrawables =
+    const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& drawable : hardwareDrawables) {
         auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
@@ -220,7 +220,7 @@ bool RSMagicPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcess
     bool find = false;
     RectI pRect;
     int displayNodeIndex = INT_MAX;
-    for (int i = 0; i < layers.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(layers.size()); ++i) {
         std::string name = layers[i]->GetSurface()->GetName();
         if (name.find(DISPLAY) != std::string::npos) {
             displayNodeIndex = i;
@@ -271,7 +271,6 @@ void RSMagicPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr
         }
         RectI dstRect = curRect.IntersectRect(pRect);
         if (dstRect.width_ * dstRect.height_ >= rect_.width_ * rect_.height_) {
-            dstRect = dstRect.Offset(-curRect.GetLeft(), -curRect.GetTop());
             rect_ = dstRect;
             target_ = layers[i];
         }
@@ -283,7 +282,6 @@ void RSMagicPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr
         GraphicIRect layerSize = target_->GetLayerSize();
         RectI curRect = RectI(layerSize.x, layerSize.y, layerSize.w, layerSize.h);
         RectI dstRect = curRect.IntersectRect(pRect);
-        rect_ = dstRect.Offset(-curRect.GetLeft(), -curRect.GetTop());
     }
 }
 
@@ -307,7 +305,7 @@ int16_t RSMagicPointerRenderManager::CalcAverageLuminance(std::shared_ptr<Drawin
         Drawing::Color::ColorQuadGetB(color) * 0.0722f;
 }
 
-void RSMagicPointerRenderManager::RunColorPickerTaskBackground(const BufferDrawParam& param)
+void RSMagicPointerRenderManager::RunColorPickerTaskBackground(BufferDrawParam& param)
 {
 #ifdef RS_ENABLE_UNI_RENDER
     std::lock_guard<std::mutex> locker(mtx_);
@@ -348,7 +346,7 @@ void RSMagicPointerRenderManager::RunColorPickerTask()
     if (!image_) {
         param = RSUniRenderUtil::CreateLayerBufferDrawParam(target_, forceCPU_);
     }
-    RSBackgroundThread::Instance().PostTask([this, param] () {
+    RSBackgroundThread::Instance().PostTask([this, param] () mutable {
         taskDoing_ = true;
         this->RunColorPickerTaskBackground(param);
         taskDoing_ = false;
@@ -358,11 +356,29 @@ void RSMagicPointerRenderManager::RunColorPickerTask()
     });
 }
 
-std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageByLayer(const BufferDrawParam& param)
+std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageByLayer(BufferDrawParam& param)
 {
 #ifdef RS_ENABLE_UNI_RENDER
-    Drawing::RectI imgCutRect = Drawing::RectI(rect_.GetLeft(), rect_.GetTop(), rect_.GetRight(), rect_.GetBottom());
-    auto context = RSBackgroundThread::Instance().GetShareGPUContext();
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("RSPointerRenderManager::GetIntersectImageByLayer screenManager is null.");
+        return nullptr;
+    }
+    auto screenInfo = screenManager->QueryScreenInfo(param.screenId);
+    param.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
+
+    Drawing::Matrix mat;
+    bool flag = param.matrix.Invert(mat);
+    if (!flag) {
+        RS_LOGE("RSPointerRenderManager::GetIntersectImageByLayer param.matrix not invert.");
+        return nullptr;
+    }
+    Drawing::Rect rectOrigin = Drawing::Rect(rect_.GetLeft(), rect_.GetTop(), rect_.GetRight(), rect_.GetBottom());
+    Drawing::Rect imgCutRectF;
+    mat.MapRect(imgCutRectF, rectOrigin);
+    Drawing::RectI imgCutRect = Drawing::RectI(imgCutRectF.GetLeft(), imgCutRectF.GetTop(), imgCutRectF.GetRight(),
+        imgCutRectF.GetBottom());
+    const auto context = RSBackgroundThread::Instance().GetShareGPUContext();
     if (context == nullptr) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageByLayer context is nullptr.");
         return nullptr;
@@ -388,7 +404,7 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageBy
 
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromVK(Drawing::RectI& imgCutRect,
-    std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& param)
+    const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
 {
     if (vkImageManager_ == nullptr) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromVK vkImageManager_ == nullptr");
@@ -418,7 +434,7 @@ std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFr
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
 std::shared_ptr<Drawing::Image> RSMagicPointerRenderManager::GetIntersectImageFromGL(Drawing::RectI& imgCutRect,
-    std::shared_ptr<Drawing::GPUContext>& context, const BufferDrawParam& param)
+    const std::shared_ptr<Drawing::GPUContext>& context, BufferDrawParam& param)
 {
     if (eglImageManager_ == nullptr) {
         RS_LOGE("RSMagicPointerRenderManager::GetIntersectImageFromGL eglImageManager_ == nullptr");

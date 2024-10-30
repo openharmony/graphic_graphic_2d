@@ -78,12 +78,14 @@ void VSyncGeneratorTest::TearDownTestCase()
 
 class VSyncGeneratorTestCallback : public VSyncGenerator::Callback {
 public:
-    void OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode) override;
+    void OnVSyncEvent(int64_t now, int64_t period,
+        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) override;
     void OnPhaseOffsetChanged(int64_t phaseOffset) override;
     void OnConnsRefreshRateChanged(const std::vector<std::pair<uint64_t, uint32_t>> &refreshRates) override;
 };
 
-void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
+void VSyncGeneratorTestCallback::OnVSyncEvent(int64_t now, int64_t period,
+    uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate)
 {
 }
 

@@ -879,6 +879,27 @@ HWTEST_F(PenTest, GetFillPath001, TestSize.Level1)
     ret = pen.GetFillPath(srcPath, dstPath, nullptr, matrix);
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: Dump001
+ * @tc.desc: Test for Dump
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PenTest, Dump001, TestSize.Level1)
+{
+    Pen pen = Pen(100);
+    pen.SetWidth(10);
+    pen.SetMiterLimit(100.0f);
+    pen.SetJoinStyle(Pen::JoinStyle::ROUND_JOIN);
+    pen.SetCapStyle(Pen::CapStyle::FLAT_CAP);
+    pen.SetPathEffect(PathEffect::CreateCornerPathEffect(10));
+    pen.SetBlenderEnabled(true);
+    std::string dump = "";
+    pen.Dump(dump);
+    EXPECT_TRUE(dump != "");
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -21,6 +21,7 @@
 #include "hdi_layer_info.h"
 #include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
+#include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
@@ -31,6 +32,7 @@
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
@@ -110,12 +112,13 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
-    ScalingMode scalingMode = params.GetPreScalingMode();
+    ScalingMode scalingMode = params.GetScalingMode();
     if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params.SetPreScalingMode(scalingMode);
+        params.SetScalingMode(scalingMode);
     }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
+    layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
 
@@ -159,6 +162,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
         surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
     layer->SetNodeId(surfaceDrawable.GetId());
     auto& renderParams = static_cast<RSSurfaceRenderParams&>(params);
+    layer->SetSdrNit(renderParams.GetSdrNit());
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceDrawable.GetConsumerOnDraw());
@@ -198,6 +202,33 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
         static_cast<int>(layerInfo.layerType));
 }
 
+bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
+{
+    if (params.GetIsProtectedLayer() == false) {
+        return false;
+    }
+    if (params.GetAnimateState() == true ||
+        RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
+        return true;
+    }
+    if (!params.GetCornerRadiusInfoForDRM().empty()) {
+        return true;
+    }
+    bool forceClientForDRM = false;
+    auto ancestorDisplayDrawable =
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
+        uniParam == nullptr) {
+        RS_LOGE("%{public}s ancestorDisplayDrawable/ancestorDisplayDrawableParams/uniParam is nullptr", __func__);
+        return false;
+    } else {
+        auto displayParams = static_cast<RSDisplayRenderParams*>(ancestorDisplayDrawable->GetRenderParams().get());
+        forceClientForDRM = displayParams->IsRotationChanged() || uniParam->GetCacheEnabledForRotation();
+    }
+    return forceClientForDRM;
+}
+
 LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence)
 {
@@ -223,25 +254,39 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     }
     layer->SetLayerSize(dstRect);
     layer->SetBoundSize(layerInfo.boundRect);
-    bool forceClient = RSSystemProperties::IsForceClient() ||
-        (params.GetIsProtectedLayer() && (params.GetAnimateState() || params.GetForceClientForDRMOnly()));
+    bool forceClientForDRM = GetForceClientForDRM(params);
+    RS_OPTIONAL_TRACE_NAME_FMT("%s nodeName[%s] forceClientForDRM[%d]",
+        __func__, params.GetName().c_str(), forceClientForDRM);
+    RS_LOGD("%{public}s nodeName[%{public}s] forceClientForDRM[%{public}d]",
+        __func__, params.GetName().c_str(), forceClientForDRM);
+    bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layer->SetCornerRadiusInfoForDRM(params.GetCornerRadiusInfoForDRM());
+    auto bufferBackgroundColor = params.GetBackgroundColor();
+    GraphicLayerColor backgroundColor = {
+        .r = bufferBackgroundColor.GetRed(),
+        .g = bufferBackgroundColor.GetGreen(),
+        .b = bufferBackgroundColor.GetBlue(),
+        .a = bufferBackgroundColor.GetAlpha()
+    };
+    layer->SetBackgroundColor(backgroundColor);
 
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(layerInfo.dstRect);
     layer->SetVisibleRegions(visibleRegions);
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
-        const auto& dirtyRect = params.GetBufferDamage();
-        dirtyRegions.emplace_back(GraphicIRect { dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h });
+        const auto& bufferDamage = params.GetBufferDamage();
+        GraphicIRect dirtyRect = GraphicIRect { bufferDamage.x, bufferDamage.y, bufferDamage.w, bufferDamage.h };
+        dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect));
     } else {
         dirtyRegions.emplace_back(layerInfo.srcRect);
     }
     layer->SetDirtyRegions(dirtyRegions);
 
     layer->SetBlendType(layerInfo.blendType);
-    layer->SetCropRect(layerInfo.srcRect);
+    ProcessLayerSetCropRect(layer, layerInfo, buffer);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
@@ -250,11 +295,49 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-    layer->SetScalingMode(params.GetPreScalingMode());
+    layer->SetScalingMode(params.GetScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
-    layer->SetClearCacheSet(params.GetBufferClearCacheSet());
     layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;
+}
+
+void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo,
+    sptr<SurfaceBuffer> buffer)
+{
+    auto adaptedSrcRect = layerInfo.srcRect;
+    // Because the buffer is mirrored in the horiziontal/vertical directions,
+    // srcRect need to be adjusted.
+    switch (layerInfo.transformType) {
+        case GraphicTransformType::GRAPHIC_FLIP_H: [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180: {
+            // 1. Intersect the left border of the screen.
+            // map_x = (buffer_width - buffer_right_x)
+            if (adaptedSrcRect.x > 0) {
+                adaptedSrcRect.x = 0;
+            } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= static_cast<int32_t>(screenInfo_.width)) {
+                // 2. Intersect the right border of the screen.
+                // map_x = (buffer_width - buffer_right_x)
+                // Only left side adjustment can be triggerred on the narrow screen.
+                adaptedSrcRect.x =
+                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferWidth()) - adaptedSrcRect.w) : 0;
+            }
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V: [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
+            // The processing in the vertical direction is similar to that in the horizontal direction.
+            if (adaptedSrcRect.y > 0) {
+                adaptedSrcRect.y = 0;
+            } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= static_cast<int32_t>(screenInfo_.height)) {
+                adaptedSrcRect.y =
+                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    layerInfoPtr->SetCropRect(adaptedSrcRect);
 }
 
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)

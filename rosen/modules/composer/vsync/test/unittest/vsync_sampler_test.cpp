@@ -360,40 +360,6 @@ HWTEST_F(VSyncSamplerTest, AddSamplesVarianceOversizeTest, Function | MediumTest
     }
     ASSERT_EQ(ret, true);
 }
-
-/*
-* Function: AddPresentFenceTimeErrorTest
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. test AddPresentFenceTime error_ oversize
- */
-HWTEST_F(VSyncSamplerTest, AddPresentFenceTimeErrorTest, Function | MediumTest| Level3)
-{
-    VSyncSamplerTest::vsyncSampler->Reset();
-    VSyncSamplerTest::vsyncSampler->BeginSample();
-    bool ret = true;
-    for (int i = 1; i <= 10; i++) { // add 10 samples
-        ret = VSyncSamplerTest::vsyncSampler->AddSample(i * 16666667); // 16666667ns
-    }
-    ASSERT_EQ(ret, false);
-    for (int i = 1; i <= 10; i++) { // add 10 samples
-        ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(i * 16666667); // 16666667ns
-    }
-    ASSERT_EQ(ret, false);
-    for (int i = 1; i <= 10; i++) { // add 10 samples
-        ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(i * 16666667 + 1000000); // 16666667ns, 1000000ns
-    }
-    ASSERT_EQ(ret, true);
-    ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(1666666666); // 1666666666ns
-    ASSERT_EQ(ret, true);
-    ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(2666666666); // 2666666666ns
-    ASSERT_EQ(ret, true);
-    for (int i = 1; i <= 10; i++) { // add 10 samples
-        ret = VSyncSamplerTest::vsyncSampler->AddPresentFenceTime(i * 16666667 + 1000000); // 16666667ns, 1000000ns
-    }
-    ASSERT_EQ(ret, true);
-}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

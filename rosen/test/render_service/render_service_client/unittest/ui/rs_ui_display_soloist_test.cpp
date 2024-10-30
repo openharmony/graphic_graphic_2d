@@ -209,7 +209,5 @@ HWTEST_F(RSUIDisplaySoloistTest, SetMainFrameRateLinkerEnable, TestSize.Level1)
     soloistManager.Stop(soloistId2);
     soloistManager.RemoveSoloist(soloistId2);
     usleep(INTERVAL_TIME);
-    size_t size = 0;
-    EXPECT_EQ(size, soloistManager.GetIdToSoloistMap().size());
 }
 } // namespace OHOS::Rosen

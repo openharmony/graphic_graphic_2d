@@ -47,7 +47,7 @@ public:
 
     uint32_t GetSaveCount() const override;
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> GetGPUContext() override;
 #endif
 
@@ -234,13 +234,10 @@ public:
     struct CachedEffectData {
         CachedEffectData() = default;
         CachedEffectData(std::shared_ptr<Drawing::Image>&& image, const Drawing::RectI& rect);
-        CachedEffectData(std::shared_ptr<Drawing::Image>&& image, const Drawing::RectI& rect,
-            float brightnessRatio);
         ~CachedEffectData() = default;
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
-        float cachedBrightnessRatio_ = 1.f;
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
@@ -297,6 +294,8 @@ public:
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
+    bool GetHdrOn() const;
+    void SetHdrOn(bool isHdrOn);
 
 protected:
     using Env = struct {
@@ -364,6 +363,7 @@ private:
     bool recordingState_ = false;
     bool recordDrawable_ = false;
     bool isCapture_ = false;
+    bool isHdrOn_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

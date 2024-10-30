@@ -43,6 +43,13 @@ void RSPropertyDrawable::OnSync()
     needSync_ = false;
 }
 
+void RSPropertyDrawable::OnPurge()
+{
+    if (drawCmdList_) {
+        drawCmdList_->Purge();
+    }
+}
+
 Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());
@@ -179,6 +186,8 @@ void RSFilterDrawable::OnSync()
     renderIsSkipFrame_ = stagingIsSkipFrame_;
     renderNodeId_ = stagingNodeId_;
     renderClearType_ = stagingClearType_;
+    renderIntersectWithDRM_ = stagingIntersectWithDRM_;
+    renderIsDarkColorMode_ = stagingIsDarkColorMode_;
 
     ClearFilterCache();
 
@@ -190,6 +199,8 @@ void RSFilterDrawable::OnSync()
     stagingForceUseCache_ = false;
     stagingIsOccluded_ = false;
     stagingForceClearCacheForLastFrame_ = false;
+    stagingIntersectWithDRM_ = false;
+    stagingIsDarkColorMode_ = false;
 
     stagingClearType_ = FilterCacheType::BOTH;
     stagingIsLargeArea_ = false;
@@ -203,6 +214,12 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (canvas && ptr && ptr->renderIntersectWithDRM_) {
+            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc IntersectWithDRM node[%lld] isDarkColorMode[%d]",
+                ptr->renderNodeId_, ptr->renderIsDarkColorMode_);
+            RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, ptr->renderIsDarkColorMode_);
+            return;
+        }
         if (canvas && ptr && ptr->filter_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
             if (ptr->filter_->GetFilterType() == RSFilter::LINEAR_GRADIENT_BLUR && rect != nullptr) {
@@ -317,6 +334,13 @@ void RSFilterDrawable::MarkNeedClearFilterCache()
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
 }
 
+//should be called in rs main thread
+void RSFilterDrawable::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
+{
+    stagingIntersectWithDRM_ = intersectWithDRM;
+    stagingIsDarkColorMode_ = isDark;
+}
+
 bool RSFilterDrawable::IsFilterCacheValid() const
 {
     return isFilterCacheValid_;
@@ -403,6 +427,11 @@ void RSFilterDrawable::ClearFilterCache()
 // called after OnSync()
 bool RSFilterDrawable::IsFilterCacheValidForOcclusion()
 {
+    if (cacheManager_ == nullptr) {
+        ROSEN_LOGD("RSFilterDrawable::IsFilterCacheValidForOcclusion cacheManager not available");
+        return false;
+    }
+
     auto cacheType = cacheManager_->GetCachedType();
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterDrawable::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d",
         cacheType, renderClearType_);

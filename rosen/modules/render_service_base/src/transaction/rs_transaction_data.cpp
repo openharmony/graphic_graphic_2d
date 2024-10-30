@@ -27,6 +27,7 @@ namespace Rosen {
 namespace {
 static constexpr size_t PARCEL_MAX_CPACITY = 4000 * 1024; // upper bound of parcel capacity
 static constexpr size_t PARCEL_SPLIT_THRESHOLD = 1800 * 1024; // should be < PARCEL_MAX_CPACITY
+static constexpr uint64_t MAX_ADVANCE_TIME = 1000000000; // one second advance most
 }
 
 std::function<void(uint64_t, int, int)> RSTransactionData::alarmLogFunc = [](uint64_t nodeId, int count, int num) {
@@ -38,6 +39,14 @@ RSTransactionData* RSTransactionData::Unmarshalling(Parcel& parcel)
 {
     auto transactionData = new RSTransactionData();
     if (transactionData->UnmarshallingCommand(parcel)) {
+        // Do not process future data, limit data timestamps to a maximum of 1 second in advance
+        uint64_t now = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+        if (transactionData->timestamp_ > now + MAX_ADVANCE_TIME) {
+            ROSEN_LOGW("RSTransactionData Unmarshalling limit timestamps from %{public}" PRIu64 " to "
+                "%{public}" PRIu64 " ", transactionData->timestamp_, now + MAX_ADVANCE_TIME);
+        }
+        transactionData->timestamp_ = std::min(now + MAX_ADVANCE_TIME, transactionData->timestamp_);
         return transactionData;
     }
     ROSEN_LOGE("RSTransactionData Unmarshalling Failed");
@@ -103,9 +112,22 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
         if (!command) {
             parcel.WriteUint8(0);
             RS_LOGW("failed RSTransactionData::Marshalling, command is nullptr");
+        } else if (command->indexVerifier_ != marshallingIndex_) {
+            parcel.WriteUint8(0);
+            RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
             parcel.WriteUint8(1);
+            if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+                RS_LOGE("RSTransactionData::Marshalling failed to write begin position marshallingIndex:%{public}zu",
+                    marshallingIndex_);
+                success = false;
+            }
             success = success && command->Marshalling(parcel);
+            if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+                RS_LOGE("RSTransactionData::Marshalling failed to write end position marshallingIndex:%{public}zu",
+                    marshallingIndex_);
+                success = false;
+            }
         }
         if (!success) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
@@ -157,6 +179,9 @@ void RSTransactionData::Process(RSContext& context)
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [nodeId, followType, command] : payload_) {
         if (command != nullptr) {
+            if (!command->IsCallingPidValid()) {
+                continue;
+            }
             command->Process(context);
         }
     }
@@ -166,6 +191,7 @@ void RSTransactionData::Clear()
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     payload_.clear();
+    payload_.shrink_to_fit();
     timestamp_ = 0;
 }
 
@@ -173,6 +199,7 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>& command, NodeId n
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
+        command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
     }
 }
@@ -181,6 +208,7 @@ void RSTransactionData::AddCommand(std::unique_ptr<RSCommand>&& command, NodeId 
 {
     std::unique_lock<std::mutex> lock(commandMutex_);
     if (command) {
+        command->indexVerifier_ = payload_.size();
         payload_.emplace_back(nodeId, followType, std::move(command));
     }
 }
@@ -213,7 +241,6 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         ROSEN_LOGE("RSTransactionData::UnmarshallingCommand cannot read isUniRender");
         return false;
     }
-    ClearCommandMap();
     std::unique_lock<std::mutex> payloadLock(commandMutex_, std::defer_lock);
     for (size_t i = 0; i < len; i++) {
         if (!isUniRender) {
@@ -231,6 +258,9 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             return false;
         }
         if (hasCommand) {
+            if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+                RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition begin failed index:%{public}zu", i);
+            }
             if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
                 return false;
             }
@@ -244,8 +274,12 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                     commandType, commandSubType);
                 return false;
             }
-            InsertCommandToMap(command->GetNodeId(), command->GetUniqueType());
             RS_PROFILER_PATCH_COMMAND(parcel, command);
+            if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+                RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition end failed index:%{public}zu"
+                    " commandType:[%{public}u, %{public}u]", i, static_cast<uint32_t>(commandType),
+                    static_cast<uint32_t>(commandSubType));
+            }
             payloadLock.lock();
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
@@ -260,35 +294,39 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);
 }
 
-void RSTransactionData::ClearCommandMap()
-{
-    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
-    pidToCommandMap_.clear();
-}
-
-void RSTransactionData::InsertCommandToMap(NodeId nodeId, std::pair<uint16_t, uint16_t> commandType)
-{
-    pid_t commandPid = ExtractPid(nodeId);
-    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
-    pidToCommandMap_[commandPid][nodeId].insert(commandType);
-}
-
 bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
     std::string& commandMapDesc) const
 {
-    std::lock_guard<std::mutex> lock(pidToCommandMapMutex_);
-    for (const auto& [commandPid, commandTypeMap] : pidToCommandMap_) {
+    // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
+    // we temporarily add a white list to avoid abnormal functionality or abnormal display.
+    // The white list will be removed after GetCallingPid interface can return real PID.
+    if (callingPid == 0) {
+        return true;
+    }
+
+    std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
+        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap_;
+    std::unique_lock<std::mutex> lock(commandMutex_);
+    for (auto& [_, followType, command] : payload_) {
+        if (command == nullptr) {
+            continue;
+        }
+        const NodeId nodeId = command->GetNodeId();
+        const pid_t commandPid = ExtractPid(nodeId);
         if (callingPid == commandPid) {
             continue;
         }
-        for (const auto& [nodeId, _] : commandTypeMap) {
-            if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
-                continue;
-            }
-            conflictCommandPid = commandPid;
-            commandMapDesc = PrintCommandMapDesc(commandTypeMap);
-            return false;
+        if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+            continue;
         }
+        conflictPidToCommandMap_[commandPid][nodeId].insert(command->GetUniqueType());
+        command->SetCallingPidValid(false);
+    }
+    lock.unlock();
+    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap_) {
+        conflictCommandPid = commandPid;
+        commandMapDesc = PrintCommandMapDesc(commandTypeMap);
+        return false;
     }
     return true;
 }

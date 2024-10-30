@@ -30,6 +30,7 @@
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "surface_buffer.h"
+#include "sync_fence.h"
 #include "external_window.h"
 #endif
 #ifdef RS_ENABLE_VK
@@ -41,15 +42,19 @@ namespace Rosen {
 #ifdef ROSEN_OHOS
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
-    DrawingSurfaceBufferInfo(
-        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
+    DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
+        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
+          pid_(pid), uid_(uid), acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     int offSetX_ = 0;
     int offSetY_ = 0;
     int width_ = 0;
     int height_ = 0;
+    pid_t pid_ = {};
+    uint64_t uid_ = {};
+    sptr<SyncFence> acquireFence_ = nullptr;
 };
 #endif
 
@@ -70,9 +75,12 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+    bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+        SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
     void SetPaint(Drawing::Paint paint) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
@@ -105,6 +113,7 @@ public:
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -171,6 +180,12 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
     virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -198,6 +213,12 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
     virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;
@@ -227,9 +248,10 @@ class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            const PaintHandle& paintHandle)
+            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height), paintHandle(paintHandle) {}
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
+            paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;
@@ -245,13 +267,16 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     virtual void DumpItems(std::string& out) const override;
+    RSB_EXPORT static void RegisterSurfaceBufferCallback(std::function<void(pid_t, uint64_t, uint32_t)> callback);
 private:
-    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    void OnDestruct();
     void Clear();
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
+    Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

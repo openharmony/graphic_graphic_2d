@@ -67,11 +67,7 @@ napi_value JsShaderEffect::Constructor(napi_env env, napi_callback_info info)
     }
 
     auto shaderEffect = std::make_shared<ShaderEffect>();
-    JsShaderEffect *jsShaderEffect = new(std::nothrow) JsShaderEffect(shaderEffect);
-    if (jsShaderEffect == nullptr) {
-        ROSEN_LOGE("failed to create jsShaderEffect");
-        return nullptr;
-    }
+    JsShaderEffect *jsShaderEffect = new JsShaderEffect(shaderEffect);
     status = napi_wrap(env, jsThis, jsShaderEffect, JsShaderEffect::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsShaderEffect;

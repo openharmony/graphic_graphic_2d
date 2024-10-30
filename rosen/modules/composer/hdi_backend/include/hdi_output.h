@@ -96,13 +96,15 @@ public:
     void SetPendingMode(int64_t period, int64_t timestamp);
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
     int32_t GetBufferCacheSize();
+    void SetVsyncSamplerEnabled(bool enabled);
+    bool GetVsyncSamplerEnabled();
 
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
 
     std::vector<sptr<SyncFence>> historicalPresentfences_;
-    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> thirdFrameAheadPresentFence_ = SyncFence::InvalidFence();
     int32_t presentFenceIndex_ = 0;
 
     sptr<SurfaceBuffer> currFrameBuffer_ = nullptr;
@@ -141,7 +143,6 @@ private:
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
-    static void SetBufferColorSpace(sptr<SurfaceBuffer>& buffer, const std::vector<LayerPtr>& layers);
 
     // DISPLAY ENGINE
     bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
@@ -150,6 +151,7 @@ private:
 
     void ClearBufferCache();
     std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
+    std::atomic<bool> enableVsyncSample_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS

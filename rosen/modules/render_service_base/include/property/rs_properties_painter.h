@@ -25,6 +25,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr int MAX_LIGHT_SOURCES = 12;
+}
 class RSPaintFilterCanvas;
 class RSDrawingFilter;
 class RSDrawingFilterOriginal;
@@ -41,6 +44,8 @@ public:
     static void GetShadowDirtyRect(RectI& dirtyShadow, const RSProperties& properties,
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
+        const RSProperties& properties, const bool isAbsCoordinate = true);
+    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect,
         const RSProperties& properties, const bool isAbsCoordinate = true);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
@@ -82,6 +87,7 @@ public:
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat);
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
+    static Drawing::RoundRect RRect2DrawingRRectBorder(const RRect& rr_outer, const RRect& rr_inner);
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);
@@ -111,14 +117,13 @@ private:
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosMap,
-        const std::shared_ptr<RSObjAbsGeometry>& geoPtr);
+        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosVec);
     static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
-        const float lightIntensityArray[]);
+        const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
-        const float lightIntensityArray[]);
+        const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
     static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
         float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(

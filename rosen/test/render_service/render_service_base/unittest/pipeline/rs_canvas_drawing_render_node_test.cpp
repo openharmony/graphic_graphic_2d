@@ -470,7 +470,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyType, TestSize.Level1)
     }
     rsCanvasDrawingRenderNode.drawCmdLists_.emplace(type, listDrawCmd);
     rsCanvasDrawingRenderNode.AddDirtyType(type);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode.isNeedProcess_);
+    EXPECT_TRUE(rsCanvasDrawingRenderNode.isNeedProcess_);
     rsCanvasDrawingRenderNode.ClearOp();
     const auto& curDrawCmdLists = rsCanvasDrawingRenderNode.GetDrawCmdLists();
     EXPECT_TRUE(curDrawCmdLists.empty());
@@ -624,8 +624,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
         return;
     }
     EXPECT_FALSE(drawable == nullptr);
-    drawable->SetDrawCmdListsVisited(true);
     rsCanvasDrawingRenderNode->ClearResource();
-    EXPECT_FALSE(drawable->IsDrawCmdListsVisited());
+    auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
+    EXPECT_TRUE(lists.empty());
 }
 } // namespace OHOS::Rosen

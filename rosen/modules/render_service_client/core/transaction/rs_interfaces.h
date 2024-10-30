@@ -85,6 +85,9 @@ public:
 
     int32_t SetScreenChangeCallback(const ScreenChangeCallback &callback);
 
+    // if return true, the setting is successful. otherwise failed. The function is setted watermark for SurfaceNode
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
@@ -96,6 +99,9 @@ public:
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
+
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ,
+        float positionW);
 
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
@@ -116,6 +122,9 @@ public:
 
     // set scale mode for virtual screen
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
+
+    // WMS set dark color display mode to RS
+    bool SetGlobalDarkColorMode(bool isDark);
 #ifndef ROSEN_ARKUI_X
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
@@ -197,6 +206,8 @@ public:
        DEFAULT_SKIP_FRAME_INTERVAL means refresh each frame,
        change screen refresh rate finally */
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
+
+    int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
@@ -285,6 +296,15 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    void SetFreeMultiWindowStatus(bool enable);
+
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

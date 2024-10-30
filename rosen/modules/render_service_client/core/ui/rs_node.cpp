@@ -163,6 +163,17 @@ std::vector<std::shared_ptr<RSAnimation>> RSNode::CloseImplicitAnimation()
     return implicitAnimator->CloseImplicitAnimation();
 }
 
+bool RSNode::CloseImplicitCancelAnimation()
+{
+    auto implicitAnimator = RSImplicitAnimatorMap::Instance().GetAnimator(gettid());
+    if (implicitAnimator == nullptr) {
+        ROSEN_LOGE("Failed to close implicit animation for cancel, implicit animator is null!");
+        return false;
+    }
+
+    return implicitAnimator->CloseImplicitCancelAnimation();
+}
+
 void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 {
     frameNodeId_ = id;
@@ -327,27 +338,27 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
         }
-        std::unique_lock<std::mutex> lock(animationMutex_);
         RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_);
         target->AddAnimationInner(std::move(animation));
     }
-    std::unique_lock<std::mutex> lock(animationMutex_);
     animations_.clear();
 }
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     if (auto it = animatingPropertyNum_.find(animation->GetPropertyId()); it != animatingPropertyNum_.end()) {
         it->second--;
         if (it->second == 0) {
@@ -360,6 +371,7 @@ void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 
 void RSNode::FinishAnimationByProperty(const PropertyId& id)
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (const auto& [animationId, animation] : animations_) {
         if (animation->GetPropertyId() == id) {
             animation->Finish();
@@ -369,16 +381,10 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
 
 void RSNode::CancelAnimationByProperty(const PropertyId& id, const bool needForceSync)
 {
-    animatingPropertyNum_.erase(id);
     std::vector<std::shared_ptr<RSAnimation>> toBeRemoved;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_, std::defer_lock);
-        if (!lock.try_lock()) {
-            // The Arkui component has logic to cancel animation within the callback of another animation. However, this
-            // approach may cause a deadlock. Although it is a dirty workaround, it currently works as intended.
-            FinishAnimationByProperty(id);
-            return;
-        }
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        animatingPropertyNum_.erase(id);
         EraseIf(animations_, [id, &toBeRemoved](const auto& pair) {
             if (pair.second && (pair.second->GetPropertyId() == id)) {
                 toBeRemoved.emplace_back(pair.second);
@@ -427,7 +433,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
     auto animationId = animation->GetId();
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
         if (animations_.find(animationId) != animations_.end()) {
             ROSEN_LOGE("Failed to add animation, animation already exists!");
             return;
@@ -441,10 +447,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         FinishAnimationByProperty(animation->GetPropertyId());
     }
 
-    {
-        std::unique_lock<std::mutex> lock(animationMutex_);
-        AddAnimationInner(animation);
-    }
+    AddAnimationInner(animation);
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
@@ -454,6 +457,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
 void RSNode::RemoveAllAnimations()
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (const auto& [id, animation] : animations_) {
         RemoveAnimation(animation);
     }
@@ -466,11 +470,13 @@ void RSNode::RemoveAnimation(const std::shared_ptr<RSAnimation>& animation)
         return;
     }
 
-    if (animations_.find(animation->GetId()) == animations_.end()) {
-        ROSEN_LOGE("Failed to remove animation, animation not exists!");
-        return;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        if (animations_.find(animation->GetId()) == animations_.end()) {
+            ROSEN_LOGE("Failed to remove animation, animation not exists!");
+            return;
+        }
     }
-
     animation->Finish();
 }
 
@@ -493,14 +499,14 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 
 bool RSNode::HasPropertyAnimation(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     auto it = animatingPropertyNum_.find(id);
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
 std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     std::vector<AnimationId> animations;
     for (auto& [animateId, animation] : animations_) {
         if (animation->GetPropertyId() == id) {
@@ -1451,6 +1457,11 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             };
             SetFlyOutParams(rs_fly_out_param, degree);
         }
+        if (filterPara->GetParaType() == FilterPara::DISTORT) {
+            auto distortPara = std::static_pointer_cast<DistortPara>(filterPara);
+            auto distortionK = distortPara->GetDistortionK();
+            SetDistortionK(distortionK);
+        }
     }
 }
 
@@ -1781,6 +1792,12 @@ void RSNode::SetClipToFrame(bool clipToFrame)
     SetProperty<RSClipToFrameModifier, RSProperty<bool>>(RSModifierType::CLIP_TO_FRAME, clipToFrame);
 }
 
+void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
+{
+    SetProperty<RSCustomClipToFrameModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::CUSTOM_CLIP_TO_FRAME, clipRect);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.
@@ -1847,6 +1864,11 @@ void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
         RSProperty<RSFlyOutPara>>(RSModifierType::FLY_OUT_PARAMS, params);
     SetProperty<RSFlyOutDegreeModifier,
         RSAnimatableProperty<float>>(RSModifierType::FLY_OUT_DEGREE, degree);
+}
+
+void RSNode::SetDistortionK(const float distortionK)
+{
+    SetProperty<RSDistortionKModifier, RSAnimatableProperty<float>>(RSModifierType::DISTORTION_K, distortionK);
 }
 
 void RSNode::SetFreeze(bool isFreeze)
@@ -2038,7 +2060,7 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
 {
     std::shared_ptr<RSAnimation> animation = nullptr;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
         auto animationItr = animations_.find(animationId);
         if (animationItr == animations_.end()) {
             ROSEN_LOGE("Failed to find animation[%{public}" PRIu64 "]!", animationId);
@@ -2850,6 +2872,11 @@ std::string RSNode::DumpNode(int depth) const
 
     if (!animations_.empty()) {
         ss << " animation:" << std::to_string(animations_.size());
+    }
+    for (const auto& [animationId, animation] : animations_) {
+        if (animation) {
+            ss << " animationInfo:" << animation->DumpAnimation();
+        }
     }
     ss << " " << GetStagingProperties().Dump();
     return ss.str();

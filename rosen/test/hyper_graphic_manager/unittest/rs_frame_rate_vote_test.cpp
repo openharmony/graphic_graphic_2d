@@ -16,9 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#define private public
 #include "rs_frame_rate_vote.h"
-#undef private
 #include "hgm_core.h"
 #include "surface_buffer_impl.h"
 
@@ -190,12 +188,17 @@ HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | 
         .minRefreshRate = 60,
         .maxRefreshRate = 60,
     };
+    if (DelayedSingleton<RSFrameRateVote>::GetInstance() == nullptr) {
+        return;
+    }
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
+    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     EventInfo eventInfo2 = {
         .eventName = "VOTER_VIDEO",
         .eventStatus = false,
     };
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
+    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
 }
 } // namespace Rosen

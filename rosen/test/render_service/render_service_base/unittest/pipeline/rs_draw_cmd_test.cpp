@@ -440,9 +440,11 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
     int offSetY = 1;
     int width = 1;
     int height = 1;
+    pid_t pid = {};
+    uint64_t uid = {};
     Drawing::PaintHandle paintHandle;
     Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, paintHandle);
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, paintHandle);
     Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -455,5 +457,35 @@ HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
     } else {
         std::cerr << "0" << std::endl;
     }
+}
+
+/**
+ * @tc.name: Playback009
+ * @tc.desc: test results of CreateBitmapFormat
+ * @tc.type:FUNC
+ * @tc.require: issueIATYWQ
+ */
+HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
+{
+    Drawing::DrawCmdList list;
+    uint32_t surfaceBufferId = 1;
+    int offSetX = 1;
+    int offSetY = 1;
+    int width = 1;
+    int height = 1;
+    pid_t pid = {};
+    uint64_t uid = {};
+    Drawing::PaintHandle paintHandle;
+    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
+        surfaceBufferId, offSetX, offSetY, width, height, pid, uid, paintHandle);
+    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
+    Drawing::BitmapFormat bitmapFormat =
+        drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_8888);
+    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
+    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    bitmapFormat =
+        drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888);
+    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
+    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
 }
 } // namespace OHOS::Rosen

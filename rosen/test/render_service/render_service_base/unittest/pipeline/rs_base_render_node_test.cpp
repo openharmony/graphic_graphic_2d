@@ -1124,21 +1124,6 @@ HWTEST_F(RSBaseRenderNodeTest, CollectSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectSurfaceForUIFirstSwitch
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitch
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, CollectSurfaceForUIFirstSwitch, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    uint32_t leashWindowCount = 2;
-    uint32_t minNodeNum = 1;
-    node->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: Prepare
  * @tc.desc: test results of Prepare
  * @tc.type:FUNC
@@ -1505,7 +1490,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode01, TestSize.Level1)
     node->SetContentDirty();
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
-    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
 }
 
@@ -1522,7 +1507,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode02, TestSize.Level1)
     node->SetSubTreeDirty(true);
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
-    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
 }
 
@@ -1538,7 +1523,7 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     bool unchangeMarkInApp = true;
     bool unchangeMarkEnable = true;
-    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
 }
 
@@ -1636,11 +1621,14 @@ HWTEST_F(RSBaseRenderNodeTest, IsMarkedRenderGroup02, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, OpincForcePrepareSubTree, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    ASSERT_EQ(node->OpincForcePrepareSubTree(), false);
+    bool autoCacheEnable = true;
+    ASSERT_EQ(node->OpincForcePrepareSubTree(autoCacheEnable), false);
     node->isSuggestOpincNode_ = true;
     node->isOpincRootFlag_ = false;
     node->isOpincNodeSupportFlag_ = true;
-    ASSERT_TRUE(node->OpincForcePrepareSubTree());
+    ASSERT_TRUE(node->OpincForcePrepareSubTree(autoCacheEnable));
+    autoCacheEnable = false;
+    ASSERT_EQ(node->OpincForcePrepareSubTree(autoCacheEnable), false);
 }
 
 /**

@@ -14,10 +14,13 @@
  */
 
 #include "drawing_font.h"
+#include "drawing_path.h"
+#include "drawing_rect.h"
 
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_path.h"
 #include "text/font.h"
 
 using namespace OHOS;
@@ -377,10 +380,69 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
     FontMetrics metrics;
     ret = font->GetMetrics(&metrics);
 
+    cFontMetrics->flags = metrics.fFlags;
     cFontMetrics->top = metrics.fTop;
     cFontMetrics->ascent = metrics.fAscent;
     cFontMetrics->descent = metrics.fDescent;
     cFontMetrics->leading = metrics.fLeading;
     cFontMetrics->bottom = metrics.fBottom;
+    cFontMetrics->avgCharWidth = metrics.fAvgCharWidth;
+    cFontMetrics->maxCharWidth = metrics.fMaxCharWidth;
+    cFontMetrics->xMin = metrics.fXMin;
+    cFontMetrics->xMax = metrics.fXMax;
+    cFontMetrics->xHeight = metrics.fXHeight;
+    cFontMetrics->capHeight = metrics.fCapHeight;
+    cFontMetrics->underlineThickness = metrics.fUnderlineThickness;
+    cFontMetrics->underlinePosition = metrics.fUnderlinePosition;
+    cFontMetrics->strikeoutThickness = metrics.fStrikeoutThickness;
+    cFontMetrics->strikeoutPosition = metrics.fStrikeoutPosition;
     return ret;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* cFont, const uint16_t* glyphs, uint32_t count,
+    OH_Drawing_Array* bounds)
+{
+    if (cFont == nullptr || glyphs == nullptr || bounds == nullptr || count <= 0) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    size_t size = 0;
+    if (OH_Drawing_RectGetArraySize(bounds, &size) != OH_DRAWING_SUCCESS) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (size < count) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    OH_Drawing_Rect* rectArr = nullptr;
+    if (OH_Drawing_RectGetArrayElement(bounds, 0, &rectArr) != OH_DRAWING_SUCCESS) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (rectArr == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    CastToFont(*cFont).GetWidths(glyphs, count, nullptr, reinterpret_cast<Drawing::Rect*>(rectArr));
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetPathForGlyph(const OH_Drawing_Font* cFont, uint16_t glyph,
+    OH_Drawing_Path* path)
+{
+    const Font* font = CastToFont(cFont);
+    if (font == nullptr || path == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    if (!font->GetPathForGlyph(glyph, reinterpret_cast<Path*>(path))) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_FontGetTextPath(const OH_Drawing_Font* cFont, const void* text, size_t byteLength,
+    OH_Drawing_TextEncoding encoding, float x, float y, OH_Drawing_Path* path)
+{
+    const Font* font = CastToFont(cFont);
+    if (font == nullptr || text == nullptr || byteLength == 0 || path == nullptr) {
+        return OH_DRAWING_ERROR_INVALID_PARAMETER;
+    }
+    font->GetTextPath(text, byteLength, static_cast<TextEncoding>(encoding), x, y, reinterpret_cast<Path*>(path));
+    return OH_DRAWING_SUCCESS;
 }

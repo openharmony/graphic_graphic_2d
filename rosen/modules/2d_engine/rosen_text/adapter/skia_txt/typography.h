@@ -58,6 +58,7 @@ public:
     IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) override;
     Boundary GetWordBoundaryByIndex(size_t index) override;
     Boundary GetActualTextRange(int lineNumber, bool includeSpaces) override;
+    Boundary GetEllipsisTextRange() override;
     double GetLineHeight(int lineNumber) override;
     double GetLineWidth(int lineNumber) override;
     void SetAnimation(
@@ -74,6 +75,8 @@ public:
     std::vector<std::unique_ptr<TextLineBase>> GetTextLines() const override;
     std::unique_ptr<OHOS::Rosen::Typography> CloneSelf() override;
     void UpdateColor(size_t from, size_t to, const Drawing::Color& color) override;
+    void* GetParagraph() override { return reinterpret_cast<void*>(paragraph_.get()); }
+    Drawing::RectI GeneratePaintRegion(double x, double y) const override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

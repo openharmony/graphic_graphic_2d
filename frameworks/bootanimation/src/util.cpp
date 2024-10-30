@@ -110,12 +110,12 @@ void ParseOldConfigFile(cJSON* data, std::vector<BootAnimationConfig>& configs)
     }
     cJSON* rotateScreenJson = cJSON_GetObjectItem(data, "cust.bootanimation.rotate.screenid");
     if (rotateScreenJson != nullptr && cJSON_IsString(rotateScreenJson)) {
-        config.rotateScreenId = std::stoi(rotateScreenJson->valuestring);
+        config.rotateScreenId = std::atoi(rotateScreenJson->valuestring);
         LOGI("cust rotateScreenId: %{public}d", config.rotateScreenId);
     }
     cJSON* rotateDegreeJson = cJSON_GetObjectItem(data, "cust.bootanimation.rotate.degree");
     if (rotateDegreeJson != nullptr && cJSON_IsString(rotateDegreeJson)) {
-        config.rotateDegree = std::stoi(rotateDegreeJson->valuestring);
+        config.rotateDegree = std::atoi(rotateDegreeJson->valuestring);
         LOGI("cust rotateDegree: %{public}d", config.rotateDegree);
     }
     configs.emplace_back(config);
@@ -139,7 +139,7 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
         while (item != nullptr) {
             cJSON* screenIdJson = cJSON_GetObjectItem(item, "cust.bootanimation.screen_id");
             if (screenIdJson != nullptr && cJSON_IsString(screenIdJson)) {
-                config.screenId = std::stoul(screenIdJson->valuestring);
+                config.screenId = std::strtoul(screenIdJson->valuestring, nullptr, 0);
                 LOGI("screenId: " BPUBU64 "", config.screenId);
             }
             cJSON* custPicPath = cJSON_GetObjectItem(item, "cust.bootanimation.pics");
@@ -159,7 +159,7 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
             }
             cJSON* rotateDegreeJson = cJSON_GetObjectItem(item, "cust.bootanimation.rotate_degree");
             if (rotateDegreeJson != nullptr && cJSON_IsString(rotateDegreeJson)) {
-                config.rotateDegree = std::stoi(rotateDegreeJson->valuestring);
+                config.rotateDegree = std::atoi(rotateDegreeJson->valuestring);
                 LOGI("cust rotateDegree: %{public}d", config.rotateDegree);
             }
             cJSON* extraVideoPath = cJSON_GetObjectItem(item, "cust.bootanimation.video_extensions");
@@ -187,7 +187,7 @@ void ParseBootDuration(cJSON* data, int32_t& duration)
 {
     cJSON* durationJson = cJSON_GetObjectItem(data, "cust.bootanimation.duration");
     if (durationJson != nullptr && cJSON_IsString(durationJson)) {
-        duration = std::stoi(durationJson->valuestring);
+        duration = std::atoi(durationJson->valuestring);
         LOGI("cust duration: %{public}d", duration);
     }
 }

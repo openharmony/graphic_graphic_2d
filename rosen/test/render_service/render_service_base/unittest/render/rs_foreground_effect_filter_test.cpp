@@ -203,6 +203,10 @@ HWTEST_F(RSForegroundEffectFilterTest, MakeImageTest, TestSize.Level1)
         Drawing::TileMode::DECAL, sampling, matrix));
     blurBuilder->SetUniform("in_blurOffset", 2.f, 2.f); // offsetX and offsetY
     std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
+    Drawing::Bitmap bitmap;
+    Drawing::BitmapFormat bitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_OPAQUE };
+    bitmap.Build(10, 10, bitmapFormat); // width and height
+    ASSERT_TRUE(surface->Bind(bitmap));
     auto outputImage = rsForegroundEffectFilter->MakeImage(surface, &matrix, blurBuilder);
 
     ASSERT_TRUE(outputImage != nullptr);

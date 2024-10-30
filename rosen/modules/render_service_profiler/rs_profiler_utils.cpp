@@ -244,7 +244,7 @@ std::string Utils::GetRealPath(const std::string& path)
 {
     std::string realPath;
     if (!PathToRealPath(path, realPath)) {
-        HRPE("PathToRealPath fails on %s !", path.data());
+        HRPD("PathToRealPath fails on %s !", path.data());
         realPath.clear();
     }
     return realPath;
@@ -450,12 +450,14 @@ FILE* Utils::FileOpen(const std::string& path, const std::string& options)
         return nullptr;
     }
 
+#ifndef RENDER_PROFILER_APPLICATION
     if (ShouldFileBeCreated(options) && !FileExists(realPath)) {
         auto file = open(realPath.data(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
         if (file != -1) {
             close(file);
         }
     }
+#endif
 
     auto file = fopen(realPath.data(), options.data());
     if (!IsFileValid(file)) {
@@ -562,9 +564,9 @@ void Utils::FileRead(FILE* file, void* data, size_t size)
 
 void Utils::FileWrite(FILE* file, const void* data, size_t size)
 {
-    const size_t maxDataSize = 300'000'000; // To make sure size is a valid value
+    const size_t maxDataSize = 2'000'000'000; // To make sure size is a valid value
     if (!data || (size == 0) || (size > maxDataSize)) {
-        HRPE("FileWrite: data or size is invalid, size %zu", size); // NOLINT
+        HRPD("FileWrite: data or size is invalid, size %zu", size); // NOLINT
         return;
     }
 

@@ -49,6 +49,7 @@ HWTEST_F(SkiaColorSpaceTest, InitWithSRGB001, TestSize.Level1)
 {
     SkiaColorSpace skiaColorSpace;
     skiaColorSpace.InitWithSRGB();
+    EXPECT_TRUE(skiaColorSpace.GetColorSpace() != nullptr);
 }
 
 /**
@@ -61,6 +62,7 @@ HWTEST_F(SkiaColorSpaceTest, InitWithSRGBLinear001, TestSize.Level1)
 {
     SkiaColorSpace skiaColorSpace;
     skiaColorSpace.InitWithSRGBLinear();
+    EXPECT_TRUE(skiaColorSpace.GetColorSpace() != nullptr);
 }
 
 /**
@@ -78,6 +80,7 @@ HWTEST_F(SkiaColorSpaceTest, InitWithImage001, TestSize.Level1)
     image.BuildFromBitmap(bmp);
     SkiaColorSpace skiaColorSpace;
     skiaColorSpace.InitWithImage(image);
+    EXPECT_TRUE(skiaColorSpace.GetColorSpace() == nullptr);
 }
 
 /**
@@ -89,7 +92,7 @@ HWTEST_F(SkiaColorSpaceTest, InitWithImage001, TestSize.Level1)
 HWTEST_F(SkiaColorSpaceTest, GetColorSpace001, TestSize.Level1)
 {
     SkiaColorSpace skiaColorSpace;
-    skiaColorSpace.GetColorSpace();
+    EXPECT_TRUE(skiaColorSpace.GetColorSpace() == nullptr);
 }
 
 /**
@@ -101,7 +104,7 @@ HWTEST_F(SkiaColorSpaceTest, GetColorSpace001, TestSize.Level1)
 HWTEST_F(SkiaColorSpaceTest, GetSkColorSpace001, TestSize.Level1)
 {
     SkiaColorSpace skiaColorSpace;
-    skiaColorSpace.GetSkColorSpace();
+    EXPECT_TRUE(skiaColorSpace.GetSkColorSpace() == nullptr);
 }
 
 /**
@@ -113,7 +116,37 @@ HWTEST_F(SkiaColorSpaceTest, GetSkColorSpace001, TestSize.Level1)
 HWTEST_F(SkiaColorSpaceTest, Deserialize001, TestSize.Level1)
 {
     SkiaColorSpace skiaColorSpace;
-    skiaColorSpace.Deserialize(nullptr);
+    EXPECT_FALSE(skiaColorSpace.Deserialize(nullptr));
+}
+
+/**
+ * @tc.name: IsSRGB001
+ * @tc.desc: Test IsSRGB
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaColorSpaceTest, IsSRGB001, TestSize.Level1)
+{
+    SkiaColorSpace skiaColorSpace;
+    skiaColorSpace.InitWithSRGB();
+    EXPECT_TRUE(skiaColorSpace.IsSRGB());
+}
+
+/**
+ * @tc.name: Equals001
+ * @tc.desc: Test Equals
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaColorSpaceTest, Equals001, TestSize.Level1)
+{
+    std::shared_ptr<ColorSpaceImpl> colorSpaceImpl = std::make_shared<SkiaColorSpace>();
+    colorSpaceImpl->InitWithSRGB();
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateFromImpl(colorSpaceImpl);
+
+    SkiaColorSpace skiaColorSpace;
+    skiaColorSpace.InitWithSRGB();
+    EXPECT_TRUE(skiaColorSpace.Equals(colorSpace));
 }
 } // namespace Drawing
 } // namespace Rosen

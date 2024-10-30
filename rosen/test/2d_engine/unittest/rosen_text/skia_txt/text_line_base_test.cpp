@@ -27,154 +27,153 @@ using namespace OHOS::Rosen::SPText;
 
 namespace txt {
 class TextLineBaseTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::shared_ptr<Paragraph> paragraph_ = nullptr;
-    static inline std::vector<std::unique_ptr<SPText::TextLineBase>> textLineBases_;
-    static inline std::unique_ptr<SPText::TextLineImpl> textLineImpl_ = nullptr;
+protected:
+    void SetUp() override;
+    void TearDown() override;
+
+private:
+    // 50 is the width of the layout, just for test
+    int layoutWidth_ = 50;
+    // 100 is the max lines of the paragraph, just for test
+    int maxLines_ = 100;
+
+    std::unique_ptr<Paragraph> paragraph_;
+    std::vector<std::unique_ptr<SPText::TextLineBase>> textLine_;
 };
 
-void TextLineBaseTest::SetUpTestCase()
+void TextLineBaseTest::SetUp()
 {
     ParagraphStyle paragraphStyle;
+    paragraphStyle.maxLines = maxLines_;
     std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
-    if (!fontCollection) {
-        std::cout << "TextLineBaseTest::SetUpTestCase error fontCollection is nullptr" << std::endl;
-        return;
-    }
+    ASSERT_NE(fontCollection, nullptr);
     fontCollection->SetupDefaultFontManager();
     std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
-    if (!paragraphBuilder) {
-        std::cout << "TextLineBaseTest::SetUpTestCase error paragraphBuilder is nullptr" << std::endl;
-        return;
-    }
-    std::u16string text(u"TextLineBaseTest");
-    paragraphBuilder->AddText(text);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    paragraphBuilder->AddText(u"Hello World!");
     paragraph_ = paragraphBuilder->Build();
-    if (!paragraph_) {
-        std::cout << "TextLineBaseTest::SetUpTestCase error paragraph_ is nullptr" << std::endl;
-        return;
-    }
-    // 50 just for test
-    paragraph_->Layout(50);
-    Canvas canvas;
-    paragraph_->Paint(&canvas, 0.0, 0.0);
-    textLineBases_ = paragraph_->GetTextLines();
-    if (!textLineBases_.size() || !textLineBases_.at(0)) {
-        std::cout << "TextLineBaseTest::SetUpTestCase error textLineBases_ variable acquisition exception"
-            << std::endl;
-    }
-
-    std::vector<PaintRecord> paints;
-    std::unique_ptr<skia::textlayout::TextLineBase> textLineBase = nullptr;
-    textLineImpl_ = std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints);
-    if (!textLineImpl_) {
-        std::cout << "TextLineBaseTest::SetUpTestCase error textLineImpl_ variable acquisition exception" << std::endl;
-    }
+    ASSERT_NE(paragraph_, nullptr);
+    paragraph_->Layout(layoutWidth_);
+    textLine_ = paragraph_->GetTextLines();
 }
 
-void TextLineBaseTest::TearDownTestCase()
+void TextLineBaseTest::TearDown()
 {
+    paragraph_.reset();
+    textLine_.clear();
 }
 
 /*
  * @tc.name: TextLineBaseTest001
- * @tc.desc: test for GetGlyphCount
+ * @tc.desc: test for GetGlyphCount and GetGlyphRuns
  * @tc.type: FUNC
  */
 HWTEST_F(TextLineBaseTest, TextLineBaseTest001, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(textLineBases_.size() != 0, true);
-    EXPECT_EQ(textLineBases_.at(0) != nullptr, true);
-    EXPECT_EQ(textLineBases_.at(0)->GetGlyphCount() > 0, true);
+    EXPECT_EQ(textLine_.size(), 2);
+    ASSERT_NE(textLine_.at(0), nullptr);
+    EXPECT_EQ(textLine_.at(0)->GetGlyphCount(), textLine_.at(0)->GetGlyphRuns().at(0)->GetGlyphs().size());
+    EXPECT_EQ(textLine_.at(0)->GetGlyphCount(), 5);
 }
 
 /*
  * @tc.name: TextLineBaseTest002
- * @tc.desc: test for GetGlyphRuns
+ * @tc.desc: test for GetTextRange
  * @tc.type: FUNC
  */
 HWTEST_F(TextLineBaseTest, TextLineBaseTest002, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(textLineBases_.size() != 0, true);
-    EXPECT_EQ(textLineBases_.at(0) != nullptr, true);
-    EXPECT_EQ(textLineBases_.at(0)->GetGlyphRuns().size() > 0, true);
+    EXPECT_EQ(textLine_.size(), 2);
+    ASSERT_NE(textLine_.at(0), nullptr);
+    EXPECT_EQ(textLine_.at(0)->GetTextRange().start, 0);
+    EXPECT_EQ(textLine_.at(0)->GetTextRange().end, 6);
 }
 
 /*
  * @tc.name: TextLineBaseTest003
- * @tc.desc: test for GetTextRange
+ * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
 HWTEST_F(TextLineBaseTest, TextLineBaseTest003, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(textLineBases_.size() != 0, true);
-    EXPECT_EQ(textLineBases_.at(0) != nullptr, true);
-    SPText::Range<size_t> rangeDefault;
-    SPText::Range<size_t> range(0, 1);
-    EXPECT_EQ(rangeDefault == range, false);
-    EXPECT_EQ(textLineBases_.at(0)->GetTextRange().start, 0);
+    EXPECT_EQ(textLine_.size(), 2);
+    ASSERT_NE(textLine_.at(0), nullptr);
+    Canvas canvas;
+    textLine_.at(0)->Paint(&canvas, 0.0, 0.0);
 }
 
 /*
  * @tc.name: TextLineBaseTest004
- * @tc.desc: test for Paint
+ * @tc.desc: test for nullptr, only for the branch coverage
  * @tc.type: FUNC
  */
 HWTEST_F(TextLineBaseTest, TextLineBaseTest004, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(textLineBases_.size() != 0, true);
-    EXPECT_EQ(textLineBases_.at(0) != nullptr, true);
-    Canvas canvas;
-    textLineBases_.at(0)->Paint(&canvas, 0.0, 0.0);
+    std::vector<PaintRecord> paints;
+    std::unique_ptr<skia::textlayout::TextLineBase> textLineBase = nullptr;
+    auto textLineImpl = std::make_unique<SPText::TextLineImpl>(std::move(textLineBase), paints);
+
+    textLineImpl->Paint(nullptr, 0.0, 0.0);
+    EXPECT_EQ(textLineImpl->GetGlyphCount(), 0);
+    EXPECT_EQ(textLineImpl->GetGlyphRuns().size(), 0);
+    EXPECT_EQ(textLineImpl->GetTextRange().start, 0);
+    EXPECT_EQ(textLineImpl->GetTextRange().end, 0);
 }
 
 /*
  * @tc.name: TextLineBaseTest005
- * @tc.desc: test for GetGlyphCount
+ * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
 HWTEST_F(TextLineBaseTest, TextLineBaseTest005, TestSize.Level1)
 {
-    EXPECT_EQ(textLineImpl_ != nullptr, true);
-    EXPECT_EQ(textLineImpl_->GetGlyphCount(), 0);
+    std::string ellipsisStr;
+    std::unique_ptr<SPText::TextLineBase> line
+        = textLine_[0]->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
+    EXPECT_NE(line, nullptr);
+    EXPECT_EQ(line->GetGlyphCount(), 5);
+
+    line = textLine_[0]->CreateTruncatedLine(10, static_cast<SPText::EllipsisModal>(-1), ellipsisStr);
+    EXPECT_EQ(line, nullptr);
+
+    double ascent = 0;
+    double descent = 0;
+    double leading = 0;
+    EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 41.936081);
+    EXPECT_FLOAT_EQ(ascent, 14.848000);
+    EXPECT_FLOAT_EQ(descent, 3.904000);
+    EXPECT_FLOAT_EQ(leading, 0.000000);
+
+    EXPECT_EQ(textLine_[0]->GetImageBounds().GetLeft(), 1);
+    EXPECT_FLOAT_EQ(textLine_[0]->GetTrailingSpaceWidth(), 4.1600037);
+    EXPECT_EQ(textLine_[0]->GetStringIndexForPosition({11.920029, 0}), 1);
 }
 
 /*
  * @tc.name: TextLineBaseTest006
- * @tc.desc: test for GetGlyphRuns
+ * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
 HWTEST_F(TextLineBaseTest, TextLineBaseTest006, TestSize.Level1)
 {
-    EXPECT_EQ(textLineImpl_ != nullptr, true);
-    EXPECT_EQ(textLineImpl_->GetGlyphRuns().size(), 0);
-}
+    std::vector<PaintRecord> paints;
+    std::unique_ptr<SPText::TextLineBase> textLineBase = std::make_unique<SPText::TextLineImpl>(nullptr, paints);
 
-/*
- * @tc.name: TextLineBaseTest007
- * @tc.desc: test for GetTextRange
- * @tc.type: FUNC
- */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest007, TestSize.Level1)
-{
-    EXPECT_EQ(textLineImpl_ != nullptr, true);
-    EXPECT_EQ(textLineImpl_->GetTextRange().start, 0);
-}
+    std::string ellipsisStr;
+    std::unique_ptr<SPText::TextLineBase> line
+        = textLineBase->CreateTruncatedLine(10, SPText::EllipsisModal::HEAD, ellipsisStr);
+    EXPECT_EQ(line, nullptr);
 
-/*
- * @tc.name: TextLineBaseTest008
- * @tc.desc: test for Paint
- * @tc.type: FUNC
- */
-HWTEST_F(TextLineBaseTest, TextLineBaseTest008, TestSize.Level1)
-{
-    EXPECT_EQ(textLineImpl_ != nullptr, true);
-    textLineImpl_->Paint(nullptr, 0.0, 0.0);
+    double ascent = 0;
+    double descent = 0;
+    double leading = 0;
+    EXPECT_FLOAT_EQ(textLineBase->GetTypographicBounds(&ascent, &descent, &leading), 0.0);
+    EXPECT_FLOAT_EQ(ascent, 0.0);
+    EXPECT_FLOAT_EQ(descent, 0.0);
+    EXPECT_FLOAT_EQ(leading, 0.0);
+
+    EXPECT_EQ(textLineBase->GetImageBounds().GetLeft(), 0);
+    EXPECT_FLOAT_EQ(textLineBase->GetTrailingSpaceWidth(), 0.0);
+    EXPECT_EQ(textLineBase->GetStringIndexForPosition({11.920029, 1}), 0);
 }
 } // namespace txt

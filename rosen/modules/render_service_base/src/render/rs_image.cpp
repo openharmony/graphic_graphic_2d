@@ -41,6 +41,15 @@ constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 RSImage::~RSImage()
 {}
 
+inline void ReMapPixelMap(std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+#ifdef ROSEN_OHOS
+    if (pixelMap && pixelMap->IsUnMap()) {
+        pixelMap->ReMap();
+    }
+#endif
+}
+
 bool RSImage::IsEqual(const RSImage& other) const
 {
     bool radiusEq = true;
@@ -65,6 +74,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         return false;
     }
     if (!pixelMap_->IsHdr()) {
+        RS_LOGD("bhdr pixelMap_ is not hdr");
         return false;
     }
 
@@ -92,12 +102,13 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 
     sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
+    auto targetColorSpace = GRAPHIC_COLOR_GAMUT_SRGB;
     if (LIKELY(!rscanvas.IsCapture())) {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), dynamicRangeMode_);
+            targetColorSpace, rscanvas.GetScreenId(), dynamicRangeMode_);
     } else {
         RSColorSpaceConvert::Instance().ColorSpaceConvertor(imageShader, sfBuffer, paint_,
-            rscanvas.GetTargetColorGamut(), rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
+            targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
     }
     canvas.AttachPaint(paint_);
     return true;
@@ -112,6 +123,8 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
     if (canvas.GetRecordingState() && RSSystemProperties::GetDumpUICaptureEnabled() && pixelMap_) {
         CommonTools::SavePixelmapToFile(pixelMap_, "/data/rsImage_");
     }
+    bool isFitMatrixValid = !isBackground && imageFit_ == ImageFit::MATRIX &&
+                                fitMatrix_.has_value() && !fitMatrix_.value().IsIdentity();
     if (!isDrawn_ || rect != lastRect_) {
         UpdateNodeIdToPicture(nodeId_);
         Drawing::AutoCanvasRestore acr(canvas, HasRadius());
@@ -122,29 +135,37 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             ApplyImageFit();
             ApplyCanvasClip(canvas);
         }
-        DrawImageRepeatRect(samplingOptions, canvas);
-    } else {
-        Drawing::AutoCanvasRestore acr(canvas, HasRadius());
-        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
+        if (isFitMatrixValid) {
             canvas.Save();
+            canvas.ConcatMatrix(fitMatrix_.value());
+        }
+        DrawImageRepeatRect(samplingOptions, canvas);
+        if (isFitMatrixValid) {
+            canvas.Restore();
+        }
+    } else {
+        bool needCanvasRestore = HasRadius() || (pixelMap_ != nullptr && pixelMap_->IsAstc()) ||
+                                 isFitMatrixValid;
+        Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
+        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
             RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas);
         }
+        if (isFitMatrixValid) {
+            canvas.ConcatMatrix(fitMatrix_.value());
+        }
+        ReMapPixelMap(pixelMap_);
         if (image_) {
             if (!isBackground) {
                 ApplyCanvasClip(canvas);
             }
             if (innerRect_.has_value()) {
-                Drawing::Brush brush;
-                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
+                canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
             } else if (HDRConvert(samplingOptions, canvas)) {
                 canvas.DrawRect(dst_);
             } else {
                 canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
                     Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
             }
-        }
-        if (pixelMap_ != nullptr && pixelMap_->IsAstc()) {
-            canvas.Restore();
         }
     }
     lastRect_ = rect;
@@ -163,6 +184,9 @@ struct ImageParameter {
 RectF ApplyImageFitSwitch(ImageParameter &imageParameter, ImageFit imageFit_, RectF tempRectF)
 {
     switch (imageFit_) {
+        case ImageFit::MATRIX:
+            tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
+            return tempRectF;
         case ImageFit::TOP_LEFT:
             tempRectF.SetAll(0.f, 0.f, imageParameter.srcW, imageParameter.srcH);
             return tempRectF;
@@ -292,9 +316,20 @@ Drawing::AdaptiveImageInfo RSImage::GetAdaptiveImageInfoWithCustomizedFrameRect(
         .width = 0,
         .height = 0,
         .dynamicRangeMode = dynamicRangeMode_,
-        .frameRect = frameRect
+        .frameRect = frameRect,
+        .fitMatrix = fitMatrix_.has_value() ? fitMatrix_.value() : Drawing::Matrix()
     };
     return imageInfo;
+}
+
+void RSImage::SetFitMatrix(const Drawing::Matrix& matrix)
+{
+    fitMatrix_ = matrix;
+}
+
+Drawing::Matrix RSImage::GetFitMatrix() const
+{
+    return fitMatrix_.value();
 }
 
 RectF RSImage::GetDstRect()
@@ -393,6 +428,7 @@ void RSImage::UploadGpu(Drawing::Canvas& canvas)
 
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
+    ReMapPixelMap(pixelMap_);
     int minX = 0;
     int minY = 0;
     int maxX = 0;
@@ -461,8 +497,7 @@ void RSImage::DrawImageOnCanvas(
         dst_.MakeOutset(1, 1);
     }
     if (innerRect_.has_value()) {
-        Drawing::Brush brush;
-        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR, &brush);
+        canvas.DrawImageNine(image_.get(), innerRect_.value(), dst_, Drawing::FilterMode::LINEAR);
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
     } else {
@@ -492,6 +527,7 @@ void RSImage::SetCompressData(const std::shared_ptr<Drawing::Data> compressData)
 {
     isDrawn_ = false;
     compressData_ = compressData;
+    canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
 }
 #endif
 
@@ -531,7 +567,7 @@ void RSImage::SetPaint(Drawing::Paint paint)
     paint_ = paint;
 }
 
-void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
+void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 {
     dynamicRangeMode_ = dynamicRangeMode;
 }
@@ -597,7 +633,10 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, imageFit) &&
                    RSMarshallingHelper::Marshalling(parcel, imageRepeat) &&
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
-                   RSMarshallingHelper::Marshalling(parcel, scale_);
+                   RSMarshallingHelper::Marshalling(parcel, scale_) &&
+                   RSMarshallingHelper::Marshalling(parcel, dynamicRangeMode_) &&
+                   parcel.WriteBool(fitMatrix_.has_value()) &&
+                   fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
     return success;
 }
 
@@ -626,7 +665,11 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     int repeatNum;
     std::vector<Drawing::Point> radius(CORNER_SIZE);
     double scale;
-    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale)) {
+    bool hasFitMatrix;
+    Drawing::Matrix fitMatrix;
+    uint32_t dynamicRangeMode = 0;
+    if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale,
+        hasFitMatrix, fitMatrix, dynamicRangeMode)) {
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -638,7 +681,11 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetImageRepeat(repeatNum);
     rsImage->SetRadius(radius);
     rsImage->SetScale(scale);
+    rsImage->SetDynamicRangeMode(dynamicRangeMode);
     rsImage->SetNodeId(nodeId);
+    if (hasFitMatrix && !fitMatrix.IsIdentity()) {
+        rsImage->SetFitMatrix(fitMatrix);
+    }
     ProcessImageAfterCreation(rsImage, uniqueId, useSkImage, pixelMap);
     return rsImage;
 }
@@ -658,7 +705,8 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
 }
 
 bool RSImage::UnmarshalImageProperties(
-    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale)
+    Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
+    bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode)
 {
     if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
         RS_LOGE("RSImage::Unmarshalling fitNum fail");
@@ -678,6 +726,22 @@ bool RSImage::UnmarshalImageProperties(
     if (!RSMarshallingHelper::Unmarshalling(parcel, scale)) {
         RS_LOGE("RSImage::Unmarshalling scale fail");
         return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, hasFitMatrix)) {
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, dynamicRangeMode)) {
+        RS_LOGE("RSImage::Unmarshalling dynamicRangeMode fail");
+        return false;
+    }
+
+    if (hasFitMatrix) {
+        if (!RSMarshallingHelper::Unmarshalling(parcel, fitMatrix)) {
+            RS_LOGE("RSImage::Unmarshalling fitMatrix fail");
+            return false;
+        }
     }
 
     return true;

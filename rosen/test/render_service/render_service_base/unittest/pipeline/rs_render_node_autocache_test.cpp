@@ -83,29 +83,29 @@ HWTEST_F(RSRenderNodeAutocacheTest, OpincQuickMarkStableNode001, TestSize.Level1
     RSRenderNode renderNode(0);
     bool unchangeMarkInApp = false;
     bool unchangeMarkEnable = true;
-    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isUnchangeMarkInApp_ == false);
 
     unchangeMarkInApp = true;
-    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isUnchangeMarkInApp_ == false);
 
     renderNode.isSuggestOpincNode_ = true;
-    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isSuggestOpincNode_);
 
     unchangeMarkEnable = false;
-    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isUnchangeMarkEnable_);
 
     unchangeMarkEnable = true;
     renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
     renderNode.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
-    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isUnchangeMarkEnable_);
 
     renderNode.isSubTreeDirty_ = true;
-    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable);
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
     EXPECT_TRUE(renderNode.isSubTreeDirty_);
 }
 
@@ -204,12 +204,16 @@ HWTEST_F(RSRenderNodeAutocacheTest, IsMarkedRenderGroup001, TestSize.Level1)
 HWTEST_F(RSRenderNodeAutocacheTest, OpincForcePrepareSubTree001, TestSize.Level1)
 {
     RSRenderNode renderNode(0);
-    bool res = renderNode.OpincForcePrepareSubTree();
+    bool autoCacheEnable = true;
+    bool res = renderNode.OpincForcePrepareSubTree(autoCacheEnable);
     EXPECT_TRUE(!res);
 
     renderNode.isSuggestOpincNode_ = true;
-    res = renderNode.OpincForcePrepareSubTree();
+    res = renderNode.OpincForcePrepareSubTree(autoCacheEnable);
     EXPECT_TRUE(res);
+    autoCacheEnable = false;
+    res = renderNode.OpincForcePrepareSubTree(autoCacheEnable);
+    EXPECT_FALSE(res);
 }
 
 /**

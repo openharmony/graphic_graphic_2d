@@ -17,8 +17,10 @@
 #include <surface.h>
 #include <parameters.h>
 
+#include "accesstoken_kit.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
+#include "nativetoken_kit.h"
 #include "surface.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"
@@ -26,6 +28,7 @@
 #include "draw/color.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
+#include "token_setproc.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_display_node.h"
@@ -81,7 +84,26 @@ void RSUniRenderTest::TearDownTestCase()
     system::GetParameter("rosen.dirtyregiondebug.surfacenames", "0");
 }
 
-void RSUniRenderTest::SetUp() {}
+void RSUniRenderTest::SetUp()
+{
+    const char **perms = new const char *[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = nullptr,
+        .perms = perms,
+        .acls = nullptr,
+        .processName = "test",
+        .aplStr = "system_core",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+    delete[] perms;
+}
+
 void RSUniRenderTest::TearDown() {}
 
 /**

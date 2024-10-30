@@ -16,23 +16,23 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
+#include <unordered_map>
+
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
 #include <iconsumer_surface.h>
 #include <surface.h>
 #endif
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "include/gpu/GrBackendSemaphore.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_draw_window_cache.h"
 
 namespace OHOS::Rosen {
 class RSRenderThreadParams;
@@ -42,7 +42,7 @@ namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;
 struct UIFirstParams {
     uint32_t submittedSubThreadIndex_ = INT_MAX;
-    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::WAITING;
+    std::atomic<CacheProcessStatus> cacheProcessStatus_ = CacheProcessStatus::UNKNOWN;
     std::atomic<bool> isNeedSubmitSubThread_ = true;
 };
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
@@ -52,7 +52,7 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
-    bool CheckIfSurfaceSkipInMirror(const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParams);
+    bool CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams);
     void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
     void ResetVirtualScreenWhiteListRootId(NodeId id);
 
@@ -105,6 +105,12 @@ public:
     }
 
     void UpdateCompletedCacheSurface();
+#ifdef RS_ENABLE_GL
+    // only use in RT thread
+    void FlushSemaphore(RSPaintFilterCanvas& canvas);
+    // only use in RSSubThread
+    void WaitSemaphore();
+#endif
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
 
@@ -117,7 +123,7 @@ public:
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isHdrOn = false);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isNeedFP16 = false);
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
@@ -202,11 +208,7 @@ public:
         targetColorGamut_ = colorGamut;
     }
 
-    void SetSubThreadSkip(bool isSubThreadSkip)
-    {
-        isSubThreadSkip_ = isSubThreadSkip;
-    }
-
+    void SetSubThreadSkip(bool isSubThreadSkip);
     bool IsSubThreadSkip() const
     {
         return isSubThreadSkip_;
@@ -223,6 +225,7 @@ public:
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
     std::shared_ptr<RSDirtyRegionManager> GetSyncDirtyManager() const override;
+    GraphicColorGamut GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams);
     void DealWithSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void ClearCacheSurfaceOnly();
 
@@ -240,10 +243,8 @@ public:
     }
     void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) override;
 #endif
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+
+    bool IsHardwareEnabledTopSurface() const;
 
     inline bool CheckCacheSurface()
     {
@@ -280,7 +281,7 @@ private:
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
 
     // Watermark
-    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& params);
+    void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
@@ -290,11 +291,7 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> surface_ = nullptr;
-#endif
     bool surfaceCreated_ = false;
 
     // UIFIRST
@@ -309,6 +306,10 @@ private:
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
+#ifdef RS_ENABLE_GL
+    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRT_;
+    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRSSub_;
+#endif
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
     NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
@@ -349,6 +350,9 @@ private:
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
+
+    RSDrawWindowCache drawWindowCache_;
+    friend class OHOS::Rosen::RSDrawWindowCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

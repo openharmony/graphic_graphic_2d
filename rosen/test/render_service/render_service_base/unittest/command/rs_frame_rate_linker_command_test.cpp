@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -73,6 +73,8 @@ HWTEST_F(RSFrameRateLinkerCommandTest, UpdateRange001, TestSize.Level1)
     std::shared_ptr<RSRenderFrameRateLinker> linkerPtr = std::make_shared<RSRenderFrameRateLinker>(linkerId);
     context.GetMutableFrameRateLinkerMap().RegisterFrameRateLinker(linkerPtr);
     RSFrameRateLinkerCommandHelper::UpdateRange(context, linkerId, range, false);
+
+    ASSERT_EQ(context.GetMutableFrameRateLinkerMap().GetFrameRateLinker(linkerId)->GetExpectedRange(), range);
 }
 
 /**

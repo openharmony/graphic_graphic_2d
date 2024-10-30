@@ -28,58 +28,40 @@ using namespace OHOS::Rosen::SPText;
 namespace txt {
 class RunTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::shared_ptr<Paragraph> paragraph_ = nullptr;
-    static inline std::vector<std::unique_ptr<SPText::Run>> runs_;
-    static inline std::unique_ptr<SPText::RunImpl> runImpl_ = nullptr;
+    void SetUp() override;
+    void TearDown() override;
+
+private:
+    // 50 is the width of the layout, just for test
+    int layoutWidth_ = 50;
+    // this is the default font family name, just for test
+    std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
+
+    std::shared_ptr<Paragraph> paragraph_;
+    std::vector<std::unique_ptr<SPText::Run>> runs_;
 };
 
-void RunTest::SetUpTestCase()
+void RunTest::SetUp()
 {
     ParagraphStyle paragraphStyle;
     std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
-    if (!fontCollection) {
-        std::cout << "RunTest::SetUpTestCase error fontCollection is nullptr" << std::endl;
-        return;
-    }
+    ASSERT_NE(fontCollection, nullptr);
     fontCollection->SetupDefaultFontManager();
     std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
-    if (!paragraphBuilder) {
-        std::cout << "RunTest::SetUpTestCase error paragraphBuilder is nullptr" << std::endl;
-        return;
-    }
-    std::u16string text(u"RunTest");
+    ASSERT_NE(paragraphBuilder, nullptr);
+    std::u16string text = u"RunTest";
     paragraphBuilder->AddText(text);
     paragraph_ = paragraphBuilder->Build();
-    if (!paragraph_) {
-        std::cout << "RunTest::SetUpTestCase error paragraph_ is nullptr" << std::endl;
-        return;
-    }
-    // 50 just for test
-    paragraph_->Layout(50);
-    Canvas canvas;
-    paragraph_->Paint(&canvas, 0.0, 0.0);
-    std::vector<std::unique_ptr<SPText::TextLineBase>> textLineBases = paragraph_->GetTextLines();
-    if (!textLineBases.size() || !textLineBases.at(0)) {
-        std::cout << "RunTest::SetUpTestCase error textLineBases variable acquisition exception " << std::endl;
-        return;
-    }
-    runs_ = textLineBases.at(0)->GetGlyphRuns();
-    if (!runs_.size() || !runs_.at(0)) {
-        std::cout << "RunTest::SetUpTestCase error runs_ variable acquisition exception" << std::endl;
-    }
-
-    std::vector<PaintRecord> paints;
-    std::unique_ptr<skia::textlayout::RunBase> runBase = nullptr;
-    runImpl_ = std::make_unique<SPText::RunImpl>(std::move(runBase), paints);
-    if (!runImpl_) {
-        std::cout << "RunTest::SetUpTestCase error runImpl_ variable acquisition exception" << std::endl;
-    }
+    ASSERT_NE(paragraph_, nullptr);
+    paragraph_->Layout(layoutWidth_);
+    auto textLineBases = paragraph_->GetTextLines();
+    runs_ = textLineBases[0]->GetGlyphRuns();
 }
 
-void RunTest::TearDownTestCase()
+void RunTest::TearDown()
 {
+    paragraph_.reset();
+    runs_.clear();
 }
 
 /*
@@ -89,10 +71,9 @@ void RunTest::TearDownTestCase()
  */
 HWTEST_F(RunTest, RunTest001, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(runs_.size() != 0, true);
-    EXPECT_EQ(runs_.at(0) != nullptr, true);
-    EXPECT_EQ(runs_.at(0)->GetFont().GetSize() > 0, true);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    EXPECT_EQ(runs_[0]->GetFont().GetTypeface()->GetFamilyName(), familyName_);
 }
 
 /*
@@ -102,10 +83,9 @@ HWTEST_F(RunTest, RunTest001, TestSize.Level1)
  */
 HWTEST_F(RunTest, RunTest002, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(runs_.size() != 0, true);
-    EXPECT_EQ(runs_.at(0) != nullptr, true);
-    EXPECT_EQ(runs_.at(0)->GetGlyphCount() > 0, true);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    EXPECT_EQ(runs_[0]->GetGlyphCount(), 7);
 }
 
 /*
@@ -115,10 +95,10 @@ HWTEST_F(RunTest, RunTest002, TestSize.Level1)
  */
 HWTEST_F(RunTest, RunTest003, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(runs_.size() != 0, true);
-    EXPECT_EQ(runs_.at(0) != nullptr, true);
-    EXPECT_EQ(runs_.at(0)->GetGlyphs().size() > 0, true);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    auto glyphs = runs_[0]->GetGlyphs();
+    EXPECT_NE(glyphs[0], 0);
 }
 
 /*
@@ -128,10 +108,10 @@ HWTEST_F(RunTest, RunTest003, TestSize.Level1)
  */
 HWTEST_F(RunTest, RunTest004, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(runs_.size() != 0, true);
-    EXPECT_EQ(runs_.at(0) != nullptr, true);
-    EXPECT_EQ(runs_.at(0)->GetPositions().size() > 0, true);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    EXPECT_EQ(runs_[0]->GetPositions().size(), 7);
+    EXPECT_EQ(runs_[0]->GetPositions()[0].GetX(), 0);
 }
 
 /*
@@ -141,10 +121,10 @@ HWTEST_F(RunTest, RunTest004, TestSize.Level1)
  */
 HWTEST_F(RunTest, RunTest005, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(runs_.size() != 0, true);
-    EXPECT_EQ(runs_.at(0) != nullptr, true);
-    EXPECT_EQ(runs_.at(0)->GetOffsets().size() > 0, true);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_[0], nullptr);
+    EXPECT_EQ(runs_[0]->GetOffsets().size(), 7);
+    EXPECT_EQ(runs_[0]->GetOffsets()[0].GetX(), 0);
 }
 
 /*
@@ -154,76 +134,65 @@ HWTEST_F(RunTest, RunTest005, TestSize.Level1)
  */
 HWTEST_F(RunTest, RunTest006, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(runs_.size() != 0, true);
-    EXPECT_EQ(runs_.at(0) != nullptr, true);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
     Canvas canvas;
     runs_.at(0)->Paint(&canvas, 0.0, 0.0);
+    runs_.at(0)->Paint(nullptr, 0.0, 0.0);
 }
 
 /*
  * @tc.name: RunTest007
- * @tc.desc: test for GetFont
+ * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
 HWTEST_F(RunTest, RunTest007, TestSize.Level1)
 {
-    EXPECT_EQ(runImpl_ != nullptr, true);
-    EXPECT_EQ(runImpl_->GetFont().GetSize() > 0, true);
-}
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, 12).size(), 7);
+    EXPECT_EQ(runs_[0]->GetPositions(0, 10).size(), 7);
 
-/*
- * @tc.name: RunTest008
- * @tc.desc: test for GetGlyphCount
- * @tc.type: FUNC
- */
-HWTEST_F(RunTest, RunTest008, TestSize.Level1)
-{
-    EXPECT_EQ(runImpl_ != nullptr, true);
-    EXPECT_EQ(runImpl_->GetGlyphCount(), 0);
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 7);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, 10).size(), 7);
+    EXPECT_EQ(runs_[0]->GetImageBounds().GetLeft(), 1.000000f);
 }
 
 /*
  * @tc.name: RunTest009
- * @tc.desc: test for GetGlyphs
+ * @tc.desc: branch coverage
  * @tc.type: FUNC
  */
-HWTEST_F(RunTest, RunTest009, TestSize.Level1)
+HWTEST_F(RunTest, RunTest008, TestSize.Level1)
 {
-    EXPECT_EQ(runImpl_ != nullptr, true);
-    EXPECT_EQ(runImpl_->GetGlyphs().size(), 0);
-}
+    EXPECT_EQ(runs_[0]->GetGlyphs(-1, 12), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, -1), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetPositions(-1, 10), std::vector<Drawing::Point>());
+    EXPECT_EQ(runs_[0]->GetPositions(0, -1), std::vector<Drawing::Point>());
 
-/*
- * @tc.name: RunTest010
- * @tc.desc: test for GetPositions
- * @tc.type: FUNC
- */
-HWTEST_F(RunTest, RunTest010, TestSize.Level1)
-{
-    EXPECT_EQ(runImpl_ != nullptr, true);
-    EXPECT_EQ(runImpl_->GetPositions().size(), 0);
-}
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(nullptr, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
 
-/*
- * @tc.name: RunTest011
- * @tc.desc: test for GetOffsets
- * @tc.type: FUNC
- */
-HWTEST_F(RunTest, RunTest011, TestSize.Level1)
-{
-    EXPECT_EQ(runImpl_ != nullptr, true);
-    EXPECT_EQ(runImpl_->GetOffsets().size(), 0);
-}
+    runs_[0]->GetStringRange(&location, nullptr);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
 
-/*
- * @tc.name: RunTest012
- * @tc.desc: test for Paint
- * @tc.type: FUNC
- */
-HWTEST_F(RunTest, RunTest012, TestSize.Level1)
-{
-    EXPECT_EQ(runImpl_ != nullptr, true);
-    runImpl_->Paint(nullptr, 0.0, 0.0);
+    std::vector<PaintRecord> testVec;
+    std::unique_ptr<SPText::Run> runNull = std::make_unique<SPText::RunImpl>(nullptr, testVec);
+    location = 10;
+    length = 10;
+    runNull->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
+    EXPECT_EQ(runNull->GetImageBounds().GetLeft(), 0.000000f);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(-1, 10), std::vector<uint64_t>());
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, -1), std::vector<uint64_t>());
 }
 } // namespace txt

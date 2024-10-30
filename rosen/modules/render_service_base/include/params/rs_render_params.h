@@ -152,6 +152,11 @@ public:
         return isSkipLayer_;
     }
 
+    inline bool IsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
+
     inline bool IsLayerDirty() const
     {
         return dirtyType_.test(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
@@ -216,6 +221,11 @@ public:
         return startingWindowFlag_;
     }
 
+    bool SetFirstLevelNode(NodeId firstLevelNodeId);
+    NodeId GetFirstLevelNodeId() const;
+    bool SetUiFirstRootNode(NodeId uifirstRootNodeId);
+    NodeId GetUifirstRootNodeId() const;
+
     // disable copy and move
     RSRenderParams(const RSRenderParams&) = delete;
     RSRenderParams(RSRenderParams&&) = delete;
@@ -258,6 +268,7 @@ public:
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool GetHardCursorStatus() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
     virtual void SetLayerCreated(bool layerCreated) {}
@@ -293,8 +304,8 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
-    virtual ScalingMode GetPreScalingMode() const
+    virtual void SetScalingMode(ScalingMode scalingMode) {}
+    virtual ScalingMode GetScalingMode() const
     {
         return ScalingMode::SCALING_MODE_FREEZE;
     }
@@ -334,6 +345,7 @@ private:
     bool drawingCacheIncludeProperty_ = false;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
@@ -351,6 +363,8 @@ private:
     bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
     bool freezeFlag_ = false;
+    NodeId firstLevelNodeId_ = INVALID_NODEID;
+    NodeId uifirstRootNodeId_ = INVALID_NODEID;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

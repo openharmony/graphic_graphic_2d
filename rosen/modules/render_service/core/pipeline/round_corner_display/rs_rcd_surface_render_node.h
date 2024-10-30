@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CORE_RS_RCD_SURFACE_RENDER_NODE_H
 #define RENDER_SERVICE_CORE_RS_RCD_SURFACE_RENDER_NODE_H
 
+#include <atomic>
 #include <ibuffer_consumer_listener.h>
 #include <memory>
 #include <surface.h>
@@ -24,13 +25,8 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/round_corner_display/rs_round_corner_config.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#include "render_context_base.h"
-#else
 #include "platform/drawing/rs_surface.h"
 #include "render_context/render_context.h"
-#endif
 #include "sync_fence.h"
 #include <filesystem>
 #include "include/core/SkBitmap.h"
@@ -104,6 +100,7 @@ public:
     using SharedPtr = std::shared_ptr<RSRcdSurfaceRenderNode>;
 
     RSRcdSurfaceRenderNode(NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context = {});
+    static SharedPtr Create(NodeId id, RCDSurfaceType type);
     ~RSRcdSurfaceRenderNode() override;
 
     const RectI& GetSrcRect() const;
@@ -111,11 +108,7 @@ public:
 
     bool CreateSurface(sptr<IBufferConsumerListener> listener);
     bool IsSurfaceCreated() const;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> GetRSSurface() const;
-#else
     std::shared_ptr<RSSurface> GetRSSurface() const;
-#endif
     sptr<IBufferConsumerListener> GetConsumerListener() const;
     RcdSourceInfo rcdSourceInfo;
     void SetRcdBufferWidth(uint32_t width);
@@ -126,7 +119,7 @@ public:
     void Reset();
     bool SetHardwareResourceToBuffer();
     BufferRequestConfig GetHardenBufferRequestConfig() const;
-    bool PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo);
+    bool PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
     bool IsBottomSurface() const;
     bool IsTopSurface() const;
     bool IsInvalidSurface() const;
@@ -136,10 +129,12 @@ public:
 
     const CldInfo& GetCldInfo() const;
 
+    void SetRenderTargetId(NodeId id);
+
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;
-    bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width, int stride, uint8_t *img);
+    bool FillHardwareResource(HardwareLayerInfo &cldLayerInfo, int height, int width);
     HardwareLayerInfo cldLayerInfo;
     Drawing::Bitmap layerBitmap;
 
@@ -147,16 +142,14 @@ private:
     uint32_t GetRcdBufferHeight() const;
     uint32_t GetRcdBufferSize() const;
 
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> surface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> surface_ = nullptr;
-#endif
     sptr<IBufferConsumerListener> consumerListener_;
 
     RcdExtInfo rcdExtInfo_;
 
     CldInfo cldInfo_;
+
+    NodeId renerTargetId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

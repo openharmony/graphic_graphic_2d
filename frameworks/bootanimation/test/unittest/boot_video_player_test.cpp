@@ -44,14 +44,16 @@ void BootVideoPlayerTest::TearDown() {}
 HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_001, TestSize.Level1)
 {
     PlayerParams params;
+    int flag = 0;
     BootAnimationCallback callback_ = {
         .userData = this,
-        .callback = [&](void*) {},
+        .callback = [&flag](void*) { flag = 1; },
     };
     params.callback = &callback_;
     std::shared_ptr<BootVideoPlayer> player = std::make_shared<BootVideoPlayer>(params);
     std::shared_ptr<VideoPlayerCallback> cb = std::make_shared<VideoPlayerCallback>(player);
     cb->OnError(-1, "test");
+    EXPECT_EQ(flag, 1);
 }
 
 /**
@@ -62,13 +64,15 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_001, TestSize.Level1)
 HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_002, TestSize.Level1)
 {
     PlayerParams params;
+    int flag = 0;
     BootAnimationCallback callback_ = {
         .userData = this,
-        .callback = [&](void*) {},
+        .callback = [&flag](void*) { flag = 1; },
     };
     params.callback = &callback_;
     std::shared_ptr<BootVideoPlayer> player = std::make_shared<BootVideoPlayer>(params);
     player->StopVideo();
+    EXPECT_EQ(flag, 1);
 }
 
 /**

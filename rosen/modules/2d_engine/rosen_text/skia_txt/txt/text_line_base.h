@@ -36,6 +36,23 @@ public:
     virtual Range<size_t> GetTextRange() const= 0;
 
     virtual void Paint(Drawing::Canvas *canvas, double x, double y) = 0;
+
+    virtual std::unique_ptr<TextLineBase> CreateTruncatedLine(double width, EllipsisModal ellipsisMode,
+        const std::string& ellipsisStr) const = 0;
+
+    virtual double GetTypographicBounds(double* ascent, double* descent, double* leading) const = 0;
+
+    virtual Drawing::Rect GetImageBounds() const = 0;
+
+    virtual double GetTrailingSpaceWidth() const = 0;
+
+    virtual int32_t GetStringIndexForPosition(SkPoint point) const = 0;
+
+    virtual double GetOffsetForStringIndex(int32_t index) const = 0;
+
+    virtual std::map<int32_t, double> GetIndexAndOffsets(bool& isHardBreak) const = 0;
+
+    virtual double GetAlignmentOffset(double alignmentFactor, double alignmentWidth) const = 0;
 };
 } // namespace SPText
 } // namespace Rosen

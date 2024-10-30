@@ -27,13 +27,20 @@ public:
     void SetUp() override;
     void TearDown() override;
     static void TestProcessor(NodeId, AnimationId, AnimationCallbackEvent);
+protected:
+    static inline NodeId nodeId_;
+    static inline AnimationId animationId_;
 };
 
 void RSAnimationCommandTest::SetUpTestCase() {}
 void RSAnimationCommandTest::TearDownTestCase() {}
 void RSAnimationCommandTest::SetUp() {}
 void RSAnimationCommandTest::TearDown() {}
-void RSAnimationCommandTest::TestProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event) {}
+void RSAnimationCommandTest::TestProcessor(NodeId nodeId, AnimationId animId, AnimationCallbackEvent event)
+{
+    nodeId_ = nodeId;
+    animationId_ = animId;
+}
 
 /**
  * @tc.name: TestRSAnimationCommand001
@@ -48,6 +55,8 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
     AnimationCommandHelper::SetAnimationCallbackProcessor(TestProcessor);
     AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+    ASSERT_EQ(nodeId_, targetId);
+    ASSERT_EQ(animationId_, animId);
 }
 
 /**

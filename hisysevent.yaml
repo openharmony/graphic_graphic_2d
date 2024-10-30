@@ -178,18 +178,24 @@ IPC_DATA_OVER_ERROR:
   BUNDLE_NAME: {type: STRING, desc: application package name}
   TRANSACTION_DATA_SIZE: {type: UINT64, desc: total received transaction data size}
 
-MEMORY_OVER_WARNING:
-  __BASE: {type: BEHAVIOR, level: MINOR, desc: warning of the memory applied by an application the threshold}
+RENDER_MEMORY_OVER_WARNING:
+  __BASE: {type: STATISTIC, level: MINOR, desc: warning of the memory applied by an application exceeds the threshold}
   PID: {type: INT32, desc: application pid}
   BUNDLE_NAME: {type: STRING, desc: application package name}
   CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
   GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
   TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}
 
-MEMORY_OVER_ERROR:
-  __BASE: {type: BEHAVIOR, level: MINOR, desc: error of the memory applied by an application the threshold}
+RENDER_MEMORY_OVER_ERROR:
+  __BASE: {type: STATISTIC, level: MINOR, desc: error of the memory applied by an application exceeds the threshold}
   PID: {type: INT32, desc: application pid}
   BUNDLE_NAME: {type: STRING, desc: application package name}
   CPU_MEMORY: {type: UINT64, desc: cpu memory of the application}
   GPU_MEMORY: {type: UINT64, desc: gpu memory of the application}
   TOTAL_MEMORY: {type: UINT64, desc: total memory of the application}
+
+RS_HARDWARE_THREAD_LOAD_WARNING:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: add load warning for rs hardwarethread}
+  FRAME_RATE: {type: UINT16, desc: the refresh rate you set}
+  MISSED_FRAMES: {type: UINT32, desc: number of dropped frames}
+  FRAME_TIME: {type: UINT64, desc: frame length}

@@ -41,6 +41,7 @@ namespace Rosen {
 
 const int FAKE_WIDTH = 10; // When the width and height of the node are not set, use the fake width
 const int FAKE_HEIGHT = 10; // When the width and height of the node are not set, use the fake height
+const int MAX_WAIT_TIME = 2000;
 
 std::shared_ptr<Media::PixelMap> RSDividedUICapture::TakeLocalCapture()
 {
@@ -79,9 +80,7 @@ std::shared_ptr<Media::PixelMap> RSDividedUICapture::CreatePixelMapByNode(std::s
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * scaleX_);
     opts.size.height = ceil(pixmapHeight * scaleY_);
-    uint32_t length = opts.size.width * opts.size.height;
-    auto data = std::make_unique<uint32_t[]>(length);
-    return Media::PixelMap::Create(data.release(), length, opts);
+    return Media::PixelMap::Create(opts);
 }
 
 std::shared_ptr<Drawing::Surface> RSDividedUICapture::CreateSurface(
@@ -268,7 +267,7 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     captureConfig.scaleY = scaleY_;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     renderServiceClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
-    std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(2000);
+    std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(MAX_WAIT_TIME);
     if (pixelMap == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::TakeLocalCapture failed to get pixelmap, return nullptr!");
         return;

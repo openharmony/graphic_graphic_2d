@@ -19,6 +19,9 @@
 #include "pipeline/rs_task_dispatcher.h"
 
 namespace OHOS::Rosen {
+#ifdef ROSEN_OHOS
+constexpr uint32_t MAX_CHECK_SIZE = 20;
+#endif
 SKResourceManager& SKResourceManager::Instance()
 {
     static SKResourceManager instance;
@@ -70,12 +73,34 @@ void SKResourceManager::DeleteSharedTextureContext(void* context)
 }
 #endif
 
+bool SKResourceManager::HasRealseableResourceCheck(const std::list<std::shared_ptr<Drawing::Surface>> &list)
+{
+#ifdef ROSEN_OHOS
+    if (list.empty()) {
+        return false;
+    }
+    if (list.size() > MAX_CHECK_SIZE) {
+        return true;
+    }
+    for (auto& surface : list) {
+        if (surface.unique()) {
+            return true;
+        }
+    }
+    return false;
+#else
+    return false;
+#endif
+}
+
+
 void SKResourceManager::ReleaseResource()
 {
 #ifdef ROSEN_OHOS
+    RS_TRACE_FUNC();
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
     for (auto& images : images_) {
-        if (!images.second->IsEmpty()) {
+        if (images.second->HasRealseableResourceCheck()) {
             RSTaskDispatcher::GetInstance().PostTask(images.first, [this]() {
                 auto tid = gettid();
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);
@@ -85,12 +110,18 @@ void SKResourceManager::ReleaseResource()
     }
 
     for (auto& skSurface : skSurfaces_) {
-        if (skSurface.second.size() > 0) {
+        if (HasRealseableResourceCheck(skSurface.second)) {
             RSTaskDispatcher::GetInstance().PostTask(skSurface.first, [this]() {
                 auto tid = gettid();
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);
                 size_t size = skSurfaces_[tid].size();
                 while (size-- > 0) {
+#ifdef RS_ENABLE_PREFETCH
+                    size_t prefetchStep = 2;
+                    if (size > prefetchStep) {
+                        __builtin_prefetch(&*(++(++skSurfaces_[tid].begin())), 0, 1);
+                    }
+#endif
                     auto surface = skSurfaces_[tid].front();
                     skSurfaces_[tid].pop_front();
                     if (surface == nullptr) {

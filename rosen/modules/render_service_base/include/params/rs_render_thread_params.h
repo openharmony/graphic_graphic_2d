@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H
 
 #include <memory>
-#include <mutex>
 #include <vector>
 #include "common/rs_occlusion_region.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -33,15 +32,21 @@ struct CaptureParam {
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
+    bool isSystemCalling_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false)
+        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
         scaleY_(scaleY),
-        isFirstNode_(isFirstNode) {}
+        isFirstNode_(isFirstNode),
+        isSystemCalling_(isSystemCalling) {}
+};
+struct HardCursorInfo {
+    NodeId id = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawablePtr = nullptr;
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
@@ -113,6 +118,36 @@ public:
         return timestamp_;
     }
 
+    void SetActualTimestamp(int64_t timestamp)
+    {
+        actualTimestamp_ = timestamp;
+    }
+
+    int64_t GetActualTimestamp() const
+    {
+        return actualTimestamp_;
+    }
+
+    void SetVsyncId(uint64_t vsyncId)
+    {
+        vsyncId_ = vsyncId;
+    }
+
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_;
+    }
+
+    void SetForceRefreshFlag(bool isForceRefresh)
+    {
+        isForceRefresh_ = isForceRefresh;
+    }
+
+    bool GetForceRefreshFlag() const
+    {
+        return isForceRefresh_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -123,7 +158,11 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-
+    const HardCursorInfo& GetHardCursorDrawables() const
+    {
+        return hardCursorDrawables_;
+    }
+    
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
         pendingScreenRefreshRate_ = rate;
@@ -160,6 +199,8 @@ public:
         return watermarkFlag_;
     }
 
+    std::shared_ptr<Media::PixelMap> GetWatermark(const std::string& name) const;
+
     std::shared_ptr<Drawing::Image> GetWatermarkImg() const
     {
         return watermarkImg_;
@@ -168,8 +209,10 @@ public:
     void SetWatermark(bool watermarkFlag, const std::shared_ptr<Drawing::Image>& watermarkImg)
     {
         watermarkFlag_ = watermarkFlag;
-        watermarkImg_ = std::move(watermarkImg);
+        watermarkImg_ = watermarkImg;
     }
+
+    void SetWatermarks(std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>>& watermarks);
 
     void SetOcclusionEnabled(bool isOcclusionEnabled)
     {
@@ -199,6 +242,16 @@ public:
     bool GetForceCommitLayer() const
     {
         return isForceCommitLayer_;
+    }
+
+    void SetCacheEnabledForRotation(bool flag)
+    {
+        cacheEnabledForRotation_ = flag;
+    }
+
+    bool GetCacheEnabledForRotation() const
+    {
+        return cacheEnabledForRotation_;
     }
 
     void SetRequestNextVsyncFlag(bool flag)
@@ -249,30 +302,6 @@ public:
     bool IsUniRenderAndOnVsync() const
     {
         return isUniRenderAndOnVsync_;
-    }
-
-    void SetBlackList(const std::unordered_set<NodeId>& blackList)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        blackList_ = blackList;
-    }
-
-    const std::unordered_set<NodeId> GetBlackList() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return blackList_;
-    }
-
-    void SetWhiteList(const std::unordered_set<NodeId>& whiteList)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        whiteList_ = whiteList;
-    }
-
-    const std::unordered_set<NodeId> GetWhiteList() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        return whiteList_;
     }
 
     void SetContext(std::shared_ptr<RSContext> context)
@@ -350,12 +379,17 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
+    bool IsAceDebugBoundaryEnabled() const
+    {
+        return isAceDebugBoundaryEnabled_;
+    }
+
 private:
-    mutable std::mutex mutex_;
-    std::unordered_set<NodeId> blackList_ = {};
-    std::unordered_set<NodeId> whiteList_ = {};
     // Used by hardware thred
     uint64_t timestamp_ = 0;
+    int64_t actualTimestamp_ = 0;
+    uint64_t vsyncId_ = 0;
+    bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx
@@ -376,15 +410,18 @@ private:
     bool isVirtualDirtyEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
+    bool cacheEnabledForRotation_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
     Occlusion::Region accumulatedDirtyRegion_;
     bool watermarkFlag_ = false;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+    std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
 
     bool needRequestNextVsyncAnimate_ = false;
     bool isOverDrawEnabled_ = false;
@@ -396,6 +433,7 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+    bool isAceDebugBoundaryEnabled_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
@@ -406,6 +444,30 @@ private:
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
     friend class RSDirtyRectsDfx;
+};
+
+class RSRenderThreadParamsManager {
+public:
+    RSRenderThreadParamsManager() = default;
+    ~RSRenderThreadParamsManager() = default;
+
+    static RSRenderThreadParamsManager& Instance()
+    {
+        static RSRenderThreadParamsManager instance;
+        return instance;
+    }
+
+    inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
+    {
+        renderThreadParams_ = std::move(renderThreadParams);
+    }
+    inline const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
+    {
+        return renderThreadParams_;
+    }
+
+private:
+    static inline thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_THREAD_PARAMS_H

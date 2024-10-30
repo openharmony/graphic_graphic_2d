@@ -85,9 +85,11 @@ public:
         uint32_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
 #ifdef CROSS_PLATFORM
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.__get(), sizeof(OpItem)));
 #else
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.value(), sizeof(OpItem)));
 #endif
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
@@ -185,15 +187,17 @@ public:
 
     void SetCachedHighContrast(bool cachedHighContrast);
 
-    std::vector<std::pair<uint32_t, uint32_t>> GetReplacedOpList();
+    std::vector<std::pair<size_t, size_t>> GetReplacedOpList();
 
-    void SetReplacedOpList(std::vector<std::pair<uint32_t, uint32_t>> replacedOpList);
+    void SetReplacedOpList(std::vector<std::pair<size_t, size_t>> replacedOpList);
 
     void UpdateNodeIdToPicture(NodeId nodeId);
 
     size_t CountTextBlobNum();
 
     void Dump(std::string& out);
+
+    void Purge();
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -207,11 +211,11 @@ private:
     int32_t width_;
     int32_t height_;
     const UnmarshalMode mode_;
-    const uint32_t offset_ = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
+    const size_t offset_ = 2 * sizeof(int32_t); // 2 is width and height.Offset of first OpItem is behind the w and h
     std::vector<std::shared_ptr<DrawOpItem>> drawOpItems_;
 
     size_t lastOpGenSize_ = 0;
-    std::vector<std::pair<uint32_t, uint32_t>> replacedOpListForBuffer_;
+    std::vector<std::pair<size_t, size_t>> replacedOpListForBuffer_;
     std::vector<std::pair<int, std::shared_ptr<DrawOpItem>>> replacedOpListForVector_;
     bool isCached_ = false;
     bool cachedHighContrast_ = false;

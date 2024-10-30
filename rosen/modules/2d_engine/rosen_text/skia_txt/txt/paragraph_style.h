@@ -37,6 +37,15 @@ enum class BreakStrategy {
     BALANCED = 2
 };
 
+struct TextTab {
+    TextTab() = default;
+    TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
+    TextTab& operator=(const TextTab&) = default;
+    TextAlign alignment = TextAlign::LEFT;
+    static constexpr float INVALID_LOCATION = -1.0f;
+    float location = INVALID_LOCATION;
+};
+
 class ParagraphStyle {
 public:
     TextStyle ConvertToTextStyle() const;
@@ -75,6 +84,7 @@ public:
     TextHeightBehavior textHeightBehavior = TextHeightBehavior::ALL;
     bool hintingIsOn = false;
     BreakStrategy breakStrategy = BreakStrategy::GREEDY;
+    TextTab tab;
 };
 } // namespace SPText
 } // namespace Rosen

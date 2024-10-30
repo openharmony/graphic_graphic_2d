@@ -26,7 +26,7 @@ RSRenderTransition::RSRenderTransition(
     : RSRenderAnimation(id), effects_(effects), isTransitionIn_(isTransitionIn)
 {}
 
-void RSRenderTransition::DumpAnimationType(std::string& out) const
+void RSRenderTransition::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderTransition";
 }

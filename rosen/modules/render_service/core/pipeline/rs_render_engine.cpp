@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_divided_render_util.h"
+#include "pipeline/rs_main_thread.h"
 #include "string_utils.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
@@ -31,6 +32,10 @@ constexpr float GAMMA2_2 = 2.2f;
 void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params, PreProcessFunc preProcess, PostProcessFunc postProcess)
 {
+    if (!params.useCPU) {
+        RegisterDeleteBufferListener(node.GetRSSurfaceHandler()->GetConsumer());
+    }
+
     auto nodePreProcessFunc = [&preProcess, &node](RSPaintFilterCanvas& canvas, BufferDrawParam& params) {
         // call the preprocess func passed in first.
         if (preProcess != nullptr) {
@@ -71,6 +76,7 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     (void) colorGamut;
 #endif
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& layer : layers) {
         if (layer == nullptr) {
             continue;
@@ -79,7 +85,7 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
             layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
             continue;
         }
-        auto nodePtr = static_cast<RSBaseRenderNode*>(layer->GetLayerAdditionalInfo());
+        auto nodePtr = nodeMap.GetRenderNode<RSRenderNode>(layer->GetNodeId());
         if (nodePtr == nullptr) {
             RS_LOGE("RSRenderEngine::DrawLayers: node is nullptr!");
             continue;
@@ -87,7 +93,7 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
 
         auto saveCount = canvas.GetSaveCount();
         if (nodePtr->IsInstanceOf<RSSurfaceRenderNode>()) {
-            RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr));
+            RSSurfaceRenderNode& node = *(static_cast<RSSurfaceRenderNode*>(nodePtr.get()));
             if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT_CLEAR ||
                 layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_TUNNEL) {
                 ClipHoleForLayer(canvas, node);
@@ -105,7 +111,8 @@ void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<L
 #ifdef USE_VIDEO_PROCESSING_ENGINE
             params.tmoNits = layer->GetDisplayNit();
             params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), GAMMA2_2); // gamma 2.2
-            if (!node.GetRSSurfaceHandler() && !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
+            if (node.GetRSSurfaceHandler() != nullptr &&
+                !CheckIsHdrSurfaceBuffer(node.GetRSSurfaceHandler()->GetBuffer())) {
                 params.brightnessRatio = layer->GetBrightnessRatio();
             } else {
                 params.isHdrRedraw = true;

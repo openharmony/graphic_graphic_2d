@@ -90,6 +90,8 @@ public:
 
     Range<size_t> GetActualTextRange(int lineNumber, bool includeSpaces) override;
 
+    Range<size_t> GetEllipsisTextRange() override;
+
     std::vector<skia::textlayout::LineMetrics> GetLineMetrics() override;
 
     bool GetLineMetricsAt(int lineNumber, skia::textlayout::LineMetrics* lineMetrics) const override;
@@ -118,6 +120,7 @@ public:
     std::unique_ptr<Paragraph> CloneSelf() override;
     TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) override;
     void UpdateColor(size_t from, size_t to, const RSColor& color) override;
+    Drawing::RectI GeneratePaintRegion(double x, double y) override;
 
 private:
     void RecordDifferentPthreadCall(const char* caller) const;

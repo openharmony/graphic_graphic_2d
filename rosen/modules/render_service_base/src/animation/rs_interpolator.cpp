@@ -59,7 +59,11 @@ float RSInterpolator::Interpolate(float input)
 
 std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
 {
-    uint16_t interpolatorType = parcel.ReadUint16();
+    uint16_t interpolatorType = 0;
+    if (!parcel.ReadUint16(interpolatorType)) {
+        ROSEN_LOGE("RSInterpolator::Unmarshalling read type failed");
+        return nullptr;
+    }
     RSInterpolator* ret = nullptr;
     switch (interpolatorType) {
         case InterpolatorType::LINEAR:
@@ -94,6 +98,7 @@ std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
         std::unique_lock<std::mutex> lock(cachedInterpolatorsMutex_);
         cachedInterpolators_.erase(ptr->id_); // Unregister interpolator from cache before destruction.
         delete ptr;
+        ptr = nullptr;
     };
 
     {

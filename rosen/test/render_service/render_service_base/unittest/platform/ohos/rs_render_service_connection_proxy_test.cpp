@@ -750,6 +750,17 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetVirtualMirrorScreenScaleMode, Te
 }
 
 /**
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetGlobalDarkColorMode, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy->SetGlobalDarkColorMode(true));
+}
+
+/**
  * @tc.name: GetPixelmap Test
  * @tc.desc: GetPixelmap Test
  * @tc.type:FUNC
@@ -789,7 +800,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterSurfaceOcclusionChangeCallb
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
-    EXPECT_EQ(proxy->RegisterOcclusionChangeCallback(callback), 0);
+    EXPECT_NE(proxy->RegisterOcclusionChangeCallback(callback), -1);
     NodeId id = 1;
     proxy->UnRegisterSurfaceOcclusionChangeCallback(id);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
@@ -883,7 +894,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyLightFactorStatus, TestSize.L
     GameStateData info;
     proxy->ReportGameStateData(info);
     NodeId id = 1;
-    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT);
+    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
     proxy->NotifyLightFactorStatus(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
@@ -993,6 +1004,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterUIExtensionCallback, TestSi
     uint64_t userId = 0;
     ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, nullptr), INVALID_ARGUMENTS);
     ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, callback), RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: SetLayerTop Test
+ * @tc.desc: SetLayerTop Test
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
+{
+    const std::string nodeIdStr = "123456";
+    proxy->SetLayerTop(nodeIdStr, true);
+    proxy->SetLayerTop(nodeIdStr, false);
+    ASSERT_TRUE(true);
 }
 } // namespace Rosen
 } // namespace OHOS

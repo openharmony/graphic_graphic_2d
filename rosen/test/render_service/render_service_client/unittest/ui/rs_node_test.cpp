@@ -26,6 +26,7 @@
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "modifier/rs_modifier.h"
+#include "common/rs_vector4.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2722,7 +2723,7 @@ HWTEST_F(RSNodeTest, SetandGetShadowColorStrategy001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
     rsNode->SetShadowColorStrategy(shadowColorStrategy);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+    ASSERT_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy);
 }
 
 /**
@@ -4296,6 +4297,9 @@ HWTEST_F(RSNodeTest, SetFreeze001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetFreeze(true);
+    std::shared_ptr<RSNode> child = std::make_shared<RSNode>(0);
+    child->SetFreeze(true);
+    EXPECT_TRUE(child != nullptr);
 }
 
 template<typename ModifierName, typename PropertyName, typename T>
@@ -5241,7 +5245,7 @@ HWTEST_F(RSNodeTest, SetEnvForegroundColor, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     uint32_t colorValue = 1; // for test
     rsNode->SetEnvForegroundColor(colorValue);
-    EXPECT_EQ(colorValue, 1);
+    ASSERT_EQ(rsNode->GetInstanceId(), -1);
 }
 
 /**
@@ -5256,6 +5260,23 @@ HWTEST_F(RSNodeTest, SetEnvForegroundColorStrategy, TestSize.Level1)
     ForegroundColorStrategyType strategyType = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
     rsNode->SetEnvForegroundColorStrategy(strategyType);
     EXPECT_EQ(strategyType, ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR);
+}
+
+/**
+ * @tc.name: SetCustomClipToFrame
+ * @tc.desc: test results of SetCustomClipToFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetCustomClipToFrame, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    Vector4f clipRect{1.0f, 1.0f, 1.0f, 1.0f}; // for test
+    rsNode->SetCustomClipToFrame(clipRect);
+    EXPECT_EQ(clipRect.x_, 1.0f);
+    EXPECT_EQ(clipRect.y_, 1.0f);
+    EXPECT_EQ(clipRect.z_, 1.0f);
+    EXPECT_EQ(clipRect.w_, 1.0f);
 }
 
 /**
@@ -5750,20 +5771,6 @@ HWTEST_F(RSNodeTest, SetShadowIsFilled, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetShadowColorStrategy
- * @tc.desc: test results of SetShadowColorStrategy
- * @tc.type: FUNC
- * @tc.require: issueI9KAZH
- */
-HWTEST_F(RSNodeTest, SetShadowColorStrategy, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    int shadowColorStrategy = 1; // for test
-    rsNode->SetShadowColorStrategy(shadowColorStrategy);
-    EXPECT_EQ(shadowColorStrategy, 1);
-}
-
-/**
  * @tc.name: SetClipRRect001
  * @tc.desc: test results of SetClipRRect
  * @tc.type: FUNC
@@ -5901,6 +5908,21 @@ HWTEST_F(RSNodeTest, SetFlyOutParams, TestSize.Level1)
     };
     rsNode->SetFlyOutParams(rs_fly_out_param, 0.2f);
     EXPECT_EQ(rs_fly_out_param.flyMode, 0);
+}
+
+/**
+ * @tc.name: SetDistortionK
+ * @tc.desc: test results of SetDistortionK
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSNodeTest, SetDistortionK, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    // for test
+    float distortionK = 0.5f;
+    rsNode->SetDistortionK(distortionK);
+    ASSERT_TRUE(rsNode != nullptr);
 }
 
 /**
@@ -7137,7 +7159,7 @@ HWTEST_F(RSNodeTest, SetWaterRippleParams, TestSize.Level1)
     };
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetWaterRippleParams(rs_water_ripple_param, progress);
-    EXPECT_EQ(waveCount, 2);
+    ASSERT_EQ(rsNode->GetInstanceId(), -1);
 }
 
 /**
@@ -7271,5 +7293,21 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
+}
+
+/**
+ * @tc.name: MarkUifirstNode
+ * @tc.desc: test results of MarkUifirstNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9RLG7
+ */
+HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->MarkUifirstNode(true);
+    EXPECT_TRUE(rsNode->isUifirstNode_);
+
+    rsNode->MarkUifirstNode(false);
+    EXPECT_TRUE(!rsNode->isUifirstNode_);
 }
 } // namespace OHOS::Rosen

@@ -16,8 +16,10 @@
 #include "foundation/graphic/graphic_2d/utils/log/rs_trace.h"
 #include "rs_profiler.h"
 #include "rs_profiler_json.h"
+#include "rs_profiler_log.h"
 #include "rs_profiler_network.h"
 
+#include <stack>
 #include "common/rs_obj_geometry.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
@@ -28,11 +30,15 @@
 
 namespace OHOS::Rosen {
 
-void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
+void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag, bool absRoot)
 {
     out.PushObject();
-    DumpNodeBaseInfo(node, out);
-    DumpNodeProperties(node.GetRenderProperties(), out);
+    DumpNodeBaseInfo(node, out, clearMockFlag);
+    if (absRoot) {
+        DumpNodeAbsoluteProperties(node, out);
+    } else {
+        DumpNodeProperties(node.GetRenderProperties(), out);
+    }
     DumpNodeOptionalFlags(node, out);
     DumpNodeDrawCmdModifiers(node, out);
     DumpNodeAnimations(node.animationManager_, out);
@@ -43,7 +49,7 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
     if (node.GetSortedChildren()) {
         for (auto& child : *node.GetSortedChildren()) {
             if (child) {
-                DumpNode(*child, children);
+                DumpNode(*child, children, clearMockFlag, false);
             }
         }
     }
@@ -51,26 +57,85 @@ void RSProfiler::DumpNode(const RSRenderNode& node, JsonWriter& out)
     out.PopObject();
 }
 
-void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out)
+NodeId RSProfiler::AdjustNodeId(NodeId nodeId, bool clearMockFlag)
+{
+    if (clearMockFlag) {
+        constexpr int shift = 30 + 32;
+        constexpr uint64_t mask = (uint64_t)1 << shift;
+        return nodeId & ~mask;
+    }
+    return nodeId;
+}
+
+void RSProfiler::DumpNodeAbsoluteProperties(const RSRenderNode& node, JsonWriter& out)
+{
+    std::stack<RSRenderNode::SharedPtr> parentStack;
+    // trace back to top parent
+    auto parent = node.GetParent().lock();
+    while (parent) {
+        parentStack.push(parent);
+        if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE) {
+            break;
+        }
+        parent = parent->GetParent().lock();
+    }
+    // calc absolute position from top parent to current node
+    float upperLeftX = .0f;
+    float upperLeftY = .0f;
+    float scaleX = 1.0f;
+    float scaleY = 1.0f;
+    auto accParent = [&](RSRenderNode::SharedPtr node) {
+        if (node) {
+            const auto& prop = node->GetRenderProperties();
+            upperLeftX += prop.GetBoundsPositionX();
+            upperLeftY += prop.GetBoundsPositionY();
+            scaleX *= prop.GetScaleX();
+            scaleY *= prop.GetScaleY();
+        }
+    };
+    while (!parentStack.empty()) {
+        auto parentNode = parentStack.top();
+        accParent(parentNode);
+        parentStack.pop();
+    }
+
+    // write result into json
+    auto& json = out["Properties"];
+    const auto& prop = node.GetRenderProperties();
+    json.PushObject();
+    json["Bounds"] = { prop.GetBoundsPositionX() + upperLeftX, prop.GetBoundsPositionY() + upperLeftY,
+        prop.GetBoundsWidth(), prop.GetBoundsHeight() };
+    json["Frame"] = { prop.GetFramePositionX(), prop.GetFramePositionY(), prop.GetFrameWidth(), prop.GetFrameHeight() };
+    if (!prop.GetVisible()) {
+        json["IsVisible"] = false;
+    }
+    json["ScaleX"] = prop.GetScaleX() * scaleX;
+    json["ScaleY"] = prop.GetScaleY() * scaleY;
+    DumpNodePropertiesNonSpatial(prop, json);
+    json.PopObject();
+}
+
+void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, bool clearMockFlag)
 {
     std::string type;
     node.DumpNodeType(node.GetType(), type);
     out["type"] = type;
-    out["id"] = node.GetId();
-    out["instanceRootNodeId"] = node.GetInstanceRootNodeId();
+    out["id"] = AdjustNodeId(node.GetId(), clearMockFlag);
+    out["instanceRootNodeId"] = AdjustNodeId(node.GetInstanceRootNodeId(), clearMockFlag);
     DumpNodeSubsurfaces(node, out);
     auto sharedTrans = node.GetSharedTransitionParam();
     if (sharedTrans) {
         out["SharedTransitionParam"] =
             std::to_string(sharedTrans->inNodeId_) + " -> " + std::to_string(sharedTrans->outNodeId_);
+        std::to_string(AdjustNodeId(sharedTrans->inNodeId_, clearMockFlag)) + " -> " +
+            std::to_string(AdjustNodeId(sharedTrans->outNodeId_, clearMockFlag));
     }
     if (node.IsSuggestedDrawInGroup()) {
-        const auto& renderParams = const_cast<RSRenderNode&>(node).GetStagingRenderParams();
         out["nodeGroup"] = static_cast<int>(node.nodeGroupType_);
-        out["nodeGroupReuseCache"] = renderParams ? static_cast<int>(!renderParams->GetNeedUpdateCache()) : 0;
     }
     if (node.GetUifirstRootNodeId() != INVALID_NODEID) {
         out["uifirstRootNodeId"] = node.GetUifirstRootNodeId();
+        out["uifirstRootNodeId"] = AdjustNodeId(node.GetUifirstRootNodeId(), clearMockFlag);
     }
     DumpNodeSubClassNode(node, out);
 }
@@ -106,6 +171,7 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
         subclass["OcclusionBg"] = std::to_string((surfaceNode.GetAbilityBgAlpha()));
         subclass["SecurityLayer"] = surfaceNode.GetSecurityLayer();
         subclass["skipLayer"] = surfaceNode.GetSkipLayer();
+        subclass["snapshotSkipLayer"] = surfaceNode.GetSnapshotSkipLayer();
     } else if (node.GetType() == RSRenderNodeType::ROOT_NODE) {
         auto& rootNode = static_cast<const RSRootRenderNode&>(node);
         subclass["Visible"] = rootNode.GetRenderProperties().GetVisible();
@@ -217,6 +283,15 @@ void RSProfiler::DumpNodeDrawCmdModifier(
             out["GEOMETRYTRANS"] = str;
             out.PopObject();
         }
+    } else if (modType == RSModifierType::CUSTOM_CLIP_TO_FRAME) {
+        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(modifier.GetProperty());
+        if (propertyPtr) {
+            std::string str;
+            propertyPtr->Dump(str);
+            out.PushObject();
+            out["CUSTOM_CLIP_TO_FRAME"] = str;
+            out.PopObject();
+        }
     }
 }
 
@@ -232,12 +307,8 @@ void RSProfiler::DumpNodeProperties(const RSProperties& properties, JsonWriter& 
     if (!properties.GetVisible()) {
         json["IsVisible"] = false;
     }
-    DumpNodePropertiesClip(properties, json);
     DumpNodePropertiesTransform(properties, json);
-    DumpNodePropertiesDecoration(properties, json);
-    DumpNodePropertiesShadow(properties, json);
-    DumpNodePropertiesEffects(properties, json);
-    DumpNodePropertiesColor(properties, json);
+    DumpNodePropertiesNonSpatial(properties, json);
     json.PopObject();
 }
 
@@ -285,6 +356,15 @@ void RSProfiler::DumpNodePropertiesTransform(const RSProperties& properties, Jso
     if (!ROSEN_EQ(properties.GetScaleY(), defaultTransform.scaleY_)) {
         out["ScaleY"] = properties.GetScaleY();
     }
+}
+
+void RSProfiler::DumpNodePropertiesNonSpatial(const RSProperties& properties, JsonWriter& out)
+{
+    DumpNodePropertiesClip(properties, out);
+    DumpNodePropertiesDecoration(properties, out);
+    DumpNodePropertiesShadow(properties, out);
+    DumpNodePropertiesEffects(properties, out);
+    DumpNodePropertiesColor(properties, out);
 }
 
 void RSProfiler::DumpNodePropertiesDecoration(const RSProperties& properties, JsonWriter& out)
@@ -456,11 +536,11 @@ void RSProfiler::DumpNodeAnimation(const RSRenderAnimation& animation, JsonWrite
     out.PushObject();
     out["id"] = animation.id_;
     std::string type;
-    animation.DumpAnimationType(type);
+    animation.DumpAnimationInfo(type);
     out["type"] = type;
     out["AnimationState"] = static_cast<int>(animation.state_);
-    out["StartDelay"] = animation.animationFraction_.GetDuration();
-    out["Duration"] = animation.animationFraction_.GetStartDelay();
+    out["Duration"] = animation.animationFraction_.GetDuration();
+    out["StartDelay"] = animation.animationFraction_.GetStartDelay();
     out["Speed"] = animation.animationFraction_.GetSpeed();
     out["RepeatCount"] = animation.animationFraction_.GetRepeatCount();
     out["AutoReverse"] = animation.animationFraction_.GetAutoReverse();

@@ -60,4 +60,46 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerDirtyToGlobalDirtyTest, TestSi
     rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node, displayNode);
     ASSERT_NE(rsPointerWindowManager->IsNeedForceCommitByPointer(), true);
 }
+
+/**
+ * @tc.name: HasMirrorDisplay
+ * @tc.desc: Test HasMirrorDisplay
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSPointerWindowManagerTest, HasMirrorDisplayTest, TestSize.Level1)
+{
+    auto pointerWindowIns = RSPointerWindowManager::Instance();
+    ASSERT_NE(pointerWindowIns, nullptr);
+    auto result = pointerWindowIns->HasMirrorDisplay();
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: HasVirtualDisplay
+ * @tc.desc: Test HasVirtualDisplay
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSPointerWindowManagerTest, HasVirtualDisplayTest, TestSize.Level1)
+{
+    auto pointerWindowIns = RSPointerWindowManager::Instance();
+    ASSERT_NE(pointerWindowIns, nullptr);
+    auto result = pointerWindowIns->HasVirtualDisplay();
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: CheckIsHardCursor
+ * @tc.desc: Test CheckIsHardCursor
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSPointerWindowManagerTest, CheckIsHardCursorTest, TestSize.Level1)
+{
+    auto pointerWindowIns = RSPointerWindowManager::Instance();
+    ASSERT_NE(pointerWindowIns, nullptr);
+    auto result = pointerWindowIns->CheckIsHardCursor();
+    ASSERT_EQ(result, false);
+}
 } // OHOS::Rosen

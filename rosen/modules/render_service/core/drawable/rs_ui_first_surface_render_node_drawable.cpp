@@ -15,12 +15,14 @@
 
 #include <memory>
 
+#include "EGL/egl.h"
 #include "impl_interface/region_impl.h"
 #include "rs_trace.h"
 
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_optional_trace.h"
 #include "draw/brush.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "memory/rs_tag_tracker.h"
@@ -45,6 +47,16 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+namespace {
+static const OHOS::Rosen::Drawing::Matrix IDENTITY_MATRIX = []() {
+    OHOS::Rosen::Drawing::Matrix matrix;
+    matrix.SetMatrix(1.0f, 0.0f, 0.0f,
+                     0.0f, 1.0f, 0.0f,
+                     0.0f, 0.0f, 1.0f);
+    return matrix;
+}();
+}
+
 namespace OHOS::Rosen::DrawableV2 {
 CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus() const
 {
@@ -54,6 +66,9 @@ CacheProcessStatus RSSurfaceRenderNodeDrawable::GetCacheSurfaceProcessedStatus()
 void RSSurfaceRenderNodeDrawable::SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus)
 {
     uiFirstParams.cacheProcessStatus_.store(cacheProcessStatus);
+    if (cacheProcessStatus == CacheProcessStatus::DONE || cacheProcessStatus == CacheProcessStatus::SKIPPED) {
+        RSUiFirstProcessStateCheckerHelper::NotifyAll();
+    }
 }
 
 std::shared_ptr<Drawing::Surface> RSSurfaceRenderNodeDrawable::GetCacheSurface(uint32_t threadIndex,
@@ -204,6 +219,45 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 #endif
 }
 
+#ifdef RS_ENABLE_GL
+void RSSurfaceRenderNodeDrawable::FlushSemaphore(RSPaintFilterCanvas& canvas)
+{
+    auto* surface = canvas.GetSurface();
+    if (surface == nullptr ||RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+    RS_TRACE_NAME("FlushSemaphore");
+    // init or get context's semaphore
+    auto& semaphore = semaphoresForRT_[eglGetCurrentContext()];
+    // clear previous semaphore
+    auto sync = semaphore.glSync();
+    if (sync != nullptr) {
+        eglDestroySync(eglGetCurrentDisplay(), sync);
+    }
+    semaphore = {};
+    // flush
+    Drawing::FlushInfo flushInfo;
+    flushInfo.numSemaphores = 1;
+    flushInfo.backendSemaphore = &semaphore;
+    surface->Flush(&flushInfo);
+}
+
+void RSSurfaceRenderNodeDrawable::WaitSemaphore()
+{
+    if (cacheSurface_ == nullptr || semaphoresForRSSub_.empty() ||
+        RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+    RS_TRACE_NAME("WaitSemaphore");
+    std::vector<GrGLsync> syncs;
+    for (const auto& [key, value]: semaphoresForRSSub_) {
+        syncs.push_back(value.glSync());
+    }
+    cacheSurface_->Wait(syncs);
+    semaphoresForRSSub_.clear();
+}
+#endif
+
 bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     uint32_t threadIndex, bool isUIFirst)
 {
@@ -236,11 +290,14 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     canvas.DrawImage(*cacheImage, gravityTranslate.x_, gravityTranslate.y_, samplingOptions);
     canvas.DetachBrush();
     canvas.Restore();
+#ifdef RS_ENABLE_GL
+    FlushSemaphore(canvas);
+#endif
     return true;
 }
 
 void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheSurfaceFunc func,
-    uint32_t threadIndex, bool isHdrOn)
+    uint32_t threadIndex, bool isNeedFP16)
 {
     if (func) {
         cacheSurfaceThreadIndex_ = threadIndex;
@@ -292,7 +349,7 @@ void RSSurfaceRenderNodeDrawable::InitCacheSurface(Drawing::GPUContext* gpuConte
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
-        if (isHdrOn) {
+        if (isNeedFP16) {
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
         }
@@ -369,6 +426,9 @@ void RSSurfaceRenderNodeDrawable::UpdateCompletedCacheSurface()
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
+#ifdef RS_ENABLE_GL
+    std::swap(semaphoresForRT_, semaphoresForRSSub_);
+#endif
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -418,8 +478,9 @@ bool RSSurfaceRenderNodeDrawable::IsCurFrameStatic(DeviceType deviceType)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return false;
     }
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::GetSurfaceCacheContentStatic: [%d] name [%s] Id:%" PRIu64 "",
-        surfaceParams->GetSurfaceCacheContentStatic(), surfaceParams->GetName().c_str(), surfaceParams->GetId());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::GetSurfaceCacheContentStatic:"
+        "[%d] name [%s] Id:%" PRIu64 "", surfaceParams->GetSurfaceCacheContentStatic(),
+        surfaceParams->GetName().c_str(), surfaceParams->GetId());
     return surfaceParams->GetSurfaceCacheContentStatic();
 }
 
@@ -448,7 +509,7 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     Drawing::Rect bounds = uifirstParams ? uifirstParams->GetBounds() : Drawing::Rect(0, 0, 0, 0);
 
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
-    RSRenderParams::SetParentSurfaceMatrix(rscanvas->GetTotalMatrix());
+    RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
 
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
@@ -511,5 +572,10 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
         drawable->Draw(rscanvas);
     }
     return ret;
+}
+
+void RSSurfaceRenderNodeDrawable::SetSubThreadSkip(bool isSubThreadSkip)
+{
+    isSubThreadSkip_ = isSubThreadSkip;
 }
 } // namespace OHOS::Rosen

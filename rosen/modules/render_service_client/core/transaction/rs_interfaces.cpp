@@ -15,20 +15,27 @@
 
 #include <cstdint>
 #include <functional>
-
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_divided_ui_capture.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
+#ifdef ROSEN_OHOS
+namespace {
+constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
+constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+}
+#endif
 RSInterfaces &RSInterfaces::GetInstance()
 {
     static RSInterfaces instance;
@@ -109,6 +116,30 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
+bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+{
+#ifdef ROSEN_OHOS
+    if (!RSSystemProperties::IsPcType()) {
+        return false;
+    }
+    if (renderServiceClient_ == nullptr) {
+        return false;
+    }
+    if (name.length() > WATERMARK_NAME_LENGTH_LIMIT || name.empty()) {
+        ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
+        return false;
+    }
+    if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > WATERMARK_PIXELMAP_SIZE_LIMIT)) {
+        ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}d] is error",
+            watermark->IsAstc(), watermark->GetCapacity());
+        return false;
+    }
+    return renderServiceClient_->SetWatermark(name, watermark);
+#else
+    return false;
+#endif
+}
+
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 int32_t RSInterfaces::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
@@ -153,17 +184,23 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
-        ROSEN_LOGW("node is nullptr");
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+}
+
+bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    return renderServiceClient_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
-        ROSEN_LOGW("node is nullptr");
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
@@ -271,16 +308,19 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
     if (RSSystemProperties::GetUniRenderEnabled()) {
         bool result = renderServiceClient_->RegisterTypeface(typeface);
         if (result) {
-            RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
-                    typeface->GetUniqueID());
+            RS_LOGI("RSInterfaces:Succeed in reg typeface, familyName:%{public}s, uniqueid:%{public}u",
+                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
             uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
             RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+        } else {
+            RS_LOGE("RSInterfaces:Failed to reg typeface, familyName:%{public}s, uniqueid:%{public}u",
+                typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
         }
         return result;
     }
 
-    RS_LOGD("RSInterfaces::RegisterTypeface: register typeface[%{public}u]",
-        typeface->GetUniqueID());
+    RS_LOGI("RSInterfaces:Succeed in reg typeface, familyName:%{public}s, uniqueid:%{public}u",
+        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
     return true;
@@ -288,6 +328,8 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
 
 bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
+    RS_LOGW("RSInterfaces:Unreg typeface: familyName:%{public}s, uniqueid:%{public}u",
+        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     if (RSSystemProperties::GetUniRenderEnabled()) {
         bool result = renderServiceClient_->UnRegisterTypeface(typeface);
         if (result) {
@@ -297,11 +339,14 @@ bool RSInterfaces::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typefa
         return result;
     }
 
-    RS_LOGD("RSInterfaces::UnRegisterTypeface: unregister typeface[%{public}u]",
-        typeface->GetUniqueID());
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     RSTypefaceCache::Instance().AddDelayDestroyQueue(globalUniqueId);
     return true;
+}
+
+bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
+{
+    return renderServiceClient_->SetGlobalDarkColorMode(isDark);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -512,6 +557,11 @@ int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrame
     return renderServiceClient_->SetScreenSkipFrameInterval(id, skipFrameInterval);
 }
 
+int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+{
+    return renderServiceClient_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+}
+
 bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
 {
     return renderServiceClient_->SetSystemAnimatedScenes(systemAnimatedScenes);
@@ -715,5 +765,37 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
+void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
+{
+    renderServiceClient_->SetFreeMultiWindowStatus(enable);
+}
+
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
+        new (std::nothrow) RSDefaultSurfaceBufferCallback (
+            [callback](uint64_t uid, const std::vector<uint32_t>& bufferIds) {
+                callback->OnFinish(uid, bufferIds);
+            }
+        )
+    );
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
+
+void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
 } // namespace Rosen
 } // namespace OHOS

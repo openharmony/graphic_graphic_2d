@@ -78,15 +78,18 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 
     uint64_t id = GetData<uint64_t>();
     RSRenderNode node(id);
-    DrawableV2::RSFrameOffsetDrawable rsFrameOffsetDrawable(std::move(drawCmdList));
+    auto frameDrawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    DrawableV2::RSFrameOffsetDrawable rsFrameOffsetDrawable(std::move(frameDrawCmdList));
     DrawableV2::RSFrameOffsetDrawable::OnGenerate(node);
     rsFrameOffsetDrawable.OnUpdate(node);
 
-    DrawableV2::RSClipToBoundsDrawable rsClipToBoundsDrawable(std::move(drawCmdList));
+    auto clipDrawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    DrawableV2::RSClipToBoundsDrawable rsClipToBoundsDrawable(std::move(clipDrawCmdList));
     DrawableV2::RSClipToBoundsDrawable::OnGenerate(node);
     rsClipToBoundsDrawable.OnUpdate(node);
 
-    DrawableV2::RSClipToFrameDrawable rsClipToFrameDrawable(std::move(drawCmdList));
+    auto clipToFrameDrawCmdList = Drawing::DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    DrawableV2::RSClipToFrameDrawable rsClipToFrameDrawable(std::move(clipToFrameDrawCmdList));
     DrawableV2::RSClipToFrameDrawable::OnGenerate(node);
     rsClipToFrameDrawable.OnUpdate(node);
 

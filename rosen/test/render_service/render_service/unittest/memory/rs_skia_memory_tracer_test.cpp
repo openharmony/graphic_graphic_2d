@@ -50,6 +50,7 @@ HWTEST_F(RSSkiaMemoryTracerTest, dumpNumericValueTest, testing::ext::TestSize.Le
     SkiaMemoryTracer skiaMemoryTracer("category", itemizeType);
     uint64_t value = 1;
     skiaMemoryTracer.dumpNumericValue("dumpName", "valueName", "units", value);
+    EXPECT_TRUE(skiaMemoryTracer.GetGLMemorySize() != -1);
 }
 
 /*
@@ -64,5 +65,6 @@ HWTEST_F(RSSkiaMemoryTracerTest, LogOutputTest, testing::ext::TestSize.Level1)
     SkiaMemoryTracer skiaMemoryTracer("category", itemizeType);
     DfxString log;
     skiaMemoryTracer.LogOutput(log);
+    EXPECT_TRUE(skiaMemoryTracer.GetGLMemorySize() != -1);
 }
 } // namespace OHOS::Rosen

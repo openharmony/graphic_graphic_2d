@@ -43,13 +43,6 @@ namespace TextEngine {
 
 #define HALF(a) ((a) / 2)
 
-// "weight" and "italic" will assigned value 0 and 1, -1 used to exclude unassigned
-FontParser::FontDescriptor::FontDescriptor(): path(""), postScriptName(""), fullName(""),
-    fontFamily(""), fontSubfamily(""), postScriptNameLid(0), fullNameLid(0), fontFamilyLid(0),
-    fontSubfamilyLid(0), requestedLid(0), weight(-1), width(0), italic(-1), monoSpace(0), symbolic(0)
-{
-}
-
 FontParser::FontParser()
 {
     data_ = nullptr;
@@ -135,10 +128,14 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
     auto storageOffset = nameTable->storageOffset.Get();
     auto stringStorage = data_ + storageOffset;
     for (int i = 0; i < count; ++i) {
-        if (nameTable->nameRecord[i].stringOffset.Get() == 0 || nameTable->nameRecord[i].length.Get() == 0) {
+        if (nameTable->nameRecord[i].stringOffset.Get() == 0 && nameTable->nameRecord[i].length.Get() == 0) {
             continue;
         }
         FontParser::NameId nameId = static_cast<FontParser::NameId>(nameTable->nameRecord[i].nameId.Get());
+        // Parsing fields with NameId greater than 7 is not currently supported.
+        if (nameId > FontParser::NameId::TRADEMARK) {
+            continue;
+        }
         unsigned int languageId = static_cast<unsigned int>(nameTable->nameRecord[i].languageId.Get());
         FontParser::PlatformId platformId =
             static_cast<FontParser::PlatformId>(nameTable->nameRecord[i].platformId.Get());
@@ -203,7 +200,7 @@ int FontParser::ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     auto parseCmap = std::make_shared<CmapTableParser>(data_, length_);
     auto cmapTable = parseCmap->Parse(data_, length_);
     ProcessCmapTable(cmapTable, fontDescriptor);
-
+    hb_blob_destroy(hblob);
     return SUCCESSED;
 }
 
@@ -236,9 +233,10 @@ int FontParser::ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     int ret = ProcessNameTable(nameTable, fontDescriptor);
     if (ret != SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "process name table failed";
+        hb_blob_destroy(hblob);
         return FAILED;
     }
-
+    hb_blob_destroy(hblob);
     return SUCCESSED;
 }
 
@@ -269,7 +267,7 @@ int FontParser::ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     auto parsePost = std::make_shared<PostTableParser>(data_, length_);
     auto postTable = parsePost->Parse(data_, length_);
     ProcessPostTable(postTable, fontDescriptor);
-
+    hb_blob_destroy(hblob);
     return SUCCESSED;
 }
 
@@ -395,6 +393,54 @@ private:
 
     std::shared_ptr<std::vector<std::string>> systemFontSet_;
 };
+
+std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::GetSystemFonts(const std::string locale)
+{
+    std::vector<std::shared_ptr<Drawing::Typeface>> typefaces = Drawing::Typeface::GetSystemFonts();
+    if (typefaces.empty()) {
+        return {};
+    }
+
+    std::vector<std::shared_ptr<FontDescriptor>> descriptors;
+    descriptors.reserve(typefaces.size());
+    for (auto& item : typefaces) {
+        FontDescriptor desc;
+        desc.requestedLid = GetLanguageId(locale);
+        desc.path = item->GetFontPath();
+        auto fontStyle = item->GetFontStyle();
+        desc.weight = fontStyle.GetWeight();
+        desc.width = fontStyle.GetWidth();
+        if (ParseTable(item, desc) !=  SUCCESSED) {
+            continue;
+        }
+        descriptors.emplace_back(std::make_shared<FontDescriptor>(desc));
+    }
+    return descriptors;
+}
+
+bool FontParser::ParserFontDescriptorFromPath(const std::string& path,
+    std::vector<std::shared_ptr<FontDescriptor>>& descriptors, const std::string locale)
+{
+    std::shared_ptr<Drawing::Typeface> typeface;
+    int index = 0;
+    FontDescriptor desc;
+    desc.requestedLid = GetLanguageId(locale);
+    desc.path = path;
+    while ((typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index)) != nullptr) {
+        index++;
+        auto fontStyle = typeface->GetFontStyle();
+        desc.weight = fontStyle.GetWeight();
+        desc.width = fontStyle.GetWidth();
+        if (ParseTable(typeface, desc) != SUCCESSED) {
+            continue;
+        }
+        descriptors.emplace_back(std::make_shared<FontDescriptor>(desc));
+    }
+    if (descriptors.size() > 0) {
+        return true;
+    }
+    return false;
+}
 
 std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(const std::string& fontName,
     const unsigned int languageId)

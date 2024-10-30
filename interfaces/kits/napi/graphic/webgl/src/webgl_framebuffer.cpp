@@ -84,7 +84,8 @@ WebGLFramebuffer::~WebGLFramebuffer()
 
 bool WebGLFramebuffer::AddAttachment(GLenum target, GLenum attachment, GLuint id)
 {
-    WebGLAttachment* attachmentObject = new WebGLAttachment(AttachmentType::RENDER_BUFFER, attachment, id);
+    WebGLAttachment* attachmentObject = new(std::nothrow) WebGLAttachment(
+        AttachmentType::RENDER_BUFFER, attachment, id);
     if (attachmentObject == nullptr) {
         return false;
     }
@@ -99,7 +100,7 @@ bool WebGLFramebuffer::AddAttachment(GLenum target, GLenum attachment, GLuint id
 
 bool WebGLFramebuffer::AddAttachment(GLenum target, GLenum attachment, GLuint id, GLenum textureTarget, GLint level)
 {
-    AttachmentTexture* attachmentObject = new AttachmentTexture(AttachmentType::TEXTURE, attachment, id);
+    AttachmentTexture* attachmentObject = new(std::nothrow) AttachmentTexture(AttachmentType::TEXTURE, attachment, id);
     if (attachmentObject == nullptr) {
         return false;
     }

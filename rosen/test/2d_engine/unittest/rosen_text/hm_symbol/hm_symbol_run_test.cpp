@@ -189,31 +189,26 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
     HMSymbolTxt symbolTxt;
     RSHMSymbolData symbol;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    bool check = false;
+    check = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check == false);
 
     symbolTxt.SetSymbolEffect(RSEffectStrategy::SCALE);
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    bool check1 = false;
+    check1 = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check1 == false);
 
     symbolTxt.SetAnimationMode(1);
     symbolTxt.SetSymbolEffect(RSEffectStrategy::SCALE);
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    bool check2 = false;
+    check2 = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check2 == false);
 
     symbolTxt.SetAnimationMode(1);
     symbolTxt.SetSymbolEffect(RSEffectStrategy::VARIABLE_COLOR);
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
-}
-
-/*
- * @tc.name: ClearSymbolAnimation001
- * @tc.desc: test ClearSymbolAnimation with glyphid
- * @tc.type: FUNC
- */
-HWTEST_F(OHHmSymbolRunTest, ClearSymbolAnimation001, TestSize.Level1)
-{
-    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
-    RSHMSymbolData symbol;
-    HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.ClearSymbolAnimation(symbol, offset);
+    bool check3 = false;
+    check3 = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check3 == false);
 }
 
 /*
@@ -227,7 +222,8 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups001, TestSize.Level1)
     RSEffectStrategy effectStrategy = RSEffectStrategy::BOUNCE;
     RSAnimationSetting animationOut;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    bool flag = hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    EXPECT_TRUE(flag);
 }
 
 /*

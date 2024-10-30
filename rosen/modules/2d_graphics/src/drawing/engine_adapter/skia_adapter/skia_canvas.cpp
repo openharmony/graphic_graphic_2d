@@ -17,7 +17,7 @@
 
 #include "modules/svg/include/SkSVGDOM.h"
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
 #include "skia_convert_utils.h"
@@ -132,7 +132,7 @@ RectI SkiaCanvas::GetRoundInDeviceClipBounds() const
     return RectI(iRect.fLeft, iRect.fTop, iRect.fRight, iRect.fBottom);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<GPUContext> SkiaCanvas::GetGPUContext() const
 {
     if (skCanvas_ == nullptr || skCanvas_->recordingContext() == nullptr ||

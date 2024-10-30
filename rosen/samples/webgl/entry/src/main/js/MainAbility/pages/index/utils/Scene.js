@@ -56,7 +56,7 @@ export class Scene {
         let fun = () => {
             render();
             this.render();
-            if(!this.gl.closed) {
+            if (!this.gl.closed) {
                 requestAnimationFrame(fun);
             }
         };

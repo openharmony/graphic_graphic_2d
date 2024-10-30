@@ -242,19 +242,19 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+        if (properties.GetBorderColorIsTransparent() || !properties.GetBorderIsSolid()) {
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRectBorder(properties.GetRRect(),
+                properties.GetInnerRRect()));
         }
     } else {
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
-            canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+        if (properties.GetBorderColorIsTransparent() || !properties.GetBorderIsSolid()) {
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
-            canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRectBorder(properties.GetRRect(),
+                properties.GetInnerRRect()));
         }
     }
     canvas.DetachBrush();
@@ -288,19 +288,19 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+        if (properties.GetBorderColorIsTransparent() || !properties.GetBorderIsSolid()) {
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
-            canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetInnerRRect()));
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRectBorder(properties.GetRRect(),
+                properties.GetInnerRRect()));
         }
     } else {
         canvas.AttachBrush(brush);
-        if (properties.GetBorderColorIsTransparent() ||
-            properties.GetBorderStyle().x_ != static_cast<uint32_t>(BorderStyle::SOLID)) {
-            canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+        if (properties.GetBorderColorIsTransparent() || !properties.GetBorderIsSolid()) {
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
         } else {
-            canvas.DrawRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetInnerRRect()).GetRect());
+            canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRectBorder(properties.GetRRect(),
+                properties.GetInnerRRect()));
         }
     }
     canvas.DetachBrush();
@@ -336,6 +336,8 @@ Drawing::ColorType RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat 
             return Drawing::COLORTYPE_RGBA_F16;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
             return Drawing::COLORTYPE_RGB_565;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return Drawing::COLORTYPE_RGBA_1010102;
         default:
             return Drawing::COLORTYPE_RGBA_8888;
     }
@@ -376,7 +378,7 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         return nullptr;
     }
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
-    if (pixelMapId_ != pixelMap->GetUniqueId()) {
+    if (pixelMapId_ != pixelMap->GetUniqueId() || !backendTexture_.IsValid()) {
         backendTexture_ = {};
         ReleaseNativeWindowBuffer();
         sptr<SurfaceBuffer> sfBuffer(surfaceBuffer);
@@ -398,14 +400,15 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
         tid_ = gettid();
     }
 
+    if (canvas.GetGPUContext() == nullptr) {
+        RS_LOGE("RSBackgroundImageDrawable::MakeFromTextureForVK canvas.GetGPUContext is nullptr");
+        ReleaseNativeWindowBuffer();
+        return nullptr;
+    }
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     Drawing::ColorType colorType = GetColorTypeFromVKFormat(vkTextureInfo->format);
     Drawing::BitmapFormat bitmapFormat = { colorType, Drawing::AlphaType::ALPHATYPE_PREMUL };
-    if (canvas.GetGPUContext() == nullptr) {
-        RS_LOGE("RSBackgroundImageDrawable::MakeFromTextureForVK canvas.GetGPUContext is nullptr");
-        return;
-    }
     if (!dmaImage->BuildFromTexture(*canvas.GetGPUContext(), backendTexture_.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, NativeBufferUtils::DeleteVkImage,
         cleanUpHelper_->Ref())) {
@@ -418,17 +421,21 @@ std::shared_ptr<Drawing::Image> RSBackgroundImageDrawable::MakeFromTextureForVK(
 void RSBackgroundImageDrawable::SetCompressedDataForASTC()
 {
     std::shared_ptr<Media::PixelMap> pixelMap = bgImage_->GetPixelMap();
-    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
     if (!pixelMap || !pixelMap->GetFd()) {
         RS_LOGE("SetCompressedDataForASTC fail, data is null");
         return;
     }
+    std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
     // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
     if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
         RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-        if (!nativeWindowBuffer_) {
+        if (pixelMapId_ != pixelMap->GetUniqueId()) {
+            if (nativeWindowBuffer_) {
+                DestroyNativeWindowBuffer(nativeWindowBuffer_);
+            }
             sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
             nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+            pixelMapId_ = pixelMap->GetUniqueId();
         }
         OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
         if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
@@ -441,9 +448,9 @@ void RSBackgroundImageDrawable::SetCompressedDataForASTC()
             (data == nullptr || !fileData->BuildWithoutCopy(
                 reinterpret_cast<const void *>(reinterpret_cast<const char *>(data) + ASTC_HEADER_SIZE),
                 pixelMap->GetCapacity() - ASTC_HEADER_SIZE))) {
-                RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
-                return;
-            }
+            RS_LOGE("SetCompressedDataForASTC data BuildWithoutCopy fail");
+            return;
+        }
     }
     bgImage_->SetCompressData(fileData);
 }
@@ -570,16 +577,16 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
 {
     auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas == nullptr || rect == nullptr) {
-            RS_LOGE("RSBackgroundEffectDrawable::DrawBackgroundEffect data error");
-            return;
-        }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
         paintFilterCanvas->ClipRect(*rect);
+        Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
+        canvas->GetTotalMatrix().MapRect(absRect, *rect);
+        Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetRight()),
+            std::ceil(absRect.GetBottom()));
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_);
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_, bounds);
     };
 }
 

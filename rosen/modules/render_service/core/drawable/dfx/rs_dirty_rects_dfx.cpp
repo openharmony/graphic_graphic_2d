@@ -193,8 +193,9 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
     auto screenId = displayParams_->GetScreenId();
     static const std::string FOLD_SCREEN_TYPE = system::GetParameter("const.window.foldscreen.type", "0,0,0,0");
     const char DUAL_DISPLAY = '2';
+    const char DUAL_DISPLAY_NEWFMT = '4';
     // fold device with two logic screens
-    if (FOLD_SCREEN_TYPE[0] == DUAL_DISPLAY && screenId != 0) {
+    if ((FOLD_SCREEN_TYPE[0] == DUAL_DISPLAY) && screenId != 0) {
         return;
     }
     uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
@@ -217,11 +218,18 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate()
     canvas_->AttachBrush(brush);
     auto rotation = displayParams_->GetScreenRotation();
     // fold device with one logic screen
-    if (RSSystemProperties::IsFoldScreenFlag() && FOLD_SCREEN_TYPE[0] != DUAL_DISPLAY
-        && screenId == 0) {
+    bool isOneLogicScreenDevice = FOLD_SCREEN_TYPE[0] != DUAL_DISPLAY &&
+                                    FOLD_SCREEN_TYPE[0] != DUAL_DISPLAY_NEWFMT;
+    if (RSSystemProperties::IsFoldScreenFlag() && isOneLogicScreenDevice && screenId == 0) {
         rotation =
             (rotation == ScreenRotation::ROTATION_270 ? ScreenRotation::ROTATION_0
                                                       : static_cast<ScreenRotation>(static_cast<int>(rotation) + 1));
+    }
+    // fold device with new format
+    if (RSSystemProperties::IsFoldScreenFlag() && FOLD_SCREEN_TYPE[0] == DUAL_DISPLAY_NEWFMT && screenId != 0) {
+        rotation =
+            (rotation == ScreenRotation::ROTATION_0 ? ScreenRotation::ROTATION_270
+                                                      : static_cast<ScreenRotation>(static_cast<int>(rotation) - 1));
     }
     auto saveCount = canvas_->Save();
     if (!RefreshRateRotationProcess(rotation, screenId)) {

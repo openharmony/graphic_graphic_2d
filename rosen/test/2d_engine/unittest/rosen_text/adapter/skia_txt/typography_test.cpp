@@ -40,7 +40,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest001, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    EXPECT_EQ(typography->GetMaxWidth() == 0, true);
+    EXPECT_EQ(typography->GetMaxWidth(), 0);
 }
 
 /*
@@ -55,8 +55,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest002, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    EXPECT_EQ(typography->GetHeight() == 0, true);
-    EXPECT_EQ(typography->GetActualWidth() == 0, true);
+    EXPECT_EQ(typography->GetHeight(), 0);
+    EXPECT_EQ(typography->GetActualWidth(), 0);
 }
 
 /*
@@ -71,8 +71,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest003, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    EXPECT_EQ(typography->GetActualWidth() == 0, true);
-    EXPECT_EQ(typography->GetMaxIntrinsicWidth() == 0, true);
+    EXPECT_EQ(typography->GetActualWidth(), 0);
+    EXPECT_EQ(typography->GetMaxIntrinsicWidth(), 0);
 }
 
 /*
@@ -87,7 +87,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest004, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    EXPECT_EQ(typography->GetMinIntrinsicWidth() == 0, true);
+    EXPECT_EQ(typography->GetMinIntrinsicWidth(), 0);
 }
 
 /*
@@ -102,16 +102,16 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest005, TestSize.Level
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
         typographyStyle, fontCollection);
     std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
-    EXPECT_EQ(typography->GetAlphabeticBaseline() == 0, true);
-    EXPECT_EQ(typography->GetIdeographicBaseline() == 0, true);
+    EXPECT_EQ(typography->GetAlphabeticBaseline(), 0);
+    EXPECT_EQ(typography->GetIdeographicBaseline(), 0);
     typography->GetGlyphsBoundsTop();
     typography->GetGlyphsBoundsBottom();
     typography->GetGlyphsBoundsLeft();
     typography->GetGlyphsBoundsRight();
-    EXPECT_EQ(typography->DidExceedMaxLines() == false, true);
-    EXPECT_EQ(typography->GetLineCount() > 0, true);
+    EXPECT_FALSE(typography->DidExceedMaxLines());
+    EXPECT_EQ(typography->GetLineCount(), 0);
     typography->MarkDirty();
-    EXPECT_EQ(typography->GetUnresolvedGlyphsCount() < 0, true);
+    EXPECT_EQ(typography->GetUnresolvedGlyphsCount(), -1);
 }
 
 /*
@@ -165,21 +165,21 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest007, TestSize.Level
     // 0 for unit test
     typography->GetWordBoundaryByIndex(0);
     typography->GetActualTextRange(0, false);
-    EXPECT_EQ(typography->GetLineHeight(0) == 0.0, true);
-    EXPECT_EQ(typography->GetLineWidth(0)  == 0.0, true);
+    EXPECT_EQ(typography->GetLineHeight(0), 0.0);
+    EXPECT_EQ(typography->GetLineWidth(0), 0.0);
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)> animationFunc;
     typography->SetAnimation(animationFunc);
     typography->SetParagraghId(0);
     typography->MeasureText();
     LineMetrics* lineMetrics = nullptr;
-    EXPECT_EQ(typography->GetLineInfo(0, true, true, lineMetrics) == false, true);
+    EXPECT_FALSE(typography->GetLineInfo(0, true, true, lineMetrics));
     typography->GetLineMetrics();
-    EXPECT_EQ(typography->GetLineMetricsAt(0, lineMetrics) == false, true);
+    EXPECT_FALSE(typography->GetLineMetricsAt(0, lineMetrics));
     OHOS::Rosen::TextStyle txtStyle;
     typography->GetFontMetrics(txtStyle);
     size_t charNum = 0;
     std::vector<Drawing::FontMetrics> vectorFontMetrics;
-    EXPECT_EQ(typography->GetLineFontMetrics(0, charNum, vectorFontMetrics) == false, true);
+    EXPECT_FALSE(typography->GetLineFontMetrics(0, charNum, vectorFontMetrics));
     typography->GetTextLines();
     typography->CloneSelf();
 }
@@ -194,6 +194,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level
     double maxWidth = 50;
     std::vector<float> indents = {1.2, 3.4};
     OHOS::Rosen::TypographyStyle typographyStyle;
+    auto textStyle = typographyStyle.GetTextStyle();
+    EXPECT_EQ(textStyle.fontSize, 14);
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
@@ -207,30 +209,87 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest008, TestSize.Level
     typography->Layout(maxWidth);
 
     // 0 for unit test
-    EXPECT_EQ(typography->GetLongestLineWithIndent() > 0, true);
-    EXPECT_EQ(typography->GetLongestLineWithIndent() > typography->GetActualWidth(), true);
-    EXPECT_EQ(typography->GetLongestLineWithIndent() <= maxWidth, true);
+    EXPECT_EQ(std::round(typography->GetLongestLineWithIndent()), 26);
+    EXPECT_LE(typography->GetLongestLineWithIndent(), maxWidth);
 
     LineMetrics lineMetrics;
-    EXPECT_EQ(typography->GetLineInfo(0, true, true, &lineMetrics) == true, true);
-    EXPECT_EQ(lineMetrics.ascender > 0, true);
-    EXPECT_EQ(lineMetrics.descender > 0, true);
-    EXPECT_EQ(lineMetrics.height > 0, true);
-    EXPECT_EQ(lineMetrics.x == indents[0], true);
-    EXPECT_EQ(lineMetrics.y == 0, true);
-    EXPECT_EQ(lineMetrics.startIndex == 0, true);
-    EXPECT_EQ(lineMetrics.endIndex == text.size(), true);
+    EXPECT_TRUE(typography->GetLineInfo(0, true, true, &lineMetrics));
+    EXPECT_EQ(std::round(lineMetrics.ascender), 13);
+    EXPECT_EQ(std::round(lineMetrics.descender), 3);
+    EXPECT_EQ(lineMetrics.height, 16);
+    EXPECT_EQ(lineMetrics.x, indents[0]);
+    EXPECT_EQ(lineMetrics.y, 0);
+    EXPECT_EQ(lineMetrics.startIndex, 0);
+    EXPECT_EQ(lineMetrics.endIndex, text.size());
 
     std::vector<LineMetrics> lines = typography->GetLineMetrics();
-    EXPECT_EQ(lines.size() > 0, true);
+    ASSERT_EQ(lines.size(), 1);
     LineMetrics firstLineMetrics = lines[0];
-    EXPECT_EQ(firstLineMetrics.ascender > 0, true);
-    EXPECT_EQ(firstLineMetrics.descender > 0, true);
-    EXPECT_EQ(firstLineMetrics.height > 0, true);
-    EXPECT_EQ(firstLineMetrics.x == indents[0], true);
-    EXPECT_EQ(firstLineMetrics.y == 0, true);
-    EXPECT_EQ(firstLineMetrics.startIndex == 0, true);
-    EXPECT_EQ(firstLineMetrics.endIndex == text.size(), true);
+    EXPECT_EQ(std::round(firstLineMetrics.ascender), 13);
+    EXPECT_EQ(std::round(firstLineMetrics.descender), 3);
+    EXPECT_EQ(firstLineMetrics.height, 16);
+    EXPECT_EQ(firstLineMetrics.x, indents[0]);
+    EXPECT_EQ(firstLineMetrics.y, 0);
+    EXPECT_EQ(firstLineMetrics.startIndex, 0);
+    EXPECT_EQ(firstLineMetrics.endIndex, text.size());
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest009
+ * @tc.desc: test for GetEllipsisTextRange
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest009, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text = u"text";
+    typographyCreate->AppendText(text);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+
+    Boundary range = typography->GetEllipsisTextRange();
+    ASSERT_EQ(range, Boundary(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+    typography->Layout(maxWidth);
+
+    Boundary range1 = typography->GetEllipsisTextRange();
+    ASSERT_EQ(range1, Boundary(std::numeric_limits<size_t>::max(), std::numeric_limits<size_t>::max()));
+
+    OHOS::Rosen::TypographyStyle typographyStyle1;
+    typographyStyle1.maxLines = 1;
+    std::u16string ellipsisStr = TypographyStyle::ELLIPSIS;
+    typographyStyle1.ellipsis = ellipsisStr;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate1 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle1, fontCollection);
+    std::u16string text1 = u"text is too long";
+    typographyCreate1->AppendText(text1);
+    OHOS::Rosen::TextStyle typographyTextStyle1;
+    typographyCreate1->PushStyle(typographyTextStyle1);
+    std::unique_ptr<OHOS::Rosen::Typography> typography1 = typographyCreate1->CreateTypography();
+    typography1->Layout(maxWidth);
+    Boundary range2 = typography1->GetEllipsisTextRange();
+    ASSERT_EQ(range2, Boundary(5, 16));
+
+    // For branch coverage
+    OHOS::Rosen::TypographyStyle typographyStyle2;
+    typographyStyle2.maxLines = 1;
+    typographyStyle2.ellipsis = ellipsisStr;
+    typographyStyle2.ellipsisModal = EllipsisModal::MIDDLE;
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate2 =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle2, fontCollection);
+    typographyCreate2->AppendText(text1);
+    OHOS::Rosen::TextStyle typographyTextStyle2;
+    typographyCreate2->PushStyle(typographyTextStyle2);
+    std::unique_ptr<OHOS::Rosen::Typography> typography2 = typographyCreate2->CreateTypography();
+    typography2->Layout(maxWidth);
+    Boundary range3 = typography2->GetEllipsisTextRange();
+    ASSERT_EQ(range3, Boundary(2, 14));
+    typography2->GetEllipsisTextRange();
 }
 } // namespace Rosen
 } // namespace OHOS

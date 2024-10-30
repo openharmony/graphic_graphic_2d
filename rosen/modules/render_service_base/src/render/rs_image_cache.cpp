@@ -70,11 +70,17 @@ void RSImageCache::ReleaseDrawingImageCache(uint64_t uniqueId)
 void RSImageCache::CachePixelMap(uint64_t uniqueId, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (pixelMap && uniqueId > 0) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            pixelMapCache_.emplace(uniqueId, std::make_pair(pixelMap, 0));
+        }
+        auto type = pixelMap->GetAllocatorType();
         pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-        if (pid && memoryCheckCallback_) {
-            memoryCheckCallback_(pid, pixelMap->GetCapacity(), false);
+        if (type != Media::AllocatorType::DMA_ALLOC && pid) {
+            auto realSize = type == Media::AllocatorType::SHARE_MEM_ALLOC
+                ? pixelMap->GetCapacity() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
+                : pixelMap->GetCapacity();
+            MemorySnapshot::Instance().AddCpuMemory(pid, realSize);
         }
     }
 }
@@ -116,6 +122,18 @@ void RSImageCache::ReleaseUniqueIdList()
     }
 }
 
+bool RSImageCache::CheckUniqueIdIsEmpty()
+{
+    if (uniqueIdListMutex_.try_lock()) {
+        if (uniqueIdList_.empty()) {
+            uniqueIdListMutex_.unlock();
+            return true;
+        }
+        uniqueIdListMutex_.unlock();
+    }
+    return false;
+}
+
 void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
 {
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
@@ -127,17 +145,69 @@ void RSImageCache::ReleasePixelMapCache(uint64_t uniqueId)
             it->second.second--;
             if (it->second.first == nullptr || it->second.second == 0) {
                 pixelMap = it->second.first;
+                bool shouldCount = pixelMap && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC;
                 pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
-                if (pid) {
-                    MemorySnapshot::Instance().RemoveCpuMemory(pid, pixelMap->GetCapacity());
+                if (shouldCount && pid) {
+                    auto realSize = pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC
+                        ? pixelMap->GetCapacity() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
+                        : pixelMap->GetCapacity();
+                    MemorySnapshot::Instance().RemoveCpuMemory(pid, realSize);
                 }
                 pixelMapCache_.erase(it);
                 ReleaseDrawingImageCacheByPixelMapId(uniqueId);
             }
+        } else {
+            ReleaseDrawingImageCacheByPixelMapId(uniqueId);
         }
-    ReleaseDrawingImageCacheByPixelMapId(uniqueId);
     }
     pixelMap.reset();
+}
+
+int RSImageCache::CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn,
+                                                  const std::shared_ptr<Drawing::Image>& image)
+{
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    constexpr int IMAGE_USE_COUNT_FOR_PURGE = 2;
+    int refCount = IMAGE_USE_COUNT_FOR_PURGE;
+    if (!pixelMapIn || !image) {
+        return refCount;
+    }
+    {
+        // release the pixelMap if no RSImage holds it
+        std::lock_guard<std::mutex> lock(mutex_);
+        int originUseCount = static_cast<int>(image.use_count());
+        if (originUseCount > IMAGE_USE_COUNT_FOR_PURGE) {
+            return originUseCount;  // skip purge if multi object holds this image
+        }
+        auto it = pixelMapCache_.find(uniqueId);
+        if (it != pixelMapCache_.end()) {
+            if (it->second.second > 1) {
+                return it->second.second; // skip purge if multi object holds this pixelMap
+            }
+            pixelMap = it->second.first;
+            if (pixelMap != pixelMapIn) {
+                return refCount; // skip purge if pixelMap mismatch
+            }
+            bool shouldCount = pixelMap && pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC;
+            pid_t pid = uniqueId >> 32; // right shift 32 bit to restore pid
+            if (shouldCount && pid) {
+                auto realSize = pixelMap->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC
+                    ? pixelMap->GetCapacity() / 2 // rs only counts half of the SHARE_MEM_ALLOC memory
+                    : pixelMap->GetCapacity();
+                MemorySnapshot::Instance().RemoveCpuMemory(pid, realSize);
+            }
+            pixelMapCache_.erase(it);
+        }
+        ReleaseDrawingImageCacheByPixelMapId(uniqueId);
+        refCount = image.use_count();
+#ifdef ROSEN_OHOS
+        if (refCount == 1) { // purge pixelMap & image only if no more reference
+            pixelMapIn->UnMap();
+        }
+#endif
+    }
+    pixelMap.reset();
+    return refCount;
 }
 
 void RSImageCache::CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId,
@@ -168,13 +238,6 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
     auto it = pixelMapIdRelatedDrawingImageCache_.find(uniqueId);
     if (it != pixelMapIdRelatedDrawingImageCache_.end()) {
         pixelMapIdRelatedDrawingImageCache_.erase(it);
-    }
-}
-
-void RSImageCache::SetMemoryCheckCallback(MemoryCheckCallback callback)
-{
-    if (memoryCheckCallback_ == nullptr) {
-        memoryCheckCallback_ = callback;
     }
 }
 } // namespace Rosen

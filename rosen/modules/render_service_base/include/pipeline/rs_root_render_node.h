@@ -18,9 +18,6 @@
 #include "common/rs_macros.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_canvas_render_node.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -43,11 +40,7 @@ public:
     void AttachRSSurfaceNode(NodeId SurfaceNodeId);
 
     std::shared_ptr<RSDirtyRegionManager> GetDirtyManager() const;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> GetSurface();
-#else
     std::shared_ptr<RSSurface> GetSurface();
-#endif
     NodeId GetRSSurfaceNodeId();
     float GetSuggestedBufferWidth() const;
     float GetSuggestedBufferHeight() const;
@@ -69,11 +62,7 @@ private:
     explicit RSRootRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
         bool isTextureExportNode = false);
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<RSRenderSurface> rsSurface_ = nullptr;
-#else
     std::shared_ptr<RSSurface> rsSurface_ = nullptr;
-#endif
     NodeId surfaceNodeId_ = 0;
     bool enableRender_ = true;
     float suggestedBufferWidth_ = 0.f;

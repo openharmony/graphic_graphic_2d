@@ -59,6 +59,8 @@ public:
 
     virtual void SetDefaultScreenId(ScreenId id) = 0;
 
+    virtual uint32_t GetCurrentVirtualScreenNum() = 0;
+
     virtual void SetScreenMirror(ScreenId id, ScreenId toMirror) = 0;
 
     virtual ScreenId CreateVirtualScreen(
@@ -188,9 +190,14 @@ public:
 
     virtual uint32_t GetActualScreensNum() const = 0;
 
+    virtual ScreenInfo GetActualScreenMaxResolution() const = 0;
+
     virtual int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) = 0;
 
     virtual ScreenId GetActiveScreenId() = 0;
+
+    virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
+
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
@@ -226,6 +233,8 @@ public:
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
+
+    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -359,6 +368,8 @@ public:
 
     uint32_t GetActualScreensNum() const override;
 
+    ScreenInfo GetActualScreenMaxResolution() const override;
+
     int32_t SetScreenColorGamut(ScreenId id, int32_t modeIdx) override;
 
     int32_t SetScreenGamutMap(ScreenId id, ScreenGamutMap mode) override;
@@ -391,6 +402,8 @@ public:
     int32_t SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace) override;
 
     ScreenId GetActiveScreenId() override;
+
+    int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
     /* only used for mock tests */
     void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) override
@@ -434,6 +447,15 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const override;
 
+    static void ReleaseScreenDmaBuffer(uint64_t screenId);
+
+    bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) override;
+
+    uint32_t GetCurrentVirtualScreenNum() override
+    {
+        return currentVirtualScreenNum_;
+    }
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -453,7 +475,7 @@ private:
     void RemoveScreenFromHgm(std::shared_ptr<HdiOutput> &output);
     void HandleDefaultScreenDisConnectedLocked();
     void ForceRefreshOneFrame() const;
-    std::vector<ScreenHotPlugEvent> pendingHotPlugEvents_;
+    std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;
 
     void GetVirtualScreenResolutionLocked(ScreenId id, RSVirtualScreenResolution& virtualScreenResolution) const;
     void GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& screenModeInfo) const;
@@ -494,6 +516,9 @@ private:
     void HandleSensorData(float angle);
     FoldState TransferAngleToScreenState(float angle);
 #endif
+
+    void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
+    void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
 
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;

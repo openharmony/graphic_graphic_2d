@@ -45,7 +45,9 @@ const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0+1\n";
+    "Children list needs update, current count: 0 expected count: 0+1\n"
+    "  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], "
+    "IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
 const int DEFAULT_NODE_ID = 1;
 class RSRenderNodeDrawableAdapterBoy : public DrawableV2::RSRenderNodeDrawableAdapter {
@@ -162,6 +164,7 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionBeforeChildrenTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.ProcessTransitionBeforeChildren(*canvas_);
+    ASSERT_TRUE(canvas_->GetRecordingCanvas() == nullptr);
 }
 
 /**
@@ -1009,12 +1012,12 @@ HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateClipAbsDrawRectChangeStateTest
+ * @tc.name: UpdateSrcOrClipedAbsDrawRectChangeStateTest
  * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueIAZV18
  */
-HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto left = 0;
@@ -1023,15 +1026,15 @@ HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1
     auto height = 1048;
     RectI rectI(left, top, width, height);
 
-    node->clipAbsDrawRectChange_ = true;
-    node->UpdateClipAbsDrawRectChangeState(rectI);
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
     EXPECT_FALSE(node->geometryChangeNotPerceived_);
 
     EXPECT_EQ(RSSystemProperties::GetSkipGeometryNotChangeEnabled(), true);
-    node->clipAbsDrawRectChange_ = true;
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
     node->geometryChangeNotPerceived_ = true;
-    node->UpdateClipAbsDrawRectChangeState(rectI);
-    EXPECT_FALSE(node->clipAbsDrawRectChange_);
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
+    EXPECT_FALSE(node->srcOrClipedAbsDrawRectChangeFlag_);
 }
 
 /**
@@ -1356,7 +1359,8 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
-	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0");
+	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0, "
+        "ContainerConfig: [outR: 32 inR: 28 x: 0 y: 0 w: 0 h: 0]");
 }
 
 /**
@@ -2154,6 +2158,7 @@ HWTEST_F(RSRenderNodeTest, ManageRenderingResourcesTest022, TestSize.Level1)
     nodeTest->cacheSurface_->cachedCanvas_ = nullptr;
     EXPECT_TRUE(nodeTest->NeedInitCacheSurface());
     nodeTest->cacheSurface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>();
+    nodeTest->NeedInitCacheSurface();
     EXPECT_NE(nodeTest, nullptr);
 }
 

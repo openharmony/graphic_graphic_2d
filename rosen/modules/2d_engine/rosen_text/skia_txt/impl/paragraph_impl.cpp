@@ -25,7 +25,6 @@
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
-#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -122,6 +121,9 @@ bool ParagraphImpl::DidExceedMaxLines()
 size_t ParagraphImpl::GetLineCount() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr || paragraph_->GetMaxLines() == 0) {
+        return 0;
+    }
     return paragraph_->lineNumber();
 }
 
@@ -166,7 +168,6 @@ float ParagraphImpl::DetectIndents(size_t index)
 
 void ParagraphImpl::Layout(double width)
 {
-    TEXT_TRACE_FUNC();
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
@@ -268,6 +269,13 @@ Range<size_t> ParagraphImpl::GetActualTextRange(int lineNumber, bool includeSpac
     }
 }
 
+Range<size_t> ParagraphImpl::GetEllipsisTextRange()
+{
+    RecordDifferentPthreadCall(__FUNCTION__);
+    skt::SkRange<size_t> range = paragraph_->getEllipsisTextRange();
+    return Range<size_t>(range.start, range.end);
+}
+
 std::vector<skia::textlayout::LineMetrics> ParagraphImpl::GetLineMetrics()
 {
     RecordDifferentPthreadCall(__FUNCTION__);
@@ -287,7 +295,7 @@ bool ParagraphImpl::GetLineMetricsAt(int lineNumber, skt::LineMetrics* lineMetri
 TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    
+
     TextStyle txt;
     txt.color = skStyle.getColor();
     txt.decoration = static_cast<TextDecoration>(skStyle.getDecorationType());
@@ -407,6 +415,19 @@ void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
             threadId_, caller);
         threadId_ = currenetThreadId;
     }
+}
+
+Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
+{
+    RecordDifferentPthreadCall("GeneratePaintRegion");
+    if (!paragraph_) {
+        double left = std::floor(x);
+        double top = std::floor(y);
+        return Drawing::RectI(left, top, left, top);
+    }
+
+    SkIRect skIRect = paragraph_->generatePaintRegion(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
 }
 } // namespace SPText
 } // namespace Rosen

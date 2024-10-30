@@ -51,7 +51,7 @@ HWTEST_F(RSFrameRatePolicyTest, interface, TestSize.Level1)
 
     std::string scene = "0";
     float speed = 1.0;
-    instance->GetPreferredFps(scene, speed);
+    EXPECT_EQ(instance->GetPreferredFps(scene, speed), 0);
 }
 
 /**
@@ -65,7 +65,7 @@ HWTEST_F(RSFrameRatePolicyTest, GetRefreshRateMode_Test, TestSize.Level1)
 
     instance->RegisterHgmConfigChangeCallback();
 
-    instance->GetRefreshRateModeName();
+    EXPECT_EQ(instance->GetRefreshRateModeName(), -1);
 }
 
 /**
@@ -168,9 +168,10 @@ HWTEST_F(RSFrameRatePolicyTest, GetPreferredFps, TestSize.Level1)
 HWTEST_F(RSFrameRatePolicyTest, GetExpectedFrameRate, TestSize.Level1)
 {
     auto instance = RSFrameRatePolicy::GetInstance();
+    instance->animAttributes_.insert({ "translate", { { "translate", AnimDynamicAttribute({0, 26, 25}) } } });
     RSPropertyUnit unit = RSPropertyUnit::PIXEL_POSITION;
     int32_t res = instance->GetExpectedFrameRate(unit, 1.f);
-    EXPECT_TRUE(res == 0);
+    EXPECT_FALSE(res == 0);
 
     unit = RSPropertyUnit::PIXEL_SIZE;
     res = instance->GetExpectedFrameRate(unit, 1.f);

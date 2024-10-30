@@ -24,12 +24,14 @@
 #include <vector>
 
 #include "json/json.h"
-
+#include "config_policy_utils.h"
 #include "wrapper_log.h"
 
 namespace OHOS {
 
 namespace {
+
+const std::string JSON_CONFIG_PATH = "etc/graphics_game/config/graphics_game.json";
 
 const std::string DEFAULT_JSON_CONFIG = R"__(
 {
@@ -83,25 +85,61 @@ bool EglSystemLayersManager::GetProcessName(pid_t pid, char *pname, int len)
     return true;
 }
 
-bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
+bool EglSystemLayersManager::GetDefaultJsonConfig(Json::Value &configData)
 {
+    WLOGD("Read default json config");
+
     Json::CharReaderBuilder builder;
     Json::CharReader *charReader = builder.newCharReader();
     if (!charReader) {
         WLOGE("Failed to create new Json::CharReader");
         return false;
     }
+
     const std::unique_ptr<Json::CharReader> reader(charReader);
     JSONCPP_STRING errs;
     bool ret = reader->parse(DEFAULT_JSON_CONFIG.c_str(),
         DEFAULT_JSON_CONFIG.c_str() + static_cast<int>(DEFAULT_JSON_CONFIG.length()), &configData, &errs);
     if (!ret) {
-        WLOGE("json parse error: %{private}s", errs.c_str());
+        WLOGE("default json config parse error: %{private}s", errs.c_str());
         return false;
     } else {
-        WLOGD("json parse success");
+        WLOGD("default json config parse success");
     }
 
+    return true;
+}
+
+bool EglSystemLayersManager::GetJsonConfig(Json::Value &configData)
+{
+    char pathBuf[MAX_PATH_LEN] = {'\0'};
+    char *path = GetOneCfgFile(JSON_CONFIG_PATH.c_str(), pathBuf, MAX_PATH_LEN);
+    if (!path) {
+        WLOGE("Failed to find system config path");
+        return GetDefaultJsonConfig(configData);
+    }
+
+    std::ifstream configFile(std::string(pathBuf), std::ifstream::in);
+    if (!configFile.good()) {
+        WLOGE("Failed to open system json config file");
+        return GetDefaultJsonConfig(configData);
+    }
+
+    Json::CharReaderBuilder builder;
+    JSONCPP_STRING errs;
+    bool readSuccess = Json::parseFromStream(builder, configFile, &configData, &errs);
+    if (!readSuccess) {
+        WLOGE("Failed to parse system json config file, error: %{private}s", errs.c_str());
+        return GetDefaultJsonConfig(configData);
+    }
+
+    std::string hookLayerName("HOOK_LAYER");
+    if (!configData.isMember(hookLayerName)) {
+        WLOGE("Failed to find %{private}s section in system json config file", hookLayerName.c_str());
+        return GetDefaultJsonConfig(configData);
+    }
+
+    configData = configData[hookLayerName];
     return true;
 }
 
@@ -151,7 +189,7 @@ std::vector<std::string> EglSystemLayersManager::GetSystemLayersFromConfig(Json:
             return std::vector<std::string>{};
         }
 
-        return GetStringVectorFromJson(defaultArray);
+        return EglSystemLayersManager::GetStringVectorFromJson(defaultArray);
     }
 
     const Json::Value layersArray = appModeSection[processName];
@@ -160,7 +198,7 @@ std::vector<std::string> EglSystemLayersManager::GetSystemLayersFromConfig(Json:
         return std::vector<std::string>{};
     }
 
-    return GetStringVectorFromJson(layersArray);
+    return EglSystemLayersManager::GetStringVectorFromJson(layersArray);
 }
 
 std::vector<std::string> EglSystemLayersManager::GetSystemLayers()
@@ -194,7 +232,7 @@ std::vector<std::string> EglSystemLayersManager::GetSystemLayers()
 
     constexpr int pnameLen = 512;
     char pname[pnameLen + 1] = {0};
-    bool res = GetProcessName(getpid(), pname, pnameLen);
+    bool res = EglSystemLayersManager::GetProcessName(getpid(), pname, pnameLen);
     if (!res) {
         WLOGE("Failed to get process name");
         return std::vector<std::string>{};

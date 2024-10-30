@@ -39,7 +39,7 @@ namespace {
 static int GetProcessUniqueId()
 {
     static std::atomic<int> g_counter { 0 };
-    return g_counter.fetch_add(1);
+    return g_counter.fetch_add(1, std::memory_order_relaxed);
 }
 }
 
@@ -90,7 +90,6 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     int releaseFence = -1;
     auto iter = imageCacheSeqs_.find(currentSurfaceImage_);
     if (iter != imageCacheSeqs_.end() && iter->second.eglSync_ != EGL_NO_SYNC_KHR) {
-        // PLANNING: use eglDupNativeFenceFDOHOS in the future.
         releaseFence = eglDupNativeFenceFDANDROID(eglDisplay_, iter->second.eglSync_);
     }
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
@@ -125,8 +124,8 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
 
     // acquire buffer
     sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    int64_t timestamp = 0;
     Rect damage;
     ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
     if (ret != SURFACE_ERROR_OK) {
@@ -307,8 +306,8 @@ void SurfaceImage::DestroyEGLImageBySeq(uint32_t seqNum)
     auto iter = imageCacheSeqs_.find(seqNum);
     if (iter != imageCacheSeqs_.end()) {
         DestroyEGLImage(iter->second.eglImage_);
+        imageCacheSeqs_.erase(seqNum);
     }
-    imageCacheSeqs_.erase(seqNum);
 }
 
 void SurfaceImage::NewBufferDestroyEGLImage(bool isNewBuffer, uint32_t seqNum)
@@ -414,9 +413,12 @@ void SurfaceImageListener::OnBufferAvailable()
 
 SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nativeWindowBuffer, int32_t* fenceFd)
 {
+    if (nativeWindowBuffer == nullptr || fenceFd == nullptr) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     int64_t timestamp;
     Rect damage;
     SurfaceError ret = AcquireBuffer(buffer, acquireFence, timestamp, damage);
@@ -446,6 +448,9 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
 
 SurfaceError SurfaceImage::ReleaseNativeWindowBuffer(OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
+    if (nativeWindowBuffer == nullptr) {
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     SurfaceError ret = ReleaseBuffer(nativeWindowBuffer->sfbuffer, fenceFd);

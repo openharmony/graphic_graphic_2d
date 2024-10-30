@@ -15,6 +15,7 @@ group("test") {
   testonly = true
   deps = [
     "fuzztest:fuzztest",
+    "native_color_space_manager:unittest",
     "unittest:unittest",
   ]
 }

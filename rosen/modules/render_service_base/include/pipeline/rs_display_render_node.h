@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include "common/rs_common_def.h"
+#include "platform/common/rs_log.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
@@ -33,15 +34,13 @@
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
-#ifdef NEW_RENDER_CONTEXT
-#include "rs_render_surface.h"
-#else
 #include "platform/drawing/rs_surface.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
 class RSSurfaceRenderNode;
+typedef void (*ReleaseDmaBufferTask)(uint64_t);
+
 class RSB_EXPORT RSDisplayRenderNode : public RSRenderNode {
 public:
     struct ScreenRenderParams
@@ -49,6 +48,7 @@ public:
         ScreenInfo screenInfo;
         std::map<ScreenId, bool> displayHasSecSurface;
         std::map<ScreenId, bool> displayHasSkipSurface;
+        std::map<ScreenId, bool> displayHasSnapshotSkipSurface;
         std::map<ScreenId, bool> displayHasProtectedSurface;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
@@ -73,6 +73,9 @@ public:
 
     void SetScreenId(uint64_t screenId)
     {
+        if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
+            releaseScreenDmaBufferTask_(screenId_);
+        }
         screenId_ = screenId;
     }
 
@@ -80,6 +83,8 @@ public:
     {
         return screenId_;
     }
+
+    static void SetReleaseTask(ReleaseDmaBufferTask callback);
 
     void SetRogSize(uint32_t rogWidth, uint32_t rogHeight)
     {
@@ -400,6 +405,7 @@ public:
         oldScbPids_ = oldScbPids;
         currentScbPid_ = currentScbPid;
         isNeedWaitNewScbPid_ = true;
+        isFullChildrenListValid_ = false;
     }
 
     std::vector<int32_t> GetOldScbPids() const
@@ -495,6 +501,7 @@ private:
 
     bool curZoomState_ = false;
     bool preZoomState_ = false;
+    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
 };
 } // namespace Rosen
 } // namespace OHOS

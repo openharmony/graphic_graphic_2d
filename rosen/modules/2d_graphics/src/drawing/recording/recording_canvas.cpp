@@ -53,12 +53,6 @@ void RecordingCanvas::Clear() const
     cmdList_->ClearOp();
 }
 
-void RecordingCanvas::ResetCanvas(int32_t width, int32_t height)
-{
-    Clear();
-    Reset(width, height);
-}
-
 void RecordingCanvas::Reset(int32_t width, int32_t height, bool addDrawOpImmediate)
 {
     DrawCmdList::UnmarshalMode mode =

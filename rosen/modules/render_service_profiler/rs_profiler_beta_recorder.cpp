@@ -17,11 +17,11 @@
 
 #include "rs_profiler.h"
 #include "rs_profiler_archive.h"
+#include "rs_profiler_command.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_network.h"
 #include "rs_profiler_packet.h"
 #include "rs_profiler_telemetry.h"
-#include "rs_profiler_utils.h"
 
 namespace OHOS::Rosen {
 
@@ -120,14 +120,25 @@ void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string& path
 void RSProfiler::StartBetaRecord()
 {
     if (HasInitializationFinished() && !IsBetaRecordStarted() && IsBetaRecordEnabled()) {
-        g_started = true;
         g_inactiveTimestamp = Now();
+        g_recordsTimestamp = Now();
 
         LaunchBetaRecordNotificationThread();
         LaunchBetaRecordMetricsUpdateThread();
 
         // Start recording for the first file
         RecordStart(ArgList());
+
+        g_started = true;
+    }
+}
+
+void RSProfiler::StopBetaRecord()
+{
+    if (IsBetaRecordStarted()) {
+        RecordStop(ArgList());
+        g_started = false;
+        g_inactiveTimestamp = 0;
     }
 }
 
@@ -138,13 +149,9 @@ bool RSProfiler::IsBetaRecordStarted()
 
 void RSProfiler::SaveBetaRecord()
 {
-    if (!IsBetaRecordSavingTriggered()) {
-        return;
-    }
-
     constexpr double recordMaxLengthSeconds = 30.0;
     const auto recordLength = Now() - g_recordsTimestamp;
-    if (recordLength > recordMaxLengthSeconds) {
+    if (!IsBetaRecordSavingTriggered() && (recordLength <= recordMaxLengthSeconds)) {
         return;
     }
 
@@ -158,10 +165,8 @@ void RSProfiler::UpdateBetaRecord()
     if (!IsBetaRecordStarted()) {
         return;
     }
-
     if (!IsBetaRecordEnabled()) {
-        RecordStop(ArgList());
-        g_started = false;
+        return;
     }
 
     if (!IsRecording()) {

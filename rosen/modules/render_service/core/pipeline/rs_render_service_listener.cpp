@@ -92,20 +92,8 @@ void RSRenderServiceListener::OnCleanCache()
         RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
-    RS_LOGI("RSRenderServiceListener::OnCleanCache ResetBufferAvailableCount");
+    RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
     node->GetRSSurfaceHandler()->ResetBufferAvailableCount();
-    node->SetNeedClearPreBuffer(true);
-    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
-    RSMainThread::Instance()->PostTask([surfaceNode]() {
-        auto nodePtr = surfaceNode.lock();
-        if (nodePtr == nullptr) {
-            RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
-            return;
-        }
-        RS_LOGI("RSRenderServiceListener::OnCleanCache node Name:%{public}s id:%{public}" PRIu64,
-            nodePtr->GetName().c_str(), nodePtr->GetId());
-        nodePtr->NeedClearBufferCache();
-    });
 }
 
 void RSRenderServiceListener::OnGoBackground()
@@ -124,7 +112,6 @@ void RSRenderServiceListener::OnGoBackground()
         surfaceHandler->CleanCache();
         node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, go background", node->GetId());
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();
     });
@@ -140,10 +127,11 @@ void RSRenderServiceListener::OnTransformChange()
             return;
         }
         RS_LOGD("RsDebug RSRenderServiceListener::OnTransformChange node id:%{public}" PRIu64, node->GetId());
-        ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, transform changed", node->GetId());
         node->SetContentDirty();
         node->SetDoDirectComposition(false);
-        node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
+        if (node->GetRSSurfaceHandler() != nullptr) {
+            node->GetRSSurfaceHandler()->SetBufferTransformTypeChanged(true);
+        }
     });
 }
 } // namespace Rosen

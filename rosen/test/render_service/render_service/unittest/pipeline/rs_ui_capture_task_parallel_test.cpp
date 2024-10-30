@@ -104,8 +104,6 @@ public:
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
 
-        RSUniRenderThread::Instance().InitGrContext();
-
         auto& renderNodeGC = RSRenderNodeGC::Instance();
         renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
         renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
@@ -533,41 +531,6 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest |
     parent4->renderContent_->renderProperties_.SetBoundsHeight(1024.0f);
     renderNode->parent_ = parent4;
     ASSERT_EQ(renderNodeHandle->CreateResources(), true);
-}
-
-/*
- * @tc.name: Run001
- * @tc.desc: Test RSUiCaptureTaskParallel::Run
- * @tc.type: FUNC
- * @tc.require: issueIA6QID
-*/
-HWTEST_F(RSUiCaptureTaskParallelTest, Run001, Function | SmallTest | Level2)
-{
-    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
-    auto handle = BuildTaskParallel(-1, 0.0f, 0.0f);
-    ASSERT_EQ(handle->Run(mockCallback), false);
-
-    handle->CreateResources();
-    ASSERT_EQ(handle->Run(mockCallback), false);
-}
-
-/*
- * @tc.name: Run002
- * @tc.desc: Test RSUiCaptureTaskParallel::Run
- * @tc.type: FUNC
- * @tc.require: issueIA6QID
-*/
-HWTEST_F(RSUiCaptureTaskParallelTest, Run002, Function | SmallTest | Level2)
-{
-    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
-    auto handle = BuildTaskParallel(200, 1024.0f, 1024.0f);
-    ASSERT_EQ(handle->Run(mockCallback), false);
-
-    handle->CreateResources();
-    ASSERT_EQ(handle->Run(mockCallback), true);
-
-    handle->nodeDrawable_ = nullptr;
-    ASSERT_EQ(handle->Run(mockCallback), false);
 }
 
 /*

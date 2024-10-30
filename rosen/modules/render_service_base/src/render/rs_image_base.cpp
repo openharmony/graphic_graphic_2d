@@ -16,6 +16,7 @@
 #include "render/rs_image_base.h"
 
 #include <unistd.h>
+#include "image_type.h"
 #include "image/image.h"
 #include "common/rs_background_thread.h"
 #ifdef RS_ENABLE_PARALLEL_UPLOAD
@@ -43,13 +44,14 @@ namespace OHOS::Rosen {
 RSImageBase::~RSImageBase()
 {
     if (pixelMap_) {
+#ifdef ROSEN_OHOS
+        if (renderServiceImage_) {
+            pixelMap_->DecreaseUseCount();
+        }
+#endif
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
-            if (renderServiceImage_) {
-                RSImageCache::Instance().CollectUniqueId(uniqueId_);
-            } else {
-                RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
-            }
+            RSImageCache::Instance().CollectUniqueId(uniqueId_);
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -92,6 +94,8 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
             return Drawing::COLORTYPE_RGBA_F16;
         case VK_FORMAT_R5G6B5_UNORM_PACK16:
             return Drawing::COLORTYPE_RGB_565;
+        case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+            return Drawing::COLORTYPE_RGBA_1010102;
         default:
             return Drawing::COLORTYPE_RGBA_8888;
     }
@@ -100,6 +104,11 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 
 void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
 {
+#ifdef ROSEN_OHOS
+    if (pixelMap_) {
+        pixelMap_->ReMap();
+    }
+#endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
         BindPixelMapToDrawingImage(canvas);
@@ -141,11 +150,17 @@ void RSImageBase::MarkYUVImage()
 {
     isDrawn_ = false;
     isYUVImage_ = true;
+    canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
 }
 #endif
 
 void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
 {
+#ifdef ROSEN_OHOS
+    if (pixelMap_) {
+        pixelMap_->DecreaseUseCount();
+    }
+#endif
     pixelMap_ = pixelmap;
     if (pixelMap_) {
         srcRect_.SetAll(0.0, 0.0, pixelMap_->GetWidth(), pixelMap_->GetHeight());
@@ -179,6 +194,9 @@ void RSImageBase::SetDstRect(const RectF& dstRect)
 void RSImageBase::SetImagePixelAddr(void* addr)
 {
     imagePixelAddr_ = addr;
+    if (imagePixelAddr_) {
+        canPurgeShareMemFlag_ = CanPurgeFlag::DISABLED;
+    }
 }
 
 void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
@@ -188,7 +206,11 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
     }
     if (pixelMap_) {
 #ifndef ROSEN_ARKUI_X
+#ifdef ROSEN_OHOS
+        MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetFd(), nodeId, ExtractPid(nodeId));
+#else
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
+#endif
 #endif
     }
     if (image_ || imagePixelAddr_) {
@@ -198,9 +220,45 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
     }
 }
 
+void RSImageBase::Purge()
+{
+#ifdef ROSEN_OHOS
+    if (canPurgeShareMemFlag_ != CanPurgeFlag::ENABLED ||
+        image_ == nullptr ||
+        uniqueId_ <= 0) {
+        return;
+    }
+    if (!pixelMap_ || pixelMap_->IsUnMap() ||
+        pixelMap_->GetAllocatorType() != Media::AllocatorType::SHARE_MEM_ALLOC) {
+        return;
+    }
+
+    int refCount = RSImageCache::Instance().CheckRefCntAndReleaseImageCache(uniqueId_, pixelMap_, image_);
+    if (refCount > 1) { // skip purge if multi RsImage Holds this PixelMap
+        return;
+    }
+    isDrawn_ = false;
+    image_ = nullptr;
+#endif
+}
+
 void RSImageBase::MarkRenderServiceImage()
 {
     renderServiceImage_ = true;
+#ifdef ROSEN_OHOS
+    if (!pixelMap_) {
+        return;
+    }
+    pixelMap_->IncreaseUseCount();
+    if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED &&
+        RSSystemProperties::GetRenderNodePurgeEnabled() &&
+        (pixelMap_->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
+        !pixelMap_->IsEditable() &&
+        !pixelMap_->IsAstc() &&
+        !pixelMap_->IsHdr()) {
+        canPurgeShareMemFlag_ = CanPurgeFlag::ENABLED;
+    }
+#endif
 }
 
 #ifdef ROSEN_OHOS
@@ -384,6 +442,11 @@ void RSImageBase::ConvertPixelMapToDrawingImage(bool paraUpload)
 #endif
         }
     }
+}
+
+uint64_t RSImageBase::GetUniqueId() const
+{
+    return uniqueId_;
 }
 
 void RSImageBase::GenUniqueId(uint32_t id)

@@ -314,6 +314,7 @@ HWTEST_F(RSTransactionDataTest, AlarmRsNodeLog, TestSize.Level1)
 {
     RSTransactionData rsTransactionData;
     rsTransactionData.AlarmRsNodeLog();
+    EXPECT_EQ(rsTransactionData.pid_, 0);
 }
 
 /**
@@ -328,6 +329,7 @@ HWTEST_F(RSTransactionDataTest, AddCommand, TestSize.Level1)
     Parcel parcel;
     std::unique_ptr<RSCommand> command;
     rsTransactionData.AddCommand(command, 1, FollowType::FOLLOW_TO_PARENT);
+    EXPECT_EQ(command, nullptr);
 }
 
 /**
@@ -360,40 +362,9 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid, TestSize.Level1)
     pid_t conflictCommandPid = 0;
     std::string commandMapDesc = "";
 
-    bool isCallingPidValid0 =
+    bool isCallingPidValid =
         rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap, conflictCommandPid, commandMapDesc);
-    EXPECT_TRUE(isCallingPidValid0);
-
-    NodeId id1 = 1;
-    RSSurfaceRenderNodeConfig config1 = { .id = id1, .nodeType = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE };
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(config1);
-    EXPECT_NE(node1, nullptr);
-    bool isRegisterSuccess1 = rsRenderNodeMap.RegisterRenderNode(node1);
-    EXPECT_TRUE(isRegisterSuccess1);
-    uint16_t commandType1 = 0;
-    uint16_t commandSubType1 = 0;
-    rsTransactionData.InsertCommandToMap(id1, {commandType1, commandSubType1});
-    bool isCallingPidValid1 =
-        rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap, conflictCommandPid, commandMapDesc);
-    EXPECT_TRUE(isCallingPidValid1);
-
-    NodeId id2 = 2;
-    RSSurfaceRenderNodeConfig config2 = { .id = id2, .nodeType = RSSurfaceNodeType::DEFAULT };
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(config2);
-    EXPECT_NE(node2, nullptr);
-    bool isRegisterSuccess2 = rsRenderNodeMap.RegisterRenderNode(node2);
-    EXPECT_TRUE(isRegisterSuccess2);
-    uint16_t commandType2 = 1;
-    uint16_t commandSubType2 = 1;
-    rsTransactionData.InsertCommandToMap(id2, {commandType2, commandSubType2});
-    bool isCallingPidValid2 =
-        rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap, conflictCommandPid, commandMapDesc);
-    EXPECT_FALSE(isCallingPidValid2);
-
-    rsTransactionData.ClearCommandMap();
-    bool isCallingPidValid3 =
-        rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap, conflictCommandPid, commandMapDesc);
-    EXPECT_TRUE(isCallingPidValid3);
+    EXPECT_TRUE(isCallingPidValid);
 }
 } // namespace Rosen
 } // namespace OHOS

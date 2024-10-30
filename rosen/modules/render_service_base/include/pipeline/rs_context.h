@@ -50,6 +50,7 @@ public:
 
 #ifndef ROSEN_CROSS_PLATFORM
     struct BufferInfo {
+        NodeId id = INVALID_NODEID;
         sptr<SurfaceBuffer> buffer;
         sptr<IConsumerSurface> consumer;
         bool useFence = false;
@@ -72,6 +73,11 @@ public:
         return nodeMap;
     }
 
+    const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& GetAnimatingNodeList() const
+    {
+        return animatingNodeList_;
+    }
+
     RSRenderFrameRateLinkerMap& GetMutableFrameRateLinkerMap()
     {
         return frameRateLinkerMap;
@@ -91,13 +97,6 @@ public:
     {
         return interactiveImplictAnimatorMap_;
     }
-
-#ifndef ROSEN_CROSS_PLATFORM
-    std::unordered_map<NodeId, BufferInfo>& GetMutableSkipSyncBuffer()
-    {
-        return skipSyncBuffer_;
-    }
-#endif
 
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
     void UnregisterAnimatingRenderNode(NodeId id);
@@ -179,6 +178,18 @@ public:
         return uiFrameworkDirtyNodes_;
     }
 
+    void SetRequestedNextVsyncAnimate(bool requestedNextVsyncAnimate)
+    {
+        requestedNextVsyncAnimate_ = requestedNextVsyncAnimate;
+    }
+
+    bool IsRequestedNextVsyncAnimate() const
+    {
+        return requestedNextVsyncAnimate_;
+    }
+
+    // save some need sync finish to client animations in list
+    void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -192,6 +203,9 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
+    // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
+    bool requestedNextVsyncAnimate_ = false;
+    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
     PurgeType purgeType_ = PurgeType::NONE;
     ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 
@@ -205,9 +219,6 @@ private:
     std::mutex activeNodesInRootMutex_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
-#ifndef ROSEN_CROSS_PLATFORM
-    std::unordered_map<NodeId, BufferInfo> skipSyncBuffer_;
-#endif
 
     friend class RSRenderThread;
     friend class RSMainThread;

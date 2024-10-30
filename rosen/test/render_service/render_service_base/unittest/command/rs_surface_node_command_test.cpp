@@ -28,6 +28,8 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceNodeCommandTest::SetUpTestCase() {}
@@ -267,12 +269,11 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetContainerWindow001, TestSize.Level1)
     RSContext context;
     NodeId id = -10;
     bool hasContainerWindow = false;
-    float density = 0.1;
-    SurfaceNodeCommandHelper::SetContainerWindow(context, id, hasContainerWindow, density);
+    SurfaceNodeCommandHelper::SetContainerWindow(context, id, hasContainerWindow, rrect);
     NodeId id2 = 10;
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
-    SurfaceNodeCommandHelper::SetContainerWindow(*context2, id2, hasContainerWindow, density);
+    SurfaceNodeCommandHelper::SetContainerWindow(*context2, id2, hasContainerWindow, rrect);
 }
 
 /**
@@ -310,6 +311,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipLayerTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetSnapshotSkipLayerTest001
+ * @tc.desc: SetSnapshotSkipLayer test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetSnapshotSkipLayerTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(-1);
+    bool isSnapshotSkipLayer = false;
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id, isSnapshotSkipLayer);
+    NodeId id2 = 10;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetSnapshotSkipLayer(context, id2, isSnapshotSkipLayer);
+}
+
+/**
  * @tc.name: SetBootAnimation001
  * @tc.desc: SetBootAnimation test.
  * @tc.type: FUNC
@@ -323,6 +340,22 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetBootAnimation001, TestSize.Level1)
     NodeId id2 = 10;
     SurfaceNodeCommandHelper::Create(context, id2);
     SurfaceNodeCommandHelper::SetBootAnimation(context, id2, true);
+}
+
+/**
+ * @tc.name: SetGlobalPositionEnabled001
+ * @tc.desc: SetGlobalPositionEnabled test.
+ * @tc.type: FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetGlobalPositionEnabled001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(-1);
+    SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id, false);
+    NodeId id2 = 10;
+    SurfaceNodeCommandHelper::Create(context, id2);
+    SurfaceNodeCommandHelper::SetGlobalPositionEnabled(context, id2, true);
 }
 
 /**
@@ -468,6 +501,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
     std::string name = "name";             // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
     SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
+    EXPECT_TRUE(context.GetMutableNodeMap().renderNodeMap_.count(1));
 }
 
 /**
@@ -543,6 +577,21 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipDrawTest, TestSize.Level1)
     SurfaceNodeCommandHelper::SetSkipDraw(context, 0, true);
     SurfaceNodeCommandHelper::Create(context, 1);
     SurfaceNodeCommandHelper::SetSkipDraw(context, 1, true);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+}
+
+/**
+ * @tc.name: SetAbilityState
+ * @tc.desc: Verify function SetAbilityState
+ * @tc.type: FUNC
+ * @tc.require: issueIAQL48
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetAbilityState, TestSize.Level1)
+{
+    RSContext context;
+    SurfaceNodeCommandHelper::SetAbilityState(context, 0, RSSurfaceNodeAbilityState::FOREGROUND);
+    SurfaceNodeCommandHelper::Create(context, 1);
+    SurfaceNodeCommandHelper::SetAbilityState(context, 1, RSSurfaceNodeAbilityState::FOREGROUND);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 } // namespace OHOS::Rosen

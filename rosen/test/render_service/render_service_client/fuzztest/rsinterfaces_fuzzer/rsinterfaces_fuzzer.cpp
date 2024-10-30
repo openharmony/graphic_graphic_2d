@@ -132,6 +132,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.ResizeVirtualScreen(static_cast<NodeId>(id), width, height);
     rsInterfaces.SetVirtualMirrorScreenCanvasRotation(static_cast<ScreenId>(id), canvasRotation);
     rsInterfaces.SetVirtualMirrorScreenScaleMode(static_cast<ScreenId>(id), static_cast<ScreenScaleMode>(scaleMode));
+    rsInterfaces.SetGlobalDarkColorMode(GetData<bool>());
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
@@ -179,6 +180,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     VirtualScreenStatus screenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
     rsInterfaces.SetVirtualScreenStatus(static_cast<ScreenId>(id), static_cast<VirtualScreenStatus>(screenStatus));
 
+    std::string nodeIdStr = GetData<std::string>();
+    bool isTop = GetData<bool>();
+    rsInterfaces.SetLayerTop(nodeIdStr, isTop);
     return true;
 }
 

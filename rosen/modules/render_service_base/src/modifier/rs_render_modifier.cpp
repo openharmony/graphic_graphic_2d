@@ -95,6 +95,15 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             return modifier;
         },
     },
+    { RSModifierType::CUSTOM_CLIP_TO_FRAME, [](Parcel& parcel) -> RSRenderModifier* {
+            std::shared_ptr<RSRenderAnimatableProperty<Vector4f>> prop;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                return nullptr;
+            }
+            auto modifier = new RSCustomClipToFrameRenderModifier(prop);
+            return modifier;
+        },
+    },
     { RSModifierType::GEOMETRYTRANS, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<Drawing::Matrix>> prop;
             int16_t type;
@@ -216,6 +225,29 @@ void RSEnvForegroundColorStrategyRenderModifier::Update(const std::shared_ptr<RS
 {
     if (auto property = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType >>(prop)) {
         auto renderProperty = std::static_pointer_cast<RSRenderProperty<ForegroundColorStrategyType >>(property_);
+        renderProperty->Set(property->Get());
+    }
+}
+
+bool RSCustomClipToFrameRenderModifier::Marshalling(Parcel& parcel)
+{
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
+    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::CUSTOM_CLIP_TO_FRAME)) &&
+        RSMarshallingHelper::Marshalling(parcel, renderProperty);
+}
+
+void RSCustomClipToFrameRenderModifier::Apply(RSModifierContext& context) const
+{
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
+    const auto& rect4f = renderProperty->Get();
+    Drawing::Rect customClipRect(rect4f.x_, rect4f.y_, rect4f.z_, rect4f.w_);
+    context.canvas_->ClipRect(customClipRect);
+}
+
+void RSCustomClipToFrameRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
+{
+    if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(prop)) {
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<Vector4f>>(property_);
         renderProperty->Set(property->Get());
     }
 }

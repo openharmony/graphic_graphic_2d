@@ -33,6 +33,8 @@ public:
     void SetUp() override;
     void TearDown() override;
     static inline NodeId id;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeThreeTest::SetUpTestCase() {}
@@ -486,6 +488,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, GetChildrenNeedFilterRectsCacheValid, Tes
 HWTEST_F(RSSurfaceRenderNodeThreeTest, CheckOpaqueRegionBaseInfo, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    node->InitRenderParams();
     RectI screeninfo;
     RectI absRect;
     ScreenRotation screenRotation = ScreenRotation::ROTATION_0;
@@ -493,9 +496,8 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, CheckOpaqueRegionBaseInfo, TestSize.Level
     Vector4<int> cornerRadius;
     ASSERT_FALSE(node->CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius));
     bool hasContainer = true;
-    float density = 1.0f;
-    node->containerConfig_.Update(hasContainer, density);
-    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->containerConfig_.Update(hasContainer, rrect);
+    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
     node->addedToPendingSyncList_ = true;
     node->isHardwareForcedDisabled_ = true;
     node->UpdateHardwareDisabledState(true);
@@ -586,6 +588,40 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, GetHasProtectedLayer002, TestSize.Level2)
 
     node->SetProtectedLayer(false);
     bool result = node->GetHasProtectedLayer();
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: GetHasPrivacyContentLayer001
+ * @tc.desc: Test GetHasPrivacyContentLayer when SetProtectedLayer is true.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, GetHasPrivacyContentLayer001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHidePrivacyContent(true);
+    bool result = node->GetHasPrivacyContentLayer();
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: GetHasPrivacyContentLayer002
+ * @tc.desc: Test GetHasPrivacyContentLayer when SetProtectedLayer is false.
+ * @tc.type: FUNC
+ * @tc.require: issueI7ZSC2
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, GetHasPrivacyContentLayer002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+
+    node->SetHidePrivacyContent(false);
+    bool result = node->GetHasPrivacyContentLayer();
     ASSERT_EQ(result, false);
 }
 
@@ -1139,6 +1175,23 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, ProcessAnimatePropertyBeforeChildren, Tes
     properties.SetCornerRadius({1.f, 1.f, 1.f, 1.f});
     node->ProcessAnimatePropertyBeforeChildren(filterCanvas, true);
     ASSERT_FALSE(properties.GetCornerRadius().IsZero());
+}
+
+/**
+ * @tc.name: SetHardCursorStatus
+ * @tc.desc: SetHardCursorStatus and GetHardCursorStatus and GetHardCursorLastStatus test
+ * @tc.type:FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, SetHardCursorStatusTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    node->SetHardCursorStatus(true);
+    EXPECT_EQ(node->GetHardCursorStatus(), true);
+    EXPECT_EQ(node->GetHardCursorLastStatus(), false);
+    node->SetHardCursorStatus(false);
+    EXPECT_EQ(node->GetHardCursorStatus(), false);
+    EXPECT_EQ(node->GetHardCursorLastStatus(), true);
 }
 } // namespace Rosen
 } // namespace OHOS

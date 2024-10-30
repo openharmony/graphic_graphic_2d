@@ -90,6 +90,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
         .textHeightBehavior = static_cast<SPText::TextHeightBehavior>(style.textHeightBehavior),
         .hintingIsOn = style.hintingIsOn,
         .breakStrategy = static_cast<SPText::BreakStrategy>(style.breakStrategy),
+        .tab = Convert(style.tab),
     };
 }
 
@@ -270,6 +271,14 @@ TextStyle Convert(const SPText::TextStyle& style)
     SplitTextStyleConvert(textStyle, style);
 
     return textStyle;
+}
+
+SPText::TextTab Convert(const TextTab& tab)
+{
+    return {
+        static_cast<SPText::TextAlign>(tab.alignment),
+        tab.location,
+    };
 }
 } // namespace AdapterTxt
 } // namespace Rosen

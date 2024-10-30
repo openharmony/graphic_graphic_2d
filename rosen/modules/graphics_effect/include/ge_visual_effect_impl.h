@@ -36,7 +36,6 @@ public:
         MESA_BLUR,
         GREY, AIBAR,
         LINEAR_GRADIENT_BLUR,
-        HPS_BLUR,
         WATER_RIPPLE,
         MAGNIFIER,
         MAX
@@ -129,16 +128,6 @@ public:
         return linearGradientBlurParams_;
     }
 
-    void MakeHpsBlurParams()
-    {
-        hpsBlurParams_ = std::make_shared<HpsBlurFilterParams>();
-    }
-
-    const std::shared_ptr<HpsBlurFilterParams>& GetHpsBlurParams() const
-    {
-        return hpsBlurParams_;
-    }
-
     void MakeMagnifierParams()
     {
         magnifierParams_ = std::make_shared<GEMagnifierShaderFilterParams>();
@@ -159,7 +148,6 @@ private:
     void SetMagnifierParamsFloat(const std::string& tag, float param);
     void SetMagnifierParamsUint32(const std::string& tag, uint32_t param);
     void SetWaterRippleParams(const std::string& tag, float param);
-    void SetHpsBlurParams(const std::string& tag, float param);
 
     FilterType filterType_ = GEVisualEffectImpl::FilterType::NONE;
 
@@ -170,7 +158,6 @@ private:
     std::shared_ptr<GELinearGradientBlurShaderFilterParams> linearGradientBlurParams_ = nullptr;
     std::shared_ptr<GEMagnifierShaderFilterParams> magnifierParams_ = nullptr;
     std::shared_ptr<GEWaterRippleFilterParams> waterRippleParams_ = nullptr;
-    std::shared_ptr<HpsBlurFilterParams> hpsBlurParams_ = nullptr;
 };
 
 } // namespace Drawing

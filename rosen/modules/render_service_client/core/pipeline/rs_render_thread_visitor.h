@@ -71,11 +71,7 @@ private:
         int strokeWidth = 6);
     void DrawDirtyRegion();
     // Update damageRegion based on buffer age, and then set it through egl api
-#ifdef NEW_RENDER_CONTEXT
-    void UpdateDirtyAndSetEGLDamageRegion(std::shared_ptr<RSRenderSurface>& surface);
-#else
     void UpdateDirtyAndSetEGLDamageRegion(std::unique_ptr<RSSurfaceFrame>& surfaceFrame);
-#endif
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
@@ -104,6 +100,8 @@ private:
     RectF surfaceNodeParentBoundsRect_;
     std::vector<NodeId> childSurfaceNodeIds_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
+    // record parent surfaceNode to update absMatrix
+    std::shared_ptr<RSRenderNode> parentSurfaceNode_ = nullptr;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVector_;
 

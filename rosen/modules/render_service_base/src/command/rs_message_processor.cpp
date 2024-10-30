@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <atomic>
-
 #include "command/rs_message_processor.h"
 
 #include "command/rs_command.h"
@@ -23,15 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-static std::atomic_bool g_instanceValid = false;
-}
-
-RSMessageProcessor::RSMessageProcessor()
-{
-    g_instanceValid.store(true);
-}
-
 RSMessageProcessor& RSMessageProcessor::Instance()
 {
     static RSMessageProcessor processor;
@@ -40,19 +29,17 @@ RSMessageProcessor& RSMessageProcessor::Instance()
 
 RSMessageProcessor::~RSMessageProcessor()
 {
-    g_instanceValid.store(false);
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     transactionMap_.clear();
 }
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& command)
 {
-    if (!g_instanceValid.load()) {
-        return;
-    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     if (!transactionMap_.count(pid)) {
         std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+        transactionDataIndex_++;
+        transactionData->SetIndex(transactionDataIndex_);
         transactionMap_[pid] = transactionData;
     }
     transactionMap_[pid]->AddCommand(std::move(command), 0, FollowType::NONE);
@@ -60,12 +47,11 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>& 
 
 void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&& command)
 {
-    if (!g_instanceValid.load()) {
-        return;
-    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     if (!transactionMap_.count(pid)) {
         std::shared_ptr<RSTransactionData> transactionData = std::make_shared<RSTransactionData>();
+        transactionDataIndex_++;
+        transactionData->SetIndex(transactionDataIndex_);
         transactionMap_[pid] = transactionData;
     }
     transactionMap_[pid]->AddCommand(std::move(command), 0, FollowType::NONE);
@@ -73,37 +59,19 @@ void RSMessageProcessor::AddUIMessage(uint32_t pid, std::unique_ptr<RSCommand>&&
 
 bool RSMessageProcessor::HasTransaction() const
 {
-    if (!g_instanceValid.load()) {
-        return false;
-    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     return !transactionMap_.empty();
 }
 
 bool RSMessageProcessor::HasTransaction(uint32_t pid) const
 {
-    if (!g_instanceValid.load()) {
-        return false;
-    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     auto iter = transactionMap_.find(pid);
     return iter != transactionMap_.end() && !iter->second->IsEmpty();
 }
 
-void RSMessageProcessor::ReInitializeMovedMap()
-{
-    if (!g_instanceValid.load()) {
-        return;
-    }
-    std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    transactionMap_ = decltype(transactionMap_)();
-}
-
 std::shared_ptr<RSTransactionData> RSMessageProcessor::GetTransaction(uint32_t pid)
 {
-    if (!g_instanceValid.load()) {
-        return nullptr;
-    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
     auto iter = transactionMap_.find(pid);
     if (iter != transactionMap_.end()) {
@@ -115,13 +83,12 @@ std::shared_ptr<RSTransactionData> RSMessageProcessor::GetTransaction(uint32_t p
     }
 }
 
-std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& RSMessageProcessor::GetAllTransactions()
+std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> RSMessageProcessor::GetAllTransactions()
 {
-    if (!g_instanceValid.load()) {
-        return {};
-    }
     std::unique_lock<std::mutex> lock(transactionMapMutex_);
-    return std::move(transactionMap_);
+    auto ret = std::move(transactionMap_);
+    transactionMap_.clear();
+    return ret;
 }
 
 } // namespace Rosen

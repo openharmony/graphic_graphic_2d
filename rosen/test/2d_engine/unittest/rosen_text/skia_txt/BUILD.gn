@@ -21,7 +21,6 @@ ohos_unittest("rosen_text_skia_txt_test") {
   module_out_path = module_output_path
   if (use_skia_txt) {
     sources = [
-      "asset_font_manager_test.cpp",
       "drawing_painter_impl_test.cpp",
       "font_collection_test.cpp",
       "paint_record_test.cpp",
@@ -29,6 +28,7 @@ ohos_unittest("rosen_text_skia_txt_test") {
       "paragraph_style_test.cpp",
       "paragraph_test.cpp",
       "run_test.cpp",
+      "text_bundle_config_parser_test.cpp",
       "text_line_base_test.cpp",
       "text_style_test.cpp",
       "typeface_font_asset_provider_test.cpp",
@@ -44,12 +44,13 @@ ohos_unittest("rosen_text_skia_txt_test") {
     "$rosen_root/modules/2d_graphics/include/recording",
     "$rosen_root/modules/2d_graphics/include/text",
     "$skia_root_new",
+    "$skia_root_new/modules/skparagraph",
   ]
 
   cflags_cc = [
     "-std=c++17",
-    "-Dprivate = public",
-    "-Dprotected = public",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   platform = current_os
@@ -61,9 +62,10 @@ ohos_unittest("rosen_text_skia_txt_test") {
     defines = [
       "USE_ROSEN_DRAWING",
       "USE_SKIA_TXT",
+      "OHOS_SUPPORT",
     ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
   }
 
@@ -76,6 +78,17 @@ ohos_unittest("rosen_text_skia_txt_test") {
   ]
 
   external_deps = [ "hilog:libhilog" ]
+
+  if (platform == "ohos" || platform == "ohos_ng") {
+    external_deps += [
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
+      "c_utils:utils",
+      "ipc:ipc_core",
+      "samgr:samgr_proxy",
+    ]
+    defines += [ "OHOS_TEXT_ENABLE" ]
+  }
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

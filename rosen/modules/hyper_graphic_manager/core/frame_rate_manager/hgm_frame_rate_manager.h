@@ -126,7 +126,7 @@ public:
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
-    ScreenId GetCurScreenId() const { return curScreenId_; };
+    ScreenId GetCurScreenId() const { return curScreenId_.load(); };
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -167,7 +167,7 @@ public:
     }
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
-    std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
+    static std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
         std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
@@ -180,7 +180,7 @@ private:
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
     void FrameRateReport();
-    uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range);
+    uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     int32_t GetPreferredFps(const std::string& type, float velocity) const;
     static float PixelToMM(float velocity);
@@ -192,8 +192,8 @@ private:
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
-    bool IsCurrentScreenSupportAS();
-    void ProcessAdaptiveSync(std::string voterName);
+    static bool IsCurrentScreenSupportAS();
+    void ProcessAdaptiveSync(const std::string& voterName);
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
@@ -204,12 +204,11 @@ private:
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
     void SetResultVoteInfo(VoteInfo& voteInfo, uint32_t min, uint32_t max);
     void UpdateEnergyConsumptionConfig();
-    static void EnterEnergyConsumptionAssuranceMode();
-    static void ExitEnergyConsumptionAssuranceMode();
     static void ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip);
     void RegisterCoreCallbacksAndInitController(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     void InitRsIdleTimer();
+    void InitPowerTouchManager();
 
     uint32_t currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -218,6 +217,8 @@ private:
     std::mutex pendingMutex_;
     std::shared_ptr<uint32_t> pendingRefreshRate_ = nullptr;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t lastPendingConstraintRelativeTime_ = 0;
+    uint32_t lastPendingRefreshRate_ = 0;
     int64_t vsyncCountOfChangeGeneratorRate_ = -1; // default vsyncCount
     std::atomic<bool> changeGeneratorRateValid_{ true };
     // concurrency protection <<<
@@ -242,7 +243,7 @@ private:
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
-    ScreenId curScreenId_ = 0;
+    std::atomic<ScreenId> curScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
     int32_t idleFps_ = OLED_60_HZ;
@@ -254,6 +255,8 @@ private:
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
+    // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
+    HgmTouchManager powerTouchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
     bool needHighRefresh_ = false;

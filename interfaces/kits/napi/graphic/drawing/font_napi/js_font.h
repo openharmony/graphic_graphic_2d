@@ -65,6 +65,9 @@ public:
     static napi_value GetHinting(napi_env env, napi_callback_info info);
     static napi_value GetEdging(napi_env env, napi_callback_info info);
     static napi_value TextToGlyphs(napi_env env, napi_callback_info info);
+    static napi_value CreatePathForGlyph(napi_env env, napi_callback_info info);
+    static napi_value GetBounds(napi_env env, napi_callback_info info);
+    static napi_value CreatePathForText(napi_env env, napi_callback_info info);
 
     std::shared_ptr<Font> GetFont();
     void SetFont(std::shared_ptr<Font> font);
@@ -81,11 +84,11 @@ private:
     napi_value OnGetTypeface(napi_env env, napi_callback_info info);
     napi_value OnGetSize(napi_env env, napi_callback_info info);
     napi_value OnGetMetrics(napi_env env, napi_callback_info info);
-    napi_value OnMeasureSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnGetWidths(napi_env env, napi_callback_info info);
     napi_value OnIsBaselineSnap(napi_env env, napi_callback_info info);
     napi_value OnIsEmbeddedBitmaps(napi_env env, napi_callback_info info);
     napi_value OnIsForceAutoHinting(napi_env env, napi_callback_info info);
+    napi_value OnMeasureSingleCharacter(napi_env env, napi_callback_info info);
     napi_value OnMeasureText(napi_env env, napi_callback_info info);
     napi_value OnSetScaleX(napi_env env, napi_callback_info info);
     napi_value OnSetSkewX(napi_env env, napi_callback_info info);
@@ -100,6 +103,9 @@ private:
     napi_value OnGetHinting(napi_env env, napi_callback_info info);
     napi_value OnGetEdging(napi_env env, napi_callback_info info);
     napi_value OnTextToGlyphs(napi_env env, napi_callback_info info);
+    napi_value OnCreatePathForGlyph(napi_env env, napi_callback_info info);
+    napi_value OnGetBounds(napi_env env, napi_callback_info info);
+    napi_value OnCreatePathForText(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Font> m_font = nullptr;

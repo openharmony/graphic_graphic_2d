@@ -94,7 +94,7 @@ private:
     void DestroyEGLImageBySeq(uint32_t seqNum);
 
     uint32_t textureId_ = 0;
-    uint32_t textureTarget_ = 0;
+    uint32_t textureTarget_ = GL_TEXTURE_EXTERNAL_OES;
     std::string surfaceImageName_;
 
     std::mutex opMutex_;

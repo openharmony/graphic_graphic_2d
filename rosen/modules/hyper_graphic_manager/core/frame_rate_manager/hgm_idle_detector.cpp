@@ -23,6 +23,7 @@ namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     constexpr uint64_t MAX_CACHED_VALID_SURFACE_NAME_COUNT = 60;
     constexpr uint32_t FPS_MAX = 120;
+    constexpr int32_t ANIMATOR_NO_EXPECTED_FRAME_RATE = 0;
     const std::string ACE_ANIMATOR_NAME = "AceAnimato";
     const std::string OTHER_SURFACE = "Other_SF";
 }
@@ -40,6 +41,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
         }
         return;
     }
+
     std::string validSurfaceName = "";
     bool needHighRefresh = false;
     switch (uiFwkType) {
@@ -64,7 +66,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
 bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
     std::string& uiFwkType)
 {
-    for (auto supportedAppBuffer : supportAppBufferList_) {
+    for (auto& supportedAppBuffer : supportAppBufferList_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
             uiFwkType = supportedAppBuffer;
             return true;
@@ -76,7 +78,7 @@ bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
 bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
     std::string& validSurfaceName)
 {
-    for (auto supportedAppBuffer : supportAppBufferList_) {
+    for (auto& supportedAppBuffer : supportAppBufferList_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
             validSurfaceName = supportedAppBuffer;
             return true;
@@ -131,7 +133,8 @@ bool HgmIdleDetector::ThirdFrameNeedHighRefresh()
 int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
 {
     if (appBufferList_.empty()) {
-        return FPS_MAX;
+        return GetAceAnimatorExpectedFrameRate() > ANIMATOR_NO_EXPECTED_FRAME_RATE ? GetAceAnimatorExpectedFrameRate()
+                                                                                   : FPS_MAX;
     }
     if (!aceAnimatorIdleState_) {
         auto iter = std::find_if(appBufferList_.begin(), appBufferList_.end(),
@@ -139,7 +142,9 @@ int32_t HgmIdleDetector::GetTouchUpExpectedFPS()
             return appBuffer.first == ACE_ANIMATOR_NAME;
         });
         if (iter != appBufferList_.end() && frameTimeMap_.empty()) {
-            return iter->second;
+            return GetAceAnimatorExpectedFrameRate() > ANIMATOR_NO_EXPECTED_FRAME_RATE
+                    ? std::min(GetAceAnimatorExpectedFrameRate(), iter->second)
+                    : iter->second;
         }
     }
 

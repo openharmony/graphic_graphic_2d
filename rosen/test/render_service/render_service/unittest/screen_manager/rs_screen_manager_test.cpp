@@ -1046,8 +1046,10 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_004, TestSize.Level2)
 HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager->RemoveVirtualScreen(screenId);
+    ASSERT_EQ(screenManager->GetProducerSurface(screenId), nullptr);
 }
 
 /*
@@ -1339,6 +1341,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenBacklight_002, TestSize.Level1)
 HWTEST_F(RSScreenManagerTest, SetScreenBacklight_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager->SetScreenBacklight(screenId, LIGHT_LEVEL);
 }
@@ -2367,7 +2370,8 @@ HWTEST_F(RSScreenManagerTest, TrySimpleProcessHotPlugEvents_002, TestSize.Level1
 
     screenManagerImpl.isHwcDead_ = false;
     impl::ScreenHotPlugEvent screenHotPlugEvent;
-    screenManagerImpl.pendingHotPlugEvents_.push_back(screenHotPlugEvent);
+    ScreenId id = 1;
+    screenManagerImpl.pendingHotPlugEvents_[id] = screenHotPlugEvent;
     ASSERT_FALSE(screenManager->TrySimpleProcessHotPlugEvents());
 }
 
@@ -2465,5 +2469,27 @@ HWTEST_F(RSScreenManagerTest, ReuseVirtualScreenIdLocked_001, TestSize.Level1)
     ScreenId screenId = SCREEN_ID;
     screenManagerImpl.ReuseVirtualScreenIdLocked(screenId);
     ASSERT_EQ(screenManagerImpl.freeVirtualScreenIds_.back(), screenId);
+}
+
+/*
+ * @tc.name: ReleaseScreenDmaBufferTest_001
+ * @tc.desc: Test ReleaseScreenDmaBuffer.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ6B9
+ */
+HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId screenId = SCREEN_ID;
+    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
+
+    screenManagerImpl.screens_[SCREEN_ID] = std::make_unique<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
+    impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
+    ASSERT_NE(screenManagerImpl.GetOutput(screenId), nullptr);
 }
 } // namespace OHOS::Rosen

@@ -16,6 +16,9 @@
 
 #include <sstream>
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "display_manager.h"
 #include "test_case_factory.h"
 #include "test_case/test_common.h"
@@ -102,8 +105,29 @@ int DrawingDemo::InitWindow()
     return RET_OK;
 }
 
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "drawing_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 int DrawingDemo::CreateWindow()
 {
+    InitNativeTokenInfo();
     TestCommon::Log("create window start");
     sptr<Display> display = DisplayManager::GetInstance().GetDefaultDisplay();
     if (display == nullptr) {

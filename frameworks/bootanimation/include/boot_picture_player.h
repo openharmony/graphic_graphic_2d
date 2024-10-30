@@ -50,9 +50,6 @@ private:
     int32_t freq_ = 30;
     ImageStructVec imageVector_;
 
-#ifdef NEW_RENDER_CONTEXT
-    std::shared_ptr<OHOS::Rosen::RSRenderSurface> rsSurface_;
-#endif
     std::shared_ptr<OHOS::Rosen::RSSurface> rsSurface_;
     std::unique_ptr<OHOS::Rosen::RSSurfaceFrame> rsSurfaceFrame_;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;

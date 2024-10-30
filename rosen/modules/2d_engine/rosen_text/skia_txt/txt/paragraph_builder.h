@@ -21,6 +21,7 @@
 
 #include "font_collection.h"
 #include "paragraph.h"
+#include "paragraph_line_fetcher.h"
 #include "paragraph_style.h"
 #include "placeholder_run.h"
 #include "text_style.h"
@@ -42,6 +43,7 @@ public:
     virtual void AddPlaceholder(PlaceholderRun& span) = 0;
 
     virtual std::unique_ptr<Paragraph> Build() = 0;
+    virtual std::unique_ptr<ParagraphLineFetcher> BuildLineFetcher() = 0;
 
 protected:
     ParagraphBuilder() = default;

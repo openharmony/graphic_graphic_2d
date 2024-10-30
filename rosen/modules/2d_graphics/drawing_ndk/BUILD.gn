@@ -89,6 +89,10 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_shadow_layer.cpp",
       "$drawing_ndk_src_dir/drawing_surface.cpp",
       "$drawing_ndk_src_dir/drawing_text_blob.cpp",
+      "$drawing_ndk_src_dir/drawing_text_font_descriptor.cpp",
+      "$drawing_ndk_src_dir/drawing_text_line.cpp",
+      "$drawing_ndk_src_dir/drawing_text_lineTypography.cpp",
+      "$drawing_ndk_src_dir/drawing_text_run.cpp",
       "$drawing_ndk_src_dir/drawing_text_typography.cpp",
       "$drawing_ndk_src_dir/drawing_typeface.cpp",
       "$drawing_utils_root/drawing_canvas_utils.cpp",
@@ -98,8 +102,8 @@ template("drawing_ndk_source_set") {
     if (is_arkui_x) {
       defines += [ "CROSS_PLATFORM" ]
     }
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
     if (is_emulator) {
       defines += [ "ROSEN_EMULATOR" ]
@@ -211,6 +215,7 @@ if (!is_arkui_x) {
     }
     public_configs = [ ":export_config" ]
     deps = [ "$drawing_root/drawing_ndk:drawing_ndk_source_$platform" ]
+    public_external_deps = [ "skia:skia_canvaskit" ]
 
     if (platform == "ohos") {
       version_script = "$drawing_root/2d_graphics.versionscript"

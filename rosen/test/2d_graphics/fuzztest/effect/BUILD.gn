@@ -21,5 +21,6 @@ group("fuzztest") {
     "filter_fuzzer:fuzztest",
     "maskfilter_fuzzer:fuzztest",
     "patheffect_fuzzer:fuzztest",
+    "runtimeeffect_fuzzer:fuzztest",
   ]
 }

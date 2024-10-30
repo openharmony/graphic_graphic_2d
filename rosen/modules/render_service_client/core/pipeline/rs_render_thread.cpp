@@ -22,16 +22,19 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
+#include "common/rs_background_thread.h"
 #include "delegate/rs_functional_delegate.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
 #include "rs_frame_report.h"
@@ -45,6 +48,10 @@
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
 #include "res_type.h"
+#endif
+
+#ifdef RES_CLINET_SCHED_ENABLE
+#include "qos.h"
 #endif
 
 #ifdef ROSEN_PREVIEW
@@ -121,6 +128,7 @@ RSRenderThread::RSRenderThread()
             context_->activeNodesInRoot_.clear();
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        ReleasePixelMapInBackgroundThread();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -143,18 +151,20 @@ RSRenderThread::RSRenderThread()
         thread.detach();
     });
 #endif
+#ifdef ROSEN_OHOS
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+#endif
 }
 
 RSRenderThread::~RSRenderThread()
 {
     Stop();
-#ifndef NEW_RENDER_CONTEXT
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
         delete renderContext_;
         renderContext_ = nullptr;
     }
-#endif
 }
 
 void RSRenderThread::Start()
@@ -164,6 +174,14 @@ void RSRenderThread::Start()
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
+    }
+}
+
+void RSRenderThread::ReleasePixelMapInBackgroundThread()
+{
+    if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
+        static std::function<void()> task = []() -> void { RSImageCache::Instance().ReleaseUniqueIdList(); };
+        RSBackgroundThread::Instance().PostTask(task);
     }
 }
 
@@ -229,20 +247,6 @@ int32_t RSRenderThread::GetTid()
 
 void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
-#if defined(NEW_RENDER_CONTEXT)
-#if !defined(ROSEN_PREVIEW)
-    if (renderContext_ == nullptr) {
-        renderContext_ = RenderContextBaseFactory::CreateRenderContext();
-        drawingContext_ = std::make_shared<Rosen::DrawingContext>(renderContext_->GetRenderType());
-        RS_TRACE_NAME("Init Context");
-        renderContext_->Init(); // init egl context on RT
-        if (!cacheDir_.empty()) {
-            ShaderCache::Instance().SetFilePath(cacheDir_);
-        }
-        ROSEN_LOGD("Create and Init RenderContext");
-    }
-#endif
-#else
 #if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
     if (renderContext_ == nullptr) {
         renderContext_ = new RenderContext();
@@ -264,7 +268,6 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 #endif
 #endif
     }
-#endif
 #endif
 }
 
@@ -308,10 +311,20 @@ void RSRenderThread::RenderLoop()
 
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().SetRepaintCallback([this]() { this->RequestNextVSync(); });
-
     auto delegate = RSFunctionalDelegate::Create();
-    delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
+    delegate->SetRepaintCallback([this]() {
+        bool isOverDrawEnabled = RSOverdrawController::GetInstance().IsEnabled();
+        PostTask([this, isOverDrawEnabled]() {
+            isOverDrawEnabledOfCurFrame_ = isOverDrawEnabled;
+            RequestNextVSync();
+        });
+    });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
+#endif
+
+#ifdef RES_CLINET_SCHED_ENABLE
+    auto ret = OHOS::QOS::SetThreadQos(OHOS::QOS::QosLevel::QOS_USER_INTERACTIVE);
+    RS_LOGI("RSRenderThread: SetThreadQos retcode = %{public}d", ret);
 #endif
 
     if (runner_) {
@@ -472,9 +485,14 @@ void RSRenderThread::Render()
         visitor_ = std::make_shared<RSRenderThreadVisitor>();
     }
     // get latest partial render status from system properties and set it to RTvisitor_
-    visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), isRTRenderForced_);
+    visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(),
+        isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_) ||
+        IsHighContrastChanged());
+    ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
+    isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 

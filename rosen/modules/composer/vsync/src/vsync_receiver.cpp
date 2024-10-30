@@ -61,12 +61,15 @@ VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3],
         // only take the latest timestamp
         ret = read(fd, data, sizeof(data));
         if (ret == 0) {
+            VLOGE("ReadFdInternal, ret is 0, read fd:%{public}d failed, errno:%{public}d", fd, errno);
             return VSYNC_ERROR_OK;
         }
         if (ret == -1) {
             if (errno == EINTR) {
                 ret = 0;
                 continue;
+            } else if (errno != EAGAIN) {
+                VLOGE("ReadFdInternal, read fd:%{public}d failed, errno:%{public}d", fd, errno);
             }
         } else {
             dataCount += ret;
@@ -126,12 +129,13 @@ int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
     if (now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
-        period_ = 0;
         return 0;
     }
     expectedEnd = now + period_;
-    // rs vsync offset is 5000000ns
-    expectedEnd = (name_ == "rs") ? (expectedEnd + period_ - 5000000) : expectedEnd;
+    if (name_ == "rs") {
+        // rs vsync offset is 5000000ns
+        expectedEnd = expectedEnd + period_ - 5000000;
+    }
     return expectedEnd;
 }
 
@@ -164,6 +168,19 @@ VsyncError VSyncReceiver::Init()
         return VSYNC_ERROR_NULLPTR;
     }
 
+    if (looper_ == nullptr) {
+        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
+        if (runner == nullptr) {
+            return VSYNC_ERROR_API_FAILED;
+        }
+        looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
+        runner->Run();
+        looper_->PostTask([this] {
+            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
+            this->ThreadCreateNotify();
+        });
+    }
+
     VsyncError ret = connection_->GetReceiveFd(fd_);
     if (ret != VSYNC_ERROR_OK) {
         return ret;
@@ -176,16 +193,6 @@ VsyncError VSyncReceiver::Init()
     }
 
     listener_->SetName(name_);
-
-    if (looper_ == nullptr) {
-        std::shared_ptr<AppExecFwk::EventRunner> runner = AppExecFwk::EventRunner::Create("OS_VSyncThread");
-        looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
-        runner->Run();
-        looper_->PostTask([this] {
-            SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-            this->ThreadCreateNotify();
-        });
-    }
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
@@ -318,7 +325,7 @@ void VSyncReceiver::CloseVsyncReceiverFd()
         VLOGI("%{public}s looper remove fd listener, fd=%{public}d", __func__, fd_);
     }
 
-    if (fd_ > 0) {
+    if (fd_ >= 0) {
         close(fd_);
         fd_ = INVALID_FD;
     }
@@ -359,6 +366,15 @@ VsyncError VSyncReceiver::SetUiDvsyncConfig(int32_t bufferCount)
     }
     VLOGI("%{public}s bufferCount:%{public}d", __func__, bufferCount);
     return connection_->SetUiDvsyncConfig(bufferCount);
+}
+
+VsyncError VSyncReceiver::SetNativeDVSyncSwitch(bool dvsyncSwitch)
+{
+    std::lock_guard<std::mutex> locker(initMutex_);
+    if (!init_) {
+        return VSYNC_ERROR_API_FAILED;
+    }
+    return connection_->SetNativeDVSyncSwitch(dvsyncSwitch);
 }
 } // namespace Rosen
 } // namespace OHOS

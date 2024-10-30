@@ -94,6 +94,7 @@ if (current_os != "ohos") {
       "bundle_framework:appexecfwk_base",
       "bundle_framework:appexecfwk_core",
       "c_utils:utils",
+      "config_policy:configpolicy_util",
       "graphic_surface:surface",
       "hilog:libhilog",
       "init:libbeget_proxy",

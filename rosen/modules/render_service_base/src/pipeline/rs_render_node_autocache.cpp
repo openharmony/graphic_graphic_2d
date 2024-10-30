@@ -15,7 +15,6 @@
 
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
-#include "platform/common/rs_log.h"
 #ifdef DDGR_ENABLE_FEATURE_OPINC_DFX
 #include "string_utils.h"
 #endif
@@ -46,7 +45,8 @@ void RSRenderNode::OpincSetInAppStateEnd(bool& unchangeMarkInApp)
     }
 }
 
-void RSRenderNode::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable)
+void RSRenderNode::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& unchangeMarkEnable,
+    bool isAccessibilityChanged)
 {
     if (!unchangeMarkInApp) {
         return;
@@ -59,7 +59,7 @@ void RSRenderNode::OpincQuickMarkStableNode(bool& unchangeMarkInApp, bool& uncha
         return;
     }
     auto isSelfDirty = IsSubTreeDirty() || IsContentDirty() ||
-        nodeGroupType_ > RSRenderNode::NodeGroupType::NONE;
+        nodeGroupType_ > RSRenderNode::NodeGroupType::NONE || (isOpincRootFlag_ && isAccessibilityChanged);
     if (isSelfDirty) {
         NodeCacheStateChange(NodeChangeType::SELF_DIRTY);
     } else if (nodeCacheState_ != NodeCacheState::STATE_UNCHANGE) {
@@ -110,8 +110,11 @@ bool RSRenderNode::IsMarkedRenderGroup()
     return (nodeGroupType_ > RSRenderNode::NodeGroupType::NONE) || isOpincRootFlag_;
 }
 
-bool RSRenderNode::OpincForcePrepareSubTree()
+bool RSRenderNode::OpincForcePrepareSubTree(bool autoCacheEnable)
 {
+    if (!autoCacheEnable) {
+        return false;
+    }
     bool flag = (!(IsSubTreeDirty() || IsContentDirty())) && GetSuggestOpincNode() &&
         OpincGetNodeSupportFlag() && !isOpincRootFlag_;
     if (flag) {
@@ -131,7 +134,6 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     RS_TRACE_NAME_FMT("mark opinc %llx, isopinc:%d. isCal:%d", GetId(), isOpincNode, isNeedCalculate);
     isSuggestOpincNode_ = isOpincNode;
     isNeedCalculate_ = isNeedCalculate;
-    ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, mark suggest opinc node", GetId());
     SetDirty();
 }
 

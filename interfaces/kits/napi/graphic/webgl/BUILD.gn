@@ -39,10 +39,9 @@ ohos_source_set("webgl_src") {
     "hilog:libhilog",
     "image_framework:image_native",
     "napi:ace_napi",
-    "node:node_header_notice",
   ]
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     sources += [
       "src/egl_manager.cpp",
       "src/module.cpp",
@@ -102,7 +101,7 @@ ohos_source_set("webgl_src") {
 ohos_shared_library("libwebglnapi") {
   external_deps = [ "hilog:libhilog" ]
   deps = [ ":webgl_src" ]
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     install_enable = true
     relative_install_dir = "module"
   } else {

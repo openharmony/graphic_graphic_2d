@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+#include <mutex>
 #include <unistd.h>
 #include <vector>
 #include "native_vsync.h"
@@ -22,10 +23,12 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+std::mutex g_mutex;
 int g_counter = 0;
 std::vector<int> datas;
 static void OnVSync(long long time, void *data)
 {
+    std::unique_lock<std::mutex> locker(g_mutex);
     if (!data) {
         return;
     }
@@ -46,10 +49,14 @@ void NativeVSyncMultCallbackTest::TestMultiTimes(int times)
     char name[] = "TestMultiTimes";
     OH_NativeVSync *native_vsync = OH_NativeVSync_Create(name, sizeof(name));
     for (int i = 0; i < times; i++) {
+        std::unique_lock<std::mutex> locker(g_mutex);
         int *userData = new int(g_counter++);
         OH_NativeVSync_FrameCallback callback = OnVSync;
-        OH_NativeVSync_RequestFrameWithMultiCallback(native_vsync, callback, userData);
-        datas.push_back(*userData);
+        int ret = OH_NativeVSync_RequestFrameWithMultiCallback(native_vsync, callback, userData);
+        if (ret == 0) {
+            datas.push_back(*userData);
+        }
+        usleep(1); // 1us
     }
     usleep(200000); // 200000us
     ASSERT_EQ(datas.size(), 0);

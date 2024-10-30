@@ -35,8 +35,16 @@ VsyncError VSyncConnectionProxy::RequestNextVSync(const std::string& fromWhom, i
     MessageParcel arg;
     MessageParcel ret;
 
-    arg.WriteInterfaceToken(GetDescriptor());
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC, arg, ret, opt);
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_REQUEST_NEXT_VSYNC, arg, ret, opt);
     if (res != NO_ERROR) {
         VLOGE("ipc send fail, error:%{public}d", res);
         return VSYNC_ERROR_BINDER_ERROR;
@@ -50,14 +58,52 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
     MessageParcel arg;
     MessageParcel ret;
 
-    arg.WriteInterfaceToken(GetDescriptor());
-    arg.WriteBool(dvsyncSwitch);
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, arg, ret, opt);
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (!arg.WriteBool(dvsyncSwitch)) {
+        VLOGE("Failed to write dvsyncSwitch:%{public}d", dvsyncSwitch);
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH, arg, ret, opt);
     if (res != NO_ERROR) {
         VLOGE("ipc send fail, error:%{public}d", res);
         return VSYNC_ERROR_UNKOWN;
     }
-    return VSYNC_ERROR_OK;
+    return static_cast<VsyncError>(ret.ReadInt32());
+}
+
+VsyncError VSyncConnectionProxy::SetNativeDVSyncSwitch(bool dvsyncSwitch)
+{
+    MessageOption opt(MessageOption::TF_ASYNC);
+    MessageParcel arg;
+    MessageParcel ret;
+
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (!arg.WriteBool(dvsyncSwitch)) {
+        VLOGE("Failed to write dvsyncSwitch:%{public}d", dvsyncSwitch);
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH, arg, ret, opt);
+    if (res != NO_ERROR) {
+        VLOGE("ipc send fail, error:%{public}d", res);
+        return VSYNC_ERROR_UNKOWN;
+    }
+    return static_cast<VsyncError>(ret.ReadInt32());
 }
 
 VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
@@ -66,16 +112,24 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
     MessageParcel arg;
     MessageParcel ret;
 
-    arg.WriteInterfaceToken(GetDescriptor());
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
     if (!arg.WriteInt32(bufferCount)) {
         VLOGE("SetUiDvsyncConfig bufferCount error");
         return VSYNC_ERROR_UNKOWN;
     }
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG, arg, ret, opt);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG, arg, ret, opt);
     if (res != NO_ERROR) {
         return VSYNC_ERROR_UNKOWN;
     }
-    return VSYNC_ERROR_OK;
+    return static_cast<VsyncError>(ret.ReadInt32());
 }
 
 VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
@@ -84,14 +138,26 @@ VsyncError VSyncConnectionProxy::GetReceiveFd(int32_t &fd)
     MessageParcel arg;
     MessageParcel ret;
 
-    arg.WriteInterfaceToken(GetDescriptor());
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_GET_RECEIVE_FD, arg, ret, opt);
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_GET_RECEIVE_FD, arg, ret, opt);
     if (res != NO_ERROR) {
         VLOGE("GetReceiveFd Failed, res = %{public}d", res);
         return VSYNC_ERROR_BINDER_ERROR;
     }
+    res = ret.ReadInt32();
+    if (res != VSYNC_ERROR_OK) {
+        return static_cast<VsyncError>(res);
+    }
     fd = ret.ReadFileDescriptor();
-    if (fd <= 0) {
+    if (fd < 0) {
         VLOGE("GetReceiveFd Invalid fd:%{public}d", fd);
         return VSYNC_ERROR_API_FAILED;
     }
@@ -107,13 +173,24 @@ VsyncError VSyncConnectionProxy::SetVSyncRate(int32_t rate)
     MessageParcel arg;
     MessageParcel ret;
 
-    arg.WriteInterfaceToken(GetDescriptor());
-    arg.WriteInt32(rate);
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_SET_RATE, arg, ret, opt);
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (!arg.WriteInt32(rate)) {
+        VLOGE("Failed to write rate:%{public}d", rate);
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_SET_RATE, arg, ret, opt);
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    return VSYNC_ERROR_OK;
+    return static_cast<VsyncError>(ret.ReadInt32());
 }
 
 VsyncError VSyncConnectionProxy::Destroy()
@@ -122,12 +199,20 @@ VsyncError VSyncConnectionProxy::Destroy()
     MessageParcel arg;
     MessageParcel ret;
 
-    arg.WriteInterfaceToken(GetDescriptor());
-    int res = Remote()->SendRequest(IVSYNC_CONNECTION_DESTROY, arg, ret, opt);
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_DESTROY, arg, ret, opt);
     if (res != NO_ERROR) {
         return VSYNC_ERROR_BINDER_ERROR;
     }
-    return VSYNC_ERROR_OK;
+    return static_cast<VsyncError>(ret.ReadInt32());
 }
 } // namespace Vsync
 } // namespace OHOS

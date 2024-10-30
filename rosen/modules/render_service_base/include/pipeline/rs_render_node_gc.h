@@ -28,23 +28,32 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr const int BUCKET_MAX_SIZE = 50;
-constexpr const char* DELETE_NODE_TASK = "ReleaseNodeMemory";
-constexpr const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
+namespace {
+    const int BUCKET_MAX_SIZE = 50;
+    const int OFF_TREE_BUCKET_MAX_SIZE = 500;
+    const char* OFF_TREE_TASK = "ReleaseNodeFromTree";
+    const char* DELETE_NODE_TASK = "ReleaseNodeMemory";
+    const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
+}
 class RSB_EXPORT RSRenderNodeGC {
 public:
     typedef void (*gcTask)(RSTaskMessage::RSTask, const std::string&, int64_t,
-        AppExecFwk::EventQueue::Priority priority);
+        AppExecFwk::EventQueue::Priority);
 
     static RSRenderNodeGC& Instance();
 
     static void NodeDestructor(RSRenderNode* ptr);
     void NodeDestructorInner(RSRenderNode* ptr);
+    bool IsBucketQueueEmpty();
     void ReleaseNodeBucket();
     void ReleaseNodeMemory();
     void SetMainTask(gcTask hook) {
         mainTask_ = hook;
     }
+    
+    void AddToOffTreeNodeBucket(const std::shared_ptr<RSBaseRenderNode>& node);
+    void ReleaseOffTreeNodeBucket();
+    void ReleaseFromTree();
 
     static void DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter* ptr);
     void DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAdapter* ptr);
@@ -64,6 +73,7 @@ private:
     gcTask renderTask_ = nullptr;
 
     std::atomic<bool> isEnable_ = true;
+    std::queue<std::vector<std::shared_ptr<RSBaseRenderNode>>> offTreeBucket_;
     std::queue<std::vector<RSRenderNode*>> nodeBucket_;
     std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>> drawableBucket_;
     std::mutex nodeMutex_;

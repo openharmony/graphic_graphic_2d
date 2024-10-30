@@ -76,10 +76,7 @@ napi_value JsPathEffect::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    JsPathEffect *jsPathEffect = new(std::nothrow) JsPathEffect();
-    if (jsPathEffect == nullptr) {
-        return nullptr;
-    }
+    JsPathEffect *jsPathEffect = new JsPathEffect();
     status = napi_wrap(env, jsThis, jsPathEffect, JsPathEffect::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsPathEffect;

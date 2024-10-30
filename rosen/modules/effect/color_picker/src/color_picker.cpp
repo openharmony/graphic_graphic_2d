@@ -76,15 +76,9 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
         errorCode = ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap);
-    if (colorPicker == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with pixmap.");
-        errorCode = ERR_EFFECT_INVALID_VALUE;
-        return nullptr;
-    }
-
+    std::shared_ptr<ColorPicker> colorPicker = std::make_shared<ColorPicker>(scaledPixelMap);
     errorCode = SUCCESS;
-    return std::shared_ptr<ColorPicker>(colorPicker);
+    return colorPicker;
 }
 
 std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_ptr<Media::PixelMap>& pixmap,
@@ -97,15 +91,9 @@ std::shared_ptr<ColorPicker> ColorPicker::CreateColorPicker(const std::shared_pt
     }
 
     std::shared_ptr<Media::PixelMap> scaledPixelMap = CreateScaledPixelMap(pixmap);
-    ColorPicker *colorPicker = new (std::nothrow) ColorPicker(scaledPixelMap, coordinates);
-    if (colorPicker == nullptr) {
-        EFFECT_LOG_I("[ColorPicker]failed to create ColorPicker with pixmap.");
-        errorCode = ERR_EFFECT_INVALID_VALUE;
-        return nullptr;
-    }
-
+    std::shared_ptr<ColorPicker> colorPicker = std::make_shared<ColorPicker>(scaledPixelMap, coordinates);
     errorCode = SUCCESS;
-    return std::shared_ptr<ColorPicker>(colorPicker);
+    return colorPicker;
 }
 
 std::shared_ptr<Media::PixelMap> ColorPicker::GetScaledPixelMap()

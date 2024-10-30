@@ -99,16 +99,8 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         return nullptr;
     }
     if (argc == ARGC_ZERO) {
-        Path* path = new(std::nothrow) Path();
-        if (!path) {
-            ROSEN_LOGE("Path::Constructor Failed to create Path");
-            return nullptr;
-        }
-        jsPath = new(std::nothrow) JsPath(path);
-        if (!jsPath) {
-            ROSEN_LOGE("jsPath::Constructor Failed to create jsPath");
-            return nullptr;
-        }
+        Path* path = new Path();
+        jsPath = new JsPath(path);
     } else if (argc == ARGC_ONE) {
         napi_valuetype valueType = napi_undefined;
         if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok || valueType != napi_object) {
@@ -117,16 +109,8 @@ napi_value JsPath::Constructor(napi_env env, napi_callback_info info)
         }
         JsPath* path = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, path);
-        Path* p = new(std::nothrow) Path(*path->GetPath());
-        if (!p) {
-            ROSEN_LOGE("Path::Constructor Failed to create Path");
-            return nullptr;
-        }
-        jsPath = new(std::nothrow) JsPath(p);
-        if (!jsPath) {
-            ROSEN_LOGE("jsPath::Constructor Failed to create jsPath");
-            return nullptr;
-        }
+        Path* p = new Path(*path->GetPath());
+        jsPath = new JsPath(p);
     } else {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
     }
@@ -159,12 +143,7 @@ napi_value JsPath::CreateJsPath(napi_env env, Path* path)
     napi_value result = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);
     if (status == napi_ok) {
-        auto jsPath = new(std::nothrow) JsPath(path);
-        if (jsPath == nullptr) {
-            delete path;
-            ROSEN_LOGE("JsPath::CreateJsPath allocation failed!");
-            return nullptr;
-        }
+        auto jsPath = new JsPath(path);
         napi_create_object(env, &result);
         if (result == nullptr) {
             delete jsPath;
@@ -723,11 +702,7 @@ napi_value JsPath::OnOffset(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_ZERO, dx);
     double dy = 0.0;
     GET_DOUBLE_PARAM(ARGC_ONE, dy);
-    Path* path = new (std::nothrow) Path();
-    if (path == nullptr) {
-        ROSEN_LOGE("JsPath::OnOffset Failed to create Path");
-        return nullptr;
-    }
+    Path* path = new Path();
     m_path->Offset(path, dx, dy);
     return CreateJsPath(env, path);
 }

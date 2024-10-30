@@ -35,9 +35,9 @@ std::unique_ptr<OHOS::Media::PixelMap> Output::GetPixelMap()
     return std::move(pixelMap_);
 }
 
-std::shared_ptr<uint8_t> Output::GetColorBuffer()
+const std::vector<uint8_t>& Output::GetColorBuffer()
 {
-    return std::move(colorBuffer_);
+    return colorBuffer_;
 }
 
 void Output::DoProcess(ProcessData& data)
@@ -87,17 +87,13 @@ void Output::EncodeToPixelMap(ProcessData& data)
         LOGE("The pixelMap create failed.");
         return;
     }
-    pixelMap_->WritePixels(colorBuffer_.get(), pixelMap_->GetByteCount());
+    pixelMap_->WritePixels(colorBuffer_.data(), pixelMap_->GetByteCount());
 }
 
 void Output::WriteToBuffer(ProcessData& data)
 {
     uint32_t bufferSize = static_cast<uint32_t>(data.textureWidth * data.textureHeight * COLOR_CHANNEL);
-    auto colorBuf = new uint8_t[bufferSize];
-    std::shared_ptr<uint8_t> colorBuffer(colorBuf, [] (uint8_t *ptr) {
-        delete[] ptr;
-    });
-    colorBuffer_ = std::move(colorBuffer);
+    colorBuffer_.resize(bufferSize);
     glBindFramebuffer(GL_FRAMEBUFFER, data.frameBufferID);
     glBindTexture(GL_TEXTURE_2D, data.dstTextureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, data.textureWidth, data.textureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -108,7 +104,7 @@ void Output::WriteToBuffer(ProcessData& data)
     glBindTexture(GL_TEXTURE_2D, data.srcTextureID);
     glDrawElements(GL_TRIANGLES, AlgoFilter::DRAW_ELEMENTS_NUMBER, GL_UNSIGNED_INT, 0);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0, 0, data.textureWidth, data.textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, colorBuffer_.get());
+    glReadPixels(0, 0, data.textureWidth, data.textureHeight, GL_RGBA, GL_UNSIGNED_BYTE, colorBuffer_.data());
 }
 
 void Output::SetValue(const std::string& key, std::shared_ptr<void> value, int size)

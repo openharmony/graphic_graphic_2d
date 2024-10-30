@@ -26,7 +26,6 @@ namespace OHOS::Rosen {
 namespace DrawableV2 {
 namespace {
 constexpr int PARAM_TWO = 2;
-constexpr int MAX_LIGHT_SOURCES = 12;
 } // namespace
 
 const bool FOREGROUND_FILTER_ENABLED = RSSystemProperties::GetForegroundFilterEnabled();
@@ -333,6 +332,7 @@ bool RSPixelStretchDrawable::OnUpdate(const RSRenderNode& node)
     }
     needSync_ = true;
     stagingPixelStretch_ = pixelStretch;
+    stagePixelStretchTileMode_ = node.GetRenderProperties().GetPixelStretchTileMode();
     const auto& boundsGeo = node.GetRenderProperties().GetBoundsGeometry();
     stagingBoundsGeoValid_ = boundsGeo && !boundsGeo->IsEmpty();
     stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();
@@ -350,6 +350,7 @@ void RSPixelStretchDrawable::OnSync()
         return;
     }
     pixelStretch_ = std::move(stagingPixelStretch_);
+    pixelStretchTileMode_ = stagePixelStretchTileMode_;
     boundsGeoValid_ = stagingBoundsGeoValid_;
     stagingBoundsGeoValid_ = false;
     boundsRect_ = stagingBoundsRect_;
@@ -361,7 +362,8 @@ Drawing::RecordingCanvas::DrawFunc RSPixelStretchDrawable::CreateDrawFunc() cons
 {
     auto ptr = std::static_pointer_cast<const RSPixelStretchDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_);
+        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_,
+            static_cast<Drawing::TileMode>(ptr->pixelStretchTileMode_));
     };
 }
 
@@ -424,17 +426,19 @@ void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canva
         return;
     }
 
-    Drawing::AutoCanvasRestore acr(canvas, true);
-    auto rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+    RSBorderGeo borderGeo;
+    borderGeo.rrect = RSPropertyDrawableUtils::RRect2DrawingRRect(
         RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline));
-    canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
-    auto innerRoundRect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+    borderGeo.innerRRect = RSPropertyDrawableUtils::RRect2DrawingRRect(
         RSPropertyDrawableUtils::GetInnerRRectForDrawingBorder(properties, border, isOutline));
-    canvas.ClipRoundRect(innerRoundRect, Drawing::ClipOp::DIFFERENCE, true);
-    Drawing::scalar centerX = innerRoundRect.GetRect().GetLeft() + innerRoundRect.GetRect().GetWidth() / 2;
-    Drawing::scalar centerY = innerRoundRect.GetRect().GetTop() + innerRoundRect.GetRect().GetHeight() / 2;
-    Drawing::Point center = { centerX, centerY };
-    border->DrawBorders(canvas, pen, rrect, center);
+    auto centerX = borderGeo.innerRRect.GetRect().GetLeft() + borderGeo.innerRRect.GetRect().GetWidth() / 2;
+    auto centerY = borderGeo.innerRRect.GetRect().GetTop() + borderGeo.innerRRect.GetRect().GetHeight() / 2;
+    borderGeo.center = { centerX, centerY };
+    auto rect = borderGeo.rrect.GetRect();
+    Drawing::AutoCanvasRestore acr(canvas, false);
+    Drawing::SaveLayerOps slr(&rect, nullptr);
+    canvas.SaveLayer(slr);
+    border->DrawBorders(canvas, pen, borderGeo);
 }
 
 RSDrawable::Ptr RSOutlineDrawable::OnGenerate(const RSRenderNode& node)
@@ -539,7 +543,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     float lightPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
     float viewPosArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
     float lightColorArray[vectorLen * MAX_LIGHT_SOURCES] = { 0 };
-    float lightIntensityArray[MAX_LIGHT_SOURCES] = { 0 };
+    std::array<float, MAX_LIGHT_SOURCES> lightIntensityArray = { 0 };
 
     auto iter = lightSourcesAndPosVec_.begin();
     auto cnt = 0;
@@ -586,7 +590,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
         return phongShaderBuilder;
     }
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
-    std::string lightString(R"(
+    const static std::string lightString(R"(
         uniform vec4 lightPos[12];
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
@@ -633,7 +637,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetP
 
 void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
-    const float lightIntensityArray[]) const
+    const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
     constexpr float contentIntensityCoefficient = 0.3f;
     float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
@@ -662,9 +666,13 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
 
 void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
-    const float lightIntensityArray[]) const
+    const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
-    lightBuilder->SetUniform("specularStrength", lightIntensityArray, MAX_LIGHT_SOURCES);
+    float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
+    for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
+        specularStrengthArr[i] = lightIntensityArray[i];
+    }
+    lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);

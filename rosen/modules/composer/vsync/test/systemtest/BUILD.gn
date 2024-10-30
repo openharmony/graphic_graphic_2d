@@ -19,33 +19,33 @@ group("systemtest") {
   testonly = true
 
   deps = [
-    ":nativeVsync_getPeriod_test",
-    ":nativeVsync_requestFrame_test",
-    ":nativeVsync_requestMultiCB_test",
-    ":vsync_120to30_test",
-    ":vsync_120to60_test",
-    ":vsync_120to90_test",
-    ":vsync_30to120_test",
-    ":vsync_30to60_test",
-    ":vsync_30to90_test",
-    ":vsync_60to120_test",
-    ":vsync_60to30_test",
-    ":vsync_60to90_test",
-    ":vsync_90to120_test",
-    ":vsync_90to30_test",
-    ":vsync_90to60_test",
-    ":vsync_callbackeveryframe_test",
-    ":vsync_limit_test",
-    ":vsync_ltpo_test",
-    ":vsync_multicallback_test",
-    ":vsync_sample_test",
-    ":vsync_setvsyncrate_test",
-    ":vsync_test",
+    ":nativeVsync_getPeriod_test_st",
+    ":nativeVsync_requestFrame_test_st",
+    ":nativeVsync_requestMultiCB_test_st",
+    ":vsync_120to30_test_st",
+    ":vsync_120to60_test_st",
+    ":vsync_120to90_test_st",
+    ":vsync_30to120_test_st",
+    ":vsync_30to60_test_st",
+    ":vsync_30to90_test_st",
+    ":vsync_60to120_test_st",
+    ":vsync_60to30_test_st",
+    ":vsync_60to90_test_st",
+    ":vsync_90to120_test_st",
+    ":vsync_90to30_test_st",
+    ":vsync_90to60_test_st",
+    ":vsync_callbackeveryframe_test_st",
+    ":vsync_limit_test_st",
+    ":vsync_ltpo_test_st",
+    ":vsync_multicallback_test_st",
+    ":vsync_sample_test_st",
+    ":vsync_setvsyncrate_test_st",
+    ":vsync_test_st",
   ]
 }
 
 ## SystemTest vsync_test {{{
-ohos_systemtest("vsync_test") {
+ohos_unittest("vsync_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_test.cpp" ]
@@ -55,9 +55,6 @@ ohos_systemtest("vsync_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/test",
     "//utils/system/safwk/native/include",
-    "//base/security/access_token/interfaces/innerkits/nativetoken/include",
-    "//base/security/access_token/interfaces/innerkits/accesstoken/include",
-    "//base/security/access_token/interfaces/innerkits/token_setproc/include",
   ]
 
   cflags = [
@@ -67,22 +64,24 @@ ohos_systemtest("vsync_test") {
   ]
 
   deps = [
-    "//base/security/access_token/interfaces/innerkits/accesstoken:libaccesstoken_sdk",
-    "//base/security/access_token/interfaces/innerkits/nativetoken:libnativetoken",
-    "//base/security/access_token/interfaces/innerkits/token_setproc:libtoken_setproc",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
     "//foundation/graphic/graphic_2d/utils:socketpair",
     "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
     "//third_party/googletest:gtest_main",
   ]
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "c_utils:utils",
+  ]
 }
 
 ## SystemTest vsync_test }}}
 
 ## SystemTest vsync_ltpo_test {{{
-ohos_systemtest("vsync_ltpo_test") {
+ohos_unittest("vsync_ltpo_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_ltpo_test.cpp" ]
@@ -116,7 +115,7 @@ ohos_systemtest("vsync_ltpo_test") {
 ## SystemTest vsync_ltpo_test }}}
 
 ## SystemTest vsync_30to60_test {{{
-ohos_systemtest("vsync_30to60_test") {
+ohos_unittest("vsync_30to60_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_30to60_test.cpp" ]
@@ -150,7 +149,7 @@ ohos_systemtest("vsync_30to60_test") {
 ## SystemTest vsync_30to60_test }}}
 
 ## SystemTest vsync_30to90_test {{{
-ohos_systemtest("vsync_30to90_test") {
+ohos_unittest("vsync_30to90_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_30to90_test.cpp" ]
@@ -184,7 +183,7 @@ ohos_systemtest("vsync_30to90_test") {
 ## SystemTest vsync_30to90_test }}}
 
 ## SystemTest vsync_30to120_test {{{
-ohos_systemtest("vsync_30to120_test") {
+ohos_unittest("vsync_30to120_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_30to120_test.cpp" ]
@@ -218,7 +217,7 @@ ohos_systemtest("vsync_30to120_test") {
 ## SystemTest vsync_30to120_test }}}
 
 ## SystemTest vsync_60to30_test {{{
-ohos_systemtest("vsync_60to30_test") {
+ohos_unittest("vsync_60to30_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_60to30_test.cpp" ]
@@ -252,7 +251,7 @@ ohos_systemtest("vsync_60to30_test") {
 ## SystemTest vsync_60to30_test }}}
 
 ## SystemTest vsync_60to90_test {{{
-ohos_systemtest("vsync_60to90_test") {
+ohos_unittest("vsync_60to90_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_60to90_test.cpp" ]
@@ -286,7 +285,7 @@ ohos_systemtest("vsync_60to90_test") {
 ## SystemTest vsync_60to90_test }}}
 
 ## SystemTest vsync_60to120_test {{{
-ohos_systemtest("vsync_60to120_test") {
+ohos_unittest("vsync_60to120_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_60to120_test.cpp" ]
@@ -320,7 +319,7 @@ ohos_systemtest("vsync_60to120_test") {
 ## SystemTest vsync_60to120_test }}}
 
 ## SystemTest vsync_90to30_test {{{
-ohos_systemtest("vsync_90to30_test") {
+ohos_unittest("vsync_90to30_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_90to30_test.cpp" ]
@@ -354,7 +353,7 @@ ohos_systemtest("vsync_90to30_test") {
 ## SystemTest vsync_90to30_test }}}
 
 ## SystemTest vsync_90to60_test {{{
-ohos_systemtest("vsync_90to60_test") {
+ohos_unittest("vsync_90to60_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_90to60_test.cpp" ]
@@ -388,7 +387,7 @@ ohos_systemtest("vsync_90to60_test") {
 ## SystemTest vsync_90to60_test }}}
 
 ## SystemTest vsync_90to120_test {{{
-ohos_systemtest("vsync_90to120_test") {
+ohos_unittest("vsync_90to120_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_90to120_test.cpp" ]
@@ -422,7 +421,7 @@ ohos_systemtest("vsync_90to120_test") {
 ## SystemTest vsync_90to120_test }}}
 
 ## SystemTest vsync_120to30_test {{{
-ohos_systemtest("vsync_120to30_test") {
+ohos_unittest("vsync_120to30_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_120to30_test.cpp" ]
@@ -456,7 +455,7 @@ ohos_systemtest("vsync_120to30_test") {
 ## SystemTest vsync_120to30_test }}}
 
 ## SystemTest vsync_120to60_test {{{
-ohos_systemtest("vsync_120to60_test") {
+ohos_unittest("vsync_120to60_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_120to60_test.cpp" ]
@@ -490,7 +489,7 @@ ohos_systemtest("vsync_120to60_test") {
 ## SystemTest vsync_120to60_test }}}
 
 ## SystemTest vsync_120to90_test {{{
-ohos_systemtest("vsync_120to90_test") {
+ohos_unittest("vsync_120to90_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_120to90_test.cpp" ]
@@ -524,7 +523,7 @@ ohos_systemtest("vsync_120to90_test") {
 ## SystemTest vsync_120to90_test }}}
 
 ## SystemTest vsync_multicallback_test {{{
-ohos_systemtest("vsync_multicallback_test") {
+ohos_unittest("vsync_multicallback_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_multicallback_test.cpp" ]
@@ -559,7 +558,7 @@ ohos_systemtest("vsync_multicallback_test") {
 ## SystemTest vsync_multicallback_test }}}
 
 ## SystemTest vsync_limit_test {{{
-ohos_systemtest("vsync_limit_test") {
+ohos_unittest("vsync_limit_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_limit_test.cpp" ]
@@ -581,7 +580,7 @@ ohos_systemtest("vsync_limit_test") {
 ## SystemTest vsync_limit_test }}}
 
 ## SystemTest nativeVsync_getPeriod_test {{{
-ohos_systemtest("nativeVsync_getPeriod_test") {
+ohos_unittest("nativeVsync_getPeriod_test_st") {
   module_out_path = module_out_path
 
   sources = [ "nativeVsync_getPeriod_test.cpp" ]
@@ -606,7 +605,7 @@ ohos_systemtest("nativeVsync_getPeriod_test") {
 ## SystemTest nativeVsync_getPeriod_test }}}
 
 ## SystemTest nativeVsync_requestFrame_test {{{
-ohos_systemtest("nativeVsync_requestFrame_test") {
+ohos_unittest("nativeVsync_requestFrame_test_st") {
   module_out_path = module_out_path
 
   sources = [ "nativeVsync_requestFrame_test.cpp" ]
@@ -628,7 +627,7 @@ ohos_systemtest("nativeVsync_requestFrame_test") {
 ## SystemTest nativeVsync_requestFrame_test }}}
 
 ## SystemTest nativeVsync_requestMultiCB_test {{{
-ohos_systemtest("nativeVsync_requestMultiCB_test") {
+ohos_unittest("nativeVsync_requestMultiCB_test_st") {
   module_out_path = module_out_path
 
   sources = [ "nativeVsync_requestMultiCB_test.cpp" ]
@@ -650,7 +649,7 @@ ohos_systemtest("nativeVsync_requestMultiCB_test") {
 ## SystemTest nativeVsync_requestMultiCB_test }}}
 
 ## SystemTest vsync_setvsyncrate_test {{{
-ohos_systemtest("vsync_setvsyncrate_test") {
+ohos_unittest("vsync_setvsyncrate_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_setvsyncrate_test.cpp" ]
@@ -685,7 +684,7 @@ ohos_systemtest("vsync_setvsyncrate_test") {
 ## SystemTest vsync_setvsyncrate_test }}}
 
 ## SystemTest vsync_callbackeveryframe_test {{{
-ohos_systemtest("vsync_callbackeveryframe_test") {
+ohos_unittest("vsync_callbackeveryframe_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_callbackeveryframe_test.cpp" ]
@@ -720,7 +719,7 @@ ohos_systemtest("vsync_callbackeveryframe_test") {
 ## SystemTest vsync_callbackeveryframe_test }}}
 
 ## SystemTest vsync_sample_test {{{
-ohos_systemtest("vsync_sample_test") {
+ohos_unittest("vsync_sample_test_st") {
   module_out_path = module_out_path
 
   sources = [ "vsync_sample_test.cpp" ]

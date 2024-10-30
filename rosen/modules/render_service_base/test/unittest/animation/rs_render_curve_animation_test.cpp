@@ -142,5 +142,57 @@ HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling002, TestSize.Level1)
     EXPECT_TRUE(animation != nullptr);
     GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling002 end";
 }
+
+/**
+ * @tc.name: Unmarshalling003
+ * @tc.desc:Verify the Unmarshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, Unmarshalling003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling003 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    Parcel parcel;
+    bool result = parcel.WriteUint64(ANIMATION_ID) &&
+        parcel.WriteInt32(0) &&
+        parcel.WriteInt32(0) &&
+        parcel.WriteFloat(1.0f) &&
+        parcel.WriteInt32(1) &&
+        parcel.WriteBool(false) &&
+        parcel.WriteBool(false) &&
+        parcel.WriteInt32(1) &&
+        parcel.WriteBool(false) &&
+        parcel.WriteInt32(0) &&
+        parcel.WriteInt32(1) &&
+        parcel.WriteInt32(1) &&
+        parcel.WriteUint64(PROPERTY_ID) &&
+        RSMarshallingHelper::Marshalling(parcel, false) &&
+        RSRenderPropertyBase::Marshalling(parcel, property) &&
+        RSRenderPropertyBase::Marshalling(parcel, property) &&
+        RSRenderPropertyBase::Marshalling(parcel, property);
+    EXPECT_TRUE(result);
+    auto animation = RSRenderCurveAnimation::Unmarshalling(parcel);
+    EXPECT_TRUE(animation == nullptr);
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest Unmarshalling003 end";
+}
+
+/**
+ * @tc.name: InitValueEstimatorTest001
+ * @tc.desc: Test valueEstimator_
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderCurveAnimationTest, InitValueEstimatorTest001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest InitValueEstimatorTest001 start";
+
+    RSRenderCurveAnimation renderCurveAnimation;
+    auto property = std::make_shared<RSRenderPropertyBase>();
+    renderCurveAnimation.property_ = property;
+    renderCurveAnimation.InitValueEstimator();
+    EXPECT_TRUE(renderCurveAnimation.valueEstimator_ == nullptr);
+
+    GTEST_LOG_(INFO) << "RSRenderCurveAnimationTest InitValueEstimatorTest001 end";
+}
 } // namespace Rosen
 } // namespace OHOS

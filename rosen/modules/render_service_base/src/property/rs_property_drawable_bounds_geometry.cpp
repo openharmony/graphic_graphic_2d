@@ -222,26 +222,21 @@ void RSBorderFourLineRoundCornerDrawable::OnBoundsChange(const RSProperties& pro
 void RSBorderFourLineRoundCornerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     auto pen = pen_;
-    Drawing::AutoCanvasRestore acr(canvas, true);
     auto& properties = content.GetRenderProperties();
-    canvas.ClipRoundRect(rrect_,Drawing::ClipOp::INTERSECT, true);
-    canvas.ClipRoundRect(innerRrect_, Drawing::ClipOp::DIFFERENCE, true);
-    Drawing::scalar centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
-    Drawing::scalar centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
-    Drawing::Point center = { centerX, centerY };
     auto rect = rrect_.GetRect();
+    RSBorderGeo borderGeo;
+    borderGeo.rrect = rrect_;
+    borderGeo.innerRRect = innerRrect_;
+    auto centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
+    auto centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
+    borderGeo.center = { centerX, centerY };
+    Drawing::AutoCanvasRestore acr(canvas, false);
     Drawing::SaveLayerOps slr(&rect, nullptr);
     canvas.SaveLayer(slr);
     if (drawBorder_) {
-        properties.GetBorder()->PaintTopPath(canvas, pen, rrect_, center);
-        properties.GetBorder()->PaintRightPath(canvas, pen, rrect_, center);
-        properties.GetBorder()->PaintBottomPath(canvas, pen, rrect_, center);
-        properties.GetBorder()->PaintLeftPath(canvas, pen, rrect_, center);
+        properties.GetBorder()->DrawBorders(canvas, pen, borderGeo);
     } else {
-        properties.GetOutline()->PaintTopPath(canvas, pen, rrect_, center);
-        properties.GetOutline()->PaintRightPath(canvas, pen, rrect_, center);
-        properties.GetOutline()->PaintBottomPath(canvas, pen, rrect_, center);
-        properties.GetOutline()->PaintLeftPath(canvas, pen, rrect_, center);
+        properties.GetOutline()->DrawBorders(canvas, pen, borderGeo);
     }
 }
 
@@ -1016,6 +1011,10 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
 {
     auto& properties = content.GetRenderProperties();
     const auto& image = properties.GetBgImage();
+    if (image == nullptr) {
+        RS_LOGE("RSBackgroundImageDrawable::Draw image is nullptr");
+        return;
+    }
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     auto pixelMap = image->GetPixelMap();
@@ -1033,10 +1032,6 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     canvas.AttachBrush(brush_);
-    if (image == nullptr) {
-        RS_LOGE("RSBackgroundImageDrawable::Draw image is nullptr");
-        return;
-    }
     image->SetInnerRect(std::make_optional<Drawing::RectI>(
         innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
     image->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);

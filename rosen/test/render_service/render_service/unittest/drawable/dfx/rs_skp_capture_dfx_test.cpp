@@ -57,8 +57,8 @@ void RSSkpCaptureDFXTest::TearDown() {}
 HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
 {
     auto& rtThread = RSUniRenderThread::Instance();
-    if (!rtThread.renderThreadParams_) {
-        rtThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    if (!rtThread.GetRSRenderThreadParams()) {
+        rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
     rtThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 
@@ -72,11 +72,7 @@ HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
         ASSERT_EQ(capture.recordingCanvas_, nullptr);
     }
     {
-#if defined(NEW_RENDER_CONTEXT)
-        rtThread.uniRenderEngine_->renderContext_ = std::shared_ptr<RenderContextBase>();
-#else
         rtThread.uniRenderEngine_->renderContext_ = std::shared_ptr<RenderContext>();
-#endif
         RSSkpCaptureDfx capture(canvas);
         ASSERT_EQ(capture.recordingCanvas_, nullptr);
     }

@@ -23,12 +23,23 @@ MemorySnapshot& MemorySnapshot::Instance()
     return instance;
 }
 
-void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info)
+void MemorySnapshot::AddCpuMemory(const pid_t pid, const size_t size)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
-    mInfo.cpuMemory += size;
-    info = mInfo;
+    bool shouldReport = false;
+    size_t cpuMemory = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
+        mInfo.cpuMemory += size;
+        totalMemory_ += size;
+        if (mInfo.cpuMemory > singleCpuMemoryLimit_ && mInfo.cpuMemory - size < singleCpuMemoryLimit_) {
+            shouldReport = true;
+            cpuMemory = mInfo.cpuMemory;
+        }
+    }
+    if (shouldReport && callback_) {
+        callback_(pid, cpuMemory, false);
+    }
 }
 
 void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
@@ -37,23 +48,7 @@ void MemorySnapshot::RemoveCpuMemory(const pid_t pid, const size_t size)
     auto it = appMemorySnapshots_.find(pid);
     if (it != appMemorySnapshots_.end()) {
         it->second.cpuMemory -= size;
-    }
-}
-
-void MemorySnapshot::AddGpuMemory(const pid_t pid, const size_t size, MemorySnapshotInfo& info)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    MemorySnapshotInfo& mInfo = appMemorySnapshots_[pid];
-    mInfo.gpuMemory += size;
-    info = mInfo;
-}
-
-void MemorySnapshot::RemoveGpuMemory(const pid_t pid, const size_t size)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto it = appMemorySnapshots_.find(pid);
-    if (it != appMemorySnapshots_.end()) {
-        it->second.gpuMemory -= size;
+        totalMemory_ -= size;
     }
 }
 
@@ -68,11 +63,46 @@ bool MemorySnapshot::GetMemorySnapshotInfoByPid(const pid_t pid, MemorySnapshotI
     return true;
 }
 
+void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
+    std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto& [pid, info] : appMemorySnapshots_) {
+        auto it = gpuInfo.find(pid);
+        if (it != gpuInfo.end()) {
+            totalMemory_ = totalMemory_ - info.gpuMemory + it->second;
+            info.gpuMemory = it->second;
+        }
+        if (info.TotalMemory() > singleMemoryWarning_) {
+            pidForReport.emplace(pid, info);
+        }
+    }
+    if (totalMemory_ > totalMemoryLimit_) {
+        pidForReport = appMemorySnapshots_;
+        isTotalOver = true;
+    }
+}
+
 void MemorySnapshot::EraseSnapshotInfoByPid(const std::set<pid_t>& exitedPidSet)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto pid : exitedPidSet) {
-        appMemorySnapshots_.erase(pid);
+        auto it = appMemorySnapshots_.find(pid);
+        if (it != appMemorySnapshots_.end()) {
+            totalMemory_ -= it->second.TotalMemory();
+            appMemorySnapshots_.erase(it);
+        }
+    }
+}
+
+void MemorySnapshot::InitMemoryLimit(MemoryOverflowCalllback callback,
+    uint64_t warning, uint64_t overflow, uint64_t totalSize)
+{
+    if (callback_ == nullptr) {
+        callback_ = callback;
+        singleMemoryWarning_ = warning;
+        singleCpuMemoryLimit_ = overflow;
+        totalMemoryLimit_ = totalSize;
     }
 }
 }

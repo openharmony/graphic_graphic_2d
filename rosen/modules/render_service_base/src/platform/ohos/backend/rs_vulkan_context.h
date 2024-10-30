@@ -215,7 +215,6 @@ public:
     VkSemaphore RequireSemaphore();
     void SendSemaphoreWithFd(VkSemaphore semaphore, int fenceFd);
     void DestroyAllSemaphoreFence();
-    void DestroySignaledSemaphoreFence();
 
 friend class RsVulkanContext;
 private:
@@ -263,7 +262,7 @@ private:
         std::unique_ptr<SyncFence> fence;
     };
     std::list<semaphoreFence> usedSemaphoreFenceList_;
-    std::recursive_mutex semaphoreLock_;
+    std::mutex semaphoreLock_;
 };
 
 class RsVulkanContext {

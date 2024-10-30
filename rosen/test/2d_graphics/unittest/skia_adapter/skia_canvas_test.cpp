@@ -486,9 +486,11 @@ HWTEST_F(SkiaCanvasTest, ConcatMatrix001, TestSize.Level1)
 HWTEST_F(SkiaCanvasTest, Rotate001, TestSize.Level2)
 {
     SkiaCanvas skiaCanvas;
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
     skiaCanvas.Rotate(0.1f, 0.2f, 0.3f);
 
     skiaCanvas.ImportSkCanvas(nullptr);
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() == nullptr);
     skiaCanvas.Rotate(0.1f, 0.2f, 0.3f);
 }
 
@@ -501,9 +503,11 @@ HWTEST_F(SkiaCanvasTest, Rotate001, TestSize.Level2)
 HWTEST_F(SkiaCanvasTest, Shear001, TestSize.Level2)
 {
     SkiaCanvas skiaCanvas;
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
     skiaCanvas.Shear(0.5f, 0.5f);
 
     skiaCanvas.ImportSkCanvas(nullptr);
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() == nullptr);
     skiaCanvas.Shear(0.5f, 0.5f);
 }
 
@@ -600,7 +604,7 @@ HWTEST_F(SkiaCanvasTest, GetRoundInDeviceClipBoundsTest001, TestSize.Level1)
     auto rect = skiaCanvas->GetRoundInDeviceClipBounds();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: GetGPUContextTest001
  * @tc.desc: Test for geting gpu context.

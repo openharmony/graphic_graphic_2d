@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "utils/text_log.h"
 #ifdef BUILD_NON_SDK_VER
 #include "securec.h"
 #endif
@@ -35,6 +36,8 @@ namespace TextEngine {
 #define FAILED 1
 
 const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig.json";
+constexpr const char* FALLBACK_VARIATIONS_KEY = "variations";
+constexpr const char* FALLBACK_INDEX_KEY = "index";
 
 FontConfig::FontConfig(const char* fname)
 {
@@ -403,14 +406,21 @@ int FontConfigJson::ParseFallback(const cJSON* root, const char* key)
         if (item == nullptr) {
             continue;
         }
-        cJSON* item2 = cJSON_GetArrayItem(item, 0);
-        if (item2 == nullptr || item2->valuestring == nullptr || item2->string == nullptr) {
-            continue;
+        // refer to FontConfig_OHOS::parseFallbackItem
+        int itemSize = cJSON_GetArraySize(item);
+        for (int j = itemSize - 1; j >= 0; --j) {
+            cJSON* item2 = cJSON_GetArrayItem(item, j);
+            if (item2 == nullptr || item2->valuestring == nullptr || item2->string == nullptr ||
+                strcmp(item2->string, FALLBACK_VARIATIONS_KEY) == 0 ||
+                strcmp(item2->string, FALLBACK_INDEX_KEY) == 0) {
+                continue;
+            }
+            FallbackInfo fallbackInfo;
+            fallbackInfo.familyName = item2->valuestring;
+            fallbackInfo.font = item2->string;
+            fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));
+            break;
         }
-        FallbackInfo fallbackInfo;
-        fallbackInfo.familyName = item2->valuestring;
-        fallbackInfo.font = item2->string;
-        fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));
     }
     fontPtr->fallbackGroupSet.emplace_back(std::move(fallbackGroup));
     return SUCCESSED;
@@ -439,6 +449,56 @@ int FontConfigJson::ParseFontMap(const cJSON* root, const char* key)
         }
         (*fontFileMap)[item2->string] = item2->valuestring;
     }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList)
+{
+    const char* tag = "fontlist";
+    cJSON* rootObj = cJSON_GetObjectItem(root, tag);
+    if (rootObj == nullptr) {
+        TEXT_LOGE("Failed to get json object");
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(rootObj);
+    if (size <= 0) {
+        TEXT_LOGE("Failed to get json array size");
+        return FAILED;
+    }
+    fontPathList.reserve(size);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(rootObj, i);
+        if (item == nullptr) {
+            TEXT_LOGE("Failed to get json item");
+            return FAILED;
+        }
+        cJSON* fullPath = cJSON_GetObjectItem(item, "fontfullpath");
+        if (fullPath == nullptr || !cJSON_IsString(fullPath) || fullPath->valuestring == nullptr) {
+            TEXT_LOGE("Failed to get fullPath");
+            return FAILED;
+        }
+        fontPathList.emplace_back(std::string(fullPath->valuestring));
+    }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList)
+{
+    if (fontPath == nullptr) {
+        TEXT_LOGE("Font path is null");
+        return FAILED;
+    }
+
+    cJSON* root = CheckConfigFile(fontPath);
+    if (root == nullptr) {
+        TEXT_LOGE("Failed to check config file");
+        return FAILED;
+    }
+    if (ParseInstallFont(root, fontPathList) != SUCCESSED) {
+        cJSON_Delete(root);
+        return FAILED;
+    }
+    cJSON_Delete(root);
     return SUCCESSED;
 }
 

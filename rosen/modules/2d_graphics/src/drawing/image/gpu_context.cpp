@@ -161,14 +161,14 @@ void GPUContext::SetCurrentGpuResourceTag(const GPUResourceTag &tag)
     impl_->SetCurrentGpuResourceTag(tag);
 }
 
-void GPUContext::SetMemoryOverCheck(MemoryOverCheckCallback func)
+void GPUContext::GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out)
 {
-    impl_->SetMemoryOverCheck(func);
+    impl_->GetUpdatedMemoryMap(out);
 }
 
-void GPUContext::SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func)
+void GPUContext::InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size)
 {
-    impl_->SetRemoveMemoryFromSnapshotInfo(func);
+    impl_->InitGpuMemoryLimit(callback, size);
 }
 
 void GPUContext::ResetContext()
@@ -197,6 +197,37 @@ void GPUContext::VmaDefragment()
 {
     impl_->VmaDefragment();
 }
+
+void GPUContext::BeginFrame()
+{
+    impl_->BeginFrame();
+}
+
+void GPUContext::EndFrame()
+{
+    impl_->EndFrame();
+}
+
+void GPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
+{
+    impl_->SetGpuCacheSuppressWindowSwitch(enabled);
+}
+
+void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+{
+    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+}
+
+void GPUContext::FlushGpuMemoryInWaitQueue()
+{
+    impl_->FlushGpuMemoryInWaitQueue();
+}
+
+void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived)
+{
+    impl_->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

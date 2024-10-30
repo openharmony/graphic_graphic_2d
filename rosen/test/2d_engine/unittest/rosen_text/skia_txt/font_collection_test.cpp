@@ -21,61 +21,23 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace txt {
-class FontCollectionTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::shared_ptr<FontCollection> fontCollection_ = nullptr;
-};
-
-void FontCollectionTest::SetUpTestCase()
-{
-    fontCollection_ = std::make_shared<FontCollection>();
-    if (!fontCollection_) {
-        std::cout << "FontCollectionTest::SetUpTestCase error fontCollection_ is nullptr" << std::endl;
-    }
-    if (fontCollection_) {
-        fontCollection_->CreateSktFontCollection();
-    }
-}
-
-void FontCollectionTest::TearDownTestCase()
-{
-}
+class FontCollectionTest : public testing::Test {};
 
 /*
  * @tc.name: FontCollectionTest001
- * @tc.desc: test for GetFontManagersCount
+ * @tc.desc: test for GetFontManagersCount and SetupDefaultFontManager and SetDefaultFontManager
  * @tc.type: FUNC
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest001, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    EXPECT_EQ(fontCollection_->GetFontManagersCount(), 0);
-}
-
-/*
- * @tc.name: FontCollectionTest002
- * @tc.desc: test for SetupDefaultFontManager
- * @tc.type: FUNC
- */
-HWTEST_F(FontCollectionTest, FontCollectionTest002, TestSize.Level1)
-{
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetupDefaultFontManager();
-    EXPECT_EQ(fontCollection_->defaultFontManager_ != nullptr, true);
-}
-
-/*
- * @tc.name: FontCollectionTest003
- * @tc.desc: test for SetDefaultFontManager
- * @tc.type: FUNC
- */
-HWTEST_F(FontCollectionTest, FontCollectionTest003, TestSize.Level1)
-{
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetDefaultFontManager(nullptr);
-    EXPECT_EQ(fontCollection_->defaultFontManager_, nullptr);
+    FontCollection fontCollection;
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 0);
+    fontCollection.SetupDefaultFontManager();
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 1);
+    EXPECT_NE(fontCollection.defaultFontManager_, nullptr);
+    fontCollection.SetDefaultFontManager(nullptr);
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 0);
+    EXPECT_EQ(fontCollection.defaultFontManager_, nullptr);
 }
 
 /*
@@ -85,9 +47,10 @@ HWTEST_F(FontCollectionTest, FontCollectionTest003, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest004, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetAssetFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
-    EXPECT_NE(fontCollection_->assetFontManager_, nullptr);
+    FontCollection fontCollection;
+    fontCollection.SetAssetFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
+    EXPECT_NE(fontCollection.assetFontManager_, nullptr);
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 1);
 }
 
 /*
@@ -97,9 +60,10 @@ HWTEST_F(FontCollectionTest, FontCollectionTest004, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest005, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetDynamicFontManager(nullptr);
-    EXPECT_EQ(fontCollection_->dynamicFontManager_, nullptr);
+    FontCollection fontCollection;
+    fontCollection.SetDynamicFontManager(OHOS::Rosen::Drawing::FontMgr::CreateDynamicFontMgr());
+    EXPECT_NE(fontCollection.dynamicFontManager_, nullptr);
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 1);
 }
 
 /*
@@ -109,11 +73,11 @@ HWTEST_F(FontCollectionTest, FontCollectionTest005, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->SetTestFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
-    EXPECT_NE(fontCollection_->testFontManager_, nullptr);
+    FontCollection fontCollection;
+    fontCollection.SetTestFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
+    EXPECT_NE(fontCollection.testFontManager_, nullptr);
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 1);
 }
-
 
 /*
  * @tc.name: FontCollectionTest007
@@ -122,8 +86,17 @@ HWTEST_F(FontCollectionTest, FontCollectionTest006, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    EXPECT_NE(fontCollection_->GetFontManagerOrder().size(), 0);
+    FontCollection fontCollection;
+    fontCollection.SetupDefaultFontManager();
+    fontCollection.SetAssetFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
+    fontCollection.SetDynamicFontManager(OHOS::Rosen::Drawing::FontMgr::CreateDynamicFontMgr());
+    fontCollection.SetTestFontManager(OHOS::Rosen::SPText::GetDefaultFontManager());
+    EXPECT_EQ(fontCollection.GetFontManagersCount(), 4);
+    std::vector<std::shared_ptr<RSFontMgr>> fontManagerOrder = fontCollection.GetFontManagerOrder();
+    EXPECT_EQ(fontManagerOrder.at(0), fontCollection.dynamicFontManager_);
+    EXPECT_EQ(fontManagerOrder.at(1), fontCollection.assetFontManager_);
+    EXPECT_EQ(fontManagerOrder.at(2), fontCollection.testFontManager_);
+    EXPECT_EQ(fontManagerOrder.at(3), fontCollection.defaultFontManager_);
 }
 
 /*
@@ -133,9 +106,12 @@ HWTEST_F(FontCollectionTest, FontCollectionTest007, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest008, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->DisableFontFallback();
-    EXPECT_EQ(fontCollection_->sktFontCollection_, nullptr);
+    FontCollection fontCollection;
+    fontCollection.CreateSktFontCollection();
+    ASSERT_NE(fontCollection.sktFontCollection_, nullptr);
+    fontCollection.DisableFontFallback();
+    EXPECT_EQ(fontCollection.sktFontCollection_->fontFallbackEnabled(), false);
+    EXPECT_EQ(fontCollection.enableFontFallback_, false);
 }
 
 /*
@@ -145,19 +121,11 @@ HWTEST_F(FontCollectionTest, FontCollectionTest008, TestSize.Level1)
  */
 HWTEST_F(FontCollectionTest, FontCollectionTest009, TestSize.Level1)
 {
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    fontCollection_->ClearFontFamilyCache();
-    EXPECT_EQ(fontCollection_->sktFontCollection_, nullptr);
+    FontCollection fontCollection;
+    fontCollection.CreateSktFontCollection();
+    ASSERT_NE(fontCollection.sktFontCollection_, nullptr);
+    fontCollection.ClearFontFamilyCache();
+    EXPECT_EQ(fontCollection.sktFontCollection_->getParagraphCache()->count(), 0);
 }
 
-/*
- * @tc.name: FontCollectionTest010
- * @tc.desc: test for CreateSktFontCollection
- * @tc.type: FUNC
- */
-HWTEST_F(FontCollectionTest, FontCollectionTest010, TestSize.Level1)
-{
-    EXPECT_EQ(fontCollection_ != nullptr, true);
-    EXPECT_EQ(fontCollection_->CreateSktFontCollection() != nullptr, true);
-}
 } // namespace txt

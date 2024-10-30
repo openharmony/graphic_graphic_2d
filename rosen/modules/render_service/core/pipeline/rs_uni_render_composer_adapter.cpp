@@ -42,6 +42,15 @@ constexpr uint32_t FLAT_ANGLE = 180;
 constexpr int32_t DEFAULT_BRIGHTNESS = 500;
 constexpr float NO_RATIO = 1.0f;
 static const int GLOBAL_ALPHA_MAX = 255;
+
+std::string RectVectorToString(const std::vector<GraphicIRect>& dirtyRects)
+{
+    std::stringstream ss;
+    for (auto& rect : dirtyRects) {
+        ss << "[" << rect.x << "," << rect.y << "," << rect.w << "," << rect.h << "]";
+    }
+    return ss.str();
+}
 }
 
 bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
@@ -239,18 +248,22 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(info.visibleRect);
     layer->SetVisibleRegions(visibleRegions);
+    std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
-        layer->SetDirtyRegions(info.dirtyRects);
+        // Make sure the dirty region does not exceed layer src range.
+        for (const auto& rect : info.dirtyRects) {
+            dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(info.srcRect, rect));
+        }
     } else {
-        std::vector<GraphicIRect> dirtyRegions;
         dirtyRegions.emplace_back(info.srcRect);
-        layer->SetDirtyRegions(dirtyRegions);
     }
+    layer->SetDirtyRegions(dirtyRegions);
     layer->SetBlendType(info.blendType);
     layer->SetCropRect(info.srcRect);
     layer->SetMatrix(info.matrix);
     layer->SetGravity(info.gravity);
     SetMetaDataInfoToLayer(layer, info.buffer, surface);
+    layer->SetSdrNit(info.sdrNit);
     layer->SetDisplayNit(info.displayNit);
     layer->SetBrightnessRatio(info.brightnessRatio);
 }
@@ -354,8 +367,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
     auto boundsWidth = property.GetBoundsWidth();
     auto boundsHeight = property.GetBoundsHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, node.GetRSSurfaceHandler()->GetBuffer()));
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -376,9 +389,9 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             return;
         }
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+        ScalingMode scalingMode = nodeParams->GetScalingMode();
         if (consumer->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetPreScalingMode(scalingMode);
+            nodeParams->SetScalingMode(scalingMode);
         }
         if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
@@ -435,8 +448,8 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
     const auto bufferHeight = info.buffer->GetSurfaceBufferHeight();
     auto boundsWidth = params->GetBounds().GetWidth();
     auto boundsHeight = params->GetBounds().GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(surfaceDrawable.GetConsumerOnDraw()->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(surfaceDrawable.GetConsumerOnDraw(), info.buffer));
     if (transformType == GraphicTransformType::GRAPHIC_ROTATE_270 ||
         transformType == GraphicTransformType::GRAPHIC_ROTATE_90) {
         std::swap(boundsWidth, boundsHeight);
@@ -452,9 +465,9 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
 
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = params->GetPreScalingMode();
+        ScalingMode scalingMode = params->GetScalingMode();
         if (surfaceDrawable.GetConsumerOnDraw()->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            params->SetPreScalingMode(scalingMode);
+            params->SetScalingMode(scalingMode);
         }
         if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
@@ -658,8 +671,8 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(RSSurfaceRenderNode& no
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();
     int height = srcRect.GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, node.GetRSSurfaceHandler()->GetBuffer()));
     int boundsWidth = static_cast<int>(node.GetRenderProperties().GetBoundsWidth());
     int boundsHeight = static_cast<int>(node.GetRenderProperties().GetBoundsHeight());
     // Left > 0 means move xComponent to the left outside of the screen
@@ -711,8 +724,8 @@ RectI RSUniRenderComposerAdapter::SrcRectRotateTransform(DrawableV2::RSSurfaceRe
     int top = srcRect.GetTop();
     int width = srcRect.GetWidth();
     int height = srcRect.GetHeight();
-    GraphicTransformType transformType =
-        RSBaseRenderUtil::GetRotateTransform(consumer->GetTransform());
+    GraphicTransformType transformType = RSBaseRenderUtil::GetRotateTransform(
+        RSBaseRenderUtil::GetSurfaceBufferTransformType(consumer, params->GetBuffer()));
     const auto& bounds = params->GetBounds();
     int boundsWidth = static_cast<int>(bounds.GetWidth());
     int boundsHeight = static_cast<int>(bounds.GetHeight());
@@ -806,14 +819,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& no
         RS_LOGE("RSUniRenderComposerAdapter::BuildComposeInfo fail, node params is nullptr");
         return info;
     }
+    info.sdrNit = renderParam->GetSdrNit();
     info.displayNit = renderParam->GetDisplayNit();
     info.brightnessRatio = renderParam->GetBrightnessRatio();
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+        info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        node.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        node.GetId(), info.zOrder, info.blendType, info.needClient,
         info.alpha.enGlobalAlpha, info.alpha.gAlpha,
         info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
@@ -872,14 +888,17 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSSurfaceRe
         RS_LOGE("RSUniRenderComposerAdapter::curRenderParam is nullptr");
         return info;
     }
+    info.sdrNit = curRenderParam->GetSdrNit();
     info.displayNit = curRenderParam->GetDisplayNit();
     info.brightnessRatio = curRenderParam->GetBrightnessRatio();
+    RS_LOGD("RSURCA::BuildCInfo sdrNit: %{public}d, displayNit: %{public}d, brightnessRatio: %{public}f",
+        info.sdrNit, info.displayNit, info.brightnessRatio);
     RS_LOGD("RSUniRenderComposerAdapter::BuildCInfo id:%{public}" PRIu64
-        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d displayNit:%{public}d brightnessRatio:%{public}f"
+        " zOrder:%{public}d blendType:%{public}d needClient:%{public}d"
         " alpha[%{public}d %{public}d] boundRect[%{public}d %{public}d %{public}d %{public}d]"
         " srcRect[%{public}d %{public}d %{public}d %{public}d] dstRect[%{public}d %{public}d %{public}d %{public}d]"
         " matrix[%{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f %{public}f]",
-        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient, info.displayNit, info.brightnessRatio,
+        surfaceDrawable.GetId(), info.zOrder, info.blendType, info.needClient,
         info.alpha.enGlobalAlpha, info.alpha.gAlpha,
         info.boundRect.x, info.boundRect.y, info.boundRect.w, info.boundRect.h,
         info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.y,
@@ -1007,7 +1026,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSur
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
     int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
     if (surfaceRotation % FLAT_ANGLE != 0) {
         std::swap(dstWidth, dstHeight);
     }
@@ -1074,7 +1094,8 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
     // If surfaceRotation is not a multiple of 180, need to change the correspondence between width & height.
     // ScreenRotation has been processed in SetLayerSize, and do not change the width & height correspondence.
     int surfaceRotation = RSUniRenderUtil::GetRotationFromMatrix(params->GetTotalMatrix()) +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()));
+                          RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(
+                              RSBaseRenderUtil::GetSurfaceBufferTransformType(surface, buffer)));
     if (surfaceRotation % FLAT_ANGLE != 0) {
         std::swap(dstWidth, dstHeight);
     }
@@ -1238,7 +1259,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     SetComposeInfoToLayer(layer, info, surfaceDrawable.GetConsumerOnDraw());
     LayerRotate(layer, surfaceDrawable);
     LayerCrop(layer);
-    ScalingMode scalingMode = params->GetPreScalingMode();
+    ScalingMode scalingMode = params->GetScalingMode();
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
     if (buffer == nullptr || surface == nullptr) {
@@ -1247,7 +1268,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     }
 
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params->SetPreScalingMode(scalingMode);
+        params->SetScalingMode(scalingMode);
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::CreateBLayer scalingMode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
@@ -1300,7 +1321,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
         RS_LOGE("node params is nullptr");
         return layer;
     }
-    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+    ScalingMode scalingMode = nodeParams->GetScalingMode();
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
     if (buffer == nullptr || surface == nullptr) {
@@ -1308,7 +1329,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
         return layer;
     }
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetPreScalingMode(scalingMode);
+        nodeParams->SetScalingMode(scalingMode);
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::CreateBLayer scalingMode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
@@ -1346,8 +1367,8 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSDisplayRender
         return nullptr;
     }
     ComposeInfo info = BuildComposeInfo(displayDrawable, displayDrawable.GetDirtyRects());
-    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable zorder:%d bufferFormat:%d", info.zOrder,
-        surfaceHandler->GetBuffer()->GetFormat());
+    RS_OPTIONAL_TRACE_NAME_FMT("CreateLayer displayDrawable dirty:%s zorder:%d bufferFormat:%d",
+        RectVectorToString(info.dirtyRects).c_str(), info.zOrder, surfaceHandler->GetBuffer()->GetFormat());
     if (info.buffer) {
         RS_LOGD("RSUniRenderComposerAdapter::CreateLayer displayDrawable id:%{public}" PRIu64 " dst [%{public}d"
             " %{public}d %{public}d %{public}d] SrcRect [%{public}d %{public}d] rawbuffer [%{public}d %{public}d]"
@@ -1497,10 +1518,11 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSSurfaceRenderNode& no
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(node);
+    auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(layer->GetSurface(), layer->GetBuffer());
     int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
-        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transform))) % 360;
+    GraphicTransformType rotateEnum =
+        RSBaseRenderUtil::RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(transform));
     layer->SetTransform(rotateEnum);
 }
 
@@ -1510,10 +1532,11 @@ static void SetLayerTransform(const LayerInfoPtr& layer, DrawableV2::RSRenderNod
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
     // layerTransform: clockwise
     int surfaceNodeRotation = GetSurfaceNodeRotation(drawable);
+    auto transform = RSBaseRenderUtil::GetSurfaceBufferTransformType(layer->GetSurface(), layer->GetBuffer());
     int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenRotation) + surfaceNodeRotation +
-        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(surface->GetTransform()))) % 360;
-    GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation,
-        RSBaseRenderUtil::GetFlipTransform(surface->GetTransform()));
+        RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transform))) % 360;
+    GraphicTransformType rotateEnum =
+        RSBaseRenderUtil::RotateEnumToInt(totalRotation, RSBaseRenderUtil::GetFlipTransform(transform));
     layer->SetTransform(rotateEnum);
 }
 

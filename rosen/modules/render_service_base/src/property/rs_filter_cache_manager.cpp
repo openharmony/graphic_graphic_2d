@@ -144,11 +144,9 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
         cachedSnapshot_->cachedImage_->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
     bool discardCanvas = CanDiscardCanvas(canvas, dst);
-    auto colorFilter = RSPropertyDrawableUtils::CreateColorFilterForHDR(cachedSnapshot_->cachedBrightnessRatio_,
-        canvas.GetBrightnessRatio());
-    filter->SetColorFilterForHDR(colorFilter);
-    filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, discardCanvas);
-    filter->ResetColorFilterForHDR();
+    
+    filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect, { discardCanvas, false });
+    filter->PostProcess(canvas);
     cachedFilterHash_ = filter->Hash();
     return true;
 }
@@ -239,8 +237,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
 
     // Update the cache state.
     snapshotRegion_ = RectI(srcRect.GetLeft(), srcRect.GetTop(), srcRect.GetWidth(), srcRect.GetHeight());
-    cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds,
-        canvas.GetBrightnessRatio());
+    cachedSnapshot_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(snapshot), snapshotIBounds);
     cachedFilterHash_ = 0;
 }
 
@@ -268,12 +265,9 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     auto src = Drawing::Rect(0, 0, cachedSnapshot_->cachedRect_.GetWidth(), cachedSnapshot_->cachedRect_.GetHeight());
     auto dst = Drawing::Rect(0, 0, offscreenRect.GetWidth(), offscreenRect.GetHeight());
 
-    auto colorFilter = RSPropertyDrawableUtils::CreateColorFilterForHDR(cachedSnapshot_->cachedBrightnessRatio_,
-        canvas.GetBrightnessRatio());
-    filter->SetColorFilterForHDR(colorFilter);
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
-    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst);
-    filter->ResetColorFilterForHDR();
+    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst, { false, true });
+    filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
     auto filteredSnapshot = offscreenSurface->GetImageSnapshot();
@@ -290,8 +284,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         }
     }
     cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect,
-            canvas.GetBrightnessRatio());
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect);
 }
 
 void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canvas, const Drawing::RectI& dstRect,

@@ -168,6 +168,9 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     bool isSkipLayer = GetData<bool>();
     surfaceNode->SetSkipLayer(isSkipLayer);
     surfaceNode->GetSkipLayer();
+    bool isSnapshotSkipLayer = GetData<bool>();
+    surfaceNode->SetSnapshotSkipLayer(isSnapshotSkipLayer);
+    surfaceNode->GetSnapshotSkipLayer();
     bool hasFingerprint = GetData<bool>();
     surfaceNode->SetFingerprint(hasFingerprint);
     surfaceNode->GetFingerprint();
@@ -183,10 +186,6 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     bool isBootAnimation = GetData<bool>();
     surfaceNode->SetBootAnimation(isBootAnimation);
     surfaceNode->GetBootAnimation();
-    bool isLayerTop = GetData<bool>();
-    std::string surfaceNodeName = GetData<std::string>();
-    surfaceNode->SetLayerTop(surfaceNodeName, isLayerTop);
-    surfaceNode->IsLayerTop();
     return true;
 }
 
@@ -471,8 +470,8 @@ bool DoSetContainerWindow(const uint8_t* data, size_t size)
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     bool hasContainerWindow = GetData<bool>();
-    float density = GetData<float>();
-    surfaceNode->SetContainerWindow(hasContainerWindow, density);
+    RRect rrect = GetData<RRect>();
+    surfaceNode->SetContainerWindow(hasContainerWindow, rrect);
     return true;
 }
 
@@ -610,6 +609,26 @@ bool DoSetAncoFlags(const uint8_t* data, size_t size)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     uint32_t flags = GetData<uint32_t>();
     surfaceNode->SetAncoFlags(flags);
+    return true;
+}
+
+bool DoSetWatermark(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    std::string waterMark = GetData<std::string>();
+    bool waterMarkEnabled = GetData<bool>();
+    surfaceNode->SetWatermarkEnabled(waterMark, waterMarkEnabled);
     return true;
 }
 
@@ -804,14 +823,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetForeground(data, size);
     OHOS::Rosen::DoSetForceUIFirst(data, size);
     OHOS::Rosen::DoSetAncoFlags(data, size);
-    OHOS::Rosen::DoSetHDRPresent(data, size);
     OHOS::Rosen::DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(data, size);
     OHOS::Rosen::DoRSSurfaceNode(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
     OHOS::Rosen::DoOnBoundsSizeChangedAndSetSurfaceIdToRenderNode(data, size);
     OHOS::Rosen::DoSetIsTextureExportNode(data, size);
-    OHOS::Rosen::DoSplitSurfaceNodeName(data, size);
     return 0;
 }
 

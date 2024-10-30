@@ -173,6 +173,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
 
     instance->AddDirtyLightSource(node.weak_from_this());
     instance->PrepareLight();
+    EXPECT_TRUE(!instance->illuminatedNodeMap_.empty());
 }
 
 /**
@@ -389,18 +390,28 @@ HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.L
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_0);
     auto pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_EQ(pos.x_, 20);
+    EXPECT_EQ(pos.y_, 20);
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_90);
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_EQ(pos.x_, -20);
+    EXPECT_EQ(pos.y_, 20);
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_180);
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_EQ(pos.x_, -20);
+    EXPECT_EQ(pos.y_, -20);
 
     instance->SetScreenRotation(ScreenRotation::ROTATION_270);
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_EQ(pos.x_, 20);
+    EXPECT_EQ(pos.y_, -20);
 
     instance->SetScreenRotation(ScreenRotation::INVALID_SCREEN_ROTATION);
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_EQ(pos.x_, 0);
+    EXPECT_EQ(pos.y_, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

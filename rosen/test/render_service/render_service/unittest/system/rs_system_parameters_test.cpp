@@ -85,7 +85,22 @@ HWTEST_F(RSSystemParametersTest, GetDrawingCacheEnabledDfxTest, TestSize.Level1)
  */
 HWTEST_F(RSSystemParametersTest, GetQuickSkipPrepareTypeTest, TestSize.Level1)
 {
-    RSSystemParameters::GetQuickSkipPrepareType();
     system::SetParameter("rosen.quickskipprepare.enabled", "2");
+    auto result = RSSystemParameters::GetQuickSkipPrepareType();
+    ASSERT_EQ(result, QuickSkipPrepareType::STATIC_APP_INSTANCE);
+}
+
+/**
+ * @tc.name: IsNeedScRGBForP3Test
+ * @tc.desc: Test ScRGB For P3 Controller
+ * @tc.type: FUNC
+ * @tc.require: issueIAWIC7
+ */
+HWTEST_F(RSSystemParametersTest, IsNeedScRGBForP3Test, TestSize.Level2)
+{
+    auto original = system::GetBoolParameter("persist.sys.graphic.scrgb.enabled", false);
+    auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    auto result = RSSystemParameters::IsNeedScRGBForP3(currentGamut);
+    EXPECT_EQ(original, result);
 }
 } // namespace OHOS::Rosen

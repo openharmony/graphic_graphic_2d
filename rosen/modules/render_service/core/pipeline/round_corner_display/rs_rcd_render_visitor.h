@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_CORE_RS_RCD_RENDER_VISITOR_H
 #define RENDER_SERVICE_CORE_RS_RCD_RENDER_VISITOR_H
 
+#include <mutex>
+#include <thread>
 #include "pipeline/rs_processor.h"
 #include "rs_rcd_surface_render_node.h"
 #include "visitor/rs_node_visitor.h"
@@ -46,13 +48,13 @@ public:
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
     bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node);
-    void ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
-        bool resourceChanged);
+    void ProcessRcdSurfaceRenderNode(
+        RSRcdSurfaceRenderNode &node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged);
     void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);
-
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
 
 private:
+    std::mutex bufferMut_;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
     std::shared_ptr<RSProcessor> uniProcessor_ = nullptr;
 };

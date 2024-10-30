@@ -57,15 +57,15 @@ public:
 
     std::string GetAppStrategyConfigName(const std::string& pkgName);
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);
-    std::unordered_map<std::string, std::pair<pid_t, int32_t>> GetPidAppType();
-    std::unordered_map<pid_t, std::pair<int32_t, std::string>> GetForegroundPidApp();
-    HgmLRUCache<pid_t> GetBackgroundPid();
-    std::vector<std::string> GetPackages();
+    std::unordered_map<std::string, std::pair<pid_t, int32_t>> GetPidAppType() const;
+    std::unordered_map<pid_t, std::pair<int32_t, std::string>> GetForegroundPidApp() const;
+    HgmLRUCache<pid_t> GetBackgroundPid() const;
+    std::vector<std::string> GetPackages() const;
     void CleanApp(pid_t pid);
     void UpdateXmlConfigCache();
-    PolicyConfigData::ScreenSetting GetScreenSetting();
+    PolicyConfigData::ScreenSetting GetScreenSetting() const;
     void SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting);
-    PolicyConfigData::StrategyConfigMap GetStrategyConfigs();
+    PolicyConfigData::StrategyConfigMap GetStrategyConfigs() const;
     void SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs);
     HgmErrCode GetStrategyConfig(const std::string& strategyName, PolicyConfigData::StrategyConfig& strategyRes);
     HgmErrCode GetAppStrategyConfig(const std::string& pkgName, PolicyConfigData::StrategyConfig& strategyRes);

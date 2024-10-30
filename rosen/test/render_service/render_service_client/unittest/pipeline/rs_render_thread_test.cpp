@@ -97,6 +97,7 @@ HWTEST_F(RSRenderThreadTest, PostPreTask001, TestSize.Level1)
      * @tc.steps: step1. PrepareChildren
      */
     RSRenderThread::Instance().PostPreTask();
+    EXPECT_EQ(RSRenderThread::Instance().handler_, nullptr);
 }
 
 /**
@@ -112,6 +113,7 @@ HWTEST_F(RSRenderThreadTest, UpdateWindowStatus001, TestSize.Level1)
      */
     RSRenderThread::Instance().UpdateWindowStatus(false);
     RSRenderThread::Instance().UpdateWindowStatus(true);
+    EXPECT_EQ(RSRenderThread::Instance().activeWindowCnt_, 0);
 }
 
 /**
@@ -174,11 +176,11 @@ HWTEST_F(RSRenderThreadTest, OnVsync001, TestSize.Level1)
     uint64_t frameCount = 1; // for test
     RSRenderThread::Instance().activeWindowCnt_ = 1;
     RSRenderThread::Instance().OnVsync(timestamp, frameCount);
-    EXPECT_TRUE(RSRenderThread::Instance().activeWindowCnt_);
+    EXPECT_EQ(RSRenderThread::Instance().timestamp_, timestamp);
 
     RSRenderThread::Instance().activeWindowCnt_ = 0;
     RSRenderThread::Instance().OnVsync(timestamp, frameCount);
-    EXPECT_TRUE(!RSRenderThread::Instance().activeWindowCnt_);
+    EXPECT_EQ(RSRenderThread::Instance().timestamp_, timestamp);
 }
 
 /**
@@ -222,7 +224,6 @@ HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
     RSRenderThread::Instance().context_ = std::make_shared<RSContext>();
     RSRenderThread::Instance().context_->animatingNodeList_.clear();
     RSRenderThread::Instance().Animate(timestamp);
-    EXPECT_TRUE(RSRenderThread::Instance().context_ != nullptr);
 
     NodeId id = 1; // for test
     NodeId tid = 1; // for test
@@ -231,14 +232,13 @@ HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
     RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
     RsFrameReport::GetInstance().frameSchedSoLoaded_ = false;
     RSRenderThread::Instance().Animate(timestamp);
-    EXPECT_TRUE(render != nullptr);
 
     RSRenderThread::Instance().context_->animatingNodeList_.clear();
     render = nullptr;
     RSRenderThread::Instance().context_->animatingNodeList_[id] = render;
     RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
     RSRenderThread::Instance().Animate(timestamp);
-    EXPECT_TRUE(render == nullptr);
+    EXPECT_EQ(RSRenderThread::Instance().lastAnimateTimestamp_, timestamp);
 }
 
 /**
@@ -391,5 +391,21 @@ HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest, TestSize.Leve
 
     RSRenderThread::Instance().CreateAndInitRenderContextIfNeed();
     EXPECT_TRUE(RSRenderThread::Instance().thread_);
+}
+
+/**
+ * @tc.name: HighContrastSettingsAndChanges
+ * @tc.desc: test results of HighContrastSettingsAndChanges
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSRenderThreadTest, HighContrastSettingsAndChanges, TestSize.Level1)
+{
+    RSRenderThread::Instance().SetHighContrast(true);
+    EXPECT_TRUE(RSRenderThread::Instance().IsHighContrastEnabled());
+    EXPECT_TRUE(RSRenderThread::Instance().IsHighContrastChanged());
+
+    RSRenderThread::Instance().ResetHighContrastChanged();
+    EXPECT_FALSE(RSRenderThread::Instance().IsHighContrastChanged());
 }
 } // namespace OHOS::Rosen

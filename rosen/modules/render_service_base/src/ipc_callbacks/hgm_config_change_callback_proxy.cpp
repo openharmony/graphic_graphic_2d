@@ -40,7 +40,13 @@ void RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged(std::shared_ptr<RSHgmCon
     option.SetFlags(MessageOption::TF_ASYNC);
     data.WriteParcelable(configData.get());
     uint32_t code = static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_CONFIG_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged remote is null!");
+        return;
+    }
+
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmConfigChanged error = %{public}d", err);
     }
@@ -60,9 +66,15 @@ void RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged(int32_t refresh
     data.WriteInt32(refreshRateMode);
     uint32_t code =
         static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_MODE_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged remote is null!");
+        return;
+    }
+
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSHgmRefreshRateModeChangeCallbackProxy::OnHgmRefreshRateModeChanged error = %{public}d", err);
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateModeChanged error = %{public}d", err);
     }
 }
 
@@ -80,9 +92,15 @@ void RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateUpdate(int32_t refreshRate)
     data.WriteInt32(refreshRate);
     uint32_t code =
         static_cast<uint32_t>(RSIHgmConfigChangeCallbackInterfaceCode::ON_HGM_REFRESH_RATE_CHANGED);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    auto remote = Remote();
+    if (remote == nullptr) {
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateUpdate remote is null!");
+        return;
+    }
+
+    int32_t err = remote->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSHgmRefreshRateModeChangeCallbackProxy::OnHgmRefreshRateUpdate error = %{public}d", err);
+        ROSEN_LOGE("RSHgmConfigChangeCallbackProxy::OnHgmRefreshRateUpdate error = %{public}d", err);
     }
 }
 } // namespace Rosen

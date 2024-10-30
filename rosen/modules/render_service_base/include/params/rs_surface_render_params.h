@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "common/rs_occlusion_region.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
@@ -86,7 +87,7 @@ public:
         auto node = ancestorDisplayNode.lock();
         ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
-  
+
     RSRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
         return ancestorDisplayNode_;
@@ -133,6 +134,10 @@ public:
     {
         return isSkipLayer_;
     }
+    bool GetIsSnapshotSkipLayer() const
+    {
+        return isSnapshotSkipLayer_;
+    }
     bool GetIsProtectedLayer() const
     {
         return isProtectedLayer_;
@@ -145,10 +150,6 @@ public:
     {
         return isRotating_;
     }
-    bool GetForceClientForDRMOnly() const
-    {
-        return forceClientForDRMOnly_;
-    }
     const std::set<NodeId>& GetSecurityLayerIds() const
     {
         return securityLayerIds_;
@@ -156,6 +157,10 @@ public:
     const std::set<NodeId>& GetSkipLayerIds() const
     {
         return skipLayerIds_;
+    }
+    const std::set<NodeId>& GetSnapshotSkipLayerIds() const
+    {
+        return snapshotSkipLayerIds_;
     }
     bool HasSecurityLayer()
     {
@@ -165,9 +170,22 @@ public:
     {
         return skipLayerIds_.size() != 0;
     }
+    bool HasSnapshotSkipLayer()
+    {
+        return snapshotSkipLayerIds_.size() != 0;
+    }
     bool HasProtectedLayer()
     {
         return protectedLayerIds_.size() != 0;
+    }
+    bool HasPrivacyContentLayer()
+    {
+        return privacyContentLayerIds_.size() != 0;
+    }
+
+    LeashPersistentId GetLeashPersistentId() const
+    {
+        return leashPersistentId_;
     }
 
     std::string GetName() const
@@ -314,6 +332,8 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -332,33 +352,38 @@ public:
     void SetIsSubSurfaceNode(bool isSubSurfaceNode);
     bool IsSubSurfaceNode() const;
 
+    void SetGlobalPositionEnabled(bool isEnabled);
+    bool GetGlobalPositionEnabled() const;
+
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
     bool IsNodeToBeCaptured() const;
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
 
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
+    bool GetHidePrivacyContent() const;
+
     void SetLayerTop(bool isTop);
     bool IsLayerTop() const;
 
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
     
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
-    size_t GetWatermarkSize() const;
+    const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
+    bool IsWatermarkEmpty() const;
 
-    void SetPreScalingMode(ScalingMode scalingMode) override
+    void SetScalingMode(ScalingMode scalingMode) override
     {
-        if (preScalingMode_ == scalingMode) {
+        if (scalingMode_ == scalingMode) {
             return;
         }
-        preScalingMode_ = scalingMode;
+        scalingMode_ = scalingMode;
         needSync_ = true;
     }
-    ScalingMode GetPreScalingMode() const override
+    ScalingMode GetScalingMode() const override
     {
-        return preScalingMode_;
+        return scalingMode_;
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -369,9 +394,27 @@ public:
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    inline void SetBufferSynced(bool bufferSynced)
+    {
+        bufferSynced_ = bufferSynced;
+    }
+    bool IsBufferSynced() const
+    {
+        return bufferSynced_;
+    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
+
+    void SetRoundedCornerRegion(const Occlusion::Region& roundedCornerRegion)
+    {
+        roundedCornerRegion_ = roundedCornerRegion;
+    }
+
+    const Occlusion::Region& GetRoundedCornerRegion() const
+    {
+        return roundedCornerRegion_;
+    }
 
     // DFX
     std::string ToString() const override;
@@ -426,6 +469,20 @@ public:
         return false;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        if (drmCornerRadiusInfo_ == drmCornerRadiusInfo) {
+            return;
+        }
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+        needSync_ = true;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     void SetSdrNit(int32_t sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
@@ -468,6 +525,9 @@ public:
         return brightnessRatio_;
     }
 
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetNeedCacheSurface() const;
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -495,7 +555,10 @@ private:
     RRect rrect_;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Occlusion::Region transparentRegion_;
+    Occlusion::Region roundedCornerRegion_;
     Occlusion::Region opaqueRegion_;
+
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;
@@ -513,37 +576,44 @@ private:
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<SurfaceBuffer> buffer_ = nullptr;
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
-    sptr<SyncFence> acquireFence_ = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
+    bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
+    bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
     bool animateState_ = false;
     bool isRotating_ = false;
-    bool forceClientForDRMOnly_ = false;
     bool isSubSurfaceNode_ = false;
+    bool isGlobalPositionEnabled_ = false;
     Gravity uiFirstFrameGravity_ = Gravity::TOP_LEFT;
     bool isNodeToBeCaptured_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     std::set<int32_t> bufferCacheSet_ = {};
     std::string name_= "";
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
-    ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    ScalingMode scalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
+    std::unordered_map<std::string, bool> watermarkHandles_ = {};
+    std::vector<float> drmCornerRadiusInfo_;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
@@ -552,6 +622,7 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    bool needCacheSurface_ = false;
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

@@ -44,6 +44,8 @@ public:
     static constexpr uint64_t g_normalUInt64_2 = 34342;
     static constexpr uint64_t g_normalUInt64_3 = 3245;
     static constexpr uint64_t g_vsyncPeriod = 11718750;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -247,13 +249,13 @@ HWTEST_F(RSUIDirectorTest, SetProperty001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     std::string cacheDir = "/data/log";
     director->SetAbilityBGAlpha(0);
-    director->SetContainerWindow(true, 1.f);
+    director->SetContainerWindow(true, rrect);
     director->SetAppFreeze(true);
     RSSurfaceNodeConfig c;
     auto surfaceNode = RSSurfaceNode::Create(c);
     director->SetRSSurfaceNode(surfaceNode);
     director->SetAbilityBGAlpha(0);
-    director->SetContainerWindow(true, 1.f);
+    director->SetContainerWindow(true, rrect);
     director->SetAppFreeze(true);
     director->FlushAnimation(10);
     director->FlushModifier();
@@ -445,6 +447,8 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    director->GoForeground();
+    director->GoBackground();
     Rosen::RSSurfaceNodeConfig config;
     config.SurfaceNodeName = "WindowScene_";
     std::shared_ptr<RSSurfaceNode> surfaceNode = std::make_shared<RSSurfaceNode>(config, true);
@@ -468,6 +472,8 @@ HWTEST_F(RSUIDirectorTest, GoGround, TestSize.Level1)
         director->isUniRenderEnabled_ = false;
     }
     director->GoForeground();
+    director->GoForeground();
+    director->GoBackground();
     director->GoBackground();
     director->isUniRenderEnabled_ = flag;
     ASSERT_TRUE(res);
@@ -619,9 +625,23 @@ HWTEST_F(RSUIDirectorTest, DumpNodeTreeProcessor001, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     RSNode::SharedPtr rsNode = RSCanvasNode::Create();
-    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0, "");
+    director->DumpNodeTreeProcessor(rsNode->GetId(), 0, 0);
     const NodeId invalidId = 1;
-    director->DumpNodeTreeProcessor(invalidId, 0, 0, "");
+    director->DumpNodeTreeProcessor(invalidId, 0, 0);
     SUCCEED();
+}
+
+/**
+ * @tc.name: GetIndexTest001
+ * @tc.desc: GetIndex Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->SendMessages();
+    uint32_t index = director->GetIndex();
+    EXPECT_TRUE(index != 0);
 }
 } // namespace OHOS::Rosen

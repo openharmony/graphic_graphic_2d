@@ -255,4 +255,57 @@ HWTEST_F(RSSurfaceRenderParamsTest, BrightnessRatioTest, TestSize.Level1)
     params.SetBrightnessRatio(SET_BRIGHTNESS_RATIO);
     EXPECT_EQ(params.GetBrightnessRatio(), SET_BRIGHTNESS_RATIO);
 }
+
+/**
+ * @tc.name: SetGlobalPositionEnabled
+ * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled test
+ * @tc.type:FUNC
+ * @tc.require: issueIATYMW
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetGlobalPositionEnabled, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(112);
+    params.SetGlobalPositionEnabled(false);
+    EXPECT_EQ(params.GetGlobalPositionEnabled(), false);
+
+    params.SetGlobalPositionEnabled(true);
+    EXPECT_EQ(params.GetGlobalPositionEnabled(), true);
+}
+
+/**
+ * @tc.name: NeedCacheSurface
+ * @tc.desc: SetNeedCacheSurface and GetNeedCacheSurface test
+ * @tc.type:FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetNeedCacheSurface, TestSize.Level1)
+{
+    uint64_t nodeId = 113;
+    RSSurfaceRenderParams params(nodeId);
+    params.SetNeedCacheSurface(true);
+    EXPECT_EQ(params.GetNeedCacheSurface(), true);
+    EXPECT_EQ(params.needSync_, true);
+
+    params.SetNeedCacheSurface(false);
+    EXPECT_EQ(params.GetNeedCacheSurface(), false);
+    EXPECT_EQ(params.needSync_, true);
+}
+
+/**
+ * @tc.name: SetHardCursorStatus
+ * @tc.desc: SetHardCursorStatus and GetHardCursorStatus test
+ * @tc.type:FUNC
+ * @tc.require: issueIAX2SN
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetHardCursorStatusTest, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(114);
+    params.SetHardCursorStatus(false);
+    EXPECT_EQ(params.needSync_, false);
+    EXPECT_EQ(params.GetHardCursorStatus(), false);
+
+    params.SetHardCursorStatus(true);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.GetHardCursorStatus(), true);
+}
 }

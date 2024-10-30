@@ -39,6 +39,7 @@ public:
     ~RSPropertyDrawable() override = default;
 
     void OnSync() override;
+    void OnPurge() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 protected:
@@ -130,6 +131,7 @@ public:
     void MarkRotationChanged();
     void MarkNodeIsOccluded(bool isOccluded);
     void MarkNeedClearFilterCache();
+    void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
 
     bool IsFilterCacheValid() const;
     bool IsForceClearFilterCache() const;
@@ -167,6 +169,8 @@ protected:
     bool stagingForceClearCacheForLastFrame_ = false;
     bool stagingIsAIBarInteractWithHWC_ = false;
     bool stagingIsEffectNode_ = false;
+    bool stagingIntersectWithDRM_ = false;
+    bool stagingIsDarkColorMode_ = false;
 
     // clear one of snapshot cache and filtered cache after drawing
     // All renderXXX variables should be read & written by render_thread or OnSync() function
@@ -175,6 +179,8 @@ protected:
     bool renderForceClearCacheForLastFrame_ = false;
     bool renderIsEffectNode_ = false;
     bool renderIsSkipFrame_ = false;
+    bool renderIntersectWithDRM_  = false;
+    bool renderIsDarkColorMode_  = false;
 
     // the type cache needed clear before drawing
     FilterCacheType stagingClearType_ = FilterCacheType::NONE;

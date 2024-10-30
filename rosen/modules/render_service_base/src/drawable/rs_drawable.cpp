@@ -120,7 +120,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE
     RSDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE
-    RSDrawableSlot::INVALID,                       // SHADOW_IS_FILLED
+    RSDrawableSlot::SHADOW,                        // SHADOW_IS_FILLED
     RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
     RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
@@ -141,6 +141,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
+    RSDrawableSlot::FOREGROUND_FILTER,             // DISTORTION_K
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
@@ -170,6 +171,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::ENV_FOREGROUND_COLOR,          // ENV_FOREGROUND_COLOR
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
+    RSDrawableSlot::CUSTOM_CLIP_TO_FRAME,          // CUSTOM_CLIP_TO_FRAME,
     RSDrawableSlot::CHILDREN,                      // CHILDREN
 };
 
@@ -226,6 +228,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     nullptr,                                             // SAVE_FRAME,
     RSFrameOffsetDrawable::OnGenerate,                   // FRAME_OFFSET,
     RSClipToFrameDrawable::OnGenerate,                   // CLIP_TO_FRAME,
+    RSCustomClipToFrameDrawable::OnGenerate,             // CUSTOM_CLIP_TO_FRAME,
     ModifierGenerator<RSModifierType::CONTENT_STYLE>,    // CONTENT_STYLE,
     RSChildrenDrawable::OnGenerate,                      // CHILDREN,
     ModifierGenerator<RSModifierType::FOREGROUND_STYLE>, // FOREGROUND_STYLE,
@@ -263,7 +266,7 @@ enum DrawableVecStatus : uint8_t {
     // Used by skip logic in RSRenderNode::UpdateDisplayList
     FRAME_NOT_EMPTY    = 1 << 4,
     NODE_NOT_EMPTY     = 1 << 5,
- 
+
     // masks
     BOUNDS_MASK  = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
     FRAME_MASK   = FRAME_NOT_EMPTY,
@@ -482,6 +485,12 @@ constexpr std::array borderDirtyTypes = {
     RSDrawableSlot::BACKGROUND_SHADER,
     RSDrawableSlot::BACKGROUND_IMAGE,
 };
+constexpr std::array bgfilterDirtyTypes = {
+    RSDrawableSlot::PIXEL_STRETCH,
+};
+constexpr std::array stretchDirtyTypes = {
+    RSDrawableSlot::BACKGROUND_FILTER,
+};
 const std::unordered_set<RSDrawableSlot> fuzeStretchBlurSafeList = {
     RSDrawableSlot::BG_RESTORE_BOUNDS,
     RSDrawableSlot::SAVE_FRAME,
@@ -549,13 +558,13 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlots(
         dirtySlots.emplace(RSDrawableSlot::RESTORE_FOREGROUND_FILTER);
     }
 
-    // fuse pixel stretch with background filter
-    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH) &&
-        drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)]) {
-        dirtySlots.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    // if pixel stretch changed, mark affected drawables as dirty
+    if (dirtySlots.count(RSDrawableSlot::PIXEL_STRETCH)) {
+        MarkAffectedSlots(stretchDirtyTypes, drawableVec, dirtySlots);
     }
+    // if background filter changed, mark affected drawables as dirty
     if (dirtySlots.count(RSDrawableSlot::BACKGROUND_FILTER)) {
-        dirtySlots.emplace(RSDrawableSlot::PIXEL_STRETCH);
+        MarkAffectedSlots(bgfilterDirtyTypes, drawableVec, dirtySlots);
     }
 
     return dirtySlots;
@@ -583,6 +592,12 @@ bool RSDrawable::UpdateDirtySlots(
             }
         }
     }
+    // If at this point the child node happens to be null, and the scenario involves deleting the child node
+    // when the parent node is not on the tree, it is necessary to manually mark drawableAddedOrRemoved as true.
+    if (!drawableAddedOrRemoved && dirtySlots.count(RSDrawableSlot::CHILDREN) &&
+        drawableVec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] == nullptr) {
+        drawableAddedOrRemoved = true;
+    }
 
     return drawableAddedOrRemoved;
 }
@@ -595,7 +610,7 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
         !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
         return false;
     }
-    
+
     auto &filterDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)];
     auto bgFilterDrawable = std::static_pointer_cast<RSBackgroundFilterDrawable>(filterDrawable);
     bgFilterDrawable->RemovePixelStretch();
@@ -613,7 +628,8 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
         }
     }
     if (bgFilterDrawable->FuzePixelStretch(node)) {
-        pixelStretchDrawable->SetPixelStretch(std::nullopt);
+        float INFTY = std::numeric_limits<float>::infinity();
+        pixelStretchDrawable->SetPixelStretch(Vector4f{ INFTY, INFTY, INFTY, INFTY });
         return true;
     }
 

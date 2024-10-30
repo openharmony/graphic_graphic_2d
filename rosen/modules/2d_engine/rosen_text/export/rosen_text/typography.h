@@ -145,6 +145,7 @@ public:
     virtual IndexAndAffinity GetGlyphIndexByCoordinate(double x, double y) = 0;
     virtual Boundary GetWordBoundaryByIndex(size_t index) = 0;
     virtual Boundary GetActualTextRange(int lineNumber, bool includeSpaces) = 0;
+    virtual Boundary GetEllipsisTextRange() = 0;
     virtual double GetLineHeight(int lineNumber) = 0;
     virtual double GetLineWidth(int lineNumber) = 0;
     virtual void SetAnimation(
@@ -161,6 +162,8 @@ public:
     virtual std::unique_ptr<Typography> CloneSelf() = 0;
     virtual void UpdateColor(size_t from, size_t to, const Drawing::Color& color) = 0;
     virtual double GetLongestLineWithIndent() const = 0;
+    virtual void* GetParagraph() = 0;
+    virtual Drawing::RectI GeneratePaintRegion(double x, double y) const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

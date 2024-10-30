@@ -17,7 +17,7 @@
 
 #include "convert.h"
 #include "text/typeface.h"
-#include "utils/log.h"
+#include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -86,12 +86,15 @@ bool FontCollection::RegisterTypeface(std::shared_ptr<Drawing::Typeface> typefac
 
     std::unique_lock<std::mutex> lock(mutex_);
     if (typefaces_.find(typeface->GetUniqueID()) != typefaces_.end()) {
+        TEXT_LOGI("Find same typeface:familyname:%{public}s, uniqueid:%{public}u",
+            typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
         return true;
     }
     if (!Drawing::Typeface::GetTypefaceRegisterCallBack()(typeface)) {
         return false;
     }
-
+    TEXT_LOGI("Reg fontcollection typeface:familyname:%{public}s, uniqueid:%{public}u",
+        typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
     typefaces_.emplace(typeface->GetUniqueID(), typeface);
     return true;
 }
@@ -101,7 +104,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 {
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (!RegisterTypeface(typeface)) {
-        LOGE("register typeface failed.");
+        TEXT_LOGE("Register typeface failed.");
         return nullptr;
     }
     fontCollection_->ClearFontFamilyCache();
@@ -125,6 +128,8 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
         std::string name = face->GetFamilyName();
         for (auto item : typefaces_) {
             if (name == item.second->GetFamilyName()) {
+                TEXT_LOGI("Find same theme font:familyname:%{public}s, uniqueid:%{public}u",
+                    name.c_str(), item.second->GetUniqueID());
                 dfmanager_->LoadThemeFont(OHOS_THEME_FONT, item.second);
                 fontCollection_->ClearFontFamilyCache();
                 return item.second;
@@ -134,7 +139,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
 
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen));
     if (!RegisterTypeface(typeface)) {
-        LOGE("register typeface failed.");
+        TEXT_LOGE("Register typeface failed.");
     }
     fontCollection_->ClearFontFamilyCache();
     return typeface;

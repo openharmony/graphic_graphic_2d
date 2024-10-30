@@ -142,6 +142,7 @@ HWTEST_F(RSHardwareThreadTest, Start001, TestSize.Level1)
 {
     auto& hardwareThread = RSHardwareThread::Instance();
     hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
 }
 
 /**
@@ -155,6 +156,7 @@ HWTEST_F(RSHardwareThreadTest, Start002, TestSize.Level1)
     auto& hardwareThread = RSHardwareThread::Instance();
     hardwareThread.PostTask([&]() {});
     hardwareThread.Start();
+    ASSERT_NE(hardwareThread.hdiBackend_, nullptr);
     hardwareThread.PostTask([&]() {});
     hardwareThread.ScheduleTask([=]() {}).wait();
 }
@@ -192,7 +194,7 @@ HWTEST_F(RSHardwareThreadTest, Start003, TestSize.Level1)
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
     auto& uniRenderThread = RSUniRenderThread::Instance();
-    uniRenderThread.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    uniRenderThread.Sync(std::make_unique<RSRenderThreadParams>());
     hardwareThread.CommitAndReleaseLayers(composerAdapter_->output_, layers);
 }
 
@@ -222,6 +224,18 @@ HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
     int64_t timestamp = 0;
     ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
     ASSERT_EQ(ret, GSERROR_OK);
+}
+
+/**
+ * @tc.name: Start005
+ * @tc.desc: Test RSHardwareThreadTest.AddRefreshRateCount
+ * @tc.type: FUNC
+ * @tc.require: issueI8K4HE
+ */
+HWTEST_F(RSHardwareThreadTest, Start005, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.AddRefreshRateCount();
 }
 
 /**

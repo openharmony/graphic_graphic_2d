@@ -34,18 +34,6 @@ void RsCommonHookTest::SetUp() {}
 void RsCommonHookTest::TearDown() {}
 
 /**
- * @tc.name: RegisterStartNewAnimationListenerTest
- * @tc.desc: test results of RegisterStartNewAnimationListenerTest
- * @tc.type: FUNC
- * @tc.require: issuesIA96Q3
- */
-HWTEST_F(RsCommonHookTest, RegisterStartNewAnimationListenerTest, TestSize.Level1)
-{
-    auto callback = []() {};
-    RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
-}
-
-/**
  * @tc.name: OnStartNewAnimationTest1
  * @tc.desc: test results of OnStartNewAnimationTest1
  * @tc.type:FUNC
@@ -53,9 +41,12 @@ HWTEST_F(RsCommonHookTest, RegisterStartNewAnimationListenerTest, TestSize.Level
  */
 HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
 {
-    auto callback = []() {};
+    std::string result;
+    auto callback = [&result](const std::string& componentName) { result = componentName; };
     RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
-    RsCommonHook::Instance().OnStartNewAnimation();
+    std::string componentName = "SWIPER_FLING";
+    RsCommonHook::Instance().OnStartNewAnimation(componentName);
+    ASSERT_EQ(result, componentName);
 }
 
 /**
@@ -67,6 +58,26 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
 HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest2, TestSize.Level1)
 {
     RsCommonHook::Instance().RegisterStartNewAnimationListener(nullptr);
-    RsCommonHook::Instance().OnStartNewAnimation();
+    std::string componentName = "SWIPER_FLING";
+    RsCommonHook::Instance().OnStartNewAnimation(componentName);
+    ASSERT_EQ(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
+
+/**
+ * @tc.name: GetComponentPowerFpsTest
+ * @tc.desc: test results of GetComponentPowerFpsTest
+ * @tc.type:FUNC
+ * @tc.require: issuesIA96Q3
+ */
+HWTEST_F(RsCommonHookTest, GetComponentPowerFpsTest, TestSize.Level1)
+{
+    auto callback = [](FrameRateRange &range) {
+        range.preferred_ = RANGE_MAX_REFRESHRATE;
+    };
+    RsCommonHook::Instance().SetComponentPowerFpsFunc(callback);
+    FrameRateRange range;
+    RsCommonHook::Instance().GetComponentPowerFps(range);
+    ASSERT_EQ(range.preferred_, RANGE_MAX_REFRESHRATE);
+}
+
 } // namespace OHOS::Rosen

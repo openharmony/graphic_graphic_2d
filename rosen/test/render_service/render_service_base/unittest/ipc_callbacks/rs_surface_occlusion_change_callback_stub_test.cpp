@@ -34,16 +34,25 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+private:
+    static sptr<RSSurfaceOcclusionChangeCallbackStubMock> stub;
 };
 
+sptr<RSSurfaceOcclusionChangeCallbackStubMock> RSSurfaceOcclusionChangeCallbackStubTest::stub =
+    new RSSurfaceOcclusionChangeCallbackStubMock();
+
 void RSSurfaceOcclusionChangeCallbackStubTest::SetUpTestCase() {}
-void RSSurfaceOcclusionChangeCallbackStubTest::TearDownTestCase() {}
+void RSSurfaceOcclusionChangeCallbackStubTest::TearDownTestCase()
+{
+    stub = nullptr;
+}
 void RSSurfaceOcclusionChangeCallbackStubTest::SetUp() {}
 void RSSurfaceOcclusionChangeCallbackStubTest::TearDown() {}
 
 /**
  * @tc.name: OnRemoteRequest001
- * @tc.desc: Verify function OnRemoteRequest
+ * @tc.desc: Verify function OnRemoteRequest if code does not exist and data has no content
  * @tc.type:FUNC
  * @tc.require: issueIAKP5Y
  */
@@ -52,20 +61,15 @@ HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest001, TestSize.
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    auto rsSurfaceOcclusionChangeCallbackStub = std::make_shared<RSSurfaceOcclusionChangeCallbackStubMock>();
-    uint32_t code = -1;
-    int res = rsSurfaceOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res == ERR_INVALID_STATE);
-    code = static_cast<uint32_t>(RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
-    EXPECT_TRUE(RSSurfaceOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
-    res = rsSurfaceOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res == ERR_INVALID_STATE);
+    uint32_t code = -1;
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
 }
 
 /**
  * @tc.name: OnRemoteRequest002
- * @tc.desc: Verify function OnRemoteRequest
+ * @tc.desc: Verify function OnRemoteRequest if code exist and data has no content
  * @tc.type:FUNC
  * @tc.require: issueIAKP5Y
  */
@@ -74,14 +78,51 @@ HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest002, TestSize.
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    auto rsSurfaceOcclusionChangeCallbackStub = std::make_shared<RSSurfaceOcclusionChangeCallbackStubMock>();
-    auto code =
+
+    uint32_t code =
+        static_cast<uint32_t>(RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
+
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: OnRemoteRequest003
+ * @tc.desc: Verify function OnRemoteRequest if code does not exist and data has content
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    uint32_t code = -1;
+    data.WriteInterfaceToken(RSISurfaceOcclusionChangeCallback::GetDescriptor());
+
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: OnRemoteRequest004
+ * @tc.desc: Verify function OnRemoteRequest if code exist and data has content
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceOcclusionChangeCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    uint32_t code =
         static_cast<uint32_t>(RSISurfaceOcclusionChangeCallbackInterfaceCode::ON_SURFACE_OCCLUSION_VISIBLE_CHANGED);
     data.WriteInterfaceToken(RSISurfaceOcclusionChangeCallback::GetDescriptor());
-    EXPECT_TRUE(RSSurfaceOcclusionChangeCallbackStubMock::securityManager_.IsInterfaceCodeAccessible(code));
 
-    int res = rsSurfaceOcclusionChangeCallbackStub->OnRemoteRequest(code, data, reply, option);
-    EXPECT_TRUE(res == ERR_NONE);
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
 }
 
 } // namespace OHOS::Rosen

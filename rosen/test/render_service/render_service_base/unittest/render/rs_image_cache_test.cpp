@@ -35,6 +35,34 @@ void RSImageCacheTest::SetUp() {}
 void RSImageCacheTest::TearDown() {}
 
 /**
+ * @tc.name: CheckUniqueIdIsEmptyTest
+ * @tc.desc: Verify function CheckUniqueIdIsEmpty
+ * @tc.type:FUNC
+ * @tc.require: issueIATB9R
+ */
+
+HWTEST_F(RSImageCacheTest, CheckUniqueIdIsEmptyTest, TestSize.Level0)
+{
+    for (uint64_t id = 0; id < 10; id++)
+    {
+        RSImageCache::Instance().CollectUniqueId(id);
+    }
+    EXPECT_FALSE(RSImageCache::Instance().CheckUniqueIdIsEmpty());
+
+    RSImageCache::Instance().ReleaseUniqueIdList();
+    {
+        std::unique_lock<std::mutex> lock(RSImageCache::Instance().uniqueIdListMutex_);
+        EXPECT_TRUE(RSImageCache::Instance().uniqueIdList_.empty());
+    }
+    EXPECT_TRUE(RSImageCache::Instance().CheckUniqueIdIsEmpty());
+
+    {
+        std::unique_lock<std::mutex> lock(RSImageCache::Instance().uniqueIdListMutex_);
+        RSImageCache::Instance().uniqueIdList_.clear();
+    }
+}
+
+/**
  * @tc.name: InstanceTest
  * @tc.desc: Verify function Instance
  * @tc.type:FUNC
@@ -160,6 +188,25 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CheckRefCntAndReleaseImageCacheTest
+ * @tc.desc: Verify function CheckRefCntAndReleaseImageCache
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageCacheTest, CheckRefCntAndReleaseImageCacheTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
+    EXPECT_TRUE(true);
+    auto img = std::make_shared<Drawing::Image>();
+    imageCache.CacheDrawingImage(1, img);
+    imageCache.CheckRefCntAndReleaseImageCache(0, pixelMap, nullptr);
+    EXPECT_FALSE(imageCache.drawingImageCache_.empty());
+    imageCache.drawingImageCache_.clear();
+}
+
+/**
  * @tc.name: CacheRenderDrawingImageByPixelMapIdTest
  * @tc.desc: Verify function CacheRenderDrawingImageByPixelMapId
  * @tc.type:FUNC
@@ -204,5 +251,23 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest, TestSize.Le
     imageCache.ReleaseDrawingImageCacheByPixelMapId(0);
     EXPECT_FALSE(imageCache.pixelMapIdRelatedDrawingImageCache_.empty());
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
+}
+
+/**
+ * @tc.name: ReleaseUniqueIdListTest
+ * @tc.desc: Verify function ReleaseUniqueIdList
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageCacheTest, ReleaseUniqueIdListTest, TestSize.Level1)
+{
+    for (uint64_t id = 0; id < 10; id++)
+    {
+        RSImageCache::Instance().CollectUniqueId(id);
+    }
+
+    RSImageCache::Instance().ReleaseUniqueIdList();
+    EXPECT_TRUE(RSImageCache::Instance().uniqueIdList_.empty());
+    RSImageCache::Instance().uniqueIdList_.clear();
 }
 } // namespace OHOS::Rosen

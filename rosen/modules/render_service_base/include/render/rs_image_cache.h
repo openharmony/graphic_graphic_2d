@@ -17,11 +17,14 @@
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_IMAGE_CACHE_H
 
 #include <list>
+#include <memory>
 #include <unordered_map>
+#include <vector>
 #include "image/image.h"
 
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_track.h"
+#include "render/rs_image_base.h"
 
 namespace OHOS {
 namespace Media {
@@ -29,9 +32,9 @@ class PixelMap;
 }
 
 namespace Rosen {
+class RSImageBase;
 class RSB_EXPORT RSImageCache {
 public:
-    using MemoryCheckCallback = void(*)(const pid_t, const size_t, bool);
     static RSImageCache& Instance();
 
     void CacheDrawingImage(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img);
@@ -43,15 +46,17 @@ public:
     std::shared_ptr<Media::PixelMap> GetPixelMapCache(uint64_t uniqueId) const;
     void IncreasePixelMapCacheRefCount(uint64_t uniqueId);
     void ReleasePixelMapCache(uint64_t uniqueId);
+    int CheckRefCntAndReleaseImageCache(uint64_t uniqueId, std::shared_ptr<Media::PixelMap>& pixelMapIn,
+        const std::shared_ptr<Drawing::Image>& image);
 
     void CacheRenderDrawingImageByPixelMapId(uint64_t uniqueId, std::shared_ptr<Drawing::Image> img, pid_t tid = -1);
     std::shared_ptr<Drawing::Image> GetRenderDrawingImageCacheByPixelMapId(uint64_t uniqueId, pid_t tid = -1) const;
 
     RSImageCache() = default;
     ~RSImageCache() = default;
+    bool CheckUniqueIdIsEmpty();
     void CollectUniqueId(uint64_t uniqueId);
     void ReleaseUniqueIdList();
-    void SetMemoryCheckCallback(MemoryCheckCallback callback);
 private:
     RSImageCache(const RSImageCache&) = delete;
     RSImageCache(const RSImageCache&&) = delete;
@@ -70,7 +75,6 @@ private:
         pixelMapIdRelatedDrawingImageCache_;
     std::mutex uniqueIdListMutex_;
     std::list<uint64_t> uniqueIdList_;
-    MemoryCheckCallback memoryCheckCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

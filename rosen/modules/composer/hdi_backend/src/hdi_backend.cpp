@@ -123,7 +123,7 @@ RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
         return retCode;
     }
 
-    int32_t ret = device_->RegHwcDeadCallback(func, data);
+    bool ret = device_->RegHwcDeadCallback(func, data);
     if (!ret) {
         HLOGE("RegHwcDeadCallback failed, ret is %{public}d", ret);
         return ROSEN_ERROR_API_FAILED;
@@ -199,7 +199,7 @@ void HdiBackend::Repaint(const OutputPtr &output)
         return;
     }
 
-    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    sptr<SyncFence> fbFence = SyncFence::InvalidFence();
     ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
@@ -246,6 +246,24 @@ void HdiBackend::StartSample(const OutputPtr &output)
         return;
     }
     output->StartVSyncSampler(true); // force resample
+}
+ 
+void HdiBackend::SetVsyncSamplerEnabled(const OutputPtr &output, bool enabled)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->SetVsyncSamplerEnabled(enabled);
+}
+
+bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr &output)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return false;
+    }
+    return output->GetVsyncSamplerEnabled();
 }
 
 void HdiBackend::ResetDevice()

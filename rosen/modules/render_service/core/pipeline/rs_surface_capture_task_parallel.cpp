@@ -35,6 +35,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_pointer_drawing_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
@@ -62,33 +63,38 @@ inline void DrawCapturedImg(Drawing::Image& image,
 }
 }
 
-void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
+void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
 {
     RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::CheckModifiers");
-    bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id) ||
+    bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id, useCurWindow) ||
+        RSPointerDrawingManager::Instance().GetBoundHasUpdate() ||
         RSMainThread::Instance()->IsHardwareEnabledNodesNeedSync();
     if (!needSync) {
         return;
     }
     std::function<void()> syncTask = []() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
+        RSPointerDrawingManager::Instance().UpdatePointerInfo();
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
-            if (auto node = weakPtr.lock()) {
-                if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
-                    node->Sync();
-                } else {
-                    node->SkipSync();
-                }
+            auto node = weakPtr.lock();
+            if (node == nullptr) {
+                continue;
+            }
+            if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
+                node->Sync();
+            } else {
+                node->SkipSync();
             }
         }
         pendingSyncNodes.clear();
+        RSUifirstManager::Instance().UifirstCurStateClear();
     };
     RSUniRenderThread::Instance().PostSyncTask(syncTask);
 }
 
 void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
-    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling)
 {
     if (callback == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
@@ -97,17 +103,18 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(id, captureConfig);
     if (captureHandle == nullptr) {
-        RS_LOGD("RSSurfaceCaptureTaskParallel::Capture captureHandle is nullptr!");
+        RS_LOGE("RSSurfaceCaptureTaskParallel::Capture captureHandle is nullptr!");
         callback->OnSurfaceCapture(id, nullptr);
         return;
     }
     if (!captureHandle->CreateResources()) {
         callback->OnSurfaceCapture(id, nullptr);
+        return;
     }
 
-    std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
+    std::function<void()> captureTask = [captureHandle, id, callback, isSystemCalling]() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::TakeSurfaceCapture");
-        if (!captureHandle->Run(callback)) {
+        if (!captureHandle->Run(callback, isSystemCalling)) {
             callback->OnSurfaceCapture(id, nullptr);
         }
     };
@@ -141,10 +148,12 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
             }
         }
         if (!curNode->ShouldPaint()) {
-            RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Node should not paint!");
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode should not paint!");
             return false;
         }
-
+        if (curNode->GetSortedChildren()->size() == 0) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CreateResources: curNode has no childrenList!");
+        }
         surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(curNode));
         pixelMap_ = CreatePixelMapBySurfaceNode(curNode);
@@ -163,16 +172,11 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     return true;
 }
 
-bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
+bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
-    auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-        RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_));
     std::string nodeName("RSSurfaceCaptureTaskParallel");
-    if (surfaceNode != nullptr) {
-        nodeName = surfaceNode->GetName();
-    }
     RSTagTracker tagTracker(gpuContext_.get(), nodeId_, RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
     auto surface = CreateSurface(pixelMap_);
@@ -189,8 +193,15 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     canvas.SetCapture(true);
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
+        // make sure the previous uifirst task is completed.
+        if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*curNodeParams, false)) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel::Run: CheckMatchAndWaitNotify failed");
+            return false;
+        }
+        RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
+            curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(
-            CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true));
+            CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true, isSystemCalling));
         surfaceNodeDrawable_->OnCapture(canvas);
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(
@@ -271,7 +282,6 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
         return nullptr;
     }
     uint64_t screenId = node->GetScreenId();
-    RSScreenModeInfo screenModeInfo;
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: screenManager is nullptr!");
@@ -407,12 +417,15 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         std::shared_ptr<Drawing::Surface> surface;
         auto grContext = RSBackgroundThread::Instance().GetShareGPUContext();
         if (!grContext) {
+            RS_LOGE("RSSurfaceCaptureTaskParallel: grContext == nullptr");
             callback->OnSurfaceCapture(id, nullptr);
+            RSUniRenderUtil::ClearNodeCacheSurface(
+                std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         DmaMem dmaMem;
-        if (useDma && RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE &&
+        if (useDma &&
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
@@ -554,18 +567,13 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
     if (cleanUpHelper == nullptr) {
         return nullptr;
     }
-
+    // attention: cleanUpHelper will be delete by NativeBufferUtils::DeleteVkImage, don't delete again
     auto drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         gpuContext.get(),
         backendTextureTmp.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT,
         1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
         NativeBufferUtils::DeleteVkImage, cleanUpHelper);
-    if (!drawingSurface) {
-        delete cleanUpHelper;
-        cleanUpHelper = nullptr;
-        RS_LOGE("DmaMem::GetSurfaceFromSurfaceBuffer: MakeFromBackendTexture fail.");
-    }
     return drawingSurface;
 }
 #endif

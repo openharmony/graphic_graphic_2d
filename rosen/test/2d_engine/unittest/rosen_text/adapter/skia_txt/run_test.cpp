@@ -27,121 +27,184 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 class OHDrawingRunTest : public testing::Test {
-public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::unique_ptr<Typography> typography = nullptr;
-    static inline std::vector<std::unique_ptr<OHOS::Rosen::Run>> runs;
-    static inline std::unique_ptr<OHOS::Rosen::Run> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
+protected:
+    void SetUp() override;
+    void TearDown() override;
+
+private:
+    // 50 is the width of the layout, just for test
+    int layoutWidth_ = 50;
+    // this is the default font family name, just for test
+    std::string familyName_ = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
+
+    std::vector<std::unique_ptr<OHOS::Rosen::Run>> runs_;
+    std::unique_ptr<Typography> typography_;
 };
 
-void OHDrawingRunTest::SetUpTestCase()
+void OHDrawingRunTest::SetUp()
 {
     TypographyStyle ts;
     std::shared_ptr<FontCollection> fc = FontCollection::From(std::make_shared<txt::FontCollection>());
+    ASSERT_NE(fc, nullptr);
     auto tc = OHOS::Rosen::TypographyCreate::Create(ts, fc);
-
-    const std::u16string testStr = u"1234";
-    tc->AppendText(testStr);
-    typography = tc->CreateTypography();
-    if (!typography) {
-        std::cout << "OHDrawingRunTest::SetUpTestCase error typography variable acquisition exception" << std::endl;
-        return;
-    }
-    int layoutWidth = 50;
-    typography->Layout(layoutWidth);
-
-    std::vector<std::unique_ptr<TextLineBase>> textLines = typography->GetTextLines();
-    if (!textLines.size() || !textLines[0]) {
-        std::cout << "OHDrawingRunTest::SetUpTestCase error textLines variable acquisition exception" << std::endl;
-        return;
-    }
-
-    runs = textLines[0]->GetGlyphRuns();
-    if (!runs.size() || !runs[0]) {
-        std::cout << "OHDrawingRunTest::SetUpTestCase error runs variable acquisition exception" << std::endl;
-    }
+    ASSERT_NE(tc, nullptr);
+    tc->AppendText(u"12345");
+    typography_ = tc->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    typography_->Layout(layoutWidth_);
+    std::vector<std::unique_ptr<TextLineBase>> textLines = typography_->GetTextLines();
+    ASSERT_EQ(textLines.size(), 1);
+    runs_ = textLines.at(0)->GetGlyphRuns();
 }
 
-void OHDrawingRunTest::TearDownTestCase() {}
-
-/*
- * @tc.name: InitTest
- * @tc.desc: test for init
- * @tc.type: FUNC
- */
-HWTEST_F(OHDrawingRunTest, InitTest, TestSize.Level1)
+void OHDrawingRunTest::TearDown()
 {
-    EXPECT_NE(typography, nullptr);
-    EXPECT_NE(runs.size(), 0);
-    EXPECT_NE(runs[0], nullptr);
-    EXPECT_NE(runNull, nullptr);
+    typography_.reset();
+    runs_.clear();
 }
 
 /*
- * @tc.name: GetFontTest
+ * @tc.name: RunTest001
  * @tc.desc: test for GetFont
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, GetFontTest, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest001, TestSize.Level1)
 {
-    EXPECT_TRUE(runs[0]->GetFont().GetSize() > 0);
-    EXPECT_TRUE(runNull->GetFont().GetSize() > 0);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    EXPECT_EQ(runs_[0]->GetFont().GetTypeface()->GetFamilyName(), familyName_);
 }
 
 /*
- * @tc.name: GetGlyphCountTest
+ * @tc.name: RunTest002
  * @tc.desc: test for GetGlyphCount
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, GetGlyphCountTest, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest002, TestSize.Level1)
 {
-    EXPECT_TRUE(runs[0]->GetGlyphCount() > 0);
-    EXPECT_FALSE(runNull->GetGlyphCount() > 0);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    EXPECT_EQ(runs_[0]->GetGlyphCount(), 5);
 }
 
 /*
- * @tc.name: GetGlyphsTest
+ * @tc.name: RunTest003
  * @tc.desc: test for GetGlyphs
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, GetGlyphsTest, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest003, TestSize.Level1)
 {
-    EXPECT_TRUE(runs[0]->GetGlyphs().size() > 0);
-    EXPECT_FALSE(runNull->GetGlyphs().size() > 0);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_.at(0), nullptr);
+    auto glyphs = runs_[0]->GetGlyphs();
+    EXPECT_NE(glyphs[0], 0);
 }
 
 /*
- * @tc.name: GetPositionsTest
+ * @tc.name: RunTest004
  * @tc.desc: test for GetPositions
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, GetPositionsTest, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest004, TestSize.Level1)
 {
-    EXPECT_TRUE(runs[0]->GetPositions().size() > 0);
-    EXPECT_FALSE(runNull->GetPositions().size() > 0);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_[0], nullptr);
+    EXPECT_EQ(runs_[0]->GetPositions().size(), 5);
+    EXPECT_EQ(runs_[0]->GetPositions()[0].GetX(), 0);
 }
 
 /*
- * @tc.name: GetOffsetsTest
+ * @tc.name: RunTest005
  * @tc.desc: test for GetOffsets
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, GetOffsetsTest, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest005, TestSize.Level1)
 {
-    EXPECT_TRUE(runs[0]->GetOffsets().size() > 0);
-    EXPECT_FALSE(runNull->GetOffsets().size() > 0);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_[0], nullptr);
+    EXPECT_EQ(runs_[0]->GetOffsets().size(), 5);
+    EXPECT_EQ(runs_[0]->GetOffsets()[0].GetX(), 0);
 }
 
 /*
- * @tc.name: PaintTest
+ * @tc.name: RunTest006
  * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
-HWTEST_F(OHDrawingRunTest, PaintTest, TestSize.Level1)
+HWTEST_F(OHDrawingRunTest, RunTest006, TestSize.Level1)
 {
-    runs[0]->Paint(nullptr, 0, 0);
-    runNull->Paint(nullptr, 0, 0);
+    EXPECT_EQ(runs_.size(), 1);
+    ASSERT_NE(runs_[0], nullptr);
+    runs_[0]->Paint(nullptr, 0, 0);
+    Drawing::Canvas canvas;
+    runs_[0]->Paint(&canvas, 0, 0);
+}
+
+/*
+ * @tc.name: RunTest007
+ * @tc.desc: test for nullptr, only for the branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingRunTest, RunTest007, TestSize.Level1)
+{
+    std::unique_ptr<AdapterTxt::RunImpl> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
+    EXPECT_EQ(runNull->GetFont().GetSize(), Drawing::Font().GetSize());
+    EXPECT_EQ(runNull->GetGlyphCount(), 0);
+    EXPECT_EQ(runNull->GetGlyphs(), std::vector<uint16_t>());
+    EXPECT_EQ(runNull->GetOffsets(), std::vector<Drawing::Point>());
+    EXPECT_EQ(runNull->GetPositions(), std::vector<Drawing::Point>());
+}
+
+/*
+ * @tc.name: RunTest007
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingRunTest, RunTest008, TestSize.Level1)
+{
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, 12).size(), 5);
+    EXPECT_EQ(runs_[0]->GetPositions(0, 10).size(), 5);
+
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 5);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, 10).size(), 5);
+}
+
+/*
+ * @tc.name: RunTest009
+ * @tc.desc: branch coverage
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHDrawingRunTest, RunTest009, TestSize.Level1)
+{
+    EXPECT_EQ(runs_[0]->GetGlyphs(-1, 12), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetGlyphs(0, -1), std::vector<uint16_t>());
+    EXPECT_EQ(runs_[0]->GetPositions(-1, 10), std::vector<Drawing::Point>());
+    EXPECT_EQ(runs_[0]->GetPositions(0, -1), std::vector<Drawing::Point>());
+
+    uint64_t location = 0;
+    uint64_t length = 0;
+    runs_[0]->GetStringRange(nullptr, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
+
+    runs_[0]->GetStringRange(&location, nullptr);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
+
+    std::unique_ptr<OHOS::Rosen::Run> runNull = std::make_unique<AdapterTxt::RunImpl>(nullptr);
+    location = 10;
+    length = 10;
+    runNull->GetStringRange(&location, &length);
+    EXPECT_EQ(location, 0);
+    EXPECT_EQ(length, 0);
+
+    EXPECT_EQ(runs_[0]->GetStringIndices(-1, 10), std::vector<uint64_t>());
+    EXPECT_EQ(runs_[0]->GetStringIndices(0, -1), std::vector<uint64_t>());
 }
 } // namespace Rosen
 } // namespace OHOS

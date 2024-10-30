@@ -251,16 +251,17 @@ public:
     void SetCurrentGpuResourceTag(const GPUResourceTag &tag);
 
     /**
-     * @brief                   Set MemoryOverCheck callback.
-     * @param func              MemoryOverCheck callback.
+     * @brief                   Get updated memory map.
+     * @param out               Updated memory map.
      */
-    void SetMemoryOverCheck(MemoryOverCheckCallback func);
+    void GetUpdatedMemoryMap(std::unordered_map<pid_t, size_t> &out);
 
     /**
-     * @brief                   Set RemoveMemoryFromSnapshotInfo callback.
-     * @param func              RemoveMemoryFromSnapshotInfo callback.
+     * @brief                   Init gpu memory limit.
+     * @param callback          Memory overflow calllback.
+     * @param size              Memory size limit.
      */
-    void SetRemoveMemoryFromSnapshotInfo(RemoveMemoryFromSnapshotInfoCallback func);
+    void InitGpuMemoryLimit(MemoryOverflowCalllback callback, uint64_t size);
 
 #ifdef RS_ENABLE_VK
     /**
@@ -268,6 +269,18 @@ public:
      */
     void StoreVkPipelineCacheData();
 #endif
+
+    void BeginFrame();
+
+    void EndFrame();
+
+    void SetGpuCacheSuppressWindowSwitch(bool enabled);
+
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled);
+
+    void FlushGpuMemoryInWaitQueue();
+    
+    void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived);
 
     /**
      * @brief       Get the adaptation layer instance, called in the adaptation layer.

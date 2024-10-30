@@ -30,44 +30,77 @@ config("graphic_napi_effect_kit_config") {
   ]
 
   defines = [ "EGL_EGLEXT_PROTOTYPES" ]
-}
 
-ohos_shared_library("effectkit") {
   include_dirs = [
     "./include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/effectChain/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker/include",
     "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain/include",
     "//foundation/graphic/graphic_2d/utils/color_manager/export",
   ]
+}
 
-  configs = [ ":graphic_napi_effect_kit_config" ]
+if (is_arkui_x) {
+  ohos_source_set("effectkit") {
+    configs = [ ":graphic_napi_effect_kit_config" ]
+    include_dirs = [
+      "//third_party/json/single_include/nlohmann",
+      "//foundation/multimedia/image_framework/interfaces/kits/js/common/include",
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
 
-  sources = [
-    "./src/color_picker_napi.cpp",
-    "./src/effect_kit_napi_utils.cpp",
-    "./src/filter_napi.cpp",
-    "./src/native_module_ohos_effect.cpp",
-  ]
+    sources = [
+      "./src/color_picker_napi.cpp",
+      "./src/effect_kit_napi_utils.cpp",
+      "./src/filter_napi.cpp",
+      "./src/native_module_ohos_effect.cpp",
+    ]
 
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
-    "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
-  ]
+    deps = [
+      "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+      "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
+    ]
 
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "image_framework:image",
-    "image_framework:image_native",
-    "napi:ace_napi",
-  ]
+    if (current_os == "ios") {
+      deps += [ "//plugins/libs/napi:napi_${target_os}" ]
+    }
 
-  cflags_cc = [ "-std=c++17" ]
+    cflags_cc = [ "-std=c++17" ]
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+} else {
+  ohos_shared_library("effectkit") {
+    include_dirs =
+        [ "//foundation/graphic/graphic_2d/rosen/modules/effect/egl/include" ]
 
-  relative_install_dir = "module"
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    configs = [ ":graphic_napi_effect_kit_config" ]
+
+    sources = [
+      "./src/color_picker_napi.cpp",
+      "./src/effect_kit_napi_utils.cpp",
+      "./src/filter_napi.cpp",
+      "./src/native_module_ohos_effect.cpp",
+    ]
+
+    deps = [
+      "//foundation/graphic/graphic_2d/rosen/modules/effect/color_picker:color_picker",
+      "//foundation/graphic/graphic_2d/rosen/modules/effect/skia_effectChain:skeffectchain",
+    ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+      "image_framework:image",
+      "image_framework:image_native",
+      "napi:ace_napi",
+    ]
+
+    cflags_cc = [ "-std=c++17" ]
+
+    relative_install_dir = "module"
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }
 ## Build effect_kit.so

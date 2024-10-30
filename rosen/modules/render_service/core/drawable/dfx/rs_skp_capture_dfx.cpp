@@ -36,8 +36,8 @@ void RSSkpCaptureDfx::TryCapture() const
     }
     if (!RSSystemProperties::GetRecordingEnabled()) {
 #ifdef RS_PROFILER_ENABLED
-        auto width = curCanvas_->GetWidth();
-        auto height = curCanvas_->GetHeight();
+        const auto width = static_cast<float>(curCanvas_->GetWidth());
+        const auto height = static_cast<float>(curCanvas_->GetHeight());
         if (auto canvas = RSCaptureRecorder::GetInstance().TryInstantCapture(width, height)) {
             curCanvas_->AddCanvas(canvas);
         }

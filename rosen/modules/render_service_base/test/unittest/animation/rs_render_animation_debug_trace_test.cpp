@@ -57,7 +57,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace001, TestSize.Level
     RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(
         NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID, 0, 0, startValue, endValue, 0, 0, 1);
     RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
-        NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0);
+        NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
     RSRenderNode renderNode(NODE_ID);
     RSAnimationTraceUtils::GetInstance().addRenderNodeTrace(renderNode);
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
@@ -82,7 +82,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace002, TestSize.Level
     RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(
         NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID, 0, 0, startValue, endValue, 0, 0, 1);
     RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
-        NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0);
+        NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
     RSRenderNode renderNode(NODE_ID);
     RSAnimationTraceUtils::GetInstance().addRenderNodeTrace(renderNode);
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);
@@ -108,7 +108,7 @@ HWTEST_F(RSRenderAnimationDebugTraceTest, AnimationDebugTrace003, TestSize.Level
     RSAnimationTraceUtils::GetInstance().addAnimationCreateTrace(
         NODE_ID, NODE_NAME, PROPERTY_ID, ANIMATION_ID, 0, 0, startValue, endValue, 0, 0, 1);
     RSAnimationTraceUtils::GetInstance().addAnimationFrameTrace(
-        NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0);
+        NODE_ID, NODE_NAME, ANIMATION_ID, PROPERTY_ID, 0, startValue, 0, 0, 1);
     RSRenderNode renderNode(NODE_ID);
     RSAnimationTraceUtils::GetInstance().addRenderNodeTrace(renderNode);
     RSAnimationTraceUtils::GetInstance().addSpringInitialVelocityTrace(PROPERTY_ID, ANIMATION_ID, startValue, endValue);

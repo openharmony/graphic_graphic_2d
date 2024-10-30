@@ -164,11 +164,11 @@ std::string HgmOneShotTimer::Dump() const
 
 // ===== HgmSimpleTimer =====
 HgmSimpleTimer::HgmSimpleTimer(std::string name, const Interval& interval,
-    const ResetCallback& resetCallback, const ExpiredCallback& expiredCallback,
+    const StartCallback& startCallback, const ExpiredCallback& expiredCallback,
     std::unique_ptr<ChronoSteadyClock> clock)
     : name_(std::move(name)),
       interval_(interval),
-      resetCallback_(resetCallback),
+      startCallback_(startCallback),
       expiredCallback_(expiredCallback),
       clock_(std::move(clock))
 {
@@ -180,12 +180,14 @@ void HgmSimpleTimer::Start()
     if (handler_ == nullptr) {
         return;
     }
-    if (running_.exchange(true)) {
-        Reset();
-    } else {
-        Reset(); // Reset() only take effect when running
-        if (resetCallback_) {
-            resetCallback_();
+
+    bool isRunning = running_.exchange(true);
+    Reset();    // Reset() only take effect when running
+
+    // start
+    if (!isRunning) {
+        if (startCallback_) {
+            handler_->PostTask(startCallback_);
         }
         handler_->PostTask([this] () { Loop(); }, name_, interval_.count());
     }

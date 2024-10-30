@@ -16,7 +16,7 @@
 #include "gtest/gtest.h"
 #include "pipeline/rs_uni_ui_capture.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "common/rs_singleton.h"
 #include "limit_number.h"
 
@@ -61,10 +61,9 @@ HWTEST_F(RSUniUiCaptureTest, TakeLocalCapture001, TestSize.Level1)
 
 /**
  * @tc.name: SetCanvasTest
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.desc: Test SetCanvasTest
+ * @tc.type: FUNC
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
 {
@@ -76,6 +75,7 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     std::shared_ptr<ExtendRecordingCanvas> canvas = nullptr;
     rsUniUICaptureVisitor.SetCanvas(canvas);
+    ASSERT_EQ(rsUniUICaptureVisitor.canvas_, nullptr);
 }
 
 /**
@@ -326,10 +326,9 @@ HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNode, TestSize.Level1)
 
 /**
  * @tc.name: ProcessSurfaceRenderNodeWithUni
- * @tc.desc:
- * @tc.type:
- * @tc.require:
- * @tc.author:
+ * @tc.desc: Test ProcessSurfaceRenderNodeWithUni
+ * @tc.type: FUNC
+ * @tc.require: issueIATLPV
  */
 HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
 {
@@ -341,7 +340,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
         std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
-
+    ASSERT_NE(rsUniUICaptureVisitor, nullptr);
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);

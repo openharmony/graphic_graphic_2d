@@ -20,6 +20,7 @@
 #include "sandbox_utils.h"
 #include "src/core/SkLRUCache.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include <sstream>
 #include <algorithm>
 
@@ -61,8 +62,8 @@ bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
         typefaceHashCode_[uniqueId] = hash;
         std::get<1>(iterator->second)++;
         pid_t pid = GetTypefacePid(uniqueId);
-        if (pid && memoryCheckCallback_) {
-            memoryCheckCallback_(pid, (std::get<0>(iterator->second))->GetSize(), false);
+        if (pid) {
+            MemorySnapshot::Instance().AddCpuMemory(pid, (std::get<0>(iterator->second))->GetSize());
         }
         return true;
     }
@@ -119,8 +120,8 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     typefaceHashCode_[uniqueId] = hash_value;
     pid_t pid = GetTypefacePid(uniqueId);
     if (typefaceHashMap_.find(hash_value) != typefaceHashMap_.end()) {
-        if (pid && memoryCheckCallback_) {
-            memoryCheckCallback_(pid, typeface->GetSize(), false);
+        if (pid) {
+            MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
         }
         auto [faceCache, ref] = typefaceHashMap_[hash_value];
         if (faceCache->GetFamilyName() != typeface->GetFamilyName()) {
@@ -134,22 +135,20 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         return;
     }
     typefaceHashMap_[hash_value] = std::make_tuple(typeface, 1);
-    bool result = false;
+    if (pid) {
+        MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
+    }
     // register queued entries
     std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash_value);
     if (iterator != typefaceHashQueue_.end()) {
         while (iterator->second.size()) {
             uint64_t back = iterator->second.back();
             if (back != uniqueId) {
-                result = AddIfFound(back, hash_value);
+                AddIfFound(back, hash_value);
             }
             iterator->second.pop_back();
         }
         typefaceHashQueue_.erase(iterator);
-    }
-    // if not found, add it to memory
-    if (!result && pid && memoryCheckCallback_) {
-        memoryCheckCallback_(pid, typeface->GetSize(), false);
     }
 }
 
@@ -179,7 +178,7 @@ void RSTypefaceCache::RemoveHashMap(pid_t pid, std::unordered_map<uint64_t, Type
 {
     if (typefaceHashMap.find(hash_value) != typefaceHashMap.end()) {
         auto [typeface, ref] = typefaceHashMap[hash_value];
-        if (pid && memoryCheckCallback_) {
+        if (pid) {
             MemorySnapshot::Instance().RemoveCpuMemory(pid, typeface->GetSize());
         }
         if (ref <= 1) {
@@ -197,11 +196,12 @@ void RSTypefaceCache::RemoveDrawingTypefaceByGlobalUniqueId(uint64_t globalUniqu
     RemoveHashQueue(typefaceHashQueue_, globalUniqueId);
 
     if (typefaceHashCode_.find(globalUniqueId) == typefaceHashCode_.end()) {
+        RS_LOGI("RSTypefaceCache:Failed to find typeface, uniqueid:%{public}u", GetTypefaceId(globalUniqueId));
         return;
     }
     auto hash_value = typefaceHashCode_[globalUniqueId];
     typefaceHashCode_.erase(globalUniqueId);
-
+    RS_LOGI("RSTypefaceCache:Remove typeface, uniqueid:%{public}u", GetTypefaceId(globalUniqueId));
     RemoveHashMap(GetTypefacePid(globalUniqueId), typefaceHashMap_, hash_value);
 }
 
@@ -271,6 +271,7 @@ void RSTypefaceCache::AddDelayDestroyQueue(uint64_t globalUniqueId)
 
 void RSTypefaceCache::HandleDelayDestroyQueue()
 {
+    RS_TRACE_FUNC();
     std::lock_guard<std::mutex> lock(listMutex_);
     for (auto it = delayDestroyTypefaces_.begin(); it != delayDestroyTypefaces_.end();) {
         it->refCount--;
@@ -281,11 +282,6 @@ void RSTypefaceCache::HandleDelayDestroyQueue()
             ++it;
         }
     }
-}
-
-void RSTypefaceCache::SetMemoryCheckCallback(MemoryCheckCallback callback)
-{
-    memoryCheckCallback_ = callback;
 }
 
 void RSTypefaceCache::Dump() const
@@ -309,6 +305,7 @@ void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)
     size_t fontCount = 0;
     ss.write(reinterpret_cast<const char*>(&fontCount), sizeof(fontCount));
 
+    std::lock_guard<std::mutex> lock(mapMutex_);
     for (auto co : typefaceHashCode_) {
         if (typefaceHashMap_.find(co.second) != typefaceHashMap_.end()) {
             auto [typeface, ref] = typefaceHashMap_.at(co.second);
@@ -366,9 +363,12 @@ void RSTypefaceCache::ReplayClear()
     std::vector<uint64_t> removeId;
     constexpr int bitNumber = 30 + 32;
     uint64_t replayMask = (uint64_t)1 << bitNumber;
-    for (auto co : typefaceHashCode_) {
-        if (co.first & replayMask) {
-            removeId.emplace_back(co.first);
+    {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        for (auto co : typefaceHashCode_) {
+            if (co.first & replayMask) {
+                removeId.emplace_back(co.first);
+            }
         }
     }
     for (auto uniqueId : removeId) {

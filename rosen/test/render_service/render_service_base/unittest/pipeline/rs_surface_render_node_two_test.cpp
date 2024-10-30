@@ -41,6 +41,8 @@ public:
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
     uint8_t MAX_ALPHA = 255;
+    static constexpr float outerRadius = 30.4f;
+    RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
 
 void RSSurfaceRenderNodeTwoTest::SetUpTestCase()
@@ -81,7 +83,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ResetSurfaceOpaqueRegion03, TestSize.Level1
         static_cast<int>(std::ceil(1)), static_cast<int>(std::ceil(1)));
     surfaceRenderNode.ResetSurfaceOpaqueRegion(
         screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadiusT);
-    surfaceRenderNode.SetContainerWindow(true, 1.0f);
+    surfaceRenderNode.SetContainerWindow(true, rrect);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, false, dstCornerRadius);
     surfaceRenderNode.ResetSurfaceOpaqueRegion(screenRect, absRect, ScreenRotation::ROTATION_0, true, dstCornerRadius);
 }
@@ -122,6 +124,10 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CollectSurfaceTest003, TestSize.Level1)
     renderNode->shouldPaint_ = false;
     renderNode->CollectSurface(rsBaseRenderNode, vec, false, true);
     EXPECT_FALSE(renderNode->IsLeashWindow());
+    if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
+        delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
+    }
 }
 
 /**
@@ -166,6 +172,28 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSkipInfoToFirstLevelNode001, TestSize.L
 }
 
 /**
+ * @tc.name: SyncSnapshotSkipInfoToFirstLevelNodeTest
+ * @tc.desc: function test
+ * @tc.type:FUNC
+ * @tc.require: issueIA4VTS
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SyncSnapshotSkipInfoToFirstLevelNode001, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    renderNode->SetProtectedLayer(true);
+    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_TRUE(renderNode->GetId() != 0);
+    EXPECT_TRUE(renderNode->GetFirstLevelNodeId() == 0);
+    renderNode->SetProtectedLayer(false);
+    renderNode->SyncSnapshotSkipInfoToFirstLevelNode();
+    auto renderNodeSecond = std::make_shared<RSSurfaceRenderNode>(0);
+    EXPECT_TRUE(renderNodeSecond->GetId() == 0);
+    EXPECT_TRUE(renderNodeSecond->GetFirstLevelNodeId() == 0);
+    renderNodeSecond->SyncSnapshotSkipInfoToFirstLevelNode();
+    EXPECT_TRUE(renderNodeSecond->snapshotSkipLayerIds_.size() == 0);
+}
+
+/**
  * @tc.name: SyncProtectedInfoToFirstLevelNodeTest
  * @tc.desc: function test
  * @tc.type:FUNC
@@ -203,6 +231,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateSrcRectTest, TestSize.Level1)
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
     if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -228,6 +257,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, UpdateHwcDisabledBySrcRectTest, TestSize.Le
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
     if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -256,29 +286,8 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsYUVBufferFormatTest, TestSize.Level1)
     EXPECT_TRUE(renderNode->IsYUVBufferFormat());
     if (renderNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete renderNode->GetRSSurfaceHandler()->buffer_.buffer;
+        renderNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
-}
-
-/**
- * @tc.name: CollectSurfaceForUIFirstSwitchTest
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitchTest
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, CollectSurfaceForUIFirstSwitchTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    uint32_t leashWindowCount = 0;
-    renderNode->nodeType_ = RSSurfaceNodeType::DEFAULT;
-    renderNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, 0);
-    EXPECT_FALSE(renderNode->IsLeashWindow());
-    EXPECT_FALSE(renderNode->IsStartingWindow());
-    renderNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    renderNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, 0);
-    EXPECT_TRUE(renderNode->IsLeashWindow());
-    renderNode->nodeType_ = RSSurfaceNodeType::STARTING_WINDOW_NODE;
-    renderNode->CollectSurfaceForUIFirstSwitch(leashWindowCount, 0);
-    EXPECT_TRUE(renderNode->IsStartingWindow());
 }
 
 /**
@@ -530,22 +539,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceUIFirstTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSkipSyncTest
- * @tc.desc: test results of OnSkipSync
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, OnSkipSyncTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    renderNode->OnSkipSync();
-    EXPECT_FALSE(renderNode->forceUIFirst_);
-    renderNode->OnSkipSync();
-    EXPECT_FALSE(renderNode->forceUIFirstChanged_);
-}
-
-/**
  * @tc.name: AccumulateOcclusionRegion
  * @tc.desc: test results of AccumulateOcclusionRegion
  * @tc.type: FUNC
@@ -600,6 +593,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, AccumulateOcclusionRegion, TestSize.Level1)
     EXPECT_TRUE(testNode->IsSurfaceInStartingWindowStage());
     if (testNode->GetRSSurfaceHandler()->buffer_.buffer) {
         delete testNode->GetRSSurfaceHandler()->buffer_.buffer;
+        testNode->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     }
 }
 
@@ -694,7 +688,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, CheckParticipateInOcclusion, TestSize.Level
     node->SetAbilityBGAlpha(255);
     node->SetGlobalAlpha(1.0f);
     node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    node->SetContainerWindow(true, 1.0f);
+    node->SetContainerWindow(true, rrect);
     node->CheckParticipateInOcclusion();
     node->isSubSurfaceNode_ = true;
     node->CheckParticipateInOcclusion();

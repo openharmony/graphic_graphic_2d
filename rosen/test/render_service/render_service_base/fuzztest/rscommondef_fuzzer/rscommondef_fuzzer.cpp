@@ -99,7 +99,9 @@ bool DoMemObject(const uint8_t* data, size_t size)
     MemObject* obj1 = new MemObject(size1);
     delete obj1;
     MemObject* obj2 = new (std::nothrow) MemObject(size1);
-    delete obj2;
+    if (obj2) {
+        delete obj2;
+    }
     return true;
 }
 } // namespace Rosen

@@ -67,21 +67,6 @@ do \
     status = napi_get_cb_info(env, info, nullptr, nullptr, &(thisVar), nullptr); \
 } while (0)
 
-#define EFFECT_CREATE_CREATE_ASYNC_WORK(env, status, workName, exec, complete, aContext, work) \
-do \
-{ \
-    napi_value _resource = nullptr; \
-    napi_create_string_utf8((env), (workName), NAPI_AUTO_LENGTH, &_resource); \
-    (status) = napi_create_async_work(env, nullptr, _resource, (exec), \
-            (complete), static_cast<void*>((aContext).get()), &(work)); \
-    if ((status) == napi_ok) { \
-        (status) = napi_queue_async_work((env), (work)); \
-        if ((status) == napi_ok) { \
-            (aContext).release(); \
-        } \
-    } \
-} while (0)
-
 #define EFFECT_CREATE_CREATE_ASYNC_WORK_WITH_QOS(env, status, workName, exec, complete, aContext, work, qos) \
 do \
 { \
@@ -103,7 +88,35 @@ namespace OHOS {
 namespace Rosen {
 class EffectKitNapiUtils {
 public:
-    static napi_valuetype getType(napi_env env, napi_value root);
+    EffectKitNapiUtils(const EffectKitNapiUtils&) = delete;
+    EffectKitNapiUtils& operator=(const EffectKitNapiUtils&) = delete;
+
+    static EffectKitNapiUtils& GetInstance()
+    {
+        static EffectKitNapiUtils instance;
+        return instance;
+    }
+    napi_valuetype GetType(napi_env env, napi_value root);
+    
+    template<typename T>
+    napi_status CreateAsyncWork(napi_env& env, napi_status& status, const char* workName,
+        napi_async_execute_callback exec, napi_async_complete_callback complete, std::unique_ptr<T>& aContext,
+        napi_async_work& work)
+    {
+        napi_value resource = nullptr;
+        status = napi_create_string_utf8(env, workName, NAPI_AUTO_LENGTH, &resource);
+        if (status == napi_ok) {
+            status = napi_create_async_work(
+                env, nullptr, resource, exec, complete, static_cast<void*>(aContext.get()), &work);
+            if (status == napi_ok) {
+                status = napi_queue_async_work(env, work);
+            }
+        }
+        aContext.release();
+        return status;
+    };
+private:
+    EffectKitNapiUtils() {}
 };
 } // namespace Rosen
 } // namespace OHOS

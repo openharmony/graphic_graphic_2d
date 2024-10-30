@@ -17,11 +17,11 @@
 #define RENDER_SERVICE_CORE_PIPELINE_RCD_RENDER_RS_RCD_DISPLAY_H
 
 #pragma once
-#include <atomic>
 #include <string>
 #include <map>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
 #include <condition_variable>
 #include "render_context/render_context.h"
 #include "event_handler.h"
@@ -32,6 +32,11 @@
 namespace OHOS {
 namespace Rosen {
 enum class ScreenRotation : uint32_t;
+constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
+constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
+constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
+constexpr char TOPIC_RCD_RESOURCE_CHANGE[] = "TOPIC_RCD_RESOURCE_CHANGE";
+constexpr char TOPIC_RCD_DISPLAY_HWRESOURCE[] = "RCD_UPDATE_DISPLAY_HWRESOURCE";
 
 // On the devices that LCD/AMOLED contain notch, at settings-->display-->notch
 // we can set default or hide notch.
@@ -60,7 +65,8 @@ enum RoundCornerSurfaceType {
 
 class RoundCornerDisplay {
 public:
-    RoundCornerDisplay();
+    RoundCornerDisplay() {};
+    explicit RoundCornerDisplay(NodeId id);
     virtual ~RoundCornerDisplay();
 
     // update displayWidth_ and displayHeight_
@@ -72,7 +78,8 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(ScreenRotation orientation);
 
-    void DrawRoundCorner(RSPaintFilterCanvas* canvas);
+    // update hardInfo_.resourceChanged after hw resource applied
+    void UpdateHardwareResourcePrepared(bool prepared);
 
     void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
 
@@ -85,41 +92,41 @@ public:
 
     void RunHardwareTask(const std::function<void()>& task)
     {
-        if (isRcdRunning.load()) {
-            RS_LOGD("[%{public}s] rcd render is already running \n", __func__);
-            return;
-        }
-        isRcdRunning.store(true);
-        std::lock_guard<std::mutex> lock(resourceMut_);
         if (!supportHardware_) {
-            isRcdRunning.store(false);
             return;
         }
         UpdateParameter(updateFlag_);
         task(); // do task
-        isRcdRunning.store(false);
     }
-    
-    rs_rcd::RoundCornerHardware GetHardwareInfo() const
+
+    rs_rcd::RoundCornerHardware GetHardwareInfo()
     {
+        std::shared_lock<std::shared_mutex> lock(resourceMut_);
         return hardInfo_;
     }
 
-    bool GetRcdEnable() const
+    rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
     {
-        return isRcdEnable_;
+        std::unique_lock<std::shared_mutex> lock(resourceMut_);
+        if (hardInfo_.resourceChanged) {
+            hardInfo_.resourcePreparing = true;
+        }
+        return hardInfo_;
     }
 
     bool IsNotchNeedUpdate(bool notchStatus)
     {
-        std::lock_guard<std::mutex> lock(resourceMut_);
+        std::shared_lock<std::shared_mutex> lock(resourceMut_);
         bool result = notchStatus != lastNotchStatus_;
         lastNotchStatus_ = notchStatus;
         return result;
     }
 
+    void InitOnce();
+
 private:
-    std::atomic<bool> isRcdRunning = false;
+    NodeId renderTargetId_ = 0;
+    bool isInit = false;
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
     rs_rcd::ROGSetting* rog_ = nullptr;
@@ -161,13 +168,11 @@ private:
     bool supportHardware_ = false;
     bool resourceChanged = false;
 
-    bool isRcdEnable_ = false;
-
     // the resource to be drawn
     std::shared_ptr<Drawing::Image> curTop_ = nullptr;
     std::shared_ptr<Drawing::Image> curBottom_ = nullptr;
 
-    std::mutex resourceMut_;
+    std::shared_mutex resourceMut_;
 
     rs_rcd::RoundCornerHardware hardInfo_;
 
@@ -181,7 +186,7 @@ private:
     // load single image as Drawingimage
     static bool LoadImg(const char* path, std::shared_ptr<Drawing::Image>& img);
 
-    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> drImage, Drawing::Bitmap &bitmap);
+    static bool DecodeBitmap(std::shared_ptr<Drawing::Image> image, Drawing::Bitmap &bitmap);
     bool SetHardwareLayerSize();
 
     // load all images according to the resolution

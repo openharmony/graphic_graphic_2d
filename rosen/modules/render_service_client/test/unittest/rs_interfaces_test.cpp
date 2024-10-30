@@ -1464,6 +1464,7 @@ HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus002, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest | Level2)
 {
     rsInterfaces->SetVirtualScreenUsingStatus(true);
+    EXPECT_TRUE(rsInterfaces != nullptr);
 }
 
 /*
@@ -1475,6 +1476,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest | Level2)
 {
     rsInterfaces->SetVirtualScreenUsingStatus(false);
+    EXPECT_TRUE(rsInterfaces != nullptr);
 }
 
 /*
@@ -1562,6 +1564,17 @@ HWTEST_F(RSInterfacesTest, GetActiveScreenId, Function | SmallTest | Level2)
 HWTEST_F(RSInterfacesTest, SetVirtualMirrorScreenScaleMode, Function | SmallTest | Level2)
 {
     ASSERT_FALSE(rsInterfaces->SetVirtualMirrorScreenScaleMode(INVALID_SCREEN_ID, ScreenScaleMode::INVALID_MODE));
+}
+
+/*
+ * @tc.name: SetGlobalDarkColorMode
+ * @tc.desc: Test SetGlobalDarkColorMode
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, SetGlobalDarkColorMode, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces->SetGlobalDarkColorMode(true));
 }
 
 /*
@@ -1818,6 +1831,56 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
     std::vector<NodeId> securityExemptionList = {};
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetFreeMultiWindowStatus_001
+ * @tc.desc: Test SetFreeMultiWindowStatus with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSInterfacesTest, SetFreeMultiWindowStatus_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->SetFreeMultiWindowStatus(false);
+}
+
+/*
+ * @tc.name: SetFreeMultiWindowStatus_002
+ * @tc.desc: Test SetFreeMultiWindowStatus with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIANPC2
+ */
+HWTEST_F(RSInterfacesTest, SetFreeMultiWindowStatus_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->SetFreeMultiWindowStatus(true);
+}
+
+/*
+ * @tc.name: SetLayerTop_001
+ * @tc.desc: Test SetLayerTop with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetLayerTop_002
+ * @tc.desc: Test SetLayerTop with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, true);
 }
 } // namespace Rosen
 } // namespace OHOS

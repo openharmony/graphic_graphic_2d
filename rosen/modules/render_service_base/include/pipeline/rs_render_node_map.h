@@ -49,6 +49,8 @@ public:
     const std::string GetSelfDrawSurfaceNameByPid(pid_t nodePid) const;
 
     bool ContainPid(pid_t pid) const;
+    // On remote died, the instance root node will be directly removed from the tree,
+    // and the remaining subtree will be released in batches (this feature is enabled by default).
     void FilterNodeByPid(pid_t pid);
     void MoveRenderNodeMap(
         std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap, pid_t pid);
@@ -68,6 +70,16 @@ public:
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     uint32_t GetVisibleLeashWindowCount() const;
+
+    uint64_t GetSize() const
+    {
+        return renderNodeMap_.size();
+    }
+
+    // call from main thread
+    void AddOffTreeNode(NodeId nodeId);
+    void RemoveOffTreeNode(NodeId nodeId);
+    std::unordered_map<NodeId, bool>&& GetAndClearPurgeableNodeIds();
 private:
     explicit RSRenderNodeMap();
     ~RSRenderNodeMap() = default;
@@ -82,6 +94,7 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSDisplayRenderNode>> displayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
+    std::unordered_map<NodeId, bool> purgeableNodeMap_;
 
     NodeId entryViewNodeId_ = 0;
     NodeId negativeScreenNodeId_ = 0;

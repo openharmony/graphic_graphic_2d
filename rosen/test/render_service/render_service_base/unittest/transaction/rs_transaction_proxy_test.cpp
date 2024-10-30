@@ -115,6 +115,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction001, TestSize.Level1)
 {
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timestamp);
 }
 
 /**
@@ -144,6 +145,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction003, TestSize.Level1)
     RSTransactionProxy::GetInstance()->Begin();
     RSTransactionProxy::GetInstance()->StartSyncTransaction();
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timestamp);
 }
 
 /**
@@ -159,6 +161,24 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction004, TestSize.Level1)
     ASSERT_NE(renderThreadClient, nullptr);
     RSTransactionProxy::GetInstance()->SetRenderThreadClient(renderThreadClient);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+}
+
+/**
+ * @tc.name: IsEmpty001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSTransactionProxyTest, IsEmpty001, TestSize.Level1)
+{
+    auto rsTransactionProxy = RSTransactionProxy::GetInstance();
+    bool isCommonDataEmpty = rsTransactionProxy->implicitCommonTransactionData_->IsEmpty();
+    bool isRemoteDataEmpty = rsTransactionProxy->implicitRemoteTransactionData_->IsEmpty();
+    bool isCommonDataStackEmpty = rsTransactionProxy->implicitCommonTransactionDataStack_.empty();
+    bool isRemoteDataStackEmpty = rsTransactionProxy->implicitRemoteTransactionDataStack_.empty();
+
+    ASSERT_EQ(rsTransactionProxy->IsEmpty(),
+        isCommonDataEmpty & isRemoteDataEmpty & isCommonDataStackEmpty & isRemoteDataStackEmpty);
 }
 
 /**
@@ -234,6 +254,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT001, TestSize.Lev
 {
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->FlushImplicitTransactionFromRT(timestamp);
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timestamp);
 }
 
 /**
@@ -342,6 +363,7 @@ HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction001, TestSize.Level1)
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->Begin();
     RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
+    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timestamp);
 }
 
 /**

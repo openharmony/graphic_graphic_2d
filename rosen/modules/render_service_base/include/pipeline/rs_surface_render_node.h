@@ -82,6 +82,11 @@ public:
 
     void ResetRenderParams();
 
+    ScreenId GetScreenId() const
+    {
+        return screenId_;
+    }
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -113,10 +118,10 @@ public:
         return isNodeDirty_;
     }
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+    bool IsHardwareEnabledTopSurface() const;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const;
+    bool GetHardCursorLastStatus() const;
 
     void SetLayerTop(bool isTop);
 
@@ -132,13 +137,19 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface() || IsLayerTop();
+            IsLayerTop();
     }
 
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
+    bool IsDynamicHardwareEnable() const
+    {
+        return dynamicHardwareEnable_;
+    }
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true)
     {
         isHardwareEnabledNode_ = isEnabled;
         selfDrawingType_ = selfDrawingType;
+        dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
@@ -154,7 +165,8 @@ public:
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb");
+            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
+                name_ == "VMLinuxXComponentSurface" || name_.find("HwStylusFeature") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
@@ -175,8 +187,6 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
-
-    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -263,7 +273,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isProtectedLayer_) {
+        // a protected node not on the tree need to release buffer when producer produce buffers
+        // release buffer in ReleaseSelfDrawingNodeBuffer function
+        if (isProtectedLayer_ && IsOnTheTree()) {
             return false;
         }
         return isHardwareForcedDisabled_ ||
@@ -400,7 +412,6 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
-    void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
@@ -415,7 +426,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsSCBNode() const;
-    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
@@ -444,20 +455,32 @@ public:
     void SetBootAnimation(bool isBootAnimation) override;
     bool GetBootAnimation() const override;
 
+    void SetGlobalPositionEnabled(bool isEnabled);
+    bool GetGlobalPositionEnabled() const;
+
     void SetSecurityLayer(bool isSecurityLayer);
+    void SetLeashPersistentId(uint64_t leashPersistentId);
     void SetSkipLayer(bool isSkipLayer);
+    void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
-    void SetForceClientForDRMOnly(bool forceClient);
 
     // get whether it is a security/skip layer itself
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
+    bool GetSnapshotSkipLayer() const;
     bool GetProtectedLayer() const;
+    LeashPersistentId GetLeashPersistentId() const;
+
+    // set ability state that surfaceNode belongs to as foreground or background
+    void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
+    RSSurfaceNodeAbilityState GetAbilityState() const override;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
     bool GetHasSkipLayer() const;
+    bool GetHasSnapshotSkipLayer() const;
     bool GetHasProtectedLayer() const;
+    bool GetHasPrivacyContentLayer() const;
 
     void ResetSpecialLayerChangedFlag()
     {
@@ -471,7 +494,10 @@ public:
 
     void SyncSecurityInfoToFirstLevelNode();
     void SyncSkipInfoToFirstLevelNode();
+    void SyncOnTheTreeInfoToFirstLevelNode();
+    void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
+    void SyncPrivacyContentInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
@@ -494,6 +520,7 @@ public:
     bool GetForceUIFirstChanged();
 
     static void SetAncoForceDoDirect(bool direct);
+    static bool GetOriAncoForceDoDirect();
     bool GetAncoForceDoDirect() const;
     void SetAncoFlags(uint32_t flags);
     uint32_t GetAncoFlags() const;
@@ -542,6 +569,11 @@ public:
     Occlusion::Region& GetTransparentRegion()
     {
         return transparentRegion_;
+    }
+
+    const Occlusion::Region& GetRoundedCornerRegion() const
+    {
+        return roundedCornerRegion_;
     }
 
     const Occlusion::Region& GetOpaqueRegion() const
@@ -605,11 +637,6 @@ public:
     uint8_t GetAbilityBgAlpha() const
     {
         return abilityBgAlpha_;
-    }
-
-    bool GetQosCal()
-    {
-        return qosPidCal_;
     }
 
     void setQosCal(bool qosPidCal)
@@ -676,6 +703,10 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+
+    // Only call this if the node is self-drawing surface node.
+    void UpdateColorSpaceWithMetadata();
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
     void SetBlendType(GraphicBlendType blendType);
@@ -790,9 +821,16 @@ public:
         return containerConfig_.hasContainerWindow_;
     }
 
-    void SetContainerWindow(bool hasContainerWindow, float density)
+    void SetContainerWindow(bool hasContainerWindow, RRect rrect);
+
+    std::string GetContainerConfigDump() const
     {
-        containerConfig_.Update(hasContainerWindow, density);
+        return "[outR: " + std::to_string(containerConfig_.outR) +
+               " inR: " + std::to_string(containerConfig_.inR) +
+               " x: " + std::to_string(containerConfig_.innerRect.left_) +
+               " y: " + std::to_string(containerConfig_.innerRect.top_) +
+               " w: " + std::to_string(containerConfig_.innerRect.width_) +
+               " h: " + std::to_string(containerConfig_.innerRect.height_) + "]";
     }
 
     bool IsOpaqueRegionChanged() const
@@ -838,7 +876,7 @@ public:
         const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
-    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius) const;
+    void SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius);
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
     bool CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
@@ -890,6 +928,8 @@ public:
 
     bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
 
+    void FindScreenId();
+
     void OnTreeStateChanged() override;
 
     void SetDrawingGPUContext(Drawing::GPUContext* grContext)
@@ -909,15 +949,8 @@ public:
         return submittedSubThreadIndex_;
     }
 
-    bool IsWaitUifirstFirstFrame() const
-    {
-        return isWaitUifirstFirstFrame_;
-    }
-
-    void SetWaitUifirstFirstFrame(bool wait)
-    {
-        isWaitUifirstFirstFrame_ = wait;
-    }
+    bool IsWaitUifirstFirstFrame() const;
+    void SetWaitUifirstFirstFrame(bool wait);
 
     void SetCacheSurfaceProcessedStatus(CacheProcessStatus cacheProcessStatus);
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
@@ -1018,9 +1051,6 @@ public:
     {
         return false;
     }
-
-    void SetNeedClearPreBuffer(bool needClear);
-    bool GetNeedClearPreBuffer() const;
 
     void UpdateSurfaceCacheContentStaticFlag();
 
@@ -1171,6 +1201,7 @@ public:
 
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
+    void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
     void SetSdrNit(int32_t sdrNit);
     void SetDisplayNit(int32_t displayNit);
@@ -1185,6 +1216,12 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
                nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    }
+
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadius);
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
     }
 
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
@@ -1205,22 +1242,36 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
-    void SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> GetWatermark() const;
-    size_t GetWatermarkSize() const;
-    bool GetIsIntersectWithRoundCorner() const
+    const std::unordered_map<std::string, bool>& GetWatermark() const;
+    bool IsWatermarkEmpty() const;
+
+    template<class... Args>
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
     {
-        return isIntersectWithRoundCorner_;
+        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
+    }
+    
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
+    {
+        return intersectedRoundCornerAABBs_;
     }
 
-    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
+    size_t GetIntersectedRoundCornerAABBsSize() const {
+        return intersectedRoundCornerAABBs_.size();
+    }
+
+    void SetNeedCacheSurface(bool needCacheSurface);
+    bool GetSubThreadAssignable() const
     {
-        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+        return subThreadAssignable_;
+    }
+    void SetSubThreadAssignable(bool subThreadAssignable)
+    {
+        subThreadAssignable_ = subThreadAssignable;
     }
 protected:
     void OnSync() override;
-    void OnSkipSync() override;
 
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
@@ -1254,35 +1305,45 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
+    ScreenId screenId_ = -1;
+
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
 
     bool isSecurityLayer_ = false;
     bool isSkipLayer_ = false;
+    bool isSnapshotSkipLayer_ = false;
     bool isProtectedLayer_ = false;
-    bool forceClientForDRMOnly_ = false;
     std::set<NodeId> skipLayerIds_= {};
+    std::set<NodeId> snapshotSkipLayerIds_= {};
     std::set<NodeId> securityLayerIds_= {};
     std::set<NodeId> protectedLayerIds_= {};
+    std::set<NodeId> privacyContentLayerIds_ = {};
     bool specialLayerChanged_ = false;
+    bool isGlobalPositionEnabled_ = false;
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
-    bool isIntersectWithRoundCorner_ = false;
+    std::vector<RectI> intersectedRoundCornerAABBs_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
+    // This variable can be set in two cases:
+    // 1. The upper-layer IPC interface directly sets window colorspace.
+    // 2. If it is a self-drawing node, the colorspace will be refreshed after hardware-enable calculation.
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
@@ -1291,7 +1352,6 @@ private:
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
     std::atomic<bool> isNotifyUIBufferAvailable_ = true;
     std::atomic_bool isBufferAvailable_ = false;
-    std::atomic_bool isNeedClearPreBuffer_ = false;
     sptr<RSIBufferAvailableCallback> callbackFromRT_ = nullptr;
     sptr<RSIBufferAvailableCallback> callbackFromUI_ = nullptr;
     sptr<RSIBufferClearCallback> clearBufferCallback_ = nullptr;
@@ -1299,6 +1359,7 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
+    uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
@@ -1326,6 +1387,8 @@ private:
     Occlusion::Region extraDirtyRegionAfterAlignment_;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
 
+    // region of rounded corner
+    Occlusion::Region roundedCornerRegion_;
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
     bool opaqueRegionChanged_ = false;
@@ -1375,7 +1438,8 @@ private:
     */
     class ContainerConfig {
     public:
-        void Update(bool hasContainer, float density);
+        // rrect means content region, including padding to left and top, inner radius;
+        void Update(bool hasContainer, RRect rrect);
     private:
         inline int RoundFloor(float length)
         {
@@ -1383,22 +1447,14 @@ private:
             return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
         }
     public:
-        // temporary const value from ACE container_modal_constants.h, will be replaced by uniform interface
-        const static int CONTAINER_TITLE_HEIGHT = 37;   // container title height = 37 vp
-        const static int CONTENT_PADDING = 4;           // container <--> content distance 4 vp
-        const static int CONTAINER_BORDER_WIDTH = 1;    // container border width 2 vp
-        const static int CONTAINER_OUTER_RADIUS = 16;   // container outer radius 16 vp
-        const static int CONTAINER_INNER_RADIUS = 14;   // container inner radius 14 vp
-
         bool hasContainerWindow_ = false;               // set to false as default, set by arkui
-        float density = 2.0f;                           // The density default value is 2
         int outR = 32;                                  // outer radius (int value)
         int inR = 28;                                   // inner radius (int value)
-        int bp = 10;                                    // border width + padding (int value)
-        int bt = 76;                                    // border width + title (int value)
+        RectI innerRect = {};                           // inner rect, value relative to outerRect
     };
 
     ContainerConfig containerConfig_;
+    ContainerConfig GetAbsContainerConfig() const;
 
     bool startAnimationFinished_ = false;
 
@@ -1407,6 +1463,7 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     RectI originalDstRect_;
@@ -1467,6 +1524,10 @@ private:
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 
+    // point window
+    bool isHardCursor_ = false;
+    bool isLastHardCursor_ = false;
+
     bool needDrawFocusChange_ = false;
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
@@ -1488,11 +1549,14 @@ private:
 
     bool doDirectComposition_ = true;
     bool isSkipDraw_ = false;
+    bool needHidePrivacyContent_ = false;
 
     bool isHardwareForcedByBackgroundAlpha_ = false;
-    std::map<std::string, std::pair<bool, std::shared_ptr<Media::PixelMap>>> watermarkHandles_ = {};
+    std::unordered_map<std::string, bool> watermarkHandles_ = {};
 
     bool arsrTag_ = true;
+
+    bool subThreadAssignable_ = false;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

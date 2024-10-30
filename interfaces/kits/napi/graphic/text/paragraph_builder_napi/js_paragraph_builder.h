@@ -38,6 +38,7 @@ public:
     static napi_value AddPlaceholder(napi_env env, napi_callback_info info);
     static napi_value AppendSymbol(napi_env env, napi_callback_info info);
     static napi_value Build(napi_env env, napi_callback_info info);
+    static napi_value BuildLineTypeset(napi_env env, napi_callback_info info);
 
 private:
     napi_value OnPushStyle(napi_env env, napi_callback_info info);
@@ -45,6 +46,7 @@ private:
     napi_value OnPopStyle(napi_env env, napi_callback_info info);
     napi_value OnAddPlaceholder(napi_env env, napi_callback_info info);
     napi_value OnBuild(napi_env env, napi_callback_info info);
+    napi_value OnBuildLineTypeset(napi_env env, napi_callback_info info);
     napi_value OnAppendSymbol(napi_env env, napi_callback_info info);
     static thread_local napi_ref constructor_;
     std::unique_ptr<TypographyCreate> typographyCreate_ = nullptr;
