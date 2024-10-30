@@ -2272,6 +2272,15 @@ void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode(NodeId id, bool isOnTre
     if (isOnTree) {
         needCollectHwcNode_ = true;
     } else {
+        childHardwareEnabledNodes_.erase(std::remove_if(childHardwareEnabledNodes_.begin(),
+            childHardwareEnabledNodes_.end(),
+            [&id](std::weak_ptr<RSSurfaceRenderNode> item) {
+                std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr = item.lock();
+                if (!hwcNodePtr) {
+                    return false;
+                }
+                return hwcNodePtr->GetId() == id;
+            }), childHardwareEnabledNodes_.end());
     }
 }
 
