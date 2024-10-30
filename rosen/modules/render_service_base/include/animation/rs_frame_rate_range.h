@@ -128,7 +128,7 @@ public:
                 return "";
         }
         if ((type_ & ANIMATION_STATE_FIRST_FRAME) != 0) {
-            extInfo += "FIRST_FRAME";
+            extInfo += "_FIRST_UI_ANIMATION_FRAME";
         }
         return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
     }

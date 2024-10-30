@@ -63,7 +63,7 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
-    EraseIf(surfaceBufferCallbacks_, [pid](auto& pair) {
+    EraseIf(surfaceBufferCallbacks_, [pid](const auto& pair) {
         return pair.first.first == pid;
     });
 }

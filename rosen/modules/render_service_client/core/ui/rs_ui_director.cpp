@@ -295,7 +295,7 @@ bool RSUIDirector::HasFirstFrameAnimation()
 {
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
-        return modifierManager->HasFirstFrameAnimation();
+        return modifierManager->GetAndResetFirstFrameAnimationState();
     }
     return false;
 }
