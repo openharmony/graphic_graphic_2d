@@ -23,6 +23,7 @@
 #include "text_style.h"
 #include "typography_create.h"
 
+
 namespace OHOS::Rosen {
 class JsParagraphBuilder final {
 public:
