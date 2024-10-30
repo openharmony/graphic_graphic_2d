@@ -103,7 +103,8 @@ private:
     pid_t threadId_ = 0;
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
-
+    bool lastOverflowStatus_ = false;
+    
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
 
