@@ -1210,15 +1210,22 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
-    bool GetIsIntersectWithRoundCorner() const
+    template<class... Args>
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
     {
-        return isIntersectWithRoundCorner_;
+        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
 
-    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
     {
-        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+        return intersectedRoundCornerAABBs_;
     }
+
+    size_t GetIntersectedRoundCornerAABBsSize() const
+    {
+        return intersectedRoundCornerAABBs_.size();
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -1272,7 +1279,7 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
-    bool isIntersectWithRoundCorner_ = false;
+    std::vector<RectI> intersectedRoundCornerAABBs_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;

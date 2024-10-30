@@ -29,7 +29,7 @@ public:
     /**
      * @brief Gets the offset of next OpItem.
      */
-    uint32_t GetNextOpItemOffset() const
+    size_t GetNextOpItemOffset() const
     {
         return nextOpItem_;
     }
@@ -38,7 +38,7 @@ public:
      * @brief Sets the offset of next OpItem.
      * @param offset  The offset of next OpItem.
      */
-    void SetNextOpItemOffset(uint32_t offset)
+    void SetNextOpItemOffset(size_t offset)
     {
         nextOpItem_ = offset;
     }
@@ -56,7 +56,7 @@ public:
     OpItem& operator=(OpItem&&) = delete;
     OpItem& operator=(const OpItem&) = default;
 private:
-    uint32_t nextOpItem_ = 0;
+    size_t nextOpItem_ = 0;
     uint32_t type_;
 };
 } // namespace Drawing

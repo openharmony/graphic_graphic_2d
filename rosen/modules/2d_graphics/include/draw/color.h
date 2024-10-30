@@ -149,6 +149,8 @@ public:
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
 
+    void Dump(std::string& out) const;
+
 private:
     uint32_t alpha_;
     uint32_t red_;

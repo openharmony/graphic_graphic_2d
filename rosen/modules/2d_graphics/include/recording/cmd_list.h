@@ -90,12 +90,14 @@ public:
             return;
         }
 
-        uint32_t offset = opAllocator_.AddrToOffset(op);
+        size_t offset = opAllocator_.AddrToOffset(op);
         if (lastOpItemOffset_.has_value()) {
 #ifdef CROSS_PLATFORM
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.__get()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.__get(), sizeof(OpItem)));
 #else
-            auto* lastOpItem = static_cast<OpItem*>(opAllocator_.OffsetToAddr(lastOpItemOffset_.value()));
+            auto* lastOpItem = static_cast<OpItem*>(
+                opAllocator_.OffsetToAddr(lastOpItemOffset_.value(), sizeof(OpItem)));
 #endif
             if (lastOpItem != nullptr) {
                 lastOpItem->SetNextOpItemOffset(offset);
@@ -110,9 +112,9 @@ public:
      * @param data  A contiguous buffers.
      * @return      Returns the offset of the contiguous buffers and CmdList head point.
      */
-    uint32_t AddCmdListData(const CmdListData& data);
+    size_t AddCmdListData(const CmdListData& data);
 
-    const void* GetCmdListData(uint32_t offset) const;
+    const void* GetCmdListData(size_t offset, size_t size) const;
 
     /**
      * @brief   Gets the contiguous buffers of CmdList.
@@ -121,15 +123,15 @@ public:
 
     // using for recording, should to remove after using shared memory
     bool SetUpImageData(const void* data, size_t size);
-    uint32_t AddImageData(const void* data, size_t size);
-    const void* GetImageData(uint32_t offset) const;
+    size_t AddImageData(const void* data, size_t size);
+    const void* GetImageData(size_t offset, size_t size) const;
     CmdListData GetAllImageData() const;
 
     OpDataHandle AddImage(const Image& image);
     std::shared_ptr<Image> GetImage(const OpDataHandle& imageHandle);
 
-    uint32_t AddBitmapData(const void* data, size_t size);
-    const void* GetBitmapData(uint32_t offset) const;
+    size_t AddBitmapData(const void* data, size_t size);
+    const void* GetBitmapData(size_t offset, size_t size) const;
     bool SetUpBitmapData(const void* data, size_t size);
     CmdListData GetAllBitmapData() const;
 
@@ -264,10 +266,10 @@ protected:
     MemAllocator opAllocator_;
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
-    std::optional<uint32_t> lastOpItemOffset_ = std::nullopt;
+    std::optional<size_t> lastOpItemOffset_ = std::nullopt;
     std::recursive_mutex mutex_;
-    std::map<uint32_t, std::shared_ptr<Image>> imageMap_;
-    std::vector<std::pair<uint32_t, OpDataHandle>> imageHandleVec_;
+    std::map<size_t, std::shared_ptr<Image>> imageMap_;
+    std::vector<std::pair<size_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;
 
     std::vector<std::shared_ptr<RecordCmd>> recordCmdVec_;

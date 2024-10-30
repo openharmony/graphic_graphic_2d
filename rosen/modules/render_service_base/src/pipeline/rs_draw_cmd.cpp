@@ -455,8 +455,8 @@ RSExtendDrawFuncObj *RSExtendDrawFuncObj::Unmarshalling(Parcel &parcel)
 
 namespace Drawing {
 /* DrawImageWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM, DrawImageWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM,
+    DrawImageWithParmOpItem::Unmarshalling, sizeof(DrawImageWithParmOpItem::ConstructorHandle));
 
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(
     const DrawCmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
@@ -506,8 +506,8 @@ void DrawImageWithParmOpItem::SetNodeId(NodeId id)
 }
 
 /* DrawPixelMapWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM,
+    DrawPixelMapWithParmOpItem::Unmarshalling, sizeof(DrawPixelMapWithParmOpItem::ConstructorHandle));
 
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const DrawCmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
@@ -558,7 +558,8 @@ void DrawPixelMapWithParmOpItem::SetNodeId(NodeId id)
 }
 
 /* DrawPixelMapRectOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
+    DrawPixelMapRectOpItem::Unmarshalling, sizeof(DrawPixelMapRectOpItem::ConstructorHandle));
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
@@ -608,7 +609,8 @@ void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
 }
 
 /* DrawFuncOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM, DrawFuncOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM,
+    DrawFuncOpItem::Unmarshalling, sizeof(DrawFuncOpItem::ConstructorHandle));
 
 DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
@@ -641,20 +643,22 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 #ifdef ROSEN_OHOS
 /* DrawSurfaceBufferOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM, DrawSurfaceBufferOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
+    DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
       surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
-                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_)
+                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_,
+                         handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
 {
     surfaceBufferInfo_.surfaceBuffer_ = CmdListHelper::GetSurfaceBufferFromCmdList(cmdList, handle->surfaceBufferId);
 }
 
 DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
 {
+    OnDestruct();
     Clear();
 }
 
@@ -671,7 +675,29 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     cmdList.AddOp<ConstructorHandle>(
         CmdListHelper::AddSurfaceBufferToCmdList(cmdList, surfaceBufferInfo_.surfaceBuffer_),
         surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, paintHandle);
+        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_,
+        surfaceBufferInfo_.pid_, surfaceBufferInfo_.uid_, paintHandle);
+}
+
+namespace {
+    std::function<void(pid_t, uint64_t, uint32_t)> surfaceBufferFenceCallback;
+}
+
+void DrawSurfaceBufferOpItem::OnDestruct()
+{
+    if (surfaceBufferFenceCallback && surfaceBufferInfo_.surfaceBuffer_) {
+        std::invoke(surfaceBufferFenceCallback, surfaceBufferInfo_.pid_,
+            surfaceBufferInfo_.uid_, surfaceBufferInfo_.surfaceBuffer_->GetSeqNum());
+    }
+}
+
+void DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+    std::function<void(pid_t, uint64_t, uint32_t)> callback)
+{
+    if (std::exchange(surfaceBufferFenceCallback, callback)) {
+        RS_LOGE("DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback"
+            " registered callback twice incorrectly.");
+    }
 }
 
 void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)

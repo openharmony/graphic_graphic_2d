@@ -449,20 +449,43 @@ ScreenId RSRenderServiceConnectionProxy::CreateVirtualScreen(
     }
 
     option.SetFlags(MessageOption::TF_SYNC);
-    data.WriteString(name);
-    data.WriteUint32(width);
-    data.WriteUint32(height);
-
-    if (surface==nullptr) {
-        data.WriteRemoteObject(nullptr);
-    } else {
-        auto producer = surface->GetProducer();
-        data.WriteRemoteObject(producer->AsObject());
+    if (!data.WriteString(name)) {
+        return INVALID_SCREEN_ID;
     }
-
-    data.WriteUint64(mirrorId);
-    data.WriteInt32(flags);
-    data.WriteUInt64Vector(whiteList);
+    if (!data.WriteUint32(width)) {
+        return INVALID_SCREEN_ID;
+    }
+    if (!data.WriteUint32(height)) {
+        return INVALID_SCREEN_ID;
+    }
+    if (surface != nullptr) {
+        auto producer = surface->GetProducer();
+        if (producer != nullptr) {
+            if (!data.WriteBool(true)) {
+                return INVALID_SCREEN_ID;
+            }
+            if (!data.WriteRemoteObject(producer->AsObject())) {
+                return INVALID_SCREEN_ID;
+            }
+        } else {
+            if (!data.WriteBool(false)) {
+                return INVALID_SCREEN_ID;
+            }
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            return INVALID_SCREEN_ID;
+        }
+    }
+    if (!data.WriteUint64(mirrorId)) {
+        return INVALID_SCREEN_ID;
+    }
+    if (!data.WriteInt32(flags)) {
+        return INVALID_SCREEN_ID;
+    }
+    if (!data.WriteUInt64Vector(whiteList)) {
+        return INVALID_SCREEN_ID;
+    }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -2729,6 +2752,71 @@ bool RSRenderServiceConnectionProxy::SetAncoForceDoDirect(bool direct)
         return result;
     } else {
         return false;
+    }
+}
+
+void RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback(
+    pid_t pid, uint64_t uid, sptr<RSISurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback callback == nullptr");
+        return;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
+    if (!data.WriteInt32(pid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback: write Int32 val err.");
+        return;
+    }
+    if (!data.WriteUint64(uid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback: write Uint64 val err.");
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback: write RemoteObject val err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterSurfaceBufferCallback: Send Request err.");
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    static_assert(std::is_same_v<int32_t, pid_t>, "pid_t is not int32_t on this platform.");
+    if (!data.WriteInt32(pid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback: write Int32 val err.");
+        return;
+    }
+    if (!data.WriteUint64(uid)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback: write Uint64 val err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::UnregisterSurfaceBufferCallback: Send Request err.");
+        return;
     }
 }
 

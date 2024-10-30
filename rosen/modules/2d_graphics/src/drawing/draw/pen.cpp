@@ -254,6 +254,20 @@ bool operator!=(const Pen& p1, const Pen& p2)
 {
     return !(p1 == p2);
 }
+
+void Pen::Dump(std::string& out) const
+{
+    out += "[brush";
+    brush_.Dump(out);
+    out += " width:" + std::to_string(width_) + " miterLimit:" + std::to_string(miterLimit_);
+    out += " joinStyle:" + std::to_string(static_cast<int>(join_));
+    out += " capStyle:" + std::to_string(static_cast<int>(cap_));
+    if (pathEffect_ != nullptr) {
+        out += " pathEffect:" + std::to_string(static_cast<int>(pathEffect_->GetType()));
+    }
+    out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
+    out += ']';
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

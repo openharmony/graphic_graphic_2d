@@ -160,7 +160,6 @@ private:
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
     bool isSecurityExemption_ = false;
-    std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;

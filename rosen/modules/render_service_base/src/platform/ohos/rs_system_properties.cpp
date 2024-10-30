@@ -928,12 +928,22 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
-    static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.async_free_between_frames_enabled", "1").c_str()) !=
+    static bool gpuMemoryAsyncReclaimerEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
             0);
-    return AsyncFreeVMAMemoryBetweenFramesEnabled;
+    return gpuMemoryAsyncReclaimerEnabled;
+}
+
+bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
+{
+    static bool gpuCacheSuppressWindowEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
+            0);
+    return gpuCacheSuppressWindowEnabled;
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =

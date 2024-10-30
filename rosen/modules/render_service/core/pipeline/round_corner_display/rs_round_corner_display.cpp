@@ -35,7 +35,7 @@ RoundCornerDisplay::~RoundCornerDisplay()
 
 bool RoundCornerDisplay::Init()
 {
-    std::lock_guard<std::mutex> lock(resourceMut_);
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     LoadConfigFile();
     SeletedLcdModel(rs_rcd::ATTR_DEFAULT);
     LoadImgsbyResolution(displayWidth_, displayHeight_);
@@ -200,7 +200,7 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
 
 void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
 {
-    std::lock_guard<std::mutex> lock(resourceMut_);
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     if (width == displayWidth_ && height == displayHeight_) {
         RS_LOGD("[%{public}s] DisplayParameter do not change \n", __func__);
         return;
@@ -217,7 +217,7 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
 
 void RoundCornerDisplay::UpdateNotchStatus(int status)
 {
-    std::lock_guard<std::mutex> lock(resourceMut_);
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     // Update surface when surface status changed
     if (status < 0 || status > 1) {
         RS_LOGE("[%{public}s] notchStatus won't be over 1 or below 0 \n", __func__);
@@ -234,7 +234,7 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
 
 void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
 {
-    std::lock_guard<std::mutex> lock(resourceMut_);
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     if (orientation == curOrientation_) {
         RS_LOGD("[%{public}s] OrientationStatus do not change \n", __func__);
         return;
@@ -246,10 +246,18 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
     updateFlag_["orientation"] = true;
 }
 
+void RoundCornerDisplay::UpdateHardwareResourcePrepared(bool prepared)
+{
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
+    if (hardInfo_.resourcePreparing) {
+        hardInfo_.resourcePreparing = false;
+        hardInfo_.resourceChanged = !prepared;
+    }
+}
+
 void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag)
 {
-    std::lock_guard<std::mutex> lock(resourceMut_);
-    hardInfo_.resourceChanged = false;
+    std::unique_lock<std::shared_mutex> lock(resourceMut_);
     for (auto item = updateFlag.begin(); item != updateFlag.end(); item++) {
         if (item->second == true) {
             resourceChanged = true;
@@ -264,6 +272,7 @@ void RoundCornerDisplay::UpdateParameter(std::map<std::string, bool>& updateFlag
             SetHardwareLayerSize();
         }
         hardInfo_.resourceChanged = resourceChanged; // output
+        hardInfo_.resourcePreparing = false; // output
         resourceChanged = false; // reset
     } else {
         RS_LOGD("[%{public}s] Status is not changed \n", __func__);

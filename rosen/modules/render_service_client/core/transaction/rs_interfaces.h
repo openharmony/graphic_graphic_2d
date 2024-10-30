@@ -277,6 +277,11 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:

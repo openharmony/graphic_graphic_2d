@@ -31,6 +31,8 @@ namespace OHOS::Rosen {
 constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
 constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
 constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
+constexpr char TOPIC_RCD_DISPLAY_HWRESOURCE[] = "RCD_UPDATE_DISPLAY_HWRESOURCE";
+
 class RSSubThreadManager {
 public:
     static RSSubThreadManager *Instance();

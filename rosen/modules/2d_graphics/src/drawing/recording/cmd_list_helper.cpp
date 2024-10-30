@@ -95,7 +95,7 @@ std::shared_ptr<Vertices> CmdListHelper::GetVerticesFromCmdList(
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(opDataHandle.offset);
+    const void* ptr = cmdList.GetImageData(opDataHandle.offset, opDataHandle.size);
     if (ptr == nullptr) {
         LOGD("get vertices data failed!");
         return nullptr;
@@ -131,7 +131,7 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetBitmapData(bitmapHandle.offset);
+    const void* ptr = cmdList.GetBitmapData(bitmapHandle.offset, bitmapHandle.size);
     if (ptr == nullptr) {
         LOGD("get bitmap data failed!");
         return nullptr;
@@ -140,7 +140,7 @@ std::shared_ptr<Bitmap> CmdListHelper::GetBitmapFromCmdList(const CmdList& cmdLi
     BitmapFormat format = { bitmapHandle.colorType, bitmapHandle.alphaType };
     auto bitmap = std::make_shared<Bitmap>();
     bitmap->Build(bitmapHandle.width, bitmapHandle.height, format);
-    bitmap->SetPixels(const_cast<void*>(cmdList.GetBitmapData(bitmapHandle.offset)));
+    bitmap->SetPixels(const_cast<void*>(ptr));
 
     return bitmap;
 }
@@ -201,7 +201,7 @@ std::shared_ptr<Picture> CmdListHelper::GetPictureFromCmdList(const CmdList& cmd
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(pictureHandle.offset);
+    const void* ptr = cmdList.GetImageData(pictureHandle.offset, pictureHandle.size);
     if (ptr == nullptr) {
         LOGD("get picture data failed!");
         return nullptr;
@@ -234,7 +234,7 @@ std::shared_ptr<Data> CmdListHelper::GetCompressDataFromCmdList(const CmdList& c
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    const void* ptr = cmdList.GetImageData(imageHandle.offset, imageHandle.size);
     if (ptr == nullptr) {
         LOGD("get image data failed!");
         return nullptr;
@@ -330,18 +330,18 @@ DrawingHMSymbolData CmdListHelper::GetSymbolFromCmdList(const CmdList& cmdList,
 SymbolLayersHandle CmdListHelper::AddSymbolLayersToCmdList(CmdList& cmdList, const DrawingSymbolLayers& symbolLayers)
 {
     auto layers = symbolLayers.layers;
-    std::vector<std::pair<uint32_t, size_t>> handleVector1;
+    std::vector<std::pair<size_t, size_t>> handleVector1;
     for (size_t i = 0; i < layers.size(); i++) {
         handleVector1.push_back(AddVectorToCmdList(cmdList, layers.at(i)));
     }
-    std::pair<uint32_t, size_t> layersHandle = AddVectorToCmdList(cmdList, handleVector1);
+    std::pair<size_t, size_t> layersHandle = AddVectorToCmdList(cmdList, handleVector1);
 
     auto groups = symbolLayers.renderGroups;
     std::vector<RenderGroupHandle> handleVector2;
     for (size_t i = 0; i < groups.size(); i++) {
         handleVector2.push_back(AddRenderGroupToCmdList(cmdList, groups.at(i)));
     }
-    std::pair<uint32_t, size_t> groupsHandle = AddVectorToCmdList(cmdList, handleVector2);
+    std::pair<size_t, size_t> groupsHandle = AddVectorToCmdList(cmdList, handleVector2);
 
     return { symbolLayers.symbolGlyphId, layersHandle, groupsHandle};
 }
@@ -352,7 +352,7 @@ DrawingSymbolLayers CmdListHelper::GetSymbolLayersFromCmdList(const CmdList& cmd
     DrawingSymbolLayers symbolLayers;
     symbolLayers.symbolGlyphId = symbolLayersHandle.id;
 
-    auto handleVector1 = GetVectorFromCmdList<std::pair<uint32_t, size_t>>(cmdList, symbolLayersHandle.layers);
+    auto handleVector1 = GetVectorFromCmdList<std::pair<size_t, size_t>>(cmdList, symbolLayersHandle.layers);
     std::vector<std::vector<size_t>> layers;
     for (size_t i = 0; i < handleVector1.size(); i++) {
         layers.push_back(GetVectorFromCmdList<size_t>(cmdList, handleVector1.at(i)));
@@ -376,7 +376,7 @@ RenderGroupHandle CmdListHelper::AddRenderGroupToCmdList(CmdList& cmdList, const
     for (size_t i = 0; i < infos.size(); i++) {
         handleVector.push_back(AddGroupInfoToCmdList(cmdList, infos.at(i)));
     }
-    std::pair<uint32_t, size_t> groupInfosHandle = AddVectorToCmdList(cmdList, handleVector);
+    std::pair<size_t, size_t> groupInfosHandle = AddVectorToCmdList(cmdList, handleVector);
     return { groupInfosHandle, group.color };
 }
 
@@ -398,8 +398,8 @@ DrawingRenderGroup CmdListHelper::GetRenderGroupFromCmdList(const CmdList& cmdLi
 
 GroupInfoHandle CmdListHelper::AddGroupInfoToCmdList(CmdList& cmdList, const DrawingGroupInfo& groupInfo)
 {
-    std::pair<uint32_t, size_t> layerIndexes = AddVectorToCmdList(cmdList, groupInfo.layerIndexes);
-    std::pair<uint32_t, size_t> maskIndexes = AddVectorToCmdList(cmdList, groupInfo.maskIndexes);
+    std::pair<size_t, size_t> layerIndexes = AddVectorToCmdList(cmdList, groupInfo.layerIndexes);
+    std::pair<size_t, size_t> maskIndexes = AddVectorToCmdList(cmdList, groupInfo.maskIndexes);
     return { layerIndexes, maskIndexes };
 }
 
@@ -439,7 +439,7 @@ std::shared_ptr<TextBlob> CmdListHelper::GetTextBlobFromCmdList(const CmdList& c
     }
     TextBlob::Context customCtx {typeface, false};
 
-    const void* data = cmdList.GetImageData(textBlobHandle.offset);
+    const void* data = cmdList.GetImageData(textBlobHandle.offset, textBlobHandle.size);
     if (!data) {
         LOGD("textBlob data nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
         return nullptr;
@@ -473,7 +473,7 @@ std::shared_ptr<Data> CmdListHelper::GetDataFromCmdList(const CmdList& cmdList, 
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    const void* ptr = cmdList.GetImageData(imageHandle.offset, imageHandle.size);
     if (ptr == nullptr) {
         LOGD("get data failed!");
         return nullptr;
@@ -504,7 +504,7 @@ std::shared_ptr<Path> CmdListHelper::GetPathFromCmdList(const CmdList& cmdList,
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(pathHandle.offset);
+    const void* ptr = cmdList.GetImageData(pathHandle.offset, pathHandle.size);
     if (ptr == nullptr) {
         LOGE("get path data failed!");
         return nullptr;
@@ -539,7 +539,7 @@ std::shared_ptr<Region> CmdListHelper::GetRegionFromCmdList(const CmdList& cmdLi
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(regionHandle.offset);
+    const void* ptr = cmdList.GetImageData(regionHandle.offset, regionHandle.size);
     if (ptr == nullptr) {
         LOGD("get region data failed!");
         return nullptr;
@@ -579,7 +579,7 @@ std::shared_ptr<ColorSpace> CmdListHelper::GetColorSpaceFromCmdList(const CmdLis
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(imageHandle.offset);
+    const void* ptr = cmdList.GetImageData(imageHandle.offset, imageHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -638,7 +638,7 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
         return shaderEffect;
     }
 
-    const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset);
+    const void* ptr = cmdList.GetImageData(shaderEffectHandle.offset, shaderEffectHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -676,7 +676,7 @@ std::shared_ptr<PathEffect> CmdListHelper::GetPathEffectFromCmdList(const CmdLis
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(pathEffectHandle.offset);
+    const void* ptr = cmdList.GetImageData(pathEffectHandle.offset, pathEffectHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -714,7 +714,7 @@ std::shared_ptr<MaskFilter> CmdListHelper::GetMaskFilterFromCmdList(const CmdLis
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(maskFilterHandle.offset);
+    const void* ptr = cmdList.GetImageData(maskFilterHandle.offset, maskFilterHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -753,7 +753,7 @@ std::shared_ptr<ColorFilter> CmdListHelper::GetColorFilterFromCmdList(const CmdL
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(colorFilterHandle.offset);
+    const void* ptr = cmdList.GetImageData(colorFilterHandle.offset, colorFilterHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -797,7 +797,7 @@ std::shared_ptr<ImageFilter> CmdListHelper::GetImageFilterFromCmdList(const CmdL
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(imageFilterHandle.offset);
+    const void* ptr = cmdList.GetImageData(imageFilterHandle.offset, imageFilterHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }
@@ -838,7 +838,7 @@ std::shared_ptr<BlurDrawLooper> CmdListHelper::GetBlurDrawLooperFromCmdList(cons
         return nullptr;
     }
 
-    const void* ptr = cmdList.GetImageData(blurDrawLooperHandle.offset);
+    const void* ptr = cmdList.GetImageData(blurDrawLooperHandle.offset, blurDrawLooperHandle.size);
     if (ptr == nullptr) {
         return nullptr;
     }

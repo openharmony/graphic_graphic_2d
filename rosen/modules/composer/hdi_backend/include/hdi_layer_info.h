@@ -164,16 +164,6 @@ public:
         boundRect_ = boundRect;
     }
 
-    void SetLayerAdditionalInfo(void *info)
-    {
-        additionalInfo_ = info;
-    }
-
-    void* GetLayerAdditionalInfo()
-    {
-        return additionalInfo_;
-    }
-
     void SetLayerColor(GraphicLayerColor layerColor)
     {
         layerColor_ = layerColor;
@@ -601,7 +591,6 @@ private:
     bool IsSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
-    void *additionalInfo_ = nullptr;
     sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
