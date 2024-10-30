@@ -366,6 +366,7 @@ public:
     }
 
     void SetUseEffect(bool useEffect);
+    void SetUseEffectType(UseEffectType useEffectType);
 
     void SetUseShadowBatching(bool useShadowBatching);
 

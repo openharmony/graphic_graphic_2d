@@ -1818,6 +1818,12 @@ void RSNode::SetUseEffect(bool useEffect)
     SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
 }
 
+void RSNode::SetUseEffectType(UseEffectType useEffectType)
+{
+    SetProperty<RSUseEffectTypeModifier, RSProperty<int>>(
+        RSModifierType::USE_EFFECT_TYPE, static_cast<int>(useEffectType));
+}
+
 void RSNode::SetUseShadowBatching(bool useShadowBatching)
 {
     SetProperty<RSUseShadowBatchingModifier, RSProperty<bool>>(RSModifierType::USE_SHADOW_BATCHING, useShadowBatching);

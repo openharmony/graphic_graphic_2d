@@ -319,6 +319,74 @@ public:
     }
 };
 
+class RSB_EXPORT RSBehindWindowFilterRadiusRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSBehindWindowFilterRadiusRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_RADIUS);
+    }
+    ~RSBehindWindowFilterRadiusRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override {}
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::BEHIND_WINDOW_FILTER_RADIUS;
+    }
+};
+
+class RSB_EXPORT RSBehindWindowFilterSaturationRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSBehindWindowFilterSaturationRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_SATURATION);
+    }
+    ~RSBehindWindowFilterSaturationRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override {}
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::BEHIND_WINDOW_FILTER_SATURATION;
+    }
+};
+
+class RSB_EXPORT RSBehindWindowFilterBrightnessRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSBehindWindowFilterBrightnessRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS);
+    }
+    ~RSBehindWindowFilterBrightnessRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override {}
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS;
+    }
+};
+
+class RSB_EXPORT RSBehindWindowFilterMaskColorRenderModifier : public RSBackgroundRenderModifier {
+public:
+    RSBehindWindowFilterMaskColorRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSBackgroundRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR);
+    }
+    ~RSBehindWindowFilterMaskColorRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override {}
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR;
+    }
+};
+
 // declare RenderModifiers like RSBoundsRenderModifier
 #define DECLARE_ANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, DELTA_OP, MODIFIER_TIER, THRESHOLD_TYPE) \
     class RSB_EXPORT RS##MODIFIER_NAME##RenderModifier : public RS##MODIFIER_TIER##RenderModifier {              \

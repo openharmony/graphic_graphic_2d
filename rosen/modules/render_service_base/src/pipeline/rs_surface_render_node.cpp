@@ -546,6 +546,10 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     if (!visitor) {
         return;
     }
+    if (NeedUpdateDrawableBehindWindow()) {
+        AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
+        SetDirty(true);
+    }
     ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
 
@@ -3024,6 +3028,32 @@ void RSSurfaceRenderNode::SetNeedCacheSurface(bool needCacheSurface)
         surfaceParams->SetNeedCacheSurface(needCacheSurface);
     }
     AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
+{
+    bool hasChildrenBlurBehindWindow = !childrenBlurBehindWindow_.empty();
+    GetMutableRenderProperties().SetNeedDrawBehindWindow(hasChildrenBlurBehindWindow);
+    if (hasChildrenBlurBehindWindow != oldHasChildrenBlurBehindWindow_) {
+        oldHasChildrenBlurBehindWindow_ = hasChildrenBlurBehindWindow;
+        return true;
+    }
+    return false;
+}
+
+bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
+{
+    return !childrenBlurBehindWindow_.empty();
+}
+
+void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
+{
+    childrenBlurBehindWindow_.emplace(id);
+}
+
+void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
+{
+    childrenBlurBehindWindow_.erase(id);
 }
 } // namespace Rosen
 } // namespace OHOS

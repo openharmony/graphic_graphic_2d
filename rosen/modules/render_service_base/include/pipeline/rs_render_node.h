@@ -787,6 +787,12 @@ public:
     {
         return isAccessibilityConfigChanged_;
     }
+
+    void ProcessBehindWindowOnTreeStateChanged();
+    void ProcessBehindWindowAfterApplyModifiers();
+    virtual bool NeedDrawBehindWindow() const { return false; }
+    virtual void AddChildBlurBehindWindow(NodeId id) {}
+    virtual void RemoveChildBlurBehindWindow(NodeId id) {}
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);

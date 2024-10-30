@@ -104,6 +104,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_PERCENT
     RSDrawableSlot::PIXEL_STRETCH,                 // PIXEL_STRETCH_TILE_MODE
     RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT
+    RSDrawableSlot::USE_EFFECT,                    // USE_EFFECT_TYPE
     RSDrawableSlot::BLENDER,                       // COLOR_BLEND_MODE
     RSDrawableSlot::BLENDER,                       // COLOR_BLEND_APPLY_TYPE
     RSDrawableSlot::INVALID,                       // SANDBOX
@@ -172,6 +173,10 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
     RSDrawableSlot::CUSTOM_CLIP_TO_FRAME,          // CUSTOM_CLIP_TO_FRAME,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_RADIUS
+    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_SATURATION
+    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_BRIGHTNESS
+    RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_MASK_COLOR
     RSDrawableSlot::CHILDREN,                      // CHILDREN
 };
 

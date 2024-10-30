@@ -2215,7 +2215,8 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
             auto filterRegion = Occlusion::Region{ Occlusion::Rect{ it->second } };
             auto filterDirtyRegion = filterRegion.And(accumulatedDirtyRegion);
             if (!filterDirtyRegion.IsEmpty()) {
-                if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
+                if (filterNode->GetRenderProperties().GetBackgroundFilter() ||
+                    filterNode->GetRenderProperties().GetNeedDrawBehindWindow()) {
                     // backgroundfilter affected by below dirty
                     filterNode->MarkFilterStatusChanged(false, false);
                 }
@@ -2769,8 +2770,8 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         node.UpdateFilterCacheWithSelfDirty();
         if (curSurfaceNode_->IsTransparent()) {
             globalFilterRects_.emplace_back(globalFilterRect);
-            if (!isIntersect || (isIntersect && node.GetRenderProperties().GetBackgroundFilter() &&
-                !node.IsBackgroundInAppOrNodeSelfDirty())) {
+            if (!isIntersect || (isIntersect && (node.GetRenderProperties().GetBackgroundFilter() ||
+                node.GetRenderProperties().GetNeedDrawBehindWindow()) && !node.IsBackgroundInAppOrNodeSelfDirty())) {
                 // record nodes which has transparent clean filter
                 RS_OPTIONAL_TRACE_NAME_FMT("CollectFilterInfoAndUpdateDirty::surfaceNode:%s, add node[%lld] to "
                     "transparentCleanFilter", curSurfaceNode_->GetName().c_str(), node.GetId());

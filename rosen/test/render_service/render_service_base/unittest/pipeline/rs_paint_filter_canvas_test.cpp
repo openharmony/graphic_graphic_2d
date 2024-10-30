@@ -1503,7 +1503,7 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPenTest004, TestSize.Level1)
     pen.brush_.color_ = 0x00000001;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
-    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
+    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, nullptr, blender, false };
     paintFilterCanvas->envStack_.push(env);
     paintFilterCanvas->AttachPen(pen);
 
@@ -1531,7 +1531,7 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachBrushTest005, TestSize.Level1)
     brush.color_ = 0x00000001;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
-    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
+    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, nullptr, blender, false };
     paintFilterCanvas->envStack_.push(env);
     paintFilterCanvas->AttachBrush(brush);
     brush.SetBlenderEnabled(false);
@@ -1560,7 +1560,7 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest006, TestSize.Level1)
     paint.color_ = 0x00000001;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     std::shared_ptr<Drawing::Blender> blender = std::make_shared<Drawing::Blender>();
-    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, blender, false };
+    RSPaintFilterCanvas::Env env = { RSColor(), nullptr, nullptr, blender, false };
     paintFilterCanvas->AttachPaint(paint);
 
     paintFilterCanvas->canvas_ = nullptr;
