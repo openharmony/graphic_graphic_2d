@@ -124,6 +124,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     status = napi_wrap(env, jsThis, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete filterNapi;
+        filterNapi = nullptr;
         FILTER_LOG_E("Failed to wrap native instance");
         return nullptr;
     }
@@ -154,6 +155,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         [](napi_env env, void* data, void* hint) {
             Filter* filterObj = (Filter*)data;
             delete filterObj;
+            filterObj = nullptr;
         },
         nullptr, nullptr);
     napi_property_descriptor resultFuncs[] = {
@@ -184,9 +186,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     if (UIEffectNapiUtils::getType(env, argv[0]) == napi_number) {
         double tmp = 0.0f;
         if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
-            if (tmp >= 0) {
-                radius = static_cast<float>(tmp);
-            }
+            radius = static_cast<float>(tmp);
         }
     }
     Filter* filterObj = nullptr;
@@ -273,6 +273,10 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 
     Drawing::TileMode tileMode = Drawing::TileMode::CLAMP;
     std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
+    if (para == nullptr) {
+        FILTER_LOG_E("FilterNapi SetPixelStretch: para is nullptr");
+        return thisVar;
+    }
 
     if (argCount >= NUM_1) {
         UIEFFECT_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para),
