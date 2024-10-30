@@ -868,6 +868,10 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 // post in drawframe sync time
 void RSUifirstManager::PostUifistSubTasks()
 {
+    // if screen is power-off, uifirst sub thread can be suspended.
+    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
+        return;
+    }
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
     if (sortedSubThreadNodeIds_.size() > 0) {

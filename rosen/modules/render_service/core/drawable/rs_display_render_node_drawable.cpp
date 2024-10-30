@@ -508,8 +508,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         drawable->GetRenderParams()->SetLayerCreated(false);
     }
 
-    // if screen power off, skip on draw
-    if (SkipDisplayIfScreenOff()) {
+    // if screen power off, skip on draw, needs to draw one more frame.
+    if (params && RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId())) {
         return;
     }
 
@@ -1650,35 +1650,6 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
         offscreenSurface_ = nullptr;
     }
     curCanvas_ = std::move(canvasBackup_);
-}
-
-bool RSDisplayRenderNodeDrawable::SkipDisplayIfScreenOff() const
-{
-    // renderParams_ not null in caller
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return false;
-    }
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff, failed to get screen manager!");
-        return false;
-    }
-    // in certain cases such as wireless display, render skipping may be disabled.
-    ScreenId id = renderParams_->GetScreenId();
-    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
-    auto isScreenOff = screenManager->IsScreenPowerOff(id);
-    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable Screen_[%" PRIu64 "] disableRenderControl:[%d], PowerOff:[%d]",
-        id, disableRenderControlScreensCount, isScreenOff);
-    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
-        return false;
-    }
-    if (screenManager->GetPowerOffNeedProcessOneFrame()) {
-        RS_LOGI("RSDisplayRenderNodeDrawable::SkipRenderFrameIfScreenOff screen_%{public}" PRIu64
-            " power off, one more frame.", id);
-        screenManager->ResetPowerOffNeedProcessOneFrame();
-        return false;
-    }
-    return true;
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
