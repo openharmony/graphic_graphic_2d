@@ -23,7 +23,7 @@ namespace OHOS::Rosen {
 namespace {
 const std::string CLASS_NAME = "ParagraphBuilder";
 }
-std::unique_ptr<Typography> drawingTypography;
+
 thread_local napi_ref JsParagraphBuilder::constructor_ = nullptr;
 
 napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info)
