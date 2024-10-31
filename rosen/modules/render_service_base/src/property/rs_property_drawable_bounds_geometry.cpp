@@ -222,26 +222,21 @@ void RSBorderFourLineRoundCornerDrawable::OnBoundsChange(const RSProperties& pro
 void RSBorderFourLineRoundCornerDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     auto pen = pen_;
-    Drawing::AutoCanvasRestore acr(canvas, true);
     auto& properties = content.GetRenderProperties();
-    canvas.ClipRoundRect(rrect_,Drawing::ClipOp::INTERSECT, true);
-    canvas.ClipRoundRect(innerRrect_, Drawing::ClipOp::DIFFERENCE, true);
-    Drawing::scalar centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
-    Drawing::scalar centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
-    Drawing::Point center = { centerX, centerY };
     auto rect = rrect_.GetRect();
+    RSBorderGeo borderGeo;
+    borderGeo.rrect = rrect_;
+    borderGeo.innerRRect = innerRrect_;
+    auto centerX = innerRrect_.GetRect().GetLeft() + innerRrect_.GetRect().GetWidth() / 2;
+    auto centerY = innerRrect_.GetRect().GetTop() + innerRrect_.GetRect().GetHeight() / 2;
+    borderGeo.center = { centerX, centerY };
+    Drawing::AutoCanvasRestore acr(canvas, false);
     Drawing::SaveLayerOps slr(&rect, nullptr);
     canvas.SaveLayer(slr);
     if (drawBorder_) {
-        properties.GetBorder()->PaintTopPath(canvas, pen, rrect_, center);
-        properties.GetBorder()->PaintRightPath(canvas, pen, rrect_, center);
-        properties.GetBorder()->PaintBottomPath(canvas, pen, rrect_, center);
-        properties.GetBorder()->PaintLeftPath(canvas, pen, rrect_, center);
+        properties.GetBorder()->DrawBorders(canvas, pen, borderGeo);
     } else {
-        properties.GetOutline()->PaintTopPath(canvas, pen, rrect_, center);
-        properties.GetOutline()->PaintRightPath(canvas, pen, rrect_, center);
-        properties.GetOutline()->PaintBottomPath(canvas, pen, rrect_, center);
-        properties.GetOutline()->PaintLeftPath(canvas, pen, rrect_, center);
+        properties.GetOutline()->DrawBorders(canvas, pen, borderGeo);
     }
 }
 
