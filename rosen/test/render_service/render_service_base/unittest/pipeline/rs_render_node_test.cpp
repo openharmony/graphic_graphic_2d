@@ -1222,6 +1222,25 @@ HWTEST_F(RSRenderNodeTest, UpdateHierarchyAndReturnIsLowerTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetRelation
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ResetRelationTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+
+    (void)sharedTransitionParam->UpdateHierarchyAndReturnIsLower(inNode->GetId());
+    EXPECT_NE(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
+
+    sharedTransitionParam->ResetRelation();
+    EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
+}
+
+/**
  * @tc.name: DumpTest
  * @tc.desc:
  * @tc.type: FUNC

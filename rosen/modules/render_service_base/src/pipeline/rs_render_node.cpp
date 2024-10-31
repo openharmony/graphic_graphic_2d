@@ -4269,6 +4269,11 @@ std::string SharedTransitionParam::Dump() const
     return ", SharedTransitionParam: [" + std::to_string(inNodeId_) + " -> " + std::to_string(outNodeId_) + "]";
 }
 
+void SharedTransitionParam::ResetRelation()
+{
+    relation_ = NodeHierarchyRelation::UNKNOWN;
+}
+
 void SharedTransitionParam::InternalUnregisterSelf()
 {
     if (auto inNode = inNode_.lock()) {
