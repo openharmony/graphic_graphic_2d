@@ -263,7 +263,7 @@ public:
     float GetFgBrightnessFract() const;
     void SetFgBrightnessParams(const std::optional<RSDynamicBrightnessPara>& params);
     std::optional<RSDynamicBrightnessPara> GetFgBrightnessParams() const;
-    
+
     void SetWaterRippleParams(const std::optional<RSWaterRipplePara>& params);
     std::optional<RSWaterRipplePara> GetWaterRippleParams() const;
     void SetWaterRippleProgress(const float& progress);
@@ -274,6 +274,9 @@ public:
     void SetFlyOutDegree(const float& degree);
     float GetFlyOutDegree() const;
     void CreateFlyOutShaderFilter();
+
+    void SetDistortionK(const std::optional<float>& distortionK);
+    const std::optional<float>& GetDistortionK() const;
 
     void SetBgBrightnessRates(const Vector4f& rates);
     Vector4f GetBgBrightnessRates() const;
@@ -458,6 +461,7 @@ public:
     bool IsBgBrightnessValid() const;
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
+    bool IsDistortionKValid() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
 
@@ -595,6 +599,8 @@ private:
 
     std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
     float flyOutDegree_ = 0.0f;
+
+    std::optional<float> distortionK_;
 
     std::optional<RSDynamicBrightnessPara> fgBrightnessParams_;
     std::optional<RSDynamicBrightnessPara> bgBrightnessParams_;
