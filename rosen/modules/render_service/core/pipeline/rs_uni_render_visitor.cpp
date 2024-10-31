@@ -2729,11 +2729,11 @@ void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRender
         UpdateDstRect(*subSurfaceNodePtr, subSurfaceRect, prepareClipRect_);
         subSurfaceNodePtr->SetCalcRectInPrepare(true);
         if (subSurfaceNodePtr->IsLeashOrMainWindow()) {
-            auto& rateReduceManager = RSMainThread::Instance()->GetRSVsyncRateReduceManager();
             curMainAndLeashWindowNodesIds_.push(subSurfaceNodePtr->GetId());
-            rateReduceManager.PushWindowNodeId(subSurfaceNodePtr->GetId());
             curDisplayNode_->RecordMainAndLeashSurfaces(subSurfaceNodePtr);
             CollectOcclusionInfoForWMS(*subSurfaceNodePtr);
+            auto& rateReduceManager = RSMainThread::Instance()->GetRSVsyncRateReduceManager();
+            rateReduceManager.PushWindowNodeId(subSurfaceNodePtr->GetId());
             rateReduceManager.CollectSurfaceVsyncInfo(screenInfo_, *subSurfaceNodePtr);
         }
     }
