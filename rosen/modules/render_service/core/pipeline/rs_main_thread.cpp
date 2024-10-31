@@ -868,10 +868,12 @@ void RSMainThread::ProcessCommand()
         case RSContext::PurgeType::GENTLY:
             isUniRender_ ? RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, false) :
                 ClearMemoryCache(context_->clearMoment_, false);
+                isNeedResetClearMemoryTask_ = true;
             break;
         case RSContext::PurgeType::STRONGLY:
             isUniRender_ ? RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, true) :
                 ClearMemoryCache(context_->clearMoment_, true);
+                isNeedResetClearMemoryTask_ = true;
             break;
         default:
             break;
@@ -1989,9 +1991,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
-    RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
-        RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
-    });
     bool pointerSkip = !RSPointerDrawingManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
         && !isCachedSurfaceUpdated_ && pointerSkip) {
@@ -2022,6 +2021,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
+        });
         RSUifirstManager::Instance().ProcessForceUpdateNode();
         RSPointerDrawingManager::Instance().UpdatePointerInfo();
         doDirectComposition_ = false;
@@ -2255,6 +2257,13 @@ void RSMainThread::OnUniRenderDraw()
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         drawFrame_.PostAndWait();
         return;
+    }
+    // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
+    if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
+        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids), true);
+        });
+        isNeedResetClearMemoryTask_ = false;
     }
 
     UpdateDisplayNodeScreenId();
@@ -3454,6 +3463,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (!IsResidentProcess(remotePid)) {
             if (isUniRender_) {
                 RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true, remotePid);
+                isNeedResetClearMemoryTask_ = true;
             } else {
                 ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
             }
@@ -4167,6 +4177,7 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
                         if (isUniRender_) {
                             RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
+                            isNeedResetClearMemoryTask_ = true;
                         } else {
                             ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
                         }

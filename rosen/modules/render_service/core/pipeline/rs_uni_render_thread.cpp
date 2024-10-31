@@ -839,7 +839,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids)
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
 {
     for (auto [nodeId, purgeFlag] : ids) {
         if (purgeFlag) {
@@ -850,10 +850,16 @@ void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bo
     }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
-        ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        if (!isDoDirectComposition) {
+            ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        }
     }
-    RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
-    DefaultClearMemoryCache();
+    if (!isDefaultCleanTaskFinished_) {
+        RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
+        if (!isDoDirectComposition) {
+            DefaultClearMemoryCache();
+        }
+    }
 }
 
 void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
