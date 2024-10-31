@@ -249,6 +249,20 @@ HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAttractionFraction001
+ * @tc.desc: test results of GetAttractionFraction
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetAttractionFraction001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float fraction = extractor.GetAttractionFractionValue();
+    EXPECT_TRUE(fraction == 0.f);
+}
+
+/**
  * @tc.name: GetAttractionDstPointValue001
  * @tc.desc: test results of GetAttractionDstPointValue
  * @tc.type: FUNC
