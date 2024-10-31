@@ -1180,7 +1180,9 @@ void RSMainThread::ProcessCommandForUniRender()
         }
     });
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
-    transactionFlags_ = transactionFlags;
+    if (transactionFlags != "") {
+        transactionFlags_ = transactionFlags;
+    }
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -3353,6 +3355,7 @@ void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dum
     size_t completed = task.completionCount;
     RS_TRACE_NAME_FMT("DumpClientNodeTree end task[%u] completionCount[%zu]", taskId, completed);
     dumpString += "\n-- ClientNodeTreeDump: ";
+    dumpString += "\n-- Client transactionFlags: " + transactionFlags_;
     for (const auto& [pid, data] : task.data) {
         dumpString += "\n| pid[";
         dumpString += std::to_string(pid);
