@@ -1130,6 +1130,7 @@ struct SharedTransitionParam {
     }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
+    RSB_EXPORT void ResetRelation();
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;
