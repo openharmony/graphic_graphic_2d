@@ -117,7 +117,7 @@ HWTEST_F(RSModifierExtractorTest, GetBorderDashGap001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetOutlineDashWidth001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4f vector = extractor.GetOutlineDashWidth();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
@@ -131,7 +131,7 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineDashWidth001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetOutlineDashGap001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4f vector = extractor.GetOutlineDashWidth();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
@@ -145,7 +145,7 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineDashGap001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetOutlineColor001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4<Color> vector = extractor.GetOutlineColor();
     EXPECT_TRUE(vector == Vector4<Color>(RgbPalette::Transparent()));
 }
@@ -159,7 +159,7 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineColor001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetOutlineWidth001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4f vector = extractor.GetOutlineWidth();
     EXPECT_TRUE(vector == Vector4f(0.f));
 }
@@ -173,7 +173,7 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineWidth001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetOutlineStyle001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4<uint32_t> vector = extractor.GetOutlineStyle();
     EXPECT_TRUE(vector == Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)));
 }
@@ -187,7 +187,7 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineStyle001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetOutlineRadius001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4f vector = extractor.GetOutlineRadius();
     EXPECT_TRUE(vector == Vector4f(0.f));
 }
@@ -201,7 +201,7 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineRadius001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     float radius = extractor.GetForegroundEffectRadius();
     EXPECT_TRUE(radius == 0.f);
 }
@@ -215,7 +215,7 @@ HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetShadowIsFilled001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     bool res = extractor.GetShadowIsFilled();
     EXPECT_FALSE(res);
 }
@@ -229,7 +229,7 @@ HWTEST_F(RSModifierExtractorTest, GetShadowIsFilled001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetShadowColorStrategy001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     int strategy = extractor.GetShadowColorStrategy();
     EXPECT_TRUE(strategy == 0);
 }
@@ -243,7 +243,7 @@ HWTEST_F(RSModifierExtractorTest, GetShadowColorStrategy001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     float degree = extractor.GetSpherizeDegree();
     EXPECT_TRUE(degree == 0.f);
 }
@@ -257,7 +257,7 @@ HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector2f attractionDstPoint = extractor.GetAttractionDstPointValue();
     EXPECT_TRUE(attractionDstPoint.x_ == 0.f);
 }
@@ -271,7 +271,7 @@ HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1
 HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegree001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     float degree = extractor.GetLightUpEffectDegree();
     EXPECT_TRUE(degree == 0.f);
 }
@@ -285,7 +285,7 @@ HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegree001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetDynamicDimDegree001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     float degree = extractor.GetDynamicDimDegree();
     EXPECT_TRUE(degree == 0.f);
 }
@@ -299,7 +299,7 @@ HWTEST_F(RSModifierExtractorTest, GetDynamicDimDegree001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetLightIntensity001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     float intensity = extractor.GetLightIntensity();
     EXPECT_TRUE(intensity == 0.f);
 }
@@ -313,7 +313,7 @@ HWTEST_F(RSModifierExtractorTest, GetLightIntensity001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetLightPosition001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     Vector4f position = extractor.GetLightPosition();
     EXPECT_TRUE(position == Vector4f(0.f));
 }
@@ -327,7 +327,7 @@ HWTEST_F(RSModifierExtractorTest, GetLightPosition001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetIlluminatedBorderWidth001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     float borderWidth = extractor.GetIlluminatedBorderWidth();
     EXPECT_TRUE(borderWidth == 0.f);
 }
@@ -341,7 +341,7 @@ HWTEST_F(RSModifierExtractorTest, GetIlluminatedBorderWidth001, TestSize.Level1)
 HWTEST_F(RSModifierExtractorTest, GetIlluminatedType001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSModifierExtractor extractor(id);;
+    RSModifierExtractor extractor(id);
     int illuminatedType = extractor.GetIlluminatedType();
     EXPECT_TRUE(illuminatedType == 0);
 }

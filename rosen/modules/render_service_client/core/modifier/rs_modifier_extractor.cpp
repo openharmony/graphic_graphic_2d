@@ -50,18 +50,18 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
     do {                                                                                                            \
         auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
-        if (!node) {                                                                                     \
+        if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                     \
+        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
         auto typeIter = node->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
         if (typeIter != node->modifiersTypeMap_.end()) {                                                            \
-            auto modifier = typeIter->second;                                                                         \
-            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                       \
-        } else {                                                                                                     \
+            auto modifier = typeIter->second;                                                                       \
+            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                         \
+        } else {                                                                                                    \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-    } while (0)                                                                                                      \
+    } while (0)                                                                                                     \
 
 Vector4f RSModifierExtractor::GetBounds() const
 {
