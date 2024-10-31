@@ -1278,6 +1278,16 @@ void RSRenderNode::CollectAndUpdateLocalForegroundEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(localForegroundEffectRect_.ConvertTo<float>());
 }
 
+void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
+{
+    // update distortion effect's dirty region if it changes
+    if (GetRenderProperties().GetDistortionDirty()) {
+        RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect_, GetRenderProperties());
+        GetMutableRenderProperties().SetDistortionDirty(false);
+    }
+    selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect_.ConvertTo<float>());
+}
+
 void RSRenderNode::UpdateBufferDirtyRegion()
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1321,6 +1331,7 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    CollectAndUpdateLocalDistortionEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
 

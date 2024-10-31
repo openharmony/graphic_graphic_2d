@@ -888,7 +888,7 @@ private:
     RectI oldClipRect_;
     Drawing::Matrix oldAbsMatrix_;
     bool childHasFilter_ = false;  // only collect children filter status
-    
+
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
     // aim to record current frame clipped children dirty region, in abs coords
@@ -908,6 +908,7 @@ private:
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
+    void CollectAndUpdateLocalDistortionEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
     bool UpdateSelfDrawRect();
@@ -1030,6 +1031,7 @@ private:
     RectI localOutlineRect_;
     RectI localPixelStretchRect_;
     RectI localForegroundEffectRect_;
+    RectI localDistortionEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
     pid_t appPid_ = 0;

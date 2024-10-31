@@ -26,6 +26,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_distortion_shader_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
@@ -907,6 +908,21 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
     dirtyForegroundEffect.top_ = std::floor(drawingRect.GetTop());
     dirtyForegroundEffect.width_ = std::ceil(drawingRect.GetWidth()) + PARAM_DOUBLE;
     dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
+}
+
+// calculate the distortion effect's dirty area
+void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties)
+{
+    // if the distortionK > 0, set the dirty bounds to its maximum range value
+    auto distortionK = properties.GetDistortionK();
+    if (distortionK.has_value() && *distortionK > 0) {
+        int dirtyWidth = static_cast<int>(std::numeric_limits<int16_t>::max());
+        int dirtyBeginPoint = static_cast<int>(std::numeric_limits<int16_t>::min()) / PARAM_DOUBLE;
+        dirtyDistortionEffect.left_ = dirtyBeginPoint;
+        dirtyDistortionEffect.top_ = dirtyBeginPoint;
+        dirtyDistortionEffect.width_ = dirtyWidth;
+        dirtyDistortionEffect.height_ = dirtyWidth;
+    }
 }
 
 void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPaintFilterCanvas& canvas)
