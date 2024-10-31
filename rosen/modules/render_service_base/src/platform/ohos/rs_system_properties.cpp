@@ -746,7 +746,7 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     static CachedHandle g_Handle = CachedParameterCreate("rosen.UIFirstdebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (strcmp(targetSurfacesStr, "0") == 0) {
+    if (targetSurfacesStr == nullptr || strcmp(targetSurfacesStr, "0") == 0) {
         SurfaceNames.clear();
         return false;
     }
