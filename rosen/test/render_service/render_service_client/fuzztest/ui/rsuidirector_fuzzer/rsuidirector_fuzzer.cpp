@@ -614,6 +614,129 @@ bool DoPostTask(const uint8_t* data, size_t size)
     director->PostTask(task);
     return true;
 }
+
+bool DoHasFirstFrameAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director.HasFirstFrameAnimation();
+    return true;
+}
+
+bool DoHasUIRunningAnimation(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director.HasUIRunningAnimation();
+    return true;
+}
+
+bool DoGetIndex(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director.GetIndex();
+    return true;
+}
+
+bool DoRecvMessages1(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSUIDirector::RecvMessages();
+    return true;
+}
+
+bool DoRecvMessages2(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSTransactionData> cmds = std::make_shared<RSTransactionData>();
+    RSUIDirector::RecvMessages(cmds);
+    return true;
+}
+
+bool DoDumpNodeTreeProcessor(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    NodeId nodeId;
+    pid_t pid;
+    uint32_t taskId;
+    RSUIDirector::DumpNodeTreeProcessor(nodeId, pid, taskId);
+    return true;
+}
+
+bool DoPostDelayTask(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    const std::function<void()>& task = []() {
+        std::cout << "for test" << std::endl;
+    };
+    director->PostDelayTask(task);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -652,6 +775,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoProcessMessages(data, size);
     OHOS::Rosen::DoAnimationCallbackProcessor(data, size);
     OHOS::Rosen::DoPostTask(data, size);
+    OHOS::Rosen::DoHasFirstFrameAnimation(data, size);
+    OHOS::Rosen::DoHasUIRunningAnimation(data, size);
+    OHOS::Rosen::DoGetIndex(data, size);
+    OHOS::Rosen::DoRecvMessages1(data, size);
+    OHOS::Rosen::DoRecvMessages2(data, size);
+    OHOS::Rosen::DoDumpNodeTreeProcessor(data, size);
+    OHOS::Rosen::DoPostDelayTask(data, size);
     return 0;
 }
 
