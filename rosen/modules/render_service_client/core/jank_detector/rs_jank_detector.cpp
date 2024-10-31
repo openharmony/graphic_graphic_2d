@@ -101,6 +101,7 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
         frameMsg.abilityName = uiDrawFrame.abilityName;
     }
     if (uiEndTimeStamp < uiStartTimeStamp || renderEndTimeStamp < renderStartTimeStamp) {
+        uiDrawFrames_.clear();
         ROSEN_LOGD("RSJankDetector::CalculateSkippedFrame, timestamp is invalid, "
             "uiStartTimeStamp:%{public}" PRIu64 ", "
             "uiEndTimeStamp:%{public}" PRIu64 ", "
