@@ -99,13 +99,14 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("skeffectchain") {
-    public_deps = [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
+    public_deps = []
 
     if (rs_enable_gpu) {
       defines = gpu_defines
       public_deps += [
         "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
         "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+        "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
       ]
     }
 

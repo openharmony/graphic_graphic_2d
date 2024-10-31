@@ -167,7 +167,7 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (rs_enable_eglimage) {
+  if (rs_enable_eglimage && rs_enable_gpu) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }
 
@@ -380,6 +380,8 @@ ohos_shared_library("librender_service") {
   if (tp_feature_enable) {
     defines += tp_defines
   }
+
+  deps += [ "$graphic_2d_root/frameworks/opengl_wrapper:EGL" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

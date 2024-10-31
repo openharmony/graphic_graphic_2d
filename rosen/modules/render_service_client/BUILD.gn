@@ -176,6 +176,7 @@ template("render_service_client_source_set") {
     ]
 
     deps = [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
       "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     ]
