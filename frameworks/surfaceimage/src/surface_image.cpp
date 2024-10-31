@@ -360,6 +360,7 @@ SurfaceError SurfaceImage::UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& b
             eglDestroySyncKHR(eglDisplay_, preSync);
         }
         currentImage.eglSync_ = eglCreateSyncKHR(eglDisplay_, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
+        glFlush();
     }
 
     if (isNewBuffer) {
