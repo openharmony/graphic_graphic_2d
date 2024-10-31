@@ -20,10 +20,11 @@
 #include <netinet/tcp.h>
 #include <securec.h>
 #include <sys/select.h>
-#include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "rs_profiler_log.h"
 #include "rs_profiler_utils.h"
 
 namespace OHOS::Rosen {
@@ -162,6 +163,13 @@ void Socket::AcceptClient()
     }
 }
 
+size_t Socket::Available() const
+{
+    int32_t size = 0;
+    const auto error = ioctl(client_, FIONREAD, &size);
+    return (error != -1) ? static_cast<size_t>(size) : 0u;
+}
+
 void Socket::SendWhenReady(const void* data, size_t size)
 {
     if (!data || (size == 0)) {
@@ -180,6 +188,7 @@ void Socket::SendWhenReady(const void* data, size_t size)
     while (sent < size) {
         const ssize_t sentBytes = send(client_, bytes, size - sent, 0);
         if ((sentBytes <= 0) && (errno != EINTR)) {
+            HRPE("Socket: SendWhenReady: Invoke shutdown: %d", errno);
             Shutdown();
             return;
         }
@@ -208,6 +217,7 @@ bool Socket::Receive(void* data, size_t& size)
         if ((errno == EWOULDBLOCK) || (errno == EAGAIN) || (errno == EINTR)) {
             return true;
         }
+        HRPE("Socket: Receive: Invoke shutdown: %d", errno);
         Shutdown();
         return false;
     }
@@ -234,6 +244,7 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
         // receivedBytes can only be -1 or [0, size - received] (from recv man)
         const ssize_t receivedBytes = recv(client_, bytes, size - received, 0);
         if ((receivedBytes == -1) && (errno != EINTR)) {
+            HRPE("Socket: ReceiveWhenReady: Invoke shutdown: %d", errno);
             Shutdown();
             return false;
         }
@@ -248,28 +259,6 @@ bool Socket::ReceiveWhenReady(void* data, size_t size)
     SetTimeout(client_, previousTimeout);
     SetBlocking(client_, false);
     return true;
-}
-
-void Socket::GetStatus(bool& readyToReceive, bool& readyToSend) const
-{
-    readyToReceive = false;
-    readyToSend = false;
-
-    if (client_ == -1) {
-        return;
-    }
-
-    fd_set send = GetFdSet(client_);
-    fd_set receive = GetFdSet(client_);
-
-    constexpr uint32_t timeoutMilliseconds = 10;
-    timeval timeout = GetTimeoutDesc(timeoutMilliseconds);
-    if (select(client_ + 1, &receive, &send, nullptr, &timeout) == 0) {
-        return;
-    }
-
-    readyToReceive = IsFdSet(client_, receive);
-    readyToSend = IsFdSet(client_, send);
 }
 
 } // namespace OHOS::Rosen

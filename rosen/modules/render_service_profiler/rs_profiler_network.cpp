@@ -59,8 +59,7 @@ bool Network::IsRunning()
 
 void Network::Run()
 {
-    const uint16_t port = 5050;
-    const uint32_t sleepTimeout = 500000u;
+    constexpr uint16_t port = 5050;
 
     Socket* socket = nullptr;
 
@@ -74,25 +73,18 @@ void Network::Run()
 
         const SocketState state = socket->GetState();
         if (forceShutdown_) {
+            HRPW("Network: Run: Force shutdown");
             Shutdown(socket);
             forceShutdown_ = false;
         } else if (state == SocketState::INITIAL) {
             socket->Open(port);
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
-            usleep(sleepTimeout);
         } else if (state == SocketState::ACCEPT) {
-            bool readyToReceive = false;
-            bool readyToSend = false;
-            socket->GetStatus(readyToReceive, readyToSend);
-
-            if (readyToReceive) {
-                ProcessIncoming(*socket);
-            }
-            if (readyToSend) {
-                ProcessOutgoing(*socket);
-            }
+            Send(*socket);
+            Receive(*socket);
         } else if (state == SocketState::SHUTDOWN) {
+            HRPW("Network: Run: Socket state got SHUTDOWN");
             Shutdown(socket);
         }
     }
@@ -104,7 +96,6 @@ void Network::Stop()
 {
     isRunning_ = false;
 }
-
 
 void Network::SendPacket(const Packet& packet)
 {
@@ -276,7 +267,7 @@ void Network::ProcessCommand(const char* data, size_t size)
     AwakeRenderServiceThread();
 }
 
-void Network::ProcessOutgoing(Socket& socket)
+void Network::Send(Socket& socket)
 {
     std::vector<char> data;
 
@@ -313,8 +304,7 @@ void Network::ProcessBinary(const std::vector<char>& data)
         return;
     }
 
-    constexpr size_t megabytes = 1024 * 1024;
-    HRPI("Receive file: %s %zuMB (%zu)", path.data(), size / megabytes, size);
+    HRPI("Receive file: %s %.2fMB (%zu)", path.data(), Utils::Megabytes(size), size);
     if (auto file = Utils::FileOpen(path, "wb")) {
         Utils::FileWrite(file, data.data() + offset, size);
         Utils::FileClose(file);
@@ -345,17 +335,18 @@ void Network::Shutdown(Socket*& socket)
     HRPE("Network: persist.graphic.profiler.enabled 0");
 }
 
-void Network::ProcessIncoming(Socket& socket)
+void Network::Receive(Socket& socket)
 {
-    const uint32_t sleepTimeout = 500000u;
+    if (!socket.Available()) {
+        return;
+    }
 
     Packet packet { Packet::UNKNOWN };
     auto wannaReceive = Packet::HEADER_SIZE;
     socket.Receive(packet.Begin(), wannaReceive);
 
     if (wannaReceive == 0) {
-        socket.SetState(SocketState::SHUTDOWN);
-        usleep(sleepTimeout);
+        HRPW("Network: Receive: Invalid header");
         return;
     }
 

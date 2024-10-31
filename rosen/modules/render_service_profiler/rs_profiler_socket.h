@@ -43,9 +43,9 @@ public:
     void Open(uint16_t port);
     void AcceptClient();
 
-    void GetStatus(bool& readyToReceive, bool& readyToSend) const;
-
     void SendWhenReady(const void* data, size_t size);
+
+    size_t Available() const;
     bool Receive(void* data, size_t& size);
     bool ReceiveWhenReady(void* data, size_t size);
 
