@@ -97,8 +97,8 @@ namespace OHOS {
         };
         vsyncReceiver->SetVSyncRate(fcb, rate);
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
-        vsyncReceiver->SetUiDVSyncSwitch(uiDVSyncSwitch);
-        vsyncReceiver->SetUiDVSyncConfig(bufferCount);
+        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
 
