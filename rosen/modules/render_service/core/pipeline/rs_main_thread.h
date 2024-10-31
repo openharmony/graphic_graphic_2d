@@ -599,6 +599,7 @@ private:
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
