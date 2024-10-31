@@ -935,7 +935,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 captureTaskInner();
             }
         } else {
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id);
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
             RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
         }
     };
