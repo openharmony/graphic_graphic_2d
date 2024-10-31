@@ -186,7 +186,6 @@ ohos_unittest("RSColorfulShadowFilterTest") {
 
   sources = [
     "rs_colorful_shadow_filter_test.cpp",
-    "rs_colorspace_convert_test.cpp",
     "rs_distortion_shader_filter_test.cpp",
     "rs_drawing_filter_test.cpp",
     "rs_filter_test.cpp",
@@ -679,6 +678,61 @@ ohos_unittest("RSPixelMapUtilTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSRenderServiceBaseRenderTest  ##################################
+ohos_unittest("RSColorspaceConvertTest") {
+  module_out_path = module_output_path
+
+  sources = []
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/platform/eventhandler",
+    "$graphic_2d_root/utils/log",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+    "//third_party/googletest:gmock",
+    "//third_party/googletest:gtest_main",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "skia:skia_canvaskit",
+  ]
+
+  if (use_video_processing_engine) {
+    external_deps +=
+        [ "drivers_interface_display:display_commontype_idl_headers" ]
+    defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+    include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
+    external_deps += [ "video_processing_engine:videoprocessingengine" ]
+    sources += [ "rs_colorspace_convert_test.cpp" ]
+  }
+
+  subsystem_name = "graphic"
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -696,6 +750,7 @@ group("unittest") {
     ":RSBorderTest",
     ":RSColorExtractTest",
     ":RSColorfulShadowFilterTest",
+    ":RSColorspaceConvertTest",
     ":RSHpsBlurTest",
     ":RSImageCacheTest",
     ":RSKawaseBlurShaderFilterTest",
