@@ -1453,7 +1453,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
-    if (properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) {
+    if (properties.GetBackgroundFilter()) {
         UpdateFilterCacheWithBelowDirty(dirtyManager);
     }
     ValidateLightResources();
