@@ -691,7 +691,7 @@ void RSRenderNodeDrawable::ClearCachedSurface()
     auto clearTask = [surface = cachedSurface_]() mutable {
         RS_TRACE_NAME("RSRenderNodeDrawable::ClearCachedSurface clearTask");
         surface = nullptr;
-        };
+    };
     cachedSurface_ = nullptr;
     cachedImage_ = nullptr;
     RSTaskDispatcher::GetInstance().PostTask(cacheThreadId_.load(), clearTask);
