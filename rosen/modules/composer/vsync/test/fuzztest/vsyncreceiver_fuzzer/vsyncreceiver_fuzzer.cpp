@@ -80,6 +80,9 @@ namespace OHOS {
         // get data
         int64_t offset = GetData<int64_t>();
         int32_t rate = GetData<int32_t>();
+        bool uiDVSyncSwitch = GetData<bool>();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        int32_t bufferCount = GetData<int32_t>();
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
 
         // test
@@ -93,6 +96,9 @@ namespace OHOS {
             .callback_ = OnVSync,
         };
         vsyncReceiver->SetVSyncRate(fcb, rate);
+        vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
+        vsyncReceiver->SetUiDVSyncSwitch(uiDVSyncSwitch);
+        vsyncReceiver->SetUiDVSyncConfig(bufferCount);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
 

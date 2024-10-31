@@ -61,6 +61,9 @@ namespace OHOS {
         // get data
         int64_t offset = GetData<int64_t>();
         int32_t rate = GetData<int32_t>();
+        bool uiDVSyncSwitch = GetData<bool>();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        int32_t bufferCount = GetData<int32_t>();
         int32_t highPriorityRate = GetData<int32_t>();
 
         // test
@@ -69,6 +72,9 @@ namespace OHOS {
         sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
         sptr<Rosen::VSyncConnection> conn = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
         vsyncDistributor->SetVSyncRate(rate, conn);
+        vsyncDistributor->SetNativeDVSyncSwitch(nativeDVSyncSwitch, conn);
+        vsyncDistributor->SetUiDVSyncSwitch(uiDVSyncSwitch, conn);
+        vsyncDistributor->SetUiDVSyncConfig(bufferCount);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
 
         return true;

@@ -81,6 +81,8 @@ namespace OHOS {
         int32_t fd = GetData<int32_t>();
         vsyncConnection->GetReceiveFd(fd);
         vsyncConnection->Destroy();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        vsyncConnection->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         bool vsyncSwitch = GetData<bool>();
         vsyncConnection->SetUiDvsyncSwitch(vsyncSwitch);
         int32_t bufferCount = GetData<int32_t>();
