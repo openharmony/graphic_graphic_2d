@@ -347,6 +347,8 @@ void RSUIDirector::SendMessages()
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
         index_ = transactionProxy->GetTransactionDataIndex();
+    } else {
+        RS_LOGE("RSUIDirector::SendMessages failed, transactionProxy is nullptr");
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
