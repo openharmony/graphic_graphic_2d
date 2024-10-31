@@ -63,8 +63,6 @@ const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
 constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
-constexpr int BORDER_NUM = 4;
-constexpr int16_t BORDER_TRANSPARENT = 255;
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
@@ -1121,30 +1119,6 @@ Vector4f RSProperties::GetBorderDashGap() const
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
 {
     return border_;
-}
-
-bool RSProperties::GetBorderColorIsTransparent() const
-{
-    if (border_) {
-        for (int i = 0; i < BORDER_NUM; i++) {
-            auto alpha = border_->GetColorFour()[i].GetAlpha();
-            if (alpha < BORDER_TRANSPARENT) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool RSProperties::GetBorderIsSolid() const
-{
-    if (GetBorderStyle().x_ == static_cast<uint32_t>(BorderStyle::SOLID) &&
-        GetBorderStyle().y_ == static_cast<uint32_t>(BorderStyle::SOLID) &&
-        GetBorderStyle().z_ == static_cast<uint32_t>(BorderStyle::SOLID) &&
-        GetBorderStyle().w_ == static_cast<uint32_t>(BorderStyle::SOLID)) {
-        return true;
-    }
-    return false;
 }
 
 void RSProperties::SetOutlineColor(Vector4<Color> color)

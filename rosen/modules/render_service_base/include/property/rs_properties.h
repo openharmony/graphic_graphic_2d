@@ -234,8 +234,6 @@ public:
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
-    bool GetBorderColorIsTransparent() const;
-    bool GetBorderIsSolid() const;
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;

@@ -308,29 +308,6 @@ HWTEST_F(PropertiesTest, SetForegroundColorTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBorderColorIsTransparentTest
- * @tc.desc: test results of GetBorderColorIsTransparent
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, GetBorderColorIsTransparentTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.border_ = std::make_shared<RSBorder>();
-    bool res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, false);
-
-    Color color(255, 255, 255, 255);
-    properties.border_->colors_.push_back(color);
-    res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, true);
-
-    properties.border_ = nullptr;
-    res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, true);
-}
-
-/**
  * @tc.name: SetBorderColorTest
  * @tc.desc: test results of SetBorderColor
  * @tc.type: FUNC
