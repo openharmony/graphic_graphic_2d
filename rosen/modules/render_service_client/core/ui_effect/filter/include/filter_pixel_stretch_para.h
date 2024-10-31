@@ -18,9 +18,12 @@
 #include "common/rs_vector4.h"
 #include "effect/shader_effect.h"
 #include "filter_para.h"
+#include "ui_effect/utils.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr std::pair<float, float> STRETCH_PERCENT_LIMITS {-1.f, 1.f}; // limits for stretch percent
+
 class PixelStretchPara : public FilterPara {
 public:
     PixelStretchPara()
@@ -29,9 +32,11 @@ public:
     }
     ~PixelStretchPara() override = default;
 
-    void SetStretchPercent(Vector4f stretchPercent)
+    inline void SetStretchPercent(const Vector4f& stretchPercent)
     {
-        stretchPercent_ = stretchPercent;
+        if (UIEffect::IsParaSameSign(stretchPercent)) {
+            stretchPercent_ = UIEffect::GetLimitedPara(stretchPercent, STRETCH_PERCENT_LIMITS);
+        }
     }
 
     const Vector4f& GetStretchPercent() const
