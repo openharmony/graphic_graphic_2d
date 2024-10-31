@@ -825,12 +825,12 @@ public:
 
     std::string GetContainerConfigDump() const
     {
-        return "[outR: " + std::to_string(containerConfig_.outR) +
-               " inR: " + std::to_string(containerConfig_.inR) +
-               " x: " + std::to_string(containerConfig_.innerRect.left_) +
-               " y: " + std::to_string(containerConfig_.innerRect.top_) +
-               " w: " + std::to_string(containerConfig_.innerRect.width_) +
-               " h: " + std::to_string(containerConfig_.innerRect.height_) + "]";
+        return "[outR: " + std::to_string(containerConfig_.outR_) +
+               " inR: " + std::to_string(containerConfig_.inR_) +
+               " x: " + std::to_string(containerConfig_.innerRect_.left_) +
+               " y: " + std::to_string(containerConfig_.innerRect_.top_) +
+               " w: " + std::to_string(containerConfig_.innerRect_.width_) +
+               " h: " + std::to_string(containerConfig_.innerRect_.height_) + "]";
     }
 
     bool IsOpaqueRegionChanged() const
@@ -1422,6 +1422,38 @@ private:
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
 
+    /*
+        ContainerWindow configs acquired from arkui, including container window state, screen density, container border
+        width, padding width, inner/outer radius, etc.
+    */
+    class ContainerConfig {
+    public:
+        // rrect means content region, including padding to left and top, inner radius;
+        void Update(bool hasContainer, RRect rrect);
+
+        bool operator==(const ContainerConfig& config)
+        {
+            return hasContainerWindow_ == config.hasContainerWindow_ &&
+                outR_ == config.outR_ &&
+                inR_ == config.inR_ &&
+                innerRect_ == config.innerRect_;
+        }
+    private:
+        inline int RoundFloor(float length)
+        {
+            // if a float value is very close to a integer (< 0.05f), return round value
+            return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
+        }
+    public:
+        bool hasContainerWindow_ = false;                // set to false as default, set by arkui
+        int outR_ = 0;                                   // outer radius (int value)
+        int inR_ = 0;                                    // inner radius (int value)
+        RectI innerRect_ = {};                           // inner rect, value relative to outerRect
+    };
+
+    ContainerConfig containerConfig_;
+    ContainerConfig GetAbsContainerConfig() const;
+
     struct OpaqueRegionBaseInfo
     {
         RectI screenRect_;
@@ -1432,34 +1464,11 @@ private:
         bool isTransparent_ = false;
         bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
+        ContainerConfig containerConfig_;
     };
 
     //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>
     OpaqueRegionBaseInfo opaqueRegionBaseInfo_;
-
-    /*
-        ContainerWindow configs acquired from arkui, including container window state, screen density, container border
-        width, padding width, inner/outer radius, etc.
-    */
-    class ContainerConfig {
-    public:
-        // rrect means content region, including padding to left and top, inner radius;
-        void Update(bool hasContainer, RRect rrect);
-    private:
-        inline int RoundFloor(float length)
-        {
-            // if a float value is very close to a integer (< 0.05f), return round value
-            return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
-        }
-    public:
-        bool hasContainerWindow_ = false;               // set to false as default, set by arkui
-        int outR = 32;                                  // outer radius (int value)
-        int inR = 28;                                   // inner radius (int value)
-        RectI innerRect = {};                           // inner rect, value relative to outerRect
-    };
-
-    ContainerConfig containerConfig_;
-    ContainerConfig GetAbsContainerConfig() const;
 
     bool startAnimationFinished_ = false;
 
