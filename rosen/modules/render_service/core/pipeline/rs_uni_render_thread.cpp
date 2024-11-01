@@ -825,6 +825,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             this->clearMemoryFinished_ = true;
         } else {
             this->isDefaultCleanTaskFinished_ = true;
+            if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
+                grContext->PurgeUnlockedResources(false);
+            }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
