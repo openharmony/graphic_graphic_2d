@@ -17,6 +17,7 @@
 #include "fontcollection_napi/js_fontcollection.h"
 #include "napi_common.h"
 #include "paragraph_napi/js_paragraph.h"
+#include "utils/string_util.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
@@ -170,6 +171,10 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
     }
     std::string text = "";
     if (ConvertFromJsValue(env, argv[0], text)) {
+        if (!IsUtf8(text.c_str(), text.size())) {
+            TEXT_LOGE("Invalid utf-8 text");
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        }
         typographyCreate_->AppendText(Str8ToStr16(text));
     }
     return NapiGetUndefined(env);
