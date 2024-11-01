@@ -30,6 +30,8 @@ ohos_fuzztest("VsyncControllerFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "vsynccontroller_fuzzer.cpp" ]
   deps = [

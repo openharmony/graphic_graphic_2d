@@ -90,6 +90,7 @@ namespace OHOS {
         MessageOption option;
         uint32_t code = GetData<uint32_t>();
         vsyncConnection->OnRemoteRequest(code, arguments, reply, option);
+        arguments.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
         for (uint32_t i = 0; i < FUNC_NUM; ++i) {
             vsyncConnection->OnRemoteRequest(i, arguments, reply, option);
         }
