@@ -67,6 +67,7 @@ public:
         WATER_RIPPLE,
         COMPOUND_EFFECT,
         FLY_OUT,
+        DISTORT,
     };
     FilterType GetFilterType() const
     {

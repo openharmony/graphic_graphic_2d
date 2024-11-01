@@ -1649,5 +1649,34 @@ HWTEST_F(RSPropertiesPainterTest, DrawForegroundFilter002, TestSize.Level1)
 
     RSPropertiesPainter::DrawForegroundFilter(properties, canvas);
 }
+
+/**
+ * @tc.name: GetDistortionEffectDirtyRect
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
+{
+    RectI localDistortionEffectRect(0, 0, 0, 0);
+    RSProperties properties;
+    float width = 200.0f; // set width 200
+    float height = 200.0f; // set height 200
+    Vector4f bounds(0.0, 0.0, width, height);
+    properties.SetBounds(bounds);
+
+    // the distortionK is nullptr
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
+
+    // the distortionK < 0
+    properties.SetDistortionK(-0.2f);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
+
+    // the distortionK > 0
+    properties.SetDistortionK(0.2f);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
+    EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -12,48 +12,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_FILTER_PARA_H
-#define UIEFFECT_FILTER_PARA_H
-
+#ifndef UIEFFECT_FILTER_DISTORT_PARA_H
+#define UIEFFECT_FILTER_DISTORT_PARA_H
 #include <iostream>
-#include <map>
+#include "filter_para.h"
 
 namespace OHOS {
 namespace Rosen {
-enum class TileMode : uint32_t {
-    CLAMP = 0,
-    REPEAT = 1,
-    MIRROR = 2,
-    DECAL = 3,
-};
-
-const std::map<std::string, TileMode> STRING_TO_JS_MAP = {
-    { "CLAMP", TileMode::CLAMP },
-    { "REPEAT", TileMode::REPEAT },
-    { "MIRROR", TileMode::MIRROR },
-    { "DECAL", TileMode::DECAL },
-};
-
-class FilterPara {
+class DistortPara : public FilterPara {
 public:
-    enum ParaType {
-        NONE,
-        BLUR,
-        PIXEL_STRETCH,
-        WATER_RIPPLE,
-        FLY_OUT,
-        DISTORT,
-    };
-
-    FilterPara()  = default;
-    virtual ~FilterPara() = default;
-    ParaType GetParaType()
+    DistortPara()
     {
-        return type_;
+        this->type_ = FilterPara::ParaType::DISTORT;
     }
-protected:
-    ParaType type_;
+    ~DistortPara() override = default;
+
+    void SetDistortionK(float distortionK)
+    {
+        distortionK_ = std::clamp(distortionK, -1.0f, 1.0f);
+    }
+
+    float GetDistortionK() const
+    {
+        return distortionK_;
+    }
+
+private:
+    float distortionK_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_FILTER_PARA_H
+#endif // UIEFFECT_FILTER_DISTORT_PARA_H

@@ -45,6 +45,7 @@ const std::map<int, std::string> FILTER_TYPE_MAP {
     { RSFilter::WATER_RIPPLE, "RSWaterRippleFilter" },
     { RSFilter::COMPOUND_EFFECT, "CompoundEffect" },
     { RSFilter::FLY_OUT, "FlyOut" },
+    { RSFilter::DISTORT, "RSDistortionFilter" },
 };
 }
 RSDrawingFilter::RSDrawingFilter(std::shared_ptr<Drawing::ImageFilter> imageFilter, uint32_t hash)
