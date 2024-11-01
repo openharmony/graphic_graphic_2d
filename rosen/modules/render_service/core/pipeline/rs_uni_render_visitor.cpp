@@ -1407,7 +1407,7 @@ void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& a
         dstRect.top_ = dstRect.top_ - curDisplayNode_->GetDisplayOffsetY();
     }
     // If the node is a hardware-enabled type, intersect its destination rectangle with the prepare clip rectangle
-    if (node.IsHardwareEnabledType()) {
+    if (node.IsHardwareEnabledType() || node.IsHardwareEnabledTopSurface()) {
         dstRect = dstRect.IntersectRect(clipRect);
         if (curSurfaceNode_ && (node.GetId() != curSurfaceNode_->GetId())) {
             dstRect = dstRect.IntersectRect(curSurfaceNode_->GetDstRect());
