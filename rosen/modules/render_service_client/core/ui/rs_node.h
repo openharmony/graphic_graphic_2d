@@ -127,6 +127,9 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    void DumpTree(int depth, std::string& out) const;
+    virtual void Dump(std::string& out) const;
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 

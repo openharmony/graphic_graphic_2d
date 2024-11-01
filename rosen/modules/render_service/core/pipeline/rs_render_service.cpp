@@ -51,6 +51,13 @@ namespace Rosen {
 namespace {
 constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
+constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+
+uint32_t GenerateTaskId()
+{
+    static std::atomic<uint32_t> id;
+    return id.fetch_add(1, std::memory_order::memory_order_relaxed);
+}
 }
 RSRenderService::RSRenderService() {}
 
@@ -317,6 +324,10 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump EventParamList info\n")
         .append("allInfo                        ")
         .append("|dump all info\n")
+        .append("client                         ")
+        .append("|dump client ui node trees\n")
+        .append("client-server                  ")
+        .append("|dump client and server info\n")
         .append("dumpMem                        ")
         .append("|dump Cache\n")
         .append("trimMem cpu/gpu/shader         ")
@@ -540,6 +551,12 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg17(u"hitchs");
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
+    std::u16string arg20(u"client");
+    std::u16string arg21(u"client-server");
+    if (argSets.count(arg21)) {
+        argSets.insert(arg9);
+        argSets.insert(arg20);
+    }
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -620,6 +637,14 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     if (argSets.count(arg19) != 0) {
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
+    }
+    if (argSets.count(arg20)) {
+        auto taskId = GenerateTaskId();
+        mainThread_->ScheduleTask(
+            [this, taskId]() {
+                mainThread_->SendClientDumpNodeTreeCommands(taskId);
+            }).wait();
+        mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     }
 }
 } // namespace Rosen
