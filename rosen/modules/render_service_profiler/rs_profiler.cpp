@@ -420,6 +420,7 @@ void RSProfiler::ProcessSignalFlag()
         if (enabled_ != newEnabled || IsBetaRecordEnabled() != newBetaRecord) {
             enabled_ = newEnabled;
             betaRecordingEnabled_ = newBetaRecord;
+            RSCaptureRecorder::GetInstance().SetProfilerEnabled(enabled_);
             OnWorkModeChanged();
         }
     }
