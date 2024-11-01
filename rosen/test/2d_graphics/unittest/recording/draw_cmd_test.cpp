@@ -852,12 +852,12 @@ HWTEST_F(DrawCmdTest, MaskCmdList001, TestSize.Level1)
 HWTEST_F(DrawCmdTest, SurfaceBuffer001, TestSize.Level1)
 {
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    sptr<SurfaceBuffer> surfaceBuffer;
-    drawCmdList->AddSurfaceBuffer(surfaceBuffer);
-    EXPECT_TRUE(drawCmdList->GetSurfaceBuffer(0) == nullptr);
-    EXPECT_TRUE(drawCmdList->GetSurfaceBuffer(10) == nullptr);
-    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
-    uint32_t surfaceBufferSize = drawCmdList->GetAllSurfaceBuffer(surfaceBufferVec);
+    std::shared_ptr<SurfaceBufferEntry> surfaceBufferEntry;
+    drawCmdList->AddSurfaceBufferEntry(surfaceBufferEntry);
+    EXPECT_TRUE(drawCmdList->GetSurfaceBufferEntry(0) == nullptr);
+    EXPECT_TRUE(drawCmdList->GetSurfaceBufferEntry(10) == nullptr);
+    std::vector<std::shared_ptr<SurfaceBufferEntry>> surfaceBufferVecEntry;
+    uint32_t surfaceBufferSize = drawCmdList->GetAllSurfaceBufferEntry(surfaceBufferVecEntry);
     EXPECT_TRUE(surfaceBufferSize >= 0);
 }
 #endif
