@@ -434,6 +434,20 @@ public:
         return false;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        if (drmCornerRadiusInfo_ == drmCornerRadiusInfo) {
+            return;
+        }
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+        needSync_ = true;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     void SetSdrNit(int32_t sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
@@ -550,6 +564,7 @@ private:
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    std::vector<float> drmCornerRadiusInfo_;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
