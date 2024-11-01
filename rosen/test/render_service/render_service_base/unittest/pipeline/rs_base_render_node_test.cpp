@@ -1124,21 +1124,6 @@ HWTEST_F(RSBaseRenderNodeTest, CollectSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: CollectSurfaceForUIFirstSwitch
- * @tc.desc: test results of CollectSurfaceForUIFirstSwitch
- * @tc.type:FUNC
- * @tc.require: issueI9KBCZ
- */
-HWTEST_F(RSBaseRenderNodeTest, CollectSurfaceForUIFirstSwitch, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    uint32_t leashWindowCount = 2;
-    uint32_t minNodeNum = 1;
-    node->CollectSurfaceForUIFirstSwitch(leashWindowCount, minNodeNum);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: Prepare
  * @tc.desc: test results of Prepare
  * @tc.type:FUNC

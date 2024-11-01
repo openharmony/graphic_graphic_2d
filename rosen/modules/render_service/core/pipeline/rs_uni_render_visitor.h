@@ -134,10 +134,6 @@ public:
         screenInfo_ = screenInfo;
     }
 
-    bool CheckIfHardCursorEnable() const;
-    bool HasMirrorDisplay() const;
-    bool HasVirtualDisplay() const;
-
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
@@ -145,8 +141,6 @@ public:
     // Use end
 
     void SurfaceOcclusionCallbackToWMS();
-
-    static void ClearRenderGroupCache();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
@@ -195,6 +189,7 @@ private:
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
+    bool IsAccessibilityConfigChanged() const;
     bool IsWatermarkFlagChanged() const;
     void UpdateDisplayZoomState();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
@@ -221,11 +216,12 @@ private:
     void UpdateSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& clipRect);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
-    void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
     void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes, bool& ancoHasGpu);
+    void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
+        std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& appNode);
     void UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
@@ -234,6 +230,9 @@ private:
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
     void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
+    void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
+    bool CheckIfRoundCornerIntersectDRM(const float& ratio, std::vector<float>& ratioVector,
+        const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
@@ -280,7 +279,7 @@ private:
 
     bool ForcePrepareSubTree()
     {
-        return curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode();
+        return (curSurfaceNode_ && curSurfaceNode_->GetNeedCollectHwcNode()) || IsAccessibilityConfigChanged();
     }
     bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
     {
@@ -401,6 +400,7 @@ private:
     bool needRequestNextVsync_ = true;
     DirtyRegionDebugType dirtyRegionDebugType_;
     std::vector<std::string> dfxTargetSurfaceNames_;
+    bool isHardCursorSupport_ = false;
 
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
     std::stack<std::shared_ptr<RSSurfaceRenderNode>> surfaceNode_;
@@ -425,7 +425,6 @@ private:
     std::vector<RectI> globalFilterRects_;
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
-    RSPointerWindowManager pointerWindowManager_;
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
 

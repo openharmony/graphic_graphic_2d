@@ -389,9 +389,9 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(ComposeInfo &info, const
             return;
         }
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+        ScalingMode scalingMode = nodeParams->GetScalingMode();
         if (consumer->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetPreScalingMode(scalingMode);
+            nodeParams->SetScalingMode(scalingMode);
         }
         if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
@@ -465,9 +465,9 @@ void RSUniRenderComposerAdapter::GetComposerInfoSrcRect(
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
 
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = params->GetPreScalingMode();
+        ScalingMode scalingMode = params->GetScalingMode();
         if (surfaceDrawable.GetConsumerOnDraw()->GetScalingMode(info.buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            params->SetPreScalingMode(scalingMode);
+            params->SetScalingMode(scalingMode);
         }
         if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
@@ -1259,7 +1259,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     SetComposeInfoToLayer(layer, info, surfaceDrawable.GetConsumerOnDraw());
     LayerRotate(layer, surfaceDrawable);
     LayerCrop(layer);
-    ScalingMode scalingMode = params->GetPreScalingMode();
+    ScalingMode scalingMode = params->GetScalingMode();
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
     if (buffer == nullptr || surface == nullptr) {
@@ -1268,7 +1268,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     }
 
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params->SetPreScalingMode(scalingMode);
+        params->SetScalingMode(scalingMode);
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::CreateBLayer scalingMode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
@@ -1321,7 +1321,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
         RS_LOGE("node params is nullptr");
         return layer;
     }
-    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+    ScalingMode scalingMode = nodeParams->GetScalingMode();
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
     if (buffer == nullptr || surface == nullptr) {
@@ -1329,7 +1329,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
         return layer;
     }
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetPreScalingMode(scalingMode);
+        nodeParams->SetScalingMode(scalingMode);
     }
     RS_LOGI_IF(DEBUG_COMPOSER, "RSUniRenderComposerAdapter::CreateBLayer scalingMode is %{public}d", scalingMode);
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {

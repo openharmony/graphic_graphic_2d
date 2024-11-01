@@ -63,8 +63,6 @@ const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
 constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
-constexpr int BORDER_NUM = 4;
-constexpr int16_t BORDER_TRANSPARENT = 255;
 
 using ResetPropertyFunc = void (*)(RSProperties* prop);
 // Every modifier before RSModifierType::CUSTOM is property modifier, and it should have a ResetPropertyFunc
@@ -144,6 +142,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
                              prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
     [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
+    [](RSProperties* prop) { prop->SetUseEffectType(0); },               // USE_EFFECT_TYPE
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
     [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
     [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX
@@ -1169,19 +1168,6 @@ Vector4f RSProperties::GetBorderDashGap() const
 const std::shared_ptr<RSBorder>& RSProperties::GetBorder() const
 {
     return border_;
-}
-
-bool RSProperties::GetBorderColorIsTransparent() const
-{
-    if (border_) {
-        for (int i = 0; i < BORDER_NUM; i++) {
-            auto alpha = border_->GetColorFour()[i].GetAlpha();
-            if (alpha < BORDER_TRANSPARENT) {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 void RSProperties::SetOutlineColor(Vector4<Color> color)
@@ -3183,6 +3169,30 @@ bool RSProperties::GetUseEffect() const
     return useEffect_;
 }
 
+void RSProperties::SetUseEffectType(int useEffectType)
+{
+    useEffectType_ = std::clamp<int>(useEffectType, 0, static_cast<int>(UseEffectType::MAX));
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+int RSProperties::GetUseEffectType() const
+{
+    return useEffectType_;
+}
+
+void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
+{
+    needDrawBehindWindow_ = needDrawBehindWindow;
+}
+
+bool RSProperties::GetNeedDrawBehindWindow() const
+{
+    return needDrawBehindWindow_;
+}
+
 void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 {
     if (useShadowBatching) {
@@ -4321,8 +4331,8 @@ void RSProperties::UpdateFilter()
     needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                  foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid();
+                  foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
+                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_;
 }
 
 void RSProperties::UpdateForegroundFilter()

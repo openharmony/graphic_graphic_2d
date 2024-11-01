@@ -82,6 +82,11 @@ public:
 
     void ResetRenderParams();
 
+    ScreenId GetScreenId() const
+    {
+        return screenId_;
+    }
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -114,6 +119,9 @@ public:
     }
 
     bool IsHardwareEnabledTopSurface() const;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const;
+    bool GetHardCursorLastStatus() const;
 
     void SetLayerTop(bool isTop);
 
@@ -132,10 +140,16 @@ public:
             IsLayerTop();
     }
 
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
+    bool IsDynamicHardwareEnable() const
+    {
+        return dynamicHardwareEnable_;
+    }
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true)
     {
         isHardwareEnabledNode_ = isEnabled;
         selfDrawingType_ = selfDrawingType;
+        dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
@@ -398,7 +412,6 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
-    void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
@@ -446,6 +459,7 @@ public:
     bool GetGlobalPositionEnabled() const;
 
     void SetSecurityLayer(bool isSecurityLayer);
+    void SetLeashPersistentId(uint64_t leashPersistentId);
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
@@ -455,6 +469,7 @@ public:
     bool GetSkipLayer() const;
     bool GetSnapshotSkipLayer() const;
     bool GetProtectedLayer() const;
+    LeashPersistentId GetLeashPersistentId() const;
 
     // set ability state that surfaceNode belongs to as foreground or background
     void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
@@ -554,6 +569,11 @@ public:
     Occlusion::Region& GetTransparentRegion()
     {
         return transparentRegion_;
+    }
+
+    const Occlusion::Region& GetRoundedCornerRegion() const
+    {
+        return roundedCornerRegion_;
     }
 
     const Occlusion::Region& GetOpaqueRegion() const
@@ -760,7 +780,7 @@ public:
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender());
+            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender()) || NeedDrawBehindWindow();
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
@@ -856,7 +876,7 @@ public:
         const RectI& absRect, const ScreenRotation screenRotation, const bool isFocusWindow) const;
     Occlusion::Region SetUnfocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
     Occlusion::Region SetFocusedWindowOpaqueRegion(const RectI& absRect, const ScreenRotation screenRotation) const;
-    Occlusion::Region SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius) const;
+    void SetCornerRadiusOpaqueRegion(const RectI& absRect, const Vector4<int>& cornerRadius);
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
     bool CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
@@ -907,6 +927,8 @@ public:
         bool filterCacheOcclusionEnabled);
 
     bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
+
+    void FindScreenId();
 
     void OnTreeStateChanged() override;
 
@@ -1196,6 +1218,12 @@ public:
                nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadius);
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
     {
         return surfaceHandler_;
@@ -1217,12 +1245,15 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
     const std::unordered_map<std::string, bool>& GetWatermark() const;
     bool IsWatermarkEmpty() const;
+
     template<class... Args>
-    void SetIntersectedRoundCornerAABBs(Args&& ...args) {
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
+    {
         std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
-
-    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const {
+    
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
+    {
         return intersectedRoundCornerAABBs_;
     }
 
@@ -1239,9 +1270,13 @@ public:
     {
         subThreadAssignable_ = subThreadAssignable;
     }
+
+    bool NeedUpdateDrawableBehindWindow();
+    bool NeedDrawBehindWindow() const override;
+    void AddChildBlurBehindWindow(NodeId id) override;
+    void RemoveChildBlurBehindWindow(NodeId id) override;
 protected:
     void OnSync() override;
-    void OnSkipSync() override;
 
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
@@ -1275,6 +1310,8 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
+    ScreenId screenId_ = -1;
+
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
@@ -1303,6 +1340,7 @@ private:
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -1326,6 +1364,7 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
+    uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
@@ -1353,6 +1392,8 @@ private:
     Occlusion::Region extraDirtyRegionAfterAlignment_;
     bool extraDirtyRegionAfterAlignmentIsEmpty_ = true;
 
+    // region of rounded corner
+    Occlusion::Region roundedCornerRegion_;
     // opaque region of the surface
     Occlusion::Region opaqueRegion_;
     bool opaqueRegionChanged_ = false;
@@ -1427,6 +1468,7 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     RectI originalDstRect_;
@@ -1487,6 +1529,10 @@ private:
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 
+    // point window
+    bool isHardCursor_ = false;
+    bool isLastHardCursor_ = false;
+
     bool needDrawFocusChange_ = false;
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
@@ -1516,6 +1562,8 @@ private:
     bool arsrTag_ = true;
 
     bool subThreadAssignable_ = false;
+    bool oldHasChildrenBlurBehindWindow_ = false;
+    std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

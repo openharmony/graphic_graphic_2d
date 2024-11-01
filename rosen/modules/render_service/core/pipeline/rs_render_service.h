@@ -50,6 +50,9 @@ private:
     void DumpRefreshRateCounts(std::string& dumpString) const;
     void DumpClearRefreshRateCounts(std::string& dumpString) const;
     void DumpJankStatsRs(std::string& dumpString) const;
+#ifdef RS_ENABLE_VK
+    void DumpVkTextureLimit(std::string& dumpString) const;
+#endif
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;

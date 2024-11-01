@@ -542,6 +542,9 @@ bool DoModifier010(const uint8_t* data, size_t size)
     auto useEffectmodifier = std::make_shared<RSUseEffectModifier>(property);
     useEffectmodifier->GetModifierType();
     useEffectmodifier->CreateRenderModifier();
+    auto useEffectTypeModifier = std::make_shared<RSUseEffectTypeModifier>(property);
+    useEffectTypeModifier->GetModifierType();
+    useEffectTypeModifier->CreateRenderModifier();
     auto colorBlendModemodifier = std::make_shared<RSColorBlendModeModifier>(property);
     colorBlendModemodifier->GetModifierType();
     colorBlendModemodifier->CreateRenderModifier();
@@ -577,6 +580,18 @@ bool DoModifier011(const uint8_t* data, size_t size)
     auto customClipToFramemodifier = std::make_shared<RSCustomClipToFrameModifier>(property);
     customClipToFramemodifier->GetModifierType();
     customClipToFramemodifier->CreateRenderModifier();
+    auto behindWindowFilterRadiusModifier = std::make_shared<RSBehindWindowFilterRadiusModifier>(property);
+    behindWindowFilterRadiusModifier->GetModifierType();
+    behindWindowFilterRadiusModifier->CreateRenderModifier();
+    auto behindWindowFilterSaturationModifier = std::make_shared<RSBehindWindowFilterSaturationModifier>(property);
+    behindWindowFilterSaturationModifier->GetModifierType();
+    behindWindowFilterSaturationModifier->CreateRenderModifier();
+    auto behindWindowFilterBrightnessModifier = std::make_shared<RSBehindWindowFilterBrightnessModifier>(property);
+    behindWindowFilterBrightnessModifier->GetModifierType();
+    behindWindowFilterBrightnessModifier->CreateRenderModifier();
+    auto behindWindowFilterMaskColorModifier = std::make_shared<RSBehindWindowFilterMaskColorModifier>(property);
+    behindWindowFilterMaskColorModifier->GetModifierType();
+    behindWindowFilterMaskColorModifier->CreateRenderModifier();
     return true;
 }
 

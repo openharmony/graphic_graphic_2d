@@ -918,24 +918,6 @@ HWTEST_F(RSPropertiesTest, SetBorderStyle001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBorderColorIsTransparent001
- * @tc.desc: test results of GetBorderColorIsTransparent
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, GetBorderColorIsTransparent001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.border_ = std::make_shared<RSBorder>();
-    bool res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, false);
-
-    properties.border_ = nullptr;
-    res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, true);
-}
-
-/**
  * @tc.name: SetOutlineWidth001
  * @tc.desc: test results of SetOutlineWidth
  * @tc.type: FUNC
@@ -2647,6 +2629,20 @@ HWTEST_F(RSPropertiesTest, SetNGetSpherize001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNGetAttractionFraction001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction001, TestSize.Level1)
+{
+    RSProperties properties;
+    float attractionFraction{1.f};
+    properties.SetAttractionFraction(attractionFraction);
+    EXPECT_EQ(properties.GetAttractionFraction(), attractionFraction);
+}
+
+/**
  * @tc.name: SetNGetAttractionDstPoint001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -2658,6 +2654,34 @@ HWTEST_F(RSPropertiesTest, SetNGetAttractionDstPoint001, TestSize.Level1)
     Vector2f attractionDstPoint = Vector2f(1.f, 1.f);
     properties.SetAttractionDstPoint(attractionDstPoint);
     EXPECT_EQ(properties.GetAttractionDstPoint(), attractionDstPoint);
+}
+
+/**
+ * @tc.name: SetNGetAttractionFraction002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction002, TestSize.Level1)
+{
+    RSProperties properties;
+    float attractionFraction{0.f};
+    properties.SetAttractionFraction(attractionFraction);
+    EXPECT_EQ(properties.isDrawn_, false);
+}
+
+/**
+ * @tc.name: SetNGetAttractionFraction003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction003, TestSize.Level1)
+{
+    RSProperties properties;
+    float attractionFraction{0.5f};
+    properties.SetAttractionFraction(attractionFraction);
+    EXPECT_EQ(properties.isDrawn_, true);
 }
 
 /**

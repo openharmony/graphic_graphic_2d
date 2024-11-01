@@ -242,7 +242,6 @@ public:
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
-    bool GetBorderColorIsTransparent() const;
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
@@ -541,6 +540,10 @@ public:
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
+    void SetUseEffectType(int useEffectType);
+    int GetUseEffectType() const;
+    void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
+    bool GetNeedDrawBehindWindow() const;
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
@@ -618,6 +621,8 @@ private:
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
     bool useEffect_ = false;
+    int useEffectType_ = 0;
+    bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;

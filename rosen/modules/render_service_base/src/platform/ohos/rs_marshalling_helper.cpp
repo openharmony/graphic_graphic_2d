@@ -1468,13 +1468,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     };
 
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetRsMemoryOptimizeEnabled() &&
-        (val->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
-        !val->IsEditable() &&
-        !val->IsAstc() &&
-        !val->IsHdr()) {
-        val->UnMap();
-    }
     MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
@@ -1684,7 +1677,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val = nullptr;
         return false;
     }
-    std::vector<std::pair<uint32_t, uint32_t>> replacedOpList;
+    std::vector<std::pair<size_t, size_t>> replacedOpList;
     for (uint32_t i = 0; i < replacedOpListSize; ++i) {
         auto regionPos = parcel.ReadUint32();
         auto replacePos = parcel.ReadUint32();

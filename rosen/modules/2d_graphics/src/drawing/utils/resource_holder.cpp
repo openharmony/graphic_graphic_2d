@@ -36,6 +36,11 @@ bool ResourceHolder::IsEmpty() const
 {
     return impl_->IsEmpty();
 }
+
+bool ResourceHolder::HasRealseableResourceCheck() const
+{
+    return impl_->HasRealseableResourceCheck();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

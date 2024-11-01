@@ -31,6 +31,7 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
+    void Purge() override;
     void CheckAndSetThreadIdx(uint32_t& threadIdx);
     void PostPlaybackInCorrespondThread();
     void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
@@ -49,6 +50,7 @@ public:
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
     void DrawCaptureImage(RSPaintFilterCanvas& canvas);
     void ReleaseCaptureImage();
+    void DumpCanvasDrawing();
 
     uint32_t GetTid() const
     {
@@ -100,6 +102,7 @@ private:
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
+    bool isPurge_ = false;
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif

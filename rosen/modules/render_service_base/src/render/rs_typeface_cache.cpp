@@ -305,6 +305,7 @@ void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)
     size_t fontCount = 0;
     ss.write(reinterpret_cast<const char*>(&fontCount), sizeof(fontCount));
 
+    std::lock_guard<std::mutex> lock(mapMutex_);
     for (auto co : typefaceHashCode_) {
         if (typefaceHashMap_.find(co.second) != typefaceHashMap_.end()) {
             auto [typeface, ref] = typefaceHashMap_.at(co.second);
@@ -362,9 +363,12 @@ void RSTypefaceCache::ReplayClear()
     std::vector<uint64_t> removeId;
     constexpr int bitNumber = 30 + 32;
     uint64_t replayMask = (uint64_t)1 << bitNumber;
-    for (auto co : typefaceHashCode_) {
-        if (co.first & replayMask) {
-            removeId.emplace_back(co.first);
+    {
+        std::lock_guard<std::mutex> lock(mapMutex_);
+        for (auto co : typefaceHashCode_) {
+            if (co.first & replayMask) {
+                removeId.emplace_back(co.first);
+            }
         }
     }
     for (auto uniqueId : removeId) {

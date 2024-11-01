@@ -59,6 +59,8 @@ public:
 
     virtual void SetDefaultScreenId(ScreenId id) = 0;
 
+    virtual uint32_t GetCurrentVirtualScreenNum() = 0;
+
     virtual void SetScreenMirror(ScreenId id, ScreenId toMirror) = 0;
 
     virtual ScreenId CreateVirtualScreen(
@@ -231,6 +233,8 @@ public:
 
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
+
+    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -445,6 +449,13 @@ public:
 
     static void ReleaseScreenDmaBuffer(uint64_t screenId);
 
+    bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) override;
+
+    uint32_t GetCurrentVirtualScreenNum() override
+    {
+        return currentVirtualScreenNum_;
+    }
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -513,7 +524,7 @@ private:
     mutable std::mutex blackListMutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
+    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
     uint32_t virtualScreenCount_ = 0;
     uint32_t currentVirtualScreenNum_ = 0;

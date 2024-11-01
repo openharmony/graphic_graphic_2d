@@ -1982,7 +1982,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam008, TestSize.Level2)
     auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
     param->buffer_ = surfaceNode->surfaceHandler_->GetBuffer();
     drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
-    param->preScalingMode_ = SCALING_MODE_SCALE_CROP;
+    param->scalingMode_ = SCALING_MODE_SCALE_CROP;
     drawable->renderParams_ = std::move(param);
     auto cpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, true, 1);
     auto nocpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, false, 1);
@@ -2009,7 +2009,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam009, TestSize.Level2)
     auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
     param->buffer_ = surfaceNode->surfaceHandler_->GetBuffer();
     drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
-    param->preScalingMode_ = SCALING_MODE_SCALE_FIT;
+    param->scalingMode_ = SCALING_MODE_SCALE_FIT;
     drawable->renderParams_ = std::move(param);
     auto cpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, true, 1);
     auto nocpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, false, 1);

@@ -76,7 +76,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
-constexpr uint64_t ONE_MEGABYTE = 1000 * 1000;
+constexpr size_t ONE_MEGABYTE = 1000 * 1000;
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -306,7 +306,7 @@ bool RSUniRenderThread::IsIdle() const
 
 void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams)
 {
-    renderParamsManager_.SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
 void RSUniRenderThread::Render()
@@ -416,6 +416,24 @@ uint64_t RSUniRenderThread::GetCurrentTimestamp() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams ? renderThreadParams->GetCurrentTimestamp() : 0;
+}
+
+int64_t RSUniRenderThread::GetActualTimestamp() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetActualTimestamp() : 0;
+}
+
+uint64_t RSUniRenderThread::GetVsyncId() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetVsyncId() : 0;
+}
+
+bool RSUniRenderThread::GetForceRefreshFlag() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetForceRefreshFlag() : false;
 }
 
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
@@ -656,7 +674,7 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     long long sizeM = std::strtoll(strM.c_str(), &end, 10);
     if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' &&
         sizeM > 0 && sizeM <= MAX_GPU_LIMIT_SIZE) {
-        maxResourcesBytes = sizeM * ONE_MEGABYTE;
+        maxResourcesBytes = static_cast<size_t>(sizeM) * ONE_MEGABYTE;
     }
 
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
@@ -773,8 +791,8 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (UNLIKELY(!grContext)) {
             return;
         }
-        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
-        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+        RS_LOGD("Clear memory cache %{public}d", moment);
+        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
@@ -795,7 +813,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
-        if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
+        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
             auto purgeDrawables =
                 DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
             for (auto& drawable : purgeDrawables) {
@@ -806,9 +824,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
-            if (RSSystemProperties::GetRsMemoryOptimizeEnabled()) {
-                grContext->PurgeUnlockedResources(false);
-            }
+            this->isDefaultCleanTaskFinished_ = true;
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->exitedPidSet_.clear();
@@ -823,7 +839,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids)
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
 {
     for (auto [nodeId, purgeFlag] : ids) {
         if (purgeFlag) {
@@ -834,10 +850,26 @@ void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bo
     }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
-        ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        if (!isDoDirectComposition) {
+            ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        }
     }
-    RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
-    DefaultClearMemoryCache();
+    if (!isDefaultCleanTaskFinished_) {
+        RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
+        if (!isDoDirectComposition) {
+            DefaultClearMemoryCache();
+        }
+    }
+}
+
+void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
+{
+    isDefaultCleanTaskFinished_ = isFinished;
+}
+
+bool RSUniRenderThread::IsDefaultClearMemroyFinished()
+{
+    return isDefaultCleanTaskFinished_;
 }
 
 void RSUniRenderThread::PurgeCacheBetweenFrames()

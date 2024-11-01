@@ -891,7 +891,12 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
 void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
     const RSProperties& properties, const bool isAbsCoordinate)
 {
-    auto& foregroundFilter = properties.GetForegroundFilterCache();
+    std::shared_ptr<RSFilter> foregroundFilter = nullptr;
+    if (RSProperties::IS_UNI_RENDER) {
+        foregroundFilter = properties.GetForegroundFilterCache();
+    } else {
+        foregroundFilter = properties.GetForegroundFilter();
+    }
     if (!foregroundFilter || foregroundFilter->GetFilterType() != RSFilter::FOREGROUND_EFFECT) {
         return;
     }

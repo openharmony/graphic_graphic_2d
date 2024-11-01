@@ -112,9 +112,9 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
-    ScalingMode scalingMode = params.GetPreScalingMode();
+    ScalingMode scalingMode = params.GetScalingMode();
     if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params.SetPreScalingMode(scalingMode);
+        params.SetScalingMode(scalingMode);
     }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
@@ -211,6 +211,9 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
         return true;
     }
+    if (!params.GetCornerRadiusInfoForDRM().empty()) {
+        return true;
+    }
     bool forceClientForDRM = false;
     auto ancestorDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
@@ -259,6 +262,15 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layer->SetCornerRadiusInfoForDRM(params.GetCornerRadiusInfoForDRM());
+    auto bufferBackgroundColor = params.GetBackgroundColor();
+    GraphicLayerColor backgroundColor = {
+        .r = bufferBackgroundColor.GetRed(),
+        .g = bufferBackgroundColor.GetGreen(),
+        .b = bufferBackgroundColor.GetBlue(),
+        .a = bufferBackgroundColor.GetAlpha()
+    };
+    layer->SetBackgroundColor(backgroundColor);
 
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(layerInfo.dstRect);
@@ -283,7 +295,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-    layer->SetScalingMode(params.GetPreScalingMode());
+    layer->SetScalingMode(params.GetScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;

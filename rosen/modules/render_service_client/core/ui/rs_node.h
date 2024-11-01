@@ -372,6 +372,7 @@ public:
     }
 
     void SetUseEffect(bool useEffect);
+    void SetUseEffectType(UseEffectType useEffectType);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -605,7 +606,7 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;

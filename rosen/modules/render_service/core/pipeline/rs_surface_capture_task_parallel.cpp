@@ -35,6 +35,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_util.h"
+#include "pipeline/rs_pointer_drawing_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
@@ -66,12 +67,14 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
 {
     RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::CheckModifiers");
     bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id, useCurWindow) ||
+        RSPointerDrawingManager::Instance().GetBoundHasUpdate() ||
         RSMainThread::Instance()->IsHardwareEnabledNodesNeedSync();
     if (!needSync) {
         return;
     }
     std::function<void()> syncTask = []() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
+        RSPointerDrawingManager::Instance().UpdatePointerInfo();
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
             auto node = weakPtr.lock();
@@ -459,6 +462,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         // To get dump image
         // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
         RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
+        pixelmap->SetMemoryName("RSSurfaceCaptureForClient");
         callback->OnSurfaceCapture(id, pixelmap.get());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(

@@ -46,6 +46,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
+const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 
 inline int64_t GenerateCurrentTimeStamp()
 {
@@ -1209,6 +1210,35 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
+bool RSBaseRenderUtil::SetScalingMode(RSSurfaceRenderNode& node)
+{
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (surfaceHandler == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode surfaceHandler is nullptr");
+        return false;
+    }
+    auto consumer = surfaceHandler->GetConsumer();
+    auto buffer = surfaceHandler->GetBuffer();
+    if (consumer == nullptr || buffer == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode consumer or buffer is nullptr");
+        return false;
+    }
+    auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    if (nodeParams == nullptr) {
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode nodeParams is nullptr");
+        return false;
+    }
+    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    auto ret = consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode);
+    if (ret == GSERROR_OK) {
+        nodeParams->SetScalingMode(scalingMode);
+    } else {
+        RS_LOGE("RSBaseRenderUtil::SetScalingMode GetScalingMode Error: %{public}d", ret);
+        return false;
+    }
+    return true;
+}
+
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
     RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
 {
@@ -1500,6 +1530,38 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
     param.height = static_cast<uint32_t>(image->GetHeight());
     param.data = static_cast<uint8_t *>(bitmap.GetPixels());
     param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo)
+{
+    if (!bitmap) {
+        RS_LOGE("RSSubThread::DrawableCache no bitmap to dump");
+        return false;
+    }
+    // create dir if not exists
+    if (access(DUMP_CANVASDRAWING_DIR.c_str(), F_OK) == -1) {
+        if (mkdir(DUMP_CANVASDRAWING_DIR.c_str(), (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) != 0) {
+            RS_LOGE("DumpImageDrawingToPng create %s directory failed, errno: %d",
+                DUMP_CANVASDRAWING_DIR.c_str(), errno);
+            return false;
+        }
+    }
+    const uint32_t maxLen = 80;
+    time_t now = time(nullptr);
+    tm* curr_tm = localtime(&now);
+    char timechar[maxLen] = {0};
+    (void)strftime(timechar, maxLen, "%Y%m%d%H%M%S", curr_tm);
+    std::string filename = DUMP_CANVASDRAWING_DIR + "/" + "CacheRenderNode_Draw_"
+        + std::string(timechar) + "_" + debugInfo + ".png";
+
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(bitmap->GetWidth());
+    param.height = static_cast<uint32_t>(bitmap->GetHeight());
+    param.data = static_cast<uint8_t *>(bitmap->GetPixels());
+    param.stride = static_cast<uint32_t>(bitmap->GetRowBytes());
     param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);

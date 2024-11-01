@@ -806,6 +806,7 @@ napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
         double width = 0.0;
     };
     sptr<ConcreteContext> context = sptr<ConcreteContext>::MakeSptr();
+    NAPI_CHECK_AND_THROW_ERROR(context != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv, return, "Argv is null");
         NAPI_CHECK_ARGS(context, context->status == napi_ok, napi_invalid_arg,

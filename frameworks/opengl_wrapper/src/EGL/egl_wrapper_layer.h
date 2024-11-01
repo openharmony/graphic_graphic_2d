@@ -32,7 +32,7 @@ public:
     ~EglWrapperLayer();
     bool Init(EglWrapperDispatchTable *table);
 #if USE_IGRAPHICS_EXTENDS_HOOKS
-    bool GetIGraphicsLogicStatus() { return iGraphicsLogic; }
+    bool GetIGraphicsLogicStatus() const { return iGraphicsLogic; }
 #endif
     bool InitBundleInfo();
 

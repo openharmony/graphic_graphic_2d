@@ -638,37 +638,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes, TestSize.Level1)
 }
 
 /**
- @tc.name: ReleaseSkipSyncBuffer001
- @tc.desc: Test ReleaseSkipSyncBuffer
- @tc.type: FUNC
- @tc.require: issueIAMKU9
- */
-HWTEST_F(RSUifirstManagerTest, ReleaseSkipSyncBuffer001, TestSize.Level1)
-{
-    std::function<void()> task = {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    uifirstManager_.ReleaseSkipSyncBuffer(tasks);
-    ASSERT_NE(tasks.empty(), true);
-}
-
-/**
- @tc.name: CollectSkipSyncBuffer001
- @tc.desc: Test CollectSkipSyncBuffer
- @tc.type: FUNC
- @tc.require: issueIAMKU9
- */
-HWTEST_F(RSUifirstManagerTest, CollectSkipSyncBuffer001, TestSize.Level1)
-{
-    NodeId id = 1;
-    std::function<void()> task = {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    uifirstManager_.CollectSkipSyncBuffer(tasks, id);
-    ASSERT_NE(tasks.empty(), true);
-}
-
-/**
  * @tc.name: ResetUifirstNode
  * @tc.desc: Test ResetUifirstNode
  * @tc.type: FUNC

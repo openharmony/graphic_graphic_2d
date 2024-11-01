@@ -267,6 +267,7 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
  */
 HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level3)
 {
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->IsDVsyncOn(), false);
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(true);
 }
 
@@ -279,6 +280,7 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level
  */
 HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level3)
 {
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->IsDVsyncOn(), false);
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(false);
 }
 
@@ -292,7 +294,8 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level
 HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTest| Level3)
 {
     int64_t time = 1000;
-    VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
+    uint64_t offset = VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
+    ASSERT_EQ(offset, 0);
 }
 
 /*
@@ -304,6 +307,9 @@ HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTe
  */
 HWTEST_F(VSyncDistributorTest, MarkRSAnimate001, Function | MediumTest| Level3)
 {
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->MarkRSAnimate();
 }
 
@@ -316,6 +322,9 @@ HWTEST_F(VSyncDistributorTest, MarkRSAnimate001, Function | MediumTest| Level3)
  */
 HWTEST_F(VSyncDistributorTest, UnmarkRSAnimate001, Function | MediumTest| Level3)
 {
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(false, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->UnmarkRSAnimate();
 }
 
@@ -343,7 +352,8 @@ HWTEST_F(VSyncDistributorTest, UpdatePendingReferenceTime001, Function | MediumT
 {
     int64_t timeStamp = 0;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->UpdatePendingReferenceTime(timeStamp);
 }
 
@@ -358,7 +368,8 @@ HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Lev
 {
     uint32_t num = 0;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->SetHardwareTaskNum(num);
 }
 

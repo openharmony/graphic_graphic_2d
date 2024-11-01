@@ -96,6 +96,7 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
         std::set<FontDescSharedPtr> matchResult;
     };
     sptr<MatchFontDescriptorsContext> cb = sptr<MatchFontDescriptorsContext>::MakeSptr();
+    NAPI_CHECK_AND_THROW_ERROR(cb != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
     auto inputParser = [env, cb](size_t argc, napi_value *argv) {
         cb->status = napi_invalid_arg;
         cb->errCode = static_cast<int32_t>(TextErrorCode::ERROR_INVALID_PARAM);

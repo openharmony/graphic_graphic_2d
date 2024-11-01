@@ -1012,23 +1012,29 @@ HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateAbsDrawRectChangeStateTest
+ * @tc.name: UpdateSrcOrClipedAbsDrawRectChangeStateTest
  * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: issueIAX6GE
+ * @tc.require: issueIAZV18
  */
-HWTEST_F(RSRenderNodeTest, UpdateAbsDrawRectChangeStateTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
-    node->absDrawRectChange_ = true;
-    node->UpdateAbsDrawRectChangeState();
+    auto left = 0;
+    auto top = 0;
+    auto width = 1920;
+    auto height = 1048;
+    RectI rectI(left, top, width, height);
+
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
     EXPECT_FALSE(node->geometryChangeNotPerceived_);
 
     EXPECT_EQ(RSSystemProperties::GetSkipGeometryNotChangeEnabled(), true);
-    node->absDrawRectChange_ = true;
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
     node->geometryChangeNotPerceived_ = true;
-    node->UpdateAbsDrawRectChangeState();
-    EXPECT_FALSE(node->absDrawRectChange_);
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
+    EXPECT_FALSE(node->srcOrClipedAbsDrawRectChangeFlag_);
 }
 
 /**
@@ -1221,6 +1227,25 @@ HWTEST_F(RSRenderNodeTest, UpdateHierarchyAndReturnIsLowerTest, TestSize.Level1)
     sharedTransitionParam->relation_ = SharedTransitionParam::NodeHierarchyRelation::UNKNOWN;
     ret = sharedTransitionParam->UpdateHierarchyAndReturnIsLower(inNodeId);
     EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::IN_NODE_BELOW_OUT_NODE);
+}
+
+/**
+ * @tc.name: ResetRelation
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ResetRelationTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+
+    (void)sharedTransitionParam->UpdateHierarchyAndReturnIsLower(inNode->GetId());
+    EXPECT_NE(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
+
+    sharedTransitionParam->ResetRelation();
+    EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
 }
 
 /**

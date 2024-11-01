@@ -26,7 +26,7 @@ class RSNode;
 
 class RSC_EXPORT RSModifierExtractor {
 public:
-    RSModifierExtractor(RSNode* node = nullptr);
+    RSModifierExtractor(NodeId id);
     virtual ~RSModifierExtractor() = default;
 
     Vector4f GetBounds() const;
@@ -129,7 +129,7 @@ public:
 
     std::string Dump() const;
 private:
-    const RSNode *node_;
+    NodeId id_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -40,7 +40,7 @@ bool GetNativeBufferFormatProperties(RsVulkanContext& vkContext, VkDevice device
 
     VkResult err = vkContext.GetRsVulkanInterface().vkGetNativeBufferPropertiesOHOS(device, nativeBuffer, nbProps);
     if (VK_SUCCESS != err) {
-        ROSEN_LOGE("NativeBufferUtils: vkGetNativeBufferPropertiesOHOS Failed ! %d", err);
+        ROSEN_LOGE("NativeBufferUtils: vkGetNativeBufferPropertiesOHOS Failed ! %{public}d", err);
         return false;
     }
     return true;

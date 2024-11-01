@@ -688,7 +688,10 @@ ohos_unittest("RSHardwareThreadTest") {
     "mock/mock_hdi_device.cpp",
     "rs_hardware_thread_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -1284,7 +1287,10 @@ ohos_unittest("RSDrawWindowCacheTest") {
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
@@ -1332,6 +1338,7 @@ ohos_static_library("rs_test_common") {
   public_external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]

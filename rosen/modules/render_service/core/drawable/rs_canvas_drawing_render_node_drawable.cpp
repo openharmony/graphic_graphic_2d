@@ -55,6 +55,15 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
     if (curThreadInfo_.second && surface_) {
         curThreadInfo_.second(std::move(surface_));
     }
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (vulkanCleanupHelper_ && isPurge_) {
+            vulkanCleanupHelper_->UnRef();
+            isPurge_ = false;
+        }
+    }
+#endif
 #endif
 }
 
@@ -65,12 +74,15 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    SetDrawSkipType(DrawSkipType::NONE);
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (!ShouldPaint()) {
+        SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
     }
     const auto& params = GetRenderParams();
     if (UNLIKELY(!params)) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable params is null!");
         return;
     }
@@ -87,6 +99,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect())) {
+        SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
 
@@ -102,6 +115,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto& bounds = params->GetBounds();
     auto surfaceParams = params->GetCanvasDrawingSurfaceParams();
     if (!InitSurface(surfaceParams.width, surfaceParams.height, *paintFilterCanvas)) {
+        SetDrawSkipType(DrawSkipType::INIT_SURFACE_FAIL);
         RS_LOGE("Failed to init surface!");
         return;
     }
@@ -120,11 +134,40 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // 2. Draw content of this drawing node by the content canvas.
     DrawRenderContent(canvas, bounds);
 
+    //if you want to dump canvas_drawing_node as a png
+    DumpCanvasDrawing();
+
     // 3. Draw children of this drawing node by the main canvas.
     DrawChildren(canvas, bounds);
 
     // 4. Draw foreground of this drawing node by the main canvas.
     DrawForeground(canvas, bounds);
+}
+
+void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugNodeId)
+{
+    RS_LOGI("canvas drawing dump beginning");
+    RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(bitmap, debugNodeId);
+}
+
+void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
+{
+    if (image_ == nullptr) {
+        RS_LOGE("No image to drawing");
+        return;
+    }
+
+    int enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
+    if (enabled < 0) {
+        return;
+    }
+    std::string debugNodeId = std::to_string(GetId());
+    Drawing::BitmapFormat format = { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Bitmap> bitmap = std::make_shared<Drawing::Bitmap>();
+    bitmap->Build(image_->GetWidth(), image_->GetHeight(), format);
+    image_->ReadPixels(*bitmap, 0, 0);
+    std::thread syncDump(CanvasDrawingDumpToPngImpl, bitmap, debugNodeId);
+    syncDump.detach();
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
@@ -165,6 +208,25 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     OnDraw(canvas);
+}
+
+void RSCanvasDrawingRenderNodeDrawable::Purge()
+{
+#ifdef RS_ENABLE_VK
+    std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
+    if (curThreadInfo_.second && surface_) {
+        curThreadInfo_.second(std::move(surface_));
+        surface_ = nullptr;
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (vulkanCleanupHelper_ && !isPurge_) {
+                vulkanCleanupHelper_->Ref();
+                isPurge_ = true;
+            }
+        }
+    }
+#endif
+    RSRenderNodeDrawableAdapter::Purge();
 }
 
 void RSCanvasDrawingRenderNodeDrawable::CheckAndSetThreadIdx(uint32_t& threadIdx)
@@ -411,6 +473,12 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
     backendTexture_ = {};
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+#ifdef RS_ENABLE_VK
+        if (vulkanCleanupHelper_ && isPurge_) {
+            vulkanCleanupHelper_->UnRef();
+            isPurge_ = false;
+        }
+#endif
         vulkanCleanupHelper_ = nullptr;
     }
 #endif
@@ -520,6 +588,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
 #endif
     canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     drawCmdList->Playback(*canvas, rect);
+    canvas->Flush();
     auto pixelmapImage = surface->GetImageSnapshot();
     if (!WriteSkImageToPixelmap(pixelmapImage, info, pixelmap, rect)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: readPixels failed");
@@ -604,6 +673,10 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
                 backendTexture_ = {};
                 if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                     RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    if (vulkanCleanupHelper_ && isPurge_) {
+                        vulkanCleanupHelper_->UnRef();
+                        isPurge_ = false;
+                    }
                     vulkanCleanupHelper_ = nullptr;
                 }
                 RS_LOGE(
@@ -745,6 +818,10 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
             backendTexture_ = {};
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                 RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                if (vulkanCleanupHelper_ && isPurge_) {
+                    vulkanCleanupHelper_->UnRef();
+                    isPurge_ = false;
+                }
                 vulkanCleanupHelper_ = nullptr;
             }
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK backendTexture invalid, nodeId[%{public}" PRIu64 "]",

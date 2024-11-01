@@ -81,6 +81,8 @@ namespace OHOS {
         int32_t fd = GetData<int32_t>();
         vsyncConnection->GetReceiveFd(fd);
         vsyncConnection->Destroy();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        vsyncConnection->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         bool vsyncSwitch = GetData<bool>();
         vsyncConnection->SetUiDvsyncSwitch(vsyncSwitch);
         int32_t bufferCount = GetData<int32_t>();
@@ -90,6 +92,7 @@ namespace OHOS {
         MessageOption option;
         uint32_t code = GetData<uint32_t>();
         vsyncConnection->OnRemoteRequest(code, arguments, reply, option);
+        arguments.WriteInterfaceToken(vsyncConnection->metaDescriptor_);
         for (uint32_t i = 0; i < FUNC_NUM; ++i) {
             vsyncConnection->OnRemoteRequest(i, arguments, reply, option);
         }

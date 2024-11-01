@@ -179,7 +179,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     ASSERT_NE(displayDrawable_, nullptr);
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
-        rtThread.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     }
     NodeId id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(id);
@@ -1147,5 +1147,19 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrame, TestSize.Level1)
     ASSERT_FALSE(res);
     res = displayDrawable_->SkipFrame(1, 2);
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: EnablescRGBForP3AndUiFirstTest
+ * @tc.desc: Test ScRGB For P3 Controller
+ * @tc.type: FUNC
+ * @tc.require: issueIAWIC7
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, EnablescRGBForP3AndUiFirstTest, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    auto result = displayDrawable_->EnablescRGBForP3AndUiFirst(currentGamut);
+    EXPECT_FALSE(result);
 }
 }

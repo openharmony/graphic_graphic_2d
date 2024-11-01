@@ -33,7 +33,7 @@ public:
     void InSertCaptureTask(NodeId nodeId, std::function<void()>& task);
     const std::function<void()> GetCaptureTask(NodeId nodeId);
 #ifdef ROSEN_OHOS
-    const std::shared_ptr<RenderContext>& GetRenderContext();
+    const std::shared_ptr<RenderContext> GetRenderContext();
     void CleanGrResource();
 #endif
 private:

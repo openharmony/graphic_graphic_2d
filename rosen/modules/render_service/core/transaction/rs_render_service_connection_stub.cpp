@@ -768,6 +768,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             TakeSurfaceCapture(id, cb, captureConfig, permissions);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {
+            NodeId id = data.ReadUint64();
+            RS_PROFILER_PATCH_NODE_ID(data, id);
+            float positionX = data.ReadFloat();
+            float positionY = data.ReadFloat();
+            float positionZ = data.ReadFloat();
+            float positionW = data.ReadFloat();
+            SetHwcNodeBounds(id, positionX, positionY, positionZ, positionW);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
             auto pid = data.ReadInt32();
             RS_PROFILER_PATCH_PID(data, pid);
@@ -1316,11 +1326,19 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
+            bool result = false;
             uint64_t uniqueId = data.ReadUint64();
             uint32_t hash = data.ReadUint32();
             RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
-            bool ret = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
-            reply.WriteBool(ret);
+            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
+                result = !RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
+            } else {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                        "no permission NEED_REGISTER_TYPEFACE", callingPid);
+            }
+            if (!reply.WriteBool(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
@@ -1553,7 +1571,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto isEnabled = data.ReadBool();
             auto selfDrawingType = static_cast<SelfDrawingNodeType>(data.ReadUint8());
-            SetHardwareEnabled(id, isEnabled, selfDrawingType);
+            auto dynamicHardwareEnable = data.ReadBool();
+            SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {

@@ -760,7 +760,7 @@ void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uin
 
 void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
 {
-    VLOGD("%{public}s", __func__);
+    VLOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -844,8 +844,9 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
         }
 #endif
         SCOPED_DEBUG_TRACE_FMT("CollectConnectionsLTPO, i:%d, name:%s, rate:%d, vsyncPulseFreq:%u"
-            ", referencePulseCount:%ld, vsyncCount:%d", i, connections_[i]->info_.name_.c_str(), connections_[i]->rate_,
-            connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_, vsyncCount);
+            ", referencePulseCount:%ld, vsyncCount:%d, highPriorityRate_:%d", i, connections_[i]->info_.name_.c_str(),
+            connections_[i]->rate_, connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_,
+            vsyncCount, connections_[i]->highPriorityRate_);
         if (!connections_[i]->triggerThisTime_ && connections_[i]->rate_ <= 0) {
             continue;
         }

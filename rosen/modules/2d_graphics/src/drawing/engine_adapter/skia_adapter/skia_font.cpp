@@ -276,7 +276,7 @@ bool SkiaFont::GetPathForGlyph(uint16_t glyph, Path* path) const
     return true;
 }
 
-void SkiaFont::GetTextPath(const void* text, size_t length, TextEncoding encoding,
+void SkiaFont::GetTextPath(const void* text, size_t byteLength, TextEncoding encoding,
     float x, float y, Path* path) const
 {
     if (path == nullptr || text == nullptr) {
@@ -305,13 +305,13 @@ void SkiaFont::GetTextPath(const void* text, size_t length, TextEncoding encodin
             break;
         }
         case TextEncoding::GLYPH_ID: {
-            strLength = length;
+            strLength = byteLength;
             break;
         }
         default:
             break;
     }
-    SkTextUtils::GetPath(text, std::min(strLength, length), static_cast<SkTextEncoding>(encoding), x, y, skFont_,
+    SkTextUtils::GetPath(text, std::min(strLength, byteLength), static_cast<SkTextEncoding>(encoding), x, y, skFont_,
         &skpath);
 }
 

@@ -1056,7 +1056,8 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest020, TestSize.Level1)
     filter3.IsEqual(nullptr);
     filter3.IsEqualZero();
 
-    RSModifierExtractor extractor;
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
     extractor.GetCameraDistance();
     extractor.GetShadowMask();
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationSupplementTest020 end";

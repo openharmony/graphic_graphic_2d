@@ -35,6 +35,18 @@ public:
     // which BufferQueue's Buffer can be released after it has been consumed.
     virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
 };
+
+class RSB_EXPORT RSDefaultSurfaceBufferCallback : public RSISurfaceBufferCallback {
+public:
+    RSDefaultSurfaceBufferCallback(
+        std::function<void(uint64_t, const std::vector<uint32_t>&)> callback);
+    ~RSDefaultSurfaceBufferCallback() noexcept override = default;
+    
+    void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override;
+    sptr<IRemoteObject> AsObject() override;
+private:
+    std::function<void(uint64_t, const std::vector<uint32_t>&)> callback_;
+};
 } // namespace Rosen
 } // namespace OHOS
 

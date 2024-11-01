@@ -222,7 +222,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
-    curDrawingCacheRoot_->lastDrawnFilterNodeId_ = 0;
+    curDrawingCacheRoot_->SetLastDrawnFilterNodeId(0);
 
     SetCacheType(drawableCacheType);
     isOpDropped_ = isOpDropped;
@@ -255,7 +255,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     }
     // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
     if (isOffScreenWithClipHole_) {
-        if (params.GetForegroundFilterCache() == nullptr) {
+        if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
             DrawContent(canvas, params.GetFrameRect());
@@ -263,6 +263,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
             DrawForeground(canvas, params.GetBounds());
             return;
         }
+        CollectInfoForNodeWithoutFilter(canvas);
     }
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}hu", GetCacheType());
     switch (GetCacheType()) {
@@ -331,19 +332,19 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     if (!curDrawingCacheRoot_) {
         return;
     }
-    auto& allCachedNodeMatrixMap = curDrawingCacheRoot_->GetAllCachedNodeMatrixMap();
-    if (allCachedNodeMatrixMap.find(GetId()) == allCachedNodeMatrixMap.end()) {
+    auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
+    if (withoutFilterMatrixMap.find(GetId()) == withoutFilterMatrixMap.end()) {
         RS_LOGE("RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter can not find matrix of cached node in "
-                "allCachedNodeMatrixMap");
+                "withoutFilterMatrixMap");
         return;
     }
-    auto matrix = allCachedNodeMatrixMap.at(GetId());
+    auto matrix = withoutFilterMatrixMap.at(GetId());
     Drawing::Rect dst;
     matrix.MapRect(dst, params.GetBounds());
     Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
         static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
     auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
-        [nodeId = curDrawingCacheRoot_->lastDrawnFilterNodeId_](
+        [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
             const auto& item) -> bool { return item.nodeId_ == nodeId; });
     if (filterBegin == filterInfoVec.end()) {
         filterBegin = filterInfoVec.begin();
@@ -358,10 +359,10 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
 void RSRenderNodeDrawable::CheckRegionAndDrawWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
     const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (!curDrawingCacheRoot_ && begin == filterInfoVec.end()) {
+    if (!curDrawingCacheRoot_ || begin == filterInfoVec.end()) {
         return;
     }
-    curDrawingCacheRoot_->lastDrawnFilterNodeId_ = GetId();
+    curDrawingCacheRoot_->SetLastDrawnFilterNodeId(GetId());
     CheckShadowRectAndDrawBackground(canvas, params);
     curDrawingCacheRoot_->ReduceFilterNodeSize();
     Drawing::Rect dst;
@@ -377,7 +378,7 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithFilter(std::vector<FilterNodeIn
         // curDrawingCacheRoot_, we should draw foreground here
         if (curDrawingCacheRoot_->GetFilterNodeSize() > 0) {
             auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
-                [nodeId = curDrawingCacheRoot_->lastDrawnFilterNodeId_](
+                [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
                     const auto& item) -> bool { return item.nodeId_ == nodeId; });
             if (filterBegin != filterInfoVec.end()) {
                 filterBegin++; // check isIntersect with undrawn filters
@@ -687,7 +688,10 @@ void RSRenderNodeDrawable::ClearCachedSurface()
         return;
     }
 
-    auto clearTask = [surface = cachedSurface_]() mutable { surface = nullptr; };
+    auto clearTask = [surface = cachedSurface_]() mutable {
+        RS_TRACE_NAME("RSRenderNodeDrawable::ClearCachedSurface clearTask");
+        surface = nullptr;
+    };
     cachedSurface_ = nullptr;
     cachedImage_ = nullptr;
     RSTaskDispatcher::GetInstance().PostTask(cacheThreadId_.load(), clearTask);

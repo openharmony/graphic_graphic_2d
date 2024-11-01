@@ -24,6 +24,7 @@
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 #define MAX_LOG_SIZE 1024

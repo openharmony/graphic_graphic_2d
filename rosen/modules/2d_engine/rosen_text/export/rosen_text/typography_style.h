@@ -28,6 +28,7 @@ namespace Rosen {
 struct TextTab {
     TextTab() = default;
     TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
+    TextTab(const TextTab& other) : alignment(other.alignment), location(other.location) {};
     TextTab& operator=(const TextTab&) = default;
 
     bool operator==(const TextTab& rhs) const

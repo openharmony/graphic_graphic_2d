@@ -100,6 +100,9 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
 
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ,
+        float positionW);
+
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 #ifndef ROSEN_ARKUI_X

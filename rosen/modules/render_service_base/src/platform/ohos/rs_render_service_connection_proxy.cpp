@@ -1227,6 +1227,30 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
 }
 
+void RSRenderServiceConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(rsNodeId)) {
+        ROSEN_LOGE("SetHwcNodeBounds write id failed");
+        return;
+    }
+    if (!data.WriteFloat(positionX) || !data.WriteFloat(positionY) || !data.WriteFloat(positionZ) ||
+        !data.WriteFloat(positionW)) {
+        ROSEN_LOGE("SetHwcNodeBounds write bound failed");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetHwcNodeBounds Remote()->SendRequest() error[%{public}d]", err);
+        return;
+    }
+}
+
 RSVirtualScreenResolution RSRenderServiceConnectionProxy::GetVirtualScreenResolution(ScreenId id)
 {
     MessageParcel data;
@@ -2707,7 +2731,8 @@ void RSRenderServiceConnectionProxy::ReportGameStateData(GameStateData info)
     }
 }
 
-void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2722,6 +2747,9 @@ void RSRenderServiceConnectionProxy::SetHardwareEnabled(NodeId id, bool isEnable
         return;
     }
     if (!data.WriteUint8(static_cast<uint8_t>(selfDrawingType))) {
+        return;
+    }
+    if (!data.WriteBool(dynamicHardwareEnable)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

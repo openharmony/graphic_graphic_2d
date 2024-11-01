@@ -195,10 +195,10 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isNeedUnMap = system::GetParameter("persist.rosen.rsmemory.optimize.enabled", "1") != "0";
-    return isNeedUnMap;
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    return isPurgeable;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -286,7 +286,10 @@ bool RSSystemProperties::GetAceDebugBoundaryEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return (strcmp(enable, "true") == 0);
+    if (enable) {
+        return (strcmp(enable, "true") == 0);
+    }
+    return false;
 }
 
 bool RSSystemProperties::GetHardwareComposerEnabled()
@@ -746,7 +749,7 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     static CachedHandle g_Handle = CachedParameterCreate("rosen.UIFirstdebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (strcmp(targetSurfacesStr, "0") == 0) {
+    if (targetSurfacesStr == nullptr || strcmp(targetSurfacesStr, "0") == 0) {
         SurfaceNames.clear();
         return false;
     }

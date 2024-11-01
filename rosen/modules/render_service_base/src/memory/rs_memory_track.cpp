@@ -15,6 +15,7 @@
 #include "memory/rs_memory_track.h"
 
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -190,11 +191,13 @@ const std::string MemoryTrack::PixelMapInfo2String(MemoryInfo info)
     std::string un_map_cnt_str = "-1";
 
 #ifdef ROSEN_OHOS
-    auto pixelMap = info.pixelMap.lock();
-    if (pixelMap) {
-        use_cnt_str = std::to_string(pixelMap->GetUseCount());
-        is_un_map_str = std::to_string(pixelMap->IsUnMap());
-        un_map_cnt_str = std::to_string(pixelMap->GetUnMapCount());
+    if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
+        auto pixelMap = info.pixelMap.lock();
+        if (pixelMap) {
+            use_cnt_str = std::to_string(pixelMap->GetUseCount());
+            is_un_map_str = std::to_string(pixelMap->IsUnMap());
+            un_map_cnt_str = std::to_string(pixelMap->GetUnMapCount());
+        }
     }
 #endif
     return alloc_type_str + "," + use_cnt_str + "," + is_un_map_str + "," + un_map_cnt_str;
@@ -273,6 +276,10 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int count = 0;
     int totalWithoutDMASize = 0;
     int countWithoutDMA = 0;
+#ifdef ROSEN_OHOS
+    int totalUnMapSize = 0;
+    int totalUnMapCount = 0;
+#endif
     //calculate by byte
     for (auto& [addr, info] : memPicRecord_) {
         int size = static_cast<int>(info.size / BYTE_CONVERT); // k
@@ -289,6 +296,15 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
             arrWithoutDMACount[info.type]++;
             totalWithoutDMASize += size;
             countWithoutDMA++;
+#ifdef ROSEN_OHOS
+            if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
+                auto pixelMap = info.pixelMap.lock();
+                if (pixelMap && pixelMap->IsUnMap()) {
+                    totalUnMapSize += size;
+                    totalUnMapCount++;
+                }
+            }
+#endif
         }
 
         auto [windowId, windowName, nodeFrameRect] = func(info.nid);
@@ -303,6 +319,9 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     }
     log.AppendFormat("Total Size = %d KB (%d entries)\n", totalSize, count);
     log.AppendFormat("Total Without DMA Size = %d KB (%d entries)\n", totalWithoutDMASize, countWithoutDMA);
+#ifdef ROSEN_OHOS
+    log.AppendFormat("Total UnMap Size = %d KB (%d entries)\n", totalUnMapSize, totalUnMapCount);
+#endif
 }
 
 void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)
