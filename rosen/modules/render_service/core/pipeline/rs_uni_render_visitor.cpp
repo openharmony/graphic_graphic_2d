@@ -646,8 +646,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
-    isHardCursorSupport_ = RSPointerWindowManager::Instance().CheckHardCursorSupport(node.GetScreenId());
-    RS_OPTIONAL_TRACE_NAME_FMT("QuickPrepareDisplayRenderNode isHardCursorSupport:%d", isHardCursorSupport_);
     curAlpha_ = 1.0f;
     globalZOrder_ = 0.0f;
     hasSkipLayer_ = false;
@@ -805,7 +803,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         CheckIsGpuOverDrawBufferOptimizeNode(node);
     }
     PostPrepare(node, !isSubTreeNeedPrepare);
-    if (isHardCursorSupport_ && node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
+    if (node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
         RSUniRenderUtil::UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
     }
     CheckMergeFilterDirtyByIntersectWithDirty(curSurfaceNoBelowDirtyFilter_, false);
@@ -1270,7 +1268,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer()) {
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
     }
-    if (isHardCursorSupport_ && node.IsHardwareEnabledTopSurface() && node.ShouldPaint()) {
+    if (node.IsHardwareEnabledTopSurface() && node.ShouldPaint()) {
         RSPointerWindowManager::Instance().CollectInfoForHardCursor(curDisplayNode_->GetId(),
             node.GetRenderDrawable());
     }
@@ -1311,7 +1309,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     }
     // 3. Update HwcNode Info for appNode
     UpdateHwcNodeInfoForAppNode(node);
-    if (isHardCursorSupport_ && node.IsHardwareEnabledTopSurface()) {
+    if (node.IsHardwareEnabledTopSurface()) {
         UpdateSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
     }
     return true;
@@ -1400,7 +1398,7 @@ void RSUniRenderVisitor::UpdateSrcRect(RSSurfaceRenderNode& node,
 void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect)
 {
     auto dstRect = absRect;
-    if (!(isHardCursorSupport_ && node.IsHardwareEnabledTopSurface())) {
+    if (!node.IsHardwareEnabledTopSurface()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
         dstRect = dstRect.IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
             curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height));
@@ -1751,7 +1749,7 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
 
 void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow)
 {
-    if (!pointWindow->IsHardwareEnabledTopSurface() || !pointWindow->ShouldPaint() || !isHardCursorSupport_) {
+    if (!pointWindow->IsHardwareEnabledTopSurface() || !pointWindow->ShouldPaint()) {
         pointWindow->SetHardCursorStatus(false);
         return;
     }
@@ -1759,11 +1757,12 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
     if (pointSurfaceHandler) {
         // globalZOrder_ + 2 is displayNode layer, point window must be at the top.
         pointSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 2);
+        bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curDisplayNode_);
         pointWindow->SetHardwareForcedDisabledState(true);
-        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(true);
+        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(isHardCursor);
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
-        pointWindow->SetHardCursorStatus(true);
-        pointWindow->UpdateHwcNodeLayerInfo(transform, true);
+        pointWindow->SetHardCursorStatus(isHardCursor);
+        pointWindow->UpdateHwcNodeLayerInfo(transform, isHardCursor);
         if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
             RSPointerWindowManager::Instance().UpdatePointerDirtyToGlobalDirty(pointWindow, curDisplayNode_);
         }

@@ -79,14 +79,16 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
     }
 }
 
-bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
+bool RSPointerWindowManager::CheckHardCursorSupport(std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
 {
+    if (curDisplayNode == nullptr) {
+        return false;
+    }
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
         return false;
     }
-    uint64_t propertyValue = 0;
-    return screenManager->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+    return screenManager->GetDisplayPropertyForHardCursor(curDisplayNode->GetScreenId());
 }
 } // namespace Rosen
 } // namespace OHOS

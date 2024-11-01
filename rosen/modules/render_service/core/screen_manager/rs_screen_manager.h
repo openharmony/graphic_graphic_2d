@@ -234,7 +234,7 @@ public:
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 
-    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) = 0;
+    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -449,7 +449,7 @@ public:
 
     static void ReleaseScreenDmaBuffer(uint64_t screenId);
 
-    bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) override;
+    bool GetDisplayPropertyForHardCursor(uint32_t screenId) override;
 
     uint32_t GetCurrentVirtualScreenNum() override
     {

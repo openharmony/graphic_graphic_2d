@@ -650,6 +650,7 @@ void RSScreenManager::ProcessScreenConnectedLocked(std::shared_ptr<HdiOutput> &o
         if (defaultScreenId_ == id) {
             screens_[id]->SetScreenVsyncEnabled(true);
         }
+        screens_[id]->SetDisplayPropertyForHardCursor();
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -2188,7 +2189,7 @@ VirtualScreenStatus RSScreenManager::GetVirtualScreenStatus(ScreenId id) const
     return screensIt->second->GetVirtualScreenStatus();
 }
 
-bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue)
+bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     auto screensIt = screens_.find(screenId);
@@ -2196,7 +2197,7 @@ bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_
         RS_LOGD("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu32 ".", __func__, screenId);
         return false;
     }
-    return screensIt->second->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+    return screensIt->second->GetDisplayPropertyForHardCursor();
 }
 } // namespace impl
 
