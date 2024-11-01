@@ -21,6 +21,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -76,6 +77,17 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
     (void)(count);
     return nullptr;
 }
+
+class ApplicationAgentImpl : public IRemoteStub<IApplicationAgent> {
+public:
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override
+    {
+        return 0;
+    }
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override
+    {
+    }
+};
 
 /**
  * @tc.name: Start001

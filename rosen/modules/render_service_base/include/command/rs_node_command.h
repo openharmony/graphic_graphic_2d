@@ -152,7 +152,7 @@ public:
     static RSB_EXPORT void SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor);
 
     using CommitDumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t, const std::string&)>;
-    static void CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
+    static void CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t, uint32_t taskId,
         const std::string& result);
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
 };

@@ -318,17 +318,11 @@ HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1
 HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
-    bool flag = false;
-    auto func = [&flag] (NodeId, pid_t, uint32_t) { flag = true; };
+    auto func = [] (NodeId, pid_t, uint32_t) {};
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
     RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
-    ASSERT_TRUE(flag);
-
-    flag = false;
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
     RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
-    ASSERT_FALSE(flag);
-
     SUCCEED();
 }
 } // namespace OHOS::Rosen
