@@ -425,7 +425,7 @@ RSExtendImageObject::~RSExtendImageObject()
                 auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
                 eglDestroyImageKHR(disp, eglImage);
             }
-        }, );
+        });
     }
 #endif
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
