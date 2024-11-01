@@ -5796,6 +5796,7 @@ HWTEST_F(RSNodeTest, SetClipRRect002, TestSize.Level1)
     auto rect = std::make_shared<RRect>();
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetClipRRect(rect);
+    ASSERT_FALSE(rsNode == nullptr);
 }
 
 /**
@@ -5855,6 +5856,7 @@ HWTEST_F(RSNodeTest, SetColorBlendApplyType, TestSize.Level1)
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
     colorBlendApplyType = RSColorBlendApplyType::MAX;
     rsNode->SetColorBlendApplyType(colorBlendApplyType);
+    ASSERT_FALSE(rsNode == nullptr);
 }
 
 /**
@@ -5922,7 +5924,7 @@ HWTEST_F(RSNodeTest, SetDistortionK, TestSize.Level1)
     // for test
     float distortionK = 0.5f;
     rsNode->SetDistortionK(distortionK);
-    ASSERT_TRUE(rsNode != nullptr);
+    ASSERT_FALSE(rsNode == nullptr);
 }
 
 /**
