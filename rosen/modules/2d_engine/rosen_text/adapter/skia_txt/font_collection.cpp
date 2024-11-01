@@ -101,7 +101,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
 {
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadDynamicFont(familyName, data, datalen));
     if (!RegisterTypeface(typeface)) {
-        TEXT_LOGE("Failed to register typeface %{public}s.", familyName.c_str());
+        TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
         return nullptr;
     }
     fontCollection_->ClearFontFamilyCache();
@@ -134,7 +134,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
 
     std::shared_ptr<Drawing::Typeface> typeface(dfmanager_->LoadThemeFont(familyName, OHOS_THEME_FONT, data, datalen));
     if (!RegisterTypeface(typeface)) {
-        TEXT_LOGE("Failed to register typeface %{public}s.", familyName.c_str());
+        TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
     }
     fontCollection_->ClearFontFamilyCache();
     return typeface;
