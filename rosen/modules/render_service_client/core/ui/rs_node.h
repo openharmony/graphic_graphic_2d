@@ -459,6 +459,11 @@ public:
         return isTextureExportNode_;
     }
 
+    size_t GetAnimationsCount() const
+    {
+        return animations_.size();
+    }
+
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
