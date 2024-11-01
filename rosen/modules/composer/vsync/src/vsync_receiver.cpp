@@ -39,6 +39,7 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
     HitracePerfScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
     if (fileDescriptor < 0) {
+        VLOGE("OnReadable Invalid fileDescriptor:%{public}d", fileDescriptor);
         return;
     }
     // 3 is array size.
@@ -47,11 +48,12 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
     if (ReadFdInternal(fileDescriptor, data, dataCount) != VSYNC_ERROR_OK) {
         return;
     }
-    HandleVsyncCallbacks(data, dataCount);
+    HandleVsyncCallbacks(data, dataCount, fileDescriptor);
 }
 
 void VSyncCallBackListener::OnShutdown(int32_t fileDescriptor)
 {
+    VLOGI("OnShutdown, fileDescriptor:%{public}d", fileDescriptor);
     FdShutDownCallback fdShutDownCallback = nullptr;
     {
         std::lock_guard<std::mutex> locker(cbMutex_);
@@ -91,7 +93,7 @@ VsyncError VSyncCallBackListener::ReadFdInternal(int32_t fd, int64_t (&data)[3],
     return VSYNC_ERROR_OK;
 }
 
-void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCount)
+void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCount, int32_t fileDescriptor)
 {
     VSyncCallback cb = nullptr;
     VSyncCallbackWithId cbWithId = nullptr;
@@ -117,8 +119,8 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
-    RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld",
-        dataCount, now, expectedEnd, data[2]); // data[2] is vsyncId
+    RS_TRACE_NAME_FMT("ReceiveVsync dataCount: %ldbytes now: %ld expectedEnd: %ld vsyncId: %ld, fd:%d",
+        dataCount, now, expectedEnd, data[2], fileDescriptor); // data[2] is vsyncId
     if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
         cbWithId != nullptr ? cbWithId(now, data[2], userData) : cb(now, userData);
@@ -212,7 +214,7 @@ VsyncError VSyncReceiver::Init()
     listener_->RegisterFdShutDownCallback([this](int32_t fileDescriptor) {
         std::lock_guard<std::mutex> locker(initMutex_);
         if (fileDescriptor != fd_) {
-            VLOGE("Invalid fileDescriptor:%{public}d, fd_:%{public}d", fileDescriptor, fd_);
+            VLOGE("OnShutdown Invalid fileDescriptor:%{public}d, fd_:%{public}d", fileDescriptor, fd_);
             return;
         }
         RemoveAndCloseFdLocked();
