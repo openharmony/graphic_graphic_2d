@@ -781,8 +781,7 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
         return;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
-        scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+    if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
         GraphicIRect dstRect = layer->GetLayerSize();
         GraphicIRect srcRect = layer->GetCropRect();
 
