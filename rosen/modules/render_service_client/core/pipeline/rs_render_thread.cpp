@@ -155,6 +155,11 @@ RSRenderThread::RSRenderThread()
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 #endif
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSRenderThread::Instance().RequestNextVSync();
+        },
+    });
 }
 
 RSRenderThread::~RSRenderThread()
