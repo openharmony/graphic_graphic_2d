@@ -474,6 +474,9 @@ void RSMainThread::Init()
         RSRenderNodeGC::Instance().ReleaseFromTree();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        if (!isUniRender_) {
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+        }
         if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
             static std::function<void()> task = []() -> void {
                 RSImageCache::Instance().ReleaseUniqueIdList();
