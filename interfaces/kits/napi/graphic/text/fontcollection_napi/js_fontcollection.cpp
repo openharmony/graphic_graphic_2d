@@ -40,7 +40,7 @@ napi_value JsFontCollection::Constructor(napi_env env, napi_callback_info info)
 
     JsFontCollection* jsFontCollection = new(std::nothrow) JsFontCollection();
     if (jsFontCollection == nullptr) {
-        TEXT_LOGE("JsFontCollection::Constructor Failed to new JsFontCollection");
+        TEXT_LOGE("JsFontCollection::Constructor Failed to new jsFontCollection");
         return nullptr;
     }
     status = napi_wrap(env, jsThis, jsFontCollection,
@@ -374,7 +374,7 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
     std::string familyName;
     std::string familySrc;
     if (!ConvertFromJsValue(env, argv[0], familyName)) {
-        TEXT_LOGE("OnLoadFont argv[0] convert failed");
+        TEXT_LOGE("OnLoadFont argv[0] convert fail");
         return nullptr;
     }
     napi_valuetype valueType = napi_undefined;
@@ -385,7 +385,7 @@ napi_value JsFontCollection::OnLoadFont(napi_env env, napi_callback_info info)
     napi_typeof(env, argv[1], &valueType);
     if (valueType != napi_object) {
         if (!ConvertFromJsValue(env, argv[1], familySrc)) {
-            TEXT_LOGE("OnLoadFont argv[1] convert failed");
+            TEXT_LOGE("OnLoadFont argv[1] convert fail");
             return nullptr;
         }
         if (!SpiltAbsoluteFontPath(familySrc) || !GetFontFileProperties(familySrc, familyName)) {
