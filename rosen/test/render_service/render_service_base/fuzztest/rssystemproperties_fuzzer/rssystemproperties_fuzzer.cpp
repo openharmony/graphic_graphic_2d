@@ -187,7 +187,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetVirtualDirtyDebugEnabled();
     RSSystemProperties::GetVirtualDirtyEnabled();
     RSSystemProperties::GetExpandScreenDirtyEnabled();
-    RSSystemProperties::GetAceDebugBoundaryEnabled();
     RSSystemProperties::SetDefaultDeviceRotationOffset(GetData<uint32_t>());
     RSSystemProperties::GetSurfaceNodeWatermarkEnabled();
     RSSystemProperties::GetDynamicBrightnessEnabled();
