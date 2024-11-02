@@ -23,6 +23,7 @@
 #include <queue>
 
 #include "common/rs_thread_handler.h"
+#include "common/rs_threshold_detector.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "pipeline/rs_render_node.h"
 
@@ -34,6 +35,12 @@ namespace {
     const char* OFF_TREE_TASK = "ReleaseNodeFromTree";
     const char* DELETE_NODE_TASK = "ReleaseNodeMemory";
     const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
+    const uint32_t NODE_BUCKET_THR_LOW = 4;
+    const uint32_t NODE_BUCKET_THR_HIGH = 100;
+    const uint32_t DRAWABLE_BUCKET_THR_LOW = 4;
+    const uint32_t DRAWABLE_BUCKET_THR_HIGH = 100;
+    const uint32_t OFFTREE_BUCKET_THR_LOW = 4;
+    const uint32_t OFFTREE_BUCKET_THR_HIGH = 20;
 }
 class RSB_EXPORT RSRenderNodeGC {
 public:
@@ -74,8 +81,14 @@ private:
 
     std::atomic<bool> isEnable_ = true;
     std::queue<std::vector<std::shared_ptr<RSBaseRenderNode>>> offTreeBucket_;
+    RSThresholdDetector<uint32_t> offTreeBucketThrDetector_ = RSThresholdDetector<uint32_t>(
+        OFFTREE_BUCKET_THR_LOW, OFFTREE_BUCKET_THR_HIGH);
     std::queue<std::vector<RSRenderNode*>> nodeBucket_;
+    RSThresholdDetector<uint32_t> nodeBucketThrDetector_ = RSThresholdDetector<uint32_t>(
+        NODE_BUCKET_THR_LOW, NODE_BUCKET_THR_HIGH);
     std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>> drawableBucket_;
+    RSThresholdDetector<uint32_t> drawableBucketThrDetector_ = RSThresholdDetector<uint32_t>(
+        DRAWABLE_BUCKET_THR_LOW, DRAWABLE_BUCKET_THR_HIGH);
     std::mutex nodeMutex_;
     std::mutex drawableMutex_;
 };
