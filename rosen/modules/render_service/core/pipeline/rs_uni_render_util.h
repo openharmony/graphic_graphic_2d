@@ -164,7 +164,7 @@ private:
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static inline int currentUIExtensionIndex_ = -1;
-    inline static const std::string RELEASE_SURFACE_TASK = "releaseSurface";
+    static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };
 }
 }
