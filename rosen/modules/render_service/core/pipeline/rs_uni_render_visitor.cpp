@@ -1639,7 +1639,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
 void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState()
 {
     if (ancoHasGpu_) {
-		for (const auto& hwcNodePtr : ancoNodes_) {
+        for (const auto& hwcNodePtr : ancoNodes_) {
             hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
     }
