@@ -125,6 +125,7 @@ group("test") {
     "render_service_client/fuzztest/rspropertymodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsshowingpropertiesfreezer_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rscanvasdrawingnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rscanvasnode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rseffectnode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsframeratelinker_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsframeratepolicy_fuzzer:fuzztest",
