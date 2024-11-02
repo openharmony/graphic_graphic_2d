@@ -339,16 +339,6 @@ std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
     return system::GetParameter(paraName, "0");
 }
 
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
-{
-    // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
-    // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.directClientComposition.enabled", "1");
-    int changed = 0;
-    const char *status = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(status, 1) != 0;
-}
-
 bool RSSystemProperties::GetHighContrastStatus()
 {
     // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.

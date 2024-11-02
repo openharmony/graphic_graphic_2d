@@ -71,15 +71,6 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     std::vector<GraphicIRect> damageRects;
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
-    bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
-    output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
-
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-    // enable direct GPU composition.
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
-#else
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
-#endif
 
     return true;
 }
@@ -119,15 +110,6 @@ bool RSComposerAdapter::Init(const RSDisplayRenderNode& node, const ScreenInfo& 
     std::vector<GraphicIRect> damageRects;
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
-    bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
-    output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
-
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-    // enable direct GPU composition.
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
-#else
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
-#endif
 
     return true;
 }

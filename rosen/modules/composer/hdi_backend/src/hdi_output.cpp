@@ -267,18 +267,6 @@ uint32_t HdiOutput::GetScreenId() const
     return screenId_;
 }
 
-void HdiOutput::SetLayerCompCapacity(uint32_t layerCompositionCapacity)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    layerCompCapacity_ = layerCompositionCapacity;
-}
-
-uint32_t HdiOutput::GetLayerCompCapacity() const
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return layerCompCapacity_;
-}
-
 sptr<Surface> HdiOutput::GetFrameBufferSurface()
 {
     if (!CheckFbSurface()) {
@@ -311,18 +299,6 @@ void HdiOutput::RecordCompositionTime(int64_t timeStamp)
 {
     compositionTimeRecords_[compTimeRcdIndex_] = timeStamp;
     compTimeRcdIndex_ = (compTimeRcdIndex_ + 1) % COMPOSITION_RECORDS_NUM;
-}
-
-void HdiOutput::SetDirectClientCompEnableStatus(bool enableStatus)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    directClientCompositionEnabled_ = enableStatus;
-}
-
-bool HdiOutput::GetDirectClientCompEnableStatus() const
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return directClientCompositionEnabled_;
 }
 
 int32_t HdiOutput::PreProcessLayersComp()
