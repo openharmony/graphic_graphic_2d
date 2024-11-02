@@ -102,7 +102,8 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 }
 #endif
 
-void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
+void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+    Drawing::SrcRectConstraint constraint)
 {
 #ifdef ROSEN_OHOS
     if (pixelMap_) {
@@ -123,7 +124,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOpti
         RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
         return;
     }
-    canvas.DrawImageRect(*image_, src, dst, samplingOptions);
+    canvas.DrawImageRect(*image_, src, dst, samplingOptions, constraint);
 }
 
 void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
