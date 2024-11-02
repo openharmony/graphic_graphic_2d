@@ -328,37 +328,18 @@ bool HdiOutput::GetDirectClientCompEnableStatus() const
 int32_t HdiOutput::PreProcessLayersComp()
 {
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    bool doClientCompositionDirectly;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        if (layerIdMap_.empty()) {
-            HLOGI("layer map is empty, drop this frame");
-            return GRAPHIC_DISPLAY_PARAM_ERR;
-        }
-
-        uint32_t layersNum = layerIdMap_.size();
-        // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-        doClientCompositionDirectly = directClientCompositionEnabled_ &&
-            ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) && (layersNum > layerCompCapacity_));
-
-        for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
-            const LayerPtr &layer = iter->second;
-            if (doClientCompositionDirectly) {
-                layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-                continue;
-            }
-            ret = layer->SetHdiLayerInfo();
-            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-                HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
-                return GRAPHIC_DISPLAY_FAILURE;
-            }
-        }
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (layerIdMap_.empty()) {
+        HLOGI("layer map is empty, drop this frame");
+        return GRAPHIC_DISPLAY_PARAM_ERR;
     }
 
-    if (doClientCompositionDirectly) {
-        ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
-        HLOGD("Direct client composition is enabled.");
-        return GRAPHIC_DISPLAY_SUCCESS;
+    for (const auto &[layerId, layer] : layerIdMap_) {
+        ret = layer->SetHdiLayerInfo();
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+            return GRAPHIC_DISPLAY_FAILURE;
+        }
     }
 
     return ret;
