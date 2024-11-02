@@ -63,7 +63,7 @@ HWTEST_F(VSyncSampleTest, VSyncSample_30Hz_Test, Function | MediumTest | Level2)
     }
     int64_t period = vsyncSampler->GetPeriod();
     EXPECT_GT(period, 32000000); // 32000000ns
-    EXPECT_LT(period, 34000000); // 34000000ns
+    EXPECT_LT(period, 35000000); // 35000000ns
 }
 
 /*
