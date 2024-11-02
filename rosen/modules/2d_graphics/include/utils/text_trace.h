@@ -19,6 +19,7 @@
 #ifdef OHOS_TEXT_ENABLE
 #include "hitrace_meter.h"
 #include "parameters.h"
+#include "text_common.h"
 #endif
 
 namespace OHOS::Rosen {
@@ -39,7 +40,7 @@ public:
     TextOptionalTrace(std::string traceStr)
     {
         static bool debugTraceEnable = (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
-        if (debugTraceEnable) {
+        if (UNLIKELY(debugTraceEnable)) {
             std::string name { "Text#" };
             CutPrettyFunction(traceStr);
             name.append(traceStr);
@@ -50,7 +51,7 @@ public:
     ~TextOptionalTrace()
     {
         static bool debugTraceEnable = (OHOS::system::GetIntParameter("persist.sys.graphic.openDebugTrace", 0) != 0);
-        if (debugTraceEnable) {
+        if (UNLIKELY(debugTraceEnable)) {
             FinishTrace(HITRACE_TAG_GRAPHIC_AGP | HITRACE_TAG_COMMERCIAL);
         }
     }
