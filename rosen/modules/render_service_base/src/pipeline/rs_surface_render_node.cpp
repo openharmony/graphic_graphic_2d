@@ -1730,7 +1730,7 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     } else {
         auto maxRadius = std::max({ cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_ });
         if (IsAppWindow() && HasContainerWindow()) {
-            containerConfig_.outR = maxRadius;
+            containerConfig_.outR_ = maxRadius;
             opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
         } else {
             if (!cornerRadius.IsZero()) {
@@ -1920,8 +1920,8 @@ Occlusion::Region RSSurfaceRenderNode::ResetOpaqueRegion(const RectI& absRect,
 void RSSurfaceRenderNode::ContainerConfig::Update(bool hasContainer, RRect rrect)
 {
     this->hasContainerWindow_ = hasContainer;
-    this->inR = RoundFloor(rrect.radius_[0].x_);
-    this->innerRect = {
+    this->inR_ = RoundFloor(rrect.radius_[0].x_);
+    this->innerRect_ = {
         RoundFloor(rrect.rect_.left_),
         RoundFloor(rrect.rect_.top_),
         RoundFloor(rrect.rect_.width_),
@@ -1946,14 +1946,14 @@ Occlusion::Region RSSurfaceRenderNode::SetUnfocusedWindowOpaqueRegion(const Rect
     const ScreenRotation screenRotation) const
 {
     RSSurfaceRenderNode::ContainerConfig config = GetAbsContainerConfig();
-    Occlusion::Rect opaqueRect1{ absRect.left_ + config.outR,
+    Occlusion::Rect opaqueRect1{ absRect.left_ + config.outR_,
         absRect.top_,
-        absRect.GetRight() - config.outR,
+        absRect.GetRight() - config.outR_,
         absRect.GetBottom()};
     Occlusion::Rect opaqueRect2{ absRect.left_,
-        absRect.top_ + config.outR,
+        absRect.top_ + config.outR_,
         absRect.GetRight(),
-        absRect.GetBottom() - config.outR};
+        absRect.GetBottom() - config.outR_};
     Occlusion::Region r1{opaqueRect1};
     Occlusion::Region r2{opaqueRect2};
     Occlusion::Region opaqueRegion = r1.Or(r2);
@@ -1970,27 +1970,27 @@ Occlusion::Region RSSurfaceRenderNode::SetFocusedWindowOpaqueRegion(const RectI&
     const ScreenRotation screenRotation) const
 {
     RSSurfaceRenderNode::ContainerConfig config = GetAbsContainerConfig();
-    Occlusion::Rect outRect1{ absRect.left_ + config.outR,
+    Occlusion::Rect outRect1{ absRect.left_ + config.outR_,
         absRect.top_,
-        absRect.GetRight() - config.outR,
+        absRect.GetRight() - config.outR_,
         absRect.GetBottom()};
     Occlusion::Rect outRect2{ absRect.left_,
-        absRect.top_ + config.outR,
+        absRect.top_ + config.outR_,
         absRect.GetRight(),
-        absRect.GetBottom() - config.outR};
+        absRect.GetBottom() - config.outR_};
     Occlusion::Region outRegion1{outRect1};
     Occlusion::Region outRegion2{outRect2};
     Occlusion::Region absRegion{Occlusion::Rect{absRect}};
     Occlusion::Region outRRegion = absRegion.Sub(outRegion1).Sub(outRegion2);
-    RectI innerRect = config.innerRect;
-    Occlusion::Rect opaqueRect1{ innerRect.left_ + config.inR,
+    RectI innerRect = config.innerRect_;
+    Occlusion::Rect opaqueRect1{ innerRect.left_ + config.inR_,
         innerRect.top_,
-        innerRect.GetRight() - config.inR,
+        innerRect.GetRight() - config.inR_,
         innerRect.GetBottom()};
     Occlusion::Rect opaqueRect2{ innerRect.left_,
-        innerRect.top_ + config.inR,
+        innerRect.top_ + config.inR_,
         innerRect.GetRight(),
-        innerRect.GetBottom() - config.inR};
+        innerRect.GetBottom() - config.inR_};
     Occlusion::Region r1{opaqueRect1};
     Occlusion::Region r2{opaqueRect2};
     Occlusion::Region opaqueRegion = r1.Or(r2).Sub(outRRegion);
@@ -2039,15 +2039,15 @@ RSSurfaceRenderNode::ContainerConfig RSSurfaceRenderNode::GetAbsContainerConfig(
     if (geoPtr) {
         auto& matrix = geoPtr->GetAbsMatrix();
         float scale = std::min(matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SCALE_Y));
-        config.inR = static_cast<int>(std::round(containerConfig_.inR * scale));
-        config.outR = static_cast<int>(std::round(containerConfig_.inR * scale));
+        config.inR_ = static_cast<int>(std::round(containerConfig_.inR_ * scale));
+        config.outR_ = static_cast<int>(std::round(containerConfig_.outR_ * scale));
         RectF r = {
-            containerConfig_.innerRect.left_,
-            containerConfig_.innerRect.top_,
-            containerConfig_.innerRect.width_,
-            containerConfig_.innerRect.height_};
-        auto rect = geoPtr->MapAbsRect(r);
-        config.innerRect = rect;
+            containerConfig_.innerRect_.left_,
+            containerConfig_.innerRect_.top_,
+            containerConfig_.innerRect_.width_,
+            containerConfig_.innerRect_.height_};
+        auto rect = geoPtr->MapAbsRect(r).IntersectRect(GetOldDirtyInSurface());
+        config.innerRect_ = rect;
         return config;
     } else {
         return config;
@@ -2165,7 +2165,8 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
         opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
-        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
+        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow() &&
+        opaqueRegionBaseInfo_.containerConfig_ == containerConfig_;
     if (!ret) {
         if (absRect.IsEmpty()) {
             RS_LOGW("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
@@ -2201,6 +2202,7 @@ void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const
     opaqueRegionBaseInfo_.cornerRadius_ = cornerRadius;
     opaqueRegionBaseInfo_.isTransparent_ = IsTransparent();
     opaqueRegionBaseInfo_.hasContainerWindow_ = HasContainerWindow();
+    opaqueRegionBaseInfo_.containerConfig_ = containerConfig_;
 }
 
 // [planning] Remove this after skia is upgraded, the clipRegion is supported
