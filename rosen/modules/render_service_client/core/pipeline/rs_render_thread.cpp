@@ -155,6 +155,14 @@ RSRenderThread::RSRenderThread()
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 #endif
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSRenderThread::Instance().RequestNextVSync();
+        },
+        .isRequestedNextVSync = []() {
+            return RSRenderThread::Instance().IsRequestedNextVSync();
+        },
+    });
 }
 
 RSRenderThread::~RSRenderThread()
@@ -238,6 +246,16 @@ void RSRenderThread::RequestNextVSync()
     } else {
         hasSkipVsync_ = true;
     }
+}
+
+bool RSRenderThread::IsRequestedNextVSync()
+{
+#ifdef __OHOS__
+    if (receiver_ != nullptr) {
+        return receiver_->IsRequestedNextVSync();
+    }
+#endif
+    return false;
 }
 
 int32_t RSRenderThread::GetTid()

@@ -515,6 +515,14 @@ void RSMainThread::Init()
     RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
         RSHardwareThread::Instance().PostTask(task);
     });
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSMainThread::Instance()->RequestNextVSync();
+        },
+        .isRequestedNextVSync = []() {
+            return RSMainThread::Instance()->IsRequestedNextVSync();
+        },
+    });
 
     if (RSGraphicConfig::LoadConfigXml()) {
         if (RSGraphicConfig::GetConfig().IsMap()) {
@@ -2288,6 +2296,7 @@ void RSMainThread::Render()
         CallbackDrawContextStatusToWMS();
         PerfForBlurIfNeeded();
     }
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     CheckSystemSceneStatus();
     UpdateLuminance();
 }

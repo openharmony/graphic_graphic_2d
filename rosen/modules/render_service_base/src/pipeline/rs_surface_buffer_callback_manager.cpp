@@ -46,6 +46,11 @@ void RSSurfaceBufferCallbackManager::SetRunPolicy(std::function<void(std::functi
     runPolicy_ = runPolicy;
 }
 
+void RSSurfaceBufferCallbackManager::SetVSyncFuncs(VSyncFuncs vSyncFuncs)
+{
+    vSyncFuncs_ = vSyncFuncs;
+}
+
 void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     sptr<RSISurfaceBufferCallback> callback)
 {
@@ -118,17 +123,29 @@ void RSSurfaceBufferCallbackManager::EnqueueSurfaceBufferId(pid_t pid, uint64_t 
     iter->second.push_back(surfaceBufferId);
 }
 
+void RSSurfaceBufferCallbackManager::RequestNextVSync()
+{
+    if (vSyncFuncs_.isRequestedNextVSync && !std::invoke(vSyncFuncs_.isRequestedNextVSync)) {
+        if (vSyncFuncs_.requestNextVsync) {
+            std::invoke(vSyncFuncs_.requestNextVsync);
+        }
+    }
+}
+
 void RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct(
     pid_t pid, uint64_t uid, uint32_t surfaceBufferId)
 {
-    std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
-    if (surfaceBufferCallbacks_.find({pid, uid}) == std::end(surfaceBufferCallbacks_)) {
-        RS_LOGE("RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct Pair:"
-            "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
-            std::to_string(pid).c_str(), std::to_string(uid).c_str());
-        return;
+    {
+        std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
+        if (surfaceBufferCallbacks_.find({pid, uid}) == std::end(surfaceBufferCallbacks_)) {
+            RS_LOGE("RSSurfaceBufferCallbackManager::OnSurfaceBufferOpItemDestruct Pair:"
+                "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
+                std::to_string(pid).c_str(), std::to_string(uid).c_str());
+            return;
+        }
+        EnqueueSurfaceBufferId(pid, uid, surfaceBufferId);
     }
-    EnqueueSurfaceBufferId(pid, uid, surfaceBufferId);
+    RequestNextVSync();
 }
 
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
@@ -149,6 +166,9 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
                 callback->OnFinish(uid, bufferIds);
                 LogMessage();
             }
+        }
+        if (!surfaceBufferIds.empty()) {
+            RequestNextVSync();
         }
     });
 }
