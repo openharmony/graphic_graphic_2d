@@ -49,12 +49,12 @@ private:
     SKResourceManager() = default;
     ~SKResourceManager() = default;
 
-    /* @name: HasRealseableResourceCheck.
+    /* @name: HaveReleaseableResourceCheck.
      * @desc: Check if there are any resources in the skSurfaces_ that can be released.
      * @return Return False means there are no resources that can be released.
      *         Return True means there maybe has resources that can be released.
      */
-    bool HasRealseableResourceCheck(const std::list<std::shared_ptr<Drawing::Surface>> &list);
+    bool HaveReleaseableResourceCheck(const std::list<std::shared_ptr<Drawing::Surface>> &list);
 
     std::recursive_mutex mutex_;
     std::map<pid_t, std::shared_ptr<Drawing::ResourceHolder>> images_;

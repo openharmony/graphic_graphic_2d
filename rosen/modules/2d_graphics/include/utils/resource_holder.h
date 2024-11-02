@@ -28,12 +28,12 @@ public:
     void ReleaseResource();
     bool IsEmpty() const;
 
-    /* @name: HasRealseableResourceCheck.
+    /* @name: HaveReleaseableResourceCheck.
      * @desc: Check if there are any resources in the ResourceHolder that can be released.
      * @return Return False means there are no resources that can be released.
      *         Return True means there maybe has resources that can be released.
      */
-    bool HasRealseableResourceCheck() const;
+    bool HaveReleaseableResourceCheck() const;
 private:
     std::shared_ptr<ResourceHolderImpl> impl_;
 };

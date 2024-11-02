@@ -30,12 +30,12 @@ public:
     virtual void ReleaseResource() = 0;
     virtual bool IsEmpty() const = 0;
 
-    /* @name: HasRealseableResourceCheck.
+    /* @name: HaveReleaseableResourceCheck.
      * @desc: Check if there are any resources in the ResourceHolder that can be released.
      * @return Return False means there are no resources that can be released.
      *         Return True means there maybe has resources that can be released.
      */
-    virtual bool HasRealseableResourceCheck() = 0;
+    virtual bool HaveReleaseableResourceCheck() = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
