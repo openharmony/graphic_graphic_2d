@@ -126,8 +126,16 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto &layerInfo : layerInfos) {
-        if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
-            HLOGE("current layerInfo or layerInfo's cSurface is null");
+        if (layerInfo == nullptr) {
+            HLOGE("current layerInfo is null");
+            continue;
+        }
+        if (layerInfo->GetSurface() == nullptr) {
+            int32_t ret = CreateLayerLocked(layerInfo->GetNodeId(), layerInfo);
+            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+                HLOGE("HdiOutput::SetLayerInfo failed %{public}zu.", surfaceIdMap_.size());
+                return;
+            }
             continue;
         }
 
@@ -758,11 +766,11 @@ void HdiOutput::Dump(std::string &result) const
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
-        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
-            layer->GetLayerInfo()->GetSurface() == nullptr) {
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
             continue;
         }
-        const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
+        auto surface = layer->GetLayerInfo()->GetSurface();
+        const std::string& name = surface ? surface->GetName() : "Layer Without Surface";
         auto info = layer->GetLayerInfo();
         result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result +=  " LayerId[" + std::to_string(layer->GetLayerId()) + "]:\n";
