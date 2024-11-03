@@ -30,14 +30,15 @@ ohos_fuzztest("RSClientPropertyFuzzTest") {
     "../../../../../modules/render_service:librender_service",
     "../../../../../modules/render_service_base:librender_service_base",
     "../../../../../modules/render_service_client:librender_service_client",
+    "../../../../../modules/render_service_client:render_service_client_src",
   ]
   cflags = [
     "-g",
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "-Dprivate=public",
-    "-Dprotected=public",
+    "-Dprivate = public",
+    "-Dprotected = public",
   ]
   sources = [ "rsclientproperty_fuzzer.cpp" ]
 
