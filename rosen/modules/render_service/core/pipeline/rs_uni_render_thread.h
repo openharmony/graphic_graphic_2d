@@ -79,6 +79,8 @@ public:
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask();
+    void SetDefaultClearMemoryFinished(bool isFinished);
+    bool IsDefaultClearMemroyFinished();
     bool GetClearMemoryFinished() const;
     void SetClearMemoryFinished();
     bool GetClearMemDeeply() const;
@@ -226,6 +228,7 @@ private:
     ScreenId displayNodeScreenId_ = 0;
     std::set<pid_t> exitedPidSet_;
     ClearMemoryMoment clearMoment_;
+    bool isDefaultCleanTaskFinished_ = true;
 
     std::vector<Callback> imageReleaseTasks_;
     std::mutex imageReleaseMutex_;
