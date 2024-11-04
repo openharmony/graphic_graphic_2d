@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class GeometryTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    int screenWidth = 1260;
+    int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -33,33 +33,37 @@ public:
     }
 };
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_1)
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_1)
 {
-    float zList[] = { 1, 0.5, 2 };
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            auto testNode =
-                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
-            testNode->SetPivot(Vector2f(0.5, 0.5));
-            testNode->SetScaleX(zList[i]);
-            testNode->SetScaleY(zList[j]);
-            GetRootNode()->AddChild(testNode);
-            RegisterNode(testNode);
-        }
-    }
-}
-
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_2)
-{
-    float scales[] = { 1, 0.5, 2 };
-    for (int j = 0; j < 3; j++) {
+    std::vector<std::vector<float> >  skewValues= {
+        { 0.5, 0},
+        { 0, 0.5},
+        { 0.5, 0.5},
+    };
+    for (int i = 0; i < skewValues.size(); ++i) {
         auto testNode =
-            SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, j * 780 + 100, 600, 600 });
-        testNode->SetPivot(Vector2f(0.5, 0.5));
-        testNode->SetScaleZ(scales[j]);
+            SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 110, i * 420 + 110, 200, 200 });
+        testNode->SetPivot(Vector2f(0.0, 0.0));
+        testNode->SetSkew(skewValues[i][0], skewValues[i][1], 1.0);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_2)
+{
+    std::vector<std::vector<float> >  skewValues= {
+        { 1.5, 0},
+        { 0, 1.5},
+        { 1.5, 1.5},
+    };
+    for (int i = 0; i < skewValues.size(); ++i) {
+        auto testNode =
+            SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 110, i * 420 + 110, 200, 200 });
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetSkew(skewValues[i][0], skewValues[i][1], 1.0);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

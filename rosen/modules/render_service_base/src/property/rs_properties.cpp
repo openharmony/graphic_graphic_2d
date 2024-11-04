@@ -80,8 +80,9 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetRotationY(0.f); },                 // ROTATION_Y
     [](RSProperties* prop) { prop->SetCameraDistance(0.f); },            // CAMERA_DISTANCE
     [](RSProperties* prop) { prop->SetScale(Vector2f(1.f, 1.f)); },      // SCALE
-    [](RSProperties* prop) { prop->SetSkew(Vector2f(0.f, 0.f)); },       // SKEW
-    [](RSProperties* prop) { prop->SetPersp(Vector2f(0.f, 0.f)); },      // PERSP
+    [](RSProperties* prop) { prop->SetScaleZ(1.f); },                    // SCALE_Z
+    [](RSProperties* prop) { prop->SetSkew({0.f, 0.f, 0.f}); },          // SKEW
+    [](RSProperties* prop) { prop->SetPersp({0.f, 0.f, 0.f, 1.f}); },    // PERSP
     [](RSProperties* prop) { prop->SetTranslate(Vector2f(0.f, 0.f)); },  // TRANSLATE
     [](RSProperties* prop) { prop->SetTranslateZ(0.f); },                // TRANSLATE_Z
     [](RSProperties* prop) { prop->SetSublayerTransform({}); },          // SUBLAYER_TRANSFORM
@@ -662,6 +663,13 @@ void RSProperties::SetScale(Vector2f scale)
     SetDirty();
 }
 
+void RSProperties::SetScaleZ(float sz)
+{
+    boundsGeo_->SetScaleZ(sz);
+    geoDirty_ = true;
+    SetDirty();
+}
+
 void RSProperties::SetScaleX(float sx)
 {
     boundsGeo_->SetScaleX(sx);
@@ -676,9 +684,9 @@ void RSProperties::SetScaleY(float sy)
     SetDirty();
 }
 
-void RSProperties::SetSkew(Vector2f skew)
+void RSProperties::SetSkew(Vector3f skew)
 {
-    boundsGeo_->SetSkew(skew.x_, skew.y_);
+    boundsGeo_->SetSkew(skew.x_, skew.y_, skew.z_);
     geoDirty_ = true;
     SetDirty();
 }
@@ -697,9 +705,16 @@ void RSProperties::SetSkewY(float skewY)
     SetDirty();
 }
 
-void RSProperties::SetPersp(Vector2f persp)
+void RSProperties::SetSkewZ(float skewZ)
 {
-    boundsGeo_->SetPersp(persp.x_, persp.y_);
+    boundsGeo_->SetSkewZ(skewZ);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPersp(Vector4f persp)
+{
+    boundsGeo_->SetPersp(persp.x_, persp.y_, persp.z_, persp.w_);
     geoDirty_ = true;
     SetDirty();
 }
@@ -714,6 +729,20 @@ void RSProperties::SetPerspX(float perspX)
 void RSProperties::SetPerspY(float perspY)
 {
     boundsGeo_->SetPerspY(perspY);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPerspZ(float perspZ)
+{
+    boundsGeo_->SetPerspZ(perspZ);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+void RSProperties::SetPerspW(float perspW)
+{
+    boundsGeo_->SetPerspW(perspW);
     geoDirty_ = true;
     SetDirty();
 }
@@ -782,6 +811,11 @@ float RSProperties::GetScaleY() const
     return boundsGeo_->GetScaleY();
 }
 
+float RSProperties::GetScaleZ() const
+{
+    return boundsGeo_->GetScaleZ();
+}
+
 Vector2f RSProperties::GetScale() const
 {
     return { boundsGeo_->GetScaleX(), boundsGeo_->GetScaleY() };
@@ -797,9 +831,14 @@ float RSProperties::GetSkewY() const
     return boundsGeo_->GetSkewY();
 }
 
-Vector2f RSProperties::GetSkew() const
+float RSProperties::GetSkewZ() const
 {
-    return { boundsGeo_->GetSkewX(), boundsGeo_->GetSkewY() };
+    return boundsGeo_->GetSkewZ();
+}
+
+Vector3f RSProperties::GetSkew() const
+{
+    return { boundsGeo_->GetSkewX(), boundsGeo_->GetSkewY(), boundsGeo_->GetSkewZ() };
 }
 
 float RSProperties::GetPerspX() const
@@ -812,9 +851,19 @@ float RSProperties::GetPerspY() const
     return boundsGeo_->GetPerspY();
 }
 
-Vector2f RSProperties::GetPersp() const
+float RSProperties::GetPerspZ() const
 {
-    return { boundsGeo_->GetPerspX(), boundsGeo_->GetPerspY() };
+    return boundsGeo_->GetPerspZ();
+}
+
+float RSProperties::GetPerspW() const
+{
+    return boundsGeo_->GetPerspW();
+}
+
+Vector4f RSProperties::GetPersp() const
+{
+    return { boundsGeo_->GetPerspX(), boundsGeo_->GetPerspY(), boundsGeo_->GetPerspZ(), boundsGeo_->GetPerspW() };
 }
 
 Vector2f RSProperties::GetTranslate() const
