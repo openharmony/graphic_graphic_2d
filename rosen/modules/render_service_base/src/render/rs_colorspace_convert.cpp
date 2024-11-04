@@ -151,6 +151,11 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
     }
 
+    if (!rsLuminance.IsHdrPictureOn()) {
+        scaler = 1.0f;
+        parameter.disableHeadRoom = true;
+    }
+
     ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
     if (ret != GSERROR_OK) {
         RS_LOGD("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
