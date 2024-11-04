@@ -2506,8 +2506,12 @@ bool RSRenderServiceConnectionProxy::SetWatermark(const std::string& name, std::
         return false;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteString(name);
-    data.WriteParcelable(watermark.get());
+    if (!data.WriteString(name)) {
+        return false;
+    }
+    if (!data.WriteParcelable(watermark.get())) {
+        return false;
+    }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
