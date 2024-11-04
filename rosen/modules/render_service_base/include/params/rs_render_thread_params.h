@@ -443,6 +443,12 @@ public:
     RSRenderThreadParamsManager() = default;
     ~RSRenderThreadParamsManager() = default;
 
+    static RSRenderThreadParamsManager& Instance()
+    {
+        static RSRenderThreadParamsManager instance;
+        return instance;
+    }
+
     inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
     {
         renderThreadParams_ = std::move(renderThreadParams);

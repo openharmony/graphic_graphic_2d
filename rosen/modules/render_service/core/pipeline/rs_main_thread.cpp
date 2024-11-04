@@ -2049,6 +2049,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 surfaceNode->AddToPendingSyncList();
             }
             processor->CreateLayer(*surfaceNode, *params);
+            // buffer is synced to directComposition
+            params->SetBufferSynced(true);
         }
     }
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);

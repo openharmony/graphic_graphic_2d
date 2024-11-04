@@ -377,6 +377,14 @@ public:
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    inline void SetBufferSynced(bool bufferSynced)
+    {
+        bufferSynced_ = bufferSynced;
+    }
+    bool IsBufferSynced() const
+    {
+        return bufferSynced_;
+    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
@@ -522,6 +530,7 @@ private:
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
+    bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
