@@ -19,7 +19,6 @@
 #include <cstring>
 #include <filesystem>
 
-#include "benchmarks/file_utils.h"
 #include "include/core/SkDocument.h"
 #include "include/core/SkPicture.h"
 #include "include/core/SkPictureRecorder.h"
