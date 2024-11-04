@@ -102,7 +102,7 @@ std::shared_ptr<Drawing::Image> GERenderFuzzTest003(const uint8_t *data, size_t 
 
 std::shared_ptr<Drawing::Image> GERenderFuzzTest004(const uint8_t *data, size_t size)
 {
-   if (data == nullptr) {
+    if (data == nullptr) {
         return nullptr;
     }
     // initialize
