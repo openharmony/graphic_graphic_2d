@@ -260,6 +260,8 @@ private:
         Occlusion::Region& accumulatedDirtyRegion);
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
     void CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRenderNode::SharedPtr>& surfaces);
+    void CheckMergeDisplayDirtyByRoundCornerDisplay(
+        RSDisplayRenderNode &node, const sptr<RSScreenManager> &screenManager);
 
     // merge last childRect as dirty if any child has been removed
     void MergeRemovedChildDirtyRegion(RSRenderNode& node, bool needMap = false);

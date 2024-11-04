@@ -71,6 +71,9 @@ public:
     // update hardwareInfo_.resourceChanged and resourcePreparing
     void UpdateHardwareResourcePrepared(NodeId id, bool prepared);
 
+    // handle rcdDirtyType_ and assign dirty rect
+    bool HandleRoundCornerDirtyRect(NodeId id, RectI &dirtyRect, const RCDLayerType type);
+
     // run rcd hardwareComposer buffer prepare task via rendertarget ID
     void RunHardwareTask(NodeId id, const std::function<void()>& task);
 

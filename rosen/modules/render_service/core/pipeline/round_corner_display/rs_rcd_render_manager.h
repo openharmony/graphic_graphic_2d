@@ -58,6 +58,7 @@ public:
     void CheckRenderTargetNode(const RSContext& context);
     RSRcdSurfaceRenderNodePtr GetTopSurfaceNode(NodeId id);
     RSRcdSurfaceRenderNodePtr GetBottomSurfaceNode(NodeId id);
+
     void DoProcessRenderTask(NodeId id, const RcdProcessInfo& info);
 
     void DoProcessRenderMainThreadTask(NodeId id, const RcdProcessInfo& info);

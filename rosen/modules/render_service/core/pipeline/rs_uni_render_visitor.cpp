@@ -491,8 +491,6 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (curDisplayNode_ == nullptr) {
         return;
     }
-    bool isNeedNotchUpdate = RSSingleton<RoundCornerDisplayManager>::GetInstance().IsNotchNeedUpdate(
-        curDisplayNode_->GetId(), RSSystemParameters::GetHideNotchStatus());
     bool ret = CheckScreenPowerChange() ||
         CheckColorFilterChange() ||
         CheckCurtainScreenUsingStatusChange() ||
@@ -503,8 +501,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         CheckLuminanceStatusChange() ||
         IsFirstFrameOfOverdrawSwitch() ||
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
-        IsAccessibilityConfigChanged() ||
-        isNeedNotchUpdate;
+        IsAccessibilityConfigChanged();
     if (ret) {
         curDisplayDirtyManager_->ResetDirtyAsSurfaceSize();
         RS_LOGD("RSUniRenderVisitor::ResetDisplayDirtyRegion on");
@@ -1857,6 +1854,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     curDisplayNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
+    CheckMergeDisplayDirtyByRoundCornerDisplay(*curDisplayNode_, screenManager_);
     ResetDisplayDirtyRegion();
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
@@ -1969,7 +1967,7 @@ bool RSUniRenderVisitor::CheckIfRoundCornerIntersectDRM(const float& ratio, std:
     UIPoint offset { instanceAbsRect.GetWidth() - maxRadius, instanceAbsRect.GetHeight() - maxRadius };
     UIPoint anchorPoint { instanceAbsRect.GetLeft(), instanceAbsRect.GetTop() };
     // if round corners intersect drm, update ratioVectors
-    for (int i = 0; i < offsetVecs.size(); i++) {
+    for (size_t i = 0; i < offsetVecs.size(); i++) {
         auto res = anchorPoint + offset * offsetVecs[i];
         if (RectI(res.x_, res.y_, maxRadius, maxRadius).Intersect(hwcAbsRect)) {
             isIntersectWithRoundCorner = true;
@@ -3048,6 +3046,27 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
             }
             tempRect = geoPtr->MapAbsRect(tempRect.ConvertTo<float>());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(tempRect, true);
+        }
+    }
+}
+
+void RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay(
+    RSDisplayRenderNode &node, const sptr<RSScreenManager> &screenManager)
+{
+    RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
+    if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
+        RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay get screen type failed.");
+        return;
+    }
+    if (screenType == EXTERNAL_TYPE_SCREEN) {
+        RectI dirtyRectTop, dirtyRectBottom;
+        if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
+            node.GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectTop);
+        }
+        if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
+            node.GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
+            curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectBottom);
         }
     }
 }
