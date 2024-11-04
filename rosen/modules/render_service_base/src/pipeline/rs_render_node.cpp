@@ -2498,7 +2498,7 @@ void RSRenderNode::ApplyModifiers()
     MarkForegroundFilterCache();
     UpdateShouldPaint();
 
-    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT)) &&
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT)) ||
         dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT_TYPE))) {
         ProcessBehindWindowAfterApplyModifiers();
     }
