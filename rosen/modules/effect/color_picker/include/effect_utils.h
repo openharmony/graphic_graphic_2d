@@ -25,7 +25,7 @@ namespace Rosen {
 #define LOG_DOMAIN 0xD001405
 
 #undef LOG_TAG
-#define LOG_TAG "EffectNapi"
+#define LOG_TAG "EffectKit"
 
 #define EFFECT_LOG_D(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
 

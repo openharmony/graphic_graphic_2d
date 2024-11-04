@@ -21,6 +21,7 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
+
 namespace Media {
 class PixelMap;
 }
@@ -32,6 +33,7 @@ enum class ImageType {
     TYPE_IMAGE_SOURCE,
 };
 
+struct ColorPickerAsyncContext;
 class ColorPickerNapi {
 public:
     ColorPickerNapi();
@@ -44,8 +46,12 @@ private:
     static void Destructor(napi_env env, void* nativeObject, void* finalize);
 
     // static mothod
+    static std::unique_ptr<ColorPickerAsyncContext> InitializeAsyncContext(
+        napi_env env, napi_status& status, napi_value* argValue, size_t argCount);
+    static bool ProcessCallbackAndCoordinates(napi_env env, napi_value* argValue, size_t argCount,
+        napi_value& result, std::unique_ptr<ColorPickerAsyncContext>& asyncContext);
     static napi_value CreateColorPicker(napi_env env, napi_callback_info info);
-    static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void *data);
+    static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void* data);
     static napi_value GetScaledPixelMap(napi_env env, napi_callback_info info);
     static napi_value GetMainColor(napi_env env, napi_callback_info info);
     static napi_value GetMainColorSync(napi_env env, napi_callback_info info);

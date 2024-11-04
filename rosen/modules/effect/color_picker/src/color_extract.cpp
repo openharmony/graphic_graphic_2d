@@ -40,18 +40,15 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap)
         return;
     }
     colorValLen_ = static_cast<uint32_t>(pixmap->GetWidth() * pixmap->GetHeight());
-    auto colorVal = new uint32_t[colorValLen_]();
-    std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
-        delete[] ptr;
-    });
-    colorVal_ = std::move(colorShared);
+    colorVal_.resize(colorValLen_);
+
     uint32_t realColorCnt = 0;
     for (int i = 0; i < pixmap->GetHeight(); i++) {
         for (int j = 0; j < pixmap->GetWidth(); j++) {
             uint32_t pixelColor;
             pixmap->GetARGB32Color(j, i, pixelColor);
             if (GetARGB32ColorA(pixelColor) != 0) {
-                colorVal[realColorCnt] = pixelColor;
+                colorVal_.data()[realColorCnt] = pixelColor;
                 realColorCnt++;
             }
         }
@@ -81,18 +78,14 @@ ColorExtract::ColorExtract(std::shared_ptr<Media::PixelMap> pixmap, double* coor
     if (colorValLen_ <= 0) {
         return;
     }
-    auto colorVal = new uint32_t[colorValLen_]();
-    std::shared_ptr<uint32_t> colorShared(colorVal, [](uint32_t *ptr) {
-        delete[] ptr;
-    });
-    colorVal_ = std::move(colorShared);
+    colorVal_.resize(colorValLen_);
     uint32_t realColorCnt = 0;
     for (uint32_t i = top; i < bottom; i++) {
         for (uint32_t j = left; j < right; j++) {
             uint32_t pixelColor;
             pixmap->GetARGB32Color(j, i, pixelColor);
             if (GetARGB32ColorA(pixelColor) != 0) {
-                colorVal[realColorCnt] = pixelColor;
+                colorVal_.data()[realColorCnt] = pixelColor;
                 realColorCnt++;
             }
         }
@@ -233,7 +226,7 @@ uint32_t ColorExtract::CalcGrayMsd() const
     if (colorValLen_ == 0) {
         return 0;
     }
-    uint32_t *colorVal = colorVal_.get();
+    uint32_t *colorVal = const_cast<uint32_t *>(colorVal_.data());
     long long int graySum = 0;
     long long int grayVar = 0;
     for (uint32_t i = 0; i < colorValLen_; i++) {
@@ -274,7 +267,7 @@ float ColorExtract::CalcContrastToWhite() const
     if (colorValLen_ == 0) {
         return 0.0;
     }
-    uint32_t *colorVal = colorVal_.get();
+    uint32_t *colorVal = const_cast<uint32_t *>(colorVal_.data());
     float lightDegree = 0;
     float luminanceSum = 0;
     for (uint32_t i = 0; i < colorValLen_; i++) {
@@ -291,13 +284,10 @@ void ColorExtract::GetNFeatureColors(int colorNum)
     if (colorValLen_ == 0) {
         return;
     }
-    uint32_t *colorVal = colorVal_.get();
+    uint32_t *colorVal = const_cast<uint32_t *>(colorVal_.data());
     uint32_t histLen = (1 << (QUANTIZE_WORD_WIDTH * 3));
-    auto hist = new uint32_t[histLen]();
-    std::shared_ptr<uint32_t> histShared(hist, [](uint32_t *ptr) {
-        delete[] ptr;
-    });
-    hist_ = move(histShared);
+    hist_.resize(histLen);
+    uint32_t *hist = hist_.data();
     for (uint32_t i = 0; i < colorValLen_; i++) {
         uint32_t quantizedColor = QuantizeFromRGB888(colorVal[i]);
         hist[quantizedColor]++;
@@ -309,20 +299,14 @@ void ColorExtract::GetNFeatureColors(int colorNum)
         }
     }
 
-    // Create an array consisting of only distinct colors
-    auto colors = new uint32_t[distinctColorCount_]();
-    std::shared_ptr<uint32_t> colorsShared(colors, [](uint32_t *ptr) {
-        delete[] ptr;
-    });
-    colors_ = move(colorsShared);
-
+    colors_.resize(distinctColorCount_);
+    uint32_t *colors = colors_.data();
     int distinctColorIndex = 0;
     for (uint32_t color = 0; color < histLen; color++) {
         if (hist[color] > 0) {
             colors[distinctColorIndex++] = color;
         }
     }
-
     if (distinctColorCount_ < colorNum) {
         //The picture has fewer colors than the maximum requested, just return the colors.
         for (int i = 0; i < distinctColorCount_; ++i) {

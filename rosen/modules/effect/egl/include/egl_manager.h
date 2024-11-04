@@ -37,17 +37,26 @@ public:
         return manager;
     }
 
-    ~EglManager() {}
+    ~EglManager()
+    {
+        Deinit();
+    }
     EGLConfig GetConfig(int version, EGLDisplay eglDisplay);
     EGLBoolean Init();
-    void Deinit();
     EGLBoolean IsEGLContextInCurrentThread(EGLDisplay display, EGLContext context);
 
 private:
+
     EglManager() : EGLDisplay_(EGL_NO_DISPLAY), EGLConfig_(nullptr), EGLContext_(EGL_NO_CONTEXT),
         currentSurface_(nullptr) {}
     EglManager(const EglManager&) = delete;
     EglManager& operator=(const EglManager&) = delete;
+    void Deinit();
+    bool RetryEGLContext();
+    bool InitializeEGLDisplay();
+    bool CreateEGLSurface();
+    bool CreateAndSetEGLContext();
+
     EGLDisplay EGLDisplay_;
     EGLConfig EGLConfig_;
     EGLContext EGLContext_;
