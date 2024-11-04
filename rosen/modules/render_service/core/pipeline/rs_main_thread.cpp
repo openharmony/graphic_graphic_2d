@@ -3338,6 +3338,8 @@ void RSMainThread::RenderServiceAllNodeDump(DfxString& log)
         node_str = "";
         if (count > 2500) { // 2500 is the max dump size.
             log.AppendFormat("Total node size > 2500, only record the first 2500.\n");
+            node_str = "Total Node Map Size = " + std::to_string(context_->GetMutableNodeMap().GetSize());
+            log.AppendFormat("%s\n", node_str.c_str());
             break;
         }
     }
