@@ -726,6 +726,19 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
     EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
+
+    // expand -> multiScreen -> expand
+    frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
+    frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
+
+    hgmCore.SetMultiSelfOwnedScreenEnable(true);
+    frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
+
+    hgmCore.SetMultiSelfOwnedScreenEnable(false);
+    frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
+    EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
 }
 } // namespace Rosen
 } // namespace OHOS

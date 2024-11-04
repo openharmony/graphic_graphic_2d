@@ -29,6 +29,7 @@
 #include "parameters.h"
 #include "frame_rate_report.h"
 #include "sandbox_utils.h"
+#include "hgm_screen_info.h"
 
 namespace OHOS::Rosen {
 static std::map<uint32_t, int64_t> IDEAL_PERIOD = {
@@ -371,6 +372,15 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
     }
 
     sptr<HgmScreen> newScreen = new HgmScreen(id, defaultMode, screenSize);
+    auto configData = HgmCore::Instance().GetPolicyConfigData();
+    if (configData != nullptr) {
+        auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+        auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
+        std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
+        if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
+            newScreen->SetSelfOwnedScreenFlag(true);
+        }
+    }
 
     std::lock_guard<std::mutex> lock(listMutex_);
     screenList_.push_back(newScreen);

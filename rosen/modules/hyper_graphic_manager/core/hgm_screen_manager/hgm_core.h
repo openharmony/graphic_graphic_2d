@@ -269,6 +269,16 @@ public:
     {
         return isDelayMode_;
     }
+
+    void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
+    {
+        multiSelfOwnedScreenEnable_.store(multiSelfOwnedScreenEnable);
+    }
+
+    bool GetMultiSelfOwnedScreenEnable() const
+    {
+        return multiSelfOwnedScreenEnable_.load();
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -323,6 +333,7 @@ private:
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
     std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
+    std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H
