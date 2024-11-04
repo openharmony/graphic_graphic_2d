@@ -30,6 +30,7 @@ group("unittest") {
     ":RSHardwareThreadTest",
     ":RSMainThreadTest",
     ":RSPhysicalScreenProcessorTest",
+    ":RSPointerWindowManagerTest",
     ":RSProcessorFactoryTest",
     ":RSRealtimeRefreshRateManagerTest",
     ":RSRenderEngineTest",

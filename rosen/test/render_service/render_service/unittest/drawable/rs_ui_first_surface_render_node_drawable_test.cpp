@@ -121,7 +121,7 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCacheSurfaceTest, TestSize.L
  * @tc.name: GetCompletedImage
  * @tc.desc: Test If GetCompletedImage Can Run
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IB1MHP
  */
 HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize.Level1)
 {
@@ -131,17 +131,17 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize
     uint32_t threadIndex = 1;
     bool isUIFirst = true;
 
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas);
-    auto result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex, isUIFirst);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    auto result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
     EXPECT_EQ(result, nullptr);
 
     isUIFirst = false;
-    result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex, isUIFirst);
+    result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 
     surfaceDrawable_->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    result = surfaceDrawable_->GetCompletedImage(*rscanvas, threadIndex, isUIFirst);
+    result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 }
 
@@ -149,7 +149,7 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize
  * @tc.name: DrawCacheSurface
  * @tc.desc: Test If DrawCacheSurface Can Run
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IB1MHP
  */
 HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawCacheSurfaceTest, TestSize.Level1)
 {
@@ -159,17 +159,17 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawCacheSurfaceTest, TestSize.
     Vector2f boundSize;
     uint32_t threadIndex = 1;
     bool isUIFirst = false;
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas);
-    auto result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex, isUIFirst);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    auto result = surfaceDrawable_->DrawCacheSurface(rscanvas, boundSize, threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 
     surfaceDrawable_->boundsWidth_ = 1.f;
-    result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex, isUIFirst);
+    result = surfaceDrawable_->DrawCacheSurface(rscanvas, boundSize, threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 
     surfaceDrawable_->boundsHeight_ = 1.f;
-    result = surfaceDrawable_->DrawCacheSurface(*rscanvas, boundSize, threadIndex, isUIFirst);
+    result = surfaceDrawable_->DrawCacheSurface(rscanvas, boundSize, threadIndex, isUIFirst);
     EXPECT_FALSE(result);
 }
 
@@ -253,15 +253,15 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, IsCurFrameStaticTest, TestSize.
  * @tc.name: SubDraw
  * @tc.desc: Test If SubDraw Can Run
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IB1MHP
  */
 HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, SubDrawTest, TestSize.Level1)
 {
     if (surfaceDrawable_ == nullptr) {
         return;
     }
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    surfaceDrawable_->SubDraw(*drawingCanvas);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    surfaceDrawable_->SubDraw(*drawingCanvas_.get());
     EXPECT_TRUE(surfaceDrawable_->uifirstDrawCmdList_.empty());
 }
 
@@ -269,25 +269,25 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, SubDrawTest, TestSize.Level1)
  * @tc.name: DrawUIFirstCache
  * @tc.desc: Test If DrawUIFirstCache Can Run
  * @tc.type: FUNC
- * @tc.require: #I9NVOG
+ * @tc.require: #IB1MHP
  */
 HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawUIFirstCacheTest, TestSize.Level1)
 {
     if (surfaceDrawable_ == nullptr) {
         return;
     }
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas);
-    auto result = surfaceDrawable_->DrawUIFirstCache(*rscanvas, true);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    auto result = surfaceDrawable_->DrawUIFirstCache(rscanvas, true);
     EXPECT_EQ(result, false);
     ASSERT_FALSE(surfaceDrawable_->HasCachedTexture());
 
-    result = surfaceDrawable_->DrawUIFirstCache(*rscanvas, false);
+    result = surfaceDrawable_->DrawUIFirstCache(rscanvas, false);
     EXPECT_EQ(result, false);
 
     surfaceDrawable_->isTextureValid_.store(true);
     ASSERT_TRUE(surfaceDrawable_->HasCachedTexture());
-    result = surfaceDrawable_->DrawUIFirstCache(*rscanvas, false);
+    result = surfaceDrawable_->DrawUIFirstCache(rscanvas, false);
     EXPECT_EQ(result, false);
     surfaceDrawable_->isTextureValid_.store(false);
 }
@@ -296,13 +296,13 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawUIFirstCacheTest, TestSize.
  * @tc.name: DrawUIFirstCacheWithStarting
  * @tc.desc: Test If DrawUIFirstCacheWithStarting Can Run
  * @tc.type: FUNC
- * @tc.require: issueIAH6OI
+ * @tc.require: #IB1MHP
  */
 HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, DrawUIFirstCacheWithStartingTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
-    Drawing::Canvas* drawingCanvas = new Drawing::Canvas(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas);
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    auto rscanvas = static_cast<RSPaintFilterCanvas*>(drawingCanvas_.get());
     NodeId id = 0;
     auto result = surfaceDrawable_->DrawUIFirstCacheWithStarting(*rscanvas, id);
     ASSERT_FALSE(result);

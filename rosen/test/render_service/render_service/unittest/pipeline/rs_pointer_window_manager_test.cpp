@@ -18,6 +18,7 @@
 
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_pointer_window_manager.h"
+#include "pipeline/rs_uni_render_processor.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -59,5 +60,52 @@ HWTEST_F(RSPointerWindowManagerTest, UpdatePointerDirtyToGlobalDirtyTest, TestSi
     // run
     rsPointerWindowManager->UpdatePointerDirtyToGlobalDirty(node, displayNode);
     ASSERT_NE(rsPointerWindowManager->IsNeedForceCommitByPointer(), true);
+}
+
+
+/**
+ * @tc.name: SetHardCursorNodeInfo001
+ * @tc.desc: Test SetHardCursorNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: #IB1MHP
+ */
+HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest001, TestSize.Level2)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
+    ASSERT_EQ(rsPointerWindowManager.hardCursorNodes_, nullptr);
+}
+
+/**
+ * @tc.name: SetHardCursorNodeInfo002
+ * @tc.desc: Test SetHardCursorNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: #IB1MHP
+ */
+HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest002, TestSize.Level2)
+{
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceNode->name_ = "pointer window";
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    rsPointerWindowManager.SetHardCursorNodeInfo(surfaceNode);
+    ASSERT_NE(rsPointerWindowManager.hardCursorNodes_, nullptr);
+}
+/**
+ * @tc.name: HardCursorCreateLayerForDirect
+ * @tc.desc: Test HardCursorCreateLayerForDirect
+ * @tc.type: FUNC
+ * @tc.require: #IB1MHP
+ */
+HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirectTest, TestSize.Level2)
+{
+    auto processor = std::make_shared<RSUniRenderProcessor>();
+    ASSERT_NE(processor, nullptr);
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    auto& hardCursorNodes = rsPointerWindowManager.GetHardCursorNode();
+    ASSERT_NE(hardCursorNodes, nullptr);
+    hardCursorNodes->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
 }
 } // OHOS::Rosen
