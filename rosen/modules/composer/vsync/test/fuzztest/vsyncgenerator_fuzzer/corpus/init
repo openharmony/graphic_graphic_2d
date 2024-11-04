@@ -11,15 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "vsyncconnection_fuzzer:fuzztest",
-    "vsynccontroller_fuzzer:fuzztest",
-    "vsyncdistributor_fuzzer:fuzztest",
-    "vsyncreceiver_fuzzer:fuzztest",
-    "vsyncsampler_fuzzer:fuzztest",
-    "vsyncgenerator_fuzzer:fuzztest",
-  ]
-}
+FUZZ

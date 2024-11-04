@@ -22,6 +22,7 @@
 
 namespace OHOS {
     namespace {
+        constexpr size_t STR_LEN = 10;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -47,6 +48,20 @@ namespace OHOS {
         return object;
     }
 
+    /*
+    * get a string from data_
+    */
+    std::string GetStringFromData(int strlen)
+    {
+        char cstr[strlen];
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
+            cstr[i] = GetData<char>();
+        }
+        std::string str(cstr);
+        return str;
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -65,7 +80,21 @@ namespace OHOS {
         bool nativeDVSyncSwitch = GetData<bool>();
         int32_t bufferCount = GetData<int32_t>();
         int32_t highPriorityRate = GetData<int32_t>();
-
+        int64_t windowNodeId = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        int64_t now = GetData<int64_t>();
+        int64_t period = GetData<int64_t>();
+        uint32_t refreshRate = GetData<uint32_t>();
+        VSyncMode vsyncMode = GetData<VSyncMode>();
+        uint32_t vsyncMaxRefreshRate = GetData<uint32_t>();
+        std::pair<uint64_t, uint32_t> pair1 = {GetData<uint64_t>(), GetData<uint32_t>()};
+        bool waitForVSync = GetData<bool>();
+        int64_t vsyncCount = GetData<int64_t>();
+        bool isDvsyncThread = GetData<bool>();
+        uint32_t pid = GetData<uint32_t>();
+        bool isSystemAnimateScene = GetData<bool>();
+        uint64_t id = GetData<uint64_t>();
+        bool isRender = GetData<bool>();
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
@@ -76,7 +105,33 @@ namespace OHOS {
         vsyncDistributor->SetUiDvsyncSwitch(uiDVSyncSwitch, conn);
         vsyncDistributor->SetUiDvsyncConfig(bufferCount);
         vsyncDistributor->SetHighPriorityVSyncRate(highPriorityRate, conn);
-
+        vsyncDistributor->AddConnection(conn, windowNodeId);
+        vsyncDistributor->RemoveConnection(conn);
+        std::mutex mutex;
+        std::unique_lock<std::mutex> locker(mutex);
+        vsyncDistributor->WaitForVsyncOrTimeOut(locker);
+        std::vector<sptr<Rosen::VSyncConnection>> conns = {conn};
+        vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns);
+        vsyncDistributor->DisableVSync();
+        vsyncDistributor->EnableVSync();
+        #if defined(RS_ENABLE_DVSYNC)
+        vsyncDistributor->OnDVSyncTrigger(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
+        vsyncDistributor->SendConnectionsToVSyncWindow(now, period, refreshRate, vsyncMode, locker);
+        #endif
+        vsyncDistributor->OnVSyncTrigger(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
+        vsyncDistributor->CheckNeedDisableDvsync(now, period);
+        vsyncDistributor->OnConnsRefreshRateChanged({pair1});
+        vsyncDistributor->CollectConnectionsLTPO(waitForVSync, timestamp, conns, vsyncCount, isDvsyncThread);
+        vsyncDistributor->PostVSyncEvent(conns, timestamp, isDvsyncThread);
+        std::string name = GetStringFromData(STR_LEN);
+        vsyncDistributor->QosGetPidByName(name, pid);
+        vsyncDistributor->SetQosVSyncRateByPid(pid, rate,isSystemAnimateScene);
+        vsyncDistributor->SetQosVSyncRate(id, rate, isSystemAnimateScene);
+        vsyncDistributor->ChangeConnsRateLocked(vsyncMaxRefreshRate);
+        vsyncDistributor->SetFrameIsRender(isRender);
+        vsyncDistributor->MarkRSAnimate();
+        vsyncDistributor->UnmarkRSAnimate();
+        vsyncDistributor->HasPendingUIRNV();
         return true;
     }
 }
