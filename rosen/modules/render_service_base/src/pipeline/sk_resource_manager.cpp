@@ -20,7 +20,7 @@
 
 namespace OHOS::Rosen {
 #ifdef ROSEN_OHOS
-constexpr uint32_t MAX_CHECK_SIZE = 20;
+constexpr uint32_t MAX_CHECK_SIZE = 20; // empirical value
 #endif
 SKResourceManager& SKResourceManager::Instance()
 {
@@ -73,13 +73,16 @@ void SKResourceManager::DeleteSharedTextureContext(void* context)
 }
 #endif
 
-bool SKResourceManager::HasRealseableResourceCheck(const std::list<std::shared_ptr<Drawing::Surface>> &list)
+bool SKResourceManager::HaveReleaseableResourceCheck(const std::list<std::shared_ptr<Drawing::Surface>> &list)
 {
 #ifdef ROSEN_OHOS
     if (list.empty()) {
         return false;
     }
     if (list.size() > MAX_CHECK_SIZE) {
+        /* to avoid this function taking too long, return true directly,
+         * which means resources may need to be released
+         */
         return true;
     }
     for (auto& surface : list) {
@@ -100,7 +103,7 @@ void SKResourceManager::ReleaseResource()
     RS_TRACE_FUNC();
     std::scoped_lock<std::recursive_mutex> lock(mutex_);
     for (auto& images : images_) {
-        if (images.second->HasRealseableResourceCheck()) {
+        if (images.second->HaveReleaseableResourceCheck()) {
             RSTaskDispatcher::GetInstance().PostTask(images.first, [this]() {
                 auto tid = gettid();
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);
@@ -110,7 +113,7 @@ void SKResourceManager::ReleaseResource()
     }
 
     for (auto& skSurface : skSurfaces_) {
-        if (HasRealseableResourceCheck(skSurface.second)) {
+        if (HaveReleaseableResourceCheck(skSurface.second)) {
             RSTaskDispatcher::GetInstance().PostTask(skSurface.first, [this]() {
                 auto tid = gettid();
                 std::scoped_lock<std::recursive_mutex> lock(mutex_);

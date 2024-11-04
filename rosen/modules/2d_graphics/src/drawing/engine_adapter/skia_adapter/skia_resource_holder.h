@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-constexpr uint32_t MAX_CHECK_SIZE = 20;
+constexpr uint32_t MAX_CHECK_SIZE = 20; // empirical value
 class SkiaResourceHolder : public ResourceHolderImpl {
 public:
     static inline constexpr AdapterType TYPE = AdapterType::SKIA_ADAPTER;
@@ -63,12 +63,15 @@ public:
         return images_.empty();
     }
 
-    bool HasRealseableResourceCheck() override
+    bool HaveReleaseableResourceCheck() override
     {
         if (images_.empty()) {
             return false;
         }
         if (images_.size() > MAX_CHECK_SIZE) {
+            /* to avoid this function taking too long, return true directly,
+             * which means resources may need to be released
+             */
             return true;
         }
         auto iter = images_.begin();
