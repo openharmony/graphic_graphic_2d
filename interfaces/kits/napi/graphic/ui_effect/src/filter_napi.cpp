@@ -336,6 +336,10 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_water_ripple_info"));
 
     std::shared_ptr<WaterRipplePara> para = std::make_shared<WaterRipplePara>();
+    if (para == nullptr) {
+        FILTER_LOG_E("FilterNapi SetWaterRipple: para is nullptr");
+        return thisVar;
+    }
 
     float progress = 0.0f;
     uint32_t waveCount = 0;
@@ -454,14 +458,18 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 {
-    int32_t mode = 0;
     if (UIEffectNapiUtils::getType(env, argv) == napi_number) {
         double tmp = 0.0f;
         if (UIEFFECT_IS_OK(napi_get_value_double(env, argv, &tmp))) {
-            mode = tmp;
+            int32_t mode = static_cast<int32_t>(tmp);
+            auto iter = INDEX_TO_TILEMODE.find(mode);
+            if (iter != INDEX_TO_TILEMODE.end()) {
+                return iter->second;
+            }
         }
     }
-    return INDEX_TO_TILEMODE[mode];
+
+    return Drawing::TileMode::CLAMP;
 }
 
 }  // namespace Rosen
