@@ -27,13 +27,13 @@
 #include <securec.h>
 #include <unistd.h>
 
+#include "common/rs_color.h"
 #include "draw/canvas.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_content.h"
 #include "property/rs_properties.h"
 #include "property/rs_property_drawable_bounds_geometry.h"
 #include "skia_adapter/skia_surface.h"
-#include "common/rs_color.h"
 
 namespace OHOS {
 namespace Rosen {
