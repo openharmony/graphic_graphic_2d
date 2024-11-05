@@ -191,6 +191,50 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetDisappearedSurfaceRegionBelowCurrent(GetData<uint64_t>());
     return true;
 }
+
+bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint64_t id = GetData<uint64_t>();
+    RSDisplayNodeConfig config;
+    config.mirrorNodeId = id;
+    config.screenId = id;
+    config.isMirrored = true;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    rsDisplayRenderNode.HandleCurMainAndLeashSurfaceNodes();
+    return true;
+}
+
+bool DoIsZoomStateChange(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint64_t id = GetData<uint64_t>();
+    RSDisplayNodeConfig config;
+    config.mirrorNodeId = id;
+    config.screenId = id;
+    config.isMirrored = true;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    bool state = GetData<bool>();
+    rsDisplayRenderNode.UpdateZoomState(state);
+    rsDisplayRenderNode.IsZoomStateChange();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -200,5 +244,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::Rosen::DoUpdateScreenRenderParams(data, size);
+    OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data, size);
+    OHOS::Rosen::DoIsZoomStateChange(data, size);
     return 0;
 }
