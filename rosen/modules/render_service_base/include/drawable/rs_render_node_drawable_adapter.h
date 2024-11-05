@@ -67,6 +67,38 @@ enum class SkipType : uint8_t {
     SKIP_BACKGROUND_COLOR = 2
 };
 
+enum class DrawSkipType : uint8_t {
+    NONE = 0,
+    SHOULD_NOT_PAINT = 1,
+    CANVAS_NULL = 2,
+    RENDER_THREAD_PARAMS_NULL = 3,
+    RENDER_PARAMS_NULL = 4,
+    SURFACE_PARAMS_SKIP_DRAW = 5,
+    RENDER_ENGINE_NULL = 6,
+    FILTERCACHE_OCCLUSION_SKIP = 7,
+    OCCLUSION_SKIP = 8,
+    UI_FIRST_CACHE_SKIP = 9,
+    PARALLEL_CANVAS_SKIP = 10,
+    INIT_SURFACE_FAIL = 11,
+    RENDER_PARAMS_OR_UNI_PARAMS_NULL = 12,
+    SCREEN_OFF = 13,
+    SCREEN_MANAGER_NULL = 14,
+    SKIP_FRAME = 15,
+    CREATE_PROCESSOR_FAIL = 16,
+    INIT_FOR_RENDER_THREAD_FAIL = 17,
+    WIRED_SCREEN_PROJECTION = 18,
+    EXPAND_PROCESSOR_NULL = 19,
+    MIRROR_DRAWABLE_SKIP = 20,
+    DISPLAY_NODE_SKIP = 21,
+    REQUEST_FRAME_FAIL = 22,
+    SURFACE_NULL = 23,
+    GENERATE_EFFECT_DATA_ON_DEMAND_FAIL = 24,
+    RENDER_SKIP_IF_SCREEN_OFF = 25,
+    HARD_CURSOR_ENAbLED = 26,
+    CHECK_MATCH_AND_WAIT_NOTIFY_FAIL = 27,
+    DEAL_WITH_CACHED_WINDOW = 28
+};
+
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
 public:
     explicit RSRenderNodeDrawableAdapter(std::shared_ptr<const RSRenderNode>&& node);
@@ -178,6 +210,14 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
+    void SetDrawSkipType(DrawSkipType type) {
+        drawSkipType_ = type;
+    }
+
+    DrawSkipType GetDrawSkipType() {
+        return drawSkipType_;
+    }
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -257,6 +297,7 @@ private:
     static CmdListVec toClearCmdListVec_;
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
+    DrawSkipType drawSkipType_ = DrawSkipType::NONE;
     int filterRectSize_ = 0;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
