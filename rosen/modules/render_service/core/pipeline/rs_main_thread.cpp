@@ -1508,7 +1508,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetBuffer() != nullptr) {
-                selfDrawingNodes_.emplace_back(surfaceNode);
+                AddSelfDrawingNodes(surfaceNode);
                 selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
                 RSPointerWindowManager::Instance().SetHardCursorNodeInfo(surfaceNode);
             }
@@ -2839,9 +2839,19 @@ void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onV
     }
 }
 
+void RSMainThread::AddSelfDrawingNodes(std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode)
+{
+    selfDrawingNodes_.emplace_back(selfDrawingNode);
+}
+
 const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& RSMainThread::GetSelfDrawingNodes() const
 {
     return selfDrawingNodes_;
+}
+
+void RSMainThread::ClearSelfDrawingNodes()
+{
+    selfDrawingNodes_.clear();
 }
 
 const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& RSMainThread::GetSelfDrawables() const
