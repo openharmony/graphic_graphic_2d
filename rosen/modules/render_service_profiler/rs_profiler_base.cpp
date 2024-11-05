@@ -344,15 +344,21 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
     };
 
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(map.renderNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool {
-        if (canBeRemoved(pair.first, pid) == false) {
-            return false;
-        }
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
-        return true;
-    });
-
+    auto iter = map.renderNodeMap_.find(pid);
+    if (iter != map.renderNodeMap_.end()) {
+        auto& submap = iter->second;
+        EraseIf(submap, [pid, canBeRemoved](const auto& pair) -> bool {
+            if (Utils::ExtractNodeId(node) == 1) {
+                return false;
+            }
+            // remove node from tree
+            pair.second->RemoveFromTree(false);
+            return true;
+        });
+    }
+    if (iter->second.empty()) {
+        map.renderNodeMap_.erase(iter);
+    }
     EraseIf(
         map.surfaceNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
@@ -399,13 +405,14 @@ void RSProfiler::GetSurfacesTrees(
     list.clear();
 
     const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    for (const auto& item : map.renderNodeMap_) {
-        if (item.second->GetType() == RSRenderNodeType::SURFACE_NODE) {
-            std::string tree;
-            item.second->DumpTree(treeDumpDepth, tree);
-
-            const auto node = item.second->ReinterpretCastTo<RSSurfaceRenderNode>();
-            list.insert({ node->GetName(), { node->GetId(), tree } });
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
+                std::string tree;
+                node->DumpTree(treeDumpDepth, tree);
+                const auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+                list.insert({ surfaceNode->GetName(), { surfaceNode->GetId(), tree } });
+            }
         }
     }
 }
@@ -417,18 +424,25 @@ void RSProfiler::GetSurfacesTrees(const RSContext& context, pid_t pid, std::map<
     list.clear();
 
     const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    for (const auto& item : map.renderNodeMap_) {
-        if (item.second->GetId() == Utils::GetRootNodeId(pid)) {
-            std::string tree;
-            item.second->DumpTree(treeDumpDepth, tree);
-            list.insert({ item.second->GetId(), tree });
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node->GetId() == Utils::GetRootNodeId(pid)) {
+                std::string tree;
+                node->DumpTree(treeDumpDepth, tree);
+                list.insert({ node->GetId(), tree });
+            }
         }
     }
 }
 
 size_t RSProfiler::GetRenderNodeCount(const RSContext& context)
 {
-    return const_cast<RSContext&>(context).GetMutableNodeMap().renderNodeMap_.size();
+    const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
+    size_t mapSize = 0;
+    for (const auto& [_, submap] : map.renderNodeMap_){
+        mapSize += map.renderNodeMap_.size();
+    }
+    return mapSize;
 }
 
 NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
@@ -443,7 +457,11 @@ NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
 void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
     const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    const uint32_t count = map.renderNodeMap_.size();
+    size_t mapSize = 0;
+    for (const auto& [_, submap] : map.renderNodeMap_){
+        mapSize += map.renderNodeMap_.size();
+    }
+    const uint32_t count = static_cast<uint32_t>(mapSize);
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
     const auto& rootRenderNode = context.GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
@@ -454,12 +472,14 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
     std::vector<std::shared_ptr<RSRenderNode>> nodes;
     nodes.emplace_back(rootRenderNode);
 
-    for (const auto& item : map.renderNodeMap_) {
-        if (const auto& node = item.second) {
-            MarshalNode(*node, data, fileVersion);
-            std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
-            if (!parent && (node != rootRenderNode)) {
-                nodes.emplace_back(node);
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node != nullptr) {
+                MarshalNode(*node, data, fileVersion);
+                std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
+                if (!parent && (node != rootRenderNode)) {
+                    nodes.emplace_back(node);
+                }
             }
         }
     }
