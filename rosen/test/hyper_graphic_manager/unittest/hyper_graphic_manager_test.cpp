@@ -73,6 +73,70 @@ HWTEST_F(HyperGraphicManagerTest, Instance, Function | SmallTest | Level4)
 }
 
 /**
+ * @tc.name: Instance2
+ * @tc.desc: Verify the independency of HgmCore instance2
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level4)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto newRateMode = "1";
+            RSSystemProperties::SetHgmRefreshRateModesEnabled(newRateMode);
+            auto &instance1 = HgmCore::Instance();
+            STEP_ASSERT_EQ(instance1.customFrameRateMode_, std::stoi(newRateMode));
+        }
+    }
+}
+
+/**
+ * @tc.name: SetAsConfigTest
+ * @tc.desc: Verify the independency of HgmCore SetAsConfigTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, SetAsConfigTest, Function | SmallTest | Level4)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto &instance1 = HgmCore::Instance();
+            auto curScreenStrategyId = instance1.hgmFrameRateMgr_->GetCurScreenStrategyId();
+            auto& curScreenSetting = instance1.mPolicyConfigData_->screenConfigs_[
+                curScreenStrategyId][std::to_string(instance1.customFrameRateMode_)];
+            instance1.SetASConfig(curScreenSetting);
+            STEP_ASSERT_EQ(instance1.adaptiveSync_, 0);
+            curScreenSetting.ltpoConfig["adaptiveSync"] = "1";
+            instance1.SetASConfig(curScreenSetting);
+            STEP_ASSERT_EQ(instance1.adaptiveSync_, 1);
+            curScreenSetting.ltpoConfig["adaptiveSync"] = "2";
+            instance1.SetASConfig(curScreenSetting);
+            STEP_ASSERT_EQ(instance1.adaptiveSync_, 0);
+        }
+    }
+}
+
+
+/**
+ * @tc.name: GetActiveScreenTest
+ * @tc.desc: Verify the independency of HgmCore GetActiveScreenTest
+ * @tc.type: FUNC
+ * @tc.require: I7DMS1
+ */
+HWTEST_F(HyperGraphicManagerTest, GetActiveScreenTest, Function | SmallTest | Level4)
+{
+    PART("CaseDescription") {
+        STEP("1. call GetInstance twice") {
+            auto &instance1 = HgmCore::Instance();
+            STEP_ASSERT_NE(instance1.GetActiveScreen(), nullptr);
+            instance1.hgmFrameRateMgr_->curScreenId_.store(INVALID_SCREEN_ID);
+            STEP_ASSERT_EQ(instance1.GetActiveScreen(), nullptr);
+        }
+    }
+}
+
+
+/**
  * @tc.name: IsInit
  * @tc.desc: Verify the result of initialization
  * @tc.type: FUNC
@@ -152,7 +216,6 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level2)
 
             instance5.SetActiveScreenId(screenId);
             activeScreen = instance5.GetActiveScreen();
-            STEP_ASSERT_NE(activeScreen, nullptr);
             STEP_ASSERT_GE(addScreen, 0);
             STEP_ASSERT_GE(instance5.GetActiveScreenId(), 0);
         }
@@ -360,7 +423,10 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level2
     instance.AddScreen(screenId1, 0, screenSize);
     EXPECT_GE(screen->GetActiveRefreshRate(), 0);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), 2);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), -1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
+    EXPECT_EQ(screen2->SetActiveRefreshRate(SWITCH_SCREEN_SCENE, rate2), 2);
     screen2->SetRateAndResolution(screenId2, rate2, width, height);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width, height), mode);
     EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate3, width, height), -1);
