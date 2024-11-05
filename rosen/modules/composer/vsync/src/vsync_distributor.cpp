@@ -740,7 +740,7 @@ void VSyncDistributor::OnConnsRefreshRateChanged(const std::vector<std::pair<uin
 
 void VSyncDistributor::SubScribeSystemAbility(const std::string& threadName)
 {
-    VLOGD("%{public}s", __func__);
+    VLOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
