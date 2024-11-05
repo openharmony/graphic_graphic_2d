@@ -209,6 +209,9 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
         return true;
     }
+    if (!params.GetCornerRadiusInfoForDRM().empty()) {
+        return true;
+    }
     bool forceClientForDRM = false;
     auto ancestorDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
@@ -251,6 +254,15 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layer->SetCornerRadiusInfoForDRM(params.GetCornerRadiusInfoForDRM());
+    auto bufferBackgroundColor = params.GetBackgroundColor();
+    GraphicLayerColor backgroundColor = {
+        .r = bufferBackgroundColor.GetRed(),
+        .g = bufferBackgroundColor.GetGreen(),
+        .b = bufferBackgroundColor.GetBlue(),
+        .a = bufferBackgroundColor.GetAlpha()
+    };
+    layer->SetBackgroundColor(backgroundColor);
 
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(layerInfo.dstRect);

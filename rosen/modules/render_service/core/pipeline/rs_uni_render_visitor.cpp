@@ -2689,9 +2689,84 @@ void RSUniRenderVisitor::UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<Rect
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
             continue;
         }
+        UpdateCornerRadiusInfoForDRM(hwcNodePtr, hwcRects);
         UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, hwcNodePtr,
             hwcNodePtr->GetIntersectedRoundCornerAABBsSize() != 0);
     }
+}
+
+void RSUniRenderVisitor::UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode,
+    std::vector<RectI>& hwcRects)
+{
+    if (!hwcNode || !hwcNode->GetProtectedLayer()) {
+        return;
+    }
+    auto instanceNode = hwcNode->GetInstanceRootNode() ?
+        hwcNode->GetInstanceRootNode()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    if (!instanceNode) {
+        hwcNode->SetCornerRadiusInfoForDRM({});
+        return;
+    }
+    auto instanceAbsRect = instanceNode->GetAbsDrawRect();
+    auto instanceCornerRadius = instanceNode->GetGlobalCornerRadius();
+    if (instanceAbsRect.IsEmpty() || instanceCornerRadius.IsZero() ||
+        ROSEN_EQ(instanceNode->GetRenderProperties().GetBoundsWidth(), 0.0f)) {
+        hwcNode->SetCornerRadiusInfoForDRM({});
+        return;
+    }
+    auto hwcGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
+    if (!hwcGeo) {
+        hwcNode->SetCornerRadiusInfoForDRM({});
+        return;
+    }
+    auto hwcAbsRect = hwcGeo->MapRect(hwcNode->GetSelfDrawRect(), hwcNode->GetTotalMatrix());
+    hwcAbsRect = hwcAbsRect.IntersectRect(instanceAbsRect);
+    if (hwcAbsRect.IsEmpty()) {
+        hwcNode->SetCornerRadiusInfoForDRM({});
+        return;
+    }
+    auto ratio = static_cast<float>(instanceAbsRect.GetWidth()) /
+        instanceNode->GetRenderProperties().GetBoundsWidth();
+    std::vector<float> ratioVector = { 0.0f, 0.0f, 0.0f, 0.0f };
+    bool isIntersectWithRoundCorner =
+        CheckIfRoundCornerIntersectDRM(ratio, ratioVector, instanceCornerRadius, instanceAbsRect, hwcAbsRect);
+    // store radius information when drm overlaps with other hwc nodes
+    if (isIntersectWithRoundCorner) {
+        for (const auto& rect : hwcRects) {
+            if (hwcAbsRect.Intersect(rect)) {
+                std::vector<float> drmCornerRadiusInfo = {
+                    static_cast<float>(hwcAbsRect.GetLeft()), static_cast<float>(hwcAbsRect.GetTop()),
+                    static_cast<float>(hwcAbsRect.GetWidth()), static_cast<float>(hwcAbsRect.GetHeight()),
+                    // get corner radius num by index 0, 1, 2, 3
+                    instanceCornerRadius[0] * ratioVector[0], instanceCornerRadius[1] * ratioVector[1],
+                    instanceCornerRadius[2] * ratioVector[2], instanceCornerRadius[3] * ratioVector[3]};
+                hwcNode->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo);
+                return;
+            }
+        }
+    }
+    hwcNode->SetCornerRadiusInfoForDRM({});
+}
+
+bool RSUniRenderVisitor::CheckIfRoundCornerIntersectDRM(const float& ratio, std::vector<float>& ratioVector,
+    const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect)
+{
+    auto maxRadius = *std::max_element(std::begin(instanceCornerRadius.data_),
+        std::end(instanceCornerRadius.data_)) * ratio;
+    bool isIntersectWithRoundCorner = false;
+    static const std::vector<UIPoint> offsetVecs = { UIPoint { 0, 0 }, UIPoint { 1, 0 },
+        UIPoint { 0, 1 }, UIPoint { 1, 1 } };
+    UIPoint offset { instanceAbsRect.GetWidth() - maxRadius, instanceAbsRect.GetHeight() - maxRadius };
+    UIPoint anchorPoint { instanceAbsRect.GetLeft(), instanceAbsRect.GetTop() };
+    // if round corners intersect drm, update ratioVectors
+    for (size_t i = 0; i < offsetVecs.size(); i++) {
+        auto res = anchorPoint + offset * offsetVecs[i];
+        if (RectI(res.x_, res.y_, maxRadius, maxRadius).Intersect(hwcAbsRect)) {
+            isIntersectWithRoundCorner = true;
+            ratioVector[i] = ratio;
+        }
+    }
+    return isIntersectWithRoundCorner;
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
