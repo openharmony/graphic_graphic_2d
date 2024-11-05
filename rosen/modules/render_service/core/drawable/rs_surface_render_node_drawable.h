@@ -141,6 +141,7 @@ public:
     bool HasCachedTexture() const;
 
     void SetTextureValidFlag(bool isValid);
+#ifdef RS_ENABLE_GPU
     void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
         isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
@@ -150,6 +151,7 @@ public:
     {
         return isCacheSurfaceNeedUpdate_;
     }
+#endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     void UpdateBackendTexture();
 #endif
@@ -303,7 +305,7 @@ private:
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+#ifdef RS_ENABLE_GPU
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
 #ifdef RS_ENABLE_GL

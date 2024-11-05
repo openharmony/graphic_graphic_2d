@@ -52,6 +52,7 @@
 namespace OHOS {
 namespace Rosen {
 
+#ifdef RS_ENABLE_GPU
 static inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
     Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
@@ -67,6 +68,7 @@ static inline void DrawCapturedImg(Drawing::Image& image,
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
 }
+#endif
 
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)

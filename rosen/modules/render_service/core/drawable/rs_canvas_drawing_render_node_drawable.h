@@ -40,8 +40,6 @@ public:
         threadId_ = threadId;
     }
     bool InitSurface(int width, int height, RSPaintFilterCanvas& canvas);
-    bool InitSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
-    bool InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     std::shared_ptr<RSPaintFilterCanvas> GetCanvas();
     void Flush(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
@@ -88,6 +86,8 @@ private:
     void FlushForVK(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    bool InitSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
+    bool InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
     bool ReuseBackendTexture(int width, int height, RSPaintFilterCanvas& canvas);
     void ClearPreSurface(std::shared_ptr<Drawing::Surface>& surface);

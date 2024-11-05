@@ -22,6 +22,7 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "event_handler.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_render_thread_params.h"
@@ -100,7 +101,7 @@ public:
         frameCount_++;
     }
     bool GetWatermarkFlag() const;
-    
+
     bool IsCurtainScreenOn() const;
     bool IsColorFilterModeOn() const;
     bool IsHighContrastTextModeOn() const;

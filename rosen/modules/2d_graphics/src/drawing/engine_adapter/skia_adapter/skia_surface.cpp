@@ -15,14 +15,13 @@
 
 #include "skia_surface.h"
 
-#include "include/gpu/GrBackendSemaphore.h"
-
 #include "draw/surface.h"
 #include "utils/log.h"
 
 #include "skia_bitmap.h"
 #include "skia_canvas.h"
 #ifdef RS_ENABLE_GPU
+#include "include/gpu/GrBackendSemaphore.h"
 #include "skia_gpu_context.h"
 #endif
 #include "skia_image.h"
@@ -38,7 +37,6 @@ static constexpr int TEXTURE_SAMPLE_COUNT = 0;
 static constexpr int FB_SAMPLE_COUNT = 0;
 static constexpr int STENCIL_BITS = 8;
 static constexpr uint32_t SURFACE_PROPS_FLAGS = 0;
-#endif
 
 namespace {
 SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
@@ -56,11 +54,13 @@ SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
     return SkSurface::BackendHandleAccess::kFlushRead_BackendHandleAccess;
 }
 }
+#endif
 
 SkiaSurface::SkiaSurface() {}
 
 void SkiaSurface::PostSkSurfaceToTargetThread()
 {
+#ifdef RS_ENABLE_GPU
     auto canvas = GetCanvas();
     if (canvas == nullptr) {
         return;
@@ -83,6 +83,7 @@ void SkiaSurface::PostSkSurfaceToTargetThread()
         auto skImage = skImage_;
         func([skSurface, skImage]() {});
     }
+#endif
 }
 
 SkiaSurface::~SkiaSurface()
@@ -377,6 +378,7 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     return image;
 }
 
+#ifdef RS_ENABLE_GPU
 BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 {
     if (skSurface_ == nullptr) {
@@ -399,6 +401,7 @@ BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 #endif
     return backendTexture;
 }
+#endif
 
 std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
 {
@@ -471,6 +474,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
         }
         return;
     }
+#ifdef RS_ENABLE_GPU
     if (drawingflushInfo != nullptr) {
         GrFlushInfo flushInfo;
         flushInfo.fNumSemaphores = drawingflushInfo->numSemaphores;
@@ -483,6 +487,7 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
             SkSurface::BackendSurfaceAccess::kNoAccess : SkSurface::BackendSurfaceAccess::kPresent, flushInfo);
         return;
     }
+#endif
     skSurface_->flush();
 }
 
