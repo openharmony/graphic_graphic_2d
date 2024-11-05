@@ -35,10 +35,10 @@
 
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "render/rs_typeface_cache.h"
-#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS::Rosen {
 
@@ -235,7 +235,7 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
         return;
     }
 
-    if (IsRecording() && (g_recordStartTime > 0.0)) {
+    if (IsRecording()) {
         const pid_t pid = GetConnectionPid(connection);
         const auto& pids = g_recordFile.GetHeaderPids();
         if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
@@ -272,14 +272,10 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
     if (IsLoadSaveFirstScreenInProgress()) {
         // saving screen right now
     }
-    if (IsPlaying() && !g_playbackShouldBeTerminated) {
+    if (IsPlaying()) {
         SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
         SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
         SetMode(Mode::READ);
-    } else if (IsRecording()) {
-        SetMode(Mode::WRITE);
-    } else {
-        SetMode(Mode::NONE);
     }
 }
 
@@ -495,7 +491,7 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameRenderBeginTimestamp;
     CalcNodeWeigthOnFrameEnd(frameLengthNanosecs);
 
-    if (!IsRecording() || (g_recordStartTime <= 0.0)) {
+    if (!IsRecording()) {
         return;
     }
 
@@ -713,12 +709,12 @@ double RSProfiler::Now()
 
 bool RSProfiler::IsRecording()
 {
-    return IsEnabled() && g_recordFile.IsOpen();
+    return IsEnabled() && (GetMode() == Mode::WRITE) && g_recordFile.IsOpen() && (g_recordStartTime > 0);
 }
 
 bool RSProfiler::IsPlaying()
 {
-    return IsEnabled() && g_playbackFile.IsOpen();
+    return IsEnabled() && (GetMode() == Mode::READ) && g_playbackFile.IsOpen() && !g_playbackShouldBeTerminated;
 }
 
 void RSProfiler::ScheduleTask(std::function<void()> && task)
@@ -990,7 +986,14 @@ static uint32_t GetImagesAdded()
 
 void RSProfiler::RecordUpdate()
 {
-    if (!IsRecording() || (g_recordStartTime <= 0.0)) {
+    if (!IsRecording()) {
+        return;
+    }
+
+    constexpr size_t maxConsumption = 1024 * 1024 * 1024;
+    if (ImageCache::Consumption() > maxConsumption) {
+        SendMessage("Record: Exceeded memory limit. Abort");
+        RecordStop(ArgList{});
         return;
     }
 
@@ -1032,12 +1035,24 @@ void RSProfiler::RecordUpdate()
     WriteBetaRecordMetrics(g_recordFile, timeSinceRecordStart);
 }
 
+// Deprecated: Use SendMessage instead
 void RSProfiler::Respond(const std::string& message)
 {
-    if (!message.empty()) {
-        Network::SendMessage(message);
-        HRPI("%s", message.data());
+    Network::SendMessage(message);
+}
+
+void RSProfiler::SendMessage(const char* format, ...)
+{
+    if (!format) {
+        return;
     }
+
+    va_list args;
+    va_start(args, format);
+    const auto out = Utils::Format(format, args);
+    va_end(args);
+
+    Network::SendMessage(out);
 }
 
 void RSProfiler::SetSystemParameter(const ArgList& args)
@@ -1623,8 +1638,8 @@ void RSProfiler::TestSwitch(const ArgList& args)
 
 void RSProfiler::RecordStart(const ArgList& args)
 {
-    if (g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
-        Respond("FAILED: Record start - replay is in progress");
+    if (IsPlaying() || !g_childOfDisplayNodes.empty()) {
+        SendMessage("Record: Start failed. Playback is in progress");
         return;
     }
 
@@ -1653,10 +1668,11 @@ void RSProfiler::RecordStart(const ArgList& args)
         g_recordFile.AddHeaderPid(pid);
     }
 
-    SetMode(Mode::WRITE);
-
     g_recordStartTime = Now();
     g_frameNumber = 0;
+    SetMode(Mode::WRITE);
+
+    SendMessage("Record: Started");
 
     if (IsBetaRecordStarted()) {
         return;
@@ -1664,30 +1680,28 @@ void RSProfiler::RecordStart(const ArgList& args)
 
     std::thread thread([]() {
         while (IsRecording()) {
-            if (g_recordStartTime >= 0) {
-                SendTelemetry(Now() - g_recordStartTime);
-            }
+            SendTelemetry(Now() - g_recordStartTime);
             static constexpr int32_t GFX_METRICS_SEND_INTERVAL = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(GFX_METRICS_SEND_INTERVAL));
         }
     });
     thread.detach();
-
-    Respond("Network: Record start");
 }
 
 void RSProfiler::RecordStop(const ArgList& args)
 {
     if (!IsRecording()) {
-        Respond("FAILED: Record stop - recording was not started");
+        SendMessage("Record: Stop failed. Record is not in progress");
         return;
     }
 
+    SendMessage("Record: Prepping stop...");
+    SetMode(Mode::NONE);
     g_recordFile.SetWriteTime(g_recordStartTime);
 
-    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-
     if (!IsBetaRecordStarted()) {
+        SendMessage("Record: Prepping data for sending...");
+        std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
         // DOUBLE WORK - send header of file
         const char headerType = 0;
         stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
@@ -1721,8 +1735,14 @@ void RSProfiler::RecordStop(const ArgList& args)
         stream.write(reinterpret_cast<const char*>(headerAnimeStartTimes.data()),
             startTimesSize * sizeof(std::pair<uint64_t, int64_t>));
 
+        const auto imageCacheConsumption = ImageCache::Consumption();
+        SendMessage("Record: Image cache memory usage: %.2fMB (%zu)", Utils::Megabytes(imageCacheConsumption),
+            imageCacheConsumption);
         ImageCache::Serialize(stream);
-        Network::SendBinary(stream.str().data(), stream.str().size());
+
+        const auto binary = stream.str();
+        Network::SendBinary(binary);
+        SendMessage("Record: Sent: %.2fMB (%zu)", Utils::Megabytes(binary.size()), binary.size());
     }
     SaveBetaRecordFile(g_recordFile);
     g_recordFile.Close();
@@ -1731,8 +1751,8 @@ void RSProfiler::RecordStop(const ArgList& args)
     ImageCache::Reset();
     g_lastCacheImageCount = 0;
 
-    Respond("Network: Record stop (" + std::to_string(stream.str().size()) + ")");
-    Respond("Network: record_vsync_range " + std::to_string(g_recordMinVsync) + " " + std::to_string(g_recordMaxVsync));
+    SendMessage("Record: record_vsync_range %zu %zu", g_recordMinVsync, g_recordMaxVsync);
+    SendMessage("Record: Stopped");
 }
 
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
@@ -1828,6 +1848,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
     g_playbackShouldBeTerminated = false;
     g_replayLastPauseTimeReported = 0;
+    SetMode(Mode::READ);
 
     const auto timeoutLimit = args.Int64();
     std::thread thread([timeoutLimit]() {

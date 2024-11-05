@@ -365,7 +365,9 @@ private:
     static void Invoke(const std::vector<std::string>& line);
     static void ProcessPauseMessage();
     static void ProcessCommands();
+    // Deprecated: Use SendMessage instead
     static void Respond(const std::string& message);
+    static void SendMessage(const char* format, ...);
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
     static void Reset(const ArgList& args);
