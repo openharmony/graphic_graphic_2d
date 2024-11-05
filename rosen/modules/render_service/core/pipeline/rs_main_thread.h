@@ -307,7 +307,9 @@ public:
 
     bool GetParallelCompositionEnabled();
     void SetFrameIsRender(bool isRender);
+    void AddSelfDrawingNodes(std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
+    void ClearSelfDrawingNodes();
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
 
     bool IsOnVsync() const
