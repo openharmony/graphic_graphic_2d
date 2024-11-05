@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,26 +18,23 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSRenderServiceClientFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_fuzzer"
+  fuzz_config_file = "../../../../../../../test/render_service/render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_fuzzer"
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/platform/ipc_core",
-    "//foundation/graphic/graphic_2d/rosen/modules/platform",
-    "//foundation/graphic/graphic_2d/modules/hyper_graphic_manager/core/config",
-    "//foundation/graphic/graphic_2d/modules/render_service/core",
-    "//foundation/graphic/graphic_2d/modules/render_service_base/src",
-    "//foundation/graphic/graphic_2d/modules/render_service_base/src/ipc_callback",
-    "//foundation/graphic/graphic_2d/test/include",
+    "../../../../../../../modules/render_service_base/include",
+    "../../../../../../../modules/platform/ipc_core",
+    "../../../../../../../modules/render_service/core",
+    "../../../../../../../modules/render_service_base/src",
+    "../../../../../../../modules/render_service_base/src/ipc_callback",
   ]
   deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics:2d_graphics",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service_client:librender_service_client",
+    "../../../../../../../modules/2d_graphics:2d_graphics",
+    "../../../../../../../modules/render_service:librender_service",
+    "../../../../../../../modules/render_service_client:librender_service_client",
   ]
   cflags = [
     "-Wall",
