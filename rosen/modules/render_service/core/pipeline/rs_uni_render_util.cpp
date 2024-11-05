@@ -1164,13 +1164,15 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
         if (RSUniRenderJudgement::IsUniRender()) {
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
-                0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+            instance->PostTask([instance] () {
+                instance->ReleaseSurface();
+            });
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
-                0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+            instance->PostTask([instance] () {
+                instance->ReleaseSurface();
+            });
         }
     } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
