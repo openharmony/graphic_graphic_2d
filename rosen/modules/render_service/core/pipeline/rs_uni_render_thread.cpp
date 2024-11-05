@@ -311,7 +311,7 @@ bool RSUniRenderThread::IsIdle() const
 
 void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams)
 {
-    renderParamsManager_.SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
 void RSUniRenderThread::Render()
