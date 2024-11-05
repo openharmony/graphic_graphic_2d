@@ -431,6 +431,19 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
 
     auto result = displayDrawable_->HardCursorCreateLayer(processor);
     ASSERT_EQ(result, false);
+
+    HardCursorInfo hardInfo;
+    hardInfo.id = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(hardInfo.id);
+    hardInfo.drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    EXPECT_NE(hardInfo.drawablePtr, nullptr);
+    result = displayDrawable_->HardCursorCreateLayer(processor);
+    ASSERT_EQ(result, false);
+
+    NodeId id = 1;
+    hardInfo.drawablePtr->renderParams_ = std::make_unique<RSRenderParams>(id);
+    result = displayDrawable_->HardCursorCreateLayer(processor);
+    ASSERT_EQ(result, false);
 }
 
 /**
@@ -567,6 +580,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CheckFilterCacheFullyCoveredTest, Test
 
     renderDrawableAdapter->renderParams_->SetGlobalAlpha(0.f);
     RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
+
+    renderDrawableAdapter->renderParams_->SetHasBlurFilter(true);
+    renderDrawableAdapter->renderParams_->SetGlobalAlpha(1.f);
+    renderDrawableAdapter->renderParams_->SetHasGlobalCorner(false);
+    renderDrawableAdapter->renderParams_->SetNodeType(RSRenderNodeType::CANVAS_NODE);
+    renderDrawableAdapter->renderParams_->SetEffectNodeShouldPaint(true);
+    RSDisplayRenderNodeDrawable::CheckFilterCacheFullyCovered(*surfaceParams, screenRect);
 }
 
 /**
@@ -579,6 +599,13 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
     Drawing::Canvas canvas;
+    displayDrawable_->OnDraw(canvas);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    HardCursorInfo hardInfo;
+    hardInfo.id = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(hardInfo.id);
+    hardInfo.drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
     displayDrawable_->OnDraw(canvas);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
 }
@@ -656,7 +683,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorTest, TestSize.Level1)
     ASSERT_NE(renderNode_, nullptr);
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    
+
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_);
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());

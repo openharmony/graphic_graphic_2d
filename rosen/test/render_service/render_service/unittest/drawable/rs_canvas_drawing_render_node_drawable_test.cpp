@@ -137,6 +137,10 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
+
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_FALSE(drawable->canvas_);
 }
 
 /**
@@ -180,6 +184,26 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceForVKTest, TestSize.L
     drawable->surface_ = std::make_shared<Drawing::Surface>();
     drawable->surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(0, 0);
     bool result = drawable->InitSurfaceForVK(width, height, canvas);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: InitSurfaceForGL
+ * @tc.desc: Test InitSurfaceForGL Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, InitSurfaceForGLTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    int width = 1;
+    int height = 1;
+    drawable->surface_ = std::make_shared<Drawing::Surface>();
+    drawable->surface_->cachedCanvas_ = std::make_shared<Drawing::Canvas>(0, 0);
+    bool result = drawable->InitSurfaceForGL(width, height, canvas);
     EXPECT_EQ(result, true);
 }
 
@@ -568,4 +592,17 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, Tes
     ASSERT_EQ(result, false);
 }
 #endif
+
+/**
+ * @tc.name: Purge
+ * @tc.desc: Test If Purge Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIB1KMY
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PurgeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    drawable->Purge();
+}
 }
