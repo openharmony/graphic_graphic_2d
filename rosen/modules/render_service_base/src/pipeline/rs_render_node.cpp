@@ -50,6 +50,7 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+#include "rs_profiler.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -254,6 +255,12 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
+    
+    if (RS_PROFILER_PROCESS_ADD_CHILD(this, child, index)) {
+        RS_LOGI("Add child: blocked during replay");
+        return;
+    }
+
     // if child already has a parent, remove it from its previous parent
     if (auto prevParent = child->GetParent().lock()) {
         prevParent->RemoveChild(child, true);
