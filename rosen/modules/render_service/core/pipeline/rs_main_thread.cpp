@@ -3860,6 +3860,12 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
 bool RSMainThread::IsHardwareEnabledNodesNeedSync()
 {
     if (!doDirectComposition_) {
+        for (const  auto& node : hardwareEnabledNodes_) {
+            auto needSync = node->GetStagingRenderParams()->NeedSync();
+            if (needSync) {
+                return true;
+            }
+        }
         return false;
     }
 
