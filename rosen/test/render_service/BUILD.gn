@@ -61,6 +61,7 @@ group("test") {
     "render_service_base/fuzztest/rsmarshallinghelper_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsmemorysnapshot_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsparticlenoise_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspath_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspropertydrawable_fuzzer:fuzztest",
