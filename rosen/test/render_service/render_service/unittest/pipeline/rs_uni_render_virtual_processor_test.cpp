@@ -268,4 +268,19 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessDisplaySurfaceTest, TestSize.Le
     processor->ProcessDisplaySurface(*rsDisplayRenderNode);
     EXPECT_FALSE(processor->forceCPU_);
 }
+
+/**
+ * @tc.name: CanvasClipRegionForUniscaleMode
+ * @tc.desc: Canvas do clipRegion, When performing uniscale on a virtual screen.
+ * @tc.type:FUNC
+ * @tc.require:issuesIAOEPL
+ */
+HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestSize.Level2)
+{
+    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
+        UNI_RENDER_MIRROR_COMPOSITE);
+    auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
+    ASSERT_NE(nullptr, virtualProcessor);
+    virtualProcessor->CanvasClipRegionForUniscaleMode();
+}
 } // namespace OHOS::Rosen
