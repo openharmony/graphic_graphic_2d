@@ -112,6 +112,32 @@ int OH_NativeVSync_RequestFrameWithMultiCallback(
  * @version 1.0
  */
 int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
+
+/**
+ * @brief Enables DVSync to improve the smoothness of self-drawing animations.
+ * DVSync, short for Decoupled VSync, is a frame timing management policy that is decoupled from the hardware's VSync.
+ * DVSync drives the early rendering of upcoming animation frames by sending VSync signals with future timestamps.
+ * These frames are stored in a frame buffer queue. This helps DVSync reduce potential frame drop and therefore
+ * enhances the smoothness of animations.
+ * DVSync requires free self-drawing frame buffers to store these pre-rendered animation frames.
+ * Therefore, you must ensure that at least one free frame buffer is available. Otherwise, do not enable DVSync.
+ * After DVSync is enabled, you must correctly respond to the early VSync signals and request the subsequent VSync
+ * after the animation frame associated with the previous VSync is complete. In addition, the self-drawing frames must
+ * carry timestamps that align with VSync.
+ * After the animation ends, disable DVSync.
+ * On a platform that does not support DVSync or if another application has enabled DVSync, the attempt to enable it
+ * will not take effect, and the application still receives normal VSync signals.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param nativeVsync Indicates the pointer to a NativeVsync.
+ * @param enable Whether to enable DVSync.The value true means to enable DVSync, and false means the opposite.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - the parameter nativeVsync is NULL.
+ *     {@link NATIVE_ERROR_BINDER_ERROR} 50401000 - ipc send failed.
+ * @since 14
+ * @version 1.0
+ */
+int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
 #ifdef __cplusplus
 }
 #endif

@@ -45,8 +45,7 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
         const RSProperties& properties, const bool isAbsCoordinate = true);
-    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect,
-        const RSProperties& properties, const bool isAbsCoordinate = true);
+    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
@@ -116,7 +115,7 @@ private:
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawLightInner(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
-        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosMap);
+        const std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>>& lightSourcesAndPosVec);
     static void DrawContentLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);

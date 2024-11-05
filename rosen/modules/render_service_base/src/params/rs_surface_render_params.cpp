@@ -143,6 +143,16 @@ const RSLayerInfo& RSSurfaceRenderParams::GetLayerInfo() const
     return layerInfo_;
 }
 
+void RSSurfaceRenderParams::SetHidePrivacyContent(bool needHidePrivacyContent)
+{
+    needHidePrivacyContent_ = needHidePrivacyContent;
+}
+
+bool RSSurfaceRenderParams::GetHidePrivacyContent() const
+{
+    return needHidePrivacyContent_;
+}
+
 void RSSurfaceRenderParams::SetHardwareEnabled(bool enabled)
 {
     if (isHardwareEnabled_ == enabled) {
@@ -155,6 +165,20 @@ void RSSurfaceRenderParams::SetHardwareEnabled(bool enabled)
 bool RSSurfaceRenderParams::GetHardwareEnabled() const
 {
     return isHardwareEnabled_;
+}
+
+void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
+{
+    if (isHardCursor_ == status) {
+        return;
+    }
+    isHardCursor_ = status;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetHardCursorStatus() const
+{
+    return isHardCursor_;
 }
 
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
@@ -417,6 +441,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
+        bufferSynced_ = true;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -442,6 +467,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -451,15 +477,18 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->childrenDirtyRect_ = childrenDirtyRect_;
     targetSurfaceParams->isOccludedByFilterCache_ = isOccludedByFilterCache_;
     targetSurfaceParams->isSecurityLayer_ = isSecurityLayer_;
+    targetSurfaceParams->leashPersistentId_ = leashPersistentId_;
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
+    targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
     targetSurfaceParams->snapshotSkipLayerIds_= snapshotSkipLayerIds_;
     targetSurfaceParams->securityLayerIds_= securityLayerIds_;
     targetSurfaceParams->protectedLayerIds_ = protectedLayerIds_;
+    targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
     targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
@@ -473,9 +502,11 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->dstRect_ = dstRect_;
     targetSurfaceParams->isSkipDraw_ = isSkipDraw_;
     targetSurfaceParams->isLayerTop_ = isLayerTop_;
+    targetSurfaceParams->needHidePrivacyContent_ = needHidePrivacyContent_;
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
-    targetSurfaceParams->preScalingMode_ = preScalingMode_;
+    targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
+    targetSurfaceParams->scalingMode_ = scalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;

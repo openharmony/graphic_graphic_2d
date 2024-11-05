@@ -28,10 +28,10 @@ ohos_unittest("2d_graphics_draw_test") {
     "surface_test.cpp",
   ]
 
-  if (ace_enable_gpu) {
-    defines = [ "ACE_ENABLE_GPU" ]
+  if (rs_enable_gpu) {
+    defines = [ "RS_ENABLE_GPU" ]
   }
-  defines += [ "RS_ENABLE_GL" ]
+
   include_dirs = [
     "//third_party/googletest/googletest/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",

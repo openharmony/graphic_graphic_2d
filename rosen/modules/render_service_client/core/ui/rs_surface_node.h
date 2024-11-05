@@ -77,6 +77,8 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetLeashPersistentId(LeashPersistentId leashPersistentId);
+    LeashPersistentId GetLeashPersistentId() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
@@ -102,7 +104,8 @@ public:
 
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT);
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true);
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
@@ -135,6 +138,7 @@ public:
     void MarkUiFrameAvailable(bool available);
     void SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback);
     void SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback);
+    void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE
@@ -148,6 +152,7 @@ public:
 
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
+    RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -186,6 +191,7 @@ private:
     bool isSkipDraw_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
     bool isGlobalPositionEnabled_ = false;
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM

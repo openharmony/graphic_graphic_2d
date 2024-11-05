@@ -32,15 +32,21 @@ struct CaptureParam {
     float scaleX_ = 0.0f;
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
+    bool isSystemCalling_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false)
+        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
         scaleY_(scaleY),
-        isFirstNode_(isFirstNode) {}
+        isFirstNode_(isFirstNode),
+        isSystemCalling_(isSystemCalling) {}
+};
+struct HardCursorInfo {
+    NodeId id = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawablePtr = nullptr;
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
@@ -112,6 +118,36 @@ public:
         return timestamp_;
     }
 
+    void SetActualTimestamp(int64_t timestamp)
+    {
+        actualTimestamp_ = timestamp;
+    }
+
+    int64_t GetActualTimestamp() const
+    {
+        return actualTimestamp_;
+    }
+
+    void SetVsyncId(uint64_t vsyncId)
+    {
+        vsyncId_ = vsyncId;
+    }
+
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_;
+    }
+
+    void SetForceRefreshFlag(bool isForceRefresh)
+    {
+        isForceRefresh_ = isForceRefresh;
+    }
+
+    bool GetForceRefreshFlag() const
+    {
+        return isForceRefresh_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -122,7 +158,11 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-
+    const HardCursorInfo& GetHardCursorDrawables() const
+    {
+        return hardCursorDrawables_;
+    }
+    
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
         pendingScreenRefreshRate_ = rate;
@@ -347,6 +387,9 @@ public:
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
+    int64_t actualTimestamp_ = 0;
+    uint64_t vsyncId_ = 0;
+    bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx
@@ -371,6 +414,7 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
@@ -406,6 +450,12 @@ class RSRenderThreadParamsManager {
 public:
     RSRenderThreadParamsManager() = default;
     ~RSRenderThreadParamsManager() = default;
+
+    static RSRenderThreadParamsManager& Instance()
+    {
+        static RSRenderThreadParamsManager instance;
+        return instance;
+    }
 
     inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
     {

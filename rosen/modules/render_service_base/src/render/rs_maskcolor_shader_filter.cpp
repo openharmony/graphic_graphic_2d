@@ -83,7 +83,7 @@ void RSMaskColorShaderFilter::PostProcess(Drawing::Canvas& canvas)
 
 float RSMaskColorShaderFilter::GetPostProcessAlpha() const
 {
-    float rawAlpha = (float)(maskColor_.GetAlpha());
+    float rawAlpha = static_cast<float>(maskColor_.GetAlpha());
     return (rawAlpha / MAX_ALPHA);
 }
 } // namespace Rosen

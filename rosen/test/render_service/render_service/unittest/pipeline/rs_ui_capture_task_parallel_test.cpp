@@ -38,6 +38,7 @@
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_system_properties.h"
+#include "rs_test_util.h"
 
 using namespace testing::ext;
 
@@ -107,6 +108,7 @@ public:
         auto& renderNodeGC = RSRenderNodeGC::Instance();
         renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
         renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
+        RSTestUtil::InitRenderNodeGC();
     }
 
     static void TearDownTestCase()

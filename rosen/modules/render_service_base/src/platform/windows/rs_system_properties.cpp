@@ -72,6 +72,11 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -214,6 +219,11 @@ void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
@@ -500,6 +510,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 bool RSSystemProperties::IsForceClient()
 {
     return false;
+}
+
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetTextBlobAsPixelMap()

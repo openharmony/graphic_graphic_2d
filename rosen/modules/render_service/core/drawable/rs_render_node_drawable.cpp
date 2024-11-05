@@ -25,6 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "pipeline/rs_main_thread.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -221,7 +222,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
-    curDrawingCacheRoot_->lastDrawnFilterNodeId_ = 0;
+    curDrawingCacheRoot_->SetLastDrawnFilterNodeId(0);
 
     SetCacheType(drawableCacheType);
     isOpDropped_ = isOpDropped;
@@ -254,7 +255,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
     }
     // in case of generating cache with filter in offscreen, clip hole for filter/shadow but drawing others
     if (isOffScreenWithClipHole_) {
-        if (params.GetForegroundFilterCache() == nullptr) {
+        if (HasFilterOrEffect() && params.GetForegroundFilterCache() == nullptr) {
             // clip hole for filter/shadow
             DrawBackgroundWithoutFilterAndEffect(canvas, params);
             DrawContent(canvas, params.GetFrameRect());
@@ -262,6 +263,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
             DrawForeground(canvas, params.GetBounds());
             return;
         }
+        CollectInfoForNodeWithoutFilter(canvas);
     }
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}hu", GetCacheType());
     switch (GetCacheType()) {
@@ -330,19 +332,19 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
     if (!curDrawingCacheRoot_) {
         return;
     }
-    auto& allCachedNodeMatrixMap = curDrawingCacheRoot_->GetAllCachedNodeMatrixMap();
-    if (allCachedNodeMatrixMap.find(GetId()) == allCachedNodeMatrixMap.end()) {
+    auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
+    if (withoutFilterMatrixMap.find(GetId()) == withoutFilterMatrixMap.end()) {
         RS_LOGE("RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter can not find matrix of cached node in "
-                "allCachedNodeMatrixMap");
+                "withoutFilterMatrixMap");
         return;
     }
-    auto matrix = allCachedNodeMatrixMap.at(GetId());
+    auto matrix = withoutFilterMatrixMap.at(GetId());
     Drawing::Rect dst;
     matrix.MapRect(dst, params.GetBounds());
     Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
         static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
     auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
-        [nodeId = curDrawingCacheRoot_->lastDrawnFilterNodeId_](
+        [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
             const auto& item) -> bool { return item.nodeId_ == nodeId; });
     if (filterBegin == filterInfoVec.end()) {
         filterBegin = filterInfoVec.begin();
@@ -357,10 +359,10 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
 void RSRenderNodeDrawable::CheckRegionAndDrawWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
     const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (!curDrawingCacheRoot_ && begin == filterInfoVec.end()) {
+    if (!curDrawingCacheRoot_ || begin == filterInfoVec.end()) {
         return;
     }
-    curDrawingCacheRoot_->lastDrawnFilterNodeId_ = GetId();
+    curDrawingCacheRoot_->SetLastDrawnFilterNodeId(GetId());
     CheckShadowRectAndDrawBackground(canvas, params);
     curDrawingCacheRoot_->ReduceFilterNodeSize();
     Drawing::Rect dst;
@@ -376,7 +378,7 @@ void RSRenderNodeDrawable::CheckRegionAndDrawWithFilter(std::vector<FilterNodeIn
         // curDrawingCacheRoot_, we should draw foreground here
         if (curDrawingCacheRoot_->GetFilterNodeSize() > 0) {
             auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
-                [nodeId = curDrawingCacheRoot_->lastDrawnFilterNodeId_](
+                [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
                     const auto& item) -> bool { return item.nodeId_ == nodeId; });
             if (filterBegin != filterInfoVec.end()) {
                 filterBegin++; // check isIntersect with undrawn filters
@@ -485,8 +487,9 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
 }
 
 void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
-    pid_t threadId, bool isHdrOn)
+    pid_t threadId, bool isNeedFP16)
 {
+    std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
         return;
@@ -508,17 +511,15 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
         Drawing::ImageInfo info = Drawing::ImageInfo::MakeN32Premul(width, height);
-        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
         cachedSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext, true, info);
     }
 #endif
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-        if (isHdrOn) {
+        if (isNeedFP16) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
         }
@@ -741,10 +742,13 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
     bool isHdrOn = curCanvas->GetHdrOn();
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool isNeedFP16 = isHdrOn || isScRGBEnable;
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);
-        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isHdrOn);
+        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16);
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;
@@ -793,10 +797,14 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     isOpDropped_ = isOpDropped;
 
     // get image & backend
-    cachedImage_ = cacheSurface->GetImageSnapshot();
-    if (cachedImage_) {
-        SetCacheType(DrawableCacheType::CONTENT);
+    {
+        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
+        cachedImage_ = cacheSurface->GetImageSnapshot();
+        if (cachedImage_) {
+            SetCacheType(DrawableCacheType::CONTENT);
+        }
     }
+
 #if RS_ENABLE_GL
     // vk backend has been created when surface init.
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&

@@ -823,15 +823,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetForeground(data, size);
     OHOS::Rosen::DoSetForceUIFirst(data, size);
     OHOS::Rosen::DoSetAncoFlags(data, size);
-    OHOS::Rosen::DoSetWatermark(data, size);
-    OHOS::Rosen::DoSetHDRPresent(data, size);
     OHOS::Rosen::DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(data, size);
     OHOS::Rosen::DoRSSurfaceNode(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
     OHOS::Rosen::DoOnBoundsSizeChangedAndSetSurfaceIdToRenderNode(data, size);
     OHOS::Rosen::DoSetIsTextureExportNode(data, size);
-    OHOS::Rosen::DoSplitSurfaceNodeName(data, size);
     return 0;
 }
 

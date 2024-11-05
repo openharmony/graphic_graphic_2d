@@ -624,8 +624,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
         return;
     }
     EXPECT_FALSE(drawable == nullptr);
-    drawable->SetDrawCmdListsVisited(true);
     rsCanvasDrawingRenderNode->ClearResource();
-    EXPECT_FALSE(drawable->IsDrawCmdListsVisited());
+    auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
+    EXPECT_TRUE(lists.empty());
 }
 } // namespace OHOS::Rosen

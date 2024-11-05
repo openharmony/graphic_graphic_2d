@@ -26,6 +26,7 @@
 #include "array_mgr.h"
 #include "font_config.h"
 #include "font_parser.h"
+#include "font_utils.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -33,6 +34,7 @@
 
 #include "utils/log.h"
 #include "utils/object_mgr.h"
+#include "utils/string_util.h"
 
 using namespace OHOS::Rosen;
 
@@ -302,25 +304,33 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 
 void OH_Drawing_AddTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
 {
-    if (style == nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
-        TextDecoration::LINE_THROUGH))) {
+    if (decoration < 0) {
+        return;
+    }
+    unsigned int uintDecoration = static_cast<unsigned int>(decoration);
+    if (style == nullptr || (uintDecoration & (~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH)))) {
         return;
     }
     TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
     if (rosenTextStyle) {
-        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration | decoration);
+        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration | uintDecoration);
     }
 }
 
 void OH_Drawing_RemoveTextStyleDecoration(OH_Drawing_TextStyle* style, int decoration)
 {
-    if (style == nullptr || (decoration & ~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
-        TextDecoration::LINE_THROUGH))) {
+    if (decoration < 0) {
+        return;
+    }
+    unsigned int uintDecoration = static_cast<unsigned int>(decoration);
+    if (style == nullptr || (uintDecoration & (~(TextDecoration::UNDERLINE | TextDecoration::OVERLINE |
+        TextDecoration::LINE_THROUGH)))) {
         return;
     }
     TextStyle* rosenTextStyle = ConvertToOriginalText<TextStyle>(style);
     if (rosenTextStyle) {
-        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration & ~decoration);
+        rosenTextStyle->decoration = static_cast<TextDecoration>(rosenTextStyle->decoration & ~uintDecoration);
     }
 }
 
@@ -426,42 +436,12 @@ void OH_Drawing_TypographyHandlerPushTextStyle(OH_Drawing_TypographyCreate* hand
     ConvertToOriginalText<TypographyCreate>(handler)->PushStyle(*rosenTextStyle);
 }
 
-static bool IsUtf8(const char* text)
-{
-    int len = strlen(text);
-    int n;
-    for (int i = 0; i < len; i++) {
-        uint32_t c = text[i];
-        if (c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
-            n = 0;
-        } else if ((c & 0xE0) == 0xC0) { // 0xE0 and 0xC0 is the range of utf-8
-            n = 1;
-        } else if (c == 0xED && i < (len - 1) && (text[i + 1] & 0xA0) == 0xA0) { // 0xA0 and 0xED is the range of utf-8
-            return false;
-        } else if ((c & 0xF0) == 0xE0) { // 0xE0 and 0xF0 is the range of utf-8
-            n = 2;                       // 2 means the size of range
-        } else if ((c & 0xF8) == 0xF0) { // 0xF0 and 0xF8 is the range of utf-8
-            n = 3;                       // 3 means the size of range
-        } else {
-            return false;
-        }
-
-        for (int j = 0; j < n && i < len; j++) {
-            // 0x80 and 0xC0 is the range of utf-8
-            if ((++i == len) || ((text[i] & 0xC0) != 0x80)) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
 void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, const char* text)
 {
     if (!text || !handler) {
         LOGE("null text");
         return;
-    } else if (!IsUtf8(text)) {
+    } else if (!IsUtf8(text, strlen(text))) {
         LOGE("text is not utf-8");
         return;
     }
@@ -1292,21 +1272,14 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
         if (strcmp(name, systemFontList[i].fullName.c_str()) != 0) {
             continue;
         }
-
-        OH_Drawing_FontDescriptor* descriptor = new (std::nothrow) OH_Drawing_FontDescriptor();
+        OH_Drawing_FontDescriptor* descriptor = OH_Drawing_CreateFontDescriptor();
         if (descriptor == nullptr) {
             return nullptr;
         }
-        descriptor->path = strdup(systemFontList[i].path.c_str());
-        descriptor->postScriptName = strdup(systemFontList[i].postScriptName.c_str());
-        descriptor->fullName = strdup(systemFontList[i].fullName.c_str());
-        descriptor->fontFamily = strdup(systemFontList[i].fontFamily.c_str());
-        descriptor->fontSubfamily = strdup(systemFontList[i].fontSubfamily.c_str());
-        descriptor->weight = systemFontList[i].weight;
-        descriptor->width = systemFontList[i].width;
-        descriptor->italic = systemFontList[i].italic;
-        descriptor->monoSpace = systemFontList[i].monoSpace;
-        descriptor->symbolic = systemFontList[i].symbolic;
+        if (!OHOS::Rosen::Drawing::CopyFontDescriptor(descriptor, systemFontList[i])) {
+            OH_Drawing_DestroyFontDescriptor(descriptor);
+            return nullptr;
+        }
         return descriptor;
     }
     return nullptr;

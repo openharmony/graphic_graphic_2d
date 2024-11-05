@@ -89,6 +89,24 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest003, Te
     EXPECT_NE(graphy, nullptr);
     auto paragraph = graphy->GetTempTypography();
     EXPECT_NE(paragraph, nullptr);
+    EXPECT_EQ(graphy->GetUnicodeSize(), 4);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypographyCreateTest004
+ * @tc.desc: test for constuctor of TypographyCreate
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest004, TestSize.Level1)
+{
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    EXPECT_NE(fontCollection, nullptr);
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate = OHOS::Rosen::TypographyCreate::Create(
+        typographyStyle, fontCollection);
+
+    std::unique_ptr<OHOS::Rosen::LineTypography> graphy = typographyCreate->CreateLineTypography();
+    EXPECT_EQ(graphy, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

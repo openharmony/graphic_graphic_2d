@@ -2165,6 +2165,104 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenSecurityExemptionList001
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+
+    ScreenId id = 11;  // screenId for test
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = nullptr;
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+    screenManagerImpl.screens_.erase(id);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList002
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecurityExemptionList001
+ * @tc.desc: Test GetVirtualScreenSecurityExemptionList with abnormal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID);
+    ASSERT_EQ(securityExemptionListGet.size(), 0);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
+    ASSERT_EQ(securityExemptionListGet.size(), 0);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecurityExemptionList002
+ * @tc.desc: Test GetVirtualScreenSecurityExemptionList with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
+    ASSERT_EQ(securityExemptionListGet.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(securityExemptionListGet[i], securityExemptionList[i]);
+    }
+}
+
+/*
  * @tc.name: SetCastScreenEnableSkipWindow001
  * @tc.desc: Test SetCastScreenEnableSkipWindow, input id not in keys of screens_
  * @tc.type: FUNC

@@ -36,7 +36,7 @@ public:
     bool HasTransaction(uint32_t pid) const;
 
     std::shared_ptr<RSTransactionData> GetTransaction(uint32_t pid);
-    std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>>&& GetAllTransactions();
+    std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> GetAllTransactions();
 private:
     RSMessageProcessor() = default;
     ~RSMessageProcessor();
@@ -48,6 +48,7 @@ private:
 private:
     mutable std::mutex transactionMapMutex_;
     std::unordered_map<uint32_t, std::shared_ptr<RSTransactionData>> transactionMap_;
+    uint32_t transactionDataIndex_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -15,6 +15,7 @@
 
 #include "animation/rs_render_curve_animation.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_value_estimator.h"
 #include "platform/common/rs_log.h"
 #include "transaction/rs_marshalling_helper.h"
@@ -27,9 +28,18 @@ RSRenderCurveAnimation::RSRenderCurveAnimation(AnimationId id, const PropertyId&
     startValue_(startValue), endValue_(endValue)
 {}
 
-void RSRenderCurveAnimation::DumpAnimationType(std::string& out) const
+void RSRenderCurveAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:RSRenderCurveAnimation";
+    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    if (property_ != nullptr) {
+        type = property_->GetPropertyType();
+        out += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->GetModifierType()));
+    } else {
+        out += ", ModifierType: INVALID";
+    }
+    out += ", StartValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_, type);
+    out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
 }
 
 void RSRenderCurveAnimation::SetInterpolator(const std::shared_ptr<RSInterpolator>& interpolator)

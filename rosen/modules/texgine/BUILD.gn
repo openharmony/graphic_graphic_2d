@@ -98,8 +98,8 @@ ohos_source_set("libtexgine_source") {
     }
     if (defined(use_rosen_drawing) && use_rosen_drawing) {
       defines += [ "USE_ROSEN_DRAWING" ]
-      if (ace_enable_gpu) {
-        defines += [ "ACE_ENABLE_GPU" ]
+      if (rs_enable_gpu) {
+        defines += [ "RS_ENABLE_GPU" ]
       }
     }
     if (enable_text_gine) {
@@ -116,7 +116,10 @@ ohos_source_set("libtexgine_source") {
     }
 
     if (platform == "ohos") {
-      defines += [ "BUILD_NON_SDK_VER" ]
+      defines += [
+        "BUILD_NON_SDK_VER",
+        "OHOS_TEXT_ENABLE",
+      ]
 
       if (logger_enable_scope) {
         defines += [ "LOGGER_ENABLE_SCOPE" ]

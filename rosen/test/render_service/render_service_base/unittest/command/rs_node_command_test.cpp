@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "include/command/rs_canvas_node_command.h"
 #include "include/command/rs_node_command.h"
 #include "params/rs_render_params.h"
 
@@ -84,6 +85,32 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(-1);
     bool isNodeGroup = false;
     RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup, true, false);
+    nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    isNodeGroup = true;
+    RSNodeCommandHelper::MarkNodeGroup(context, nodeId, isNodeGroup, true, false);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_EQ(canvasNode->GetNodeGroupType(), RSRenderNode::GROUPED_BY_USER);
+}
+
+/**
+ * @tc.name: MarkUifirstNodeTest
+ * @tc.desc: MarkUifirstNode test.
+ * @tc.type: FUNC
+ * @tc.require: issueIB209E
+ */
+HWTEST_F(RSNodeCommandTest, MarkUifirstNodeTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    RSNodeCommandHelper::MarkUifirstNode(context, nodeId, true);
+    nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    RSNodeCommandHelper::MarkUifirstNode(context, nodeId, true);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_TRUE(canvasNode->isUifirstNode_);
 }
 
 /**
@@ -304,6 +331,50 @@ HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1
     NodeId outNodeId = 0;
     RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
     ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId)->sharedTransitionParam_, nullptr);
+    RSCanvasNodeCommandHelper::Create(context, inNodeId, false);
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_NE(inNode, nullptr);
+    EXPECT_EQ(inNode->sharedTransitionParam_, nullptr);
+}
+
+/**
+ * @tc.name: RemoveAllModifiers
+ * @tc.desc: test results of RemoveAllModifiers
+ * @tc.type: FUNC
+ * @tc.require: issueIB209E
+ */
+HWTEST_F(RSNodeCommandTest, RemoveAllModifiersTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    RSNodeCommandHelper::RemoveAllModifiers(context, nodeId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+    nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    RSNodeCommandHelper::RemoveAllModifiers(context, nodeId);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_TRUE(canvasNode->modifiers_.empty());
+}
+
+/**
+ * @tc.name: CommitDumpClientNodeTree
+ * @tc.desc: test results of CommitDumpClientNodeTree
+ * @tc.type: FUNC
+ * @tc.require: issueIB209E
+ */
+HWTEST_F(RSNodeCommandTest, CommitDumpClientNodeTreeTest, TestSize.Level1)
+{
+    RSContext context;
+    bool flag = false;
+    auto func = [&flag](NodeId, pid_t, uint32_t, const std::string&) { flag = true; };
+    RSNodeCommandHelper::CommitDumpClientNodeTree(context, 0, 0, 0, "test");
+    EXPECT_FALSE(flag);
+    RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(func);
+    RSNodeCommandHelper::CommitDumpClientNodeTree(context, 0, 0, 0, "test");
+    EXPECT_TRUE(flag);
 }
 
 /**
@@ -316,14 +387,14 @@ HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
     bool flag = false;
-    auto func = [&flag] (NodeId, pid_t, uint32_t, const std::string&) { flag = true; };
+    auto func = [&flag] (NodeId, pid_t, uint32_t) { flag = true; };
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
-    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, "");
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
     ASSERT_TRUE(flag);
 
     flag = false;
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
-    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, "");
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
     ASSERT_FALSE(flag);
 
     SUCCEED();

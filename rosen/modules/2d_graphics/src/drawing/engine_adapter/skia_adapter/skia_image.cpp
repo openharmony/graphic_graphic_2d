@@ -35,7 +35,7 @@
 #include "skia_surface.h"
 #include "skia_texture_info.h"
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "include/core/SkYUVAPixmaps.h"
 #include "skia_gpu_context.h"
 #endif
@@ -113,7 +113,7 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
     return false;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {
     if (!memory) {
@@ -548,7 +548,7 @@ void SkiaImage::SetSkImage(const sk_sp<SkImage>& skImage)
     skiaImage_ = skImage;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
 {
     return grContext_;

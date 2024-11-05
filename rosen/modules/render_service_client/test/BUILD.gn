@@ -155,6 +155,9 @@ ohos_executable("render_service_client_transition_demo") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
@@ -183,6 +186,9 @@ ohos_executable("render_service_client_gesture_interrupt_animation_demo") {
   ]
 
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "hilog:libhilog",

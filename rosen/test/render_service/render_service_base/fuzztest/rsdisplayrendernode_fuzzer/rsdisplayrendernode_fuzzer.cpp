@@ -162,6 +162,35 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.OnSync();
     return true;
 }
+
+bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint64_t id = GetData<uint64_t>();
+    RSDisplayNodeConfig config;
+    config.mirrorNodeId = id;
+    config.screenId = id;
+    config.isMirrored = true;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    RSDisplayRenderNode::ScreenRenderParams screenRenderParams;
+    rsDisplayRenderNode.UpdateScreenRenderParams(screenRenderParams);
+    rsDisplayRenderNode.UpdateOffscreenRenderParams(GetData<bool>());
+    rsDisplayRenderNode.SetDisplayGlobalZOrder(GetData<float>());
+    rsDisplayRenderNode.UpdateRotation();
+    rsDisplayRenderNode.SetMainAndLeashSurfaceDirty(GetData<bool>());
+    rsDisplayRenderNode.SetHDRPresent(GetData<bool>());
+    rsDisplayRenderNode.GetSortedChildren();
+    rsDisplayRenderNode.GetDisappearedSurfaceRegionBelowCurrent(GetData<uint64_t>());
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -170,5 +199,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
+    OHOS::Rosen::DoUpdateScreenRenderParams(data, size);
     return 0;
 }

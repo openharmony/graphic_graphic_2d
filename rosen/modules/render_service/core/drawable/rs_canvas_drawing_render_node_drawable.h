@@ -31,7 +31,9 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
-    void PlaybackInCorrespondThread();
+    void Purge() override;
+    void CheckAndSetThreadIdx(uint32_t& threadIdx);
+    void PostPlaybackInCorrespondThread();
     void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
     {
         curThreadInfo_ = threadInfo;
@@ -48,19 +50,20 @@ public:
         const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
     void DrawCaptureImage(RSPaintFilterCanvas& canvas);
     void ReleaseCaptureImage();
+    void DumpCanvasDrawing();
 
     uint32_t GetTid() const
     {
         return curThreadInfo_.first;
     }
     void ResetSurface();
-    bool IsDrawCmdListsVisited() const override
+    virtual bool IsNeedDraw() const override
     {
-        return drawCmdListsVisited_;
+        return needDraw_;
     }
-    void SetDrawCmdListsVisited(bool flag) override
+    virtual void SetNeedDraw(bool flag) override
     {
-        drawCmdListsVisited_ = flag;
+        needDraw_ = flag;
     }
 
 private:
@@ -71,6 +74,14 @@ private:
     void DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     bool ResetSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
+#if defined(RS_ENABLE_GL)
+    bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+#endif
+#if defined(RS_ENABLE_VK)
+    bool GpuContextResetVk(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+#endif
+    bool ResetSurfaceforPlayback(int width, int height);
+    bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
     bool IsNeedResetSurface() const;
     void FlushForGL(float width, float height, std::shared_ptr<RSContext> context,
         NodeId nodeId, RSPaintFilterCanvas& rscanvas);
@@ -91,6 +102,7 @@ private:
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
+    bool isPurge_ = false;
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif
@@ -101,7 +113,7 @@ private:
     ThreadInfo preThreadInfo_ = { UNI_RENDER_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
 
     // setted in render thread, used and resetted in main thread
-    std::atomic<bool> drawCmdListsVisited_ = false;
+    std::atomic<bool> needDraw_ = false;
 };
 
 } // namespace OHOS::Rosen::DrawableV2

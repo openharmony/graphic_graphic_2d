@@ -173,6 +173,26 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetGpuApiType();
     RSSystemProperties::IsUseVulkan();
     RSSystemProperties::GetRSNodeLimit();
+    RSSystemProperties::IsTabletType();
+    RSSystemProperties::GetTransactionTerminateEnabled();
+    RSSystemProperties::GetBlurEffectTerminateLimit();
+    RSSystemProperties::GetHwcDirtyRegionEnabled();
+    RSSystemProperties::GetVersionType();
+    RSSystemProperties::GetVkQueuePriorityEnable();
+    RSSystemProperties::SetInstantRecording(GetData<bool>());
+    RSSystemProperties::GetBetaRecordingMode();
+    RSSystemProperties::SetBetaRecordingMode(GetData<uint32_t>());
+    RSSystemProperties::GetClipRectThreshold();
+    RSSystemProperties::GetAllSurfaceVisibleDebugEnabled();
+    RSSystemProperties::GetVirtualDirtyDebugEnabled();
+    RSSystemProperties::GetVirtualDirtyEnabled();
+    RSSystemProperties::GetExpandScreenDirtyEnabled();
+    RSSystemProperties::GetAceDebugBoundaryEnabled();
+    RSSystemProperties::SetDefaultDeviceRotationOffset(GetData<uint32_t>());
+    RSSystemProperties::GetSurfaceNodeWatermarkEnabled();
+    RSSystemProperties::GetDynamicBrightnessEnabled();
+    RSSystemProperties::GetMagnifierEnabled();
+    RSSystemProperties::GetSurfaceOffscreenEnadbled();    
     return true;
 }
 } // namespace Rosen

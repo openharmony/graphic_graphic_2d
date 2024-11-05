@@ -20,6 +20,7 @@
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
+#include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"
 #include "rs_round_corner_display_manager.h"
@@ -65,35 +66,55 @@ bool RSRcdRenderManager::CheckExist(NodeId id, const RSRenderNodeMap& map)
     return true;
 }
 
+void RSRcdRenderManager::RemoveRcdResource(NodeId id)
+{
+    // to remove the resource which rendertarget display node not exist
+    auto rmTask = [id, this]() {
+        {
+            std::lock_guard<std::mutex> lock(topNodeMapMut_);
+            topSurfaceNodeMap_.erase(id);
+        }
+        {
+            std::lock_guard<std::mutex> lock(bottomNodeMapMut_);
+            bottomSurfaceNodeMap_.erase(id);
+        }
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RemoveRCDResource(id);
+        RS_LOGI_IF(DEBUG_PIPELINE,
+            "[%{public}s] nodeId:%{public}" PRIu64 " not exist in nodeMap remove the rcd module \n",
+            __func__, id);
+    };
+    RSUniRenderThread::Instance().PostTask(rmTask);
+}
+
 void RSRcdRenderManager::CheckRenderTargetNode(const RSContext& context)
 {
-    std::lock_guard<std::mutex> lock(nodeMapMut_);
     const auto& nodeMap = context.GetNodeMap();
     std::unordered_set<NodeId> idSets;
-    for (const auto& p : topSurfaceNodeMap_) {
-        idSets.insert(p.first);
+    {
+        std::lock_guard<std::mutex> lock(topNodeMapMut_);
+        for (const auto& p : topSurfaceNodeMap_) {
+            idSets.insert(p.first);
+        }
     }
-    for (const auto& p : bottomSurfaceNodeMap_) {
-        idSets.insert(p.first);
+    {
+        std::lock_guard<std::mutex> lock(bottomNodeMapMut_);
+        for (const auto& p : bottomSurfaceNodeMap_) {
+            idSets.insert(p.first);
+        }
     }
     for (auto it = idSets.begin(); it != idSets.end(); it++) {
         if (!CheckExist(*it, nodeMap)) {
             // to remove the resource which rendertarget display node not exist
-            topSurfaceNodeMap_.erase(*it);
-            bottomSurfaceNodeMap_.erase(*it);
-            RSSingleton<RoundCornerDisplayManager>::GetInstance().RemoveRoundCornerDisplay(*it);
-            RSSingleton<RoundCornerDisplayManager>::GetInstance().RemoveRCDLayerInfo(*it);
-            RS_LOGI_IF(DEBUG_PIPELINE,
-                "[%{public}s] nodeId:%{public}" PRIu64 " not exist in nodeMap remove the rcd module \n",
-                __func__, *it);
+            RemoveRcdResource(*it);
         } else {
             RS_LOGD("[%{public}s] nodeId:%{public}" PRIu64 " detected in nodeMap \n", __func__, *it);
         }
     }
 }
 
-RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetContentSurfaceNodes(NodeId id) const
+RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetTopSurfaceNode(NodeId id)
 {
+    std::lock_guard<std::mutex> lock(topNodeMapMut_);
     auto it = topSurfaceNodeMap_.find(id);
     if (it != topSurfaceNodeMap_.end() && it->second != nullptr) {
         return it->second;
@@ -101,8 +122,9 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetContentSurfaceNodes(NodeId id) 
     return nullptr;
 }
 
-RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBackgroundSurfaceNodes(NodeId id) const
+RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBottomSurfaceNode(NodeId id)
 {
+    std::lock_guard<std::mutex> lock(bottomNodeMapMut_);
     auto it = bottomSurfaceNodeMap_.find(id);
     if (it != bottomSurfaceNodeMap_.end() && it->second != nullptr) {
         return it->second;
@@ -112,13 +134,14 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBackgroundSurfaceNodes(NodeId i
 
 RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetTopRenderNode(NodeId id)
 {
-    std::lock_guard<std::mutex> lock(nodeMapMut_);
+    std::lock_guard<std::mutex> lock(topNodeMapMut_);
     auto it = topSurfaceNodeMap_.find(id);
     if (it != topSurfaceNodeMap_.end() && it->second != nullptr) {
         return it->second;
     }
     // create and insert
     auto topRcdNode = RSRcdSurfaceRenderNode::Create(TOP_RCD_NODE_ID, RCDSurfaceType::TOP);
+    topRcdNode->SetRenderTargetId(id);
     topSurfaceNodeMap_[id] = topRcdNode;
     RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a top rendernode");
     return topRcdNode;
@@ -126,13 +149,14 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetTopRenderNode(NodeId id)
 
 RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBottomRenderNode(NodeId id)
 {
-    std::lock_guard<std::mutex> lock(nodeMapMut_);
+    std::lock_guard<std::mutex> lock(bottomNodeMapMut_);
     auto it = bottomSurfaceNodeMap_.find(id);
     if (it != bottomSurfaceNodeMap_.end() && it->second != nullptr) {
         return it->second;
     }
     // create and insert
     auto bottomRcdNode = RSRcdSurfaceRenderNode::Create(BACKGROUND_RCD_NODE_ID, RCDSurfaceType::BOTTOM);
+    bottomRcdNode->SetRenderTargetId(id);
     bottomSurfaceNodeMap_[id] = bottomRcdNode;
     RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a bottom rendernode");
     return bottomRcdNode;
@@ -150,8 +174,9 @@ void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& in
     visitor->SetUniProcessor(info.uniProcessor);
     visitor->ProcessRcdSurfaceRenderNode(*GetBottomRenderNode(id), info.bottomLayer, info.resourceChanged);
     visitor->ProcessRcdSurfaceRenderNode(*GetTopRenderNode(id), info.topLayer, info.resourceChanged);
-    if (info.resourceChanged)
+    if (info.resourceChanged) {
         RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(TOPIC_RCD_DISPLAY_HWRESOURCE, id, true);
+    }
     RS_TRACE_END();
 }
 

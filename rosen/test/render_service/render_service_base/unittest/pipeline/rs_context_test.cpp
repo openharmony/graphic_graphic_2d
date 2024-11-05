@@ -171,4 +171,22 @@ HWTEST_F(RSContextTest, SetRequestedNextVsyncAnimateTest007, TestSize.Level1)
     auto ret = rSContext.IsRequestedNextVsyncAnimate();
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: GetAnimatingNodeListTest001
+ * @tc.desc: GetAnimatingNodeList test.
+ * @tc.type: FUNC
+ * @tc.require: IAYANC
+ */
+HWTEST_F(RSContextTest, GetAnimatingNodeListTest001, TestSize.Level1)
+{
+    RSContext rSContext;
+    EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(1);
+    EXPECT_TRUE(nodePtr);
+    rSContext.RegisterAnimatingRenderNode(nodePtr);
+    EXPECT_EQ(rSContext.GetAnimatingNodeList().size(), 1);
+    rSContext.UnregisterAnimatingRenderNode(1);
+    EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
+}
 } // namespace OHOS::Rosen

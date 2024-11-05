@@ -30,6 +30,8 @@ enum class UIFWKType : int32_t {
 
 class HgmIdleDetector {
 public:
+    static constexpr int32_t ANIMATOR_NOT_RUNNING = -1;
+
     HgmIdleDetector() = default;
     ~HgmIdleDetector() = default;
 
@@ -51,6 +53,23 @@ public:
     bool GetAceAnimatorIdleState() const
     {
         return aceAnimatorIdleState_;
+    }
+
+    void UpdateAceAnimatorExpectedFrameRate(int32_t aceAnimatorExpectedFrameRate)
+    {
+        if (aceAnimatorExpectedFrameRate > aceAnimatorExpectedFrameRate_) {
+            aceAnimatorExpectedFrameRate_ = aceAnimatorExpectedFrameRate;
+        }
+    }
+
+    int32_t GetAceAnimatorExpectedFrameRate() const
+    {
+        return aceAnimatorExpectedFrameRate_;
+    }
+
+    void ResetAceAnimatorExpectedFrameRate()
+    {
+        aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
     }
 
     void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
@@ -89,6 +108,7 @@ private:
         std::string& validSurfaceName);
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
+    int32_t aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
     // FORMAT: <buffername>
     std::vector<std::string> appBufferBlackList_;
     std::vector<std::string> supportAppBufferList_;

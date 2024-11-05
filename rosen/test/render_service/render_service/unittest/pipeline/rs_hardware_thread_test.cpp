@@ -227,6 +227,18 @@ HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Start005
+ * @tc.desc: Test RSHardwareThreadTest.AddRefreshRateCount
+ * @tc.type: FUNC
+ * @tc.require: issueI8K4HE
+ */
+HWTEST_F(RSHardwareThreadTest, Start005, TestSize.Level1)
+{
+    auto& hardwareThread = RSHardwareThread::Instance();
+    hardwareThread.AddRefreshRateCount();
+}
+
+/**
  * @tc.name: ClearFrameBuffers002
  * @tc.desc: Test RSHardwareThreadTest.ClearFrameBuffers
  * @tc.type: FUNC
@@ -242,5 +254,73 @@ HWTEST_F(RSHardwareThreadTest, ClearFrameBuffers002, TestSize.Level1)
         GSError ret = hardwareThread.ClearFrameBuffers(hdiOutput);
         ASSERT_EQ(ret, GSERROR_OK);
     }
+}
+
+/**
+ * @tc.name: IsDelayRequired001
+ * @tc.desc: Test RSHardwareThreadTest.IsDelayRequired
+ * @tc.type: FUNC
+ * @tc.require: issueI6R49K
+ */
+HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto &hgmCore = HgmCore::Instance();
+    RefreshRateParam param = {
+        .rate = 0,
+        .frameTimestamp = 0,
+        .actualTimestamp = 0,
+        .vsyncId = 0,
+        .constraintRelativeTime = 0,
+        .isForceRefresh = true
+    };
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    bool hasGameScene = true;
+    bool isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
+    EXPECT_EQ(isDelayRequired == false, true);
+
+    param.isForceRefresh = false;
+    bool getLtpoEnabled = hgmCore.GetLtpoEnabled();
+    if (getLtpoEnabled) {
+        isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
+        if (hardwareThread.IsInAdaptiveMode(output)) {
+            EXPECT_EQ(isDelayRequired == false, true);
+        } else {
+            EXPECT_EQ(isDelayRequired == true, true);
+        }
+    } else {
+        isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
+        EXPECT_EQ(isDelayRequired == false, true);
+        if (hgmCore.IsDelayMode()) {
+            hasGameScene = false;
+            isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
+            EXPECT_EQ(isDelayRequired == true, true);
+        }
+    }
+}
+
+/**
+ * @tc.name: CalculateDelayTime001
+ * @tc.desc: Test RSHardwareThreadTest.CalculateDelayTime
+ * @tc.type: FUNC
+ * @tc.require: issueI6R49K
+ */
+HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto &hgmCore = HgmCore::Instance();
+    RefreshRateParam param = {
+        .rate = 0,
+        .frameTimestamp = 0,
+        .actualTimestamp = 0,
+        .vsyncId = 0,
+        .constraintRelativeTime = 0,
+        .isForceRefresh = true
+    };
+    uint32_t currentRate = 120;
+    int64_t currTime = 1000000000;
+
+    hardwareThread.CalculateDelayTime(hgmCore, param, currentRate, currTime);
+    EXPECT_EQ(hardwareThread.delayTime_ == 0, true);
 }
 } // namespace OHOS::Rosen

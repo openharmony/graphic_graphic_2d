@@ -255,6 +255,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
+            hasPermission = CheckPermission(code);
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS): {
             hasPermission = CheckPermission(code);
             break;

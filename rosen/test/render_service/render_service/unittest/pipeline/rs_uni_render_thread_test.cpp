@@ -69,24 +69,7 @@ HWTEST_F(RSUniRenderThreadTest, InitGrContext001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.InitGrContext();
-    EXPECT_TRUE(instance.uniRenderEngine_);
-}
-
-/**
- * @tc.name: Start001
- * @tc.desc: Test Start
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, Start001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.rootNodeDrawable_ = nullptr;
-    instance.Start();
-    EXPECT_TRUE(instance.rootNodeDrawable_);
-
-    instance.Start();
-    EXPECT_TRUE(instance.handler_);
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
 }
 
 /**
@@ -100,7 +83,7 @@ HWTEST_F(RSUniRenderThreadTest, GetRenderEngine001, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     instance.GetRenderEngine();
-    EXPECT_TRUE(instance.uniRenderEngine_);
+    ASSERT_NE(instance.uniRenderEngine_, nullptr);
 }
 
 /**
@@ -114,11 +97,11 @@ HWTEST_F(RSUniRenderThreadTest, PostTask001, TestSize.Level1)
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     std::function<void()> task = []() {};
     instance.PostTask(task);
-    EXPECT_TRUE(instance.handler_);
+    ASSERT_EQ(instance.handler_, nullptr);
 
     instance.handler_ = nullptr;
     instance.PostTask(task);
-    EXPECT_FALSE(instance.handler_);
+    ASSERT_EQ(instance.handler_, nullptr);
 }
 
 /**
@@ -155,15 +138,12 @@ HWTEST_F(RSUniRenderThreadTest, PostImageReleaseTask001, TestSize.Level1)
     EXPECT_TRUE(instance.postImageReleaseTaskFlag_);
 
     instance.postImageReleaseTaskFlag_ = false;
-    auto product = system::GetParameter("const.build.product", "");
-    system::SetParameter("const.build.product", "ALN");
     instance.PostImageReleaseTask(task);
     EXPECT_FALSE(instance.postImageReleaseTaskFlag_);
 
     instance.tid_ = 0;
     instance.PostImageReleaseTask(task);
     EXPECT_FALSE(instance.postImageReleaseTaskFlag_);
-    system::SetParameter("const.build.product", product);
 }
 
 /**
@@ -240,22 +220,6 @@ HWTEST_F(RSUniRenderThreadTest, PostSyncTask001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsIdleAndSync001
- * @tc.desc: Test IsIdle And Sync
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RSUniRenderThreadTest, IsIdleAndSync001, TestSize.Level1)
-{
-    RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    bool res = instance.IsIdle();
-    EXPECT_TRUE(res);
-
-    instance.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    EXPECT_TRUE(instance.GetRSRenderThreadParams());
-}
-
-/**
  * @tc.name: Render001
  * @tc.desc: Test Render
  * @tc.type: FUNC
@@ -265,6 +229,9 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(instance.runner_);
+    const std::shared_ptr<RSBaseRenderNode> rootNode = RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rootNode);
+    instance.rootNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(ptr);
     instance.Render();
     EXPECT_TRUE(instance.rootNodeDrawable_);
 
@@ -346,7 +313,7 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
     instance.DefaultClearMemoryCache();
-    EXPECT_TRUE(instance.clearMemoryFinished_);
+    EXPECT_FALSE(instance.clearMemoryFinished_);
 }
 
 /**
@@ -358,11 +325,13 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.ResetClearMemoryTask();
-    EXPECT_TRUE(instance.clearMemoryFinished_);
+    std::unordered_map<NodeId, bool> ids1;
+    instance.ResetClearMemoryTask(std::move(ids1));
+    EXPECT_FALSE(instance.clearMemoryFinished_);
 
     instance.clearMemoryFinished_ = true;
-    instance.ResetClearMemoryTask();
+    std::unordered_map<NodeId, bool> ids2;
+    instance.ResetClearMemoryTask(std::move(ids2));
     EXPECT_TRUE(instance.clearMemoryFinished_);
 }
 
@@ -486,13 +455,12 @@ HWTEST_F(RSUniRenderThreadTest, GetRefreshRate001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    std::shared_ptr<const RSRenderNode> node = std::make_shared<const RSRenderNode>(0);
-    surfaceRenderNode->renderDrawable_ = std::make_shared<RSRenderNodeDrawable>(std::move(node));
-    surfaceRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
-    auto surfaceDrawable =
-        std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(surfaceRenderNode->renderDrawable_);
-    surfaceDrawable->consumerOnDraw_ = IConsumerSurface::Create();
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(1);
+    auto adapter = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
+
+    adapter->consumerOnDraw_ = IConsumerSurface::Create();
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     instance.GetRSRenderThreadParams()->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
     instance.ReleaseSelfDrawingNodeBuffer();

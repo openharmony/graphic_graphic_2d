@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
-#define RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#ifndef RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#define RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
 
 #include <functional>
 #include <map>
@@ -30,14 +30,21 @@ namespace Rosen {
 
 class RSISurfaceBufferCallback;
 
-class RSSurfaceBufferCallbackManager {
+class RSB_EXPORT RSSurfaceBufferCallbackManager {
 public:
+    struct VSyncFuncs {
+        std::function<void()> requestNextVsync;
+        std::function<bool()> isRequestedNextVSync;
+    };
+
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback);
     void UnregisterSurfaceBufferCallback(pid_t pid);
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
     std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback() const;
+    void SetRunPolicy(std::function<void(std::function<void()>)> runPolicy);
+    void SetVSyncFuncs(VSyncFuncs vSyncFuncs);
 
     static RSSurfaceBufferCallbackManager& Instance();
 private:
@@ -51,20 +58,27 @@ private:
 
     sptr<RSISurfaceBufferCallback> GetSurfaceBufferCallback(pid_t pid, uint64_t uid) const;
     size_t GetSurfaceBufferCallbackSize() const;
-    
+
     void EnqueueSurfaceBufferId(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void OnSurfaceBufferOpItemDestruct(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void RunSurfaceBufferCallback();
+
+    void RequestNextVSync();
 
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
         surfaceBufferCallbacks_;
     std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> stagingSurfaceBufferIds_;
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
+    std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
+        std::invoke(task);
+    };
+    VSyncFuncs vSyncFuncs_;
 
-    friend class RSDrawFrame;
+    friend class RSMainThread;
+    friend class RSRenderThread;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H
+#endif // RENDER_SERVICE_BASE_PIPELINE_RS_SURFACE_BUFFER_CALLBACK_MANAGER_H

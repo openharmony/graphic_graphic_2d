@@ -57,7 +57,7 @@ HWTEST_F(FontMgrTest, LoadDynamicFont002, TestSize.Level1)
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDynamicFontMgr();
     std::vector<uint8_t> emptyFontData;
     Typeface* typeface = FontMgr->LoadDynamicFont("EmptyFont", emptyFontData.data(), emptyFontData.size());
-    ASSERT_TRUE(typeface == nullptr);
+    ASSERT_EQ(typeface, nullptr);
 }
 
 /**
@@ -75,7 +75,7 @@ HWTEST_F(FontMgrTest, MatchFamilyStyleCharacter001, TestSize.Level1)
     int bcp47Count = 1;
     int32_t character = 'A';
     Typeface* typeface = FontMgr->MatchFamilyStyleCharacter("serif", fontStyle, bcp47, bcp47Count, character);
-    ASSERT_TRUE(typeface != nullptr);
+    ASSERT_NE(typeface, nullptr);
 }
 
 /**
@@ -89,7 +89,7 @@ HWTEST_F(FontMgrTest, MatchFamily002, TestSize.Level1)
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     const char* familyName = "serif";
     FontStyleSet* fontStyleSet = FontMgr->MatchFamily(familyName);
-    ASSERT_TRUE(fontStyleSet != nullptr);
+    ASSERT_NE(fontStyleSet, nullptr);
 }
 
 /**
@@ -102,7 +102,7 @@ HWTEST_F(FontMgrTest, CountFamilies001, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     int familyCount = FontMgr->CountFamilies();
-    ASSERT_GE(familyCount, 0);
+    EXPECT_EQ(familyCount, 9);
 }
 
 /**
@@ -116,7 +116,8 @@ HWTEST_F(FontMgrTest, GetFamilyName001, TestSize.Level1)
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
     std::string familyName;
     FontMgr->GetFamilyName(0, familyName);
-    ASSERT_TRUE(familyName.length() > 0);
+    std::string result = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
+    EXPECT_EQ(familyName, result);
 }
 
 /**
@@ -128,9 +129,9 @@ HWTEST_F(FontMgrTest, GetFamilyName001, TestSize.Level1)
 HWTEST_F(FontMgrTest, CreateStyleSet001, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> FontMgr = FontMgr::CreateDefaultFontMgr();
-    ASSERT_TRUE(FontMgr != nullptr);
+    ASSERT_NE(FontMgr, nullptr);
     FontStyleSet* fontStyleSet = FontMgr->CreateStyleSet(0);
-    ASSERT_TRUE(fontStyleSet != nullptr);
+    ASSERT_NE(fontStyleSet, nullptr);
 }
 
 const char* TTF_FILE_PATH = "/system/fonts/Roboto-Regular.ttf";
@@ -160,7 +161,7 @@ const char* CONFIG_FIRST_FONT_PATH = "/data/fonts/Igiari-2.otf";
 HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<FontByteArray> fullnameVec;
     std::string fontPath = TTF_FILE_PATH;
     int fd = open(fontPath.c_str(), O_RDONLY);
@@ -168,8 +169,8 @@ HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level1)
         int ret = fontMgr->GetFontFullName(fd, fullnameVec);
         close(fd);
         EXPECT_TRUE(ret == 0 && fullnameVec.size() > 0);
-        EXPECT_TRUE(fullnameVec[0].strLen == sizeof(TTF_FULLNAME));
-        EXPECT_TRUE(memcmp(fullnameVec[0].strData.get(), TTF_FULLNAME, fullnameVec[0].strLen) == 0);
+        EXPECT_EQ(fullnameVec[0].strLen, sizeof(TTF_FULLNAME));
+        EXPECT_EQ(memcmp(fullnameVec[0].strData.get(), TTF_FULLNAME, fullnameVec[0].strLen), 0);
     }
 }
 
@@ -182,7 +183,7 @@ HWTEST_F(FontMgrTest, GetFontFullName001, TestSize.Level1)
 HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<FontByteArray> fullnameVec;
     std::string fontPath = OTF_FILE_PATH;
     int fd = open(fontPath.c_str(), O_RDONLY);
@@ -190,8 +191,8 @@ HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level1)
         int ret = fontMgr->GetFontFullName(fd, fullnameVec);
         close(fd);
         EXPECT_TRUE(ret == 0 && fullnameVec.size() > 0);
-        EXPECT_TRUE(fullnameVec[0].strLen == sizeof(OTF_FULLNAME));
-        EXPECT_TRUE(memcmp(fullnameVec[0].strData.get(), OTF_FULLNAME, fullnameVec[0].strLen) == 0);
+        EXPECT_EQ(fullnameVec[0].strLen, sizeof(OTF_FULLNAME));
+        EXPECT_EQ(memcmp(fullnameVec[0].strData.get(), OTF_FULLNAME, fullnameVec[0].strLen), 0);
     }
 }
 
@@ -204,7 +205,7 @@ HWTEST_F(FontMgrTest, GetFontFullName002, TestSize.Level1)
 HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<FontByteArray> fullnameVec;
     std::string fontPath = TTC_FILE_PATH;
     int fd = open(fontPath.c_str(), O_RDONLY);
@@ -212,8 +213,8 @@ HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level1)
         int ret = fontMgr->GetFontFullName(fd, fullnameVec);
         close(fd);
         EXPECT_TRUE(ret == 0 && fullnameVec.size() > 0);
-        EXPECT_TRUE(fullnameVec[0].strLen == sizeof(TTC_FULLNAME));
-        EXPECT_TRUE(memcmp(fullnameVec[0].strData.get(), TTC_FULLNAME, fullnameVec[0].strLen) == 0);
+        EXPECT_EQ(fullnameVec[0].strLen, sizeof(TTC_FULLNAME));
+        EXPECT_EQ(memcmp(fullnameVec[0].strData.get(), TTC_FULLNAME, fullnameVec[0].strLen), 0);
     }
 }
 
@@ -226,7 +227,7 @@ HWTEST_F(FontMgrTest, GetFontFullName003, TestSize.Level1)
 HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<FontByteArray> fullnameVec;
     std::string fontPath = ERRORPATH_FILE_PATH;
     int fd = open(fontPath.c_str(), O_RDONLY);
@@ -234,7 +235,7 @@ HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level1)
     if (fd != -1) {
         close(fd);
     }
-    EXPECT_TRUE(ret == ERROR_TYPE_OTHER);
+    EXPECT_EQ(ret, ERROR_TYPE_OTHER);
 }
 /**
  * @tc.name:GetFontFullName005
@@ -245,7 +246,7 @@ HWTEST_F(FontMgrTest, GetFontFullName004, TestSize.Level1)
 HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<FontByteArray> fullnameVec;
     std::string filepath = "";
     int fd = open(filepath.c_str(), O_RDONLY);
@@ -253,7 +254,7 @@ HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level1)
     if (fd != -1) {
         close(fd);
     }
-    EXPECT_TRUE(ret == ERROR_TYPE_OTHER);
+    EXPECT_EQ(ret, ERROR_TYPE_OTHER);
 }
 /**
  * @tc.name:GetFontFullName006
@@ -264,7 +265,7 @@ HWTEST_F(FontMgrTest, GetFontFullName005, TestSize.Level1)
 HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<FontByteArray> fullnameVec;
     std::string fontPath = ERRORFORMAT_FILE_PATH;
     int fd = open(fontPath.c_str(), O_RDONLY);
@@ -272,7 +273,7 @@ HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level1)
     if (fd != -1) {
         close(fd);
     }
-    EXPECT_TRUE(ret == ERROR_TYPE_OTHER);
+    EXPECT_EQ(ret, ERROR_TYPE_OTHER);
 }
 
 /**
@@ -284,7 +285,7 @@ HWTEST_F(FontMgrTest, GetFontFullName006, TestSize.Level1)
 HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<std::string> fontPathVec;
     std::string configPath = JSON_CONFIG_PATH;
     std::ifstream configFile(configPath, std::ios::in);
@@ -292,7 +293,7 @@ HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level1)
         configFile.close();
         int ret = fontMgr->ParseInstallFontConfig(configPath, fontPathVec);
         EXPECT_TRUE(ret == 0 && fontPathVec.size() > 0);
-        EXPECT_TRUE(fontPathVec[0] == CONFIG_FIRST_FONT_PATH);
+        EXPECT_EQ(fontPathVec[0], CONFIG_FIRST_FONT_PATH);
     }
 }
 /**
@@ -304,11 +305,11 @@ HWTEST_F(FontMgrTest, ParseInstallFontConfig001, TestSize.Level1)
 HWTEST_F(FontMgrTest, ParseInstallFontConfig002, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<std::string> fontPathVec;
     std::string configPath = ERROR_JSON_CONFIG_PATH;
     int ret = fontMgr->ParseInstallFontConfig(configPath, fontPathVec);
-    EXPECT_TRUE(ret == ERROR_PARSE_CONFIG_FAILED);
+    EXPECT_EQ(ret, ERROR_PARSE_CONFIG_FAILED);
 }
 /**
  * @tc.name:ParseInstallFontConfig003
@@ -319,11 +320,11 @@ HWTEST_F(FontMgrTest, ParseInstallFontConfig002, TestSize.Level1)
 HWTEST_F(FontMgrTest, ParseInstallFontConfig003, TestSize.Level1)
 {
     std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
-    EXPECT_TRUE(fontMgr != nullptr);
+    EXPECT_NE(fontMgr, nullptr);
     std::vector<std::string> fontPathVec;
     std::string configPath = "";
     int ret = fontMgr->ParseInstallFontConfig(configPath, fontPathVec);
-    EXPECT_TRUE(ret == ERROR_PARSE_CONFIG_FAILED);
+    EXPECT_EQ(ret, ERROR_PARSE_CONFIG_FAILED);
 }
 } // namespace Drawing
 } // namespace Rosen

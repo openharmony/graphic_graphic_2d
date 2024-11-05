@@ -20,6 +20,7 @@
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,7 +35,10 @@ public:
     void TearDown() override;
 };
 
-void RSSurfaceCaptureTaskParallelTest::SetUpTestCase() {}
+void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSSurfaceCaptureTaskParallelTest::TearDownTestCase() {}
 void RSSurfaceCaptureTaskParallelTest::SetUp() {}
 void RSSurfaceCaptureTaskParallelTest::TearDown() {}
@@ -194,7 +198,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run001, TestSize.Level2)
     RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.pixelMap_ = nullptr;
     ASSERT_EQ(nullptr, task.pixelMap_);
-    ASSERT_EQ(false, task.Run(nullptr));
+    ASSERT_EQ(false, task.Run(nullptr, false));
 }
 
 /*
@@ -211,7 +215,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run002, TestSize.Level2)
     auto node = std::make_shared<RSRenderNode>(id);
     task.surfaceNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    ASSERT_EQ(false, task.Run(nullptr));
+    ASSERT_EQ(false, task.Run(nullptr, false));
 }
 
 /*
@@ -229,7 +233,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run003, TestSize.Level2)
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    ASSERT_EQ(false, task.Run(nullptr));
+    ASSERT_EQ(false, task.Run(nullptr, false));
 }
 
 /*
@@ -245,7 +249,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     RSSurfaceCaptureTaskParallel task(id, captureConfig);
     task.surfaceNodeDrawable_ = nullptr;
     task.displayNodeDrawable_ = nullptr;
-    ASSERT_EQ(false, task.Run(nullptr));
+    ASSERT_EQ(false, task.Run(nullptr, false));
 }
 }
 }

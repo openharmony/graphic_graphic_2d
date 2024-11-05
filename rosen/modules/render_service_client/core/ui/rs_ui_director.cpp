@@ -280,16 +280,24 @@ void RSUIDirector::SetCacheDir(const std::string& cacheFilePath)
 
 bool RSUIDirector::FlushAnimation(uint64_t timeStamp, int64_t vsyncPeriod)
 {
-    bool hasRunningAnimation = false;
     auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
     if (modifierManager != nullptr) {
         modifierManager->SetDisplaySyncEnable(true);
         modifierManager->SetFrameRateGetFunc([](const RSPropertyUnit unit, float velocity) -> int32_t {
             return RSFrameRatePolicy::GetInstance()->GetExpectedFrameRate(unit, velocity);
         });
-        hasRunningAnimation = modifierManager->Animate(timeStamp, vsyncPeriod);
+        return modifierManager->Animate(timeStamp, vsyncPeriod);
     }
-    return hasRunningAnimation;
+    return false;
+}
+
+bool RSUIDirector::HasFirstFrameAnimation()
+{
+    auto modifierManager = RSModifierManagerMap::Instance()->GetModifierManager(gettid());
+    if (modifierManager != nullptr) {
+        return modifierManager->GetAndResetFirstFrameAnimationState();
+    }
+    return false;
 }
 
 void RSUIDirector::FlushAnimationStartTime(uint64_t timeStamp)
@@ -339,6 +347,8 @@ void RSUIDirector::SendMessages()
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
         index_ = transactionProxy->GetTransactionDataIndex();
+    } else {
+        RS_LOGE("RSUIDirector::SendMessages failed, transactionProxy is nullptr");
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
@@ -437,7 +447,7 @@ void RSUIDirector::AnimationCallbackProcessor(NodeId nodeId, AnimationId animId,
     }
 }
 
-void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskId)
 {
     RS_TRACE_NAME_FMT("DumpClientNodeTree dump task[%u] node[%" PRIu64 "]", taskId, nodeId);
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
@@ -450,7 +460,8 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSDumpClientNodeTree>(nodeId, getpid(), taskId, out);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSCommitDumpClientNodeTree>(
+            nodeId, getpid(), taskId, out);
         transactionProxy->AddCommand(command, true);
         RSTransaction::FlushImplicitTransaction();
     }

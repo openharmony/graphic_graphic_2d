@@ -160,6 +160,7 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
+    "src/ipc_callbacks/rs_surface_buffer_callback.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback_proxy.cpp",
     "src/ipc_callbacks/rs_surface_buffer_callback_stub.cpp",
     "src/ipc_callbacks/rs_surface_occlusion_change_callback_proxy.cpp",
@@ -212,6 +213,7 @@ ohos_source_set("render_service_base_src") {
     "src/pipeline/rs_render_node_map.cpp",
     "src/pipeline/rs_root_render_node.cpp",
     "src/pipeline/rs_single_frame_composer.cpp",
+    "src/pipeline/rs_surface_buffer_callback_manager.cpp",
     "src/pipeline/rs_surface_handler.cpp",
     "src/pipeline/rs_surface_render_node.cpp",
     "src/pipeline/rs_task_dispatcher.cpp",
@@ -511,8 +513,8 @@ ohos_source_set("render_service_base_src") {
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
 
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]

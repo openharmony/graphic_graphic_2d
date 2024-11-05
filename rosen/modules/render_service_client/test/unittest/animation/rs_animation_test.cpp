@@ -601,6 +601,8 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     propAnimation->uiAnimation_ = std::make_shared<RSRenderAnimation>();
     propAnimation->property_ = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_START_BOUNDS);
     propAnimation->UpdateStagingValueOnInteractiveFinish(RSInteractiveAnimationPosition::CURRENT);
+    std::string dumpInfo = "";
+    propAnimation->DumpAnimationInfo(dumpInfo);
     EXPECT_TRUE(propAnimation != nullptr);
     
     GTEST_LOG_(INFO) << "RSAnimationTest AnimationStatus004 end";

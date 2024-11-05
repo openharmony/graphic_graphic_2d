@@ -25,7 +25,6 @@
 #include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
-#include "utils/text_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -169,7 +168,6 @@ float ParagraphImpl::DetectIndents(size_t index)
 
 void ParagraphImpl::Layout(double width)
 {
-    TEXT_TRACE_FUNC();
     RecordDifferentPthreadCall(__FUNCTION__);
     lineMetrics_.reset();
     lineMetricsStyles_.clear();
@@ -417,6 +415,19 @@ void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
             threadId_, caller);
         threadId_ = currenetThreadId;
     }
+}
+
+Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
+{
+    RecordDifferentPthreadCall("GeneratePaintRegion");
+    if (!paragraph_) {
+        double left = std::floor(x);
+        double top = std::floor(y);
+        return Drawing::RectI(left, top, left, top);
+    }
+
+    SkIRect skIRect = paragraph_->generatePaintRegion(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
 }
 } // namespace SPText
 } // namespace Rosen

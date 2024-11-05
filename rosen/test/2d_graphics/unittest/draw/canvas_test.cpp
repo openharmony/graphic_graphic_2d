@@ -119,7 +119,7 @@ HWTEST_F(CanvasTest, CanvasGetRoundInDeviceClipBoundsTest001, TestSize.Level1)
     EXPECT_TRUE(rect != nullptr);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: CanvasGetGPUContextTest001
  * @tc.desc: Test for geting gpu context.

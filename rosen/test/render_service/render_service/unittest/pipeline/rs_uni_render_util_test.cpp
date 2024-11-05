@@ -1982,7 +1982,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam008, TestSize.Level2)
     auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
     param->buffer_ = surfaceNode->surfaceHandler_->GetBuffer();
     drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
-    param->preScalingMode_ = SCALING_MODE_SCALE_CROP;
+    param->scalingMode_ = SCALING_MODE_SCALE_CROP;
     drawable->renderParams_ = std::move(param);
     auto cpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, true, 1);
     auto nocpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, false, 1);
@@ -2009,7 +2009,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam009, TestSize.Level2)
     auto param = std::make_unique<RSSurfaceRenderParams>(node->id_);
     param->buffer_ = surfaceNode->surfaceHandler_->GetBuffer();
     drawable->consumerOnDraw_ = surfaceNode->surfaceHandler_->GetConsumer();
-    param->preScalingMode_ = SCALING_MODE_SCALE_FIT;
+    param->scalingMode_ = SCALING_MODE_SCALE_FIT;
     drawable->renderParams_ = std::move(param);
     auto cpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, true, 1);
     auto nocpuParam = rsUniRenderUtil.CreateBufferDrawParam(*drawable, false, 1);
@@ -2206,5 +2206,62 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrix_006, TestSize.Level2)
     auto assertResult = node->renderContent_->renderProperties_.boundsGeo_->GetAbsMatrix();
     assertResult.PostConcat(invertAbsParentMatrix);
     ASSERT_EQ(RSUniRenderUtil::GetMatrix(node), assertResult);
+}
+
+/**
+ * @tc.name: CheckRenderSkipIfScreenOff001
+ * @tc.desc: Test CheckRenderSkipIfScreenOff, no need for extra frame
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return;
+    }
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+}
+
+/**
+ * @tc.name: CheckRenderSkipIfScreenOff002
+ * @tc.desc: Test CheckRenderSkipIfScreenOff, need extra frame
+ * @tc.type: FUNC
+ * @tc.require: #I9UNQP
+ */
+HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return;
+    }
+    ScreenId screenId = 1;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
+    screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
+    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
 }
 } // namespace OHOS::Rosen

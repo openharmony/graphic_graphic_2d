@@ -156,13 +156,13 @@ void RSAnimationTraceUtils::addAnimationCreateTrace(const uint64_t nodeId, const
 
 void RSAnimationTraceUtils::addAnimationFrameTrace(const uint64_t nodeId, const std::string& nodeName,
     const uint64_t animationId, const uint64_t propertyId, const float fraction,
-    const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time) const
+    const std::shared_ptr<RSRenderPropertyBase>& value, const int64_t time, const int dur, const int repeat) const
 {
     if (isDebugOpen_) {
         auto propertyValue = ParseRenderPropertyVaule(value);
-        RS_TRACE_NAME_FMT(
-            "frame animation node[%llu] name[%s] pro[%llu] animate[%llu], fraction %f, value[%s], time[%lld]", nodeId,
-            nodeName.c_str(), propertyId, animationId, fraction, propertyValue.c_str(), time);
+        RS_TRACE_NAME_FMT("frame animation node[%llu] name[%s] pro[%llu] animate[%llu], fraction %f, value[%s], "
+            "time[%lld], dur[%d], repeat[%d]", nodeId, nodeName.c_str(), propertyId, animationId, fraction,
+            propertyValue.c_str(), time, dur, repeat);
     }
 }
 

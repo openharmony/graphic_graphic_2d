@@ -49,19 +49,24 @@ ohos_source_set("graphics_effect_src") {
   ]
 
   sources = [
-    "src/ge_aibar_shader_filter.cpp",
-    "src/ge_grey_shader_filter.cpp",
-    "src/ge_kawase_blur_shader_filter.cpp",
-    "src/ge_linear_gradient_blur_shader_filter.cpp",
-    "src/ge_magnifier_shader_filter.cpp",
     "src/ge_mesa_blur_shader_filter.cpp",
     "src/ge_render.cpp",
     "src/ge_system_properties.cpp",
     "src/ge_visual_effect.cpp",
     "src/ge_visual_effect_container.cpp",
     "src/ge_visual_effect_impl.cpp",
-    "src/ge_water_ripple_filter.cpp",
   ]
+
+  if (rs_enable_gpu) {
+    sources += [
+      "src/ge_aibar_shader_filter.cpp",
+      "src/ge_grey_shader_filter.cpp",
+      "src/ge_kawase_blur_shader_filter.cpp",
+      "src/ge_linear_gradient_blur_shader_filter.cpp",
+      "src/ge_magnifier_shader_filter.cpp",
+      "src/ge_water_ripple_filter.cpp",
+    ]
+  }
 
   deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
   if (is_arkui_x) {

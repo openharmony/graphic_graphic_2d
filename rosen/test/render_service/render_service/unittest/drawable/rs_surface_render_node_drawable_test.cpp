@@ -539,7 +539,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto nodePtr = std::make_shared<RSRenderNode>(0);
     ASSERT_NE(nodePtr, nullptr);
     auto rsSurfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr);
-    RSUniRenderThread::Instance().renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
         rsSurfaceRenderNode);
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
@@ -1167,6 +1167,11 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->GetHardwareEnabled());
 
+    surfaceParams->isHardCursor_ = true;
+    surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
+    ASSERT_TRUE(surfaceParams->GetHardCursorStatus());
+    ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabledTopSurface());
+
     surfaceParams->isLayerTop_ = true;
     surfaceDrawable_->DealWithSelfDrawingNodeBuffer(canvas, *surfaceParams);
     ASSERT_TRUE(surfaceParams->IsLayerTop());
@@ -1195,4 +1200,79 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcessAndCache, TestSize.Lev
     surfaceDrawable_->OnGeneralProcess(canvas, *surfaceParams, false);
     ASSERT_TRUE(surfaceDrawable_->drawWindowCache_.HasCache());
 }
+
+#ifdef RS_ENABLE_GL
+/**
+ * @tc.name: FlushSemaphoreTest001
+ * @tc.desc: Test FlushSemaphore while surface is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAZ4QG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FlushSemaphoreTest001, TestSize.Level2)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
+
+    std::shared_ptr<Drawing::Surface> drawingSurface =
+        Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    ASSERT_NE(drawingSurface, nullptr);
+    RSPaintFilterCanvas canvas(drawingSurface.get());
+    canvas.surface_ = nullptr;
+
+    surfaceDrawable_->FlushSemaphore(canvas);
+    ASSERT_EQ(surfaceDrawable_->semaphoresForRT_.size(), 0);
+}
+
+/**
+ * @tc.name: FlushSemaphoreTest002
+ * @tc.desc: Test FlushSemaphore while surface isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAZ4QG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, FlushSemaphoreTest002, TestSize.Level2)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
+
+    std::shared_ptr<Drawing::Surface> drawingSurface =
+        Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    ASSERT_NE(drawingSurface, nullptr);
+    RSPaintFilterCanvas canvas(drawingSurface.get());
+
+    surfaceDrawable_->FlushSemaphore(canvas);
+    ASSERT_EQ(surfaceDrawable_->semaphoresForRT_.size(), 1);
+}
+
+/**
+ * @tc.name: WaitSemaphoreTest
+ * @tc.desc: Test WaitSemaphoreTest
+ * @tc.type: FUNC
+ * @tc.require: issueIAZ4QG
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, WaitSemaphoreTest, TestSize.Level2)
+{
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
+        return;
+    }
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    surfaceDrawable_->cacheSurface_ = std::make_shared<Drawing::Surface>();
+
+    std::shared_ptr<Drawing::Surface> drawingSurface =
+        Drawing::Surface::MakeRasterN32Premul(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    ASSERT_NE(drawingSurface, nullptr);
+    RSPaintFilterCanvas canvas(drawingSurface.get());
+
+    // flush (RT Thread)
+    surfaceDrawable_->FlushSemaphore(canvas);
+    // swap semaphores to RS SubThread
+    std::swap(surfaceDrawable_->semaphoresForRT_, surfaceDrawable_->semaphoresForRSSub_);
+    // wait (RS SubThread)
+    surfaceDrawable_->WaitSemaphore();
+    ASSERT_EQ(surfaceDrawable_->semaphoresForRSSub_.size(), 0);
+}
+#endif
 }

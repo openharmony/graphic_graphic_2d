@@ -79,6 +79,33 @@ VsyncError VSyncConnectionProxy::SetUiDvsyncSwitch(bool dvsyncSwitch)
     return static_cast<VsyncError>(ret.ReadInt32());
 }
 
+VsyncError VSyncConnectionProxy::SetNativeDVSyncSwitch(bool dvsyncSwitch)
+{
+    MessageOption opt(MessageOption::TF_ASYNC);
+    MessageParcel arg;
+    MessageParcel ret;
+
+    if (!arg.WriteInterfaceToken(GetDescriptor())) {
+        VLOGE("Failed to write interface token");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    if (!arg.WriteBool(dvsyncSwitch)) {
+        VLOGE("Failed to write dvsyncSwitch:%{public}d", dvsyncSwitch);
+        return VSYNC_ERROR_API_FAILED;
+    }
+    auto remote = Remote();
+    if (remote == nullptr) {
+        VLOGE("remote is null");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    int res = remote->SendRequest(IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH, arg, ret, opt);
+    if (res != NO_ERROR) {
+        VLOGE("ipc send fail, error:%{public}d", res);
+        return VSYNC_ERROR_UNKOWN;
+    }
+    return static_cast<VsyncError>(ret.ReadInt32());
+}
+
 VsyncError VSyncConnectionProxy::SetUiDvsyncConfig(int32_t bufferCount)
 {
     MessageOption opt(MessageOption::TF_ASYNC);

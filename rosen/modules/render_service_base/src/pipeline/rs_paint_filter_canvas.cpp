@@ -60,7 +60,7 @@ uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
     return canvas_->GetSaveCount();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Drawing::GPUContext> RSPaintFilterCanvasBase::GetGPUContext()
 {
     return canvas_ != nullptr ? canvas_->GetGPUContext() : nullptr;
@@ -1389,6 +1389,17 @@ void RSPaintFilterCanvas::SetEffectData(const std::shared_ptr<RSPaintFilterCanva
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetEffectData() const
 {
     return envStack_.top().effectData_;
+}
+
+void RSPaintFilterCanvas::SetBehindWindowData(
+    const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& behindWindowData)
+{
+    envStack_.top().behindWindowData_ = behindWindowData;
+}
+
+const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetBehindWindowData() const
+{
+    return envStack_.top().behindWindowData_;
 }
 
 void RSPaintFilterCanvas::ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,

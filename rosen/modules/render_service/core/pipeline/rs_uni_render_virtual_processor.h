@@ -79,10 +79,10 @@ public:
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
     void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
+    void CanvasClipRegionForUniscaleMode();
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
-    void CanvasClipRegion(RSPaintFilterCanvas& canvas, float mainWidth, float mainHeight);
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;

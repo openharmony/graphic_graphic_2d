@@ -141,23 +141,31 @@ public:
     void SetScale(Vector2f scale);
     void SetScaleX(float sx);
     void SetScaleY(float sy);
+    void SetScaleZ(float sz);
     Vector2f GetScale() const;
     float GetScaleX() const;
     float GetScaleY() const;
+    float GetScaleZ() const;
 
-    void SetSkew(Vector2f skew);
+    void SetSkew(Vector3f skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
-    Vector2f GetSkew() const;
+    void SetSkewZ(float skewZ);
+    Vector3f GetSkew() const;
     float GetSkewX() const;
     float GetSkewY() const;
+    float GetSkewZ() const;
 
-    void SetPersp(Vector2f persp);
+    void SetPersp(Vector4f persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
-    Vector2f GetPersp() const;
+    void SetPerspZ(float perspZ);
+    void SetPerspW(float perspW);
+    Vector4f GetPersp() const;
     float GetPerspX() const;
     float GetPerspY() const;
+    float GetPerspZ() const;
+    float GetPerspW() const;
 
     void SetAlpha(float alpha);
     float GetAlpha() const;
@@ -234,7 +242,6 @@ public:
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
-    bool GetBorderColorIsTransparent() const;
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
@@ -533,6 +540,10 @@ public:
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
+    void SetUseEffectType(int useEffectType);
+    int GetUseEffectType() const;
+    void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
+    bool GetNeedDrawBehindWindow() const;
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
@@ -610,6 +621,8 @@ private:
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
     bool useEffect_ = false;
+    int useEffectType_ = 0;
+    bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;

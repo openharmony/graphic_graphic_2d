@@ -246,18 +246,17 @@ double OH_Drawing_TextLineGetOffsetForStringIndex(OH_Drawing_TextLine* line, int
  * @since 14
  * @version 1.0
  */
-typedef bool (*CustomCallback)(double offset, int32_t index, bool leadingEdge);
+typedef bool (*Drawing_CaretOffsetsCallback)(double offset, int32_t index, bool leadingEdge);
 
 /**
  * @brief Enumerate caret offset and index in text lines.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
  * @param line Indicates the pointer to an <b>OH_Drawing_TextLine</b> object.
- * @param callback User-defined callback functions, see <b>CustomCallback</b>.
+ * @param callback User-defined callback functions, see <b>Drawing_CaretOffsetsCallback</b>.
  * @since 14
- * @version 1.0
  */
-void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, CustomCallback callback);
+void OH_Drawing_TextLineEnumerateCaretOffsets(OH_Drawing_TextLine* line, Drawing_CaretOffsetsCallback callback);
 
 /**
  * @brief Gets the text offset based on the given alignment factor and alignment width.

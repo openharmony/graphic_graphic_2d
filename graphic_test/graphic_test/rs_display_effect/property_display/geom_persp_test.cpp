@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class GeometryTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -63,4 +63,30 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_2)
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_3)
+{
+    float persp[] = { 0.8, 1.0 };
+    for (int i = 0; i < 2; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 880 + 200, 600, 600 });
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(0.0, 0, 45.0);
+        testNode->SetPerspW(persp[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_4)
+{
+    float perspz[] = { 0.8, 0.2 };
+    float perspw[] = { 0.8, 1.0 };
+    for (int i = 0; i < 2; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 880 + 200, 600, 600 });
+        testNode->SetRotation(Quaternion(0.0, 0.0, 0.382, 0.923));
+        testNode->SetPerspZ(perspz[i]);
+        testNode->SetPerspW(perspw[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

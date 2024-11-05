@@ -78,6 +78,13 @@ namespace OHOS {
         uint32_t screenId = GetData<uint32_t>();
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         void* data2 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data3 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data4 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        void* data5 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool enabled = GetData<bool>();
 
         // test
         OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
@@ -90,11 +97,24 @@ namespace OHOS {
         outputptr->SetLayerInfo(layerInfos);
 
         HdiBackend* hdiBackend_ = HdiBackend::GetInstance();
+        HdiDevice* hdiDevice = HdiDevice::GetInstance();
         auto onScreenHotplugFunc = [](OutputPtr &, bool, void*) -> void {};
+        auto onScreenRefreshFunc = [](uint32_t, void*) -> void {};
         auto onPrepareCompleteFunc = [](sptr<Surface> &, const struct PrepareCompleteParam &, void*) -> void {};
+        auto onHwcDeadCallback = [](void*) -> void {};
+        auto onVBlankIdleCallback = [](uint32_t, uint64_t, void*) -> void {};
         hdiBackend_->RegScreenHotplug(onScreenHotplugFunc, data1);
         hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, data2);
+        hdiBackend_->RegScreenRefresh(onScreenRefreshFunc, data3);
+        hdiBackend_->RegHwcDeadListener(onHwcDeadCallback, data4);
+        hdiBackend_->RegScreenVBlankIdleCallback(onVBlankIdleCallback, data5);
+        hdiBackend_->SetPendingMode(outputptr, period, timestamp);
         hdiBackend_->Repaint(outputptr);
+        hdiBackend_->StartSample(outputptr);
+        hdiBackend_->SetVsyncSamplerEnabled(outputptr, enabled);
+        hdiBackend_->GetVsyncSamplerEnabled(outputptr);
+        hdiBackend_->ResetDevice();
+        hdiBackend_->SetHdiBackendDevice(hdiDevice);
 
         return true;
     }

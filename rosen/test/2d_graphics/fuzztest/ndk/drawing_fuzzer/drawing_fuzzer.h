@@ -23,4 +23,9 @@
 
 #define FUZZ_PROJECT_NAME "drawing_fuzzer"
 
+constexpr inline size_t DATA_MIN_SIZE = 8;
+namespace OHOS::Rosen::Drawing {
+void OHDrawingTypographyTest(const uint8_t* data, size_t size);
+} // namespace OHOS::Rosen::Drawing
+
 #endif // TEST_FUZZTEST_DRAWING_FUZZER_H

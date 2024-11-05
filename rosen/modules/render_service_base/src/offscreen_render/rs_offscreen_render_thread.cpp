@@ -42,13 +42,18 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
 #ifdef ROSEN_OHOS
     PostTask([this]() {
         renderContext_ = std::make_shared<RenderContext>();
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL)
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
             renderContext_->InitializeEglContext();
-        }
-#endif
-
         renderContext_->SetUpGpuContext(nullptr);
+        }
+#endif // RS_ENABLE_GL
+#if defined(RS_ENABLE_VK)
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            renderContext_->SetUpGpuContext(nullptr);
+        }
+#endif // RS_ENABLE_VK
     });
 #endif
 
@@ -88,7 +93,7 @@ const std::function<void()> RSOffscreenRenderThread::GetCaptureTask(NodeId nodeI
 }
 
 #ifdef ROSEN_OHOS
-const std::shared_ptr<RenderContext>& RSOffscreenRenderThread::GetRenderContext()
+const std::shared_ptr<RenderContext> RSOffscreenRenderThread::GetRenderContext()
 {
     if (!renderContext_) {
         return nullptr;

@@ -132,6 +132,9 @@ public:
         const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
+    void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+        float positionZ, float positionW) override;
+
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     RSScreenModeInfo GetScreenActiveMode(ScreenId id) override;
@@ -245,7 +248,10 @@ public:
 
     void ReportGameStateData(GameStateData info) override;
 
-    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
+    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) override;
+
+    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 

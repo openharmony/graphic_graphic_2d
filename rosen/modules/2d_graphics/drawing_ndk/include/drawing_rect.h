@@ -248,7 +248,7 @@ OH_Drawing_ErrorCode OH_Drawing_RectGetArraySize(OH_Drawing_Array* rectArray, si
  * @param rect Pointers to Pointer of <b>OH_Drawing_Rect</b> object, returned to the caller.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if rectArray or pprect is nullptr,
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if rectArray or rect is nullptr,
  *                 or index is valid.
  * @since 14
  * @version 1.0

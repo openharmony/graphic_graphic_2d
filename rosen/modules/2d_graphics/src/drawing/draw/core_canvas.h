@@ -170,7 +170,7 @@ public:
      */
     virtual RectI GetRoundInDeviceClipBounds() const;
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     /**
      * @brief Gets GPU context of the GPU surface associated with Canvas.
      * @return Returns GPU context of the GPU surface associated with Canvas.
@@ -741,7 +741,7 @@ protected:
 
 private:
     std::shared_ptr<CoreCanvasImpl> impl_;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<GPUContext> gpuContext_;
 #endif
 };

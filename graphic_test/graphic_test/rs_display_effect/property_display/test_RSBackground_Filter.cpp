@@ -23,8 +23,8 @@ namespace OHOS::Rosen {
 
 class BackgroundTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests
@@ -176,6 +176,51 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Blur_Mask_Color_Te
         testNodeBackGround->SetBackgroundBlurSaturation(saturationList[i]);
         testNodeBackGround->SetBackgroundBlurBrightness(brightnessList[i]);
         testNodeBackGround->SetBackgroundBlurMaskColor(colorList[i]);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_Blur_Mask_Color_Alpha_Test)
+{
+    int columnCount = 3;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    std::vector<Color> colorList = {
+        Color(0xff000000), // RgbPalette::Black()
+        Color(0xffffffff), // RgbPalette::White()
+        Color(0x2dff0000), // RgbPalette::Red()
+        Color(0x4d00ff00), // RgbPalette::Green()
+        Color(0x6d0000ff), // RgbPalette::Blue()
+        Color(0x8d00ffff), // RgbPalette::Cyan()
+        Color(0xad444444), // RgbPalette::Gray()
+        Color(0xcdff00ff), // RgbPalette::Magenta()
+        Color(0x00000000), // RgbPalette::Transparent()
+        Color(0x10000000), // RgbPalette::Transparent()
+        Color(0x20000000), // RgbPalette::Transparent()
+        Color(0x30000000), // RgbPalette::Transparent()
+    };
+
+    std::vector<int> radiusList = { 10, 20, 30, 40, 50, 60, 70, 80, 90, -100, -10, 0 };
+    std::vector<float> saturationList = { 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 0.6, 1.0, 1.4 };
+    std::vector<float> brightnessList = { 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 0.6, 1.0, 1.4 };
+    std::vector<float> alphaList = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2 };
+
+    for (int i = 0; i < colorList.size(); i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
+        testNodeBackGround->SetBackgroundBlurRadius(radiusList[i]);
+        testNodeBackGround->SetBackgroundBlurSaturation(saturationList[i]);
+        testNodeBackGround->SetBackgroundBlurBrightness(brightnessList[i]);
+        testNodeBackGround->SetBackgroundBlurMaskColor(colorList[i]);
+        testNodeBackGround->SetAlpha(alphaList[i]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }

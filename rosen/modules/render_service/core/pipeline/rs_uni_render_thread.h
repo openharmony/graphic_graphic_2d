@@ -67,6 +67,9 @@ public:
     bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
+    int64_t GetActualTimestamp() const;
+    uint64_t GetVsyncId() const;
+    bool GetForceRefreshFlag() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
 
@@ -77,7 +80,9 @@ public:
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
-    void ResetClearMemoryTask();
+    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
+    void SetDefaultClearMemoryFinished(bool isFinished);
+    bool IsDefaultClearMemroyFinished();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -110,7 +115,7 @@ public:
     }
     const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
     {
-        return renderParamsManager_.GetRSRenderThreadParams();
+        return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
     void RenderServiceTreeDump(std::string& dumpString);
@@ -197,8 +202,6 @@ private:
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> rootNodeDrawable_;
     std::vector<NodeId> curDrawStatusVec_;
 
-    RSRenderThreadParamsManager renderParamsManager_;
-
     // used for blocking renderThread before displayNode has no freed buffer to request
     mutable std::mutex displayNodeBufferReleasedMutex_;
     bool displayNodeBufferReleased_ = false;
@@ -208,6 +211,7 @@ private:
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
+    std::unordered_set<NodeId> nodesNeedToBeClearMemory_;
     DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;
@@ -224,6 +228,7 @@ private:
     ScreenId displayNodeScreenId_ = 0;
     std::set<pid_t> exitedPidSet_;
     ClearMemoryMoment clearMoment_;
+    bool isDefaultCleanTaskFinished_ = true;
 
     std::vector<Callback> imageReleaseTasks_;
     std::mutex imageReleaseMutex_;

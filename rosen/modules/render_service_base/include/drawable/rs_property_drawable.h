@@ -39,6 +39,7 @@ public:
     ~RSPropertyDrawable() override = default;
 
     void OnSync() override;
+    void OnPurge() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 protected:
@@ -155,6 +156,9 @@ protected:
     bool needSync_ = false;
     std::shared_ptr<RSFilter> filter_;
     std::shared_ptr<RSFilter> stagingFilter_;
+
+    bool needDrawBehindWindow_ = false;
+    bool stagingNeedDrawBehindWindow_ = false;
 
     // flags for clearing filter cache
     // All stagingXXX variables should be read & written by render_service thread

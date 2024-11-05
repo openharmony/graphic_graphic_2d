@@ -187,6 +187,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
+    purgeableNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -209,7 +210,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 {
     ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
         (unsigned long long)pid);
-    bool useBatchRemoving = RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
+    bool useBatchRemoving =
+        RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
     EraseIf(renderNodeMap_, [pid, useBatchRemoving](const auto& pair) -> bool {
         if (ExtractPid(pair.first) != pid) {
@@ -324,6 +326,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
         return nullptr;
     }
     return itr->second;
+}
+
+void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, true));
+}
+
+void RSRenderNodeMap::RemoveOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, false));
+}
+
+std::unordered_map<NodeId, bool>&& RSRenderNodeMap::GetAndClearPurgeableNodeIds()
+{
+    return std::move(purgeableNodeMap_);
 }
 
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const

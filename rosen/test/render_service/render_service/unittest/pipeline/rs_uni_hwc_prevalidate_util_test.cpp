@@ -34,10 +34,89 @@ public:
     void TearDown() override;
 };
 
-void RSUniPrevalidateUtilTest::SetUpTestCase() {}
+void RSUniPrevalidateUtilTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSUniPrevalidateUtilTest::TearDownTestCase() {}
 void RSUniPrevalidateUtilTest::SetUp() {}
 void RSUniPrevalidateUtilTest::TearDown() {}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfo001
+ * @tc.desc: CreateSurfaceNodeLayerInfo, input nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAZAWR
+ */
+HWTEST_F(RSUniPrevalidateUtilTest, CreateSurfaceNodeLayerInfo001, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, nullptr, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+    ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CreateSurfaceNodeLayerInfo002
+ * @tc.desc: CreateSurfaceNodeLayerInfo, input surfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAZAWR
+ */
+HWTEST_F(RSUniPrevalidateUtilTest, CreateSurfaceNodeLayerInfo002, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    RequestLayerInfo info;
+    bool ret = uniHwcPrevalidateUtil.CreateSurfaceNodeLayerInfo(
+        DEFAULT_Z_ORDER, surfaceNode, GraphicTransformType::GRAPHIC_ROTATE_180, DEFAULT_FPS, info);
+    ASSERT_EQ(info.fps, DEFAULT_FPS);
+    ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: IsYUVBufferFormat001
+ * @tc.desc: IsYUVBufferFormat, buffer is nullptr && format is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIAZAWR
+ */
+HWTEST_F(RSUniPrevalidateUtilTest, IsYUVBufferFormat001, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode1 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto surfaceHandler = surfaceNode1->surfaceHandler_;
+    ASSERT_NE(surfaceHandler, nullptr);
+    surfaceHandler->buffer_.buffer = nullptr;
+    bool ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode1);
+    ASSERT_EQ(ret, false);
+
+    auto surfaceNode2 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto bufferHandle = surfaceNode2->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode2);
+    ASSERT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IsYUVBufferFormat002
+ * @tc.desc: IsYUVBufferFormat, format is valid
+ * @tc.type: FUNC
+ * @tc.require: issueIAZAWR
+ */
+HWTEST_F(RSUniPrevalidateUtilTest, IsYUVBufferFormat002, TestSize.Level1)
+{
+    auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto bufferHandle = surfaceNode->surfaceHandler_->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
+    bool ret = uniHwcPrevalidateUtil.IsYUVBufferFormat(surfaceNode);
+    ASSERT_EQ(ret, true);
+}
 
 /**
  * @tc.name: CreateDisplayNodeLayerInfo001

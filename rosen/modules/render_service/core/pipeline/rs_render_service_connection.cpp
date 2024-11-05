@@ -25,6 +25,7 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "pipeline/rs_pointer_drawing_manager.h"
 
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -440,6 +441,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
         }).wait();
         conn->id_ = id;
+        RS_LOGD("CreateVSyncConnection connect id: %{public}llu", id);
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
@@ -983,10 +985,34 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         } else {
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
         }
     };
     mainThread_->PostTask(captureTask);
+}
+
+void RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    if (!mainThread_) {
+        return;
+    }
+
+    // adapt video scene pointer
+    if (screenManager_->GetCurrentVirtualScreenNum() > 0 ||
+        !RSPointerDrawingManager::Instance().GetIsPointerEnableHwc()) {
+        // when has virtual screen or pointer is enable hwc, we can't skip
+        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(false);
+        RSMainThread::Instance()->RequestNextVSync();
+    } else {
+        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(true);
+    }
+
+    // record status here
+    std::lock_guard<std::mutex> lock(RSPointerDrawingManager::Instance().mtx_);
+    RSPointerDrawingManager::Instance().SetBoundHasUpdate(true);
+    RSPointerDrawingManager::Instance().SetBound({positionX, positionY, positionZ, positionW});
+    RSPointerDrawingManager::Instance().SetRsNodeId(rsNodeId);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
@@ -1886,12 +1912,14 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
     FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
-void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     if (!mainThread_) {
         return;
     }
-    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, isEnabled, selfDrawingType]() -> void {
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, isEnabled, selfDrawingType,
+        dynamicHardwareEnable]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (!connection) {
             return;
@@ -1899,10 +1927,30 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
         auto& context = connection->mainThread_->GetContext();
         auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
         if (node) {
-            node->SetHardwareEnabled(isEnabled, selfDrawingType);
+            node->SetHardwareEnabled(isEnabled, selfDrawingType, dynamicHardwareEnable);
         }
     };
     mainThread_->PostTask(task);
+}
+
+uint32_t RSRenderServiceConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    if (!mainThread_) {
+        return static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, needHidePrivacyContent]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
+        if (node) {
+            node->SetHidePrivacyContent(needHidePrivacyContent);
+        }
+    };
+    mainThread_->PostTask(task);
+    return static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR);
 }
 
 void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)

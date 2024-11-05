@@ -16,7 +16,10 @@
 #include "vsyncreceiver_fuzzer.h"
 
 #include <securec.h>
+#include <sstream>
 
+#include "graphic_common_c.h"
+#include "graphic_common.h"
 #include "vsync_receiver.h"
 #include "vsync_distributor.h"
 #include "vsync_controller.h"
@@ -66,6 +69,46 @@ namespace OHOS {
         return str;
     }
 
+    void GraphicCommonTest()
+    {
+        GSError err = GetData<GSError>();
+        GSError err1 = GetData<GSError>();
+        GSError err2 = GetData<GSError>();
+        std::stringstream ss;
+
+        LowErrorStr(err);
+        GSErrorStr(GSERROR_OK);
+        GSErrorStr(GSERROR_INVALID_ARGUMENTS);
+        GSErrorStr(GSERROR_NO_PERMISSION);
+        GSErrorStr(GSERROR_CONNOT_CONNECT_SAMGR);
+        GSErrorStr(GSERROR_CONNOT_CONNECT_SERVER);
+        GSErrorStr(GSERROR_CONNOT_CONNECT_WESTON);
+        GSErrorStr(GSERROR_NO_BUFFER);
+        GSErrorStr(GSERROR_NO_ENTRY);
+        GSErrorStr(GSERROR_OUT_OF_RANGE);
+        GSErrorStr(GSERROR_NO_SCREEN);
+        GSErrorStr(GSERROR_INVALID_OPERATING);
+        GSErrorStr(GSERROR_NO_CONSUMER);
+        GSErrorStr(GSERROR_NOT_INIT);
+        GSErrorStr(GSERROR_TYPE_ERROR);
+        GSErrorStr(GSERROR_API_FAILED);
+        GSErrorStr(GSERROR_INTERNAL);
+        GSErrorStr(GSERROR_NO_MEM);
+        GSErrorStr(GSERROR_PROXY_NOT_INCLUDE);
+        GSErrorStr(GSERROR_SERVER_ERROR);
+        GSErrorStr(GSERROR_ANIMATION_RUNNING);
+        GSErrorStr(GSERROR_NOT_IMPLEMENT);
+        GSErrorStr(GSERROR_NOT_SUPPORT);
+        GSErrorStr(GSERROR_BINDER);
+        GSErrorStr(err);
+        SurfaceErrorStr(err);
+        if (err1 == err2) {
+            ss << err1;
+        } else if (err1 != err2) {
+            ss << err2;
+        }
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -80,7 +123,12 @@ namespace OHOS {
         // get data
         int64_t offset = GetData<int64_t>();
         int32_t rate = GetData<int32_t>();
+        bool uiDVSyncSwitch = GetData<bool>();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        int32_t bufferCount = GetData<int32_t>();
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        std::string name = GetStringFromData(STR_LEN);
+        bool rnvFlag = GetData<bool>();
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -93,9 +141,24 @@ namespace OHOS {
             .callback_ = OnVSync,
         };
         vsyncReceiver->SetVSyncRate(fcb, rate);
+        vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
+        std::shared_ptr<Rosen::VSyncCallBackListener> vsyncCallBackListener(
+            std::make_shared<Rosen::VSyncCallBackListener>());
+        vsyncCallBackListener->SetCallback(fcb);
+        vsyncCallBackListener->SetName(name);
+        vsyncCallBackListener->SetRNVFlag(rnvFlag);
+        vsyncCallBackListener->GetRNVFlag();
+        vsyncCallBackListener->GetPeriod();
+        vsyncCallBackListener->GetTimeStamp();
+        vsyncCallBackListener->GetPeriodShared();
+        vsyncCallBackListener->GetTimeStampShared();
+        vsyncCallBackListener->AddCallback(fcb);
 
+        GraphicCommonTest();
         return true;
     }
 }

@@ -152,6 +152,9 @@ public:
         const RSSurfaceCaptureConfig& captureConfig,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
+    virtual void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+        float positionZ, float positionW) = 0;
+
     virtual void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
@@ -273,7 +276,10 @@ public:
 
     virtual void ReportGameStateData(GameStateData info) = 0;
 
-    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
+    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) = 0;
+
+    virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 

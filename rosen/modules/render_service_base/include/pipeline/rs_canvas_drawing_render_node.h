@@ -66,20 +66,21 @@ public:
 
     uint32_t GetTid() const;
 
-    void AddDirtyType(RSModifierType type) override;
+    void AddDirtyType(RSModifierType modifierType) override;
     void ClearOp();
     void ResetSurface(int width, int height);
     bool IsNeedProcess() const;
+    void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
     void PlaybackInCorrespondThread();
     const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
     void ClearResource() override;
-    bool IsDrawCmdListsVisited() const;
-    void SetDrawCmdListsVisited(bool flag);
+    void ClearNeverOnTree() override;
 private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
+        void CheckDrawCmdListSize(RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
@@ -103,9 +104,12 @@ private:
     pid_t threadId_ = 0;
     std::mutex drawCmdListsMutex_;
     std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+    bool isNeverOnTree_ = true;
+    bool lastOverflowStatus_ = false;
 
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
+    uint32_t playbackNotOnTreeCmdSize_ = 0;
 
     friend class RSCanvasDrawingNodeCommandHelper;
 };

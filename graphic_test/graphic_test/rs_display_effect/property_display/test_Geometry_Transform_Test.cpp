@@ -36,8 +36,8 @@ public:
 
 class GeometryTest : public RSGraphicTest {
 private:
-    int screenWidth = 1260;
-    int screenHeight = 2720;
+    const int screenWidth = 1260;
+    const int screenHeight = 2720;
 
 public:
     // called before each tests

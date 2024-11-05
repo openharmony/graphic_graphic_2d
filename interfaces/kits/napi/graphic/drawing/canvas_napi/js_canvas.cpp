@@ -20,7 +20,7 @@
 #include "src/utils/SkUTF.h"
 
 #ifdef ROSEN_OHOS
-#include "pixel_map.h"
+#include "image_utils.h"
 #include "pixel_map_napi.h"
 #endif
 #include "native_value.h"
@@ -114,6 +114,7 @@ struct PixelMapReleaseContext {
 
     ~PixelMapReleaseContext()
     {
+        ImageUtils::FlushSurfaceBuffer(pixelMap_.get());
         pixelMap_ = nullptr;
     }
 
@@ -347,6 +348,7 @@ napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
     Canvas* canvas = new Canvas();
     canvas->Bind(bitmap);
     JsCanvas *jsCanvas = new JsCanvas(canvas, true);
+    jsCanvas->mPixelMap_ = pixelMapNapi->GetPixelNapiInner();
     status = napi_wrap(env, jsThis, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete jsCanvas;
@@ -503,6 +505,9 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
     }
 
     JS_CALL_DRAWING_FUNC(m_canvas->Clear(color));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -518,10 +523,8 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
         ROSEN_LOGE("JsCanvas::OnDrawShadow canvas is null.");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-
     napi_value argv[ARGC_SEVEN] = { nullptr };
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_SEVEN);
-    
     JsPath* jsPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
 
@@ -569,6 +572,9 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
         spotColor[ARGC_TWO], spotColor[ARGC_THREE]);
     m_canvas->DrawShadow(*jsPath->GetPath(), offset, lightPos, lightRadius, ambientColorPara, spotColorPara,
         static_cast<ShadowFlags>(shadowFlag));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -601,6 +607,9 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_TWO, sweepAngle);
 
     JS_CALL_DRAWING_FUNC(m_canvas->DrawArc(drawingRect, startAngle, sweepAngle));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -646,6 +655,9 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawRect(drawingRect);
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -676,6 +688,9 @@ napi_value JsCanvas::OnDrawCircle(napi_env env, napi_callback_info info)
     Drawing::Point centerPt = Drawing::Point(x, y);
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawCircle(centerPt, radius);
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -746,6 +761,7 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         m_canvas->DrawImage(*image, px, py, *samplingOptions.get());
     }
 
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
 #endif
     return nullptr;
 }
@@ -821,6 +837,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -847,6 +866,9 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
     Drawing::Rect drawingRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
     JS_CALL_DRAWING_FUNC(m_canvas->DrawOval(drawingRect));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -874,6 +896,9 @@ napi_value JsCanvas::OnDrawPoint(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawPoint(Point(px, py));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -930,6 +955,9 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
             return nullptr;
         }
         JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
+#ifdef ROSEN_OHOS
+        ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
         delete [] points;
         return nullptr;
     }
@@ -947,6 +975,9 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
         return nullptr;
     }
     JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(static_cast<PointMode>(pointMode), size, points));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     delete [] points;
     return nullptr;
 }
@@ -978,6 +1009,9 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawPath(*jsPath->GetPath());
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1009,6 +1043,9 @@ napi_value JsCanvas::OnDrawLine(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawLine(Point(startPx, startPy), Point(endPx, endPy));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1038,6 +1075,9 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
 
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawTextBlob(jsTextBlob->GetTextBlob().get(), x, y);
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1092,6 +1132,9 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
             "Parameter verification failed. Input parameter0 should be single character.");
     }
     m_canvas->DrawSingleCharacter(unicode, *font, x, y);
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1177,6 +1220,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 
     if (colorsSize == 0) {
         DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, nullptr, m_canvas);
+        ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
         delete []vertices;
         return nullptr;
     }
@@ -1203,6 +1247,7 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     uint32_t* colorsMesh = colors + colorOffset;
 
     DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
     delete []vertices;
     delete []colors;
     return nullptr;
@@ -1233,6 +1278,9 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
         return nullptr;
     }
     JS_CALL_DRAWING_FUNC(m_canvas->DrawRegion(*jsRegion->GetRegion()));
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1260,6 +1308,9 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
     }
 
     m_canvas->DrawBackground(*jsBrush->GetBrush());
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1283,6 +1334,9 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
     GET_UNWRAP_PARAM(ARGC_ZERO, jsRoundRect);
 
     m_canvas->DrawRoundRect(jsRoundRect->GetRoundRect());
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1309,6 +1363,9 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
     GET_UNWRAP_PARAM(ARGC_ONE, jsInner);
 
     m_canvas->DrawNestedRoundRect(jsOuter->GetRoundRect(), jsInner->GetRoundRect());
+#ifdef ROSEN_OHOS
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+#endif
     return nullptr;
 }
 
@@ -1703,9 +1760,7 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_ONE) + " type.");
         }
-        if (jsBrush != nullptr) {
-            drawingBrushPtr = jsBrush->GetBrush();
-        }
+        drawingBrushPtr = jsBrush->GetBrush();
     }
     ret = m_canvas->GetSaveCount();
     SaveLayerOps saveLayerOps = SaveLayerOps(drawingRectPtr, drawingBrushPtr);
@@ -2011,13 +2066,9 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
 
     PixelMapNapi* pixelMapNapi = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi); // arg #0: pixelmap/image
-    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+    auto pixel = pixelMapNapi->GetPixelNapiInner();
+    if (pixel == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRect pixelmap GetPixelNapiInner is nullptr");
-        return nullptr;
-    }
-    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
-    if (image == nullptr) {
-        ROSEN_LOGE("JsCanvas::OnDrawImageRect image is nullptr");
         return nullptr;
     }
 
@@ -2030,6 +2081,18 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
 
     if (argc == ARGC_TWO) { // without (optional) arg #2: samplingOptions
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+        if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
+            Drawing::Rect srcRect(0, 0, pixel->GetWidth(), pixel->GetHeight());
+            canvas_->DrawPixelMapRect(pixel, srcRect, dstRect, Drawing::SamplingOptions(),
+                SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            return nullptr;
+        }
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+        if (image == nullptr) {
+            ROSEN_LOGE("JsCanvas::OnDrawImageRect image is nullptr");
+            return nullptr;
+        }
         m_canvas->DrawImageRect(*image, dstRect, Drawing::SamplingOptions());
     } else {
         JsSamplingOptions* jsSamplingOptions = nullptr;
@@ -2039,9 +2102,22 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
             ROSEN_LOGE("JsCanvas::OnDrawImageRect get samplingOptions is nullptr");
             return nullptr;
         }
+        if (m_canvas->GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(m_canvas);
+            Drawing::Rect srcRect(0, 0, pixel->GetWidth(), pixel->GetHeight());
+            canvas_->DrawPixelMapRect(pixel, srcRect, dstRect, *samplingOptions.get(),
+                SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+            return nullptr;
+        }
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+        if (image == nullptr) {
+            ROSEN_LOGE("JsCanvas::OnDrawImageRect image is nullptr");
+            return nullptr;
+        }
         m_canvas->DrawImageRect(*image, dstRect, *samplingOptions.get());
     }
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
 #endif
     return nullptr;
 }
@@ -2054,11 +2130,22 @@ napi_value JsCanvas::DrawImageRectWithSrc(napi_env env, napi_callback_info info)
 
 #ifdef ROSEN_OHOS
 static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size_t argc, Canvas& canvas,
-                                            const Image& image, const Rect& srcRect, const Rect& dstRect)
+                                            const std::shared_ptr<Media::PixelMap> pixel,
+                                            const Rect& srcRect, const Rect& dstRect)
 {
     if (argc == ARGC_THREE) { // without optional arg #3 (samplingOptions) and arg #4 (constraint):
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        canvas.DrawImageRect(image, srcRect, dstRect, Drawing::SamplingOptions());
+        if (canvas.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(&canvas);
+            canvas_->DrawPixelMapRect(pixel, srcRect, dstRect, Drawing::SamplingOptions());
+            return nullptr;
+        }
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+        if (image == nullptr) {
+            ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc image is nullptr");
+            return nullptr;
+        }
+        canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions());
     } else if (argc == ARGC_FOUR) { // without optional arg #4 (constraint):
         JsSamplingOptions* jsSamplingOptions = nullptr;
         GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
@@ -2066,8 +2153,18 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
         if (samplingOptions == nullptr) {
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect samplingOptions parameter.");
         }
+        if (canvas.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(&canvas);
+            canvas_->DrawPixelMapRect(pixel, srcRect, dstRect, *samplingOptions.get());
+            return nullptr;
+        }
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        canvas.DrawImageRect(image, srcRect, dstRect, *samplingOptions.get());
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+        if (image == nullptr) {
+            ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc image is nullptr");
+            return nullptr;
+        }
+        canvas.DrawImageRect(*image, srcRect, dstRect, *samplingOptions.get());
     } else if (argc == ARGC_FIVE) {  // with optional arg #3 (samplingOptions) and arg #4 (constraint):
         JsSamplingOptions* jsSamplingOptions = nullptr;
         GET_UNWRAP_PARAM(ARGC_THREE, jsSamplingOptions);
@@ -2080,8 +2177,19 @@ static napi_value OnDrawingImageRectWithSrc(napi_env env, napi_value* argv, size
             constraint,
             static_cast<int32_t>(SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT),
             static_cast<int32_t>(SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT));
+        if (canvas.GetDrawingType() == Drawing::DrawingType::RECORDING) {
+            ExtendRecordingCanvas* canvas_ = reinterpret_cast<ExtendRecordingCanvas*>(&canvas);
+            canvas_->DrawPixelMapRect(pixel, srcRect, dstRect,
+                *samplingOptions.get(), static_cast<SrcRectConstraint>(constraint));
+            return nullptr;
+        }
         DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
-        canvas.DrawImageRect(image, srcRect, dstRect,
+        std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixel);
+        if (image == nullptr) {
+            ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc image is nullptr");
+            return nullptr;
+        }
+        canvas.DrawImageRect(*image, srcRect, dstRect,
             *samplingOptions.get(), static_cast<SrcRectConstraint>(constraint));
     } else { // argc > 5:
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "More than 5 parameters are not supported");
@@ -2104,13 +2212,9 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
 
     PixelMapNapi* pixelMapNapi = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, pixelMapNapi); // arg #0: pixelmap/image
-    if (pixelMapNapi->GetPixelNapiInner() == nullptr) {
+    auto pixel = pixelMapNapi->GetPixelNapiInner();
+    if (pixel == nullptr) {
         ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc pixelmap GetPixelNapiInner is nullptr");
-        return nullptr;
-    }
-    std::shared_ptr<Drawing::Image> image = ExtractDrawingImage(pixelMapNapi->GetPixelNapiInner());
-    if (image == nullptr) {
-        ROSEN_LOGE("JsCanvas::OnDrawImageRectWithSrc image is nullptr");
         return nullptr;
     }
 
@@ -2127,7 +2231,9 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
     }
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
-    return OnDrawingImageRectWithSrc(env, argv, argc, *m_canvas, *image, srcRect, dstRect);
+    napi_value result = OnDrawingImageRectWithSrc(env, argv, argc, *m_canvas, pixel, srcRect, dstRect);
+    ImageUtils::FlushSurfaceBuffer(mPixelMap_.get());
+    return result;
 #else
     return nullptr;
 #endif

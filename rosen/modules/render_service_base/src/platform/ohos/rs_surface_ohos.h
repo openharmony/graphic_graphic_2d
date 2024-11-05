@@ -51,7 +51,7 @@ protected:
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     int32_t pixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     uint64_t bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
-    int32_t timeOut_ = 3000; // ms
+    int32_t timeOut_ = 6000; // ms
 };
 
 } // namespace Rosen

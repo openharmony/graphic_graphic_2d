@@ -46,6 +46,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_NOISE_FIELD_PTR,
     UPDATE_MODIFIER_SHADER_PTR,
     UPDATE_MODIFIER_VECTOR2F,
+    UPDATE_MODIFIER_VECTOR3F,
     UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
     UPDATE_MODIFIER_VECTOR4_COLOR,
     UPDATE_MODIFIER_VECTOR4F,
@@ -75,6 +76,7 @@ enum RSNodeCommandType : uint16_t {
     REMOVE_ALL_MODIFIERS,
 
     DUMP_CLIENT_NODE_TREE,
+    COMMIT_DUMP_CLIENT_NODE_TREE,
 };
 
 class RSB_EXPORT RSNodeCommandHelper {
@@ -146,10 +148,14 @@ public:
     static void RegisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
     static void UnregisterGeometryTransitionPair(RSContext& context, NodeId inNodeId, NodeId outNodeId);
 
-    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t, const std::string&)>;
-    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
-        const std::string& result);
+    using DumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t)>;
+    static void DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId);
     static RSB_EXPORT void SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor);
+
+    using CommitDumpNodeTreeProcessor = std::function<void(NodeId, pid_t, uint32_t, const std::string&)>;
+    static void CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
+        const std::string& result);
+    static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -228,6 +234,9 @@ ADD_COMMAND(RSUpdatePropertyShader,
 ADD_COMMAND(RSUpdatePropertyVector2f,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR2F, RSNodeCommandHelper::UpdateModifier<Vector2f>,
         NodeId, Vector2f, PropertyId, PropertyUpdateType))
+ADD_COMMAND(RSUpdatePropertyVector3f,
+    ARG(RS_NODE, UPDATE_MODIFIER_VECTOR3F, RSNodeCommandHelper::UpdateModifier<Vector3f>,
+        NodeId, Vector3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyBorderStyle,
     ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE, RSNodeCommandHelper::UpdateModifier<Vector4<uint32_t>>,
         NodeId, Vector4<uint32_t>, PropertyId, PropertyUpdateType))
@@ -277,7 +286,10 @@ ADD_COMMAND(RSRemoveAllModifiers,
     ARG(RS_NODE, REMOVE_ALL_MODIFIERS, RSNodeCommandHelper::RemoveAllModifiers, NodeId))
 
 ADD_COMMAND(RSDumpClientNodeTree,
-    ARG(RS_NODE, DUMP_CLIENT_NODE_TREE, RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
+    ARG(RS_NODE, DUMP_CLIENT_NODE_TREE, RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t))
+ADD_COMMAND(RSCommitDumpClientNodeTree,
+    ARG(RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
+        RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
 } // namespace Rosen
 } // namespace OHOS
 

@@ -53,10 +53,13 @@ bool RSRenderAnimation::Marshalling(Parcel& parcel) const
 void RSRenderAnimation::DumpAnimation(std::string& out) const
 {
     out += "Animation: [id:" + std::to_string(id_) + ", ";
-    DumpAnimationType(out);
+    DumpAnimationInfo(out);
     out += ", AnimationState:" + std::to_string(static_cast<int>(state_));
-    out += ", StartDelay:" + std::to_string(animationFraction_.GetDuration());
-    out += ", Duration:" + std::to_string(animationFraction_.GetStartDelay());
+    if (!targetName_.empty()) {
+        out += ", NodeName:" + targetName_;
+    }
+    out += ", Duration:" + std::to_string(animationFraction_.GetDuration());
+    out += ", StartDelay:" + std::to_string(animationFraction_.GetStartDelay());
     out += ", Speed:" + std::to_string(animationFraction_.GetSpeed());
     out += ", RepeatCount:" + std::to_string(animationFraction_.GetRepeatCount());
     out += ", AutoReverse:" + std::to_string(animationFraction_.GetAutoReverse());
@@ -70,7 +73,7 @@ void RSRenderAnimation::DumpAnimation(std::string& out) const
     out += "]";
 }
 
-void RSRenderAnimation::DumpAnimationType(std::string& out) const
+void RSRenderAnimation::DumpAnimationInfo(std::string& out) const
 {
     out += "Type:Unknown";
 }

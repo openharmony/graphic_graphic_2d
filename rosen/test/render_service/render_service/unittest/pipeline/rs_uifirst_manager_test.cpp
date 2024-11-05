@@ -46,13 +46,30 @@ void RSUifirstManagerTest::SetUpTestCase()
     if (mainThread_) {
         uifirstManager_.mainThread_ = mainThread_;
     }
-}
-
-void RSUifirstManagerTest::TearDownTestCase() {}
-void RSUifirstManagerTest::SetUp()
-{
     RSTestUtil::InitRenderNodeGC();
 }
+
+void RSUifirstManagerTest::TearDownTestCase()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (!mainThread || !mainThread->context_) {
+        return;
+    }
+    auto& renderNodeMap = mainThread->context_->GetMutableNodeMap();
+    renderNodeMap.renderNodeMap_.clear();
+    renderNodeMap.surfaceNodeMap_.clear();
+    renderNodeMap.residentSurfaceNodeMap_.clear();
+    renderNodeMap.displayNodeMap_.clear();
+    renderNodeMap.canvasDrawingNodeMap_.clear();
+    renderNodeMap.uiExtensionSurfaceNodes_.clear();
+
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.markForceUpdateByUifirst_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.pendingResetNodes_.clear();
+}
+void RSUifirstManagerTest::SetUp() {}
 
 void RSUifirstManagerTest::TearDown() {}
 
@@ -618,37 +635,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes, TestSize.Level1)
     surfaceNode4->SetSurfaceNodeType(RSSurfaceNodeType::SCB_SCREEN_NODE);
     surfaceNode4->isChildSupportUifirst_ = true;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode4, true);
-}
-
-/**
- @tc.name: ReleaseSkipSyncBuffer001
- @tc.desc: Test ReleaseSkipSyncBuffer
- @tc.type: FUNC
- @tc.require: issueIAMKU9
- */
-HWTEST_F(RSUifirstManagerTest, ReleaseSkipSyncBuffer001, TestSize.Level1)
-{
-    std::function<void()> task = {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    uifirstManager_.ReleaseSkipSyncBuffer(tasks);
-    ASSERT_NE(tasks.empty(), true);
-}
-
-/**
- @tc.name: CollectSkipSyncBuffer001
- @tc.desc: Test CollectSkipSyncBuffer
- @tc.type: FUNC
- @tc.require: issueIAMKU9
- */
-HWTEST_F(RSUifirstManagerTest, CollectSkipSyncBuffer001, TestSize.Level1)
-{
-    NodeId id = 1;
-    std::function<void()> task = {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    uifirstManager_.CollectSkipSyncBuffer(tasks, id);
-    ASSERT_NE(tasks.empty(), true);
 }
 
 /**

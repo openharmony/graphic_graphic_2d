@@ -2768,7 +2768,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckVertexAttribPointer(napi_env env, con
     // check offset
     WebGLBuffer* webGLBuffer = GetBoundBuffer(env, WebGLRenderingContextBase::ARRAY_BUFFER);
     if (webGLBuffer == nullptr || webGLBuffer->GetBufferSize() == 0) {
-        LOGE("WebGL vertexAttribPointer can not bind buffer %{public}p ", webGLBuffer);
+        LOGE("WebGL vertexAttribPointer can not bind buffer");
         return WebGLRenderingContextBase::INVALID_OPERATION;
     }
 
@@ -2804,7 +2804,7 @@ GLenum WebGLRenderingContextBaseImpl::GetBoundFrameBufferColorFormat(napi_env en
 
 VertexAttribInfo* WebGLRenderingContextBaseImpl::GetVertexAttribInfo(GLint index)
 {
-    if (index >= static_cast<GLint>(arrayVertexAttribs_.size())) {
+    if (index < 0 || index >= static_cast<GLint>(arrayVertexAttribs_.size())) {
         LOGE("Invalid index for VertexAttrib %{public}d, max %{public}zu",
             index, arrayVertexAttribs_.size());
         return nullptr;

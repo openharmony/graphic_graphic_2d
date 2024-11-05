@@ -38,7 +38,7 @@ public:
     }
 
     bool Bind(const Bitmap& bitmap) override;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     bool Bind(const Image& image) override;
     bool Bind(const FrameBuffer& frameBuffer) override;
 #ifdef RS_ENABLE_VK

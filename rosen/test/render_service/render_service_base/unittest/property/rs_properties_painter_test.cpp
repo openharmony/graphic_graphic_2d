@@ -21,7 +21,6 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_painter.h"
-#include "render/rs_distortion_shader_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_shadow.h"
 #include "render/rs_skia_filter.h"
@@ -1682,21 +1681,19 @@ HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
     float height = 200.0f; // set height 200
     Vector4f bounds(0.0, 0.0, width, height);
     properties.SetBounds(bounds);
-    float distortionK = 0.5f; // 0.5 is k of value in distortion
 
-    // the foregroundFilter_ is nullptr
-    properties.SetDistortionK(distortionK);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    // the distortionK is nullptr
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
 
-    // the filterType of foregroundFilter_ not is DISTORT
-    properties.foregroundFilter_ = std::make_shared<RSForegroundEffectFilter>(distortionK);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    // the distortionK < 0
+    properties.SetDistortionK(-0.2f);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
 
-    // the filterType of foregroundFilter_ is DISTORT
-    properties.foregroundFilter_ = std::make_shared<RSDistortionFilter>(distortionK);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    // the distortionK > 0
+    properties.SetDistortionK(0.2f);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
 }
 } // namespace Rosen

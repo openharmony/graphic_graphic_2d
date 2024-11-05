@@ -97,7 +97,6 @@ public:
     void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
-    void RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RequestNextVSync(const std::string& fromWhom = "unknown", int64_t lastVSyncTS = 0);
     void PostTask(RSTaskMessage::RSTask task);
@@ -387,6 +386,7 @@ public:
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
 
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -469,6 +469,8 @@ private:
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
 
+    void TraverseCanvasDrawingNodesNotOnTree();
+
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
     bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
@@ -504,7 +506,11 @@ private:
     bool CheckUIExtensionCallbackDataChanged() const;
     void ConfigureRenderService();
 
-    void OnDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+    void CheckBlurEffectCountStatistics(std::shared_ptr<RSBaseRenderNode> rootNode);
+    void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+
+    // Used for CommitAndReleaseLayers task
+    void SetFrameInfo(uint64_t frameCount);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -619,6 +625,7 @@ private:
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
@@ -740,6 +747,8 @@ private:
 
     // graphic config
     bool isBlurSwitchOpen_ = true;
+
+    bool isForceRefresh_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

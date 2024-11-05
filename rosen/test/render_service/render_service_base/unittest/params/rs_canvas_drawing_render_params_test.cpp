@@ -39,36 +39,4 @@ void RSCanvasDrawingRenderParamsTest::DisplayTestInfo()
     return;
 }
 
-/**
- * @tc.name: OnSync001
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync001, TestSize.Level1)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[2];
-    std::unique_ptr<RSRenderParams> target = nullptr;
-    RSCanvasDrawingRenderParams params(id);
-    params.OnSync(target);
-    EXPECT_FALSE(params.isNeedProcess_);
-}
-
-/**
- * @tc.name: OnSync002
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSCanvasDrawingRenderParamsTest, OnSync002, TestSize.Level1)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[2];
-    std::unique_ptr<RSRenderParams> target = std::make_unique<RSCanvasDrawingRenderParams>(id);
-    auto targetDrawingRenderParam = static_cast<RSCanvasDrawingRenderParams*>(target.get());
-    RSCanvasDrawingRenderParams params(id);
-    params.isNeedProcess_ = true;
-    params.OnSync(target);
-    EXPECT_EQ(params.isNeedProcess_, targetDrawingRenderParam->isNeedProcess_);
-}
-
 } // namespace OHOS::Rosen

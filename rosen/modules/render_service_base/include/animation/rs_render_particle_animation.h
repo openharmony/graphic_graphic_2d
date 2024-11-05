@@ -35,7 +35,7 @@ public:
     ~RSRenderParticleAnimation() override = default;
     RSRenderParticleAnimation() = default;
 
-    void DumpAnimationType(std::string& out) const override;
+    void DumpAnimationInfo(std::string& out) const override;
 
     bool Marshalling(Parcel& parcel) const override;
 

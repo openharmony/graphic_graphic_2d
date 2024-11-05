@@ -92,7 +92,8 @@ void HgmCore::Init()
         }
 
         SetLtpoConfig();
-        HGM_LOGI("HgmCore initialization success!!!");
+        isDelayMode_ = RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType();
+        HGM_LOGI("HgmCore initialization success!!! delayMode: %{public}d", isDelayMode_);
     });
 }
 
@@ -503,7 +504,7 @@ void HgmCore::SetActiveScreenId(ScreenId id)
 
 sptr<HgmScreen> HgmCore::GetActiveScreen() const
 {
-    auto activeScreenId = activeScreenId_.load();
+    auto activeScreenId = GetActiveScreenId();
     if (activeScreenId == INVALID_SCREEN_ID) {
         HGM_LOGE("HgmScreen activeScreenId_ noset");
         return nullptr;
