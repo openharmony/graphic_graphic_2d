@@ -498,7 +498,7 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
     RSBackgroundThread::Instance().PostTask([
         info, inputTime, animationStartLatency, animationEndLatency, completedLatency]() {
         auto reportName = "INTERACTION_COMPLETED_LATENCY";
-        RS_TRACE_NAME("RSJankStats::ReportEventResponse in RSBackgroundThread");
+        RS_TRACE_NAME("RSJankStats::ReportEventComplete in RSBackgroundThread");
         HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
             OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
             "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
