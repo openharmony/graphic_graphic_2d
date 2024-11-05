@@ -3944,7 +3944,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hasProtectedLayer_ = false;
         hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
-        selfDrawingNodes_.clear();
+        ClearSelfDrawingNodes();
         selfDrawables_.clear();
         RSPointerWindowManager::Instance().ResetHardCursorDrawables();
     }
