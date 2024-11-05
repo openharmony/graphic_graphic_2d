@@ -43,6 +43,23 @@ import { PerformanceFontCountText, PerformanceFontEnableEmbolden, PerformanceFon
   PerformanceFontMeasureText, PerformanceFontSetBaselineSnap, PerformanceFontSetEdging, PerformanceFontSetEmbeddedBitmaps,
   PerformanceFontSetForceAutoHinting, PerformanceFontSetHinting, PerformanceFontSetScaleX, PerformanceFontSetSize, PerformanceFontSetSkewX,
   PerformanceFontTextToGlyphs, PerformanceFontGetSize, PerformanceFontGetTypeface, PerformanceFontSetTypeface } from '../testcase/interface/performancefonttest';
+import { PerformanceTypeFaceCreateBlurMaskFilter } from '../testcase/interface/performancemaskfiltertest';
+import { PerformancePathEffectCreateCornerPathEffect, PerformancePathEffectCreateDashPathEffect } from '../testcase/interface/performancepatheffecttest';
+import { PerformanceTextBlobMakeFromRunBuffer, PerformanceTextBlobMakeFromString } from '../testcase/interface/performancetextblobtest';
+import { PerformanceTypeFaceGetFamilyName, PerformanceTypeFaceMakeFromFile } from '../testcase/interface/performancetypefacetest';
+import { PerformanceRegionIsPointContained, PerformanceRegionIsRegionContained,
+  PerformanceRegionOp, PerformanceRegionQuickReject, PerformanceRegionSetPath,
+  PerformanceRegionSetRect } from '../testcase/interface/performanceregiontest';
+import { PerformancePenGetAlpha, PerformancePenGetCapStyle, PerformancePenGetColor,
+  PerformancePenGetColorFilter, PerformancePenGetFillPath, PerformancePenGetJoinStyler,
+  PerformancePenGetMiterLimit, PerformancePenGetWidth, PerformancePenIsAntiAlias,
+  PerformancePenReset, PerformancePenSetAlpha, PerformancePenSetAntiAlias,
+  PerformancePenSetBlendMode, PerformancePenSetCapStyle, PerformancePenSetColor,
+  PerformancePenSetColorFilter, PerformancePenSetDither, PerformancePenSetImageFilter,
+  PerformancePenSetJoinStyler, PerformancePenSetMaskFilter, PerformancePenSetMiterLimit,
+  PerformancePenSetPathEffect, PerformancePenSetShaderEffect, PerformancePenSetShadowLayer,
+  PerformancePenSetStrokeWidth } from '../testcase/interface/performancepentest';
+import { PerformanceShadowLayerCreate } from '../testcase/interface/performanceshadowlayertest';
 
 const TAG = '[DrawingTest]';
 
@@ -248,6 +265,46 @@ export class CaseFactory {
       ['performance_font_getHinting', () => { return new PerformanceFontGetHinting(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_font_getEdging', () => { return new PerformanceFontGetEdging(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       ['performance_font_textToGlyphs', () => { return new PerformanceFontTextToGlyphs(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_maskfilter_createblurmaskfilter', () => { return new PerformanceTypeFaceCreateBlurMaskFilter(); }],
+      ['performance_patheffect_createdashpatheffect', () => { return new PerformancePathEffectCreateDashPathEffect(); }],
+      ['performance_patheffect_createcornerpatheffect', () => { return new PerformancePathEffectCreateCornerPathEffect(); }],
+      ['performance_textblob_makefromstring', () => { return new PerformanceTextBlobMakeFromString(); }],
+      ['performance_textblob_makefromrunbuffer', () => { return new PerformanceTextBlobMakeFromRunBuffer(); }],
+      ['performance_textblob_makefrompostext', () => { return new PerformanceTextBlobMakeFromRunBuffer(); }],
+      ['performance_typeface_getfamilyname', () => { return new PerformanceTypeFaceGetFamilyName(); }],
+      ['performance_typeface_makefromfile', () => { return new PerformanceTypeFaceMakeFromFile(); }],
+      ['performance_shadowLayer_create', () => { return new PerformanceShadowLayerCreate(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setColor', () => { return new PerformancePenSetColor(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getColor', () => { return new PerformancePenGetColor(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setStrokeWidth', () => { return new PerformancePenSetStrokeWidth(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setAntiAlias', () => { return new PerformancePenSetAntiAlias(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setAlpha', () => { return new PerformancePenSetAlpha(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getAlpha', () => { return new PerformancePenGetAlpha(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setColorFilter', () => { return new PerformancePenSetColorFilter(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getColorFilter', () => { return new PerformancePenGetColorFilter(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setMaskFilter', () => { return new PerformancePenSetMaskFilter(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setMiterLimit', () => { return new PerformancePenSetMiterLimit(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getMiterLimit', () => { return new PerformancePenGetMiterLimit(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setPathEffect', () => { return new PerformancePenSetPathEffect(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setShadowLayer', () => { return new PerformancePenSetShadowLayer(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setShaderEffect', () => { return new PerformancePenSetShaderEffect(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setBlendMode', () => { return new PerformancePenSetBlendMode(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setDither', () => { return new PerformancePenSetDither(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setJoinStyle', () => { return new PerformancePenSetJoinStyler(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getJoinStyle', () => { return new PerformancePenGetJoinStyler(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setCapStyle', () => { return new PerformancePenSetCapStyle(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getCapStyle', () => { return new PerformancePenGetCapStyle(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getWidth', () => { return new PerformancePenGetWidth(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_isAntiAlias', () => { return new PerformancePenIsAntiAlias(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_reset', () => { return new PerformancePenReset(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_getFillPath', () => { return new PerformancePenGetFillPath(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_pen_setImageFilter', () => { return new PerformancePenSetImageFilter(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_region_isPointContained', () => { return new PerformanceRegionIsPointContained(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_region_isRegionContained', () => { return new PerformanceRegionIsRegionContained(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_region_op', () => { return new PerformanceRegionOp(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_region_quickReject', () => { return new PerformanceRegionQuickReject(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_region_setRect', () => { return new PerformanceRegionSetRect(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_region_setPath', () => { return new PerformanceRegionSetPath(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
     ]
   );
   
