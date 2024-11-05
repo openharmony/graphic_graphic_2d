@@ -135,4 +135,114 @@ HWTEST_F(SKResourceManagerTest, ReleaseResource001, TestSize.Level1)
 #endif
 }
 
+/**
+ * @tc.name: ReleaseResource002
+ * @tc.desc: test release resource
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(SKResourceManagerTest, ReleaseResource002, TestSize.Level1)
+{
+#ifdef ROSEN_OHOS
+    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+    skResManager_.ReleaseResource();
+    sleep(1); // make sure release clean
+
+    {
+        auto imgptr = std::make_shared<Drawing::Image>();
+        skResManager_.HoldResource(imgptr);
+        EXPECT_EQ(skResManager_.images_.size(), 1);
+        for (auto& images : skResManager_.images_) {
+            // resource stil hold by imgptr, so HaveReleaseableResourceCheck should reture false
+            EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
+        }
+
+        imgptr = nullptr; // imgptr will not hold resource
+        for (auto& images : skResManager_.images_) {
+            // only skResManager_ hold resource, HaveReleaseableResourceCheck should reture true
+            EXPECT_TRUE(images.second->HaveReleaseableResourceCheck());
+        }
+    }
+
+    {
+        auto surfacePtr = std::make_shared<Drawing::Surface>();
+        skResManager_.HoldResource(surfacePtr);
+
+        // resource stil hold by surfacePtr, so HaveReleaseableResourceCheck should reture false
+        EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+        surfacePtr = nullptr;  // surfacePtr will not hold resource
+
+        // only skResManager_ hold resource, HaveReleaseableResourceCheck should reture true
+        EXPECT_TRUE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+    }
+
+    skResManager_.ReleaseResource();
+    sleep(1); // make sure release clean
+
+    EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+    for (auto& images : skResManager_.images_) {
+        EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
+    }
+#endif
+}
+
+/**
+ * @tc.name: ReleaseResource003
+ * @tc.desc: test release resource
+ * @tc.type: FUNC
+ * @tc.require: issueI9IUKU
+ */
+HWTEST_F(SKResourceManagerTest, ReleaseResource003, TestSize.Level1)
+{
+#ifdef ROSEN_OHOS
+    const  uint32_t MAX_CHECK_SIZE = 20;
+    RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), TaskDispatchFunc);
+    skResManager_.ReleaseResource();
+    sleep(1); // make sure release clean
+
+    {
+        std::list<std::shared_ptr<Drawing::Image>> imagesMap;
+        for (uint32_t i = 0; i < MAX_CHECK_SIZE; i++) {
+            auto imgPtr = std::make_shared<Drawing::Image>();
+            imagesMap.push_back(imgPtr);
+            skResManager_.HoldResource(imgPtr);
+        }
+        for (auto& images : skResManager_.images_) {
+            // imagesMap hold resource, so there is no resource need to release
+            EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
+        }
+        skResManager_.HoldResource(std::make_shared<Drawing::Image>());
+        for (auto& images : skResManager_.images_) {
+            /* imagesMap hold resource. but size is over MAX_CHECK_SIZE
+             * so there maybe have resource need to release
+             */
+            EXPECT_TRUE(images.second->HaveReleaseableResourceCheck());
+        }
+    }
+
+    {
+        std::list<std::shared_ptr<Drawing::Surface>> skSurfacesMap;
+        for (uint32_t i = 0; i < MAX_CHECK_SIZE; i++) {
+            auto surfacePtr = std::make_shared<Drawing::Surface>();
+            skResManager_.HoldResource(surfacePtr);
+            skSurfacesMap.push_back(surfacePtr);
+        }
+        // skSurfacesMap hold resource, so there is no resource need to release
+        EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+        skResManager_.HoldResource(std::make_shared<Drawing::Surface>());
+
+        /* skSurfacesMap hold resource. but size is over MAX_CHECK_SIZE
+         * so there maybe have resource need to release
+         */
+        EXPECT_TRUE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+    }
+
+    skResManager_.ReleaseResource();
+    sleep(1); // make sure release clean
+    EXPECT_FALSE(skResManager_.HaveReleaseableResourceCheck(skResManager_.skSurfaces_[gettid()]));
+    for (auto& images : skResManager_.images_) {
+        EXPECT_FALSE(images.second->HaveReleaseableResourceCheck());
+    }
+#endif
+}
 } // namespace OHOS::Rosen
