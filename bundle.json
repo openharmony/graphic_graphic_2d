@@ -463,6 +463,7 @@
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect/test:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo"
         ]
       }
