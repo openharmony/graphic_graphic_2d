@@ -113,6 +113,9 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
     uint32_t hash_value = typeface->GetHash();
     if (!hash_value) { // fallback to slow path if the adapter does not provide hash
         std::shared_ptr<Drawing::Data> data = typeface->Serialize();
+        if (!data) {
+            return;
+        }
         const void* stream = data->GetData();
         size_t size = data->GetSize();
         hash_value = SkOpts::hash_fn(stream, std::min(size, static_cast<size_t>(MAX_CHUNK_SIZE)), 0);
