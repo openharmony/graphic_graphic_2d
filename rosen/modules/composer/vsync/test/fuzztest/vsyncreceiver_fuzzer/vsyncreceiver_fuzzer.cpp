@@ -129,11 +129,11 @@ namespace OHOS {
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         std::string name = GetStringFromData(STR_LEN);
         bool rnvFlag = GetData<bool>();
-        //bool isOpen = GetData<bool>();
-        // int64_t period = GetData<int64_t>();
-        // int64_t timestamp = GetData<int64_t>();
-        // bool isThreadShared = GetData<bool>();
-        //int64_t now = GetData<int64_t>();
+        bool isOpen = GetData<bool>();
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool isThreadShared = GetData<bool>();
+        int64_t now = GetData<int64_t>();
         // int64_t datas[3] = {GetData<int64_t>(), GetData<int64_t>(), GetData<int64_t>()};
         // ssize_t dataCount = 3;
         // int32_t fd = GetData<int32_t>();
@@ -167,18 +167,18 @@ namespace OHOS {
         vsyncCallBackListener->GetTimeStampShared();
         vsyncCallBackListener->AddCallback(fcb);
         // vsyncCallBackListener->HandleVsyncCallbacks(datas, dataCount);
-        // vsyncCallBackListener->CalculateExpectedEndLocked(now);
+        vsyncCallBackListener->CalculateExpectedEndLocked(now);
         // vsyncCallBackListener->OnReadable(fd);
         // vsyncCallBackListener->ReadFdInternal(fd, datas, dataCount);
         GraphicCommonTest();
 
-        // vsyncReceiver->SetVsyncCallBackForEveryFrame(fcb, isOpen);
-        // vsyncReceiver->GetVSyncPeriodAndLastTimeStamp(period, timestamp, isThreadShared);
-        // vsyncReceiver->IsRequestedNextVSync();
+        vsyncReceiver->SetVsyncCallBackForEveryFrame(fcb, isOpen);
+        vsyncReceiver->GetVSyncPeriodAndLastTimeStamp(period, timestamp, isThreadShared);
+        vsyncReceiver->IsRequestedNextVSync();
 
         //tearDown
         //vsyncCallBackListener->closeFd(fd);
-        // vsyncReceiver->CloseVsyncReceiverFd();
+        vsyncReceiver->CloseVsyncReceiverFd();
         return true;
     }
 }
