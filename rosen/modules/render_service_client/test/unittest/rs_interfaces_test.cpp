@@ -1828,6 +1828,68 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
 }
 
 /*
+ * @tc.name: SetMirrorScreenVisibleRect_001
+ * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params, screenId is INVALID_SCREEN_ID.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    Rect rect = {0, 0, defaultWidth, defaultHeight};
+
+    int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(INVALID_SCREEN_ID, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+    res = rsInterfaces->SetMirrorScreenVisibleRect(0, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect_002
+ * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params, rect is abnormal.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    int32_t x = -10;  // x value for test
+    int32_t y = -10;  // y value for test
+    int32_t defaultWidth = -720;  // width value for test
+    int32_t defaultHeight = -1280;  // height value for test
+    Rect rect = {x, y, defaultWidth, defaultHeight};
+
+    int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(0, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect_003
+ * @tc.desc: Test SetMirrorScreenVisibleRect with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSInterfacesTest, SetMirrorScreenVisibleRect_003, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    ASSERT_NE(rsInterfaces, nullptr);
+    uint32_t defaultWidth = 720;  // width value for test
+    uint32_t defaultHeight = 1280;  // height value for test
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", defaultWidth, defaultHeight, pSurface, 0, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+    Rect rect = {0, 0, defaultWidth, defaultHeight};
+    int32_t res = rsInterfaces->SetMirrorScreenVisibleRect(virtualScreenId, rect);
+    EXPECT_EQ(res, RS_CONNECTION_ERROR);  // Unable to access IPC due to lack of permissions.
+}
+
+/*
  * @tc.name: SetFreeMultiWindowStatus_001
  * @tc.desc: Test SetFreeMultiWindowStatus with false.
  * @tc.type: FUNC

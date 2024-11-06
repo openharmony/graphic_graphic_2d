@@ -1383,6 +1383,44 @@ HWTEST_F(RSUniRenderUtilTest, ProcessCacheImage, TestSize.Level2)
 }
 
 /*
+ * @tc.name: ProcessCacheImageRect001
+ * @tc.desc: ProcessCacheImageRect test with abnoraml rect params
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessCacheImageRect001, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+
+    auto src = Drawing::Rect(-10, -10, -100, -100);  // test value
+    auto dst = src;
+    rsUniRenderUtil.ProcessCacheImageRect(canvas, *image, src, dst);
+}
+
+/*
+ * @tc.name: ProcessCacheImageRect002
+ * @tc.desc: ProcessCacheImageRect test with noraml rect params
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSUniRenderUtilTest, ProcessCacheImageRect002, TestSize.Level2)
+{
+    RSUniRenderUtil rsUniRenderUtil;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
+
+    auto src = Drawing::Rect(50, 50, 100, 100);  // test value
+    auto dst = src;
+    rsUniRenderUtil.ProcessCacheImageRect(canvas, *image, src, dst);
+}
+
+/*
  * @tc.name: TraverseAndCollectUIExtensionInfo001
  * @tc.desc: TraverseAndCollectUIExtensionInfo test when node is nullptr
  * @tc.type: FUNC

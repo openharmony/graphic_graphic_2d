@@ -1829,4 +1829,79 @@ HWTEST_F(RSScreenTest, GetSecurityExemptionList_001, testing::ext::TestSize.Leve
         ASSERT_EQ(securityExemptionListGet[i], securityExemptionList[i]);
     }
 }
+
+/*
+ * @tc.name: SetEnableVisibleRect_001
+ * @tc.desc: SetEnableVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetEnableVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->SetEnableVisibleRect(true);
+    ASSERT_EQ(rsScreen->enableVisibleRect_, true);
+}
+
+/*
+ * @tc.name: GetEnableVisibleRect_001
+ * @tc.desc: GetEnableVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, GetEnableVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    bool ret = rsScreen->GetEnableVisibleRect();
+    ASSERT_EQ(ret, false);
+
+    rsScreen->enableVisibleRect_ = true;
+    ret = rsScreen->GetEnableVisibleRect();
+    ASSERT_EQ(ret, true);
+}
+
+/*
+ * @tc.name: SetMainScreenVisibleRect_001
+ * @tc.desc: SetMainScreenVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetMainScreenVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    Rect rect = {};
+    rsScreen->SetMainScreenVisibleRect(rect);
+}
+
+/*
+ * @tc.name: GetMainScreenVisibleRect_001
+ * @tc.desc: GetMainScreenVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, GetMainScreenVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rectSet = {0, 0, width, height};
+    rsScreen->SetMainScreenVisibleRect(rectSet);
+    auto rectGet = rsScreen->GetMainScreenVisibleRect();
+    ASSERT_EQ(rectSet.x, rectGet.x);
+    ASSERT_EQ(rectSet.y, rectGet.y);
+    ASSERT_EQ(rectSet.w, rectGet.w);
+    ASSERT_EQ(rectSet.h, rectGet.h);
+}
 } // namespace OHOS::Rosen
