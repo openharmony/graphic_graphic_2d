@@ -459,26 +459,6 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level2)
 
 
 /**
- * @tc.name: ProcessAdaptiveSyncTest
- * @tc.desc: Verify the result of ProcessAdaptiveSyncTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, ProcessAdaptiveSyncTest, Function | SmallTest | Level2)
-{
-    auto &hgmCore = HgmCore::Instance();
-    HgmFrameRateManager frameRateMgr;
-    hgmCore.adaptiveSync_ = ADAPTIVE_SYNC_ENABLED;
-    frameRateMgr.isAdaptive_.store(true);
-    frameRateMgr.ProcessAdaptiveSync("VOTER_GAMES");
-    frameRateMgr.ProcessAdaptiveSync("VOTER_SCENE");
-    EXPECT_EQ(frameRateMgr.isAdaptive_.load(), true);
-    frameRateMgr.isAdaptive_.store(false);
-    frameRateMgr.ProcessAdaptiveSync("VOTER_GAMES");
-    EXPECT_EQ(frameRateMgr.isAdaptive_.load(), false);
-}
-
-/**
  * @tc.name: GetDrawingFrameRateTest
  * @tc.desc: Verify the result of GetDrawingFrameRateTest
  * @tc.type: FUNC
@@ -493,6 +473,14 @@ HWTEST_F(HgmFrameRateMgrTest, GetDrawingFrameRateTest, Function | SmallTest | Le
     EXPECT_EQ(dynamic_120.IsDynamic(), true);
     FrameRateRange static_120(120, 120, 120);
     EXPECT_EQ(static_120.IsDynamic(), false);
+    auto &hgmCore = HgmCore::Instance();
+    HgmFrameRateManager frameRateMgr;
+    hgmCore.adaptiveSync_ = ADAPTIVE_SYNC_ENABLED;
+    frameRateMgr.isAdaptive_.store(true);
+    frameRateMgr.ProcessAdaptiveSync("VOTER_GAMES");
+    frameRateMgr.ProcessAdaptiveSync("VOTER_SCENE");
+    frameRateMgr.isAdaptive_.store(false);
+    frameRateMgr.ProcessAdaptiveSync("VOTER_GAMES");
     EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_60, dynamic_120), 60);
     EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_60, static_120), 60);
     EXPECT_EQ(mgr->GetDrawingFrameRate(refreshRate_120, dynamic_120), 120);

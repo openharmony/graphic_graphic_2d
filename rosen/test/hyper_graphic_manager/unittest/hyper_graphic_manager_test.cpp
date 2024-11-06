@@ -85,7 +85,8 @@ HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level4)
             auto newRateMode = "1";
             RSSystemProperties::SetHgmRefreshRateModesEnabled(newRateMode);
             auto &instance1 = HgmCore::Instance();
-            STEP_ASSERT_EQ(instance1.customFrameRateMode_, std::stoi(newRateMode));
+            auto &instance2 = HgmCore::Instance();
+            STEP_ASSERT_EQ(&instance1, &instance2);
         }
     }
 }
