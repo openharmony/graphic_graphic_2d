@@ -51,10 +51,6 @@ RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared
 
 RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (curThreadInfo_.second && surface_) {
-        curThreadInfo_.second(std::move(surface_));
-    }
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -64,6 +60,10 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
         }
     }
 #endif
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (curThreadInfo_.second && surface_) {
+        curThreadInfo_.second(std::move(surface_));
+    }
 #endif
 }
 
@@ -217,8 +217,6 @@ void RSCanvasDrawingRenderNodeDrawable::Purge()
 #ifdef RS_ENABLE_VK
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (curThreadInfo_.second && surface_) {
-        curThreadInfo_.second(std::move(surface_));
-        surface_ = nullptr;
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             if (vulkanCleanupHelper_ && !isPurge_) {
@@ -226,6 +224,8 @@ void RSCanvasDrawingRenderNodeDrawable::Purge()
                 isPurge_ = true;
             }
         }
+        curThreadInfo_.second(std::move(surface_));
+        surface_ = nullptr;
     }
 #endif
     RSRenderNodeDrawableAdapter::Purge();
@@ -466,6 +466,15 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
     if (surface_ && surface_->GetImageInfo().GetWidth() > EDGE_WIDTH_LIMIT) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
     }
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (vulkanCleanupHelper_ && isPurge_) {
+            vulkanCleanupHelper_->UnRef();
+            isPurge_ = false;
+        }
+    }
+#endif
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
@@ -477,12 +486,6 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
     backendTexture_ = {};
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-#ifdef RS_ENABLE_VK
-        if (vulkanCleanupHelper_ && isPurge_) {
-            vulkanCleanupHelper_->UnRef();
-            isPurge_ = false;
-        }
-#endif
         vulkanCleanupHelper_ = nullptr;
     }
 #endif
@@ -672,6 +675,13 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
             backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
             if (!backendTexture_.IsValid()) {
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    if (vulkanCleanupHelper_ && isPurge_) {
+                        vulkanCleanupHelper_->UnRef();
+                        isPurge_ = false;
+                    }
+                }
                 surface_ = nullptr;
                 recordingCanvas_ = nullptr;
                 image_ = nullptr;
@@ -679,10 +689,6 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
                 backendTexture_ = {};
                 if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                     RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                    if (vulkanCleanupHelper_ && isPurge_) {
-                        vulkanCleanupHelper_->UnRef();
-                        isPurge_ = false;
-                    }
                     vulkanCleanupHelper_ = nullptr;
                 }
                 RS_LOGE(
@@ -817,6 +823,13 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
         backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
         if (!backendTexture_.IsValid()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                if (vulkanCleanupHelper_ && isPurge_) {
+                    vulkanCleanupHelper_->UnRef();
+                    isPurge_ = false;
+                }
+            }
             surface_ = nullptr;
             recordingCanvas_ = nullptr;
             image_ = nullptr;
@@ -824,10 +837,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
             backendTexture_ = {};
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                 RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                if (vulkanCleanupHelper_ && isPurge_) {
-                    vulkanCleanupHelper_->UnRef();
-                    isPurge_ = false;
-                }
                 vulkanCleanupHelper_ = nullptr;
             }
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK backendTexture invalid, nodeId[%{public}" PRIu64 "]",
