@@ -77,7 +77,6 @@ HWTEST_F(RSHpsBlurTest, GetShaderTransformTest, TestSize.Level1)
  * @tc.name: ApplyHpsBlurTest001
  * @tc.desc: Verify function ApplyHpsBlur
  * @tc.type:FUNC
- * @tc.require: issuesI9UWCD
  */
 HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
 {
