@@ -249,7 +249,6 @@ void DrawCmdList::UnmarshallingDrawOps()
 
     UnmarshallingPlayer player = { *this };
     drawOpItems_.clear();
-    lastOpGenSize_ = 0;
     uint32_t opReplaceIndex = 0;
     size_t offset = offset_;
     do {
@@ -292,11 +291,14 @@ void DrawCmdList::UnmarshallingDrawOps()
             break;
         }
     } while (offset != 0);
-    lastOpGenSize_ = opAllocator_.GetSize();
 
     opAllocator_.ClearData();
+    opAllocator_.Add(&width_, sizeof(int32_t));
+    opAllocator_.Add(&height_, sizeof(int32_t));
     imageAllocator_.ClearData();
     bitmapAllocator_.ClearData();
+    lastOpGenSize_ = 0;
+    lastOpItemOffset_ = std::nullopt;
 
     if (performanceCaculateOpType_ != 0) {
         LOGI("Drawing Performance UnmarshallingDrawOps end %{public}lld", PerformanceCaculate::GetUpTime());
