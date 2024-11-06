@@ -252,7 +252,6 @@ HWTEST_F(RSDrawingFilterTest, ApplyColorFilter001, TestSize.Level1)
     drawingFilter.ApplyColorFilter(canvas, image, src, dst, 1.0f);
     drawingFilter.ApplyColorFilter(canvas, nullptr, src, dst, 1.0f);
     EXPECT_TRUE(image != nullptr);
-
 }
 
 /**
