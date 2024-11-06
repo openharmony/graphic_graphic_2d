@@ -45,7 +45,8 @@ public:
 // 模拟单例类的函数
 class SingletonMockRSTypefaceCache {
 public:
-    static MockRSTypefaceCache& Instance() {
+    static MockRSTypefaceCache& Instance()
+    {
         static MockRSTypefaceCache instance;
         return instance;
     }
