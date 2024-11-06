@@ -248,6 +248,53 @@ bool DoSetBoundsChangedCallback(const uint8_t* data, size_t size)
     canvasNode->SetBoundsChangedCallback(callback);
     return true;
 }
+
+bool DoDrawOnNode002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    bool isRenderServiceNode = GetData<bool>();
+    bool isTextureExportNode = GetData<bool>();
+    int width = GetData<int>();
+    int height = GetData<int>();
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(isRenderServiceNode, isTextureExportNode);
+    RSModifierType type = RSModifierType::BOUNDS;
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    RSCanvasNode rsCanvasNode(isRenderServiceNode, isTextureExportNode);
+    rsCanvasNode.DrawOnNode(type, func);
+    rsCanvasNode.BeginRecording(width, height);
+    rsCanvasNode.IsRecording();
+    rsCanvasNode.FinishRecording();
+    return true;
+}
+
+bool DoSetFreeze002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    bool isRenderServiceNode = GetData<bool>();
+    bool isTextureExportNode = GetData<bool>();
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(isRenderServiceNode, isTextureExportNode);
+    bool isFreeze = GetData<bool>();
+    canvasNode->SetFreeze(isFreeze);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -265,6 +312,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoOnBoundsSizeChanged(data, size);
     OHOS::Rosen::DoSetBoundsChangedCallback(data, size);
     OHOS::Rosen::DoDrawOnNode002(data, size);
-
+    OHOS::Rosen::DoSetFreeze002(data, size);
     return 0;
 }
