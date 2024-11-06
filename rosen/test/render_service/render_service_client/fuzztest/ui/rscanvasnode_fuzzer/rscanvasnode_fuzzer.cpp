@@ -223,6 +223,8 @@ bool DoOnBoundsSizeChanged(const uint8_t* data, size_t size)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(isRenderServiceNode, isTextureExportNode);
+    BoundsChangedCallback callback = [](const Rosen::Vector4f& vector4f) {};
+    canvasNode->SetBoundsChangedCallback(callback);
     canvasNode->OnBoundsSizeChanged();
     return true;
 }
