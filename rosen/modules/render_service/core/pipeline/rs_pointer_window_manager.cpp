@@ -90,5 +90,27 @@ bool RSPointerWindowManager::CheckHardCursorSupport(std::shared_ptr<RSDisplayRen
     }
     return screenManager->GetDisplayPropertyForHardCursor(curDisplayNode->GetScreenId());
 }
+
+bool RSPointerWindowManager::HasMirrorDisplay() const
+{
+    const std::shared_ptr<RSBaseRenderNode> rootNode =
+        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
+    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
+        return false;
+    }
+    for (auto& child : *rootNode->GetSortedChildren()) {
+        if (!child || !child->IsInstanceOf<RSDisplayRenderNode>()) {
+            continue;
+        }
+        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (!displayNode) {
+            continue;
+        }
+        if (displayNode->IsMirrorDisplay()) {
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS
