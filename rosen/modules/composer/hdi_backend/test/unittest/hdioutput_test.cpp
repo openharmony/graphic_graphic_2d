@@ -181,54 +181,6 @@ HWTEST_F(HdiOutputTest, GetOutputDamage001, Function | MediumTest| Level3)
 }
 
 /*
-* Function: GetLayerCompCapacity
-* Type: Function
-* Rank: Important(3)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetLayerCompCapacity
-*                  2. call GetLayerCompCapacity
-*                  3. check ret
-*/
-HWTEST_F(HdiOutputTest, GetLayerCompCapacity001, Function | MediumTest| Level3)
-{
-    uint32_t layerCompositionCapacity = 8;
-    HdiOutputTest::hdiOutput_->SetLayerCompCapacity(layerCompositionCapacity);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetLayerCompCapacity(), 8u);
-}
-
-/*
-* Function: GetDirectClientCompEnableStatus001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetDirectClientCompEnableStatus
-*                  2. call GetDirectClientCompEnableStatus
-*                  3. check ret
- */
-HWTEST_F(HdiOutputTest, GetDirectClientCompEnableStatus001, Function | MediumTest| Level1)
-{
-    bool enablStatus = false;
-    HdiOutputTest::hdiOutput_->SetDirectClientCompEnableStatus(enablStatus);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetDirectClientCompEnableStatus(), false);
-}
-
-/*
-* Function: GetDirectClientCompEnableStatus002
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call SetDirectClientCompEnableStatus
-*                  2. call GetDirectClientCompEnableStatus
-*                  3. check ret
- */
-HWTEST_F(HdiOutputTest, GetDirectClientCompEnableStatus002, Function | MediumTest| Level1)
-{
-    bool enablStatus = true;
-    HdiOutputTest::hdiOutput_->SetDirectClientCompEnableStatus(enablStatus);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->GetDirectClientCompEnableStatus(), true);
-}
-
-/*
 * Function: Commit002
 * Type: Function
 * Rank: Important(1)

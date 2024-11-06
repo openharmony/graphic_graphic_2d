@@ -132,11 +132,6 @@ std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
     return {};
 }
 
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetHighContrastStatus()
 {
     return {};

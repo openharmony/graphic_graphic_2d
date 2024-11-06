@@ -149,7 +149,6 @@ public:
     static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
-    static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
     static DumpSurfaceType GetDumpSurfaceType();
