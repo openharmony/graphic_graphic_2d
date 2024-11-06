@@ -3863,6 +3863,7 @@ bool RSMainThread::IsHardwareEnabledNodesNeedSync()
     for (const auto& node : hardwareEnabledNodes_) {
         if (node != nullptr && (node->GetStagingRenderParams()->NeedSync() || !node->IsHardwareForcedDisabled())) {
             needSync = true;
+            break;
         } 
     }
     RS_TRACE_NAME_FMT("%s %u", __func__, needSync);
