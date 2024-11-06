@@ -3859,26 +3859,14 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
 
 bool RSMainThread::IsHardwareEnabledNodesNeedSync()
 {
-    if (!doDirectComposition_) {
-        for (const  auto& node : hardwareEnabledNodes_) {
-            auto needSync = node->GetStagingRenderParams()->NeedSync();
-            if (needSync) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool needSync = false;
     for (const auto& node : hardwareEnabledNodes_) {
-        if (node == nullptr || node->IsHardwareForcedDisabled()) {
-            continue;
-        }
-        needSync = true;
+        if (node != nullptr && (node->GetStagingRenderParams()->NeedSync() || !node->IsHardwareForcedDisabled())) {
+            needSync = true;
+        } 
     }
     RS_TRACE_NAME_FMT("%s %u", __func__, needSync);
     RS_LOGD("%{public}s %{public}u", __func__, needSync);
-
+    
     return needSync;
 }
 
