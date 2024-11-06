@@ -264,6 +264,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHDRPresent(data, size);
     OHOS::Rosen::DoOnBoundsSizeChanged(data, size);
     OHOS::Rosen::DoSetBoundsChangedCallback(data, size);
+    OHOS::Rosen::DoDrawOnNode002(data, size);
 
     return 0;
 }
