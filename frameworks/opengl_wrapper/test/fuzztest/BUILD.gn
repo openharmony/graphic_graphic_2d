@@ -15,6 +15,7 @@ group("fuzztest") {
 
   deps = [
     "eglwrappercontext_fuzzer:fuzztest",
+    "eglwrapperdatactl_fuzzer:fuzztest",
     "eglwrapperdisplay_fuzzer:fuzztest",
     "eglwrapperentry_fuzzer:fuzztest",
     "eglwrapperlayer_fuzzer:fuzztest",

@@ -405,7 +405,7 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::GetSystemFo
     descriptors.reserve(typefaces.size());
     for (auto& item : typefaces) {
         FontDescriptor desc;
-        desc.requestedLid = GetLanguageId(locale);
+        desc.requestedLid = static_cast<unsigned int>(GetLanguageId(locale));
         desc.path = item->GetFontPath();
         auto fontStyle = item->GetFontStyle();
         desc.weight = fontStyle.GetWeight();
@@ -418,16 +418,17 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::GetSystemFo
     return descriptors;
 }
 
-bool FontParser::ParserFontDescriptorFromPath(const std::string& path,
+bool FontParser::ParserFontDescriptorFromPath(const std::string& path, const std::string& fullName,
     std::vector<std::shared_ptr<FontDescriptor>>& descriptors, const std::string locale)
 {
-    std::shared_ptr<Drawing::Typeface> typeface;
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
     int index = 0;
-    FontDescriptor desc;
-    desc.requestedLid = GetLanguageId(locale);
-    desc.path = path;
     while ((typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index)) != nullptr) {
         index++;
+        FontDescriptor desc;
+        desc.requestedLid = static_cast<unsigned int>(GetLanguageId(locale));
+        desc.path = path;
+        desc.requestedFullname = fullName;
         auto fontStyle = typeface->GetFontStyle();
         desc.weight = fontStyle.GetWeight();
         desc.width = fontStyle.GetWidth();

@@ -294,9 +294,9 @@ void DrawCmdList::UnmarshallingDrawOps()
     } while (offset != 0);
     lastOpGenSize_ = opAllocator_.GetSize();
 
-    if ((int)imageAllocator_.GetSize() > 0) {
-        imageAllocator_.ClearData();
-    }
+    opAllocator_.ClearData();
+    imageAllocator_.ClearData();
+    bitmapAllocator_.ClearData();
 
     if (performanceCaculateOpType_ != 0) {
         LOGI("Drawing Performance UnmarshallingDrawOps end %{public}lld", PerformanceCaculate::GetUpTime());

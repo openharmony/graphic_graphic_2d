@@ -16,8 +16,9 @@
 #include "transaction/rs_render_service_client.h"
 #include "surface_type.h"
 #include "surface_utils.h"
-
+#ifdef RS_ENABLE_GL
 #include "backend/rs_surface_ohos_gl.h"
+#endif
 #include "backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "backend/rs_surface_ohos_vulkan.h"
@@ -55,6 +56,8 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
+    } else {
+        RS_LOGE("RSRenderServiceClient::CommitTransaction failed, renderService is nullptr");
     }
 }
 
@@ -207,12 +210,15 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
-        if (UNLIKELY(RSSystemProperties::GetPixelmapDfxEnabled()) || (i != callbackVector.size() - 1)) {
+        if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
                 surfaceCapture = std::move(pixelmapCopy);
             }
+        }
+        if (surfaceCapture) {
+            surfaceCapture->SetMemoryName("RSSurfaceCaptureForCallback");
         }
         callbackVector[i]->OnSurfaceCapture(surfaceCapture);
     }
@@ -261,6 +267,18 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
     renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
+    return true;
+}
+
+bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::SetHwcNodeBounds renderService is null!");
+        return false;
+    }
+    renderService->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 

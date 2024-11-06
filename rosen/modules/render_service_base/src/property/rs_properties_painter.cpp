@@ -90,30 +90,6 @@ Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRect(const RRect& rr)
     return Drawing::RoundRect(rect, radii);
 }
 
-Drawing::RoundRect RSPropertiesPainter::RRect2DrawingRRectBorder(const RRect& rr_outer, const RRect& rr_inner)
-{
-    // Take half of the inner and outer borders of the border
-    // to prevent the background from being affected by the border.
-    auto left_border = (rr_inner.rect_.left_ - rr_outer.rect_.left_) / 2;
-    auto top_border = (rr_inner.rect_.top_ - rr_outer.rect_.top_) / 2;
-    auto right_border = ((rr_outer.rect_.left_ + rr_outer.rect_.width_) -
-        (rr_inner.rect_.left_ + rr_inner.rect_.width_)) / 2;
-    auto bottom_border = ((rr_outer.rect_.top_ + rr_outer.rect_.height_) -
-        (rr_inner.rect_.top_ + rr_inner.rect_.height_)) / 2;
-    Drawing::Rect rect = Drawing::Rect(rr_inner.rect_.left_ - left_border, rr_inner.rect_.top_ - top_border,
-        rr_inner.rect_.left_ + rr_inner.rect_.width_ + right_border,
-        rr_inner.rect_.top_ + rr_inner.rect_.height_ + bottom_border);
-
-    // set radius for all 4 corner of RRect
-    constexpr uint32_t NUM_OF_CORNERS_IN_RECT = 4;
-    std::vector<Drawing::Point> radii(NUM_OF_CORNERS_IN_RECT);
-    for (uint32_t i = 0; i < NUM_OF_CORNERS_IN_RECT; i++) {
-        radii.at(i).SetX(rr_inner.radius_[i].x_);
-        radii.at(i).SetY(rr_inner.radius_[i].y_);
-    }
-    return Drawing::RoundRect(rect, radii);
-}
-
 bool RSPropertiesPainter::GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat)
 {
     if (w == rect.width_ && h == rect.height_) {
@@ -915,7 +891,12 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
 void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
     const RSProperties& properties, const bool isAbsCoordinate)
 {
-    auto& foregroundFilter = properties.GetForegroundFilterCache();
+    std::shared_ptr<RSFilter> foregroundFilter = nullptr;
+    if (RSProperties::IS_UNI_RENDER) {
+        foregroundFilter = properties.GetForegroundFilterCache();
+    } else {
+        foregroundFilter = properties.GetForegroundFilter();
+    }
     if (!foregroundFilter || foregroundFilter->GetFilterType() != RSFilter::FOREGROUND_EFFECT) {
         return;
     }
@@ -933,17 +914,16 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
     dirtyForegroundEffect.height_ = std::ceil(drawingRect.GetHeight()) + PARAM_DOUBLE;
 }
 
-// calcuation the distortion effect's dirty area
-void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect,
-    const RSProperties& properties, const bool isAbsCoordinate)
+// calculate the distortion effect's dirty area
+void RSPropertiesPainter::GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties)
 {
-    // if the DistortionK > 0, set the dirty bounds to its maximum range value
+    // if the distortionK > 0, set the dirty bounds to its maximum range value
     auto distortionK = properties.GetDistortionK();
     if (distortionK.has_value() && *distortionK > 0) {
-        int dirtyWidth = std::numeric_limits<int>::max();
-        int dirtyBeginpoint = std::numeric_limits<int>::min() / PARAM_DOUBLE;
-        dirtyDistortionEffect.left_ = dirtyBeginpoint;
-        dirtyDistortionEffect.top_ = dirtyBeginpoint;
+        int dirtyWidth = static_cast<int>(std::numeric_limits<int16_t>::max());
+        int dirtyBeginPoint = static_cast<int>(std::numeric_limits<int16_t>::min()) / PARAM_DOUBLE;
+        dirtyDistortionEffect.left_ = dirtyBeginPoint;
+        dirtyDistortionEffect.top_ = dirtyBeginPoint;
         dirtyDistortionEffect.width_ = dirtyWidth;
         dirtyDistortionEffect.height_ = dirtyWidth;
     }

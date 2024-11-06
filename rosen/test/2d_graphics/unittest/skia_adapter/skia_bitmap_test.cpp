@@ -238,6 +238,7 @@ HWTEST_F(SkiaBitmapTest, Free001, TestSize.Level1)
 {
     SkiaBitmap skiaBitmap;
     skiaBitmap.Free();
+    ASSERT_TRUE(skiaBitmap.IsValid());
 }
 
 /**
@@ -290,6 +291,7 @@ HWTEST_F(SkiaBitmapTest, TryAllocPixels001, TestSize.Level1)
         ALPHATYPE_PREMUL, nullptr};
     SkiaBitmap skiaBitmap;
     skiaBitmap.TryAllocPixels(offscreenInfo);
+    ASSERT_TRUE(!skiaBitmap.IsValid());
 }
 
 /**

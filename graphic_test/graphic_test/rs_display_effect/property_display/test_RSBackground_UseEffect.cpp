@@ -16,6 +16,8 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
+#include "ui/rs_effect_node.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -52,30 +54,39 @@ GRAPHIC_TEST(BackgroundTest01, CONTENT_DISPLAY_TEST, Use_Effect_Test)
     int rowCount = 2;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
+    const bool useEffectList[] = { false, true, false };
 
     for (int i = 0; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround =
-            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        auto effectNode = RSEffectNode::Create();
+        effectNode->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        effectNode->SetFrame({ x, y, sizeX - 10, sizeY - 10 });
+        effectNode->SetBackgroundColor(0xffff0000);
+        effectNode->SetBackgroundFilter(RSFilter::CreateBlurFilter(10, 10));
+        GetRootNode()->AddChild(effectNode);
+        RegisterNode(effectNode);
+
         auto childNode1 =
             SetUpNodeBgImage("/data/local/tmp/Images/475x327.jpg", { sizeX / 4, sizeY / 4, sizeX / 3, sizeY / 3 });
-        setNode(childNode1, 0.3);
+        childNode1->SetFrame({ sizeX / 4, sizeY / 4, sizeX / 3, sizeY / 3 });
+        childNode1->SetUseEffect(useEffectList[i]);
+        childNode1->SetBorderStyle(0, 0, 0, 0);
+        childNode1->SetBorderWidth(5, 5, 5, 5);
+        childNode1->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
         RegisterNode(childNode1);
-        auto childNode2 = RSCanvasNode::Create();
-        childNode2->SetBounds({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
+        effectNode->AddChild(childNode1);
+
+        auto childNode2 =
+            SetUpNodeBgImage("/data/local/tmp/appearance_test.jpg", { sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
+        childNode2->SetFrame({ sizeX / 2, sizeY / 2, sizeX / 3, sizeY / 3 });
         childNode2->SetBackgroundColor(0xff00ff00);
-        setNode(childNode2, 0.5);
+        childNode2->SetUseEffect(useEffectList[i + 1]);
+        childNode2->SetBorderStyle(0, 0, 0, 0);
+        childNode2->SetBorderWidth(5, 5, 5, 5);
+        childNode2->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         RegisterNode(childNode2);
-        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
-        testNodeBackGround->AddChild(childNode1);
-        testNodeBackGround->AddChild(childNode2);
-        testNodeBackGround->SetUseEffect(i);
-        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
-        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
-        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
-        GetRootNode()->AddChild(testNodeBackGround);
-        RegisterNode(testNodeBackGround);
+        effectNode->AddChild(childNode2);
     }
 }
 

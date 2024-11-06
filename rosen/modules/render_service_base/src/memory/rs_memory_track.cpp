@@ -15,6 +15,7 @@
 #include "memory/rs_memory_track.h"
 
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -137,9 +138,20 @@ float MemoryTrack::GetAppMemorySizeInMB()
 void MemoryTrack::DumpMemoryStatistics(DfxString& log,
     std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    DumpMemoryPicStatistics(log, func);
-    DumpMemoryNodeStatistics(log);
+    std::vector<MemoryInfo> memPicRecord;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (auto& [addr, info] : memPicRecord_) {
+            memPicRecord.push_back(info);
+        }
+    }
+    // dump without mutex to avoid dead lock
+    // because it may free pixelmap after fetch shard_ptr(use_count = 1) from pixelmap's weak_ptr
+    DumpMemoryPicStatistics(log, func, memPicRecord);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        DumpMemoryNodeStatistics(log);
+    }
 }
 
 void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
@@ -260,7 +272,8 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
+    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func,
+    const std::vector<MemoryInfo>& memPicRecord)
 {
     log.AppendFormat("RSImageCache:\n");
     log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
@@ -273,8 +286,12 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int count = 0;
     int totalWithoutDMASize = 0;
     int countWithoutDMA = 0;
+#ifdef ROSEN_OHOS
+    int totalUnMapSize = 0;
+    int totalUnMapCount = 0;
+#endif
     //calculate by byte
-    for (auto& [addr, info] : memPicRecord_) {
+    for (auto& info : memPicRecord) {
         int size = static_cast<int>(info.size / BYTE_CONVERT); // k
         //total of type
         arrTotal[info.type] += size;
@@ -289,10 +306,17 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
             arrWithoutDMACount[info.type]++;
             totalWithoutDMASize += size;
             countWithoutDMA++;
+#ifdef ROSEN_OHOS
+            auto pixelMap = info.pixelMap.lock();
+            if (pixelMap && pixelMap->IsUnMap()) {
+                totalUnMapSize += size;
+                totalUnMapCount++;
+            }
+#endif
         }
 
         auto [windowId, windowName, nodeFrameRect] = func(info.nid);
-        log.AppendFormat("%s \t %p\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str(), addr);
+        log.AppendFormat("%s\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
     }
 
     for (uint32_t i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {
@@ -303,6 +327,9 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     }
     log.AppendFormat("Total Size = %d KB (%d entries)\n", totalSize, count);
     log.AppendFormat("Total Without DMA Size = %d KB (%d entries)\n", totalWithoutDMASize, countWithoutDMA);
+#ifdef ROSEN_OHOS
+    log.AppendFormat("Total UnMap Size = %d KB (%d entries)\n", totalUnMapSize, totalUnMapCount);
+#endif
 }
 
 void MemoryTrack::AddPictureRecord(const void* addr, MemoryInfo info)

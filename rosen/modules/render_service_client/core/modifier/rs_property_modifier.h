@@ -157,6 +157,16 @@ protected:
     void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
 };
 
+class RSC_EXPORT RSScaleZModifier : public RSGeometryModifier {
+public:
+    explicit RSScaleZModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSScaleZModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
+};
+
 class RSC_EXPORT RSSkewModifier : public RSGeometryModifier {
 public:
     explicit RSSkewModifier(const std::shared_ptr<RSPropertyBase>& property);
@@ -1168,6 +1178,51 @@ class RSC_EXPORT RSUseEffectModifier : public RSBackgroundModifier {
 public:
     explicit RSUseEffectModifier(const std::shared_ptr<RSPropertyBase>& property);
     virtual ~RSUseEffectModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSUseEffectTypeModifier : public RSBackgroundModifier {
+public:
+    explicit RSUseEffectTypeModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSUseEffectTypeModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBehindWindowFilterRadiusModifier : public RSBackgroundModifier {
+public:
+    explicit RSBehindWindowFilterRadiusModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBehindWindowFilterRadiusModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBehindWindowFilterSaturationModifier : public RSBackgroundModifier {
+public:
+    explicit RSBehindWindowFilterSaturationModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBehindWindowFilterSaturationModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBehindWindowFilterBrightnessModifier : public RSBackgroundModifier {
+public:
+    explicit RSBehindWindowFilterBrightnessModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBehindWindowFilterBrightnessModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBehindWindowFilterMaskColorModifier : public RSBackgroundModifier {
+public:
+    explicit RSBehindWindowFilterMaskColorModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBehindWindowFilterMaskColorModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

@@ -175,6 +175,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetRSNodeLimit();
     RSSystemProperties::IsTabletType();
     RSSystemProperties::GetTransactionTerminateEnabled();
+    RSSystemProperties::GetBlurEffectTerminateLimit();
     RSSystemProperties::GetHwcDirtyRegionEnabled();
     RSSystemProperties::GetVersionType();
     RSSystemProperties::GetVkQueuePriorityEnable();

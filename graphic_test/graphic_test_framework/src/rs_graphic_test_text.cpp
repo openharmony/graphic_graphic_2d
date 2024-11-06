@@ -66,16 +66,16 @@ void TextCustomModifier::SetText(std::string text)
 
 void TextCustomModifier::Draw(RSDrawingContext& context) const
 {
-    if (!text_)
+    if (text_ == nullptr)
         return;
     uint32_t colorInt = 0xff000000;
     Vector2f position = { 0.0, 0.0 };
     float fontSize = 16;
-    if (!color_)
+    if (color_ != nullptr)
         colorInt = color_->Get();
-    if (!position_)
+    if (position_ != nullptr)
         position = position_->Get();
-    if (!size_)
+    if (size_ != nullptr)
         fontSize = size_->Get();
     auto brushColor = OHOS::Rosen::Drawing::Color(colorInt);
     Drawing::Brush brush;

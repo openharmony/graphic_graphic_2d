@@ -77,7 +77,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
     return false;
 }
@@ -511,6 +511,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 bool RSSystemProperties::IsForceClient()
 {
     return false;
+}
+
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()

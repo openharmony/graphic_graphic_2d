@@ -197,6 +197,7 @@ public:
     virtual TextStyle SkStyleToTextStyle(const skia::textlayout::TextStyle& skStyle) = 0;
     virtual void UpdateColor(size_t from, size_t to, const RSColor& color) = 0;
     virtual Range<size_t> GetEllipsisTextRange() = 0;
+    virtual OHOS::Rosen::Drawing::RectI GeneratePaintRegion(double x, double y) = 0;
 };
 } // namespace SPText
 } // namespace Rosen

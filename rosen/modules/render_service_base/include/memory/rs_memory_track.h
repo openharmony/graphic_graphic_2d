@@ -84,7 +84,8 @@ private:
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
     void DumpMemoryNodeStatistics(DfxString& log);
     void DumpMemoryPicStatistics(DfxString& log,
-        std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func);
+        std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func,
+        const std::vector<MemoryInfo>& memPicRecord = {});
     bool RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size);
     void RemoveNodeOfPidFromMap(const pid_t pid, const size_t size, const NodeId id);
     std::mutex mutex_;

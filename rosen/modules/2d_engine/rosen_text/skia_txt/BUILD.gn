@@ -244,7 +244,7 @@ ohos_source_set("skia_unicode") {
 
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = []
-  defines = []
+  defines = [ "OHOS_SUPPORT" ]
   sources = []
 
   public = [ "$skunicode_root/include/SkUnicode.h" ]

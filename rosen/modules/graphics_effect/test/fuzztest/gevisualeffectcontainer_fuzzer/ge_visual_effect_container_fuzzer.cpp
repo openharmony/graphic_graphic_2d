@@ -42,6 +42,22 @@ bool GEVisualEffectContainerFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+bool GEVisualEffectContainerFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    GETest::g_data = data;
+    GETest::g_size = size;
+    GETest::g_pos = 0;
+
+    auto veContainer = std::make_shared<GEVisualEffectContainer>();
+    auto visualEffect = nullptr;
+    veContainer->AddToChainedFilter(visualEffect);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -51,5 +67,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::GEVisualEffectContainerFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::GEVisualEffectContainerFuzzTest002(data, size);
     return 0;
 }

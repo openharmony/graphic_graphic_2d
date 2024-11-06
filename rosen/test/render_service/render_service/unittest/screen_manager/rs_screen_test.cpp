@@ -1789,4 +1789,44 @@ HWTEST_F(RSScreenTest, GetVirtualScreenStatus_001, testing::ext::TestSize.Level1
     ASSERT_EQ(rsScreen->GetVirtualScreenStatus(), VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
 }
 
+/*
+ * @tc.name: SetSecurityExemptionList_001
+ * @tc.desc: SetSecurityExemptionList Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenTest, SetSecurityExemptionList_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    rsScreen->SetSecurityExemptionList(securityExemptionList);
+    ASSERT_EQ(rsScreen->securityExemptionList_.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(rsScreen->securityExemptionList_[i], securityExemptionList[i]);
+    }
+}
+
+/*
+ * @tc.name: GetSecurityExemptionList_001
+ * @tc.desc: GetSecurityExemptionList Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenTest, GetSecurityExemptionList_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    rsScreen->securityExemptionList_ = securityExemptionList;
+    auto securityExemptionListGet = rsScreen->GetSecurityExemptionList();
+    ASSERT_EQ(securityExemptionListGet.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(securityExemptionListGet[i], securityExemptionList[i]);
+    }
+}
 } // namespace OHOS::Rosen

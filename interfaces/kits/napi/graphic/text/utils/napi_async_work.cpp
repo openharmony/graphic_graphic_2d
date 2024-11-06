@@ -15,12 +15,11 @@
 
 #include "napi_async_work.h"
 #include "napi_common.h"
-#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 ContextBase::~ContextBase()
 {
-    TEXT_LOGI("No memory leak after callback or promise[resolved/rejected]");
+    TEXT_LOGD("Entry");
     TEXT_CHECK(env != nullptr, return);
     TEXT_CHECK(work == nullptr, status = napi_delete_async_work(env, work));
     TEXT_ERROR_CHECK(status == napi_ok, return, "Failed to delete async work, status:%{public}d",

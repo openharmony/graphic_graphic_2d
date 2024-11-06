@@ -82,6 +82,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    rsImage_->SetDynamicRangeMode(imageInfo.dynamicRangeMode);
     rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     imageInfo_ = imageInfo;
 }
@@ -102,7 +103,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
-        rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
+        rsImage_->SetDynamicRangeMode(imageInfo.dynamicRangeMode);
         RectF frameRect(imageInfo.frameRect.GetLeft(),
                         imageInfo.frameRect.GetTop(),
                         imageInfo.frameRect.GetRight(),
@@ -454,10 +455,10 @@ RSExtendImageBaseObj::RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap
 }
 
 void RSExtendImageBaseObj::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-    const Drawing::SamplingOptions& sampling)
+    const Drawing::SamplingOptions& sampling, Drawing::SrcRectConstraint constraint)
 {
     if (rsImage_) {
-        rsImage_->DrawImage(canvas, sampling);
+        rsImage_->DrawImage(canvas, sampling, constraint);
     }
 }
 
@@ -636,14 +637,15 @@ UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling),
+      constraint_(handle->constraint)
 {
     objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
 }
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src,
-    const Rect& dst, const SamplingOptions& sampling, const Paint& paint)
-    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling)
+    const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling), constraint_(constraint)
 {
     objectHandle_ = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
 }
@@ -659,7 +661,7 @@ void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto objectHandle = CmdListHelper::AddImageBaseObjToCmdList(cmdList, objectHandle_);
-    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, constraint_, paintHandle);
 }
 
 void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -669,7 +671,7 @@ void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     canvas->AttachPaint(paint_);
-    objectHandle_->Playback(*canvas, *rect, sampling_);
+    objectHandle_->Playback(*canvas, *rect, sampling_, constraint_);
 }
 
 void DrawPixelMapRectOpItem::SetNodeId(NodeId id)

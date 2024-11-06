@@ -705,6 +705,7 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathAddPolygon031, TestSiz
     OH_Drawing_PathAddPolygon(nullptr, src, ADDPOLYGON_COUNT, true);
     OH_Drawing_PathAddPolygon(nullptr, nullptr, ADDPOLYGON_COUNT, true);
     OH_Drawing_PathAddPolygon(path, src, ADDPOLYGON_COUNT, true);
+    EXPECT_TRUE(reinterpret_cast<Path*>(path)->IsValid());
     OH_Drawing_PathDestroy(path);
 }
 

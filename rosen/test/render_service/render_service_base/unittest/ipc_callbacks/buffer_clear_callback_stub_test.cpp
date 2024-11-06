@@ -79,6 +79,8 @@ HWTEST_F(RSBufferClearCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 
     int res = rsBufferClearCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);
+    res = rsBufferClearCallbackStub->OnRemoteRequest(-1, data, reply, option);
+    EXPECT_TRUE(res == ERR_INVALID_STATE);
 }
 
 } // namespace OHOS::Rosen

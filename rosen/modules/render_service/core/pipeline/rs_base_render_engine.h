@@ -136,9 +136,6 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
 
-    void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
-        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
-
     // There would only one user(thread) to renderFrame(request frame) at one time.
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSSurfaceOhos>& rsSurface,
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
@@ -197,6 +194,11 @@ public:
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
+        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
+#endif
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {
@@ -211,11 +213,6 @@ public:
         return captureSkContext_;
     }
 #endif
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
-        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-#endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
@@ -229,6 +226,9 @@ private:
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
         const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
         const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace = nullptr);
+
+    static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;

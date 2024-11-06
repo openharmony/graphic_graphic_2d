@@ -74,7 +74,7 @@ public:
     static bool GetHideNotchStatus();
     static bool GetUIFirstDmaBufferEnabled();
     static bool GetTcacheEnabled();
-    static int GetDumpCanvasDrawingNodeEnabled();
+    static bool GetDumpCanvasDrawingNodeEnabled();
     static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);
 };
 

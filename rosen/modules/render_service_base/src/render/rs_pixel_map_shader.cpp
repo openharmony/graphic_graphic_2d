@@ -47,6 +47,11 @@ bool RSPixelMapShader::Unmarshalling(Parcel& parcel)
 
 void* RSPixelMapShader::GenerateBaseObject()
 {
+#ifdef ROSEN_OHOS
+    if (pixelMap_ && pixelMap_->IsUnMap()) {
+        pixelMap_->ReMap();
+    }
+#endif
     std::shared_ptr<Drawing::Image> image = RSPixelMapUtil::ExtractDrawingImage(pixelMap_);
     if (!image) {
         return nullptr;

@@ -20,6 +20,7 @@
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,7 +35,10 @@ public:
     void TearDown() override;
 };
 
-void RSSurfaceCaptureTaskParallelTest::SetUpTestCase() {}
+void RSSurfaceCaptureTaskParallelTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 void RSSurfaceCaptureTaskParallelTest::TearDownTestCase() {}
 void RSSurfaceCaptureTaskParallelTest::SetUp() {}
 void RSSurfaceCaptureTaskParallelTest::TearDown() {}

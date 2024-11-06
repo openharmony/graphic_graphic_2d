@@ -16,6 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECTION_STUB_H
 
+#include <unordered_set>
 #include <iremote_stub.h>
 #include <message_option.h>
 #include <message_parcel.h>
@@ -42,7 +43,9 @@ private:
 
     void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
     void ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
+    void SetQos();
     RSRenderServiceSecurityUtils securityUtils_;
+    std::unordered_set<int> tids_;
 };
 } // namespace Rosen
 } // namespace OHOS

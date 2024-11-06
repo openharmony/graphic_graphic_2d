@@ -82,6 +82,11 @@ public:
 
     void ResetRenderParams();
 
+    ScreenId GetScreenId() const
+    {
+        return screenId_;
+    }
+
     bool IsAbilityComponent() const
     {
         return nodeType_ == RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
@@ -114,6 +119,9 @@ public:
     }
 
     bool IsHardwareEnabledTopSurface() const;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const;
+    bool GetHardCursorLastStatus() const;
 
     void SetLayerTop(bool isTop);
 
@@ -404,7 +412,6 @@ public:
 
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
-    void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum) override;
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     // keep specified nodetype preparation
     virtual bool IsSubTreeNeedPrepare(bool filterInGloba, bool isOccluded = false) override;
@@ -773,7 +780,7 @@ public:
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender());
+            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender()) || NeedDrawBehindWindow();
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
@@ -818,12 +825,12 @@ public:
 
     std::string GetContainerConfigDump() const
     {
-        return "[outR: " + std::to_string(containerConfig_.outR) +
-               " inR: " + std::to_string(containerConfig_.inR) +
-               " x: " + std::to_string(containerConfig_.innerRect.left_) +
-               " y: " + std::to_string(containerConfig_.innerRect.top_) +
-               " w: " + std::to_string(containerConfig_.innerRect.width_) +
-               " h: " + std::to_string(containerConfig_.innerRect.height_) + "]";
+        return "[outR: " + std::to_string(containerConfig_.outR_) +
+               " inR: " + std::to_string(containerConfig_.inR_) +
+               " x: " + std::to_string(containerConfig_.innerRect_.left_) +
+               " y: " + std::to_string(containerConfig_.innerRect_.top_) +
+               " w: " + std::to_string(containerConfig_.innerRect_.width_) +
+               " h: " + std::to_string(containerConfig_.innerRect_.height_) + "]";
     }
 
     bool IsOpaqueRegionChanged() const
@@ -920,6 +927,8 @@ public:
         bool filterCacheOcclusionEnabled);
 
     bool LeashWindowRelatedAppWindowOccluded(std::vector<std::shared_ptr<RSSurfaceRenderNode>>& appNode);
+
+    void FindScreenId();
 
     void OnTreeStateChanged() override;
 
@@ -1209,6 +1218,12 @@ public:
                nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadius);
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
     {
         return surfaceHandler_;
@@ -1255,9 +1270,13 @@ public:
     {
         subThreadAssignable_ = subThreadAssignable;
     }
+
+    bool NeedUpdateDrawableBehindWindow();
+    bool NeedDrawBehindWindow() const override;
+    void AddChildBlurBehindWindow(NodeId id) override;
+    void RemoveChildBlurBehindWindow(NodeId id) override;
 protected:
     void OnSync() override;
-    void OnSkipSync() override;
 
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
@@ -1291,6 +1310,8 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
+    ScreenId screenId_ = -1;
+
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;
     std::optional<Drawing::Rect> contextClipRect_;
@@ -1319,6 +1340,7 @@ private:
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -1400,6 +1422,38 @@ private:
     int32_t displayNit_ = 500; // default sdr luminance
     float brightnessRatio_ = 1.0f; // no ratio by default
 
+    /*
+        ContainerWindow configs acquired from arkui, including container window state, screen density, container border
+        width, padding width, inner/outer radius, etc.
+    */
+    class ContainerConfig {
+    public:
+        // rrect means content region, including padding to left and top, inner radius;
+        void Update(bool hasContainer, RRect rrect);
+
+        bool operator==(const ContainerConfig& config)
+        {
+            return hasContainerWindow_ == config.hasContainerWindow_ &&
+                outR_ == config.outR_ &&
+                inR_ == config.inR_ &&
+                innerRect_ == config.innerRect_;
+        }
+    private:
+        inline int RoundFloor(float length)
+        {
+            // if a float value is very close to a integer (< 0.05f), return round value
+            return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
+        }
+    public:
+        bool hasContainerWindow_ = false;                // set to false as default, set by arkui
+        int outR_ = 0;                                   // outer radius (int value)
+        int inR_ = 0;                                    // inner radius (int value)
+        RectI innerRect_ = {};                           // inner rect, value relative to outerRect
+    };
+
+    ContainerConfig containerConfig_;
+    ContainerConfig GetAbsContainerConfig() const;
+
     struct OpaqueRegionBaseInfo
     {
         RectI screenRect_;
@@ -1410,34 +1464,11 @@ private:
         bool isTransparent_ = false;
         bool hasContainerWindow_ = false;
         Vector4<int> cornerRadius_;
+        ContainerConfig containerConfig_;
     };
 
     //<screenRect, absRect, screenRotation, isFocusWindow, isTransparent, hasContainerWindow>
     OpaqueRegionBaseInfo opaqueRegionBaseInfo_;
-
-    /*
-        ContainerWindow configs acquired from arkui, including container window state, screen density, container border
-        width, padding width, inner/outer radius, etc.
-    */
-    class ContainerConfig {
-    public:
-        // rrect means content region, including padding to left and top, inner radius;
-        void Update(bool hasContainer, RRect rrect);
-    private:
-        inline int RoundFloor(float length)
-        {
-            // if a float value is very close to a integer (< 0.05f), return round value
-            return std::abs(length - std::round(length)) < 0.05f ? std::round(length) : std::floor(length);
-        }
-    public:
-        bool hasContainerWindow_ = false;               // set to false as default, set by arkui
-        int outR = 32;                                  // outer radius (int value)
-        int inR = 28;                                   // inner radius (int value)
-        RectI innerRect = {};                           // inner rect, value relative to outerRect
-    };
-
-    ContainerConfig containerConfig_;
-    ContainerConfig GetAbsContainerConfig() const;
 
     bool startAnimationFinished_ = false;
 
@@ -1507,6 +1538,10 @@ private:
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 
+    // point window
+    bool isHardCursor_ = false;
+    bool isLastHardCursor_ = false;
+
     bool needDrawFocusChange_ = false;
 
     std::atomic<bool> hasUnSubmittedOccludedDirtyRegion_ = false;
@@ -1536,6 +1571,8 @@ private:
     bool arsrTag_ = true;
 
     bool subThreadAssignable_ = false;
+    bool oldHasChildrenBlurBehindWindow_ = false;
+    std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

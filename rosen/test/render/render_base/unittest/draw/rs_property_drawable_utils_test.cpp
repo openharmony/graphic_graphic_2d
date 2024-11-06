@@ -407,19 +407,19 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest014, tes
     RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest2);
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     paintFilterCanvasTest.SetEffectData(effectData);
-    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest);
+    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::DEFAULT);
     effectData = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_NE(effectData, nullptr);
     effectData->cachedImage_ = nullptr;
     paintFilterCanvasTest.SetEffectData(effectData);
-    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest);
+    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::DEFAULT);
 
     std::shared_ptr<Drawing::Image> cachedImage = std::make_shared<Drawing::Image>();
     EXPECT_NE(cachedImage, nullptr);
     effectData->cachedImage_ = cachedImage;
     paintFilterCanvasTest.SetEffectData(effectData);
     paintFilterCanvasTest.SetVisibleRect(Drawing::Rect(0.0f, 0.0f, 1.0f, 1.0f));
-    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest);
+    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::DEFAULT);
 }
 
 /**

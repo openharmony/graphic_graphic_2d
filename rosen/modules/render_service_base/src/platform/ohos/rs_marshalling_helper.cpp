@@ -1468,13 +1468,6 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
     };
 
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetRsMemoryOptimizeEnabled() &&
-        (val->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
-        !val->IsEditable() &&
-        !val->IsAstc() &&
-        !val->IsHdr()) {
-        val->UnMap();
-    }
     MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
@@ -2141,6 +2134,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, ParticleVelocity)                                   \
     EXPLICIT_INSTANTIATION(TEMPLATE, EmitterConfig)                                      \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                                           \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<uint32_t>)                                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                           \
@@ -2165,6 +2159,7 @@ BATCH_EXPLICIT_INSTANTIATION(RSRenderProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Quaternion)                \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<RSFilter>) \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector2f)                  \
+    EXPLICIT_INSTANTIATION(TEMPLATE, Vector3f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4<Color>)            \
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                  \
     EXPLICIT_INSTANTIATION(TEMPLATE, RRectT<float>)

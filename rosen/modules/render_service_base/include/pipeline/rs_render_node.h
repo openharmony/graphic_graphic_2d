@@ -102,7 +102,6 @@ public:
                                 std::vector<RSRenderNode::SharedPtr>& vec,
                                 bool isUniRender,
                                 bool onlyFirstLevel);
-    virtual void CollectSurfaceForUIFirstSwitch(uint32_t& leashWindowCount, uint32_t minNodeNum);
     virtual void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor);
     void PrepareSelfNodeForApplyModifiers();
     void PrepareChildrenForApplyModifiers();
@@ -714,7 +713,6 @@ public:
         lastFrameSynced_ = false;
         // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
         addedToPendingSyncList_ = false;
-        OnSkipSync();
     }
     void Sync()
     {
@@ -779,6 +777,22 @@ public:
         curDisplayOffsetY_ = offsetY;
     }
 
+
+    void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
+    {
+        isAccessibilityConfigChanged_ = isAccessibilityConfigChanged;
+    }
+
+    bool IsAccessibilityConfigChanged() const
+    {
+        return isAccessibilityConfigChanged_;
+    }
+
+    void ProcessBehindWindowOnTreeStateChanged();
+    void ProcessBehindWindowAfterApplyModifiers();
+    virtual bool NeedDrawBehindWindow() const { return false; }
+    virtual void AddChildBlurBehindWindow(NodeId id) {}
+    virtual void RemoveChildBlurBehindWindow(NodeId id) {}
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -809,7 +823,6 @@ protected:
 
     virtual void InitRenderParams();
     virtual void OnSync();
-    virtual void OnSkipSync() {};
     virtual void ClearResource() {};
     virtual void ClearNeverOnTree() {};
 
@@ -859,7 +872,7 @@ protected:
     ModifierDirtyTypes curDirtyTypes_;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
     bool lastFrameSynced_ = true;
-    bool absDrawRectChange_ = false;
+    bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
@@ -1034,10 +1047,16 @@ private:
     bool isOccluded_ = false;
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
+    bool isAccessibilityConfigChanged_ = false;
+    const bool isPurgeable_;
+    // for blur effct count
+    static std::unordered_map<pid_t, size_t> blurEffectCounter_;
+    void UpdateBlurEffectCounter(int deltaCount);
+    int GetBlurEffectDrawbleCount();
 
     void SetParent(WeakPtr parent);
     void ResetParent();
-    void UpdateAbsDrawRectChangeState();
+    void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
@@ -1080,11 +1099,15 @@ private:
     void UpdateShadowRect();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+    // purge resource
+    inline void SetPurgeStatus(bool flag);
+    inline void SyncPurgeFunc();
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
+    friend class RSPointerDrawingManager;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;
@@ -1111,6 +1134,7 @@ struct SharedTransitionParam {
     }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
+    RSB_EXPORT void ResetRelation();
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;

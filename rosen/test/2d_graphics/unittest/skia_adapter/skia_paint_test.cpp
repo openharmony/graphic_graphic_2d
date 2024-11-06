@@ -206,9 +206,11 @@ HWTEST_F(SkiaPaintTest, ComputeFastBounds001, TestSize.Level1)
     Brush brush;
     Rect rect;
     SkiaPaint skiaPaint;
-    skiaPaint.ComputeFastBounds(brush, rect, nullptr);
+    Rect ret1 = skiaPaint.ComputeFastBounds(brush, rect, nullptr);
+    EXPECT_TRUE(!ret1.IsValid());
     Rect storage;
-    skiaPaint.ComputeFastBounds(brush, rect, &storage);
+    Rect ret2 = skiaPaint.ComputeFastBounds(brush, rect, &storage);
+    EXPECT_TRUE(!ret2.IsValid());
 }
 
 /**

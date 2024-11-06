@@ -125,7 +125,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
     libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
   }
 } else {
-  gpu_defines = [ "ACE_DISABLE_GL" ]
+  gpu_defines += [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false

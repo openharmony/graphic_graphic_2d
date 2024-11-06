@@ -18,9 +18,11 @@
 #include <securec.h>
 
 #include "vsync_controller.h"
+#include "vsync_distributor.h"
 
 namespace OHOS {
     namespace {
+        constexpr size_t STR_LEN = 10;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -47,6 +49,20 @@ namespace OHOS {
         return object;
     }
 
+    /*
+    * get a string from data_
+    */
+    std::string GetStringFromData(int strlen)
+    {
+        char cstr[strlen];
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
+            cstr[i] = GetData<char>();
+        }
+        std::string str(cstr);
+        return str;
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -61,12 +77,27 @@ namespace OHOS {
         // get data
         bool enable = GetData<bool>();
         int64_t offset = GetData<int64_t>();
+        std::string name = GetStringFromData(STR_LEN);
+        int64_t now = GetData<int64_t>();
+        int64_t period = GetData<int64_t>();
+        uint32_t refreshRate = GetData<uint32_t>();
+        uint32_t vsyncMaxRefreshRate = GetData<uint32_t>();
+        VSyncMode vsyncMode = GetData<VSyncMode>();
+        int64_t phaseOffset = GetData<int64_t>();
+        uint64_t id = GetData<uint64_t>();
+        std::vector<std::pair<uint64_t, uint32_t>> refreshRates = { { id, refreshRate } };
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
         vsyncController->SetEnable(enable, enable);
         vsyncController->SetPhaseOffset(offset);
+        auto* cb = new Rosen::VSyncDistributor(vsyncController, name);
+        vsyncController->SetCallback(cb);
+        vsyncController->OnVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
+        vsyncController->OnPhaseOffsetChanged(phaseOffset);
+        vsyncController->OnConnsRefreshRateChanged(refreshRates);
+
         vsyncController->SetEnable(false, enable);
         sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
         return true;

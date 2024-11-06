@@ -462,6 +462,18 @@ void Typography::UpdateColor(size_t from, size_t to, const Drawing::Color& color
     }
     paragraph_->UpdateColor(from, to, color);
 }
+
+Drawing::RectI Typography::GeneratePaintRegion(double x, double y) const
+{
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
+    if (!paragraph_) {
+        double left = std::floor(x);
+        double top = std::floor(y);
+        return Drawing::RectI(left, top, left, top);
+    }
+
+    return paragraph_->GeneratePaintRegion(x, y);
+}
 } // namespace AdapterTxt
 } // namespace Rosen
 } // namespace OHOS

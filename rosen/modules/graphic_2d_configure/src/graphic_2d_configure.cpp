@@ -42,7 +42,7 @@ void Graphic2dConfigure::Init()
 {
     static std::once_flag onceFlag;
     std::call_once(onceFlag, [this] () {
-        if (InitXmlConfig() != EXEC_SUCCESS) {
+        if (InitXmlConfig() != G2C_EXEC_SUCCESS) {
             RS_LOGE("Graphic2dConfigure falied to parse");
             return;
         } else {
@@ -58,10 +58,10 @@ int32_t Graphic2dConfigure::InitXmlConfig()
         mParser_ = std::make_unique<Graphic2dXmlParser>();
     }
 
-    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != EXEC_SUCCESS) {
+    if (mParser_->LoadConfiguration(CONFIG_FILE_PRODUCT) != G2C_EXEC_SUCCESS) {
         RS_LOGD("Graphic2dConfigure failed to load prod xml configuration file");
     }
-    if (mParser_->Parse() != EXEC_SUCCESS) {
+    if (mParser_->Parse() != G2C_EXEC_SUCCESS) {
         RS_LOGD("Graphic2dConfigure failed to parse prod xml configuration");
     }
 
@@ -69,7 +69,7 @@ int32_t Graphic2dConfigure::InitXmlConfig()
         mConfigData_ = mParser_->GetParsedData();
     }
 
-    return EXEC_SUCCESS;
+    return G2C_EXEC_SUCCESS;
 }
 
 void Graphic2dConfigure::parserTest()

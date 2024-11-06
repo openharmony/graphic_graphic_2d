@@ -187,6 +187,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
+    purgeableNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(

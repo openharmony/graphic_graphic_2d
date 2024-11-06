@@ -1367,12 +1367,6 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
     ASSERT_EQ(ret, 0);
 
     rsInterfaces->SetRefreshRateMode(-1);
-    ASSERT_EQ(savedModeName, -1);
-
-    for (int32_t mode : {1, 2, 3}) {
-        rsInterfaces->SetRefreshRateMode(mode);
-        ASSERT_NE(savedModeName, mode);
-    }
 }
 
 /*

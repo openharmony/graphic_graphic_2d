@@ -86,6 +86,8 @@ HWTEST_F(RSModifierManagerTest, RemoveAnimationTest, TestSize.Level1)
     rsModifierManager.SetFrameRateGetFunc(
         [PREFERRED](const RSPropertyUnit unit, float velocity) -> int32_t {return PREFERRED;});
     rsModifierManager.AddAnimation(renderCurveAnimation);
+    ASSERT_TRUE(rsModifierManager.GetAndResetFirstFrameAnimationState());
+    ASSERT_FALSE(rsModifierManager.GetAndResetFirstFrameAnimationState());
     renderCurveAnimation->Start();
     ASSERT_EQ(rsModifierManager.HasUIRunningAnimation(), true);
     rsModifierManager.RemoveAnimation(key);

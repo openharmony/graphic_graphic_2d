@@ -43,6 +43,7 @@ public:
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
+    void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -160,6 +161,7 @@ private:
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
     bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
+    void FindHardCursorNodes(RSDisplayRenderParams& params);
     // For P3-scRGB Control
     bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
 

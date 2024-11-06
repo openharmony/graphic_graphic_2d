@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 #ifdef OHOS_TEXT_ENABLE
-bool TextBundleConfigParser::IsMetaDataExistInEntryModule(const std::string& metaData)
+bool TextBundleConfigParser::IsMetaDataExistInModule(const std::string& metaData)
 {
     auto bundleMgr = GetSystemAbilityManager();
     if (bundleMgr == nullptr) {
@@ -45,20 +45,15 @@ bool TextBundleConfigParser::IsMetaDataExistInEntryModule(const std::string& met
         return false;
     }
 
-    auto infoIter = std::find_if(bundleInfo.hapModuleInfos.begin(), bundleInfo.hapModuleInfos.end(),
-        [](const AppExecFwk::HapModuleInfo info) {
-            return info.moduleType == AppExecFwk::ModuleType::ENTRY;
-        });
-    if (infoIter == bundleInfo.hapModuleInfos.end()) {
-        TEXT_LOGD("Entry module not found");
-        return false;
+    for (const auto& info : bundleInfo.hapModuleInfos) {
+        for (const auto& data : info.metadata) {
+            if (data.name == metaData) {
+                return true;
+            }
+        }
     }
 
-    auto& dataList = infoIter->metadata;
-    return std::find_if(dataList.begin(), dataList.end(),
-        [&metaData](const AppExecFwk::Metadata& data) {
-            return data.name == metaData;
-        }) != dataList.end();
+    return false;
 }
 
 sptr<AppExecFwk::IBundleMgr> TextBundleConfigParser::GetSystemAbilityManager()
@@ -84,7 +79,7 @@ bool TextBundleConfigParser::IsAdapterTextHeightEnabled()
 #ifdef OHOS_TEXT_ENABLE
     static bool adapterTextHeight = []() {
         const std::string ADAPTER_TEXT_HEIGHT_META_DATA = "ohos.graphics2d.text.adapter_text_height";
-        auto enabled = IsMetaDataExistInEntryModule(ADAPTER_TEXT_HEIGHT_META_DATA);
+        auto enabled = IsMetaDataExistInModule(ADAPTER_TEXT_HEIGHT_META_DATA);
         TEXT_LOGI("Adapter text height enabled: %{public}d", enabled);
         return enabled;
     }();

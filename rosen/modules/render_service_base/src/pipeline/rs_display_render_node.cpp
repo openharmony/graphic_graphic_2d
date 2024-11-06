@@ -27,7 +27,6 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
-constexpr int32_t IRREGULAR_REFRESH_RATE_SKIP_THRETHOLD = 10;
 
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
@@ -294,8 +293,8 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInte
     }
     int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
-    // when skipFrameInterval > 10 means the skipFrameInterval is the virtual screen refresh rate
-    if (skipFrameInterval > IRREGULAR_REFRESH_RATE_SKIP_THRETHOLD) {
+    // when refreshRate % skipFrameInterval != 0 means the skipFrameInterval is the virtual screen refresh rate
+    if (refreshRate % skipFrameInterval != 0) {
         int64_t minFrameInterval = 1000000000LL / skipFrameInterval;
         if (minFrameInterval == 0) {
             return false;

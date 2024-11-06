@@ -138,7 +138,7 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
-    static bool GetRsMemoryOptimizeEnabled();
+    static bool GetRenderNodePurgeEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -269,6 +269,7 @@ public:
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
+    static uint32_t GetBlurEffectTerminateLimit();
 
     static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();

@@ -51,6 +51,8 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest001, TestSi
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
     ASSERT_NE(skTypeface, nullptr);
     typefaceFontAssetProvider_->RegisterTypeface(skTypeface);
+    typefaceFontAssetProvider_->RegisterTypeface(nullptr);
+    typefaceFontAssetProvider_->RegisterTypeface(nullptr, "");
     EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyCount(), 1);
     std::string result = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
     EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(0), result);
@@ -76,6 +78,7 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest004, TestSi
     EXPECT_EQ(typefaceFontStyleSet->count(), 1);
     SkFontStyle style;
     SkString name;
+    typefaceFontStyleSet->getStyle(INT_MAX, &style, &name);
     typefaceFontStyleSet->getStyle(0, &style, &name);
     EXPECT_TRUE(name.isEmpty());
     SkFontStyle pattern;

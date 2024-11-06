@@ -22,6 +22,7 @@
 
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
+#include "event_handler.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_context.h"
 #include "params/rs_render_thread_params.h"
@@ -67,6 +68,9 @@ public:
     bool WaitUntilDisplayNodeBufferReleased(DrawableV2::RSDisplayRenderNodeDrawable& displayNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
+    int64_t GetActualTimestamp() const;
+    uint64_t GetVsyncId() const;
+    bool GetForceRefreshFlag() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
 
@@ -77,7 +81,9 @@ public:
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
-    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids);
+    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
+    void SetDefaultClearMemoryFinished(bool isFinished);
+    bool IsDefaultClearMemroyFinished();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);
@@ -95,7 +101,7 @@ public:
         frameCount_++;
     }
     bool GetWatermarkFlag() const;
-    
+
     bool IsCurtainScreenOn() const;
     bool IsColorFilterModeOn() const;
     bool IsHighContrastTextModeOn() const;
@@ -110,7 +116,7 @@ public:
     }
     const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
     {
-        return renderParamsManager_.GetRSRenderThreadParams();
+        return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
     void RenderServiceTreeDump(std::string& dumpString);
@@ -197,8 +203,6 @@ private:
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> rootNodeDrawable_;
     std::vector<NodeId> curDrawStatusVec_;
 
-    RSRenderThreadParamsManager renderParamsManager_;
-
     // used for blocking renderThread before displayNode has no freed buffer to request
     mutable std::mutex displayNodeBufferReleasedMutex_;
     bool displayNodeBufferReleased_ = false;
@@ -225,6 +229,7 @@ private:
     ScreenId displayNodeScreenId_ = 0;
     std::set<pid_t> exitedPidSet_;
     ClearMemoryMoment clearMoment_;
+    bool isDefaultCleanTaskFinished_ = true;
 
     std::vector<Callback> imageReleaseTasks_;
     std::mutex imageReleaseMutex_;

@@ -1227,6 +1227,30 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
 }
 
+void RSRenderServiceConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(rsNodeId)) {
+        ROSEN_LOGE("SetHwcNodeBounds write id failed");
+        return;
+    }
+    if (!data.WriteFloat(positionX) || !data.WriteFloat(positionY) || !data.WriteFloat(positionZ) ||
+        !data.WriteFloat(positionW)) {
+        ROSEN_LOGE("SetHwcNodeBounds write bound failed");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetHwcNodeBounds Remote()->SendRequest() error[%{public}d]", err);
+        return;
+    }
+}
+
 RSVirtualScreenResolution RSRenderServiceConnectionProxy::GetVirtualScreenResolution(ScreenId id)
 {
     MessageParcel data;
@@ -2482,8 +2506,12 @@ bool RSRenderServiceConnectionProxy::SetWatermark(const std::string& name, std::
         return false;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteString(name);
-    data.WriteParcelable(watermark.get());
+    if (!data.WriteString(name)) {
+        return false;
+    }
+    if (!data.WriteParcelable(watermark.get())) {
+        return false;
+    }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

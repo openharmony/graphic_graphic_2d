@@ -786,6 +786,154 @@ bool DoSplitSurfaceNodeName(const uint8_t* data, size_t size)
     surfaceNode->SplitSurfaceNodeName(surfaceNodeName);
     return true;
 }
+
+bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    LeashPersistentId leashPersistentId = GetData<LeashPersistentId>();
+    surfaceNode->SetLeashPersistentId(leashPersistentId);
+    return true;
+}
+
+bool DoGetLeashPersistentId(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->GetLeashPersistentId();
+    return true;
+}
+
+bool DoSetGlobalPositionEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool isEnabled = GetData<bool>();
+    surfaceNode->SetGlobalPositionEnabled(isEnabled);
+    return true;
+}
+
+bool DoGetGlobalPositionEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->GetGlobalPositionEnabled();
+    return true;
+}
+
+bool DoSetSkipDraw(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool isSkip = GetData<bool>();
+    surfaceNode->SetSkipDraw(isSkip);
+    return true;
+}
+
+bool DoGetSkipDraw(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->GetSkipDraw();
+    return true;
+}
+
+bool DoGetAbilityState(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->GetAbilityState();
+    return true;
+}
+
+bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool needHidePrivacyContent = GetData<bool>();
+    surfaceNode->SetHidePrivacyContent(needHidePrivacyContent);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -823,15 +971,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetForeground(data, size);
     OHOS::Rosen::DoSetForceUIFirst(data, size);
     OHOS::Rosen::DoSetAncoFlags(data, size);
-    OHOS::Rosen::DoSetWatermark(data, size);
-    OHOS::Rosen::DoSetHDRPresent(data, size);
     OHOS::Rosen::DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(data, size);
     OHOS::Rosen::DoRSSurfaceNode(data, size);
     OHOS::Rosen::DoCreateNode(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
     OHOS::Rosen::DoOnBoundsSizeChangedAndSetSurfaceIdToRenderNode(data, size);
     OHOS::Rosen::DoSetIsTextureExportNode(data, size);
-    OHOS::Rosen::DoSplitSurfaceNodeName(data, size);
+    OHOS::Rosen::DoSetLeashPersistentId(data, size);
+    OHOS::Rosen::DoGetLeashPersistentId(data, size);
+    OHOS::Rosen::DoSetGlobalPositionEnabled(data, size);
+    OHOS::Rosen::DoGetGlobalPositionEnabled(data, size);
+    OHOS::Rosen::DoSetSkipDraw(data, size);
+    OHOS::Rosen::DoGetSkipDraw(data, size);
+    OHOS::Rosen::DoGetAbilityState(data, size);
+    OHOS::Rosen::DoSetHidePrivacyContent(data, size);
     return 0;
 }
 

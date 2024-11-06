@@ -74,12 +74,15 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    SetDrawSkipType(DrawSkipType::NONE);
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (!ShouldPaint()) {
+        SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
     }
     const auto& params = GetRenderParams();
     if (UNLIKELY(!params)) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable params is null!");
         return;
     }
@@ -96,6 +99,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect())) {
+        SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
 
@@ -104,13 +108,16 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // The second param is null, 0 is an invalid value.
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, idx, 0);
     };
+#if defined(RS_ENABLE_GPU) && defined(RS_ENABLE_PARALLEL_RENDER)
     auto threadId = paintFilterCanvas->GetIsParallelCanvas() ?
         RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : RSUniRenderThread::Instance().GetTid();
     SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
+#endif
 
     auto& bounds = params->GetBounds();
     auto surfaceParams = params->GetCanvasDrawingSurfaceParams();
     if (!InitSurface(surfaceParams.width, surfaceParams.height, *paintFilterCanvas)) {
+        SetDrawSkipType(DrawSkipType::INIT_SURFACE_FAIL);
         RS_LOGE("Failed to init surface!");
         return;
     }
@@ -147,8 +154,13 @@ void CanvasDrawingDumpToPngImpl(std::shared_ptr<Drawing::Bitmap> bitmap, std::st
 
 void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 {
-    int enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
-    if (enabled < 0) {
+    if (image_ == nullptr) {
+        RS_LOGE("No image to drawing");
+        return;
+    }
+
+    bool enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
+    if (!enabled) {
         return;
     }
     std::string debugNodeId = std::to_string(GetId());
@@ -296,6 +308,7 @@ bool RSCanvasDrawingRenderNodeDrawable::InitSurface(int width, int height, RSPai
     return false;
 }
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 bool RSCanvasDrawingRenderNodeDrawable::InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas)
 {
     if (IsNeedResetSurface()) {
@@ -394,6 +407,7 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForVK(float width, float height, st
         }
     }
 }
+#endif
 
 void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::shared_ptr<RSContext> context,
     NodeId nodeId, RSPaintFilterCanvas& rscanvas)
@@ -530,11 +544,13 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
         return false;
     }
     std::shared_ptr<Drawing::Image> image;
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Drawing::GPUContext> grContext;
     if (!GetCurrentContextAndImage(grContext, image, tid)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: GetCurrentContextAndImage failed");
         return false;
     }
+#endif
 
     if (image == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: image is nullptr");
@@ -578,6 +594,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
 #endif
     canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
     drawCmdList->Playback(*canvas, rect);
+    canvas->Flush();
     auto pixelmapImage = surface->GetImageSnapshot();
     if (!WriteSkImageToPixelmap(pixelmapImage, info, pixelmap, rect)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: readPixels failed");

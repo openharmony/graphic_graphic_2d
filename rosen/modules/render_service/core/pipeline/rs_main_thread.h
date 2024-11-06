@@ -307,7 +307,9 @@ public:
 
     bool GetParallelCompositionEnabled();
     void SetFrameIsRender(bool isRender);
+    void AddSelfDrawingNodes(std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
+    void ClearSelfDrawingNodes();
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
 
     bool IsOnVsync() const
@@ -361,8 +363,6 @@ public:
 
     bool IsHardwareEnabledNodesNeedSync();
     bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
-    void CollectInfoForHardCursor(NodeId id,
-        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
@@ -508,7 +508,11 @@ private:
     bool CheckUIExtensionCallbackDataChanged() const;
     void ConfigureRenderService();
 
+    void CheckBlurEffectCountStatistics(std::shared_ptr<RSBaseRenderNode> rootNode);
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+
+    // Used for CommitAndReleaseLayers task
+    void SetFrameInfo(uint64_t frameCount);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -623,13 +627,13 @@ private:
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
-    std::vector<HardCursorInfo> hardCursorDrawables_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {
@@ -745,6 +749,8 @@ private:
 
     // graphic config
     bool isBlurSwitchOpen_ = true;
+
+    bool isForceRefresh_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -64,14 +64,14 @@ HWTEST_F(TextBundleConfigParserTest, GetSystemAbilityManagerTest001, TestSize.Le
 }
 
 /*
- * @tc.name: IsMetaDataExistInEntryModuleTest001
- * @tc.desc: test for IsMetaDataExistInEntryModule
+ * @tc.name: IsMetaDataExistInModuleTest001
+ * @tc.desc: test for IsMetaDataExistInModule
  * @tc.type: FUNC
  */
-HWTEST_F(TextBundleConfigParserTest, IsMetaDataExistInEntryModuleTest001, TestSize.Level1)
+HWTEST_F(TextBundleConfigParserTest, IsMetaDataExistInModuleTest001, TestSize.Level1)
 {
-    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInEntryModule(metaData));
-    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInEntryModule(""));
+    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInModule(metaData));
+    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInModule(""));
 }
 #endif
 } // namespace SPText

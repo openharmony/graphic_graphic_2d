@@ -103,6 +103,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_hardware_thread.cpp",
     "core/pipeline/rs_main_thread.cpp",
     "core/pipeline/rs_physical_screen_processor.cpp",
+    "core/pipeline/rs_pointer_drawing_manager.cpp",
     "core/pipeline/rs_pointer_window_manager.cpp",
     "core/pipeline/rs_processor.cpp",
     "core/pipeline/rs_processor_factory.cpp",
@@ -166,7 +167,7 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (rs_enable_eglimage) {
+  if (rs_enable_eglimage && rs_enable_gpu) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }
 
@@ -211,6 +212,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/graphic_2d_configure/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
@@ -238,6 +240,12 @@ ohos_shared_library("librender_service") {
         [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }
 
+  #graphic_2d_configure
+  sources += [
+    "$rosen_root/modules/graphic_2d_configure/src/graphic_2d_configure.cpp",
+    "$rosen_root/modules/graphic_2d_configure/src/graphic_2d_xml_parser.cpp",
+  ]
+
   #profiler
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
@@ -255,6 +263,7 @@ ohos_shared_library("librender_service") {
       "$rosen_root/modules/render_service_profiler/rs_profiler_telemetry.cpp",
     ]
   }
+
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
 
   public_external_deps = [ "skia:skia_canvaskit" ]
@@ -372,6 +381,8 @@ ohos_shared_library("librender_service") {
     defines += tp_defines
   }
 
+  deps += [ "$graphic_2d_root/frameworks/opengl_wrapper:EGL" ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -410,6 +421,7 @@ ohos_executable("render_service") {
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

@@ -1018,6 +1018,7 @@ HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
     EXPECT_FALSE(RSSystemProperties::GetDumpUIPixelmapEnabled());
     EXPECT_EQ(RSSystemProperties::GetVirtualScreenScaleModeDFX(), 2);
     ASSERT_EQ(RSSystemProperties::GetSubTreePrepareCheckType(), SubTreePrepareCheckType::ENABLED);
+    EXPECT_TRUE(RSSystemProperties::GetBlurEffectTerminateLimit() > 0);
 }
 } // namespace Rosen
 } // namespace OHOS

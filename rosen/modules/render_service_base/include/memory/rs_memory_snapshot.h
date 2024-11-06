@@ -43,6 +43,7 @@ public:
     void UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>& gpuInfo,
         std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver);
     void InitMemoryLimit(MemoryOverflowCalllback callback, uint64_t warning, uint64_t overflow, uint64_t totalSize);
+    void GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& map);
 private:
     MemorySnapshot() = default;
     ~MemorySnapshot() = default;

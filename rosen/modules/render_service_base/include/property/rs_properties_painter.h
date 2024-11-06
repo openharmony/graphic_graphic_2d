@@ -45,8 +45,7 @@ public:
         const RRect* rrect = nullptr, bool isAbsCoordinate = true, bool radiusInclude = true);
     static void GetForegroundEffectDirtyRect(RectI& dirtyForegroundEffect,
         const RSProperties& properties, const bool isAbsCoordinate = true);
-    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect,
-        const RSProperties& properties, const bool isAbsCoordinate = true);
+    static void GetDistortionEffectDirtyRect(RectI& dirtyDistortionEffect, const RSProperties& properties);
     static void DrawShadow(const RSProperties& properties, RSPaintFilterCanvas& canvas, const RRect* rrect = nullptr);
     static int GetAndResetBlurCnt();
     static void GetOutlineDirtyRect(RectI& dirtyOutline,
@@ -87,7 +86,6 @@ public:
     static bool GetGravityMatrix(Gravity gravity, RectF rect, float w, float h, Drawing::Matrix& mat);
     static Drawing::RoundRect RRect2DrawingRRect(const RRect& rr);
     static Drawing::Rect Rect2DrawingRect(const RectF& r);
-    static Drawing::RoundRect RRect2DrawingRRectBorder(const RRect& rr_outer, const RRect& rr_inner);
     static Drawing::ColorQuad CalcAverageColor(std::shared_ptr<Drawing::Image> imageSnapshot);
     static void DrawSpherize(const RSProperties& properties, RSPaintFilterCanvas& canvas,
         const std::shared_ptr<Drawing::Surface>& spherizeSurface);

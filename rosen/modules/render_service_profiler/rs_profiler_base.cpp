@@ -88,6 +88,7 @@ bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
+std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -1197,6 +1198,30 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
     }
 
     return nanoTime;
+}
+
+bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr child, int index)
+{
+    if (!parent || !child || !IsEnabled()) {
+        return false;
+    }
+    if (RSProfiler::GetMode() != Mode::READ) {
+        return false;
+    }
+
+    if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE &&
+        ! (child->GetId() & Utils::ComposeNodeId(Utils::GetMockPid(0), 0))) {
+        // BLOCK LOCK-SCREEN ATTACH TO DISPLAY
+        g_childOfDisplayNodesPostponed.clear();
+        g_childOfDisplayNodesPostponed.emplace_back(child);
+        return true;
+    }
+    return false;
+}
+
+std::vector<RSRenderNode::WeakPtr>& RSProfiler::GetChildOfDisplayNodesPostponed()
+{
+    return g_childOfDisplayNodesPostponed;
 }
 
 } // namespace OHOS::Rosen

@@ -167,18 +167,18 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
-void RSSurfaceRenderParams::SetHardCursorEnabled(bool enabled)
+void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
 {
-    if (isHardCursorEnabled_ == enabled) {
+    if (isHardCursor_ == status) {
         return;
     }
-    isHardCursorEnabled_ = enabled;
+    isHardCursor_ = status;
     needSync_ = true;
 }
 
-bool RSSurfaceRenderParams::IsHardCursorEnabled() const
+bool RSSurfaceRenderParams::GetHardCursorStatus() const
 {
-    return isHardCursorEnabled_;
+    return isHardCursor_;
 }
 
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
@@ -441,6 +441,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         targetSurfaceParams->preBuffer_ = preBuffer_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
+        bufferSynced_ = true;
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
     }
 #endif
@@ -466,7 +467,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
-    targetSurfaceParams->isHardCursorEnabled_ = isHardCursorEnabled_;
+    targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -480,6 +481,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSkipLayer_ = isSkipLayer_;
     targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
+    targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
@@ -504,7 +506,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty_;
     targetSurfaceParams->opaqueRegion_ = opaqueRegion_;
     targetSurfaceParams->roundedCornerRegion_ = roundedCornerRegion_;
-    targetSurfaceParams->preScalingMode_ = preScalingMode_;
+    targetSurfaceParams->scalingMode_ = scalingMode_;
     targetSurfaceParams->needOffscreen_ = needOffscreen_;
     targetSurfaceParams->layerSource_ = layerSource_;
     targetSurfaceParams->totalMatrix_ = totalMatrix_;
