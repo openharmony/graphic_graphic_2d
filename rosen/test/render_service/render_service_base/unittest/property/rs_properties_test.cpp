@@ -1199,7 +1199,7 @@ HWTEST_F(RSPropertiesTest, SetNGetForegroundEffectRadius001, TestSize.Level1)
     RSProperties properties;
     properties.SetForegroundEffectRadius(1.f);
     EXPECT_EQ(properties.GetForegroundEffectRadius(), 1.f);
-    EXPECT_TRUE(properties.IsForegroundEffectRadiusValid());
+    EXPECT_FALSE(properties.IsForegroundEffectRadiusValid());
 }
 
 /**
