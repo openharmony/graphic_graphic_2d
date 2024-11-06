@@ -141,7 +141,7 @@ HWTEST_F(RSDirtyRectsDFXTest, OnDrawVirtual, TestSize.Level1)
 
 /**
  * @tc.name: DrawDirtyRegionInVirtual
- * @tc.desc: Test If DrawCurrentRefreshRate Can Run
+ * @tc.desc: Test If DrawDirtyRegionInVirtual Can Run
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -162,6 +162,24 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawCurrentRefreshRate, TestSize.Level1)
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    RSRealtimeRefreshRateManager::Instance().currRealtimeRefreshRate_ = 200; // 200: value greater than currRefreshRate
+
+    auto paramPtr = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+
+    paramPtr->screenId_ = 0;
+    paramPtr->screenRotation_ = ScreenRotation::ROTATION_0;
+    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
+    paramPtr->screenRotation_ = ScreenRotation::ROTATION_270;
+    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
+
+    paramPtr->screenId_ = -1;
+    paramPtr->screenRotation_ = ScreenRotation::ROTATION_0;
+    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
+    paramPtr->screenRotation_ = ScreenRotation::ROTATION_270;
+    rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
+
+    paramPtr->screenId_ = 0;
+    paramPtr->screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     rsDirtyRectsDfx_->DrawCurrentRefreshRate(*canvas);
     ASSERT_TRUE(canvas);
 }
