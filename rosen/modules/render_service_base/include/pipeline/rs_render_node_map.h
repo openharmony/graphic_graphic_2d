@@ -70,11 +70,7 @@ public:
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     uint32_t GetVisibleLeashWindowCount() const;
-
-    uint64_t GetSize() const
-    {
-        return renderNodeMap_.size();
-    }
+    uint64_t GetSize() const;
 
     // call from main thread
     void AddOffTreeNode(NodeId nodeId);
