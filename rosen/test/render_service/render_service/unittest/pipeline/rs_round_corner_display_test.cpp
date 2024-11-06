@@ -1399,9 +1399,10 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
     rcdManagerInstance.DoProcessRenderTask(id, info);
     RSContext context;
-    context.nodeMap.renderNodeMap_ = {{id, std::make_shared<RSRenderNode>(id)}};
+    pid_t = ExtractPid(id);
+    context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id);
     rcdManagerInstance.CheckRenderTargetNode(context);
-    context.nodeMap.renderNodeMap_ = {{id, std::make_shared<RSRenderNode>(id + 1)}};
+    context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id + 1);
     rcdManagerInstance.CheckRenderTargetNode(context);
     rcdManagerInstance.RemoveRcdResource(id);
     context.nodeMap.renderNodeMap_.clear();

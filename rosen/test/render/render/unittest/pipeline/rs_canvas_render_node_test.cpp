@@ -284,7 +284,9 @@ HWTEST_F(RSCanvasRenderNodeTest, PlaybackInCorrespondThread, TestSize.Level1)
     rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
 
     auto& ctxNodeMap = context.lock()->GetMutableNodeMap();
-    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNode->GetId()] = rsCanvasDrawingRenderNode;
+    NodeId canvasNodeId = rsCanvasDrawingRenderNode->GetId();
+    pid_t canvasNodePid = ExtractPid(canvasNodeId);
+    ctxNodeMap.renderNodeMap_[canvasNodePid][canvasNodeId] = rsCanvasDrawingRenderNode;
     ctxNode = context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
     EXPECT_TRUE(ctxNode != nullptr);
     int32_t width = 1;

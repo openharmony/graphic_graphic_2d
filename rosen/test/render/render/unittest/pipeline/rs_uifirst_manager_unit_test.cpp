@@ -572,7 +572,9 @@ HWTEST_F(RsUifirstManagerTest, NotifyUIStartingWindow, TestSize.Level1)
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     uifirstManager_.NotifyUIStartingWindow(id, false);
     
-    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
 
     auto childNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
     EXPECT_TRUE(childNode);

@@ -111,6 +111,15 @@ uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const
         });
 }
 
+uint64_t RSRenderNodeMap::GetrenderNodeCount() const
+{
+    size_t mapSize = 0;
+    for (const auto& [_, submap] : renderNodeMap_) {
+        mapSize += submap.size();
+    }
+    return static_cast<uint64_t>(mapSize);
+}
+
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 {
     auto nodePid = ExtractPid(id);
@@ -180,7 +189,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     pid_t pid = ExtractPid(id);
     auto iter = renderNodeMap_.find(pid);
-    if(iter != renderNodeMap_.end()) {
+    if (iter != renderNodeMap_.end()) {
         auto& submap = iter->second;
         submap.erase(id);
         if (submap.empty()) {

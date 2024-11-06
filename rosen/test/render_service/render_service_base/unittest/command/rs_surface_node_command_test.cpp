@@ -371,7 +371,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
-    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
     std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
     context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
@@ -397,7 +397,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
     SurfaceNodeCommandHelper::DetachToDisplay(context, -1, 0);
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
-    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
     std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
     context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
@@ -501,7 +501,17 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
     std::string name = "name";             // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
     SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
-    EXPECT_TRUE(context.GetMutableNodeMap().renderNodeMap_.count(1));
+    EXPECT_TRUE([&context]() -> bool {
+        auto& renderNodemap = context.GetMutableNodeMap().renderNodeMap_;
+        auto iter = renderNodemap.find(ExtractPid(1));
+        if (iter != renderNodemap.end()) {
+            auto& submap = iter->second;
+            if (submap.find(1)) {
+                return true;
+            }
+        }
+        return false;
+    });
 }
 
 /**
