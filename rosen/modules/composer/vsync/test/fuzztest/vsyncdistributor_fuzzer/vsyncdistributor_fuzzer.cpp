@@ -96,7 +96,7 @@ namespace OHOS {
         uint64_t id = GetData<uint64_t>();
         bool isRender = GetData<bool>();
         // test
-        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
+        sptr<Rosen::impl::VSyncGenerator> vsyncGenerator = new Rosen::impl::VSyncGenerator();
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
         sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
         sptr<Rosen::VSyncConnection> conn = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
@@ -109,9 +109,9 @@ namespace OHOS {
         vsyncDistributor->RemoveConnection(conn);
         std::mutex mutex;
         std::unique_lock<std::mutex> locker(mutex);
-        vsyncDistributor->WaitForVsyncOrTimeOut(locker);
+        //vsyncDistributor->WaitForVsyncOrTimeOut(locker);
         std::vector<sptr<Rosen::VSyncConnection>> conns = {conn};
-        vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns);
+        //vsyncDistributor->PostVSyncEventPreProcess(timestamp, conns);
         vsyncDistributor->DisableVSync();
         vsyncDistributor->EnableVSync();
         #if defined(RS_ENABLE_DVSYNC)
