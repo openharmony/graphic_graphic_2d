@@ -134,9 +134,6 @@ namespace OHOS {
         int64_t timestamp = GetData<int64_t>();
         bool isThreadShared = GetData<bool>();
         int64_t now = GetData<int64_t>();
-        // int64_t datas[3] = {GetData<int64_t>(), GetData<int64_t>(), GetData<int64_t>()};
-        // ssize_t dataCount = 3;
-        // int32_t fd = GetData<int32_t>();
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -166,10 +163,8 @@ namespace OHOS {
         vsyncCallBackListener->GetPeriodShared();
         vsyncCallBackListener->GetTimeStampShared();
         vsyncCallBackListener->AddCallback(fcb);
-        // vsyncCallBackListener->HandleVsyncCallbacks(datas, dataCount);
         vsyncCallBackListener->CalculateExpectedEndLocked(now);
-        // vsyncCallBackListener->OnReadable(fd);
-        // vsyncCallBackListener->ReadFdInternal(fd, datas, dataCount);
+
         GraphicCommonTest();
 
         vsyncReceiver->SetVsyncCallBackForEveryFrame(fcb, isOpen);
@@ -177,7 +172,6 @@ namespace OHOS {
         vsyncReceiver->IsRequestedNextVSync();
 
         //tearDown
-        //vsyncCallBackListener->closeFd(fd);
         vsyncReceiver->CloseVsyncReceiverFd();
         return true;
     }

@@ -84,25 +84,18 @@ namespace OHOS {
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
         sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
         vsyncController->SetEnable(enable, enable);
-        //vsyncGenerator->ListenerVsyncEventCB(occurTimestamp, nextTimestamp, occurReferenceTime, isWakeup);
-        //vsyncGenerator->WaitForTimeout(occurTimestamp, nextTimestamp, occurReferenceTime);
         vsyncGenerator->ChangeListenerOffsetInternal();
         vsyncGenerator->ChangeListenerRefreshRatesInternal();
-        vsyncGenerator->UpdateWakeupDelay(occurReferenceTime,nextTimestamp);
-        //vsyncGenerator->CheckTimingCorrect(occurTimestamp, occurReferenceTime, nextTimestamp);
-        //vsyncGenerator->UpdateChangeDataLocked(occurReferenceTime, occurReferenceTime, nextTimestamp);
+        vsyncGenerator->UpdateWakeupDelay(occurReferenceTime, nextTimestamp);
         vsyncGenerator->SetPendingMode(period, occurTimestamp);
         vsyncGenerator->SetVSyncMode(GetData<OHOS::VSyncMode>());
         vsyncGenerator->UpdateVSyncModeLocked();
-        Rosen::impl::VSyncGenerator::Listener listener= {
+        Rosen::impl::VSyncGenerator::Listener listener = {
             .phase_ = phase,
             .callback_ = vsyncController,
             .lastTime_ = lastTime,
             .lastTimeRecord_ = lastTimeRecord
         };
-        //vsyncGenerator->ComputeListenerNextVSyncTimeStamp(listener, occurTimestamp, occurReferenceTime);
-        //vsyncGenerator->GetListenerTimeouted(now, occurTimestamp, occurReferenceTime);
-        //vsyncGenerator->GetListenerTimeoutedLTPO(now, occurReferenceTime);
         vsyncGenerator->UpdatePeriodLocked(period);
         vsyncGenerator->JudgeRefreshRateLocked(period);
         vsyncGenerator->SetExpectNextVsyncTimeInternal(now);
