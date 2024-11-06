@@ -3861,11 +3861,11 @@ bool RSMainThread::IsHardwareEnabledNodesNeedSync()
 {
     bool needSync = false;
     for (const auto& node : hardwareEnabledNodes_) {
-        if (node != nullptr && (node->GetStagingRenderParams() != nullptr &&
-            node->GetStagingRenderParams()->NeedSync() || !node->IsHardwareForcedDisabled())) {
+        if (node != nullptr && ((node->GetStagingRenderParams() != nullptr &&
+            node->GetStagingRenderParams()->NeedSync()) || !node->IsHardwareForcedDisabled())) {
             needSync = true;
             break;
-        } 
+        }
     }
     RS_TRACE_NAME_FMT("%s %u", __func__, needSync);
     RS_LOGD("%{public}s %{public}u", __func__, needSync);
