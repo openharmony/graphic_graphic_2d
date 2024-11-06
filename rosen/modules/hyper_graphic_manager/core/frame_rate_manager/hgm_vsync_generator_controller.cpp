@@ -85,10 +85,14 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
         return vsyncCount;
     }
     int pulseNum;
-    if (isNeedUpdateAppOffset && controllerRate == OLED_60_HZ) {
+    if (RSSystemProperties::IsPcType()) {
         pulseNum = 0;
     } else {
-        pulseNum = GetAppOffset(controllerRate);
+        if (isNeedUpdateAppOffset && controllerRate == OLED_60_HZ) {
+            pulseNum = 0;
+        } else {
+            pulseNum = GetAppOffset(controllerRate);
+        }
     }
 
     VSyncGenerator::ListenerRefreshRateData listenerRate = {.cb = appController_, .refreshRates = appData};
