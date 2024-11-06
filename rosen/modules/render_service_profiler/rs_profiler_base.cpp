@@ -438,12 +438,8 @@ void RSProfiler::GetSurfacesTrees(const RSContext& context, pid_t pid, std::map<
 
 size_t RSProfiler::GetRenderNodeCount(const RSContext& context)
 {
-    const auto& renderNodeMap = const_cast<RSContext&>(context).GetMutableNodeMap().renderNodeMap_;
-    size_t mapSize = 0;
-    for (const auto& [_, submap] : renderNodeMap) {
-        mapSize += submap.size();
-    }
-    return mapSize;
+    const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
+    return map.GetRenderNodeCount();
 }
 
 NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
