@@ -293,7 +293,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest001, TestSize.Level1)
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
     pixelMap->editable_ = true;
-    pixelMap->isAstic_ = true;
+    pixelMap->isAstc_ = true;
     imageBase->SetPixelMap(pixelMap);
     imageBase->MarkRenderServiceImage();
     EXPECT_TRUE(imageBase->renderServiceImage_);
@@ -311,7 +311,7 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest002, TestSize.Level1)
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     pixelMap->editable_ = true;
-    pixelMap->isAstic_ = true;
+    pixelMap->isAstc_ = true;
     imageBase->SetPixelMap(pixelMap);
     imageBase->MarkRenderServiceImage();
     EXPECT_TRUE(imageBase->renderServiceImage_);
@@ -332,12 +332,13 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest003, TestSize.Level1)
     imageBase->canPurgeShareMemFlag_ = RSImageBase::CanPurgeFlag::UNINITED;
     pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
     pixelMap->editable_ = true;
-    pixelMap->isAstic_ = true;
+    pixelMap->isAstc_ = true;
     imageBase->SetPixelMap(pixelMap);
     imageBase->MarkRenderServiceImage();
     EXPECT_TRUE(imageBase->renderServiceImage_);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: GetColorTypeWithVKFormatTest
  * @tc.desc: Verify function GetColorTypeWithVKFormat
@@ -397,6 +398,7 @@ HWTEST_F(RSImageBaseTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
     VkFormat vkFormat = VK_FORMAT_R32_SFLOAT;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_8888);
 }
+#endif
 
 /**
  * @tc.name: PurgeTest001
@@ -561,7 +563,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest, TestSize.Lev
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     void* addr = nullptr;
-    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, pixelMap, addr);
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
     EXPECT_EQ(ret, false);
 }
 
@@ -581,7 +583,7 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest001, TestSize.
     auto image = std::make_shared<Drawing::Image>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
     void* addr = nullptr;
-    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, pixelMap, addr);
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
     EXPECT_EQ(ret, false);
 }
 
@@ -601,10 +603,11 @@ HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest002, TestSize.
     auto image = std::make_shared<Drawing::Image>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
     void* addr = nullptr;
-    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, pixelMap, addr);
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
     EXPECT_EQ(ret, false);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: MakeFromTextureForVKTest
  * @tc.desc: Verify function MakeFromTextureForVK
@@ -684,6 +687,7 @@ HWTEST_F(RSImageBaseTest, MakeFromTextureForVKTest004, TestSize.Level1)
     imageBase->backendTexture_.isValid_ = false;
     EXPECT_EQ(imageBase->MakeFromTextureForVK(canvas, surfaceBuffer), nullptr);
 }
+#endif
 
 /**
  * @tc.name: BindPixelMapToDrawingImageTest

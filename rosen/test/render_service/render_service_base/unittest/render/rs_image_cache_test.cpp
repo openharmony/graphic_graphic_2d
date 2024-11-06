@@ -253,18 +253,18 @@ HWTEST_F(RSImageCacheTest, ReleaseUniqueIdListTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDrawingImageCacheTest
+ * @tc.name: GetDrawingImageCacheTest001
  * @tc.desc: Verify function GetDrawingImageCache
  * @tc.type:FUNC
  * @tc.require: issue#IB2B3G
  */
-HWTEST_F(RSImageCacheTest, GetDrawingImageCacheTest, TestSize.Level1)
+HWTEST_F(RSImageCacheTest, GetDrawingImageCacheTest001, TestSize.Level1)
 {
     RSImageCache& imageCache = RSImageCache::Instance();
     auto img = std::make_shared<Drawing::Image>();
     imageCache.CacheDrawingImage(1, img);
     EXPECT_EQ(imageCache.GetDrawingImageCache(1), img);
-    imageCache.drawingImageCache_.clear(); 
+    imageCache.drawingImageCache_.clear();
 }
 
 /**
@@ -277,7 +277,7 @@ HWTEST_F(RSImageCacheTest, GetPixelMapCacheTest001, TestSize.Level1)
 {
     RSImageCache& imageCache = RSImageCache::Instance();
     auto pixelMap = std::make_shared<Media::PixelMap>();
-    imageCache.CacheDrawingImage(1, pixelMap);
+    imageCache.CachePixelMap(1, pixelMap);
     EXPECT_EQ(imageCache.GetPixelMapCache(1), pixelMap);
     imageCache.pixelMapCache_.clear();
 }
@@ -292,7 +292,7 @@ HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest001, TestSize.Level1
 {
     RSImageCache& imageCache = RSImageCache::Instance();
     auto pixelMap = std::make_shared<Media::PixelMap>();
-    imageCache.CacheDrawingImage(1, pixelMap);
+    imageCache.CachePixelMap(1, pixelMap);
     imageCache.IncreasePixelMapCacheRefCount(1);
     EXPECT_TRUE(true);
     imageCache.pixelMapCache_.clear();
@@ -308,7 +308,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest001, TestSize.Level1)
 {
     RSImageCache& imageCache = RSImageCache::Instance();
     auto pixelMap = std::make_shared<Media::PixelMap>();
-    imageCache.CacheDrawingImage(1, pixelMap);
+    imageCache.CachePixelMap(1, pixelMap);
     imageCache.ReleasePixelMapCache(1);
     EXPECT_TRUE(true);
     imageCache.pixelMapCache_.clear();
@@ -424,7 +424,7 @@ HWTEST_F(RSImageCacheTest, CachePixelMapTest, TestSize.Level1)
     RSImageCache& imageCache = RSImageCache::Instance();
     uint64_t uniqueId = 1;
     imageCache.CachePixelMap(uniqueId, nullptr);
-    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -439,7 +439,7 @@ HWTEST_F(RSImageCacheTest, CachePixelMapTest001, TestSize.Level1)
     RSImageCache& imageCache = RSImageCache::Instance();
     uint64_t uniqueId = 0;
     imageCache.CachePixelMap(uniqueId, nullptr);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -473,7 +473,7 @@ HWTEST_F(RSImageCacheTest, CachePixelMapTest003, TestSize.Level1)
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     imageCache.CachePixelMap(uniqueId, pixelMap);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -507,7 +507,7 @@ HWTEST_F(RSImageCacheTest, CachePixelMapTest005, TestSize.Level1)
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     imageCache.CachePixelMap(uniqueId, pixelMap);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 } // namespace OHOS::Rosen
