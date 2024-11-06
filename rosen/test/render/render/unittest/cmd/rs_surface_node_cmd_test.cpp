@@ -527,7 +527,7 @@ HWTEST_F(RSSurfaceNodeCmdTest, CreateWithConfigUniTest, TestSize.Level1)
             }
         }
         return false;
-    });
+    }());
 }
 
 /**
