@@ -441,7 +441,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
         }).wait();
         conn->id_ = id;
-        RS_LOGD("CreateVSyncConnection connect id: %{public}llu", id);
+        RS_LOGD("CreateVSyncConnection connect id: %{public}" PRIu64, id);
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
