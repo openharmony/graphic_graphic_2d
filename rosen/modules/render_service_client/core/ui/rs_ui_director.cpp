@@ -102,6 +102,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
     }
 
     GoForeground();
+    RSInterpolator::Init();
 }
 
 void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)
