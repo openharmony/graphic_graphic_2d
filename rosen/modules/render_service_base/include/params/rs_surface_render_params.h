@@ -527,7 +527,14 @@ public:
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
-
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -623,6 +630,10 @@ private:
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
     bool needCacheSurface_ = false;
+    
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

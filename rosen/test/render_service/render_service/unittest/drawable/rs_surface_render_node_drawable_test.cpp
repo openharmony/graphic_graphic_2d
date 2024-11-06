@@ -429,12 +429,63 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface002, TestSize.Level1)
 }
 
 /**
- * @tc.name: CalculateVisibleRegion
- * @tc.desc: Test CalculateVisibleRegion
+ * @tc.name: MergeSubSurfaceNodesDirtyRegionForMainWindow_001
+ * @tc.desc: Test MergeSubSurfaceNodesDirtyRegionForMainWindow, if a surface has no sub-surface, early return.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2HV9
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeSubSurfaceNodesDirtyRegionForMainWindow_001, TestSize.Level1)
+{
+    // main surface
+    ASSERT_NE(drawable_, nullptr);
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+
+    Occlusion::Region resultRegion;
+    surfaceDrawable_->MergeSubSurfaceNodesDirtyRegionForMainWindow(*surfaceParams, resultRegion);
+    ASSERT_TRUE(resultRegion.IsEmpty());
+}
+
+/**
+ * @tc.name: MergeSubSurfaceNodesDirtyRegionForMainWindow_002
+ * @tc.desc: Test MergeSubSurfaceNodesDirtyRegionForMainWindow, if a surface has subsurface dirty, it should be counted.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2HV9
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeSubSurfaceNodesDirtyRegionForMainWindow_002, TestSize.Level1)
+{
+    // main surface
+    ASSERT_NE(drawable_, nullptr);
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    // child surface
+    NodeId subSurfaceId = 1;
+    auto subSurfaceNode = std::make_shared<RSSurfaceRenderNode>(subSurfaceId);
+    ASSERT_NE(subSurfaceNode, nullptr);
+    RSRenderNodeDrawableAdapter::SharedPtr subNodeDrawable(RSSurfaceRenderNodeDrawable::OnGenerate(subSurfaceNode));
+    ASSERT_NE(subNodeDrawable, nullptr);
+    auto subSurfaceDrawable = static_cast<RSSurfaceRenderNodeDrawable*>(subNodeDrawable.get());
+    ASSERT_NE(subSurfaceDrawable, nullptr);
+    subSurfaceDrawable->syncDirtyManager_->dirtyRegion_ = {
+        DEFAULT_RECT.left_, DEFAULT_RECT.top_,
+        DEFAULT_RECT.right_ - DEFAULT_RECT.left_, DEFAULT_RECT.bottom_ - DEFAULT_RECT.top_ };
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(subSurfaceId, subNodeDrawable);
+    surfaceParams->allSubSurfaceNodeIds_.insert(subSurfaceId);
+
+    Occlusion::Region resultRegion;
+    surfaceDrawable_->MergeSubSurfaceNodesDirtyRegionForMainWindow(*surfaceParams, resultRegion);
+    ASSERT_FALSE(resultRegion.IsEmpty());
+}
+
+/**
+ * @tc.name: CalculateVisibleDirtyRegion
+ * @tc.desc: Test CalculateVisibleDirtyRegion
  * @tc.type: FUNC
  * @tc.require: #IA940V
  */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleRegion, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleDirtyRegion, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
@@ -444,27 +495,27 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CalculateVisibleRegion, TestSize.Level
     surfaceParams->isMainWindowType_ = false;
     surfaceParams->isLeashWindow_ = true;
     surfaceParams->isAppWindow_ = false;
-    Drawing::Region result = surfaceDrawable_->CalculateVisibleRegion(*uniParams,
+    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams,
         *surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
     surfaceParams->isMainWindowType_ = true;
     surfaceParams->isLeashWindow_ = false;
     surfaceParams->isAppWindow_ = false;
-    result = surfaceDrawable_->CalculateVisibleRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
     uniParams->SetOcclusionEnabled(true);
     Occlusion::Region region;
     surfaceParams->SetVisibleRegion(region);
-    result = surfaceDrawable_->CalculateVisibleRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
     ASSERT_TRUE(result.IsEmpty());
 
     Occlusion::Region region1(DEFAULT_RECT);
     surfaceParams->SetVisibleRegion(region1);
     uniParams->SetOcclusionEnabled(false);
     surfaceDrawable_->globalDirtyRegion_ = region1;
-    surfaceDrawable_->CalculateVisibleRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
 }
 
 /**
