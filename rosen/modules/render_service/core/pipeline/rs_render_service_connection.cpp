@@ -178,7 +178,9 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
                 return;
             }
             RS_TRACE_NAME_FMT("CleanHgmEvent %d", connection->remotePid_);
-            connection->mainThread_->GetFrameRateMgr()->CleanVote(connection->remotePid_);
+            if (connection->mainThread_->GetFrameRateMgr() != nullptr) {
+                connection->mainThread_->GetFrameRateMgr()->CleanVote(connection->remotePid_);
+            }
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -1740,6 +1742,10 @@ void RSRenderServiceConnection::ReportJankStats()
 void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
 {
     if (!mainThread_) {
+        return;
+    }
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyLightFactorStatus: frameRateMgr is nullptr.");
         return;
     }
     mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(remotePid_, isSafe);
