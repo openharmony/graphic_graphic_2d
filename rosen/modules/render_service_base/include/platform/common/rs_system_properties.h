@@ -136,7 +136,6 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
-    static bool GetRsMemoryOptimizeEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();

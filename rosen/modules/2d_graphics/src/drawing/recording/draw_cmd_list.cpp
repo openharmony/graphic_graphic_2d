@@ -578,21 +578,6 @@ size_t DrawCmdList::CountTextBlobNum()
     }
     return textBlobCnt;
 }
-
-void DrawCmdList::Purge()
-{
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    for (auto op : drawOpItems_) {
-        if (!op) {
-            continue;
-        }
-        auto type = op->GetType();
-        if (type == DrawOpItem::PIXELMAP_RECT_OPITEM ||
-            type == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM) {
-            op->Purge();
-        }
-    }
-}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

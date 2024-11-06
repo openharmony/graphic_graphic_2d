@@ -43,13 +43,6 @@ void RSPropertyDrawable::OnSync()
     needSync_ = false;
 }
 
-void RSPropertyDrawable::OnPurge()
-{
-    if (drawCmdList_) {
-        drawCmdList_->Purge();
-    }
-}
-
 Drawing::RecordingCanvas::DrawFunc RSPropertyDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSPropertyDrawable>(shared_from_this());

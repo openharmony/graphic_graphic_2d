@@ -191,12 +191,6 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
-{
-    static bool isNeedUnMap = system::GetParameter("persist.rosen.rsmemory.optimize.enabled", "1") != "0";
-    return isNeedUnMap;
-}
-
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");

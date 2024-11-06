@@ -77,11 +77,6 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetRsMemoryOptimizeEnabled()
-{
-    return false;
-}
-
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};

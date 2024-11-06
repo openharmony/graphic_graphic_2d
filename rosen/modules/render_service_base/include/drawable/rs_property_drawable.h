@@ -39,7 +39,6 @@ public:
     ~RSPropertyDrawable() override = default;
 
     void OnSync() override;
-    void OnPurge() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 protected:

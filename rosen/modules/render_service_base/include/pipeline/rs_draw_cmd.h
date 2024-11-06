@@ -75,7 +75,6 @@ public:
 #endif
     void SetNodeId(NodeId id) override;
     void SetPaint(Drawing::Paint paint) override;
-    void Purge() override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
@@ -108,7 +107,6 @@ public:
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
-    void Purge() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -173,12 +171,6 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
-    void Purge() override
-    {
-        if (objectHandle_) {
-            objectHandle_->Purge();
-        }
-    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -205,12 +197,6 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
-    void Purge() override
-    {
-        if (objectHandle_) {
-            objectHandle_->Purge();
-        }
-    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;

@@ -77,7 +77,6 @@ private:
     MemoryTrack& operator=(const MemoryTrack&) = delete;
     MemoryTrack& operator=(const MemoryTrack&&) = delete;
     const char* MemoryType2String(MEMORY_TYPE type);
-    const std::string PixelMapInfo2String(MemoryInfo info);
     const std::string AllocatorType2String(OHOS::Media::AllocatorType);
     std::string GenerateDumpTitle();
     std::string GenerateDetail(MemoryInfo info, uint64_t windowId, std::string& windowName, RectI& nodeFrameRect);
