@@ -290,7 +290,7 @@ HWTEST_F(RSDrawingFilterTest, DrawImageRect001, TestSize.Level1)
 
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     paintFilterCanvas.SetAlpha(0.5);
-    drawingFilter.DrawImageRect(paintFilterCanvas, image, src, dst, false);
+    drawingFilter.DrawImageRect(paintFilterCanvas, image, src, dst, { false, false });
     EXPECT_TRUE(image != nullptr);
 }
 
