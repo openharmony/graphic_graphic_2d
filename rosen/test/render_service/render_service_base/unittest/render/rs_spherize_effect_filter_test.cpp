@@ -145,7 +145,6 @@ HWTEST_F(RSSpherizeEffectFilterTest, DrawImageRect_002, TestSize.Level2)
     EXPECT_TRUE(image);
 
     image = CreateDrawingImage(2, 1);
-    std::cout << image->GetWidth() << " " << image->GetHeight() << std::endl;
     EXPECT_TRUE(image->GetWidth() > image->GetHeight());
     effectFilter.DrawImageRect(canvas, image, src, dst);
 }
