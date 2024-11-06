@@ -14,6 +14,7 @@
  */
 
 #include "transaction/rs_marshalling_helper.h"
+#include "image_type.h"
 #include "rs_profiler.h"
 #include <cstddef>
 
@@ -1432,7 +1433,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
+#ifdef ROSEN_OHOS
+    MemoryTrack::Instance().RemovePictureRecord(context);
+#else
     MemoryTrack::Instance().RemovePictureRecord(addr);
+#endif
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
@@ -1457,9 +1462,21 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         return false;
     }
     MemoryInfo info = {
-        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType()
+        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), val
     };
+
+#ifdef ROSEN_OHOS
+    if (RSSystemProperties::GetRsMemoryOptimizeEnabled() &&
+        (val->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
+        !val->IsEditable() &&
+        !val->IsAstc() &&
+        !val->IsHdr()) {
+        val->UnMap();
+    }
+    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+#else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
+#endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
@@ -1482,6 +1499,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rect
     }
     return parcel.WriteInt32(1) && val->Marshalling(parcel);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<float>>& val)
 {
     if (parcel.ReadInt32() == -1) {

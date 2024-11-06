@@ -77,7 +77,7 @@ public:
     void PostClearMemoryTask(ClearMemoryMoment moment, bool deeply, bool isDefaultClean);
     void MemoryManagementBetweenFrames();
     void AsyncFreeVMAMemoryBetweenFrames();
-    void ResetClearMemoryTask();
+    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids);
     bool GetClearMemoryFinished() const;
     void SetClearMemoryFinished();
     bool GetClearMemDeeply() const;
@@ -207,6 +207,7 @@ private:
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
+    std::unordered_set<NodeId> nodesNeedToBeClearMemory_;
     DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;

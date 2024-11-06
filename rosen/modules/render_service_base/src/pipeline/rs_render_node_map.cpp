@@ -333,6 +333,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
     return itr->second;
 }
 
+void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, true));
+}
+
+void RSRenderNodeMap::RemoveOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, false));
+}
+
+std::unordered_map<NodeId, bool>&& RSRenderNodeMap::GetAndClearPurgeableNodeIds()
+{
+    return std::move(purgeableNodeMap_);
+}
+
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
 {
     for (auto &t : surfaceNodeMap_) {
