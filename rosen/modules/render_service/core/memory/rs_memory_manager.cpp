@@ -386,10 +386,8 @@ void MemoryManager::DumpGpuCache(
     } else {
         gpuContext->DumpMemoryStatistics(&gpuTracer);
 #ifdef RS_ENABLE_VK
-    if (gettid() == getpid()) {
         RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
         memStat.DumpMemoryStatistics(&gpuTracer);
-    }
 #endif
     }
     gpuTracer.LogOutput(log);

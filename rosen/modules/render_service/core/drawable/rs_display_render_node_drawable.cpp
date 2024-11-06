@@ -395,6 +395,15 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     return true;
 }
 
+void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
+{
+    auto& unirenderThread = RSUniRenderThread::Instance();
+    if (unirenderThread.IsDefaultClearMemroyFinished()) {
+        unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
+        unirenderThread.SetDefaultClearMemoryFinished(false);
+    }
+}
+
 void RSDisplayRenderNodeDrawable::SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag)
 {
     isDisplayNodeSkipStatusChanged_ = (isDisplayNodeSkip_ != flag);
@@ -489,11 +498,13 @@ void RSDisplayRenderNodeDrawable::CheckAndUpdateFilterCacheOcclusion(
 
 void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    SetDrawSkipType(DrawSkipType::NONE);
     // canvas will generate in every request frame
     (void)canvas;
 
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!renderParams_ || !uniParam)) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_OR_UNI_PARAMS_NULL);
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw renderParams/uniParam is null!");
         return;
     }
@@ -510,6 +521,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // if screen power off, skip on draw, needs to draw one more frame.
     if (params && RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId())) {
+        SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;
     }
 
@@ -530,6 +542,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     opincRootTotalCount_ = 0;
     isOpincDropNodeExt_ = true;
 #endif
+    PostClearMemoryTask();
 
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;
@@ -545,6 +558,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw node: %{public}" PRIu64 "", GetId());
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
+        SetDrawSkipType(DrawSkipType::SCREEN_MANAGER_NULL);
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw ScreenManager is nullptr");
         return;
     }
@@ -555,6 +569,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
     if (SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
+        SetDrawSkipType(DrawSkipType::SKIP_FRAME);
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(paramScreenId));
         screenManager->ForceRefreshOneFrameIfNoRNV();
         return;
@@ -566,6 +581,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto screenInfo = params->GetScreenInfo();
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
     if (!processor) {
+        SetDrawSkipType(DrawSkipType::CREATE_PROCESSOR_FAIL);
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw RSProcessor is null!");
         return;
     }
@@ -576,6 +592,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (!processor->InitForRenderThread(*this,
             mirrorParams ? mirrorParams->GetScreenId() : INVALID_SCREEN_ID,
             RSUniRenderThread::Instance().GetRenderEngine())) {
+            SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
             syncDirtyManager_->ResetDirtyAsSurfaceSize();
             syncDirtyManager_->UpdateDirty(false);
             RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw processor init failed!");
@@ -583,6 +600,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         if (mirrorParams) {
             if (params->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+                SetDrawSkipType(DrawSkipType::WIRED_SCREEN_PROJECTION);
                 RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw wired screen projection.");
                 WiredScreenProjection(*params, processor);
                 return;
@@ -608,6 +626,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             uniParam->SetOpDropped(false);
             auto expandProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
             if (!expandProcessor) {
+                SetDrawSkipType(DrawSkipType::EXPAND_PROCESSOR_NULL);
                 RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
@@ -632,6 +651,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             uniParam->SetOpDropped(isOpDropped);
         }
         processor->PostProcess();
+        SetDrawSkipType(DrawSkipType::MIRROR_DRAWABLE_SKIP);
         return;
     }
 
@@ -648,6 +668,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor)) {
         RSMainThread::Instance()->SetFrameIsRender(false);
+        SetDrawSkipType(DrawSkipType::DISPLAY_NODE_SKIP);
         SetDisplayNodeSkipFlag(*uniParam, true);
         return;
     }
@@ -663,6 +684,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
     if (!renderFrame) {
+        SetDrawSkipType(DrawSkipType::REQUEST_FRAME_FAIL);
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw failed to request frame");
         return;
     }
@@ -683,12 +705,14 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     auto drSurface = renderFrame->GetFrame()->GetSurface();
     if (!drSurface) {
+        SetDrawSkipType(DrawSkipType::SURFACE_NULL);
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw DrawingSurface is null");
         return;
     }
 
     curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
     if (!curCanvas_) {
+        SetDrawSkipType(DrawSkipType::CANVAS_NULL);
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw failed to create canvas");
         return;
     }

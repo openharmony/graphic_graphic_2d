@@ -319,6 +319,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
+        if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
+            g_blurCnt--;
+        }
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
         filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
@@ -451,6 +454,9 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
+        if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
+            g_blurCnt--;
+        }
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         canvas->SetEffectData(data);

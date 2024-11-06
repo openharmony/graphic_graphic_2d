@@ -1201,6 +1201,12 @@ public:
                nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadius);
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
     {
         return surfaceHandler_;
@@ -1237,7 +1243,6 @@ public:
 
 protected:
     void OnSync() override;
-    void OnSkipSync() override;
 
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
@@ -1296,6 +1301,7 @@ private:
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
     std::string bundleName_;

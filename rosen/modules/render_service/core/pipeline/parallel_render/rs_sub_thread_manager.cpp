@@ -341,11 +341,20 @@ std::unordered_map<uint32_t, pid_t> RSSubThreadManager::GetReThreadIndexMap() co
 void RSSubThreadManager::ScheduleRenderNodeDrawable(
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
-    if (!nodeDrawable) {
+    if (UNLIKELY(!nodeDrawable)) {
+        RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable nodeDrawable nullptr");
         return;
     }
-    auto& param = nodeDrawable->GetRenderParams();
-    if (!param) {
+    const auto& param = nodeDrawable->GetRenderParams();
+    if (UNLIKELY(!param)) {
+        RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable param nullptr");
+        return;
+    }
+
+    const auto& rtUniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    // rtUniParam will not be updated before UnblockMainThread
+    if (UNLIKELY(!rtUniParam)) {
+        RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable renderThread param nullptr");
         return;
     }
 
@@ -377,17 +386,19 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     subThread->DoingCacheProcessNumInc();
     nodeDrawable->SetCacheSurfaceProcessedStatus(CacheProcessStatus::WAITING);
 
-    auto& rtUniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     subThread->PostTask([subThread, nodeDrawable, tid, submittedFrameCount,
                             uniParam = new RSRenderThreadParams(*rtUniParam)]() mutable {
-        if (!uniParam) {
+        if (UNLIKELY(!uniParam)) {
+            RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable subThread param is nullptr");
             return;
         }
         std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
-        RSUniRenderThread::Instance().Sync(std::move(uniParamUnique));
+        /* Task run in SubThread, the uniParamUnique which is copyed from uniRenderThread will sync to SubTread */
+        RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParamUnique));
         nodeDrawable->SetLastFrameUsedThreadIndex(tid);
         nodeDrawable->SetTaskFrameCount(submittedFrameCount);
         subThread->DrawableCache(nodeDrawable);
+        RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
     });
     needResetContext_ = true;
 }

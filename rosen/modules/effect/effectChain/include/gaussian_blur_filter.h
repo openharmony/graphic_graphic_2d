@@ -35,11 +35,11 @@ public:
     std::string GetFragmentShader() override;
 private:
     void DoProcess(ProcessData& data) override;
-    void LoadFilterParams() override {};
-    ScaleFilter* upSampleFilter_ = nullptr;
-    ScaleFilter* downSampleFilter_ = nullptr;
-    HorizontalBlurFilter* horizontalBlurFilter_ = nullptr;
-    VerticalBlurFilter* verticalBlurFilter_ = nullptr;
+    void LoadFilterParams() override {}
+    std::unique_ptr<ScaleFilter> upSampleFilter_ = nullptr;
+    std::unique_ptr<ScaleFilter> downSampleFilter_ = nullptr;
+    std::unique_ptr<HorizontalBlurFilter> horizontalBlurFilter_ = nullptr;
+    std::unique_ptr<VerticalBlurFilter> verticalBlurFilter_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

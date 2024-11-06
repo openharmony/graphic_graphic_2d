@@ -754,6 +754,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, StoreMustRenewedInfo006, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CornerRadiusInfoForDRMTest
+ * @tc.desc: Test SetCornerRadiusInfoForDRM and GetCornerRadiusInfoForDRM
+ * @tc.type: FUNC
+ * @tc.require: issueIAX2NE
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, CornerRadiusInfoForDRMTest, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    ASSERT_NE(node, nullptr);
+    std::vector<float> cornerRadiusInfo = {};
+    node->SetCornerRadiusInfoForDRM(cornerRadiusInfo);
+    ASSERT_TRUE(node->GetCornerRadiusInfoForDRM().empty());
+}
+
+/**
  * @tc.name: GetFirstLevelNodeId001
  * @tc.desc: Test GetFirstLevelNode for single app window node
  * @tc.type: FUNC

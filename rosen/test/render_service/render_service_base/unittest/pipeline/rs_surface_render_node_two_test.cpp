@@ -529,22 +529,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceUIFirstTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSkipSyncTest
- * @tc.desc: test results of OnSkipSync
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, OnSkipSyncTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    renderNode->OnSkipSync();
-    EXPECT_FALSE(renderNode->forceUIFirst_);
-    renderNode->OnSkipSync();
-    EXPECT_FALSE(renderNode->forceUIFirstChanged_);
-}
-
-/**
  * @tc.name: AccumulateOcclusionRegion
  * @tc.desc: test results of AccumulateOcclusionRegion
  * @tc.type: FUNC
