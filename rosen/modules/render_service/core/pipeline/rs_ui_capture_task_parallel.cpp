@@ -187,18 +187,18 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
-    if (nodeParams) {
-        Drawing::Matrix relativeMatrix = Drawing::Matrix();
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
-        Drawing::Matrix invertMatrix;
-        if (nodeParams->GetMatrix().Invert(invertMatrix)) {
-            relativeMatrix.PreConcat(invertMatrix);
-        }
-        canvas.SetMatrix(relativeMatrix);
-    } else {
-        RS_LOGD("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
+    if (UNLIKELY(!nodeParams)) {
+        RS_LOGE("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
+        return false;
     }
+    Drawing::Matrix relativeMatrix = Drawing::Matrix();
+    relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
+    relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
+    Drawing::Matrix invertMatrix;
+    if (nodeParams->GetMatrix().Invert(invertMatrix)) {
+        relativeMatrix.PreConcat(invertMatrix);
+    }
+    canvas.SetMatrix(relativeMatrix);
 
     // make sure the previous uifirst task is completed.
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*nodeParams, false)) {
