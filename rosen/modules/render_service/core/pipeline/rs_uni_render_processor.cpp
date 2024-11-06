@@ -231,6 +231,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto& layerInfo = params.layerInfo_;
+    layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);

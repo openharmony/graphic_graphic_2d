@@ -657,6 +657,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         return params;
     }
     params.useCPU = forceCPU;
+    params.useBilinearInterpolation = layer->GetNeedBilinearInterpolation();
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);

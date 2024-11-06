@@ -453,6 +453,16 @@ public:
         return arsrTag_;
     }
 
+    void SetNeedBilinearInterpolation(bool need)
+    {
+        needBilinearInterpolation_ = need;
+    }
+
+    bool GetNeedBilinearInterpolation() const
+    {
+        return needBilinearInterpolation_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -485,6 +495,7 @@ public:
         layerSource_ = layerInfo->GetLayerSourceTuning();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
+        needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
     }
 
     void Dump(std::string &result) const
@@ -605,6 +616,7 @@ private:
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
+    bool needBilinearInterpolation_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
