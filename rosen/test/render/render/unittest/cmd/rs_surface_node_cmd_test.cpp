@@ -522,7 +522,7 @@ HWTEST_F(RSSurfaceNodeCmdTest, CreateWithConfigUniTest, TestSize.Level1)
         auto iter = renderNodemap.find(ExtractPid(1));
         if (iter != renderNodemap.end()) {
             auto& submap = iter->second;
-            if (submap.find(1)) {
+            if (submap.find(1) != submap.end()) {
                 return true;
             }
         }

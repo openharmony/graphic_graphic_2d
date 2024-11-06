@@ -3429,8 +3429,9 @@ HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange003, TestSize.Level2)
     NodeId nodeId = node->GetId();
     pid_t pid = ExtractPid(nodeId);
     mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
-
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     mainThread->UpdateNeedDrawFocusChange(id);
     ASSERT_FALSE(node->GetNeedDrawFocusChange());
 }

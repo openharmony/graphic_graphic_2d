@@ -234,7 +234,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     auto iter = renderNodeMap_.find(pid);
     if (iter != renderNodeMap_.end()) {
         auto& submap = iter->second;
-        for (subiter = submap.begin(); subiter != submap.end();) {
+        for (auto subiter = submap.begin(); subiter != submap.end();) {
             if (subiter->second == nullptr) {
                 subiter = submap.erase(subiter);
                 continue;
@@ -347,7 +347,13 @@ const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id
 
 const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() const
 {
-    return renderNodeMap_[0][0];
+    auto iter = renderNodeMap_.find(0);
+    if (iter != renderNodeMap_.cend()) {
+        if (auto subiter = iter->second.find(0); subiter != iter->second.end()) {
+            return subiter->second;
+        }
+    }
+    return nullptr;
 }
 
 void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)

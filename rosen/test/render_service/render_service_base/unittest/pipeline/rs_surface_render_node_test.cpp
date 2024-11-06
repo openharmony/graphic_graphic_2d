@@ -921,7 +921,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId001, TestSize.Level2)
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     ASSERT_NE(node, nullptr);
     NodeId nodeId = node->GetId();
-    pid_t pid = ExtractPid(nodeId) rsContext->GetMutableNodeMap().renderNodeMap_[pid][nodeId] = node;
+    pid_t pid = ExtractPid(nodeId);
+    rsContext->GetMutableNodeMap().renderNodeMap_[pid][nodeId] = node;
     node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
     node->SetIsOnTheTree(true);
     ASSERT_EQ(node->GetFirstLevelNodeId(), node->GetId());

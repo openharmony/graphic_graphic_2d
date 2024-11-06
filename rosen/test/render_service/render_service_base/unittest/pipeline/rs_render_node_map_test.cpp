@@ -240,7 +240,7 @@ HWTEST_F(RSRenderNodeMapTest, GetAndClearPurgeableNodeIds, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
 {
     NodeId id = 0;
-    pid_t = ExtractPid(id);
+    pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.renderNodeMap_.clear();

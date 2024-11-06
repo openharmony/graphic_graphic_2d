@@ -1399,7 +1399,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
     rcdManagerInstance.DoProcessRenderTask(id, info);
     RSContext context;
-    pid_t = ExtractPid(id);
+    pid_t pid = ExtractPid(id);
     context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id);
     rcdManagerInstance.CheckRenderTargetNode(context);
     context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id + 1);
