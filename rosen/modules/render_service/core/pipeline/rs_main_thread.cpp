@@ -3866,7 +3866,7 @@ bool RSMainThread::IsHardwareEnabledNodesNeedSync()
     }
     RS_TRACE_NAME_FMT("%s %u", __func__, needSync);
     RS_LOGD("%{public}s %{public}u", __func__, needSync);
-    
+
     return needSync;
 }
 
