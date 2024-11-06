@@ -68,6 +68,7 @@ public:
     void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
 
     bool CheckHardCursorSupport(std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
+    bool HasMirrorDisplay() const;
 
 private:
     bool isNeedForceCommitByPointer_{ false };
