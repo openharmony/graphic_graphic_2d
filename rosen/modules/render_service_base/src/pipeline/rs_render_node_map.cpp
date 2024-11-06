@@ -179,11 +179,15 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
     pid_t pid = ExtractPid(id);
-    auto& submap = renderNodeMap_[pid];
-    submap.erase(id);
-    if (submap.empty()) {
-        renderNodeMap_.erase(pid);
+    auto iter = renderNodeMap_.find(pid);
+    if(iter != renderNodeMap_.end()) {
+        auto& submap = iter->second;
+        submap.erase(id);
+        if (submap.empty()) {
+            renderNodeMap_.erase(pid);
+        }
     }
+
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
         RemoveUIExtensionSurfaceNode(it->second);
@@ -207,9 +211,9 @@ void RSRenderNodeMap::MoveRenderNodeMap(
             subRenderNodeMap->emplace(subiter->first, subiter->second);
             subiter = submap.erase(subiter);
         }
-    }
-    if (iter->second.empty()) {
-        renderNodeMap_.erase(iter);
+        if (submap.empty()) {
+            renderNodeMap_.erase(pid);
+        }
     }
 }
 

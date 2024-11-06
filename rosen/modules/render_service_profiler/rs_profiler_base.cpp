@@ -355,10 +355,11 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
             pair.second->RemoveFromTree(false);
             return true;
         });
+        if (submap.empty()) {
+            map.renderNodeMap_.erase(pid);
+        }
     }
-    if (iter->second.empty()) {
-        map.renderNodeMap_.erase(iter);
-    }
+
     EraseIf(
         map.surfaceNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
 
@@ -480,7 +481,7 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
 
     const uint32_t count = static_cast<uint32_t>(mapSize);
     data.write(reinterpret_cast<const char*>(&count), sizeof(count));
-    const uint32_t nodeCount = nodes.size();
+    const uint32_t nodeCount = static_cast<uint32_t>(nodes.size());
     data.write(reinterpret_cast<const char*>(&nodeCount), sizeof(nodeCount));
     for (const auto& node : nodes) { // no nullptr in nodes, omit check
         MarshalTree(*node, data, fileVersion);
