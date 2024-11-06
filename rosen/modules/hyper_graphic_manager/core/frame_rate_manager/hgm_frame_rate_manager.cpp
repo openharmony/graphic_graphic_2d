@@ -56,6 +56,7 @@ namespace {
         "VOTER_THERMAL",
         "VOTER_VIRTUALDISPLAY",
         "VOTER_MUTIPHYSICALSCREEN",
+        "VOTER_MULTISELFOWNEDSCREEN",
         "VOTER_POWER_MODE",
         "VOTER_DISPLAY_ENGIN",
         "VOTER_GAMES",
@@ -781,6 +782,8 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         HandleVirtualDisplayEvent(pid, eventInfo);
     } else if (eventName == "VOTER_GAMES") {
         HandleGamesEvent(pid, eventInfo);
+    } else if (eventName == "VOTER_MULTISELFOWNEDSCREEN") {
+        HandleMultiSelfOwnedScreenEvent(pid, eventInfo);
     } else {
         DeliverRefreshRateVote({eventName, eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
             eventInfo.eventStatus);
@@ -869,22 +872,26 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     }
 
     auto& hgmCore = HgmCore::Instance();
-    auto configData = hgmCore.GetPolicyConfigData();
-    auto screenList = hgmCore.GetScreenIds();
-    if (configData == nullptr || std::find(screenList.begin(), screenList.end(), id) == screenList.end()) {
+    auto screen = hgmCore.GetScreen(id);
+    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
+        return;
+    }
+    if (hgmCore.GetMultiSelfOwnedScreenEnable()) {
         return;
     }
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
-    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-    if (configData->screenStrategyConfigs_.find(curScreenName) == configData->screenStrategyConfigs_.end()) {
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
         return;
     }
+    std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
     curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
     if (curScreenStrategyId_.empty()) {
         curScreenStrategyId_ = "LTPO-DEFAULT";
     }
     isLtpo_ = isLtpo;
+    lastCurScreenId_.store(curScreenId_.load());
     curScreenId_.store(id);
     hgmCore.SetActiveScreenId(curScreenId_.load());
     HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
@@ -1014,6 +1021,14 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
     }
     DeliverRefreshRateVote(
         {"VOTER_GAMES", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, gamePid}, eventInfo.eventStatus);
+}
+
+void HgmFrameRateManager::HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo)
+{
+    HgmCore::Instance().SetMultiSelfOwnedScreenEnable(eventInfo.eventStatus);
+    DeliverRefreshRateVote(
+        {"VOTER_MULTISELFOWNEDSCREEN", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, pid},
+        eventInfo.eventStatus);
 }
 
 void HgmFrameRateManager::MarkVoteChange(const std::string& voter)

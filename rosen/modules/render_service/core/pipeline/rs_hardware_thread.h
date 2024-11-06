@@ -76,7 +76,7 @@ private:
     void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId);
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers);
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
-    void ExecuteSwitchRefreshRate(uint32_t rate);
+    void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
     void AddRefreshRateCount();
     int64_t GetCurTimeCount();
     bool IsInAdaptiveMode(const OutputPtr &output);
