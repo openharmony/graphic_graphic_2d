@@ -101,84 +101,6 @@ Drawing::Region GetFlippedRegion(std::vector<RectI>& rects, ScreenInfo& screenIn
     return region;
 }
 }
-class RSOverDrawDfx {
-public:
-    explicit RSOverDrawDfx(std::shared_ptr<RSPaintFilterCanvas> curCanvas)
-    {
-        bool isEnabled = false;
-        auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-        if (LIKELY(uniParam)) {
-            isEnabled = uniParam->IsOverDrawEnabled();
-            isAceDebugBoundaryEnabled_ = uniParam->IsAceDebugBoundaryEnabled();
-        }
-        enable_ = isEnabled && curCanvas != nullptr;
-        curCanvas_ = curCanvas;
-        StartOverDraw();
-    }
-    ~RSOverDrawDfx()
-    {
-        FinishOverDraw();
-    }
-private:
-    void StartOverDraw()
-    {
-        if (!enable_) {
-            return;
-        }
-
-        auto width = curCanvas_->GetWidth();
-        auto height = curCanvas_->GetHeight();
-        Drawing::ImageInfo info =
-            Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-        if (!isAceDebugBoundaryEnabled_) {
-            auto gpuContext = curCanvas_->GetGPUContext();
-            if (gpuContext == nullptr) {
-                RS_LOGE("RSOverDrawDfx::StartOverDraw failed: need gpu canvas");
-                return;
-            }
-            overdrawSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
-        } else {
-            overdrawSurface_ = Drawing::Surface::MakeRaster(info);
-        }
-        if (!overdrawSurface_) {
-            RS_LOGE("RSOverDrawDfx::StartOverDraw failed: surface is nullptr");
-            return;
-        }
-        overdrawCanvas_ = std::make_shared<Drawing::OverDrawCanvas>(overdrawSurface_->GetCanvas());
-        curCanvas_->AddCanvas(overdrawCanvas_.get());
-    }
-    void FinishOverDraw()
-    {
-        if (!enable_) {
-            return;
-        }
-        if (!overdrawSurface_) {
-            RS_LOGE("RSOverDrawDfx::FinishOverDraw overdrawSurface is nullptr");
-            return;
-        }
-        auto image = overdrawSurface_->GetImageSnapshot();
-        if (image == nullptr) {
-            RS_LOGE("RSOverDrawDfx::FinishOverDraw image is nullptr");
-            return;
-        }
-        Drawing::Brush brush;
-        auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
-        auto colorFilter = Drawing::ColorFilter::CreateOverDrawColorFilter(overdrawColors.data());
-        Drawing::Filter filter;
-        filter.SetColorFilter(colorFilter);
-        brush.SetFilter(filter);
-        curCanvas_->AttachBrush(brush);
-        curCanvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
-        curCanvas_->DetachBrush();
-    }
-
-    bool enable_;
-    bool isAceDebugBoundaryEnabled_ = false;
-    mutable std::shared_ptr<RSPaintFilterCanvas> curCanvas_;
-    std::shared_ptr<Drawing::Surface> overdrawSurface_ = nullptr;
-    std::shared_ptr<Drawing::OverDrawCanvas> overdrawCanvas_ = nullptr;
-};
-
 void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     const ScreenInfo& screenInfo)
 {
@@ -373,6 +295,57 @@ bool RSDisplayRenderNodeDrawable::HardCursorCreateLayer(std::shared_ptr<RSProces
         return true;
     }
     return false;
+}
+
+void RSDisplayRenderNodeDrawable::RenderOverDraw()
+{
+    bool isEnabled = false;
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (LIKELY(uniParam)) {
+        isEnabled = uniParam->IsOverDrawEnabled();
+    }
+    bool enable = isEnabled && curCanvas_ != nullptr;
+    if (!enable) {
+        return;
+    }
+    auto gpuContext = curCanvas_->GetGPUContext();
+    if (gpuContext == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::RenderOverDraw failed: need gpu canvas");
+        return;
+    }
+    Drawing::ImageInfo info = Drawing::ImageInfo { curCanvas_->GetWidth(), curCanvas_->GetHeight(),
+        Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    auto overdrawSurface = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
+    if (!overdrawSurface) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::RenderOverDraw failed: surface is nullptr");
+        return;
+    }
+    auto overdrawCanvas = std::make_shared<Drawing::OverDrawCanvas>(overdrawSurface->GetCanvas());
+    overdrawCanvas->SetGrContext(gpuContext);
+    auto paintCanvas = std::make_shared<RSPaintFilterCanvas>(overdrawCanvas.get());
+    // traverse all drawable to detect overdraw
+    auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
+    if (!params->GetNeedOffscreen()) {
+        paintCanvas->ConcatMatrix(params->GetMatrix());
+    }
+    RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable::RenderOverDraw");
+    RSRenderNodeDrawable::OnDraw(*paintCanvas);
+    DrawWatermarkIfNeed(*params, *paintCanvas);
+    // show overdraw result in main display
+    auto image = overdrawSurface->GetImageSnapshot();
+    if (image == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::RenderOverDraw image is nullptr");
+        return;
+    }
+    Drawing::Brush brush;
+    auto overdrawColors = RSOverdrawController::GetInstance().GetColorArray();
+    auto colorFilter = Drawing::ColorFilter::CreateOverDrawColorFilter(overdrawColors.data());
+    Drawing::Filter filter;
+    filter.SetColorFilter(colorFilter);
+    brush.SetFilter(filter);
+    curCanvas_->AttachBrush(brush);
+    curCanvas_->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    curCanvas_->DetachBrush();
 }
 
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
@@ -758,7 +731,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // canvas draw
     {
-        RSOverDrawDfx rsOverDrawDfx(curCanvas_);
         {
             RSSkpCaptureDfx capture(curCanvas_);
             Drawing::AutoCanvasRestore acr(*curCanvas_, true);
@@ -830,6 +802,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetCacheImgForCapture(nullptr);
         }
     }
+    RenderOverDraw();
     RSMainThread::Instance()->SetDirtyFlag(false);
 
     if (Drawing::PerformanceCaculate::GetDrawingFlushPrint()) {

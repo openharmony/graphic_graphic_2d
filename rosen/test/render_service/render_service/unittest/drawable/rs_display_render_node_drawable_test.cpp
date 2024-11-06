@@ -413,6 +413,28 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredScreen006
 }
 
 /**
+ * @tc.name: RenderOverDraw
+ * @tc.desc: Test RenderOverDraw
+ * @tc.type: FUNC
+ * @tc.require: #IB1MHX
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, RenderOverDraw, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
+
+    displayDrawable_->RenderOverDraw();
+    // generate canvas for displayDrawable_
+    drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
+    if (drawingCanvas_) {
+        displayDrawable_->curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drawingCanvas_.get());
+    }
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->isOverDrawEnabled_ = true;
+    displayDrawable_->RenderOverDraw();
+}
+
+/**
  * @tc.name: HardCursorCreateLayer
  * @tc.desc: Test HardCursorCreateLayer
  * @tc.type: FUNC

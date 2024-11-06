@@ -169,7 +169,6 @@ constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
-constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
@@ -2028,7 +2027,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     UpdateUIFirstSwitch();
     UpdateRogSizeIfNeeded();
-    UpdateAceDebugBoundaryEnabled();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
@@ -3290,35 +3288,6 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
     } else {
         dumpString += g_dumpStr;
         g_dumpStr = "";
-    }
-}
-
-void RSMainThread::UpdateAceDebugBoundaryEnabled()
-{
-    if (!isOverDrawEnabledOfCurFrame_) {
-        return;
-    }
-    bool isAceDebugBoundaryEnabled = RSSystemProperties::GetAceDebugBoundaryEnabled();
-    if (isAceDebugBoundaryEnabledOfLastFrame_ && !isAceDebugBoundaryEnabled) {
-        if (!hasPostUpdateAceDebugBoundaryTask_) {
-            PostTask(
-                [isAceDebugBoundaryEnabled, this]() {
-                    SetDirtyFlag();
-                    RequestNextVSync();
-                    isAceDebugBoundaryEnabledOfLastFrame_ = isAceDebugBoundaryEnabled;
-                    hasPostUpdateAceDebugBoundaryTask_ = false;
-                },
-                "UpdateAceBoundaryEnabledTask", DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE);
-            hasPostUpdateAceDebugBoundaryTask_ = true;
-        }
-        renderThreadParams_->isAceDebugBoundaryEnabled_ = true;
-    } else {
-        if (hasPostUpdateAceDebugBoundaryTask_) {
-            handler_->RemoveTask("UpdateAceBoundaryEnabledTask");
-            hasPostUpdateAceDebugBoundaryTask_ = false;
-        }
-        renderThreadParams_->isAceDebugBoundaryEnabled_ = isAceDebugBoundaryEnabled;
-        isAceDebugBoundaryEnabledOfLastFrame_ = isAceDebugBoundaryEnabled;
     }
 }
 
