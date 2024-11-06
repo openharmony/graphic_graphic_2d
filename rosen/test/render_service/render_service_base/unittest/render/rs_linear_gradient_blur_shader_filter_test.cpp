@@ -59,7 +59,6 @@ HWTEST_F(RSLinearGradientBlurShaderFilterTest, GenerateGEVisualEffectTest, TestS
  * @tc.name: GetLinearGradientBlurRadius003
  * @tc.desc: Verify function GetLinearGradientBlurRadius
  * @tc.type:FUNC
- * @tc.require: issuesI9UWCD
  */
 HWTEST_F(RSLinearGradientBlurShaderFilterTest, GetLinearGradientBlurRadius003, TestSize.Level1)
 {
