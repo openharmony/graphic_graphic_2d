@@ -43,6 +43,7 @@ public:
         const SamplingOptions& sampling, bool isBackground = false) = 0;
     virtual void SetNodeId(NodeId id) {};
     virtual void SetPaint(Paint paint) {};
+    virtual void Purge() {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -51,6 +52,7 @@ public:
     virtual void Playback(Canvas& canvas, const Rect& rect,
         const SamplingOptions& sampling) = 0;
     virtual void SetNodeId(NodeId id) {};
+    virtual void Purge() {};
 };
 
 class DRAWING_API ExtendDrawFuncObj {

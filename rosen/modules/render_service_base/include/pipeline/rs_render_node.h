@@ -842,6 +842,7 @@ private:
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    const bool isPurgeable_;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
@@ -1046,6 +1047,9 @@ private:
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+    // purge resource
+    inline void SetPurgeStatus(bool flag);
+    inline void SyncPurgeFunc();
 
     // Test pipeline
     bool addedToPendingSyncList_ = false;

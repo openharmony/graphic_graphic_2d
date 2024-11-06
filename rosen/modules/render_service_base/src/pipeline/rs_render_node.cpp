@@ -213,13 +213,19 @@ const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
 };
 }
 
+static inline bool IsPurgeAble()
+{
+    return RSSystemProperties::GetRenderNodePurgeEnabled() && RSUniRenderJudgement::IsUniRender();
+}
+
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble())
 {}
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode),
+      isPurgeable_(IsPurgeAble())
 {}
 
 void RSRenderNode::AddChild(SharedPtr child, int index)
@@ -334,6 +340,9 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (flag == isOnTheTree_) {
         return;
     }
+
+    SetPurgeStatus(flag);
+
     isNewOnTree_ = flag && !isOnTheTree_;
     isOnTheTree_ = flag;
     if (isOnTheTree_) {
@@ -4016,6 +4025,7 @@ void RSRenderNode::OnSync()
         std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
+        SyncPurgeFunc();
         drawCmdListNeedSync_ = false;
     }
 
@@ -4169,6 +4179,38 @@ void RSRenderNode::RemoveChildFromFulllist(NodeId id)
     // Move the fullChildrenList to fullChildrenList_ atomically
     ChildrenListSharedPtr constFullChildrenList = std::move(fullChildrenList);
     std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
+}
+
+void RSRenderNode::SetPurgeStatus(bool flag)
+{
+    if (!isPurgeable_) {
+        return;
+    }
+    if (auto context = GetContext().lock()) {
+        if (flag) {
+            context->GetMutableNodeMap().RemoveOffTreeNode(id_);
+        } else {
+            context->GetMutableNodeMap().AddOffTreeNode(id_);
+        }
+    }
+}
+
+void RSRenderNode::SyncPurgeFunc()
+{
+    if (!isPurgeable_) {
+        return;
+    }
+    std::shared_ptr<RSDrawable> drawable = drawableVec_[static_cast<int32_t>(RSDrawableSlot::CONTENT_STYLE)];
+    if (!drawable) {
+        return;
+    }
+    std::weak_ptr<RSDrawable> drawableWeakPtr = drawable;
+    renderDrawable_->purgeFunc_ = [drawableWeakPtr]() {
+        auto drawable = drawableWeakPtr.lock();
+        if (drawable) {
+            drawable->OnPurge();
+        }
+    };
 }
 
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;

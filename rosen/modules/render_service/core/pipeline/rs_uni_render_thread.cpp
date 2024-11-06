@@ -75,7 +75,7 @@ constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t RELEASE_IN_HARDWARE_THREAD_TASK_NUM = 4;
 constexpr uint64_t PERF_PERIOD_BLUR = 480000000;
 constexpr uint64_t PERF_PERIOD_BLUR_TIMEOUT = 80000000;
-constexpr size_t ONE_MEGABYTE = 1000 * 1000;
+constexpr uint64_t ONE_MEGABYTE = 1000 * 1000;
 
 const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 1, 10021 },
@@ -629,7 +629,7 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
     long long sizeM = std::strtoll(strM.c_str(), &end, 10);
     if (end != nullptr && end != strM.c_str() && errno == 0 && *end == '\0' &&
         sizeM > 0 && sizeM <= MAX_GPU_LIMIT_SIZE) {
-        maxResourcesBytes = static_cast<size_t>(sizeM) * ONE_MEGABYTE;
+        maxResourcesBytes = sizeM * ONE_MEGABYTE;
     }
 
     gpuContext->SetResourceCacheLimits(maxResources, maxResourcesBytes);
@@ -768,6 +768,14 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
+        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
+            auto purgeDrawables =
+                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
+            for (auto& drawable : purgeDrawables) {
+                drawable->Purge();
+            }
+        }
+        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         }
@@ -784,8 +792,15 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask()
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids)
 {
+    for (auto [nodeId, purgeFlag] : ids) {
+        if (purgeFlag) {
+            nodesNeedToBeClearMemory_.insert(nodeId);
+        } else {
+            nodesNeedToBeClearMemory_.erase(nodeId);
+        }
+    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
         ClearMemoryCache(clearMoment_, clearMemDeeply_);

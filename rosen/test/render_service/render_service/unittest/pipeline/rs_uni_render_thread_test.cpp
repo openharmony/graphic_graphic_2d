@@ -358,11 +358,13 @@ HWTEST_F(RSUniRenderThreadTest, DefaultClearMemoryCache001, TestSize.Level1)
 HWTEST_F(RSUniRenderThreadTest, ResetClearMemoryTask001, TestSize.Level1)
 {
     RSUniRenderThread& instance = RSUniRenderThread::Instance();
-    instance.ResetClearMemoryTask();
+    std::unordered_map<NodeId, bool> ids1;
+    instance.ResetClearMemoryTask(std::move(ids1));
     EXPECT_FALSE(instance.clearMemoryFinished_);
 
     instance.clearMemoryFinished_ = true;
-    instance.ResetClearMemoryTask();
+    std::unordered_map<NodeId, bool> ids2;
+    instance.ResetClearMemoryTask(std::move(ids2));
     EXPECT_TRUE(instance.clearMemoryFinished_);
 }
 

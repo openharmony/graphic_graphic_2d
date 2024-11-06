@@ -72,6 +72,11 @@ bool RSSystemProperties::GetDrawOpTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
