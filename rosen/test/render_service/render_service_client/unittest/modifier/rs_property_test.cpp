@@ -445,7 +445,7 @@ HWTEST_F(RSPropertyTest, Unlikeness001, TestSize.Level1)
 HWTEST_F(RSPropertyTest, GetPropertyType, TestSize.Level1)
 {
     auto rsAnimatableProperty = std::make_shared<RSAnimatableProperty<Vector3f>>(Vector3f(1.0f, 2.0f, 3.0f));
-    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() != RSRenderPropertyType::PROPERTY_VECTOR3F);
+    EXPECT_TRUE(rsAnimatableProperty->GetPropertyType() == RSRenderPropertyType::PROPERTY_VECTOR3F);
     rsAnimatableProperty->Set(Vector3f(4.0f, 5.0f, 6.0f));
     EXPECT_EQ(rsAnimatableProperty->Get(), Vector3f(4.0f, 5.0f, 6.0f));
 }
