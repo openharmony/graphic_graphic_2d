@@ -18,13 +18,13 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("VsyncDistributorFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/test/fuzztest/vsyncdistributor_fuzzer"
+ohos_fuzztest("VsyncGeneratorFuzzTest") {
+  fuzz_config_file = "${graphic_2d_root}/rosen/modules/composer/vsync/test/fuzztest/vsyncgenerator_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [
-    "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
   ]
   cflags = [
     "-g",
@@ -34,16 +34,9 @@ ohos_fuzztest("VsyncDistributorFuzzTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  sources = [ "vsyncdistributor_fuzzer.cpp" ]
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
-  ]
+  sources = [ "vsyncgenerator_fuzzer.cpp" ]
+  deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
   external_deps = [ "c_utils:utils" ]
-  defines = []
-  if (graphic_2d_feature_enable_dvsync) {
-    defines += [ "RS_ENABLE_DVSYNC" ]
-  }
 }
 
 ###############################################################################
@@ -52,7 +45,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":VsyncDistributorFuzzTest",
+    ":VsyncGeneratorFuzzTest",
   ]
 }
 ###############################################################################

@@ -31,6 +31,8 @@ ohos_fuzztest("VsyncReceiverFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [ "vsyncreceiver_fuzzer.cpp" ]
   deps = [

@@ -129,6 +129,11 @@ namespace OHOS {
         void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
         std::string name = GetStringFromData(STR_LEN);
         bool rnvFlag = GetData<bool>();
+        bool isOpen = GetData<bool>();
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool isThreadShared = GetData<bool>();
+        int64_t now = GetData<int64_t>();
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
@@ -146,6 +151,7 @@ namespace OHOS {
         vsyncReceiver->SetUiDvsyncConfig(bufferCount);
         vsyncReceiver->RequestNextVSync(fcb);
         vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
+
         std::shared_ptr<Rosen::VSyncCallBackListener> vsyncCallBackListener(
             std::make_shared<Rosen::VSyncCallBackListener>());
         vsyncCallBackListener->SetCallback(fcb);
@@ -157,8 +163,16 @@ namespace OHOS {
         vsyncCallBackListener->GetPeriodShared();
         vsyncCallBackListener->GetTimeStampShared();
         vsyncCallBackListener->AddCallback(fcb);
+        vsyncCallBackListener->CalculateExpectedEndLocked(now);
 
         GraphicCommonTest();
+
+        vsyncReceiver->SetVsyncCallBackForEveryFrame(fcb, isOpen);
+        vsyncReceiver->GetVSyncPeriodAndLastTimeStamp(period, timestamp, isThreadShared);
+        vsyncReceiver->IsRequestedNextVSync();
+
+        //tearDown
+        vsyncReceiver->CloseVsyncReceiverFd();
         return true;
     }
 }
