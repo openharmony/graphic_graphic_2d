@@ -35,6 +35,11 @@ bool CopyFontDescriptor(OH_Drawing_FontDescriptor* dst, const FontParser::FontDe
         free(dst->fullName);
         free(dst->fontFamily);
         free(dst->fontSubfamily);
+        dst->path = nullptr;
+        dst->postScriptName = nullptr;
+        dst->fullName = nullptr;
+        dst->fontFamily = nullptr;
+        dst->fontSubfamily = nullptr;
         return false;
     }
     dst->weight = src.weight;
