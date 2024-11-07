@@ -36,7 +36,6 @@ ohos_unittest("RSRenderServiceBaseMemoryTest") {
   }
 
   sources = [
-    "rs_interface_code_access_verifier_base_test.cpp",
     "rs_memory_graphic_test.cpp",
     "rs_memory_track_test.cpp",
     "rs_tag_tracker_test.cpp",
