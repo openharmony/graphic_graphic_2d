@@ -158,7 +158,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetRootIdOfCaptureWindow(1);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
