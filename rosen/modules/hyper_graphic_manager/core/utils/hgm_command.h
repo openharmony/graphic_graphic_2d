@@ -101,6 +101,7 @@ public:
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
+        int32_t supportAS;
         // <bufferName, fps>
         std::vector<std::pair<std::string, int32_t>> appBufferList;
         std::vector<std::string> appBufferBlackList;

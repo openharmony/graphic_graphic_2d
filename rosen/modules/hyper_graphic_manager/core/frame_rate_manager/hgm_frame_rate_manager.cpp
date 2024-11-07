@@ -1019,6 +1019,12 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::GAMES);
     }
+    PolicyConfigData::StrategyConfig config;
+    if (multiAppStrategy_.GetAppStrategyConfig(pkgName, config) == EXEC_SUCCESS) {
+        isGameSupportAS_ = config.supportAS == 1;
+    } else {
+        isGameSupportAS_ = false;
+    }
     DeliverRefreshRateVote(
         {"VOTER_GAMES", eventInfo.minRefreshRate, eventInfo.maxRefreshRate, gamePid}, eventInfo.eventStatus);
 }
@@ -1239,6 +1245,11 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
     bool isGameVoter = voterName == "VOTER_GAMES";
 
     if (isAdaptive_.load() == isGameVoter) {
+        return;
+    }
+
+    if (isGameVoter && !isGameSupportAS_) {
+        HGM_LOGI("this game does not support adaptive sync mode");
         return;
     }
 

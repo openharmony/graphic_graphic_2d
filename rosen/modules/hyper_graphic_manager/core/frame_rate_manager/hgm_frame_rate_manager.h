@@ -268,6 +268,7 @@ private:
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
     std::atomic<bool> isAdaptive_ = false;
+    isGameSupportAS_ = false;
 
     uint64_t timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
