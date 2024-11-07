@@ -67,6 +67,11 @@ import { PerformancePenGetAlpha, PerformancePenGetCapStyle, PerformancePenGetCol
   PerformancePenSetPathEffect, PerformancePenSetShaderEffect, PerformancePenSetShadowLayer,
   PerformancePenSetStrokeWidth } from '../testcase/interface/performancepentest';
 import { PerformanceShadowLayerCreate } from '../testcase/interface/performanceshadowlayertest';
+import { PerformancePathAddArc, PerformancePathAddCircle, PerformancePathAddOval, PerformancePathAddPath, PerformancePathAddPolygon, PerformancePathAddRect, PerformancePathAddRoundRect, PerformancePathConstructor,
+  PerformancePathArcTo, PerformancePathBuildFromSvgString, PerformancePathClose, PerformancePathConicTo, PerformancePathContains, PerformancePathCubicTo, PerformancePathGetBounds, PerformancePathGetLength,
+  PerformancePathGetMatrix, PerformancePathGetPositionAndTangent, PerformancePathIsClosed, PerformancePathLineTo, PerformancePathMoveTo, PerformancePathOffset, PerformancePathOp, PerformancePathQuadTo,
+  PerformancePathRConicTo, PerformancePathRCubicTo, PerformancePathReset, PerformancePathRLineTo, PerformancePathRMoveTo, PerformancePathRQuadTo, PerformancePathSetFillType, PerformancePathTransform,
+  PerformancePathConstructorWithPath } from '../testcase/interface/performancepathtest';
 
 const TAG = '[DrawingTest]';
 
@@ -241,6 +246,40 @@ export class CaseFactory {
       ['performance_canvas_drawShadow', () => { return new PerformanceCanvasDrawShadow(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
       // SamplingOptions
       ['performance_samplingoptions_constructor', () => { return new PerformanceSamplingOptionsConstructor(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      // path.h
+      ['performance_path_moveTo', () => { return new PerformancePathMoveTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_lineTo', () => { return new PerformancePathLineTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_arcTo', () => { return new PerformancePathArcTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_quadTo', () => { return new PerformancePathQuadTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_conicTo', () => { return new PerformancePathConicTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_cubicTo', () => { return new PerformancePathCubicTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_rMoveTo', () => { return new PerformancePathRMoveTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_rLineTo', () => { return new PerformancePathRLineTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_rQuadTo', () => { return new PerformancePathRQuadTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_rConicTo', () => { return new PerformancePathRConicTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_rCubicTo', () => { return new PerformancePathRCubicTo(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addPolygon', () => { return new PerformancePathAddPolygon(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addArc', () => { return new PerformancePathAddArc(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addCircle', () => { return new PerformancePathAddCircle(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addOval', () => { return new PerformancePathAddOval(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addRect', () => { return new PerformancePathAddRect(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addRoundRect', () => { return new PerformancePathAddRoundRect(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_addPath', () => { return new PerformancePathAddPath(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_transform', () => { return new PerformancePathTransform(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_contains', () => { return new PerformancePathContains(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_setFillType', () => { return new PerformancePathSetFillType(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_getBounds', () => { return new PerformancePathGetBounds(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_op', () => { return new PerformancePathOp(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_offset', () => { return new PerformancePathOffset(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_close', () => { return new PerformancePathClose(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_reset', () => { return new PerformancePathReset(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_getLength', () => { return new PerformancePathGetLength(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_getPositionAndTangent', () => { return new PerformancePathGetPositionAndTangent(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_getMatrix', () => { return new PerformancePathGetMatrix(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_buildFromSvgString', () => { return new PerformancePathBuildFromSvgString(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_isClosed', () => { return new PerformancePathIsClosed(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_constructor', () => { return new PerformancePathConstructor(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
+      ['performance_path_constructor_withpath', () => { return new PerformancePathConstructorWithPath(StyleType.DRAW_STYLE_PERFORMANCE_TEST); }],
 
       ['brush_get_color_filter', () => { return new BrushGetColorFilter(StyleType.DRAW_STYLE_COMPLEX); }],
       ['brush_set_image_filter', () => { return new BrushSetImageFilter(StyleType.DRAW_STYLE_COMPLEX); }],
