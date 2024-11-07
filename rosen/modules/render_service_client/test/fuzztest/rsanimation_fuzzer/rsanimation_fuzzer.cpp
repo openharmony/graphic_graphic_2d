@@ -38,6 +38,7 @@
 #include "rs_transition_effect.h"
 #include "modifier/rs_modifier_manager_map.h"
 #include "ui/rs_canvas_node.h"
+#include "ui/rs_ui_director.h"
 
 namespace OHOS {
     using namespace Rosen;
@@ -504,6 +505,8 @@ namespace OHOS {
         animation->UpdateParamToRenderAnimation(renderAnimation);
         animation->StartCustomAnimation(renderAnimation);
         animation->UpdateParamToRenderAnimation(renderAnimation);
+        auto rsUiDirector = RSUIDirector::Create();
+        rsUiDirector->SendMessages();
     }
 
     void RSAnimation2FuzzTest()
@@ -557,6 +560,8 @@ namespace OHOS {
         animation3->Start(canvasNode);
         animation3->StartInner(canvasNode);
         animation3->InteractiveFinish(pos);
+        auto rsUiDirector = RSUIDirector::Create();
+        rsUiDirector->SendMessages();
     }
 
     void RSAnimation3FuzzTest()
@@ -593,6 +598,8 @@ namespace OHOS {
         animation2->StartInner(canvasNode);
         animation2->StartCustomAnimation(renderAnimation);
         animation2->InteractiveFinish(pos);
+        auto rsUiDirector = RSUIDirector::Create();
+        rsUiDirector->SendMessages();
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
