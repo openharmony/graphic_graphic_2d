@@ -2169,7 +2169,7 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     }
 
     // when background changed, skip-frame will enabled if filter region > 400 and blur radius > 25
-    if (IsLargeArea(oldDirty_.GetWidth(), oldDirty_.GetHeight())) {
+    if (IsLargeArea(filterRegion_.GetWidth(), filterRegion_.GetHeight())) {
         filterDrawable->MarkFilterRegionIsLargeArea();
     }
 }
