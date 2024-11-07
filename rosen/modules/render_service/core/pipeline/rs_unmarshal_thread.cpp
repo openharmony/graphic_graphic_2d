@@ -45,10 +45,10 @@ constexpr size_t TRANSACTION_DATA_ALARM_COUNT = 10000;
 constexpr size_t TRANSACTION_DATA_KILL_COUNT = 20000;
 const char* TRANSACTION_REPORT_NAME = "IPC_DATA_OVER_ERROR";
 
-const std::unique_ptr<AppExecFwk::AppMgrClient>& GetAppMgrClient()
+const std::shared_ptr<AppExecFwk::AppMgrClient> GetAppMgrClient()
 {
-    static std::unique_ptr<AppExecFwk::AppMgrClient> appMgrClient =
-        std::make_unique<AppExecFwk::AppMgrClient>();
+    static std::shared_ptr<AppExecFwk::AppMgrClient> appMgrClient =
+        std::make_shared<AppExecFwk::AppMgrClient>();
     return appMgrClient;
 }
 }
@@ -244,7 +244,11 @@ bool RSUnmarshalThread::ReportTransactionDataStatistics(pid_t pid,
             return false;
         }
     }
-    const auto& appMgrClient = GetAppMgrClient();
+    const auto appMgrClient = GetAppMgrClient();
+    if (!appMgrClient) {
+        RS_LOGW("Get global variable AppMgrClient failed");
+        return false;
+    }
     int32_t uid = 0;
     std::string bundleName;
     appMgrClient->GetBundleNameByPid(pid, bundleName, uid);
