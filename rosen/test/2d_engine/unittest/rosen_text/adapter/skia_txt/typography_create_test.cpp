@@ -87,6 +87,8 @@ HWTEST_F(OH_Drawing_TypographyCreateTest, OH_Drawing_TypographyCreateTest003, Te
 
     std::unique_ptr<OHOS::Rosen::LineTypography> graphy = typographyCreate->CreateLineTypography();
     EXPECT_NE(graphy, nullptr);
+    auto paragraph = graphy->GetTempTypography();
+    EXPECT_NE(paragraph, nullptr);
     EXPECT_EQ(graphy->GetUnicodeSize(), 4);
 }
 
