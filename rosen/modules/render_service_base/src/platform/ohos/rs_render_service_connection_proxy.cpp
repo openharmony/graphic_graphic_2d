@@ -2933,7 +2933,7 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceConnectionProxy::SetScreenSwitchStatus(bool isEnabled)
+void RSRenderServiceConnectionProxy::SetScreenSwitchStatus(bool flag)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2941,7 +2941,7 @@ void RSRenderServiceConnectionProxy::SetScreenSwitchStatus(bool isEnabled)
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    if (!data.WriteBool(isEnabled)) {
+    if (!data.WriteBool(flag)) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

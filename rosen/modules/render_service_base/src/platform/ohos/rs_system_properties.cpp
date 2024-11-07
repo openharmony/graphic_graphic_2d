@@ -440,12 +440,12 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
 {
     isScreenSwitching_ = flag;
 }
 
-bool RSRenderServiceClient::GetScreenSwitchStatus()
+bool RSSystemProperties::GetScreenSwitchStatus()
 {
     return isScreenSwitching_;
 }

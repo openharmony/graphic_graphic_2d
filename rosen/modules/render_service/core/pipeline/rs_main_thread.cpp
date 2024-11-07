@@ -2305,7 +2305,7 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
 
-    bool isScreenSwitching = RSSystemParameters::GetScreenSwitchStatus();
+    bool isScreenSwitching = RSSystemProperties::GetScreenSwitchStatus();
     if (!doDirectComposition_ && needDrawFrame_ && !isScreenSwitching) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());

@@ -255,7 +255,7 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void SetScreenSwitchStatus(bool isEnabled) override;
+    void SetScreenSwitchStatus(bool flag) override;
 
     void SetDefaultDeviceRotationOffset(uint32_t offset) override;
 
