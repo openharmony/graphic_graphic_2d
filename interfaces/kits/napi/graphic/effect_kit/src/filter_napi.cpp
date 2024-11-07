@@ -278,6 +278,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
             EFFECT_LOG_E("Constructor fail, the srcPixelMap is NULL!");
             return nullptr;
         }
+
         filterNapi->srcPixelMap_ = sharPixelPoint;
     }
 
