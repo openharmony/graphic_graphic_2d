@@ -1117,9 +1117,11 @@ void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
         return;
     }
     const auto& map = const_cast<RSContext&>(*g_context).GetMutableNodeMap();
-    for (const auto& item : map.renderNodeMap_) {
-        if (item.second->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-            Respond("CANVAS_DRAWING_NODE: " + std::to_string(item.second->GetId()));
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+                Respond("CANVAS_DRAWING_NODE: " + std::to_string(node->GetId()));
+            }
         }
     }
 }

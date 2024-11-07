@@ -1411,7 +1411,7 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowOnTreeStateChangedTest, TestSize.
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     node->ProcessBehindWindowOnTreeStateChanged();
     auto rootNode = std::make_shared<RSRenderNode>(1);
-    rsContext->nodeMap.renderNodeMap_.emplace(1, rootNode);
+    rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = rootNode;
     node->renderContent_->renderProperties_.SetUseEffect(true);
     node->renderContent_->renderProperties_.SetUseEffectType(1);
     node->isOnTheTree_ = true;
@@ -1432,7 +1432,7 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowAfterApplyModifiersTest, TestSize
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
     node->ProcessBehindWindowAfterApplyModifiers();
     auto rootNode = std::make_shared<RSRenderNode>(1);
-    rsContext->nodeMap.renderNodeMap_.emplace(1, rootNode);
+    rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = rootNode;
     node->renderContent_->renderProperties_.SetUseEffect(false);
     node->ProcessBehindWindowAfterApplyModifiers();
     node->renderContent_->renderProperties_.SetUseEffect(true);

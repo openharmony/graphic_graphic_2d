@@ -186,6 +186,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
+    pid_t pid = ExtractPid(nodeId);
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 
@@ -194,7 +195,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
 
     renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
-    context.nodeMap.renderNodeMap_.at(nodeId) = renderNode;
+    context.nodeMap.renderNodeMap_[pid][nodeId] = renderNode;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
