@@ -201,10 +201,11 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
     // get data
     int32_t tpFeature = GetData<int32_t>();
     std::string tpConfig = GetData<std::string>();
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig);
+    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig.c_str(), tpFeatureConfigType);
     return true;
 }
 #endif

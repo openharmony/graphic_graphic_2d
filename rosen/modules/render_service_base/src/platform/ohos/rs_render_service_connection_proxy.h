@@ -274,7 +274,8 @@ public:
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config) override;
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;

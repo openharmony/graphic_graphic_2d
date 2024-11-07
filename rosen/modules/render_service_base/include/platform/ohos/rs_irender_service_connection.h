@@ -313,7 +313,7 @@ public:
 
     virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
-    virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
+    virtual void SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif
 
     virtual void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,

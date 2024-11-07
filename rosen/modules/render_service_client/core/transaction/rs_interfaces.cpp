@@ -734,9 +734,9 @@ void RSInterfaces::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType)
 {
-    renderServiceClient_->SetTpFeatureConfig(feature, config);
+    renderServiceClient_->SetTpFeatureConfig(feature, config, tpFeatureConfigType);
 }
 #endif
 

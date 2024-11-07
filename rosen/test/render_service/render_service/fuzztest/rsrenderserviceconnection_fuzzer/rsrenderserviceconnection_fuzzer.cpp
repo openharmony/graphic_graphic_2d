@@ -1100,7 +1100,8 @@ bool DOSetTpFeatureConfig()
     }
     int32_t feature = GetData<int32_t>();
     char config = GetData<char>();
-    rsConn_->SetTpFeatureConfig(feature, &config);
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
+    rsConn_->SetTpFeatureConfig(feature, &config, tpFeatureConfigType);
     return true;
 }
 #endif

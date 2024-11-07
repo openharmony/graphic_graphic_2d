@@ -2001,15 +2001,37 @@ void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
-    if (TOUCH_SCREEN->tsSetFeatureConfig_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: touch screen function symbol is nullptr.");
-        return;
-    }
-    if (TOUCH_SCREEN->tsSetFeatureConfig_(feature, config) < 0) {
-        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: tsSetFeatureConfig_ failed.");
-        return;
+    switch (tpFeatureConfigType) {
+        case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
+                return;
+            }
+            if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetFeatureConfig failed");
+                return;
+            }
+            break;
+        }
+        case TpFeatureConfigType::AFT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetAftConfigHandl is nullptr");
+                return;
+            }
+            if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetAftConfig failed");
+                return;
+            }
+            break;
+        }
+        default: {
+            RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: unknown TpFeatureConfigType: %" PRIu8"",
+                static_cast<uint8_t>(tpFeatureConfigType));
+            return;
+        }
     }
 }
 #endif

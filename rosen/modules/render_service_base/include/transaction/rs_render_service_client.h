@@ -359,7 +359,8 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config);
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);

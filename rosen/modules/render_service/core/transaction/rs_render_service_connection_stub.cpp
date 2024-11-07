@@ -1798,7 +1798,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG) : {
             int32_t feature = data.ReadInt32();
             auto config = data.ReadCString();
-            SetTpFeatureConfig(feature, config);
+            auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(data.ReadUint8());
+            SetTpFeatureConfig(feature, config, tpFeatureConfigType);
             break;
         }
 #endif
