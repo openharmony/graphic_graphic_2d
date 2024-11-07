@@ -652,17 +652,19 @@ void RSMainThread::Init()
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
-    frameRateMgr_->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
-        RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
-            RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
-                idleTimerExpired? "True":"False", forceUpdate? "True": "False");
-            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
-            RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
-            RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
-            RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+    if (frameRateMgr_ != nullptr) {
+        frameRateMgr_->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
+            RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
+                RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
+                    idleTimerExpired? "True":"False", forceUpdate? "True": "False");
+                RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
+                RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
+                RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
+                RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+            });
         });
-    });
-    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+        frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+    }
     SubscribeAppState();
     PrintCurrentStatus();
     RSLuminanceControl::Get().Init();
@@ -2804,7 +2806,10 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
-            return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
+            if (frameRateMgr_ != nullptr) {
+                return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
+            }
+            return 0;
         };
         node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
