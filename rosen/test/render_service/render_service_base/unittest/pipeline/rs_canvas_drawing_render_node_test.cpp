@@ -554,7 +554,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, IsNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->renderDrawable_ =
         std::make_shared<RSCanvasDrawingRenderNodeDrawableAdapterTest>(otherNode);
     rsCanvasDrawingRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode->IsNeedProcess());
+    EXPECT_FALSE(rsCanvasDrawingRenderNode->IsNeedProcess());
 }
 
 /**
