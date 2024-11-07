@@ -56,6 +56,7 @@ group("unittest") {
     ":RSUnmarshalThreadTest",
     ":RSVBlankIdleCorrectorTest",
     ":RSVirtualScreenProcessorTest",
+    ":RSVsyncRateReduceManagerTest",
   ]
   if (rs_enable_eglimage) {
     deps += [ ":RSEglImageManagerTest" ]
