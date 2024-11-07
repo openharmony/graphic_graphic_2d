@@ -529,22 +529,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetForceUIFirstTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnSkipSyncTest
- * @tc.desc: test results of OnSkipSync
- * @tc.type: FUNC
- * @tc.require: issueIA4VTS
- */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, OnSkipSyncTest, TestSize.Level1)
-{
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    renderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    renderNode->OnSkipSync();
-    EXPECT_FALSE(renderNode->forceUIFirst_);
-    renderNode->OnSkipSync();
-    EXPECT_FALSE(renderNode->forceUIFirstChanged_);
-}
-
-/**
  * @tc.name: AccumulateOcclusionRegion
  * @tc.desc: test results of AccumulateOcclusionRegion
  * @tc.type: FUNC
@@ -973,5 +957,38 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, IsSpecialLayerChanged001, TestSize.Level1)
     EXPECT_FALSE(node->IsSpecialLayerChanged());
 }
 
+/**
+ * @tc.name: SetAbilityState
+ * @tc.desc: test results of SetAbilityState
+ * @tc.type:FUNC SetAbilityState
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetAbilityState, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::FOREGROUND);
+    ASSERT_TRUE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+    ASSERT_FALSE(node->abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->SetAbilityState(RSSurfaceNodeAbilityState::BACKGROUND);
+}
+
+/**
+ * @tc.name: GetAbilityState
+ * @tc.desc: test results of GetAbilityState
+ * @tc.type:FUNC GetAbilityState
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, GetAbilityState, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    auto abilityState = node->GetAbilityState();
+    ASSERT_TRUE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+    node->abilityState_ = RSSurfaceNodeAbilityState::BACKGROUND;
+    abilityState = node->GetAbilityState();
+    ASSERT_FALSE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
+}
 } // namespace Rosen
 } // namespace OHOS

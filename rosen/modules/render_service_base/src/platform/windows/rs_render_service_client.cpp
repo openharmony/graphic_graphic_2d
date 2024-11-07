@@ -490,7 +490,8 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 {
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
 }
 
@@ -520,6 +521,10 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 }
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
+{
+}
+
+void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
 
@@ -575,9 +580,19 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     return false;
 }
 
-bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
 {
     return false;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return false;
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -41,6 +41,7 @@
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
+#include "render/rs_distortion_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -137,7 +138,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
     [](RSProperties* prop) { prop->SetPixelStretch({}); },               // PIXEL_STRETCH
-    [](RSProperties* prop) { prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
+    [](RSProperties* prop) { prop->SetPixelStretch({});
+                             prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
     [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
@@ -177,6 +179,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetFlyOutDegree(0.0f); },              // FLY_OUT_DEGREE
     [](RSProperties* prop) { prop->SetFlyOutParams({}); },               // FLY_OUT_PARAMS
+    [](RSProperties* prop) { prop->SetDistortionK(0.0f); },              // DISTORTION_K
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
     [](RSProperties* prop) { prop->SetMagnifierParams({}); },            // MAGNIFIER_PARA
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
@@ -1440,6 +1443,38 @@ std::optional<RSFlyOutPara> RSProperties::GetFlyOutParams() const
 bool RSProperties::IsFlyOutValid() const
 {
     return ROSEN_GE(flyOutDegree_, 0.0f) && ROSEN_LE(flyOutDegree_, 1.0f) && flyOutParams_.has_value();
+}
+
+void RSProperties::SetDistortionK(const std::optional<float>& distortionK)
+{
+    distortionK_ = distortionK;
+    if (distortionK_.has_value()) {
+        isDrawn_ = true;
+        distortionEffectDirty_ = ROSEN_GNE(*distortionK_, 0.0f) && ROSEN_LE(*distortionK_, 1.0f);
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetDistortionK() const
+{
+    return distortionK_;
+}
+
+bool RSProperties::IsDistortionKValid() const
+{
+    return distortionK_.has_value() && ROSEN_GE(*distortionK_, -1.0f) && ROSEN_LE(*distortionK_, 1.0f);
+}
+
+void RSProperties::SetDistortionDirty(bool distortionEffectDirty)
+{
+    distortionEffectDirty_ = distortionEffectDirty;
+}
+
+bool RSProperties::GetDistortionDirty() const
+{
+    return distortionEffectDirty_;
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -4186,6 +4221,8 @@ void RSProperties::UpdateForegroundFilter()
         } else {
             foregroundFilter_ = colorfulShadowFilter;
         }
+    } else if (IsDistortionKValid()) {
+        foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else {
         foregroundFilter_.reset();
         foregroundFilterCache_.reset();

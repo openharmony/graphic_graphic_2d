@@ -176,6 +176,25 @@ bool operator!=(const Brush& b1, const Brush& b2)
 {
     return !(b1 == b2);
 }
+
+void Brush::Dump(std::string& out) const
+{
+    out += "[color";
+    color_.Dump(out);
+    out += " blendMode:" + std::to_string(static_cast<int>(blendMode_));
+    out += " filter";
+    filter_.Dump(out);
+    if (colorSpace_ != nullptr) {
+        out += " colorSpaceType:" + std::to_string(static_cast<int>(colorSpace_->GetType()));
+    }
+    if (shaderEffect_ != nullptr) {
+        out += " shaderEffectType:" + std::to_string(static_cast<int>(shaderEffect_->GetType()));
+    }
+    out += " isAntiAlias:" + std::string(antiAlias_ ? "true" : "false");
+    out += " blenderEnabled:" + std::string(blenderEnabled_ ? "true" : "false");
+    out += " hasFilter:" + std::string(hasFilter_ ? "true" : "false");
+    out += ']';
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

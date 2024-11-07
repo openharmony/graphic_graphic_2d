@@ -498,7 +498,7 @@ VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
 
 void VSyncGenerator::SubScribeSystemAbility()
 {
-    VLOGD("%{public}s", __func__);
+    VLOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {

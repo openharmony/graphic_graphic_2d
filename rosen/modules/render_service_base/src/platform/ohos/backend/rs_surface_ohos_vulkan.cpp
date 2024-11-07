@@ -17,7 +17,6 @@
 
 #include <memory>
 #include "memory/rs_tag_tracker.h"
-#include "SkColor.h"
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #include "vulkan/vulkan_core.h"
@@ -28,10 +27,38 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawing/engine_adapter/skia_adapter/skia_gpu_context.h"
 #include "engine_adapter/skia_adapter/skia_surface.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 
+class RSTimer {
+public:
+    static inline int64_t GetNanoSeconds()
+    {
+        struct timespec ts {};
+        clock_gettime(CLOCK_REALTIME, &ts);
+        return ts.tv_sec * NANO + ts.tv_nsec;
+    }
+
+    explicit RSTimer(const char* tag): tag_(tag), timestamp_(GetNanoSeconds()) {}
+
+    ~RSTimer()
+    {
+        int64_t durationNS = GetNanoSeconds() - timestamp_;
+        int64_t durationMS = durationNS / MILLI;
+        if (durationMS > THRESHOLD) {
+            RS_LOGE("%{public}s task too long: %{public}" PRIu64" ms", tag_, durationMS);
+        }
+    }
+
+private:
+    const char* tag_;
+    const int64_t timestamp_;
+    static constexpr int64_t NANO = 1000000000LL;
+    static constexpr int64_t MILLI = 1000000LL;
+    static constexpr int64_t THRESHOLD = 50; //Jank 6
+};
 
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
@@ -197,6 +224,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     std::unique_ptr<RSSurfaceFrameOhosVulkan> frame =
         std::make_unique<RSSurfaceFrameOhosVulkan>(nativeSurface.drawingSurface, width, height, bufferAge);
     std::unique_ptr<RSSurfaceFrame> ret(std::move(frame));
+    mSkContext->BeginFrame();
     return ret;
 }
 
@@ -243,8 +271,18 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefs(context);
     };
     drawingFlushInfo.finishedContext = callbackInfo;
-    surface.drawingSurface->Flush(&drawingFlushInfo);
-    mSkContext->Submit();
+    {
+        RS_TRACE_NAME("Flush");
+        RSTimer timer("Flush");
+        surface.drawingSurface->Flush(&drawingFlushInfo);
+    }
+    {
+        RS_TRACE_NAME("Submit");
+        RSTimer timer("Submit");
+        mSkContext->Submit();
+        mSkContext->EndFrame();
+    }
+    
     int fenceFd = -1;
 
     auto queue = vkContext.GetQueue();

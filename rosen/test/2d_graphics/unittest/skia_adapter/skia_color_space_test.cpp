@@ -115,6 +115,36 @@ HWTEST_F(SkiaColorSpaceTest, Deserialize001, TestSize.Level1)
     SkiaColorSpace skiaColorSpace;
     skiaColorSpace.Deserialize(nullptr);
 }
+
+/**
+ * @tc.name: IsSRGB001
+ * @tc.desc: Test IsSRGB
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaColorSpaceTest, IsSRGB001, TestSize.Level1)
+{
+    SkiaColorSpace skiaColorSpace;
+    skiaColorSpace.InitWithSRGB();
+    EXPECT_TRUE(skiaColorSpace.IsSRGB());
+}
+
+/**
+ * @tc.name: Equals001
+ * @tc.desc: Test Equals
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SkiaColorSpaceTest, Equals001, TestSize.Level1)
+{
+    std::shared_ptr<ColorSpaceImpl> colorSpaceImpl = std::make_shared<SkiaColorSpace>();
+    colorSpaceImpl->InitWithSRGB();
+    std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateFromImpl(colorSpaceImpl);
+
+    SkiaColorSpace skiaColorSpace;
+    skiaColorSpace.InitWithSRGB();
+    EXPECT_TRUE(skiaColorSpace.Equals(colorSpace));
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

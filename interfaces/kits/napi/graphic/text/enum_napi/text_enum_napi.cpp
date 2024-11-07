@@ -143,7 +143,7 @@ static const std::vector<struct JsEnumInt> TEXTHEIGHTBEHAVIOR = {
     { "DISABLE_ALL", static_cast<size_t>(TextHeightBehavior::DISABLE_ALL) },
 };
 
-static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
+const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
     { "TextAlign", TEXT_ALIGN },
     { "TextDecorationStyle", TEXT_DECORATION_STYLE },
     { "FontWeight", FONT_WEIGHT },

@@ -29,7 +29,6 @@ class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
-    static MemoryGraphic CountSubMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     // Count memory for hidumper
@@ -52,6 +51,11 @@ public:
     static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
 
+    static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
+    static void SuppressGpuCacheBelowCertainRatio(
+        Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log);

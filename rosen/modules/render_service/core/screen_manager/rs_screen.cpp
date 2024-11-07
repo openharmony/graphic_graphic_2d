@@ -1036,7 +1036,7 @@ const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
     return whiteList_;
 }
 
-void RSScreen::SetBlackList(std::unordered_set<uint64_t>& blackList)
+void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
     blackList_ = blackList;
 }
@@ -1068,20 +1068,6 @@ int32_t RSScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, Scre
         }
     }
     return StatusCode::HDI_ERROR;
-}
-
-bool RSScreen::SetVirtualScreenStatus(VirtualScreenStatus screenStatus)
-{
-    if (IsVirtual()) {
-        screenStatus_ = screenStatus;
-        return true;
-    }
-    return false;
-}
-
-VirtualScreenStatus RSScreen::GetVirtualScreenStatus() const
-{
-    return screenStatus_;
 }
 
 void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList)

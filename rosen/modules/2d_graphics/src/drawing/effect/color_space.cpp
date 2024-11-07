@@ -113,6 +113,16 @@ bool ColorSpace::Deserialize(std::shared_ptr<Data> data)
     return impl_->Deserialize(data);
 }
 
+bool ColorSpace::IsSRGB() const
+{
+    return impl_->IsSRGB();
+}
+
+bool ColorSpace::Equals(const std::shared_ptr<ColorSpace>& colorSpace) const
+{
+    return impl_->Equals(colorSpace);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

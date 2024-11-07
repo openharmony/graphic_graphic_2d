@@ -316,6 +316,9 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
         out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
         out += ", SkipIndex:" + std::to_string(GetSkipIndex());
     }
+    if (drawSkipType_ != DrawSkipType::NONE) {
+        out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_));
+    }
     out += "\n";
 
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
@@ -426,7 +429,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
 
 void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas)
 {
-    if (curDrawingCacheRoot_ != nullptr) {
+    if (curDrawingCacheRoot_ != nullptr && curCanvas != nullptr) {
         auto iter = std::find_if(curDrawingCacheRoot_->filterInfoVec_.begin(),
             curDrawingCacheRoot_->filterInfoVec_.end(),
             [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });

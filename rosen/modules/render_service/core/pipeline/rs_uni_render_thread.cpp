@@ -66,7 +66,7 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
-constexpr const char* ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES = "AsyncFreeVMAMemoryBetweenFrames";
+constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -148,6 +148,18 @@ void RSUniRenderThread::InitGrContext()
         }
     }
 #endif
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    auto grContext = renderContext->GetDrGPUContext();
+    if (!grContext) {
+        return;
+    }
+    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled());
+    MemoryManager::SetGpuCacheSuppressWindowSwitch(
+        grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
 }
 
 void RSUniRenderThread::Inittcache()
@@ -299,7 +311,7 @@ bool RSUniRenderThread::IsIdle() const
 
 void RSUniRenderThread::Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams)
 {
-    renderParamsManager_.SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(stagingRenderThreadParams));
 }
 
 void RSUniRenderThread::Render()
@@ -637,6 +649,27 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
 }
 
+bool RSUniRenderThread::IsColorFilterModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
+    if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
+        colorFilterMode == ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        return false;
+    }
+    return true;
+}
+
+bool RSUniRenderThread::IsHighContrastTextModeOn() const
+{
+    if (!uniRenderEngine_) {
+        return false;
+    }
+    return uniRenderEngine_->IsHighContrastEnabled();
+}
+
 void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
 {
     auto task = [this, &dumpString, &type] {
@@ -746,8 +779,8 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (UNLIKELY(!grContext)) {
             return;
         }
-        RS_LOGD("Clear memory cache %{public}d", this->GetClearMoment());
-        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", this->GetClearMoment());
+        RS_LOGD("Clear memory cache %{public}d", moment);
+        RS_TRACE_NAME_FMT("Clear memory cache, cause the moment [%d] happen", moment);
         std::lock_guard<std::mutex> lock(clearMemoryMutex_);
         SKResourceManager::Instance().ReleaseResource();
         grContext->Flush();
@@ -778,9 +811,10 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
+        } else {
+            this->isDefaultCleanTaskFinished_ = true;
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
-        this->exitedPidSet_.clear();
         this->clearMemDeeply_ = false;
         this->SetClearMoment(ClearMemoryMoment::NO_CLEAR);
     };
@@ -807,6 +841,16 @@ void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bo
     }
     RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
     DefaultClearMemoryCache();
+}
+
+void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
+{
+    isDefaultCleanTaskFinished_ = isFinished;
+}
+
+bool RSUniRenderThread::IsDefaultClearMemroyFinished()
+{
+    return isDefaultCleanTaskFinished_;
 }
 
 void RSUniRenderThread::PurgeCacheBetweenFrames()
@@ -836,23 +880,53 @@ void RSUniRenderThread::PurgeCacheBetweenFrames()
         PURGE_CACHE_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
-void RSUniRenderThread::AsyncFreeVMAMemoryBetweenFrames()
+void RSUniRenderThread::FlushGpuMemoryInWaitQueueBetweenFrames()
 {
-    RemoveTask(ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES);
+    if (!uniRenderEngine_) {
+        return;
+    }
+    auto renderContext = uniRenderEngine_->GetRenderContext();
+    if (!renderContext) {
+        return;
+    }
+    auto grContext = renderContext->GetDrGPUContext();
+    if (!grContext) {
+        return;
+    }
+    MemoryManager::FlushGpuMemoryInWaitQueue(grContext);
+}
+
+void RSUniRenderThread::SuppressGpuCacheBelowCertainRatioBetweenFrames()
+{
+    RemoveTask(SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO);
     PostTask(
         [this]() {
-            RS_TRACE_NAME_FMT("AsyncFreeVMAMemoryBetweenFrames");
-            GrDirectContext::asyncFreeVMAMemoryBetweenFrames([this]() -> bool {
-                return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
+            if (!uniRenderEngine_) {
+                return;
+            }
+            auto renderContext = uniRenderEngine_->GetRenderContext();
+            if (!renderContext) {
+                return;
+            }
+            auto grContext = renderContext->GetDrGPUContext();
+            if (!grContext) {
+                return;
+            }
+            RS_TRACE_NAME_FMT("SuppressGpuCacheBelowCertainRatio");
+            MemoryManager::SuppressGpuCacheBelowCertainRatio(grContext, [this]() -> bool {
+               return this->handler_->HasPreferEvent(static_cast<int>(AppExecFwk::EventQueue::Priority::HIGH));
             });
         },
-        ASYNC_FREE_VMAMEMORY_BETWEEN_FRAMES, 0, AppExecFwk::EventQueue::Priority::LOW);
+        SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO, 0, AppExecFwk::EventQueue::Priority::LOW);
 }
 
 void RSUniRenderThread::MemoryManagementBetweenFrames()
 {
-    if (RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()) {
-        AsyncFreeVMAMemoryBetweenFrames();
+    if (RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()) {
+        FlushGpuMemoryInWaitQueueBetweenFrames();
+    }
+    if (RSSystemProperties::GetGpuCacheSuppressWindowEnabled()) {
+        SuppressGpuCacheBelowCertainRatioBetweenFrames();
     }
 }
 

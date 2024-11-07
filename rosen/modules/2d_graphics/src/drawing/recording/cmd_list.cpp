@@ -32,11 +32,11 @@ CmdList::CmdList(const CmdListData& cmdListData)
 CmdList::~CmdList()
 {
 #ifdef ROSEN_OHOS
-    surfaceBufferVec_.clear();
+    surfaceBufferEntryVec_.clear();
 #endif
 }
 
-uint32_t CmdList::AddCmdListData(const CmdListData& data)
+size_t CmdList::AddCmdListData(const CmdListData& data)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     if (!lastOpItemOffset_.has_value()) {
@@ -55,9 +55,9 @@ uint32_t CmdList::AddCmdListData(const CmdListData& data)
     return opAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetCmdListData(uint32_t offset) const
+const void* CmdList::GetCmdListData(size_t offset, size_t size) const
 {
-    return opAllocator_.OffsetToAddr(offset);
+    return opAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetData() const
@@ -70,7 +70,7 @@ bool CmdList::SetUpImageData(const void* data, size_t size)
     return imageAllocator_.BuildFromDataWithCopy(data, size);
 }
 
-uint32_t CmdList::AddImageData(const void* data, size_t size)
+size_t CmdList::AddImageData(const void* data, size_t size)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = imageAllocator_.Add(data, size);
@@ -81,9 +81,9 @@ uint32_t CmdList::AddImageData(const void* data, size_t size)
     return imageAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetImageData(uint32_t offset) const
+const void* CmdList::GetImageData(size_t offset, size_t size) const
 {
-    return imageAllocator_.OffsetToAddr(offset);
+    return imageAllocator_.OffsetToAddr(offset, size);
 }
 
 CmdListData CmdList::GetAllImageData() const
@@ -113,8 +113,8 @@ OpDataHandle CmdList::AddImage(const Image& image)
         LOGD("CmdList AddImageData failed!");
         return ret;
     }
-    uint32_t offset = imageAllocator_.AddrToOffset(addr);
-    imageHandleVec_.push_back(std::pair<uint32_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
+    size_t offset = imageAllocator_.AddrToOffset(addr);
+    imageHandleVec_.push_back(std::pair<size_t, OpDataHandle>(uniqueId, {offset, data->GetSize()}));
 
     return {offset, data->GetSize()};
 }
@@ -132,7 +132,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
         return nullptr;
     }
 
-    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset);
+    const void* ptr = imageAllocator_.OffsetToAddr(imageHandle.offset, imageHandle.size);
     if (ptr == nullptr) {
         LOGD("get image data failed");
         return nullptr;
@@ -149,7 +149,7 @@ std::shared_ptr<Image> CmdList::GetImage(const OpDataHandle& imageHandle)
     return image;
 }
 
-uint32_t CmdList::AddBitmapData(const void* data, size_t size)
+size_t CmdList::AddBitmapData(const void* data, size_t size)
 {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     void* addr = bitmapAllocator_.Add(data, size);
@@ -160,9 +160,9 @@ uint32_t CmdList::AddBitmapData(const void* data, size_t size)
     return bitmapAllocator_.AddrToOffset(addr);
 }
 
-const void* CmdList::GetBitmapData(uint32_t offset) const
+const void* CmdList::GetBitmapData(size_t offset, size_t size) const
 {
-    return bitmapAllocator_.OffsetToAddr(offset);
+    return bitmapAllocator_.OffsetToAddr(offset, size);
 }
 
 bool CmdList::SetUpBitmapData(const void* data, size_t size)
@@ -325,38 +325,38 @@ uint32_t CmdList::GetOpCnt() const
 }
 
 #ifdef ROSEN_OHOS
-uint32_t CmdList::AddSurfaceBuffer(const sptr<SurfaceBuffer>& surfaceBuffer)
+uint32_t CmdList::AddSurfaceBufferEntry(const std::shared_ptr<SurfaceBufferEntry>& surfaceBufferEntry)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
-    surfaceBufferVec_.emplace_back(surfaceBuffer);
-    return static_cast<uint32_t>(surfaceBufferVec_.size()) - 1;
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+    surfaceBufferEntryVec_.emplace_back(surfaceBufferEntry);
+    return static_cast<uint32_t>(surfaceBufferEntryVec_.size()) - 1;
 }
 
-sptr<SurfaceBuffer> CmdList::GetSurfaceBuffer(uint32_t id)
+std::shared_ptr<SurfaceBufferEntry> CmdList::GetSurfaceBufferEntry(uint32_t id)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
-    if (id >= surfaceBufferVec_.size()) {
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+    if (id >= surfaceBufferEntryVec_.size()) {
         return nullptr;
     }
-    return surfaceBufferVec_[id];
+    return surfaceBufferEntryVec_[id];
 }
 
-uint32_t CmdList::GetAllSurfaceBuffer(std::vector<sptr<SurfaceBuffer>>& objectList)
+uint32_t CmdList::GetAllSurfaceBufferEntry(std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
-    for (const auto &object : surfaceBufferVec_) {
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
+    for (const auto &object : surfaceBufferEntryVec_) {
         objectList.emplace_back(object);
     }
     return static_cast<uint32_t>(objectList.size());
 }
 
-uint32_t CmdList::SetupSurfaceBuffer(const std::vector<sptr<SurfaceBuffer>>& objectList)
+uint32_t CmdList::SetupSurfaceBufferEntry(const std::vector<std::shared_ptr<SurfaceBufferEntry>>& objectList)
 {
-    std::lock_guard<std::mutex> lock(surfaceBufferMutex_);
+    std::lock_guard<std::mutex> lock(surfaceBufferEntryMutex_);
     for (const auto &object : objectList) {
-        surfaceBufferVec_.emplace_back(object);
+        surfaceBufferEntryVec_.emplace_back(object);
     }
-    return static_cast<uint32_t>(surfaceBufferVec_.size());
+    return static_cast<uint32_t>(surfaceBufferEntryVec_.size());
 }
 #endif
 

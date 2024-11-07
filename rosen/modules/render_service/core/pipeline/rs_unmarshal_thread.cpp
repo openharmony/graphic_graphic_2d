@@ -254,5 +254,4 @@ void RSUnmarshalThread::ClearTransactionDataStatistics()
     std::unique_lock<std::mutex> lock(statisticsMutex_);
     transactionDataStatistics_.clear();
 }
-
 }

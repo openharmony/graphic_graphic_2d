@@ -134,10 +134,17 @@ HWTEST_F(RSRoundCornerDisplayTest, UpdateParameterTest, TestSize.Level1)
         {"orientation", true}
     };
     rcdInstance.UpdateParameter(updateFlag);
+    EXPECT_TRUE(rcdInstance.hardInfo_.resourceChanged == true);
 
     int notchStatus = WINDOW_NOTCH_DEFAULT;
     rcdInstance.UpdateNotchStatus(notchStatus);
     EXPECT_TRUE(rcdInstance.notchStatus_ == notchStatus);
+
+    rcdInstance.GetHardwareInfoPreparing();
+    EXPECT_TRUE(rcdInstance.hardInfo_.resourcePreparing == true);
+
+    rcdInstance.UpdateHardwareResourcePrepared(true);
+    EXPECT_TRUE(rcdInstance.hardInfo_.resourceChanged == false && rcdInstance.hardInfo_.resourcePreparing == false);
 }
 
 /*

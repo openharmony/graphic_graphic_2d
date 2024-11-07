@@ -60,9 +60,9 @@ namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
 struct SharedTransitionParam;
-
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode>  {
 public:
+
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     static inline constexpr RSRenderNodeType Type = RSRenderNodeType::RS_NODE;
@@ -398,6 +398,11 @@ public:
         return cacheSurface_;
     }
 
+    void SetIsTextureExportNode(bool isTextureExportNode)
+    {
+        isTextureExportNode_ = isTextureExportNode;
+    }
+
 // use for uni render visitor
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
@@ -451,6 +456,7 @@ public:
     void SetGeoUpdateDelay(bool val);
     void ResetGeoUpdateDelay();
     bool GetGeoUpdateDelay() const;
+
     bool HasAnimation() const;
     bool GetCurFrameHasAnimation() const
     {
@@ -629,11 +635,6 @@ public:
         return renderContent_;
     }
 
-    void SetIsTextureExportNode(bool isTextureExportNode)
-    {
-        isTextureExportNode_ = isTextureExportNode;
-    }
-
 #ifdef RS_ENABLE_STACK_CULLING
     void SetFullSurfaceOpaqueMarks(const std::shared_ptr<RSRenderNode> curSurfaceNodeParam);
     void SetSubNodesCovered();
@@ -641,7 +642,7 @@ public:
     bool isFullSurfaceOpaquCanvasNode_ = false;
     bool hasChildFullSurfaceOpaquCanvasNode_ = false;
     bool isCoveredByOtherNode_ = false;
-#define MAX_COLD_DOWN_NUM 20
+    static const int32_t MAX_COLD_DOWN_NUM = 20;
     int32_t coldDownCounter_ = 0;
 #endif
 
@@ -657,10 +658,7 @@ public:
         isChildSupportUifirst_ = isChildSupportUifirst_ && b;
     }
 
-    virtual bool GetUifirstSupportFlag()
-    {
-        return !GetRenderProperties().GetSandBox() && isChildSupportUifirst_ && isUifirstNode_;
-    }
+    virtual bool GetUifirstSupportFlag();
 
     virtual void MergeOldDirtyRect()
     {
@@ -712,7 +710,6 @@ public:
         lastFrameSynced_ = false;
         // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
         addedToPendingSyncList_ = false;
-        OnSkipSync();
     }
     void Sync()
     {
@@ -753,6 +750,12 @@ public:
         return renderDrawable_;
     }
     void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
+    virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
+    bool GetIsFullChildrenListValid() const
+    {
+        return isFullChildrenListValid_;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -783,7 +786,6 @@ protected:
 
     virtual void InitRenderParams();
     virtual void OnSync();
-    virtual void OnSkipSync() {};
     virtual void ClearResource() {};
 
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
@@ -842,7 +844,6 @@ private:
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     std::set<NodeId> preFirstLevelNodeIdSet_ = {};
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
-    const bool isPurgeable_;
 
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
@@ -884,7 +885,8 @@ private:
     RectI oldChildrenRect_;
     RectI oldClipRect_;
     Drawing::Matrix oldAbsMatrix_;
-    
+    bool childHasFilter_ = false;  // only collect children filter status
+
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
     // aim to record current frame clipped children dirty region, in abs coords
@@ -904,14 +906,17 @@ private:
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
+    void CollectAndUpdateLocalDistortionEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
     bool UpdateSelfDrawRect();
     bool CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geoPtr);
     void UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect);
+
     void UpdateDirtyRegion(RSDirtyRegionManager& dirtyManager, bool geoDirty, const std::optional<RectI>& clipRect);
     void UpdateDrawRect(bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix);
     void UpdateFullScreenFilterCacheRect(RSDirtyRegionManager& dirtyManager, bool isForeground) const;
+
     void ValidateLightResources();
     void UpdateShouldPaint(); // update node should paint state in apply modifier stage
     bool shouldPaint_ = true;
@@ -1024,6 +1029,7 @@ private:
     RectI localOutlineRect_;
     RectI localPixelStretchRect_;
     RectI localForegroundEffectRect_;
+    RectI localDistortionEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
     pid_t appPid_ = 0;
@@ -1075,6 +1081,7 @@ private:
 
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
+    const bool isPurgeable_;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
@@ -1100,6 +1107,10 @@ struct SharedTransitionParam {
 
     RSRenderNode::SharedPtr GetPairedNode(const NodeId nodeId) const;
     bool UpdateHierarchyAndReturnIsLower(const NodeId nodeId);
+    bool IsInAppTranSition() const
+    {
+        return !crossApplication_;
+    }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
 

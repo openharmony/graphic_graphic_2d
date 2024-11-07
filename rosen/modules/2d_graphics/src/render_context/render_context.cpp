@@ -25,7 +25,7 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
-#ifdef RS_ENABLE_GL
+#if defined(RS_ENABLE_GL)
 #include "EGL/egl.h"
 #endif
 
@@ -500,6 +500,7 @@ sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorG
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
             break;
         default:
+            skColorSpace = SkColorSpace::MakeSRGB();
             break;
     }
 

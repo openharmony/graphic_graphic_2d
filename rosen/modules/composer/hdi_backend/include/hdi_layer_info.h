@@ -112,16 +112,6 @@ public:
         zOrder_ = static_cast<uint32_t>(zOrder);
     }
 
-    void SetType(const GraphicLayerType& layerType)
-    {
-        layerType_ = layerType;
-    }
-
-    GraphicLayerType GetType() const
-    {
-        return layerType_;
-    }
-
     void SetAlpha(const GraphicLayerAlpha &alpha)
     {
         layerAlpha_ = alpha;
@@ -174,19 +164,19 @@ public:
         boundRect_ = boundRect;
     }
 
-    void SetLayerAdditionalInfo(void *info)
-    {
-        additionalInfo_ = info;
-    }
-
-    void* GetLayerAdditionalInfo()
-    {
-        return additionalInfo_;
-    }
-
     void SetLayerColor(GraphicLayerColor layerColor)
     {
         layerColor_ = layerColor;
+    }
+
+    void SetBackgroundColor(GraphicLayerColor backgroundColor)
+    {
+        backgroundColor_ = backgroundColor;
+    }
+
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
     }
 
     void SetColorTransform(const std::vector<float> &matrix)
@@ -362,6 +352,16 @@ public:
     GraphicLayerColor GetLayerColor() const
     {
         return layerColor_;
+    }
+
+    GraphicLayerColor GetBackgroundColor() const
+    {
+        return backgroundColor_;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
     }
 
     std::vector<GraphicHDRMetaData> &GetMetaData()
@@ -588,7 +588,6 @@ public:
 
 private:
     uint32_t zOrder_ = 0;
-    GraphicLayerType layerType_ = GraphicLayerType::GRAPHIC_LAYER_TYPE_GRAPHIC;
     GraphicIRect layerRect_;
     GraphicIRect boundRect_; // node's bound width and height related to this layer, used for uni render redraw
     std::vector<GraphicIRect> visibleRegions_;
@@ -603,6 +602,7 @@ private:
     GraphicBlendType blendType_;
     std::vector<float> colorTransformMatrix_;
     GraphicLayerColor layerColor_;
+    GraphicLayerColor backgroundColor_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
@@ -612,7 +612,6 @@ private:
     bool IsSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
-    void *additionalInfo_ = nullptr;
     sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
@@ -629,6 +628,7 @@ private:
     std::set<int32_t> clearCacheSet_;
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
+    std::vector<float> drmCornerRadiusInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

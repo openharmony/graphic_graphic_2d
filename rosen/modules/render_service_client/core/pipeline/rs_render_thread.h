@@ -141,6 +141,7 @@ private:
     void Animate(uint64_t timestamp);
     void Render();
     void SendCommands();
+    void ReleasePixelMapInBackgroundThread();
 
     std::atomic_bool running_ = false;
     std::atomic_bool hasSkipVsync_ = false;

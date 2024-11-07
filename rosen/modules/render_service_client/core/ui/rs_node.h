@@ -41,6 +41,7 @@
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -48,6 +49,7 @@ namespace OHOS {
 namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
+using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -125,6 +127,9 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    void DumpTree(int depth, std::string& out) const;
+    virtual void Dump(std::string& out) const;
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 
@@ -153,6 +158,7 @@ public:
     static void OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
         const RSAnimationTimingCurve& timingCurve, const std::function<void()>& finishCallback = nullptr);
     static std::vector<std::shared_ptr<RSAnimation>> CloseImplicitAnimation();
+    static bool CloseImplicitCancelAnimation();
     static bool IsImplicitAnimationOpen();
 
     static void ExecuteWithoutAnimation(
@@ -341,9 +347,11 @@ public:
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
-    
+
     void SetWaterRippleParams(const RSWaterRipplePara& params, float progress);
     void SetFlyOutParams(const RSFlyOutPara& params, float degree);
+
+    void SetDistortionK(const float distortionK);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -383,6 +391,7 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
+    // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
 
     // Mark uifirst node
@@ -438,7 +447,6 @@ public:
 
     std::string GetFrameNodeTag();
 
-    using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
     virtual void SetBoundsChangedCallback(BoundsChangedCallback callback){};
     bool IsTextureExportNode() const
     {
@@ -533,7 +541,7 @@ private:
     void SetForegroundBlurColorMode(int colorMode);
     void SetForegroundBlurRadiusX(float blurRadiusX);
     void SetForegroundBlurRadiusY(float blurRadiusY);
-    
+
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -586,7 +594,7 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;

@@ -90,10 +90,10 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
 
     Drawing::BitmapFormat bitmapFormat = { image->GetColorType(), image->GetAlphaType() };
     auto sharedTexture = std::make_shared<Drawing::Image>();
-    SharedTextureContext* sharedContext = new SharedTextureContext(image);
     auto context = canvas.GetGPUContext();
     if (!context || !sharedTexture->BuildFromTexture(*context, sharedBackendTexture.GetTextureInfo(),
-        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext, sharedContext)) {
+        origin, bitmapFormat, nullptr, SKResourceManager::DeleteSharedTextureContext,
+        new SharedTextureContext(image))) {
         RS_LOGE("RSCanvasDrawingRenderNode::ResetSurfaceWithTexture sharedTexture is nullptr");
         return false;
     }
@@ -251,8 +251,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface, imagesize: [%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface [%{public}d, %{public}d] %{public}" PRIu64 "",
+                width, height, GetId());
             if (!surface_) {
                 RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface surface is nullptr");
                 return false;
@@ -481,6 +481,12 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             drawCmdLists_[type].emplace_back(cmd);
             SetNeedProcess(true);
         }
+        bool overflow = drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT;
+        if (overflow && lastOverflowStatus_ != overflow) {
+            RS_LOGE("drawcmdlist overflow, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu", GetId(), type, drawCmdLists_[type].size());
+        }
+        lastOverflowStatus_ = overflow;
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
         while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&

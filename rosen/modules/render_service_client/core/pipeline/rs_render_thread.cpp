@@ -22,6 +22,7 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
+#include "common/rs_background_thread.h"
 #include "delegate/rs_functional_delegate.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
@@ -32,6 +33,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
 #include "rs_frame_report.h"
@@ -125,6 +127,7 @@ RSRenderThread::RSRenderThread()
             context_->activeNodesInRoot_.clear();
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        ReleasePixelMapInBackgroundThread();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -168,6 +171,14 @@ void RSRenderThread::Start()
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
+    }
+}
+
+void RSRenderThread::ReleasePixelMapInBackgroundThread()
+{
+    if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
+        static std::function<void()> task = []() -> void { RSImageCache::Instance().ReleaseUniqueIdList(); };
+        RSBackgroundThread::Instance().PostTask(task);
     }
 }
 

@@ -60,6 +60,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ANCO_FLAGS,
     SURFACE_NODE_SET_HDR_PRESENT,
     SURFACE_NODE_SET_SKIP_DRAW,
+    SURFACE_NODE_SET_ABILITY_STATE,
+    SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -75,6 +77,7 @@ public:
     static void SetContextAlpha(RSContext& context, NodeId nodeId, float alpha);
     static void SetContextClipRegion(RSContext& context, NodeId nodeId, const std::optional<Drawing::Rect>& clipRect);
     static void SetSecurityLayer(RSContext& context, NodeId nodeId, bool isSecurityLayer);
+    static void SetLeashPersistentId(RSContext& context, NodeId nodeId, uint64_t leashPersistentId);
     static void SetSkipLayer(RSContext& context, NodeId nodeId, bool isSkipLayer);
     static void SetFingerprint(RSContext& context, NodeId nodeId, bool hasFingerprint);
     static void SetColorSpace(RSContext& context, NodeId nodeId, GraphicColorGamut colorSpace);
@@ -102,6 +105,7 @@ public:
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
+    static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -161,6 +165,9 @@ ADD_COMMAND(RSSurfaceNodeSetColorSpace,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
 ADD_COMMAND(RSurfaceNodeSetSurfaceId,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_ID, SurfaceNodeCommandHelper::SetSurfaceId, NodeId, SurfaceId))
+ADD_COMMAND(RSurfaceNodeSetLeashPersistentId,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
+    SurfaceNodeCommandHelper::SetLeashPersistentId, NodeId, LeashPersistentId))
 
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
@@ -177,6 +184,9 @@ ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
     ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW, SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetAbilityState,
+    ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE, SurfaceNodeCommandHelper::SetAbilityState,
+    NodeId, RSSurfaceNodeAbilityState))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

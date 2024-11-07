@@ -110,12 +110,12 @@ std::shared_ptr<Drawing::Image> GELinearGradientBlurShaderFilter::ProcessImage(D
 
     if (GetMaskLinearBlurEnabled() && para->useMaskAlgorithm_) {
         // use faster LinearGradientBlur if valid
-        if (para->LinearGradientBlurFilter_ == nullptr) {
+        if (para->linearGradientBlurFilter_ == nullptr) {
             LOGE("RSPropertiesPainter::DrawLinearGradientBlur blurFilter null");
             return image;
         }
 
-        const auto& RSFilter = para->LinearGradientBlurFilter_;
+        const auto& RSFilter = para->linearGradientBlurFilter_;
         auto filter = RSFilter;
         return DrawMaskLinearGradientBlur(image, canvas, filter, alphaGradientShader, dst);
     } else {
@@ -261,10 +261,6 @@ bool GELinearGradientBlurShaderFilter::ProcessGradientDirectionPoints(
 std::shared_ptr<Drawing::ShaderEffect> GELinearGradientBlurShaderFilter::MakeAlphaGradientShader(
     const Drawing::Rect& clipBounds, const std::shared_ptr<GELinearGradientBlurPara>& para, uint8_t directionBias)
 {
-    if (para->fractionStops_.size() < 1) {
-        return nullptr;
-    }
-
     std::vector<Drawing::ColorQuad> c;
     std::vector<Drawing::scalar> p;
     Drawing::Point pts[2];  // 2 size of points

@@ -62,10 +62,10 @@ inline void DrawCapturedImg(Drawing::Image& image,
 }
 }
 
-void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
+void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
 {
     RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::CheckModifiers");
-    bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id) ||
+    bool needSync = RSMainThread::Instance()->IsOcclusionNodesNeedSync(id, useCurWindow) ||
         RSMainThread::Instance()->IsHardwareEnabledNodesNeedSync();
     if (!needSync) {
         return;
@@ -74,12 +74,14 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id)
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
-            if (auto node = weakPtr.lock()) {
-                if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
-                    node->Sync();
-                } else {
-                    node->SkipSync();
-                }
+            auto node = weakPtr.lock();
+            if (node == nullptr) {
+                continue;
+            }
+            if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
+                node->Sync();
+            } else {
+                node->SkipSync();
             }
         }
         pendingSyncNodes.clear();

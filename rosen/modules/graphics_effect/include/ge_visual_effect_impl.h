@@ -36,8 +36,8 @@ public:
         MESA_BLUR,
         GREY, AIBAR,
         LINEAR_GRADIENT_BLUR,
-        WATER_RIPPLE,
         MAGNIFIER,
+        WATER_RIPPLE,
         MAX
     };
 

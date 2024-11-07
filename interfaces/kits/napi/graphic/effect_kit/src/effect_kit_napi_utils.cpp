@@ -18,7 +18,7 @@
 namespace OHOS {
 namespace Rosen {
 
-napi_valuetype EffectKitNapiUtils::getType(napi_env env, napi_value root)
+napi_valuetype EffectKitNapiUtils::GetType(napi_env env, napi_value root)
 {
     napi_valuetype res = napi_undefined;
     napi_typeof(env, root, &res);

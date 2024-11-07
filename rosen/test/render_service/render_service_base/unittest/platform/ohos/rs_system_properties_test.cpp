@@ -457,6 +457,18 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetDefaultDeviceRotationOffset
+ * @tc.desc: GetDefaultDeviceRotationOffset Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetDefaultDeviceRotationOffset, TestSize.Level1)
+{
+    RSSystemProperties::SetDefaultDeviceRotationOffset(90);
+    ASSERT_TRUE(RSSystemProperties::GetDefaultDeviceRotationOffset() == 90);
+}
+
+/**
  * @tc.name: GetPrepareParallelRenderingEnabled
  * @tc.desc: GetPrepareParallelRenderingEnabled Test
  * @tc.type:FUNC

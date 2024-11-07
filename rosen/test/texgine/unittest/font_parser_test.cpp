@@ -213,6 +213,7 @@ HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
     auto parseName = std::make_shared<NameTableParser>(data_, length_);
     auto nameTable = parseName->Parse(data_, length_);
     parseName->Dump();
+    hb_blob_destroy(hblob);
     EXPECT_NE(nameTable, nullptr);
 }
 

@@ -27,10 +27,11 @@
 #include "include/core/SkSurface.h"
 #include "draw/surface.h"
 #include "image/image.h"
-#include "drawing/engine_adapter/skia_adapater/skia_color_space.h"
+#include "drawing/engine_adapter/skia_adapter/skia_color_space.h"
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
+constexpr uint32_t VKIMAGE_LIMIT_SIZE = 10000 * 10000; // Vk-Image Size need less than 10000*10000
 void DeleteVkImage(void* context);
 class VulkanCleanupHelper {
 public:
@@ -93,14 +94,8 @@ struct NativeSurfaceInfo {
     ~NativeSurfaceInfo()
     {
         drawingSurface = nullptr;
-        if (window != nullptr) {
-            NativeObjectUnreference(window);
-            window = nullptr;
-        }
-        if (nativeWindowBuffer != nullptr) {
-            NativeObjectUnreference(nativeWindowBuffer);
-            nativeWindowBuffer = nullptr;
-        }
+        NativeObjectUnreference(window);
+        NativeObjectUnreference(nativeWindowBuffer);
     }
 };
 

@@ -89,29 +89,18 @@ public:
     {
         return hasCaptureWindow_;
     }
-
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledDrawables()
     {
         return hardwareEnabledDrawables_;
     }
-
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTopDrawables()
     {
         return hardwareEnabledTopDrawables_;
     }
-
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const override
     {
         return isSecurityDisplay_;
-    }
-    void SetIsMouseDirty(bool mouseDirty)
-    {
-        isMouseDirty_ = mouseDirty;
-    }
-    bool GetIsMouseDirty() const
-    {
-        return isMouseDirty_;
     }
     void SetGlobalZOrder(float zOrder);
     float GetGlobalZOrder() const;
@@ -130,13 +119,16 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
-    void SetBrightnessRatio (bool brightnessRatio);
+    void SetBrightnessRatio (float brightnessRatio);
     float GetBrightnessRatio() const;
 
     void SetNewColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetNewColorSpace() const;
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
     GraphicPixelFormat GetNewPixelFormat() const;
+
+    void SetZoomed(bool isZoomed);
+    bool GetZoomed() const;
 
     bool IsSpecialLayerChanged() const
     {
@@ -168,8 +160,7 @@ private:
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
     bool isSecurityExemption_ = false;
-    std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
-    std::shared_ptr<DrawableV2::RSRenderNodeDrawableAdapter> mirrorSourceDrawable_ = nullptr;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
@@ -178,12 +169,12 @@ private:
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
-    bool brightnessRatio_ = 1.0f;
-    bool isMouseDirty_ = false;
+    float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;
+    bool isZoomed_ = false;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
-    
+
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrawables_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window

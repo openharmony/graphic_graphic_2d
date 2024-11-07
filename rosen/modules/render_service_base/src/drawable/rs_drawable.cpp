@@ -120,7 +120,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::COLOR_FILTER,                  // HUE_ROTATE
     RSDrawableSlot::COLOR_FILTER,                  // COLOR_BLEND
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE
-    RSDrawableSlot::INVALID,                       // SHADOW_IS_FILLED
+    RSDrawableSlot::SHADOW,                        // SHADOW_IS_FILLED
     RSDrawableSlot::OUTLINE,                       // OUTLINE_COLOR
     RSDrawableSlot::OUTLINE,                       // OUTLINE_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_STYLE
@@ -141,6 +141,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
+    RSDrawableSlot::FOREGROUND_FILTER,             // DISTORTION_K
     RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
     RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
     RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
@@ -261,7 +262,7 @@ enum DrawableVecStatus : uint8_t {
     // Used by skip logic in RSRenderNode::UpdateDisplayList
     FRAME_NOT_EMPTY    = 1 << 4,
     NODE_NOT_EMPTY     = 1 << 5,
- 
+
     // masks
     BOUNDS_MASK  = CLIP_TO_BOUNDS | BG_BOUNDS_PROPERTY | FG_BOUNDS_PROPERTY,
     FRAME_MASK   = FRAME_NOT_EMPTY,

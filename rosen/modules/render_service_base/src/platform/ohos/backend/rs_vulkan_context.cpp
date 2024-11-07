@@ -88,7 +88,7 @@ void RsVulkanInterface::Init(bool isProtected)
 
 RsVulkanInterface::~RsVulkanInterface()
 {
-    for (auto && semaphoreFence : usedSemaphoreFenceList_) {
+    for (auto&& semaphoreFence : usedSemaphoreFenceList_) {
         if (semaphoreFence.fence != nullptr) {
             semaphoreFence.fence->Wait(-1);
         }
@@ -284,10 +284,7 @@ bool RsVulkanInterface::CreateDevice(bool isProtected)
     return true;
 }
 
-bool RsVulkanInterface::
-
-
-(GrVkBackendContext* context, bool createNew, bool isProtected)
+bool RsVulkanInterface::CreateSkiaBackendContext(GrVkBackendContext* context, bool createNew, bool isProtected)
 {
     auto getProc = CreateSkiaGetProc();
     if (getProc == nullptr) {

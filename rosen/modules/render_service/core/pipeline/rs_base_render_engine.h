@@ -183,9 +183,6 @@ public:
         const BufferRequestConfig& config, bool forceCPU = false, bool useAFBC = true,
         const FrameContextConfig& frameContextConfig = {false, false});
 
-    void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
-        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
-
     // There would only one user(thread) to renderFrame(request frame) at one time.
 #ifdef NEW_RENDER_CONTEXT
     std::unique_ptr<RSRenderFrame> RequestFrame(const std::shared_ptr<RSRenderSurfaceOhos>& rsSurface,
@@ -232,14 +229,9 @@ public:
     void ClearCacheSet(const std::set<int32_t> unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
-    static void SetHighContrast(bool enabled)
-    {
-        isHighContrastEnabled_  = enabled;
-    }
-    static bool IsHighContrastEnabled()
-    {
-        return isHighContrastEnabled_;
-    }
+    static void SetHighContrast(bool enabled);
+    static bool IsHighContrastEnabled();
+
 #if defined(NEW_RENDER_CONTEXT)
     const std::shared_ptr<RenderContextBase>& GetRenderContext() const
     {
@@ -269,6 +261,11 @@ public:
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
+    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
+        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
+#endif
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {
@@ -283,24 +280,23 @@ public:
         return captureSkContext_;
     }
 #endif
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
-    void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
-        Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-#endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
     static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceNode);
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
+    static inline std::atomic_bool isHighContrastEnabled_ = false;
 
 private:
     std::shared_ptr<Drawing::Image> CreateEglImageFromBuffer(RSPaintFilterCanvas& canvas,
         const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence,
-        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB);
+        const uint32_t threadIndex = UNI_MAIN_THREAD_INDEX,
+        const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace = nullptr);
 
-    static inline std::atomic_bool isHighContrastEnabled_ = false;
+    static void DrawImageRect(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Image> image,
+        BufferDrawParam& params, Drawing::SamplingOptions& samplingOptions);
+
 #if defined(NEW_RENDER_CONTEXT)
     std::shared_ptr<RenderContextBase> renderContext_ = nullptr;
     std::shared_ptr<DrawingContext> drawingContext_ = nullptr;
@@ -322,7 +318,8 @@ private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static bool SetColorSpaceConverterDisplayParameter(
         const BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
-    static bool ConvertColorGamutToSpaceInfo(const GraphicColorGamut& colorGamut,
+    static std::shared_ptr<Drawing::ColorSpace> GetCanvasColorSpace(const RSPaintFilterCanvas& canvas);
+    static bool ConvertDrawingColorSpaceToSpaceInfo(const std::shared_ptr<Drawing::ColorSpace>& colorSpace,
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceInfo& colorSpaceInfo);
     std::shared_ptr<Media::VideoProcessingEngine::ColorSpaceConverterDisplay> colorSpaceConverterDisplay_ = nullptr;
 #endif

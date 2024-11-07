@@ -187,12 +187,6 @@ typedef enum : uint32_t {
     SCREEN_MANAGER_NULL,
 } StatusCode;
 
-typedef enum {
-    VIRTUAL_SCREEN_PLAY = 0,
-    VIRTUAL_SCREEN_PAUSE,
-    VIRTUAL_SCREEN_INVALID_STATUS,
-} VirtualScreenStatus;
-
 /*
  * @brief Enumerates screen color key types supported by hardware acceleration.
  */

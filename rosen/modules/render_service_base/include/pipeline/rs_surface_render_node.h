@@ -43,6 +43,7 @@
 #include "surface_buffer.h"
 #include "sync_fence.h"
 #endif
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,6 +115,13 @@ public:
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
     }
 
+    void SetLayerTop(bool isTop);
+
+    bool IsLayerTop() const
+    {
+        return isLayerTop_;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -121,13 +129,20 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface();
+            IsHardwareEnabledTopSurface() || IsLayerTop();
     }
 
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT)
+    bool IsDynamicHardwareEnable() const
+    {
+        return dynamicHardwareEnable_;
+    }
+
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+       bool dynamicHardwareEnable = true)
     {
         isHardwareEnabledNode_ = isEnabled;
         selfDrawingType_ = selfDrawingType;
+        dynamicHardwareEnable_ = dynamicHardwareEnable;
     }
 
     void SetForceHardwareAndFixRotation(bool flag);
@@ -143,7 +158,8 @@ public:
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb");
+            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" ||
+            name_.find("HwStylusFeature") != std::string::npos);
     }
 
     void SetSubNodeShouldPaint()
@@ -164,8 +180,6 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
         const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
-
-    void ResetPreBuffer();
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -252,7 +266,9 @@ public:
 
     bool IsHardwareForcedDisabled() const
     {
-        if (isProtectedLayer_) {
+        // a protected node not on the tree need to release buffer when producer produce buffers
+        // release buffer in ReleaseSelfDrawingNodeBuffer function
+        if (isProtectedLayer_ && IsOnTheTree()) {
             return false;
         }
         return isHardwareForcedDisabled_ ||
@@ -439,6 +455,7 @@ public:
     bool GetBootAnimation() const override;
 
     void SetSecurityLayer(bool isSecurityLayer);
+    void SetLeashPersistentId(uint64_t leashPersistentId);
     void SetSkipLayer(bool isSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
 
@@ -446,6 +463,11 @@ public:
     bool GetSecurityLayer() const;
     bool GetSkipLayer() const;
     bool GetProtectedLayer() const;
+    LeashPersistentId GetLeashPersistentId() const;
+
+    // set ability state that surfaceNode belongs to as foreground or background
+    void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
+    RSSurfaceNodeAbilityState GetAbilityState() const override;
 
     // get whether it and it's subtree contain security layer
     bool GetHasSecurityLayer() const;
@@ -625,6 +647,7 @@ public:
             return;
         }
         isLeashWindowVisibleRegionEmpty_ = isLeashWindowVisibleRegionEmpty;
+        SetLeashWindowVisibleRegionEmptyParam();
     }
 
     bool GetLeashWindowVisibleRegionEmpty() const
@@ -667,9 +690,7 @@ public:
     GraphicColorGamut GetColorSpace() const;
 
     // Only call this if the node is self-drawing surface node.
-    void UpdateColorSpaceToIntanceRootNode();
-    GraphicColorGamut GetSubSurfaceColorSpace() const;
-    void ResetSubSurfaceColorSpace();
+    void UpdateColorSpaceWithMetadata();
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetConsumer(const sptr<IConsumerSurface>& consumer);
@@ -1180,6 +1201,12 @@ public:
                nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadius);
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
     {
         return surfaceHandler_;
@@ -1198,18 +1225,24 @@ public:
         dirtyStatus_ = containerDirty ? NodeDirty::DIRTY : dirtyStatus_;
     }
 
-    bool GetIsIntersectWithRoundCorner() const
+    template<class... Args>
+    void SetIntersectedRoundCornerAABBs(Args&& ...args)
     {
-        return isIntersectWithRoundCorner_;
+        std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
 
-    void SetIsIntersectWithRoundCorner(bool isIntersectWithRoundCorner)
+    const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
     {
-        isIntersectWithRoundCorner_ = isIntersectWithRoundCorner;
+        return intersectedRoundCornerAABBs_;
     }
+
+    size_t GetIntersectedRoundCornerAABBsSize() const
+    {
+        return intersectedRoundCornerAABBs_.size();
+    }
+
 protected:
     void OnSync() override;
-    void OnSkipSync() override;
 
     // rotate corner by rotation degreee. Every 90 degrees clockwise rotation, the vector
     // of corner radius loops one element to the right
@@ -1260,20 +1293,25 @@ private:
     bool hasHdrPresent_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
-    bool isIntersectWithRoundCorner_ = false;
+    std::vector<RectI> intersectedRoundCornerAABBs_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
     SurfaceId surfaceId_ = 0;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    std::vector<float> drmCornerRadiusInfo_;
 
     std::string name_;
     std::string bundleName_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
+    bool isLayerTop_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
+    // This variable can be set in two cases:
+    // 1. The upper-layer IPC interface directly sets window colorspace.
+    // 2. If it is a self-drawing node, the colorspace will be refreshed after hardware-enable calculation.
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    std::optional<GraphicColorGamut> subColorSpace_ = std::nullopt;
 #ifndef ROSEN_CROSS_PLATFORM
     GraphicBlendType blendType_ = GraphicBlendType::GRAPHIC_BLEND_SRCOVER;
 #endif
@@ -1288,6 +1326,7 @@ private:
     std::vector<NodeId> childSurfaceNodeIds_;
     friend class RSRenderThreadVisitor;
     RectI clipRegionFromParent_;
+    uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
         visibleRegionForCallBack: appwindow visible region after occlusion (no filtercache occlusion), used in
@@ -1396,6 +1435,7 @@ private:
     bool isNodeDirty_ = true;
     // used for hardware enabled nodes
     bool isHardwareEnabledNode_ = false;
+    bool dynamicHardwareEnable_ = true;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     RectI originalDstRect_;

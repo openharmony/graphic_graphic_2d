@@ -165,7 +165,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     ASSERT_NE(displayDrawable_, nullptr);
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
-        rtThread.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     }
     NodeId id = 1;
     auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(id);
@@ -686,80 +686,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, WiredScreenProjectionTest, TestSize.Le
 }
 
 /**
- * @tc.name: SkipDisplayIfScreenOff
- * @tc.desc: Test SkipDisplayIfScreenOff, corner case (node is nullptr), return false
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff001, TestSize.Level1)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-    drawable_->renderNode_.reset();
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-}
-
-/**
- * @tc.name: SkipDisplayIfScreenOff
- * @tc.desc: Test SkipDisplayIfScreenOff, if power off, return true
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff002, TestSize.Level1)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-
-    ScreenId screenId = 1;
-    renderNode_->SetScreenId(screenId);
-
-    auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-}
-
-/**
- * @tc.name: SkipDisplayIfScreenOff
- * @tc.desc: Test SkipDisplayIfScreenOff, if power off and render one more frame, return true
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipDisplayIfScreenOff003, TestSize.Level1)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || !RSSystemProperties::IsPhoneType()) {
-        return;
-    }
-
-    ScreenId screenId = 1;
-    renderNode_->SetScreenId(screenId);
-
-    auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManager->MarkPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManager->MarkPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-
-    screenManager->ResetPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-    screenManager->ResetPowerOffNeedProcessOneFrame();
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-    ASSERT_FALSE(displayDrawable_->SkipDisplayIfScreenOff());
-}
-
-/**
  * @tc.name: GetSpecialLayerType
  * @tc.desc: Test GetSpecialLayerType
  * @tc.type: FUNC
@@ -1098,27 +1024,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SwitchColorFilter, TestSize.Level1)
     displayDrawable_->SwitchColorFilter(canvas);
     displayDrawable_->SwitchColorFilter(canvas, 0.6);
 
-    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
-    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-}
-
-/**
- * @tc.name: SetHighContrastIfEnabled
- * @tc.desc: Test SetHighContrastIfEnabled
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SetHighContrastIfEnabled, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    Drawing::Canvas drawingCanvas;
-    RSPaintFilterCanvas canvas(&drawingCanvas);
-    displayDrawable_->SetHighContrastIfEnabled(canvas);
-    ASSERT_FALSE(RSUniRenderThread::Instance().GetRenderEngine());
-
-    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    displayDrawable_->SetHighContrastIfEnabled(canvas);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }

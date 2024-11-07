@@ -166,9 +166,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
     usleep(usleepTime);
 
-    VirtualScreenStatus screenStatus = VirtualScreenStatus::VIRTUAL_SCREEN_PLAY;
-    rsInterfaces.SetVirtualScreenStatus(static_cast<ScreenId>(id), static_cast<VirtualScreenStatus>(screenStatus));
-
+    std::string nodeIdStr = GetData<std::string>();
+    bool isTop = GetData<bool>();
+    rsInterfaces.SetLayerTop(nodeIdStr, isTop);
     return true;
 }
 

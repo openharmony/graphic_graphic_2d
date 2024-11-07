@@ -118,6 +118,8 @@ public:
     sk_sp<SkColorSpace> GetSkColorSpace() const;
     std::shared_ptr<Data> Serialize() const;
     bool Deserialize(std::shared_ptr<Data> data);
+    bool IsSRGB() const;
+    bool Equals(const std::shared_ptr<ColorSpace>& colorSpace) const;
 
 private:
     ColorSpaceType type_;

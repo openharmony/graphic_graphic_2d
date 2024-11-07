@@ -45,6 +45,7 @@
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_message_processor.h"
+#include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
@@ -69,6 +70,7 @@
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -169,13 +171,13 @@ constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
-constexpr float DEFAULT_SCALER = 4.5f;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float REFERENCE_WHITE = 203.0f;
 constexpr float CAMERA_WHITE_MIN = 500.0f;
 constexpr float CAMERA_WHITE_MAX = 510.0f;
 constexpr float CAMERA_HDR_RATIO = 2.5f;
 constexpr float HDR_WHITE = 1000.0f;
+constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -243,7 +245,7 @@ void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<Rc
 
 float CalScaler(const float& maxContentLightLevel)
 {
-    if (ROSEN_LE(maxContentLightLevel, 0.0f) || ROSEN_LNE(maxContentLightLevel, REFERENCE_WHITE)) {
+    if (ROSEN_EQ(maxContentLightLevel, REFERENCE_WHITE)) {
         return DEFAULT_HDR_RATIO;
     } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
         return CAMERA_HDR_RATIO;
@@ -279,7 +281,7 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         return;
     }
     float scaler = DEFAULT_SCALER;
-    if (hdrStaticMetadataVec.size() != sizeof(hdrStaticMetadataVec) || hdrStaticMetadataVec.data() == nullptr) {
+    if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
@@ -311,9 +313,10 @@ public:
     AccessibilityObserver() = default;
     void OnConfigChanged(const CONFIG_ID id, const ConfigValue &value) override
     {
-        RS_LOGI("RSMainThread AccessibilityObserver OnConfigChanged configId: %{public}d", id);
         ColorFilterMode mode = ColorFilterMode::COLOR_FILTER_END;
         if (id == CONFIG_ID::CONFIG_DALTONIZATION_COLOR_FILTER) {
+            RS_LOGI("RSAccessibility DALTONIZATION_COLOR_FILTER: %{public}d",
+                static_cast<int>(value.daltonizationColorFilter));
             switch (value.daltonizationColorFilter) {
                 case Protanomaly:
                     mode = ColorFilterMode::DALTONIZATION_PROTANOMALY_MODE;
@@ -332,13 +335,15 @@ public:
             }
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_INVERT_COLOR) {
+            RS_LOGI("RSAccessibility INVERT_COLOR: %{public}d", static_cast<int>(value.invertColor));
             mode = value.invertColor ? ColorFilterMode::INVERT_COLOR_ENABLE_MODE :
                                         ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
             RSBaseRenderEngine::SetColorFilterMode(mode);
         } else if (id == CONFIG_ID::CONFIG_HIGH_CONTRAST_TEXT) {
+            RS_LOGI("RSAccessibility HIGH_CONTRAST_TEXT: %{public}d", static_cast<int>(value.highContrastText));
             RSBaseRenderEngine::SetHighContrast(value.highContrastText);
         } else {
-            RS_LOGW("AccessibilityObserver configId: %{public}d is not supported yet.", id);
+            RS_LOGW("RSAccessibility configId: %{public}d is not supported yet.", id);
         }
         RSMainThread::Instance()->PostTask([]() {
             RSMainThread::Instance()->SetAccessibilityConfigChanged();
@@ -398,6 +403,7 @@ RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()),
 
 RSMainThread::~RSMainThread() noexcept
 {
+    RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(nullptr);
     RemoveRSEventDetector();
     RSInnovation::CloseInnovationSo();
     if (rsAppStateListener_) {
@@ -468,6 +474,9 @@ void RSMainThread::Init()
         RSRenderNodeGC::Instance().ReleaseFromTree();
         // release node memory
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        if (!isUniRender_) {
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+        }
         if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
             static std::function<void()> task = []() -> void {
                 RSImageCache::Instance().ReleaseUniqueIdList();
@@ -496,6 +505,11 @@ void RSMainThread::Init()
             return RSTypefaceCache::Instance().GetDrawingTypefaceCache(globalUniqueId);
         };
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
+    {
+        using namespace std::placeholders;
+        RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(
+            std::bind(&RSMainThread::OnCommitDumpClientNodeTree, this, _1, _2, _3, _4));
+    }
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
@@ -530,6 +544,8 @@ void RSMainThread::Init()
         };
         RSUnmarshalThread::Instance().Start();
     }
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -847,7 +863,7 @@ void RSMainThread::PrintCurrentStatus()
 
 void RSMainThread::SubScribeSystemAbility()
 {
-    RS_LOGD("%{public}s", __func__);
+    RS_LOGI("%{public}s", __func__);
     sptr<ISystemAbilityManager> systemAbilityManager =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!systemAbilityManager) {
@@ -1299,8 +1315,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
         surfaceNode->ResetSpecialLayerChangedFlag();
-        // Update self-drawing surface color space into to its parent surface, to decouple prepare skip.
-        surfaceNode->UpdateColorSpaceToIntanceRootNode();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
@@ -1319,7 +1333,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
         }
         surfaceHandler->ResetCurrentFrameBufferConsumed();
-        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, false, timestamp_)) {
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_)) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -1336,6 +1350,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
             if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
+                RSBaseRenderUtil::SetScalingMode(*surfaceNode);
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,
@@ -1378,7 +1393,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
 #endif
         // still have buffer(s) to consume.
-        if (surfaceHandler->GetAvailableBufferCount() > 0 || surfaceHandler->HasBufferCache()) {
+        if (surfaceHandler->GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
         if (!hasHdrVideo) {
@@ -2036,6 +2051,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
                 surfaceNode->AddToPendingSyncList();
             }
             processor->CreateLayer(*surfaceNode, *params);
+            // buffer is synced to directComposition
+            params->SetBufferSynced(true);
         }
     }
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
@@ -3160,6 +3177,115 @@ void RSMainThread::RenderServiceTreeDump(std::string& dumpString, bool forceDump
     }
 }
 
+void RSMainThread::SendClientDumpNodeTreeCommands(uint32_t taskId)
+{
+    RS_TRACE_NAME_FMT("DumpClientNodeTree start task[%u]", taskId);
+    std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
+    if (nodeTreeDumpTasks_.find(taskId) != nodeTreeDumpTasks_.end()) {
+        RS_LOGW("SendClientDumpNodeTreeCommands task[%{public}u] duplicate", taskId);
+        return;
+    }
+
+    std::unordered_map<pid_t, std::vector<NodeId>> topNodes;
+    if (const auto& rootNode = context_->GetGlobalRootRenderNode()) {
+        for (const auto& displayNode : *rootNode->GetSortedChildren()) {
+            for (const auto& node : *displayNode->GetSortedChildren()) {
+                NodeId id = node->GetId();
+                topNodes[ExtractPid(id)].push_back(id);
+            }
+        }
+    }
+    context_->GetNodeMap().TraversalNodes([this, &topNodes] (const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node->IsOnTheTree() && node->GetType() == RSRenderNodeType::ROOT_NODE) {
+            if (auto parent = node->GetParent().lock()) {
+                NodeId id = parent->GetId();
+                topNodes[ExtractPid(id)].push_back(id);
+            }
+            NodeId id = node->GetId();
+            topNodes[ExtractPid(id)].push_back(id);
+        }
+    });
+
+    auto& task = nodeTreeDumpTasks_[taskId];
+    for (const auto& [pid, nodeIds] : topNodes) {
+        auto iter = applicationAgentMap_.find(pid);
+        if (iter == applicationAgentMap_.end() || !iter->second) {
+            continue;
+        }
+        auto transactionData = std::make_shared<RSTransactionData>();
+        for (auto id : nodeIds) {
+            auto command = std::make_unique<RSDumpClientNodeTree>(id, pid, taskId);
+            transactionData->AddCommand(std::move(command), id, FollowType::NONE);
+            task.count++;
+            RS_TRACE_NAME_FMT("DumpClientNodeTree add task[%u] pid[%u] node[%" PRIu64 "]",
+                taskId, pid, id);
+            RS_LOGI("SendClientDumpNodeTreeCommands add task[%{public}u] pid[%u] node[%" PRIu64 "]",
+                taskId, pid, id);
+        }
+        iter->second->OnTransaction(transactionData);
+    }
+    RS_LOGI("SendClientDumpNodeTreeCommands send task[%{public}u] count[%{public}zu]",
+        taskId, task.count);
+}
+
+void RSMainThread::CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout)
+{
+    std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
+    {
+        RS_TRACE_NAME_FMT("DumpClientNodeTree wait task[%u]", taskId);
+        nodeTreeDumpCondVar_.wait_for(lock, std::chrono::milliseconds(timeout), [this, taskId] () {
+            const auto& task = nodeTreeDumpTasks_[taskId];
+            return task.completionCount == task.count;
+        });
+    }
+
+    const auto& task = nodeTreeDumpTasks_[taskId];
+    size_t completed = task.completionCount;
+    RS_TRACE_NAME_FMT("DumpClientNodeTree end task[%u] completionCount[%zu]", taskId, completed);
+    dumpString += "\n-- ClientNodeTreeDump: ";
+    for (const auto& [pid, data] : task.data) {
+        dumpString += "\n| pid[";
+        dumpString += std::to_string(pid);
+        dumpString += "]";
+        if (data) {
+            dumpString += "\n";
+            dumpString += data.value();
+        }
+    }
+    nodeTreeDumpTasks_.erase(taskId);
+
+    RS_LOGI("CollectClientNodeTreeResult task[%{public}u] completionCount[%{public}zu]",
+        taskId, completed);
+}
+
+void RSMainThread::OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result)
+{
+    RS_TRACE_NAME_FMT("DumpClientNodeTree collected task[%u] dataSize[%zu] pid[%d]",
+        taskId, result.size(), pid);
+    {
+        std::unique_lock<std::mutex> lock(nodeTreeDumpMutex_);
+        auto iter = nodeTreeDumpTasks_.find(taskId);
+        if (iter == nodeTreeDumpTasks_.end()) {
+            RS_LOGW("OnDumpClientNodeTree task[%{public}u] not found for pid[%d]", taskId, pid);
+            return;
+        }
+
+        iter->second.completionCount++;
+        auto& data = iter->second.data[pid];
+        if (data) {
+            data->append("\n");
+            data->append(result);
+        } else {
+            data = result;
+        }
+    }
+    nodeTreeDumpCondVar_.notify_all();
+
+    RS_LOGI("OnDumpClientNodeTree task[%{public}u] dataSize[%{public}zu] pid[%d]",
+        taskId, result.size(), pid);
+}
+
+
 bool RSMainThread::DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
     using CreateParallelSyncSignalFunc = void* (*)(uint32_t);
@@ -3641,12 +3767,24 @@ bool RSMainThread::IsHardwareEnabledNodesNeedSync()
     return needSync;
 }
 
-bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id)
+bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
 {
     auto nodePtr = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
         GetContext().GetNodeMap().GetRenderNode(id));
     if (nodePtr == nullptr) {
         return false;
+    }
+
+    if (useCurWindow == false) {
+        auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr->GetParent().lock());
+        if (parentNode && parentNode->IsLeashWindow() && parentNode->ShouldPaint()) {
+            nodePtr = parentNode;
+        }
+    }
+
+    if (nodePtr->GetIsFullChildrenListValid() == false) {
+        nodePtr->PrepareSelfNodeForApplyModifiers();
+        return true;
     }
 
     bool needSync = false;

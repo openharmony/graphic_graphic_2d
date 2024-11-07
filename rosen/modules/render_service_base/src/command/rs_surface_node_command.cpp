@@ -89,6 +89,13 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
     }
 }
 
+void SurfaceNodeCommandHelper::SetLeashPersistentId(RSContext& context, NodeId id, LeashPersistentId leashPersistentId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetLeashPersistentId(leashPersistentId);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
@@ -291,6 +298,17 @@ void SurfaceNodeCommandHelper::SetSkipDraw(RSContext& context, NodeId nodeId, bo
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
         node->SetSkipDraw(skip);
     }
+}
+
+void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId,
+    RSSurfaceNodeAbilityState abilityState)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (!node) {
+        ROSEN_LOGE("SurfaceNodeCommandHelper::SetAbilityState node is null!");
+        return;
+    }
+    node->SetAbilityState(abilityState);
 }
 } // namespace Rosen
 } // namespace OHOS

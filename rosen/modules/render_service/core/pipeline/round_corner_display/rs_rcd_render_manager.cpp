@@ -15,6 +15,9 @@
 
 #include "rs_rcd_render_manager.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_singleton.h"
+#include "pipeline/parallel_render/rs_sub_thread_manager.h"
+#include "pipeline/round_corner_display/rs_message_bus.h"
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"
 
@@ -71,6 +74,9 @@ void RSRcdRenderManager::DoProcessRenderTask(const RcdProcessInfo& info)
     visitor->SetUniProcessor(info.uniProcessor);
     visitor->ProcessRcdSurfaceRenderNode(*bottomSurfaceNode_, info.bottomLayer, info.resourceChanged);
     visitor->ProcessRcdSurfaceRenderNode(*topSurfaceNode_, info.topLayer, info.resourceChanged);
+    if (info.resourceChanged) {
+        RSSingleton<RsMessageBus>::GetInstance().SendMsg<bool>(TOPIC_RCD_DISPLAY_HWRESOURCE, true);
+    }
     RS_TRACE_END();
 }
 

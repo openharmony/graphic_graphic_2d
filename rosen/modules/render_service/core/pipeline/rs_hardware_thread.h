@@ -84,6 +84,8 @@ private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     static GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
     static GraphicPixelFormat ComputeTargetPixelFormat(const std::vector<LayerInfoPtr>& layers);
+    static bool ConvertColorGamutToSpaceType(const GraphicColorGamut& colorGamut,
+        HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceInfo);
 #endif
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;

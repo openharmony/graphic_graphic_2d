@@ -27,14 +27,23 @@ constexpr int32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
 constexpr int32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
 constexpr int32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
 
+enum ComponentScene : int32_t {
+    UNKNOWN_SCENE = 0,
+    SWIPER_FLING = 1,
+};
+
 class FrameRateRange {
 public:
-    FrameRateRange() : min_(0), max_(0), preferred_(0), type_(0) {}
+    FrameRateRange() : min_(0), max_(0), preferred_(0), type_(0), isEnergyAssurance_(false),
+        componentScene_(ComponentScene::UNKNOWN_SCENE) {}
 
     FrameRateRange(int min, int max, int preferred) : min_(min), max_(max), preferred_(preferred) {}
 
     FrameRateRange(int min, int max, int preferred, int type) : min_(min), max_(max),
         preferred_(preferred), type_(type) {}
+
+    FrameRateRange(int min, int max, int preferred, int type, ComponentScene componentScene) : min_(min), max_(max),
+        preferred_(preferred), type_(type), componentScene_(componentScene) {}
 
     bool IsZero() const
     {
@@ -58,6 +67,8 @@ public:
         this->max_ = 0;
         this->preferred_ = 0;
         this->type_ = 0;
+        this->isEnergyAssurance_ = false;
+        this->componentScene_ = ComponentScene::UNKNOWN_SCENE;
     }
 
     void Set(int min, int max, int preferred)
@@ -79,6 +90,8 @@ public:
     {
         if (this->preferred_ < other.preferred_) {
             this->Set(other.min_, other.max_, other.preferred_, other.type_);
+            this->isEnergyAssurance_ = other.isEnergyAssurance_;
+            this->componentScene_ = other.componentScene_;
             return true;
         }
         return false;
@@ -86,19 +99,40 @@ public:
 
     std::string GetExtInfo() const
     {
+        auto componentName = GetComponentName();
+        if (isEnergyAssurance_ && componentName != "UNKNOWN_SCENE") {
+            return std::string("COMPONENT_") + componentName + "_ASSURANCE";
+        }
+        std::string extInfo = "";
         switch (type_) {
             case RS_ANIMATION_FRAME_RATE_TYPE:
-                return "RS_ANIMATION";
+                extInfo = "RS_ANIMATION";
+                break;
             case UI_ANIMATION_FRAME_RATE_TYPE:
-                return "UI_ANIMATION";
+                extInfo = "UI_ANIMATION";
+                break;
             case DISPLAY_SYNC_FRAME_RATE_TYPE:
-                return "DISPLAY_SYNC";
+                extInfo = "DISPLAY_SYNC";
+                break;
             case ACE_COMPONENT_FRAME_RATE_TYPE:
-                return "ACE_COMPONENT";
+                extInfo = "ACE_COMPONENT";
+                break;
             case DISPLAY_SOLOIST_FRAME_RATE_TYPE:
-                return "DISPLAY_SOLOIST";
+                extInfo = "DISPLAY_SOLOIST";
+                break;
             default:
                 return "";
+        }
+        return extInfo + (isEnergyAssurance_ ? "_ENERGY_ASSURANCE" : "");
+    }
+
+    std::string GetComponentName() const
+    {
+        switch (componentScene_) {
+            case ComponentScene::SWIPER_FLING:
+                return "SWIPER_FLING";
+            default:
+                return "UNKNOWN_SCENE";
         }
     }
 
@@ -118,6 +152,8 @@ public:
     int max_ = 0;
     int preferred_ = 0;
     int type_ = 0;
+    bool isEnergyAssurance_ = false;
+    ComponentScene componentScene_ = ComponentScene::UNKNOWN_SCENE;
 };
 } // namespace Rosen
 } // namespace OHOS

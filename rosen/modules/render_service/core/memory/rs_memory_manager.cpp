@@ -41,7 +41,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#include "pipeline/parallel_render/rs_sub_thread_manager.h"
 
 #include "app_mgr_client.h"
 #include "hisysevent.h"
@@ -189,6 +188,51 @@ void MemoryManager::ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* gp
 #endif
 }
 
+void MemoryManager::SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("SetGpuCacheSuppressWindowSwitch fail, gpuContext is nullptr");
+        return;
+    }
+    gpuContext->SetGpuCacheSuppressWindowSwitch(enabled);
+#endif
+}
+
+void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr");
+        return;
+    }
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+#endif
+}
+
+void MemoryManager::FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("FlushGpuMemoryInWaitQueue fail, gpuContext is nullptr");
+        return;
+    }
+    gpuContext->FlushGpuMemoryInWaitQueue();
+#endif
+}
+
+void MemoryManager::SuppressGpuCacheBelowCertainRatio(
+    Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived)
+{
+#if defined(RS_ENABLE_VK)
+    if (!gpuContext) {
+        RS_LOGE("SuppressGpuCacheBelowCertainRatio fail, gpuContext is nullptr");
+        return;
+    }
+    gpuContext->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
+#endif
+}
+
 float MemoryManager::GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext)
 {
     if (!gpuContext) {
@@ -218,17 +262,6 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const Drawing::GPUCon
     log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
-}
-
-MemoryGraphic MemoryManager::CountSubMemory(int pid, const Drawing::GPUContext* gpuContext)
-{
-    MemoryGraphic memoryGraphic;
-    auto subThreadManager = RSSubThreadManager::Instance();
-    std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
-    for (const auto& mem : subMems) {
-        memoryGraphic += mem;
-    }
-    return memoryGraphic;
 }
 
 MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* gpuContext)
@@ -353,10 +386,8 @@ void MemoryManager::DumpGpuCache(
     } else {
         gpuContext->DumpMemoryStatistics(&gpuTracer);
 #ifdef RS_ENABLE_VK
-    if (gettid() == getpid()) {
         RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
         memStat.DumpMemoryStatistics(&gpuTracer);
-    }
 #endif
     }
     gpuTracer.LogOutput(log);

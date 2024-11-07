@@ -253,56 +253,6 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
     }
 }
 
-void RSUifirstManager::CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    auto& buffersToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
-    if (buffersToRelease.empty()) {
-        return;
-    }
-    for (auto item = buffersToRelease.begin(); item != buffersToRelease.end();) {
-        if (item->id == id) {
-            if (!item->buffer || !item->consumer) {
-                item = buffersToRelease.erase(item);
-                continue;
-            }
-            auto releaseTask = [buffer = item->buffer, consumer = item->consumer,
-                useReleaseFence = item->useFence]() mutable {
-                auto ret = consumer->ReleaseBuffer(buffer, RSHardwareThread::Instance().releaseFence_);
-                if (ret != OHOS::SURFACE_ERROR_OK) {
-                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
-                }
-            };
-            tasks.emplace_back(releaseTask);
-            item = buffersToRelease.erase(item);
-            RS_LOGD("ReleaseSkipSyncBuffer fId[%" PRIu64"]", id);
-        } else {
-            ++item;
-        }
-    }
-#endif
-}
-
-void RSUifirstManager::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    if (tasks.empty()) {
-        return;
-    }
-    auto releaseBufferTask = [tasks]() {
-        for (const auto& task : tasks) {
-            task();
-        }
-    };
-    auto delayTime = RSHardwareThread::Instance().delayTime_;
-    if (delayTime > 0) {
-        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
-    } else {
-        RSHardwareThread::Instance().PostTask(releaseBufferTask);
-    }
-#endif
-}
-
 void RSUifirstManager::ProcessDoneNodeInner()
 {
     std::vector<NodeId> tmp;
@@ -315,7 +265,6 @@ void RSUifirstManager::ProcessDoneNodeInner()
         subthreadProcessDoneNode_.clear();
     }
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
-    std::vector<std::function<void()>> releaseTasks;
     for (auto& id : tmp) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
@@ -328,10 +277,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         }
         NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
-        // Done node release prebuffer
-        CollectSkipSyncBuffer(releaseTasks, id);
     }
-    ReleaseSkipSyncBuffer(releaseTasks);
 }
 
 void RSUifirstManager::ProcessDoneNode()
@@ -411,7 +357,7 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
         surfaceParams->GetBrightnessRatio());
 }
 
-bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(std::shared_ptr<RSSurfaceRenderNode> node)
+bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
         return false;
@@ -471,8 +417,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
 
-        bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
-            node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
+        bool staticContent = drawable->IsCurFrameStatic(deviceType);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
             (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
             !drawable->IsSubThreadSkip()) {
@@ -868,6 +813,10 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 // post in drawframe sync time
 void RSUifirstManager::PostUifistSubTasks()
 {
+    // if screen is power-off, uifirst sub thread can be suspended.
+    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
+        return;
+    }
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
     if (sortedSubThreadNodeIds_.size() > 0) {
@@ -924,7 +873,6 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
     // process for uifirst node
     UpdateChildrenDirtyRect(*node);
     node->SetHwcChildrenDisabledStateByUifirst();
-    node->SetLeashWindowVisibleRegionEmptyParam();
     node->AddToPendingSyncList();
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||

@@ -124,6 +124,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     status = napi_wrap(env, jsThis, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete filterNapi;
+        filterNapi = nullptr;
         FILTER_LOG_E("Failed to wrap native instance");
         return nullptr;
     }
@@ -154,6 +155,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         [](napi_env env, void* data, void* hint) {
             Filter* filterObj = (Filter*)data;
             delete filterObj;
+            filterObj = nullptr;
         },
         nullptr, nullptr);
     napi_property_descriptor resultFuncs[] = {
@@ -161,6 +163,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
         DECLARE_NAPI_FUNCTION("waterRipple", SetWaterRipple),
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
+        DECLARE_NAPI_FUNCTION("distort", SetDistort),
     };
     NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
     return object;
@@ -184,9 +187,7 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
     if (UIEffectNapiUtils::getType(env, argv[0]) == napi_number) {
         double tmp = 0.0f;
         if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
-            if (tmp >= 0) {
-                radius = static_cast<float>(tmp);
-            }
+            radius = static_cast<float>(tmp);
         }
     }
     Filter* filterObj = nullptr;
@@ -273,6 +274,10 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 
     Drawing::TileMode tileMode = Drawing::TileMode::CLAMP;
     std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
+    if (para == nullptr) {
+        FILTER_LOG_E("FilterNapi SetPixelStretch: para is nullptr");
+        return thisVar;
+    }
 
     if (argCount >= NUM_1) {
         UIEFFECT_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para),
@@ -331,6 +336,10 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_water_ripple_info"));
 
     std::shared_ptr<WaterRipplePara> para = std::make_shared<WaterRipplePara>();
+    if (para == nullptr) {
+        FILTER_LOG_E("FilterNapi SetWaterRipple: para is nullptr");
+        return thisVar;
+    }
 
     float progress = 0.0f;
     uint32_t waveCount = 0;
@@ -409,16 +418,58 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
     return thisVar;
 }
 
+napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
+{
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        FILTER_LOG_E("SetDistort failed");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "FilterNapi SetDistort failed, is not system app");
+        return nullptr;
+    }
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    napi_status status;
+    size_t argc = NUM_1;
+    napi_value argv[NUM_1] = {0};
+    napi_value thisVar = nullptr;
+    UIEFFECT_JS_ARGS(env, info, status, argc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_distort_info"));
+    if (argc != NUM_1) {
+        return thisVar;
+    }
+    float distortionK = 0.0f;
+    if (UIEffectNapiUtils::getType(env, argv[NUM_0]) == napi_number) {
+        double tmp = 0.0f;
+        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[NUM_0], &tmp))) {
+            distortionK = static_cast<float>(tmp);
+        }
+    }
+    Filter* filterObj = nullptr;
+    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
+    if (filterObj == nullptr) {
+        FILTER_LOG_E("filterNapi is nullptr");
+        return thisVar;
+    }
+    std::shared_ptr<DistortPara> para = std::make_shared<DistortPara>();
+    para->SetDistortionK(distortionK);
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 {
-    int32_t mode = 0;
     if (UIEffectNapiUtils::getType(env, argv) == napi_number) {
         double tmp = 0.0f;
         if (UIEFFECT_IS_OK(napi_get_value_double(env, argv, &tmp))) {
-            mode = tmp;
+            int32_t mode = static_cast<int32_t>(tmp);
+            auto iter = INDEX_TO_TILEMODE.find(mode);
+            if (iter != INDEX_TO_TILEMODE.end()) {
+                return iter->second;
+            }
         }
     }
-    return INDEX_TO_TILEMODE[mode];
+
+    return Drawing::TileMode::CLAMP;
 }
 
 }  // namespace Rosen

@@ -26,10 +26,6 @@
 #include "surface_type.h"
 #endif
 
-#ifndef ROSEN_CROSS_PLATFORM
-#include "surface_delegate.h"
-#endif
-
 #ifdef NEW_RENDER_CONTEXT
 #include "rs_render_surface.h"
 #else
@@ -81,6 +77,8 @@ public:
 
     void SetSecurityLayer(bool isSecurityLayer);
     bool GetSecurityLayer() const;
+    void SetLeashPersistentId(LeashPersistentId leashPersistentId);
+    LeashPersistentId GetLeashPersistentId() const;
     void SetSkipLayer(bool isSkipLayer);
     bool GetSkipLayer() const;
     void SetFingerprint(bool hasFingerprint);
@@ -105,7 +103,8 @@ public:
 
     void AttachToDisplay(uint64_t screenId);
     void DetachToDisplay(uint64_t screenId);
-    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT);
+    void SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType = SelfDrawingNodeType::DEFAULT,
+        bool dynamicHardwareEnable = true);
     void SetForceHardwareAndFixRotation(bool flag);
     void SetBootAnimation(bool isBootAnimation);
     bool GetBootAnimation() const;
@@ -150,6 +149,8 @@ public:
     void SetSkipDraw(bool skip);
     bool GetSkipDraw() const;
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    void SetAbilityState(RSSurfaceNodeAbilityState abilityState);
+    RSSurfaceNodeAbilityState GetAbilityState() const;
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -189,6 +190,8 @@ private:
     bool isChildOperationDisallowed_ { false };
     bool isBootAnimation_ = false;
     bool isSkipDraw_ = false;
+    RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     uint32_t windowId_ = 0;
 #ifndef ROSEN_CROSS_PLATFORM
