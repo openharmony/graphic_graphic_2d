@@ -728,12 +728,13 @@ bool RSImage::UnmarshalImageProperties(
         return false;
     }
 
-    if (!RSMarshallingHelper::Unmarshalling(parcel, hasFitMatrix)) {
+    if (!RSMarshallingHelper::Unmarshalling(parcel, dynamicRangeMode)) {
+        RS_LOGE("RSImage::Unmarshalling dynamicRangeMode fail");
         return false;
     }
 
-    if (!RSMarshallingHelper::Unmarshalling(parcel, dynamicRangeMode)) {
-        RS_LOGE("RSImage::Unmarshalling dynamicRangeMode fail");
+    if (!RSMarshallingHelper::Unmarshalling(parcel, hasFitMatrix)) {
+        RS_LOGE("RSImage::Unmarshalling hasFitMatrix fail");
         return false;
     }
 
