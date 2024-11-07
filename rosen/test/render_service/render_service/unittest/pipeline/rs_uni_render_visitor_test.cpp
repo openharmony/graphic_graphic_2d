@@ -2535,23 +2535,18 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo003, TestSize.Level2)
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 
     screenManager->SetVirtualScreenSecurityExemptionList(id, {1});
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 
     screenManager->SetVirtualScreenSecurityExemptionList(id, {1, 2});  // layerId for test
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 
     screenManager->SetVirtualScreenSecurityExemptionList(id, {1, 2, 3});  // layerId for test
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 
     screenManager->SetVirtualScreenSecurityExemptionList(id, {1, 3});  // layerId for test
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 
     screenManager->SetMirrorScreenVisibleRect(id, {0, 0, 720, 1280});  // rect for test
-    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->UpdateVirtualScreenInfo(*rsDisplayRenderNode);
 }
 
