@@ -1432,8 +1432,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
 
     CheckForceHardwareAndUpdateDstRect(node);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
-        (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
+    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
         return;
     }
  
