@@ -254,6 +254,7 @@
             "header": {
               "header_files": [
                 "animation/rs_animation_timing_protocol.h",
+                "common/rs_common_def.h",
                 "common/rs_macros.h",
                 "common/rs_rect.h",
                 "common/rs_vector3.h",
@@ -270,6 +271,7 @@
                 "render/rs_path.h",
                 "render/rs_border.h",
                 "render/rs_image_base.h",
+                "screen_manager/screen_types.h",
                 "modifier/rs_animatable_arithmetic.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include"

@@ -607,8 +607,6 @@ ohos_shared_library("librender_service_base") {
 
   sources = [ "src/common/rs_common_hook.cpp" ]
 
-  all_dependent_configs = [ ":render_service_base_all_deps_config" ]
-
   public_configs = [ ":render_service_base_all_deps_config" ]
 
   if (enhanced_opt) {
