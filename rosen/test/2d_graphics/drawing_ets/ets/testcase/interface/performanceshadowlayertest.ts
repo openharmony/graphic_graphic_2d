@@ -25,6 +25,7 @@ export class PerformanceShadowLayerCreate extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let color: common2D.Color = { alpha: 255, red: 1, green: 255, blue: 1 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.ShadowLayer.create(10, 2, 2, color);
     }

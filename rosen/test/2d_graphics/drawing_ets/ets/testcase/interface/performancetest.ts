@@ -25,6 +25,7 @@ export class PerformanceCanvasDrawRect extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawRect(0, 0, 100, 100);
     }
@@ -37,6 +38,7 @@ export class PerformanceCanvasDrawCircle extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawCircle(200, 200, 100);
     }
@@ -49,6 +51,7 @@ export class PerformanceCanvasDrawLine extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawLine(0, 0, 100, 100);
     }
@@ -63,6 +66,7 @@ export class PerformanceCanvasDrawPath extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let path = new drawing.Path;
     path.arcTo(0, 0, 100, 100, 0, 180)
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawPath(path);
     }
@@ -79,6 +83,7 @@ export class PerformanceCanvasDrawTextBlob extends TestBase {
     const font : drawing.Font = new drawing.Font();
     font.setSize(50)
     const textBlob = drawing.TextBlob.makeFromString(text, font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawTextBlob(textBlob, 100, 100);
     }
@@ -91,6 +96,7 @@ export class PerformanceCanvasPoint extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawPoint(50, 50);
     }
@@ -105,6 +111,7 @@ export class PerformanceCanvasDrawRectT extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawRect(rect);
     }
@@ -120,6 +127,7 @@ export class PerformanceCanvasDrawImage extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let samplingOptions = new drawing.SamplingOptions();
     let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawImage(pixelMap, 10, 20, samplingOptions);
     }
@@ -136,6 +144,7 @@ export class PerformanceCanvasDrawImageRect extends TestBase {
     let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
     let samplingOptions = new drawing.SamplingOptions();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawImageRect(pixelMap, rect, samplingOptions);
     }
@@ -154,6 +163,7 @@ export class PerformanceCanvasDrawImageRectWithSrc extends TestBase {
     let dstRect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
     let samplingOptions = new drawing.SamplingOptions();
 
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawImageRectWithSrc(pixelMap, srcRect, dstRect, samplingOptions, drawing.SrcRectConstraint.STRICT);
     }
@@ -168,6 +178,7 @@ export class PerformanceCanvasDrawColor extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let color: common2D.Color = { alpha: 255, red: 168, green: 48, blue: 176 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawColor(color, drawing.BlendMode.SRC_IN);
     }
@@ -182,6 +193,7 @@ export class PerformanceCanvasDrawColorT extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let color = 0xFF0000FF;
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawColor(color, drawing.BlendMode.SRC_IN);
     }
@@ -196,6 +208,7 @@ export class PerformanceCanvasDrawColorThree extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let color = 0xFF0000FF;
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawColor(255, 100, 255, 120, drawing.BlendMode.SRC_IN);
     }
@@ -210,6 +223,7 @@ export class PerformanceCanvasDrawOval extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawOval(rect);
     }
@@ -224,6 +238,7 @@ export class PerformanceCanvasDrawArc extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawArc(rect, 10, 100);
     }
@@ -246,6 +261,7 @@ export class PerformanceCanvasDrawPoints extends TestBase {
     pointsArray.push(point2);
     pointsArray.push(point3);
     pointsArray.push(point4);
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawPoints(pointsArray, drawing.PointMode.POINTS);
     }
@@ -260,6 +276,7 @@ export class PerformanceCanvasDrawSingleCharacter extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     const font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawSingleCharacter("你", font, 100, 100);
     }
@@ -276,6 +293,7 @@ export class PerformanceCanvasDrawPixelMapMesh extends TestBase {
     let pixelMap: image.PixelMap = globalThis.getInstance().getPixelMap("test_1.jpg");
     let verts: Array<number> = [0, 0, 50, 0, 410, 0, 0, 180, 50, 180, 410, 180, 0, 360, 50, 360, 410, 360]; // 18
     let colors: Array<number> = [0xFF0000FF, 0xFF00EEFF];
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawPixelMapMesh(pixelMap, 2, 2, verts, 0, null, 0);
     }
@@ -290,6 +308,7 @@ export class PerformanceCanvasAttachPen extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let pen = new drawing.Pen();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.attachPen(pen);
     }
@@ -304,6 +323,7 @@ export class PerformanceCanvasAttachBrush extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let brush = new drawing.Brush();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.attachBrush(brush);
     }
@@ -317,6 +337,7 @@ export class PerformanceCanvasDetachPen extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.detachPen();
     }
@@ -330,6 +351,7 @@ export class PerformanceCanvasDetachBrush extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.detachBrush();
     }
@@ -345,6 +367,7 @@ export class PerformanceCanvasSaveLayer extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
     let brush = new drawing.Brush();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.saveLayer(rect, brush);
     }
@@ -359,6 +382,7 @@ export class PerformanceCanvasClear extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let color: common2D.Color = { alpha: 255, red: 168, green: 48, blue: 176 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.clear(color);
     }
@@ -372,6 +396,7 @@ export class PerformanceCanvasGetWidth extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.getWidth();
     }
@@ -385,6 +410,7 @@ export class PerformanceCanvasGetHeight extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.getHeight();
     }
@@ -399,6 +425,7 @@ export class PerformanceCanvasConcatMatrix extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let matrix = new drawing.Matrix();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.concatMatrix(matrix);
     }
@@ -413,6 +440,7 @@ export class PerformanceCanvasSetMatrix extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let matrix = new drawing.Matrix();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.setMatrix(matrix);
     }
@@ -426,6 +454,7 @@ export class PerformanceCanvasResetMatrix extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.resetMatrix();
     }
@@ -439,6 +468,7 @@ export class PerformanceCanvasSave extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.save();
     }
@@ -452,6 +482,7 @@ export class PerformanceCanvasRestore extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.restore();
     }
@@ -465,6 +496,7 @@ export class PerformanceCanvasRestoreToCount extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.restoreToCount(1);
     }
@@ -478,6 +510,7 @@ export class PerformanceCanvasGetSaveCount extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.getSaveCount();
     }
@@ -491,6 +524,7 @@ export class PerformanceCanvasScale extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.scale(10, 20);
     }
@@ -504,6 +538,7 @@ export class PerformanceCanvasSkew extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.skew(10, 20);
     }
@@ -517,6 +552,7 @@ export class PerformanceCanvasRotate extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.rotate(30, 50, 50);
     }
@@ -530,6 +566,7 @@ export class PerformanceCanvasTranslate extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.translate(50, 50);
     }
@@ -544,6 +581,7 @@ export class PerformanceCanvasClipPath extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let path = new drawing.Path();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.clipPath(path, drawing.ClipOp.DIFFERENCE, false);
     }
@@ -558,6 +596,7 @@ export class PerformanceCanvasClipRegion extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.clipRegion(region, drawing.ClipOp.DIFFERENCE);
     }
@@ -572,6 +611,7 @@ export class PerformanceCanvasClipRect extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.clipRect(rect, drawing.ClipOp.DIFFERENCE, false);
     }
@@ -587,6 +627,7 @@ export class PerformanceCanvasClipRoundRect extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 10, right: 200, top: 100, bottom: 300 };
     let roundRect = new drawing.RoundRect(rect, 5, 10);
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.clipRoundRect(roundRect, drawing.ClipOp.DIFFERENCE, false);
     }
@@ -604,6 +645,7 @@ export class PerformanceCanvasDrawNestedRoundRect extends TestBase {
     let roundRect = new drawing.RoundRect(rect, 5, 10);
     let rectOth: common2D.Rect = { left: 0, right: 100, top: 0, bottom: 200 };
     let roundRectOth = new drawing.RoundRect(rectOth, 5, 10);
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawNestedRoundRect(roundRectOth, roundRect);
     }
@@ -618,6 +660,7 @@ export class PerformanceCanvasDrawRegion extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawRegion(region);
     }
@@ -633,6 +676,7 @@ export class PerformanceCanvasDrawRoundRect extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let rect: common2D.Rect = { left: 0, right: 50, top: 0, bottom: 100 };
     let roundRect = new drawing.RoundRect(rect, 5, 10);
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawRoundRect(roundRect);
     }
@@ -647,6 +691,7 @@ export class PerformanceCanvasDrawBackground extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let brush = new drawing.Brush();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawBackground(brush);
     }
@@ -660,6 +705,7 @@ export class PerformanceCanvasGetLocalClipBounds extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.getLocalClipBounds();
     }
@@ -673,6 +719,7 @@ export class PerformanceCanvasGetTotalMatrix extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.getTotalMatrix();
     }
@@ -686,6 +733,7 @@ export class PerformanceCanvasIsClipEmpty extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.isClipEmpty();
     }
@@ -704,6 +752,7 @@ export class PerformanceCanvasDrawShadow extends TestBase {
     let point2: common2D.Point3d = { x: 200, y: 10, z: 40 };
     let color1: common2D.Color = { alpha: 0xff, red: 0, green: 0, blue: 0xff };
     let color2: common2D.Color = { alpha: 0xff, red: 0xff, green: 0, blue: 0 };
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       canvas.drawShadow(path, point1, point2, 5, color1, color2, drawing.ShadowFlag.NONE);
     }
@@ -717,6 +766,7 @@ export class PerformanceSamplingOptionsConstructor extends TestBase {
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       let samplingOptions = new drawing.SamplingOptions();
     }

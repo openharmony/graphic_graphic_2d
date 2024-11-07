@@ -24,6 +24,7 @@ export class PerformanceTextBlobMakeFromString extends TestBase {
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
     const font: drawing.Font = new drawing.Font();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       const textBlob = drawing.TextBlob.makeFromString("drawing", font, drawing.TextEncoding.TEXT_ENCODING_UTF8);
     }
@@ -49,6 +50,7 @@ export class PerformanceTextBlobMakeFromRunBuffer extends TestBase {
       { glyph: 84, positionX: 81.70 * 2, positionY: 0},
     ];
     let rect: common2D.Rect = {left: 0, top: 0, right: 100, bottom: 100};
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.TextBlob.makeFromRunBuffer(runBuffer, font, rect);
     }
@@ -67,6 +69,7 @@ export class PerformanceTextBlobMakeFromPosText extends TestBase {
     for (let i = 0; i !== text.length; ++i) {
       points.push({ x: i * 35, y: i * 35 });
     }
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.TextBlob.makeFromPosText(text, text.length, points, font);
     }

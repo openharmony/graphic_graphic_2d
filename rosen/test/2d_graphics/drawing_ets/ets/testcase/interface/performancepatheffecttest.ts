@@ -23,6 +23,7 @@ export class PerformancePathEffectCreateDashPathEffect extends TestBase {
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
     let intervals = [10, 5];
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.PathEffect.createDashPathEffect(intervals, 5);
     }
@@ -35,6 +36,7 @@ export class PerformancePathEffectCreateCornerPathEffect extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.PathEffect.createCornerPathEffect(30);
     }

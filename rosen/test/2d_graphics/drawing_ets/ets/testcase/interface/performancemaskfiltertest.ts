@@ -22,6 +22,7 @@ export class PerformanceTypeFaceCreateBlurMaskFilter extends TestBase {
     this.styleType_ = styleType;
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.MaskFilter.createBlurMaskFilter(drawing.BlurType.OUTER, 10);
     }

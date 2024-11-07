@@ -23,6 +23,7 @@ export class PerformanceTypeFaceGetFamilyName extends TestBase {
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
     let typeface  = new drawing.Typeface();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       typeface.getFamilyName();
     }
@@ -36,6 +37,7 @@ export class PerformanceTypeFaceMakeFromFile extends TestBase {
   }
   public OnTestPerformance(canvas: drawing.Canvas) {
     let str = "/system/fonts/HarmonyOS_Sans_Italic.ttf";
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       drawing.Typeface.makeFromFile(str);
     }

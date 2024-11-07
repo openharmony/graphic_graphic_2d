@@ -150,6 +150,7 @@ export class TestBase {
     let startTime = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, true);
     await this.OnTestPerformanceCpu(this.canvas_);
     let endTime = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, true);
+    this.StopPerformanceCaculate();
     console.log(TAG, 'DrawingApiTest Started: [' + startTime + ']');
     console.log(TAG, 'DrawingApiTest Finished: [' + endTime + ']');
     this.time_ = endTime - startTime;
@@ -280,6 +281,16 @@ export class TestBase {
       pen.setBlendMode(drawing.BlendMode.MULTIPLY)
     }
   }
+
+  public StartPerformanceCaculate() : void {
+    let pen = new drawing.Pen()
+    pen.setDither(true)
+  }
+
+  public StopPerformanceCaculate() : void {
+    let pen = new drawing.Pen()
+    pen.setDither(false)
+  }  
 }
 
 export enum TestFunctionStyleType {

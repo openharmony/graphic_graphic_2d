@@ -24,6 +24,7 @@ export class PerformanceRegionIsPointContained extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       region.isPointContained(10, 10);
     }
@@ -39,7 +40,8 @@ export class PerformanceRegionIsRegionContained extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
     let regionContain = new drawing.Region();
-    for (let i = 0; i < 1; i++) {
+    this.StartPerformanceCaculate();
+    for (let i = 0; i < this.testCount_; i++) {
       region.isRegionContained(regionContain);
     }
   }
@@ -54,6 +56,7 @@ export class PerformanceRegionOp extends TestBase {
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
     let regionOp = new drawing.Region();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       region.op(regionOp, drawing.RegionOp.INTERSECT);
     }
@@ -68,6 +71,7 @@ export class PerformanceRegionQuickReject extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       region.quickReject(10, 20, 100, 200);
     }
@@ -82,6 +86,7 @@ export class PerformanceRegionSetRect extends TestBase {
 
   public OnTestPerformance(canvas: drawing.Canvas) {
     let region = new drawing.Region();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       region.setRect(10, 20, 100, 200);
     }
@@ -98,6 +103,7 @@ export class PerformanceRegionSetPath extends TestBase {
     let region = new drawing.Region();
     let regionPath = new drawing.Region();
     let path = new drawing.Path();
+    this.StartPerformanceCaculate();
     for (let i = 0; i < this.testCount_; i++) {
       region.setPath(path, regionPath);
     }
