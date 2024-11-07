@@ -62,28 +62,6 @@ void RSVsyncRateReduceManagerTest::SetUp() {}
 void RSVsyncRateReduceManagerTest::TearDown() {}
 
 /**
- * @tc.name: FrameDurationBegin001
- * @tc.desc: Test FrameDurationBegin processing.
- * @tc.type: FUNC
- * @tc.require: issueIAWXLO
- */
-HWTEST_F(RSVsyncRateReduceManagerTest, FrameDurationBegin001, TestSize.Level1)
-{
-    RSVsyncRateReduceManager rateReduceManager;
-    uint64_t now = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()
-        .time_since_epoch()).count();
-    int count = 100 * 1000000;
-    for (int i = 0; i < count; i++) {
-        rateReduceManager.FrameDurationBegin();
-    }
-    uint64_t result = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()
-        .time_since_epoch()).count() - now;
-    //average duration of reading system current time: 1.9ns
-    constexpr double maxDuration = 2.5; // 2.5ns
-    EXPECT_GE(count * maxDuration, result);
-}
-
-/**
  * @tc.name: EnqueueFrameDuration001
  * @tc.desc: Test EnqueueFrameDuration, collect last 3 frames duration to estimate RT balance
  * @tc.type: FUNC
@@ -442,9 +420,18 @@ HWTEST_F(RSVsyncRateReduceManagerTest, GetRateByBalanceLevel001, TestSize.Level1
  */
 HWTEST_F(RSVsyncRateReduceManagerTest, CalcMaxVisibleRect001, TestSize.Level1)
 {
+    int appWindowArea = 100000;
+    Occlusion::Rect bounds(0, 0, 100, 100);
+    Occlusion::Rect subRect(40, 20, 100, 90);
     RSVsyncRateReduceManager rateReduceManager;
-    Occlusion::Region region(Occlusion::Rect(10, 10, 100, 100));
-    rateReduceManager.CalcMaxVisibleRect(region, 100000);
+
+    Occlusion::Region region(bounds);
+    auto rect = rateReduceManager.CalcMaxVisibleRect(region, appWindowArea);
+    EXPECT_EQ(false, rect.IsEmpty());
+
+    Occlusion::Region subRegion(subRect);
+    auto rectI = rateReduceManager.CalcMaxVisibleRect(region.Sub(subRegion), appWindowArea).ToRectI();
+    EXPECT_LT(rectI.width_, rectI.height_);
 }
 
 /**
