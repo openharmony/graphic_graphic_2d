@@ -59,6 +59,9 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMo
 
 DrawCmdList::~DrawCmdList()
 {
+    if (drawOpItems_.size() == 0) {
+        UnmarshallingDrawOps();
+    }
     ClearOp();
 }
 
@@ -238,7 +241,7 @@ void DrawCmdList::UnmarshallingDrawOps()
         LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
 
-    if (opAllocator_.GetSize() <= offset_) {
+    if (opAllocator_.GetSize() <= offset_ || width_ <= 0 || height_ <= 0) {
         return;
     }
 
