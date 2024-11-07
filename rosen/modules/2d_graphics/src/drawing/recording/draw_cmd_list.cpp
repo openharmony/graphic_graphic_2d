@@ -242,7 +242,6 @@ void DrawCmdList::UnmarshallingDrawOps()
     }
 
     if (opAllocator_.GetSize() <= offset_ || width_ <= 0 || height_ <= 0) {
-        LOGE("DrawCmdList::DrawCmdList is invalid!");
         return;
     }
 
