@@ -19,6 +19,7 @@
 
 #include "render/rs_image_base.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -847,4 +848,199 @@ HWTEST_F(RSImageBaseTest, BindPixelMapToDrawingImageTest007, TestSize.Level1)
     imageBase->BindPixelMapToDrawingImage(canvas);
 }
 #endif
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest003
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest004
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest005
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = false;
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest006
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest006, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = false;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = true;
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest007
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest007, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = true;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = true;
+    void* addr = nullptr;
+    image = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest008
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest008, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = true;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: UnmarshallingDrawingImageAndPixelMapTest008
+ * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, UnmarshallingDrawingImageAndPixelMapTest008, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    Parcel parcel;
+    parcel.WriteInt32(-1);
+    uint64_t uniqueId = -1;
+    bool useSKImage = true;
+    auto image = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    void* addr = nullptr;
+    bool ret = imageBase->UnmarshallingDrawingImageAndPixelMap(parcel, uniqueId, useSKImage, image, pixelMap, addr);
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: IncreaseCacheRefCountTest
+ * @tc.desc: Verify IncreaseCacheRefCount
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    uint64_t uniqueId = 1;
+    bool useSKImage = true;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = false;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
+}
+
+/**
+ * @tc.name: IncreaseCacheRefCountTest001
+ * @tc.desc: Verify IncreaseCacheRefCount
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest001, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    uint64_t uniqueId = 1;
+    bool useSKImage = false;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = false;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
+}
+
+/**
+ * @tc.name: IncreaseCacheRefCountTest002
+ * @tc.desc: Verify IncreaseCacheRefCount
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, IncreaseCacheRefCountTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    uint64_t uniqueId = 1;
+    bool useSKImage = false;
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->editable_ = true;
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->IncreaseCacheRefCount(uniqueId, useSKImage, pixelMap);
+}
 } // namespace OHOS::Rosen
