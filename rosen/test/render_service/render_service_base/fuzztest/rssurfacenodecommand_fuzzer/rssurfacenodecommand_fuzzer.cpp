@@ -131,6 +131,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoSurfacenodecommand(data, size);
     OHOS::Rosen::DoCreateWithConfig(data, size);
+    OHOS::Rosen::DoCreateWithConfig(data, size);
     return 0;
 }
 
