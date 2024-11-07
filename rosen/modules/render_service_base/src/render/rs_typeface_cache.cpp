@@ -327,7 +327,7 @@ void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)
     ss.seekp(0, std::ios_base::end);
 }
 
-void RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
+std::string RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
 {
     constexpr int bitNumber = 30 + 32;
     uint64_t replayMask = (uint64_t)1 << bitNumber;
@@ -335,27 +335,33 @@ void RSTypefaceCache::ReplayDeserialize(std::stringstream& ss)
     uint64_t uniqueId;
     size_t dataSize;
     std::vector<uint8_t> data;
+    constexpr size_t maxTypefaceDataSize = 15'000'000;
 
     ss.read(reinterpret_cast<char*>(&fontCount), sizeof(fontCount));
     for (size_t i = 0; i < fontCount; i++) {
         ss.read(reinterpret_cast<char*>(&uniqueId), sizeof(uniqueId));
         ss.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
 
-        // Check if the stream is not empty and data size is not too large (2 MiB).
-        constexpr size_t maxDataSize = 2 * 1024 * 1024;
-        if (ss.eof() || (dataSize > maxDataSize)) {
-            break;
+        if (dataSize > maxTypefaceDataSize) {
+            return "Typeface serialized data is over 15MB";
         }
         data.resize(dataSize);
-        ss.read(reinterpret_cast<char*>(data.data()), dataSize);
+        ss.read(reinterpret_cast<char*>(data.data()), data.size());
+
+        if (ss.eof()) {
+            return "Typeface track damaged";
+        }
 
         std::shared_ptr<Drawing::Typeface> typeface;
-        typeface = Drawing::Typeface::Deserialize(data.data(), dataSize);
+        typeface = Drawing::Typeface::Deserialize(data.data(), data.size());
         if (typeface) {
             uniqueId |= replayMask;
             CacheDrawingTypeface(uniqueId, typeface);
+        } else {
+            return "Typeface unmarshalling failed";
         }
     }
+    return {};
 }
 
 void RSTypefaceCache::ReplayClear()

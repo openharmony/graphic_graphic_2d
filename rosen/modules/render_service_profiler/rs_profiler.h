@@ -273,12 +273,13 @@ private:
     RSB_EXPORT static void MarshalNodeModifiers(
         const RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
-    RSB_EXPORT static void UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static void UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static void UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
-    RSB_EXPORT static void UnmarshalNode(
+    RSB_EXPORT static std::string UnmarshalNodes(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalTree(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalNode(RSContext& context, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalNode(
         RSContext& context, std::stringstream& data, NodeId nodeId, uint32_t fileVersion);
-    RSB_EXPORT static void UnmarshalNodeModifiers(RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
+    RSB_EXPORT static std::string UnmarshalNodeModifiers(
+        RSRenderNode& node, std::stringstream& data, uint32_t fileVersion);
 
     RSB_EXPORT static NodeId AdjustNodeId(NodeId nodeId, bool clearMockFlag);
 
@@ -334,7 +335,7 @@ private:
 
     static bool IsLoadSaveFirstScreenInProgress();
     static std::string FirstFrameMarshalling(uint32_t fileVersion);
-    static void FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
+    static std::string FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
 
@@ -359,7 +360,7 @@ private:
     RSB_EXPORT static uint32_t GetNodeDepth(const std::shared_ptr<RSRenderNode> node);
 
     static void TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion);
-    static void TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion);
+    static std::string TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion);
 
     // Network interface
     static void Invoke(const std::vector<std::string>& line);

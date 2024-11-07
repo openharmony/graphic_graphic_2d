@@ -876,20 +876,29 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
     return stream.str();
 }
 
-void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
+std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion)
 {
     std::stringstream stream;
+    std::string errReason;
+
     stream.str(data);
 
-    TypefaceUnmarshalling(stream, fileVersion);
+    errReason = TypefaceUnmarshalling(stream, fileVersion);
+    if (errReason.size()) {
+        return errReason;
+    }
 
     SetMode(Mode::READ_EMUL);
 
     DisableSharedMemory();
-    UnmarshalNodes(*g_context, stream, fileVersion);
+    errReason = UnmarshalNodes(*g_context, stream, fileVersion);
     EnableSharedMemory();
 
     SetMode(Mode::NONE);
+
+    if (errReason.size()) {
+        return errReason;
+    }
 
     int32_t focusPid = 0;
     stream.read(reinterpret_cast<char*>(&focusPid), sizeof(focusPid));
@@ -900,13 +909,21 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileV
     uint64_t focusNodeId = 0;
     stream.read(reinterpret_cast<char*>(&focusNodeId), sizeof(focusNodeId));
 
+    constexpr size_t nameSizeMax = 4096;
     size_t size = 0;
     stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+    if (size > nameSizeMax) {
+        return "FirstFrameUnmarshalling failed, file is damaged";
+    }
     std::string bundleName;
     bundleName.resize(size, ' ');
     stream.read(reinterpret_cast<char*>(bundleName.data()), size);
 
     stream.read(reinterpret_cast<char*>(&size), sizeof(size));
+    if (size > nameSizeMax) {
+        return "FirstFrameUnmarshalling failed, file is damaged";
+    }
+
     std::string abilityName;
     abilityName.resize(size, ' ');
     stream.read(reinterpret_cast<char*>(abilityName.data()), size);
@@ -916,6 +933,8 @@ void RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_t fileV
 
     CreateMockConnection(focusPid);
     g_mainThread->SetFocusAppInfo(focusPid, focusUid, bundleName, abilityName, focusNodeId);
+
+    return "";
 }
 
 void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVersion)
@@ -929,18 +948,24 @@ void RSProfiler::TypefaceMarshalling(std::stringstream& stream, uint32_t fileVer
     }
 }
 
-void RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
+std::string RSProfiler::TypefaceUnmarshalling(std::stringstream& stream, uint32_t fileVersion)
 {
     if (fileVersion >= RSFILE_VERSION_RENDER_TYPEFACE_FIX) {
         std::vector<uint8_t> fontData;
         std::stringstream fontStream;
         size_t fontStreamSize;
+        constexpr size_t fontStreamSizeMax = 10'000'000;
+        
         stream.read(reinterpret_cast<char*>(&fontStreamSize), sizeof(fontStreamSize));
+        if (fontStreamSize > fontStreamSizeMax) {
+            return "Typeface track is damaged";
+        }
         fontData.resize(fontStreamSize);
-        stream.read(reinterpret_cast<char*>(fontData.data()), fontStreamSize);
-        fontStream.write(reinterpret_cast<const char*>(fontData.data()), fontStreamSize);
-        RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
+        stream.read(reinterpret_cast<char*>(fontData.data()), fontData.size());
+        fontStream.write(reinterpret_cast<const char*>(fontData.data()), fontData.size());
+        return RSTypefaceCache::Instance().ReplayDeserialize(fontStream);
     }
+    return "";
 }
 
 void RSProfiler::SaveRdc(const ArgList& args)
@@ -1760,7 +1785,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     Respond("Opening file " + path);
     g_playbackFile.Open(path);
     if (!g_playbackFile.IsOpen()) {
-        Respond("Can't open file.");
+        Respond("Can't open file: not found");
         return;
     }
 
@@ -1783,7 +1808,13 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     std::string dataFirstFrame = g_playbackFile.GetHeaderFirstFrame();
 
     // get first frame data
-    FirstFrameUnmarshalling(dataFirstFrame, g_playbackFile.GetVersion());
+    std::string errReason = FirstFrameUnmarshalling(dataFirstFrame, g_playbackFile.GetVersion());
+    if (errReason.size()) {
+        Respond("Can't open file: " + errReason);
+        FilterMockNode(*g_context);
+        g_playbackFile.Close();
+        return;
+    }
     // The number of frames loaded before command processing
     constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;

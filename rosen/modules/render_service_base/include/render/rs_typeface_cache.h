@@ -65,7 +65,7 @@ public:
      * @brief    Deserialize drawing typeface cache (used for profiler replay).
      * @param ss Serialized data.
      */
-    void ReplayDeserialize(std::stringstream& ss);
+    std::string ReplayDeserialize(std::stringstream& ss);
 
     RSTypefaceCache() = default;
     ~RSTypefaceCache() = default;
