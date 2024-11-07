@@ -14,25 +14,9 @@
  */
 
 #include <cstddef>
-#include <memory>
 
-#include "drawing_bitmap.h"
-#include "drawing_brush.h"
-#include "drawing_canvas.h"
-#include "drawing_color.h"
-#include "drawing_font_collection.h"
 #include "drawing_fuzzer.h"
-#include "drawing_path.h"
-#include "drawing_pen.h"
-#include "drawing_point.h"
-#include "drawing_text_declaration.h"
-#include "drawing_text_typography.h"
-#include "drawing_types.h"
-#include "get_object.h"
-
 namespace OHOS::Rosen::Drawing {
-
-namespace {
 std::unique_ptr<char[]> GetRandomString()
 {
     // 使用随机的 char 数组可能会 crash ，所以暂时使用常量
@@ -303,7 +287,7 @@ OH_Drawing_Canvas* CreateCanvas(OH_Drawing_Bitmap* bitmap)
     OH_Drawing_CanvasClear(canvas, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
     return canvas;
 }
-} // namespace
+
 
 void OHDrawingParserTest()
 {
