@@ -101,7 +101,8 @@ public:
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
-        int32_t supportAS;
+        // Does this game app require Adaptive Sync?
+        bool supportAS;
         // <bufferName, fps>
         std::vector<std::pair<std::string, int32_t>> appBufferList;
         std::vector<std::string> appBufferBlackList;

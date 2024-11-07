@@ -1021,7 +1021,7 @@ void HgmFrameRateManager::HandleGamesEvent(pid_t pid, EventInfo eventInfo)
     }
     PolicyConfigData::StrategyConfig config;
     if (multiAppStrategy_.GetAppStrategyConfig(pkgName, config) == EXEC_SUCCESS) {
-        isGameSupportAS_ = config.supportAS == 1;
+        isGameSupportAS_ = config.supportAS;
     } else {
         isGameSupportAS_ = false;
     }
