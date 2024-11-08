@@ -348,20 +348,6 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CalculateMirrorAdaptiveCoefficient, Test
 }
 
 /**
- * @tc.name: MirrorScenePerf
- * @tc.desc: test results of MirrorScenePerf
- * @tc.type: FUNC
- * @tc.require: issueI9JY8B
- */
-HWTEST_F(RSPhysicalScreenProcessorTest, MirrorScenePerf, TestSize.Level1)
-{   
-    auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
-        HARDWARE_COMPOSITE);
-    processor->MirrorScenePerf();
-    ASSERT_TRUE(processor->needDisableMultiLayersPerf_);
-}
-
-/**
  * @tc.name: SetDisplayHasSecSurface
  * @tc.desc: test results of SetDisplayHasSecSurface
  * @tc.type: FUNC

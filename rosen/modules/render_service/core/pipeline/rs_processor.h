@@ -65,7 +65,6 @@ public:
 
     void SetSecurityDisplay(bool isSecurityDisplay);
     void SetDisplayHasSecSurface(bool displayHasSecSurface);
-    void MirrorScenePerf();
 
     const Drawing::Matrix& GetScreenTransformMatrix() const
     {
@@ -119,7 +118,6 @@ protected:
     BufferRequestConfig renderFrameConfig_ {};
     bool isSecurityDisplay_ = false;
     bool displayHasSecSurface_ = false;
-    static bool needDisableMultiLayersPerf_;
 };
 } // namespace Rosen
 } // namespace OHOS

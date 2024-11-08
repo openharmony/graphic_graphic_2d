@@ -37,7 +37,6 @@ using namespace FRAME_TRACE;
 
 namespace OHOS {
 namespace Rosen {
-bool RSProcessor::needDisableMultiLayersPerf_ = false;
 namespace {
 constexpr uint32_t PERF_LEVEL_0 = 0;
 constexpr uint32_t PERF_LEVEL_1 = 1;
@@ -172,19 +171,6 @@ void RSProcessor::CalculateMirrorAdaptiveCoefficient(float curWidth, float curHe
         return;
     }
     mirrorAdaptiveCoefficient_ = std::min(curWidth / mirroredWidth, curHeight / mirroredHeight);
-}
-
-void RSProcessor::MirrorScenePerf()
-{
-    needDisableMultiLayersPerf_ = true;
-    static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
-    auto currentTime = std::chrono::steady_clock::now();
-    bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
-        count() > PERF_TIME_OUT;
-    if (isTimeOut) {
-        PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, true);
-        lastRequestPerfTime = currentTime;
-    }
 }
 
 void RSProcessor::SetSecurityDisplay(bool isSecurityDisplay)
