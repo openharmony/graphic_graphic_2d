@@ -3849,7 +3849,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         doDirectComposition_ = !isHardwareForcedDisabled_;
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
-        hardwareEnabledNodes_.clear(); 
+        hardwareEnabledNodes_.clear();
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
         selfDrawables_.clear();
