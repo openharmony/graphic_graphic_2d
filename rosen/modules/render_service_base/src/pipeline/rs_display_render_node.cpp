@@ -202,7 +202,6 @@ void RSDisplayRenderNode::OnSync()
     displayParams->SetZoomed(curZoomState_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
-    HandleCurMainAndLeashSurfaceNodes();
 }
 
 void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()

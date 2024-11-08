@@ -809,14 +809,13 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
-    if (node.IsMainWindowType()) {
-        layerNum_++;
-    }
     PrepareForUIFirstNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
+    node.HandleCurMainAndLeashSurfaceNodes();
+    layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
 }
