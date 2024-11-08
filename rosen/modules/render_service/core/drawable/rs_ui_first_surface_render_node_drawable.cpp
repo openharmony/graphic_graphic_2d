@@ -233,10 +233,12 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawCacheSurface return %d", __LINE__);
         return false;
     }
-    float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
-    float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
     canvas.Save();
-    canvas.Scale(scaleX, scaleY);
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
+        float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
+        canvas.Scale(scaleX, scaleY);
+    }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
             RS_LOGI("RSSurfaceRenderNodeDrawable::DrawCacheSurface convert cacheImage from texture to raster image");
