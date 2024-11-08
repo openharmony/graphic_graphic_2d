@@ -193,9 +193,11 @@ napi_value ColorPickerNapi::Constructor(napi_env env, napi_callback_info info)
                        ColorPickerNapi::Destructor,
                        nullptr,
                        nullptr);
-    EFFECT_NAPI_CHECK_RET_D(EFFECT_IS_OK(status),
-                            undefineVar,
-                            EFFECT_LOG_E("Failure wrapping js to native napi"));
+    if (!EFFECT_IS_OK(status)) {
+        delete pColorPickerNapi;
+        EFFECT_LOG_E("ColorPickerNapi Constructor wrap fail.");
+        return undefineVar;
+    }
 
     sColorPicker_ = nullptr;
     return thisVar;
