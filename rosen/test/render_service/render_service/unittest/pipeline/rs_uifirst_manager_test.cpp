@@ -1397,32 +1397,65 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetUiFirstMode
- * @tc.desc: Test GetUiFirstMode
+ * @tc.name: GetUiFirstMode001
+ * @tc.desc: Test GetUiFirstMode for phone
  * @tc.type: FUNC
- * @tc.require: issueIANPC2
+ * @tc.require: issueIB31K8
  */
-HWTEST_F(RSUifirstManagerTest, GetUiFirstMode, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode001, TestSize.Level1)
 {
+    auto type = uifirstManager_.GetUiFirstMode();
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-        auto type = uifirstManager_.GetUiFirstMode();
         EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
     }
+}
 
+/**
+ * @tc.name: GetUiFirstMode002
+ * @tc.desc: Test GetUiFirstMode for pc
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode002, TestSize.Level1)
+{
+    auto type = uifirstManager_.GetUiFirstMode();
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        auto type = uifirstManager_.GetUiFirstMode();
         EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
     }
+}
 
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::TABLET) {
-        uifirstManager_.SetFreeMultiWindowStatus(false);
-        auto type = uifirstManager_.GetUiFirstMode();
-        EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
-
-        uifirstManager_.SetFreeMultiWindowStatus(true);
-        type = uifirstManager_.GetUiFirstMode();
-        EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
+/**
+ * @tc.name: GetUiFirstMode003
+ * @tc.desc: Test GetUiFirstMode for tablet while free multi-window off
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode003, TestSize.Level1)
+{
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+        return;
     }
+
+    uifirstManager_.SetFreeMultiWindowStatus(false);
+    auto type = uifirstManager_.GetUiFirstMode();
+    EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
+}
+
+/**
+ * @tc.name: GetUiFirstMode004
+ * @tc.desc: Test GetUiFirstMode for tablet while free multi-window on
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode004, TestSize.Level1)
+{
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+        return;
+    }
+
+    uifirstManager_.SetFreeMultiWindowStatus(true);
+    auto type = uifirstManager_.GetUiFirstMode();
+    EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
 }
 
 /**

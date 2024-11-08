@@ -1147,6 +1147,17 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DOSetFreeMultiWindowStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+
+    bool enable = GetData<bool>();
+    rsConn_->SetFreeMultiWindowStatus(enable);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1241,6 +1252,7 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DOSetFreeMultiWindowStatus();
 }
 } // namespace Rosen
 } // namespace OHOS

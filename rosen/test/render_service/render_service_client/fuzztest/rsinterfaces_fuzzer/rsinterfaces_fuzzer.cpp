@@ -211,6 +211,26 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enable = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetFreeMultiWindowStatus(enable);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -222,5 +242,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef TP_FEATURE_ENABLE
     OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
 #endif
+    DoSetFreeMultiWindowStatus(data, size);
     return 0;
 }
