@@ -922,9 +922,9 @@ void HgmFrameRateManager::SetShowRefreshRateEnabled(bool enable)
     // rsIdleTimer_ should filter the RS frame.
     HgmTaskHandleThread::Instance().PostTask([this, enable] () {
         // 1: the RefreshRate Change Request lead to 1 frame update.
-        static const int countToUpdateScreenRefreshRate = 1;
+        constexpr int countToUpdateScreenRefreshRate = 1;
         // 2: when ShowRefreshRate enabled, the change of RefreshRate need to update displayed value by 1 more update
-        static const int countToUpdateDisplayedFpsValue = 2;
+        constexpr int countToUpdateDisplayedFpsValue = 2;
         skipFrame_ = enable ? countToUpdateDisplayedFpsValue : countToUpdateScreenRefreshRate;
     });
 }

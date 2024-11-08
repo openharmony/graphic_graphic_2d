@@ -281,9 +281,6 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     }
     // set the screen to the desired refreshrate
     HGM_LOGD("HgmCore setting screen " PUBU64 " to the rate of %{public}d", id, rate);
-    if (mPolicyConfigData_ == nullptr) {
-        return HGM_ERROR;
-    }
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
