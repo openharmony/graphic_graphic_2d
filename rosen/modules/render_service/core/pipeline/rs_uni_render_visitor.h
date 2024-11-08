@@ -133,7 +133,10 @@ public:
     {
         screenInfo_ = screenInfo;
     }
-
+    uint32_t GetLayerNum() const
+    {
+        return layerNum_;
+    }
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
@@ -435,6 +438,7 @@ private:
     // anco RSSurfaceNode process
     bool ancoHasGpu_ = false;
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
+    uint32_t layerNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
