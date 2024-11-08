@@ -3849,7 +3849,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         doDirectComposition_ = !isHardwareForcedDisabled_;
         isHardwareEnabledBufferUpdated_ = false;
         hasProtectedLayer_ = false;
-        hardwareEnabledNodes_.clear();
+        hardwareEnabledNodes_.clear(); 
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
         selfDrawables_.clear();
@@ -3861,8 +3861,9 @@ bool RSMainThread::IsHardwareEnabledNodesNeedSync()
 {
     bool needSync = false;
     for (const auto& node : hardwareEnabledNodes_) {
-        if (node != nullptr && ((node->GetStagingRenderParams() != nullptr &&
-            node->GetStagingRenderParams()->NeedSync()) || !node->IsHardwareForcedDisabled())) {
+        if (node != nullptr && ((doDirectComposition_ && node->GetStagingRenderParams() != nullptr &&
+            node->GetStagingRenderParams()->NeedSync()) ||
+            (doDirectComposition_ && !node->IsHardwareForcedDisabled()))) {
             needSync = true;
             break;
         }

@@ -3882,18 +3882,33 @@ HWTEST_F(RSMainThreadTest, IsHardwareEnabledNodesNeedSync, TestSize.Level2)
     NodeId id = 1;
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
+
     mainThread->hardwareEnabledNodes_.emplace_back(nullptr);
     ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), false);
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(id, mainThread_->context_);
-    node1->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
-    node1->stagingRenderParams_->SetNeedSync(true);
-    mainThread->hardwareEnabledNodes_.emplace_back(node1);
-    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
+
     mainThread->hardwareEnabledNodes_.clear();
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(id + 2, mainThread_->context_);
-    node2->SetHardwareForcedDisabledState(true); 
-    mainThread->hardwareEnabledNodes_.emplace_back(node2);  
+    mainThread->doDirectComposition_ = false;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(id, mainThread_->context_);
+    node1->stagingRenderParams_ = nullptr;
+    mainThread->hardwareEnabledNodes_.emplace_back(node1);
     ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), false);
+
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->doDirectComposition_ = false;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread_->context_);
+    node2->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 2);
+    node2->stagingRenderParams_->SetNeedSync(true);
+    mainThread->hardwareEnabledNodes_.emplace_back(node2);
+    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
+
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->doDirectComposition_ = true;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(id + 3, mainThread_->context_);
+    node3->SetHardwareForcedDisabledState(false);
+    RectI dstRect{0,0,400,600};
+    node3->SetDstRect(dstRect);
+    mainThread->hardwareEnabledNodes_.emplace_back(node3);
+    ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
 }
 
 /**
