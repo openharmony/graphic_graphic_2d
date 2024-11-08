@@ -2152,14 +2152,13 @@ void RSUniRenderUtil::RequestPerf(uint32_t layerLevel, bool onOffTag)
 
 void RSUniRenderUtil::MultiLayersPerf(size_t layerNum)
 {
-    RS_LOGI("lyc layerNum is %{public}zu", layerNum);
 #ifdef FRAME_AWARE_TRACE
     if (FrameAwareTraceBoost(layerNum)) {
-        RS_LOGI("lyc FrameAwareTraceBoost return true");
+        RS_LOGD("FrameAwareTraceBoost return true");
         return;
     }
 #endif
-    RS_LOGI("lyc FrameAwareTraceBoost return false");
+    RS_LOGD("FrameAwareTraceBoost return false");
     static uint32_t lastLayerLevel = 0;
     constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
     static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
