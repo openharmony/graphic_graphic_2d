@@ -683,6 +683,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
         ProcessUnpairedSharedTransitionNode();
     }
+    node.HandleCurMainAndLeashSurfaceNodes();
+    layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
 }
 
@@ -814,8 +816,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
-    node.HandleCurMainAndLeashSurfaceNodes();
-    layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
 }
