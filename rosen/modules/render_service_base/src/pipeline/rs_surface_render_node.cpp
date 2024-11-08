@@ -2170,7 +2170,7 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         opaqueRegionBaseInfo_.containerConfig_ == containerConfig_;
     if (!ret) {
         if (absRect.IsEmpty()) {
-            RS_LOGW("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
+            RS_LOGD("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
                 GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
             RS_TRACE_NAME_FMT("%s absRect is empty, dst rect: %s, old dirty in surface: %s",
                 GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
