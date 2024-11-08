@@ -372,6 +372,16 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     return renderService->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetMirrorScreenVisibleRect(id, mainScreenRect);
+}
+
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

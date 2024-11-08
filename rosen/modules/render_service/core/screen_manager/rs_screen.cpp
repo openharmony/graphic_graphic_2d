@@ -1096,6 +1096,26 @@ const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
     return securityExemptionList_;
 }
 
+void RSScreen::SetEnableVisibleRect(bool enable)
+{
+    enableVisibleRect_ = enable;
+}
+
+bool RSScreen::GetEnableVisibleRect() const
+{
+    return enableVisibleRect_;
+}
+
+void RSScreen::SetMainScreenVisibleRect(const Rect& mainScreenRect)
+{
+    mainScreenVisibleRect_ = mainScreenRect;
+}
+
+Rect RSScreen::GetMainScreenVisibleRect() const
+{
+    return mainScreenVisibleRect_;
+}
+
 void RSScreen::SetDisplayPropertyForHardCursor()
 {
     isHardCursorSupport_ = false;

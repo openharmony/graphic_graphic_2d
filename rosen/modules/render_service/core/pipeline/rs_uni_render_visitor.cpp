@@ -584,7 +584,7 @@ void RSUniRenderVisitor::UpdateDisplayZoomState()
     zoomStateChange_ = curZoomState || curDisplayNode_->IsZoomStateChange();
 }
 
-void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node)
+void RSUniRenderVisitor::UpdateVirtualScreenInfo(RSDisplayRenderNode& node)
 {
     // only for virtual screen
     if (!(node.IsMirrorDisplay())) {
@@ -595,6 +595,14 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
     if (mirrorNode == nullptr || screenManager_ == nullptr) {
         return;
     }
+
+    UpdateVirtualScreenSecurityExemption(node, *mirrorNode);
+    UpdateVirtualScreenVisibleRectSecurity(node, *mirrorNode);
+}
+
+void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node,
+    RSDisplayRenderNode& mirrorNode)
+{
     auto securityExemptionList = screenManager_->GetVirtualScreenSecurityExemptionList(node.GetScreenId());
     if (securityExemptionList.size() == 0) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:false",
@@ -602,14 +610,14 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
         node.SetSecurityExemption(false);
         return;
     }
-    auto securityLayerList = mirrorNode->GetSecurityLayerList();
+    auto securityLayerList = mirrorNode.GetSecurityLayerList();
     for (const auto& exemptionLayer : securityExemptionList) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ""
             "securityExemption nodeId %{public}" PRIu64 ".", node.GetId(), exemptionLayer);
     }
     for (const auto& secLayer : securityLayerList) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ""
-            "securityLayer nodeId %{public}" PRIu64 ".", mirrorNode->GetId(), secLayer);
+            "securityLayer nodeId %{public}" PRIu64 ".", mirrorNode.GetId(), secLayer);
     }
     bool isSecurityExemption = false;
     if (securityExemptionList.size() >= securityLayerList.size()) {
@@ -627,6 +635,32 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
     node.SetSecurityExemption(isSecurityExemption);
 }
 
+void RSUniRenderVisitor::UpdateVirtualScreenVisibleRectSecurity(RSDisplayRenderNode& node,
+    RSDisplayRenderNode& mirrorNode)
+{
+    if (!screenManager_->QueryScreenInfo(node.GetScreenId()).enableVisibleRect) {
+        return;
+    }
+    auto rect = screenManager_->GetMirrorScreenVisibleRect(node.GetScreenId());
+    RectI visibleRect(rect.x, rect.y, rect.w, rect.h);
+    auto securityLayerList = mirrorNode.GetSecurityLayerList();
+    bool hasSecLayerInVisibleRect = false;
+    for (const auto& secLayerId : securityLayerList) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+            RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(secLayerId));
+        if (surfaceNode == nullptr) {
+            continue;
+        }
+        const auto& dstRect = surfaceNode->GetDstRect();
+        if (dstRect.Intersect(visibleRect)) {
+            hasSecLayerInVisibleRect = true;
+            break;
+        }
+    }
+    RS_LOGD("%{public}s: hasSecLayerInVisibleRect:%{public}d.", __func__, hasSecLayerInVisibleRect);
+    node.SetHasSecLayerInVisibleRect(hasSecLayerInVisibleRect);
+}
+
 void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node)
 {
     // 0. init display info
@@ -636,7 +670,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     }
     UpdateDisplayZoomState();
     SendRcdMessage(node);
-    UpdateVirtualScreenSecurityExemption(node);
+    UpdateVirtualScreenInfo(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
     dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_;

@@ -114,6 +114,10 @@ public:
     virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
+    virtual void SetEnableVisibleRect(bool enable) = 0;
+    virtual bool GetEnableVisibleRect() const = 0;
+    virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
+    virtual Rect GetMainScreenVisibleRect() const = 0;
 };
 
 namespace impl {
@@ -200,6 +204,10 @@ public:
     void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
+    void SetEnableVisibleRect(bool enable) override;
+    bool GetEnableVisibleRect() const override;
+    void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
+    Rect GetMainScreenVisibleRect() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -264,6 +272,8 @@ private:
     std::unordered_set<uint64_t> whiteList_ = {};
     std::unordered_set<uint64_t> blackList_ = {};
     std::vector<uint64_t> securityExemptionList_ = {};
+    bool enableVisibleRect_ = false;
+    Rect mainScreenVisibleRect_ = {};
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
 };

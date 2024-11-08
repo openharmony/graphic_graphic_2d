@@ -243,6 +243,8 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
     displayParams->mirrorSource_ = GetMirrorSource();
+    displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
+    displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     RSRenderNode::UpdateRenderParams();
 }
 

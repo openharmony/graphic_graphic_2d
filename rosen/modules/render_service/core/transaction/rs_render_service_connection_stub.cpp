@@ -58,6 +58,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
@@ -535,6 +536,35 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             int32_t status = SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT): {
+            // read the parcel data.
+            ScreenId id = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t x = -1;
+            int32_t y = -1;
+            int32_t w = -1;
+            int32_t h = -1;
+            if (!data.ReadInt32(x) || !data.ReadInt32(y) ||
+                !data.ReadInt32(w) || !data.ReadInt32(h)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            auto mainScreenRect = Rect {
+                .x = x,
+                .y = y,
+                .w = w,
+                .h = h
+            };
+            int32_t status = SetMirrorScreenVisibleRect(id, mainScreenRect);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }
