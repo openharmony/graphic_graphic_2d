@@ -2088,6 +2088,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         rootNode->QuickPrepare(uniVisitor);
+        if (deviceType_ != DeviceType::PHONE) {
+            RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
+        }
         CheckBlurEffectCountStatistics(rootNode);
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         rsVsyncRateReduceManager_.SetUniVsync();
