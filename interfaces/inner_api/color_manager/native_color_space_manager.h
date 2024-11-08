@@ -29,7 +29,6 @@
  *
  * @brief Defines the functions for obtaining and using a native colorSpaceManager.
  *
- * @kit ArkGraphics2D
  * @library libnative_color_space_manager.so
  * @syscap SystemCapability.Graphic.Graphic2D.ColorManager.Core
  * @since 13
