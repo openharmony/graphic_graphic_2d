@@ -1789,7 +1789,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     // The number of frames loaded before command processing
     constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;
-    Respond("awake_frame(1) " + std::to_string(g_playbackWaitFrames));
+    Respond("awake_frame " + std::to_string(g_playbackWaitFrames)); // this formatting should not be changed
     AwakeRenderServiceThread();
 }
 
@@ -2019,7 +2019,7 @@ void RSProfiler::ProcessCommands()
 {
     if (g_playbackWaitFrames > 0) {
         g_playbackWaitFrames--;
-        Respond("awake_frame(2) " + std::to_string(g_playbackWaitFrames));
+        Respond("awake_frame " + std::to_string(g_playbackWaitFrames)); // this formatting should not be changed
         AwakeRenderServiceThread();
         return;
     }
