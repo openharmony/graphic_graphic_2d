@@ -428,7 +428,7 @@ public:
     bool IsSCBNode() const;
     void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
-    void SetHwcChildrenDisabledStateByUifirst();
+    void SetHwcChildrenDisabledState();
 
     void SetContextBounds(const Vector4f bounds);
     bool CheckParticipateInOcclusion();

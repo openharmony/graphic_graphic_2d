@@ -87,13 +87,22 @@ void RSDrawWindowCache::DrawAndCacheWindowContent(DrawableV2::RSSurfaceRenderNod
 }
 
 bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
+    RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam)
 {
     if (surfaceDrawable == nullptr ||
         surfaceDrawable->HasCachedTexture() ||
-        !HasCache() ||
-        surfaceParams.GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE) {
+        !HasCache()) {
         ClearCache();
+        return false;
+    }
+    // Non-CrosNode not cache for uifirst need clear cahce
+    if (!surfaceParams.IsCrossNode() && surfaceParams.GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE) {
+        ClearCache();
+        return false;
+    }
+    // CrosNode no need to clear cache
+    if (surfaceParams.IsCrossNode() && (uniParam.IsMirrorScreen() ||
+        uniParam.IsFirstVisitCrossNodeDisplay() || uniParam.HasDisplayHdrOn())) {
         return false;
     }
     if (ROSEN_EQ(image_->GetWidth(), 0) || ROSEN_EQ(image_->GetHeight(), 0)) {
@@ -106,6 +115,11 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
+    }
+    if (surfaceParams.GetGlobalPositionEnabled()) {
+        auto matrix = surfaceParams.GetTotalMatrix();
+        matrix.Translate(-surfaceDrawable->offsetX_, -surfaceDrawable->offsetY_);
+        canvas.ConcatMatrix(matrix);
     }
     auto boundSize = surfaceParams.GetFrameRect();
     // draw background

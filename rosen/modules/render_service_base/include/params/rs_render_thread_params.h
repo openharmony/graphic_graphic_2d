@@ -93,6 +93,11 @@ public:
         isOpDropped_ = opDropped;
     }
 
+    bool HasDisplayHdrOn() const
+    {
+        return hasDisplayHdrOn_;
+    }
+
     bool IsMirrorScreen() const
     {
         return isMirrorScreen_;
@@ -409,6 +414,7 @@ private:
     uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
+    bool hasDisplayHdrOn_ = false;
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
     bool isRegionDebugEnabled_ = false;

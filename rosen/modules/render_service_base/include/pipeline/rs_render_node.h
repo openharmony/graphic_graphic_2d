@@ -883,7 +883,7 @@ protected:
 private:
     // mark cross node in physical extended screen model
     bool isCrossNode_ = false;
-    uint32_t crossScreenNum_ = 0;
+    int32_t crossScreenNum_ = 0;
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;

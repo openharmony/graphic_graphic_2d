@@ -548,7 +548,7 @@ bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curS
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
-    if (IsLeashWindow()) {
+    if (IsLeashWindow() && !IsCrossNode()) {
         return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;

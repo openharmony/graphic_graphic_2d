@@ -375,6 +375,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         isHdrOn = false;
     }
     node.SetHDRPresent(isHdrOn);
+    hasDisplayHdrOn_ |= isHdrOn;
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
     if (screenManager->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
         RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get screen type failed.");
@@ -776,7 +777,11 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         "pid:[%{public}d] nodeType:[%{public}d] subTreeDirty[%{public}d]", node.GetName().c_str(), node.GetId(),
         ExtractPid(node.GetId()), static_cast<int>(node.GetSurfaceNodeType()), node.IsSubTreeDirty());
 
-    CheckCrossNode(node);
+    // avoid cross node subtree visited twice or more
+    UpdateSecuritySkipAndProtectedLayersRecord(node);
+    if (CheckSkipCrossNode(node)) {
+        return;
+    }
     // 0. init curSurface info and check node info
     auto curCornerRadius = curCornerRadius_;
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
@@ -846,8 +851,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
-
     PrepareForUIFirstNode(node);
+    PrepareForCrossNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
@@ -856,20 +861,39 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     node.SetNeedOffscreen(isScreenRotationAnimating_);
 }
 
-void RSUniRenderVisitor::CheckCrossNode(RSSurfaceRenderNode& node)
+void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
+{
+    if (curDisplayNode_ == nullptr) {
+        RS_LOGE("%{public}s curDisplayNode_ is nullptr", __func__);
+        return;
+    }
+    if (curDisplayNode_->IsFirstVisitCrossNodeDisplay() && node.IsCrossNode()) {
+        // check surface cache condition, not support ratation, transparent filter situation.
+        bool needCacheSurface = node.QuerySubAssignable(curDisplayNode_->IsRotationChanged());
+        if (needCacheSurface) {
+            node.SetHwcChildrenDisabledState();
+        }
+        node.SetNeedCacheSurface(needCacheSurface);
+    }
+}
+
+bool RSUniRenderVisitor::CheckSkipCrossNode(RSSurfaceRenderNode& node)
 {
     if (!node.IsCrossNode()) {
-        return;
+        return false;
+    }
+    if (curDisplayNode_ == nullptr) {
+        RS_LOGE("%{public}s curDisplayNode_ is nullptr", __func__);
+        return false;
     }
     curDisplayNode_->SetHasChildCrossNode(true);
-    if (hasVisitCrossNode_ && !curDisplayNode_->IsMirrorScreen()) {
-        return;
+    if (hasVisitCrossNode_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("%s cross node[%s] skip", __func__, node.GetName().c_str());
+        return true;
     }
-    if (!hasVisitCrossNode_ && !curDisplayNode_->IsMirrorScreen()) {
-        curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
-        hasVisitCrossNode_ = true;
-    }
-    return;
+    curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
+    hasVisitCrossNode_ = true;
+    return false;
 }
 
 void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
@@ -1279,7 +1303,6 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
         hasCaptureWindow_[currentVisitDisplay_] = true;
     }
-    UpdateSecuritySkipAndProtectedLayersRecord(node);
     node.UpdateUIFirstFrameGravity();
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
@@ -2990,6 +3013,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isVirtualDirtyEnabled_ = isVirtualDirtyEnabled_;
     renderThreadParams->isVirtualDirtyDfxEnabled_ = isVirtualDirtyDfxEnabled_;
     renderThreadParams->isExpandScreenDirtyEnabled_ = isExpandScreenDirtyEnabled_;
+    renderThreadParams->hasDisplayHdrOn_ = hasDisplayHdrOn_;
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
     renderThreadParams->isForceCommitLayer_ |=
         RSPointerWindowManager::Instance().IsNeedForceCommitByPointer();

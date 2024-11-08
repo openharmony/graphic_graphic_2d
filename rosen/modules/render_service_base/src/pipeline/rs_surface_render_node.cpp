@@ -2364,7 +2364,7 @@ const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& RSSurfaceRenderNode::GetC
     return childHardwareEnabledNodes_;
 }
 
-void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
+void RSSurfaceRenderNode::SetHwcChildrenDisabledState()
 {
     if (IsAppWindow()) {
         auto hwcNodes = GetChildHardwareEnabledNodes();
@@ -2384,7 +2384,7 @@ void RSSurfaceRenderNode::SetHwcChildrenDisabledStateByUifirst()
             if (surfaceNode == nullptr) {
                 continue;
             }
-            surfaceNode->SetHwcChildrenDisabledStateByUifirst();
+            surfaceNode->SetHwcChildrenDisabledState();
         }
     }
 }

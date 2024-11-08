@@ -2622,6 +2622,23 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsCrossNodeTest
+ * @tc.desc: test IsCrossNodeTest
+ * @tc.type: FUNC
+ * @tc.require: issueB2YOV
+ */
+HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->IncreaseCrossScreenNum();
+    ASSERT_TRUE(renderNode->isCrossNode_);
+
+    renderNode->DecreaseCrossScreenNum();
+    ASSERT_FALSE(renderNode->isCrossNode_);
+}
+
+/**
  * @tc.name: UpdateDirtyRegionInfoForDFX001
  * @tc.desc: test if subTreeDirtyRegion can be correctly collected.
  * @tc.type: FUNC
