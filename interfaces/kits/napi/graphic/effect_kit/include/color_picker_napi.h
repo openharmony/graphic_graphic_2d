@@ -57,9 +57,15 @@ private:
     static napi_value GetMainColorSync(napi_env env, napi_callback_info info);
     static napi_value GetLargestProportionColor(napi_env env, napi_callback_info info);
     static napi_value GetHighestSaturationColor(napi_env env, napi_callback_info info);
-    static napi_value GetGrayscaleMSD(napi_env env, napi_callback_info info);
     static napi_value GetAverageColor(napi_env env, napi_callback_info info);
     static napi_value IsBlackOrWhiteOrGrayColor(napi_env env, napi_callback_info info);
+    static napi_value GetMorandiBackgroundColor(napi_env env, napi_callback_info info);
+    static napi_value GetMorandiShadowColor(napi_env env, napi_callback_info info);
+    static napi_value GetDeepenImmersionColor(napi_env env, napi_callback_info info);
+    static napi_value GetImmersiveBackgroundColor(napi_env env, napi_callback_info info);
+    static napi_value GetImmersiveForegroundColor(napi_env env, napi_callback_info info);
+    static napi_value DiscriminatePitureLightDegree(napi_env env, napi_callback_info info);
+    static napi_value GetReverseColor(napi_env env, napi_callback_info info);
     static napi_value GetTopProportionColors(napi_env env, napi_callback_info info);
     static ImageType ParserArgumentType(napi_env env, napi_value argv);
 
