@@ -691,22 +691,22 @@ void HgmFrameRateManager::Reset()
     appChangeData_.clear();
 }
 
-int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const
+int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, float velocity, float animationSize) const
 {
     switch (unit) {
         case RSPropertyUnit::PIXEL_POSITION:
-            return GetPreferredFps("translate", PixelToMM(velocity));
+            return GetPreferredFps("translate", PixelToMM(velocity), PixelToMM(animationSize));
         case RSPropertyUnit::PIXEL_SIZE:
         case RSPropertyUnit::RATIO_SCALE:
-            return GetPreferredFps("scale", PixelToMM(velocity));
+            return GetPreferredFps("scale", PixelToMM(velocity), PixelToMM(animationSize));
         case RSPropertyUnit::ANGLE_ROTATION:
-            return GetPreferredFps("rotation", PixelToMM(velocity));
+            return GetPreferredFps("rotation", PixelToMM(velocity), PixelToMM(animationSize));
         default:
             return 0;
     }
 }
 
-int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velocity) const
+int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velocity, float animationSize) const
 {
     auto &configData = HgmCore::Instance().GetPolicyConfigData();
     if (!configData) {
@@ -716,16 +716,36 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
         return 0;
     }
     const std::string settingMode = std::to_string(curRefreshRateMode_);
-    if (configData->screenConfigs_.count(curScreenStrategyId_) &&
-        configData->screenConfigs_[curScreenStrategyId_].count(settingMode) &&
-        configData->screenConfigs_[curScreenStrategyId_][settingMode].animationDynamicSettings.count(type)) {
-        auto& config = configData->screenConfigs_[curScreenStrategyId_][settingMode].animationDynamicSettings[type];
-        auto iter = std::find_if(config.begin(), config.end(), [&velocity](const auto& pair) {
-            return velocity >= pair.second.min && (velocity < pair.second.max || pair.second.max == -1);
-        });
+    if (configData->screenConfigs_.find(curScreenStrategyId_) == configData->screenConfigs_.end() ||
+        configData->screenConfigs_[curScreenStrategyId_].find(settingMode) ==
+        configData->screenConfigs_[curScreenStrategyId_].end()) {
+        return 0;
+    }
+    auto& screenSetting = configData->screenConfigs_[curScreenStrategyId_][settingMode];
+    auto matchFunc = [velocity](const auto& pair) {
+        return velocity >= pair.second.min && (velocity < pair.second.max || pair.second.max == -1);
+    };
+
+    // find result if it's small size animation
+    if (animationSize > 0 && ROSEN_LE(animationSize, screenSetting.smallSize) &&
+        screenSetting.smallSizeAnimationDynamicSettings.find(type) !=
+        screenSetting.smallSizeAnimationDynamicSettings.end()) {
+        auto& config = screenSetting.smallSizeAnimationDynamicSettings[type];
+        auto iter = std::find_if(config.begin(), config.end(), matchFunc);
         if (iter != config.end()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, rate: %d",
-                type.c_str(), velocity, iter->second.preferred_fps);
+            RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps (small size): type: %s, speed: %f, size: %f, rate: %d",
+                type.c_str(), velocity, animationSize, iter->second.preferred_fps);
+            return iter->second.preferred_fps;
+        }
+    }
+
+    // it's not a small size animation or current small size config don't cover it, find result in normal config
+    if (screenSetting.animationDynamicSettings.find(type) != screenSetting.animationDynamicSettings.end()) {
+        auto& config = screenSetting.animationDynamicSettings[type];
+        auto iter = std::find_if(config.begin(), config.end(), matchFunc);
+        if (iter != config.end()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, size: %f, rate: %d",
+                type.c_str(), velocity, animationSize, iter->second.preferred_fps);
             return iter->second.preferred_fps;
         }
     }

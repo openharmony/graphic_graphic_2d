@@ -138,7 +138,7 @@ public:
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, const DvsyncInfo& dvsyncInfo);
 
-    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
+    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity, float animationSize) const;
     void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
     {
         forceUpdateCallback_ = forceUpdateCallback;
@@ -183,7 +183,7 @@ private:
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
-    int32_t GetPreferredFps(const std::string& type, float velocity) const;
+    int32_t GetPreferredFps(const std::string& type, float velocity, float animationSize) const;
     static float PixelToMM(float velocity);
 
     void HandleIdleEvent(bool isIdle);

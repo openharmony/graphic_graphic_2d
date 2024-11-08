@@ -2947,10 +2947,10 @@ void RSMainThread::Animate(uint64_t timestamp)
             return false;
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
-        auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
+        auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity, float animationSize) -> int32_t {
             auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
             if (frameRateMgr != nullptr) {
-                return frameRateMgr->GetExpectedFrameRate(unit, velocity);
+                return frameRateMgr->GetExpectedFrameRate(unit, velocity, animationSize);
             }
             return 0;
         };

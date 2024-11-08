@@ -377,7 +377,8 @@ HWTEST_F(RSAnimationManagerTest, RateDeciderTest001, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSAnimationManagerTest RateDeciderTest001 start";
     RSAnimationManager animationManager;
     animationManager.SetRateDeciderEnable(true, nullptr);
-    animationManager.SetRateDeciderScaleSize(1.0f, 1.0f);
+    animationManager.SetRateDeciderSize(1.0f, 1.0f);
+    animationManager.SetRateDeciderScale(1.0f, 1.0f);
     auto result = animationManager.GetDecideFrameRateRange();
     EXPECT_TRUE(result.IsZero());
     result = animationManager.GetDecideFrameRateRange();

@@ -74,7 +74,8 @@ public:
     const FrameRateRange& GetDecideFrameRateRange() const;
 
     void SetRateDeciderEnable(bool enabled, const FrameRateGetFunc& func);
-    void SetRateDeciderScaleSize(float width, float height);
+    void SetRateDeciderSize(float width, float height);
+    void SetRateDeciderScale(float scaleX, float scaleY);
 
 private:
     void OnAnimationFinished(const std::shared_ptr<RSRenderAnimation>& animation);

@@ -140,6 +140,8 @@ public:
         std::unordered_map<std::string, std::string> gameSceneList;
         DynamicSettingMap animationDynamicSettings;
         DynamicSettingMap aceSceneDynamicSettings;
+        int32_t smallSize = -1;
+        DynamicSettingMap smallSizeAnimationDynamicSettings;
         // <CONFIG_NAME, VALUE>
         std::unordered_map<std::string, std::string> animationPowerConfig;
         // <rateTypeName, idleFps>

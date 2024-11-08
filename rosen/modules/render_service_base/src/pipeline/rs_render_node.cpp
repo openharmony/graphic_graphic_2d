@@ -2538,9 +2538,10 @@ void RSRenderNode::ApplyModifiers()
     dirtyTypes_.reset();
     AddToPendingSyncList();
 
-    // update rate decider scale reference size.
-    animationManager_.SetRateDeciderScaleSize(GetRenderProperties().GetBoundsWidth(),
+    // update rate decider scale reference size and scale.
+    animationManager_.SetRateDeciderSize(GetRenderProperties().GetBoundsWidth(),
         GetRenderProperties().GetBoundsHeight());
+    animationManager_.SetRateDeciderScale(GetRenderProperties().GetScaleX(), GetRenderProperties().GetScaleY());
 }
 
 void RSRenderNode::MarkParentNeedRegenerateChildren() const
