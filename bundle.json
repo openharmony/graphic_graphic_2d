@@ -50,7 +50,6 @@
         "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
-        "graphic_2d_feature_enable_recording_dcl",
         "graphic_2d_feature_enable_rspipeline",
         "graphic_2d_feature_enable_stack_culling",
         "graphic_2d_feature_enable_vulkan",
