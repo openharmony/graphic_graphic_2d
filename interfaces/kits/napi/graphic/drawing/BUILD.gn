@@ -145,7 +145,6 @@ if (is_arkui_x) {
       external_deps += [
         "hilog:libhilog",
         "image_framework:image_native",
-        "image_framework:image_utils",
         "init:libbegetutil",
       ]
       deps += [ "../../../../../utils:libgraphic_utils" ]
