@@ -385,7 +385,6 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    layerNum_ = node.GetSurfaceCountForMultiLayersPerf();
     auto drawable = node.GetRenderDrawable();
     if (!drawable) {
         return;
@@ -415,15 +414,6 @@ void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
-    for (const auto& drawable : displayParams->GetAllMainAndLeashSurfaceDrawables()) {
-        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (!surfaceDrawable || !surfaceDrawable->GetRenderParams() ||
-            surfaceDrawable->GetRenderParams()->IsLeashWindow()) {
-            continue;
-        }
-        layerNum_++;
-    }
     auto surfaceHandler = displayDrawable.GetRSSurfaceHandlerOnDraw();
     if (!surfaceHandler) {
         return;
