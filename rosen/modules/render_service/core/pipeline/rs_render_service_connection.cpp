@@ -1586,7 +1586,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
     std::future<bool> future = result.get_future();
     RSMainThread* mainThread = mainThread_;
     RSUniRenderThread* renderThread = &renderThread_;
-    auto getPixelMapTask = [id, &pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
+    auto getPixelMapTask = [id, pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
         auto node = mainThread->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
         if (node == nullptr) {
             RS_LOGD("RSRenderServiceConnection::GetPixelmap: cannot find NodeId: [%{public}" PRIu64 "]", id);
@@ -1604,7 +1604,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         if (drawableNode) {
             tid = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->GetTid();
         }
-        auto getDrawablePixelmapTask = [drawableNode, &pixelmap, rect, &result, tid, drawCmdList]() {
+        auto getDrawablePixelmapTask = [drawableNode, pixelmap, rect, &result, tid, drawCmdList]() {
             result.set_value(std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
                 GetPixelmap(pixelmap, rect, tid, drawCmdList));
         };
