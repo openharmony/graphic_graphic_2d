@@ -656,7 +656,7 @@ bool RSUniRenderThread::IsColorFilterModeOn() const
     }
     ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
     if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
-        colorFilterMode == ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
         return false;
     }
     return true;
