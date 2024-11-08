@@ -927,7 +927,7 @@ void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
         canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     }
     canvas.DetachBrush();
 }
