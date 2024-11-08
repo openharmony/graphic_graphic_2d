@@ -1285,6 +1285,9 @@ HWTEST_F(RSUniRenderComposerAdapterTest, LayerScaleDown006, TestSize.Level2)
 */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2)
 {
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        return;
+    }
     SetUp();
 
     using namespace HDI::Display::Graphic::Common::V1_0;
