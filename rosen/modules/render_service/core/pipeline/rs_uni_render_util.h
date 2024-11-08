@@ -152,7 +152,6 @@ public:
     static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     static void MultiLayersPerf(size_t layerNum);
-    static void RequestPerf(uint32_t layerLevel, bool onOffTag);
 
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
@@ -166,6 +165,7 @@ private:
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static bool FrameAwareTraceBoost(size_t layerNum);
+    static void RequestPerf(uint32_t layerLevel, bool onOffTag);
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };
