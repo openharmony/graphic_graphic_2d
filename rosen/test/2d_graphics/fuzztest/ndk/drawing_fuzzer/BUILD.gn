@@ -40,6 +40,7 @@ ohos_fuzztest("DrawingFuzzTest") {
   ]
   sources = [
     "drawing_fuzzer.cpp",
+    "drawing_text_run_fuzz.cpp",
     "drawing_typography_fuzzer.cpp",
   ]
 

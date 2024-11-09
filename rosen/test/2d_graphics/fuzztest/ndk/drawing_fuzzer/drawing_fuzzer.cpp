@@ -390,6 +390,7 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
             "World测试文本";
     OH_Drawing_TypographyHandlerAddText(handler, text.c_str());
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, GetObject<double>());
     OH_Drawing_TypographyGetTextLines(nullptr);
     OH_Drawing_Array* linesArray = OH_Drawing_TypographyGetTextLines(typography);
     OHDrawingTextLineArray(linesArray, data, size);
@@ -578,6 +579,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathCubicToTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathCloseTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTypographyTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingTextRunTest(data, size);
     OHOS::Rosen::Drawing::OHDrawTextLineTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingLineTypographyTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPenTest(data, size);

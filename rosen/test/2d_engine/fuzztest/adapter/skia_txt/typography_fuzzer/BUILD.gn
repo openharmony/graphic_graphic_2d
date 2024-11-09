@@ -24,30 +24,45 @@ ohos_fuzztest("TypographyFuzzTest") {
   fuzz_config_file = "$graphic_2d_root/rosen/test/2d_engine/fuzztest/adapter/skia_txt/typography_fuzzer"
 
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/export/rosen_text/export/",
-    "$graphic_2d_root/rosen/modules/export/rosen_text/export/rosen_test",
+    "//third_party/googletest/googletest/include",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_test",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/txt",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt/impl",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/common",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/adapter/skia_txt",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
     "$graphic_2d_root/rosen/test/2d_engine/fuzztest/adapter/skia_txt/typography_fuzzer",
+    "//third_party/skia",
   ]
 
-  if (use_skia_txt) {
-    sources = [
-      "get_object.h",
-      "typography_fuzzer.cpp",
-    ]
+  sources = [ "typography_fuzzer.cpp" ]
+
+  platform = current_os
+  if (platform == "mingw") {
+    platform = "windows"
   }
 
   cflags = [
-    "-g",
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  defines = [
+    "USE_ROSEN_DRAWING",
+    "USE_SKIA_TXT",
+    "RS_ENABLE_GPU",
+  ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/2d_engine/rosen_text/skia_txt:skia_libtxt_$platform",
+    "//third_party/googletest:gtest_main",
+  ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
-
+  external_deps = [ "c_utils:utils" ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }

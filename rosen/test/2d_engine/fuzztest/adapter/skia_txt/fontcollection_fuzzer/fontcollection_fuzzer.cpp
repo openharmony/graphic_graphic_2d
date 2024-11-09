@@ -14,15 +14,45 @@
  */
 
 #include "fontcollection_fuzzer.h"
-#include <cstddef>
-#include "get_object.h"
 
+#include <cstddef>
+#include <memory>
+
+#include "font_collection.h"
+#include "get_object.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace SPText {
-
-} // namespace SPText
+namespace Drawing {
+void OHDrawingFontcollectionFuzz1(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    fontCollection->DisableFallback();
+    fontCollection->DisableSystemFont();
+    const uint8_t* LoadFontData = nullptr;
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface = fontCollection->LoadFont("familyname", LoadFontData, 0);
+    typeface = fontCollection->LoadThemeFont("familynametest", LoadFontData, 0);
+    std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
+}
+void OHDrawingFontcollectionFuzz2(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::From(nullptr);
+    std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface1 = OHOS::Rosen::Drawing::Typeface::MakeDefault();
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc(
+        [](std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface) { return false; });
+    fontCollection->RegisterTypeface(typeface1);
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc(
+        [](std::shared_ptr<OHOS::Rosen::Drawing::Typeface> typeface) { return typeface != nullptr; });
+    fontCollection->RegisterTypeface(typeface1);
+    fontCollection->RegisterTypeface(nullptr);
+}
+void OHDrawingFontcollectionFuzz3(const uint8_t* data, size_t size)
+{
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::From(nullptr);
+    fontCollection->ClearCaches();
+    std::shared_ptr<Drawing::FontMgr> fontMgr = fontCollection->GetFontMgr();
+}
+} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
 
@@ -30,6 +60,8 @@ namespace SPText {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
-    
+    OHOS::Rosen::Drawing::OHDrawingFontcollectionFuzz1(data, size);
+    OHOS::Rosen::Drawing::OHDrawingFontcollectionFuzz2(data, size);
+    OHOS::Rosen::Drawing::OHDrawingFontcollectionFuzz3(data, size);
     return 0;
 }

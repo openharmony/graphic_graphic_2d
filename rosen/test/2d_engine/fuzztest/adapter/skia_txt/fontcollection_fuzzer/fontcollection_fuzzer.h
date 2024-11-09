@@ -22,5 +22,8 @@
 #include <cstdlib>
 
 #define FUZZ_PROJECT_NAME "fontcollection_fuzzer"
+constexpr inline size_t DATA_MAX_ENUM_SIZE1 = 3;
+constexpr inline size_t DATA_MAX_ENUM_SIZE2 = 4;
+constexpr inline size_t DATA_MAX_ENUM_SIZE3 = 7;
 
 #endif // TEST_FONTCOLLECTION_FUZZER_H
