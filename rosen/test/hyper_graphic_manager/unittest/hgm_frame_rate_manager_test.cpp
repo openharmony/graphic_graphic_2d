@@ -515,6 +515,7 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     frameRateMgr.ProcessRefreshRateVote(voterIter, resultVoteInfo, voteRange);
     frameRateMgr.DeliverRefreshRateVote({"VOTER_GAMES", OLED_120_HZ, OLED_90_HZ, OLED_NULL_HZ}, true);
     frameRateMgr.DeliverRefreshRateVote({"VOTER_THERMAL", OLED_120_HZ, OLED_90_HZ, OLED_NULL_HZ}, true);
+    frameRateMgr.DeliverRefreshRateVote({"VOTER_MULTISELFOWNEDSCREEN", OLED_120_HZ, OLED_90_HZ, OLED_NULL_HZ}, true);
     auto screenSetting = frameRateMgr.multiAppStrategy_.GetScreenSetting();
     screenSetting.sceneList.insert(make_pair(testScene, PolicyConfigData::SceneConfig{"1", "1"}));
     screenSetting.gameSceneList.insert(make_pair(testScene, "1"));
