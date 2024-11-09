@@ -113,6 +113,7 @@ public:
     struct SceneConfig {
         std::string strategy;
         std::string priority;
+        bool doNotAutoClear;
     };
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;
