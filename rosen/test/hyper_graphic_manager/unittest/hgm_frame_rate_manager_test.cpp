@@ -693,12 +693,12 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
         return;
     }
     // init
-    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize), EXEC_SUCCESS);
-    EXPECT_EQ(hgmCore.AddScreen(internalScreenId, 0, screenSize), EXEC_SUCCESS);
     configData->screenStrategyConfigs_["screen0_LTPS"] = "LTPS-DEFAULT";
     configData->screenStrategyConfigs_["screen0_LTPO"] = "LTPO-DEFAULT";
     configData->screenStrategyConfigs_["screen5_LTPS"] = "LTPS-DEFAULT";
     configData->screenStrategyConfigs_["screen5_LTPO"] = "LTPO-DEFAULT";
+    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(internalScreenId, 0, screenSize), EXEC_SUCCESS);
 
     // fold -> expand -> fold
     frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
