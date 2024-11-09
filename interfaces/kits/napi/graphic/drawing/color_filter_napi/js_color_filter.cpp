@@ -107,7 +107,7 @@ napi_value JsColorFilter::CreateBlendModeColorFilter(napi_env env, napi_callback
 {
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_TWO);
-    
+
     int32_t argb[ARGC_FOUR] = {0};
     if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
         ROSEN_LOGE("JsPen::SetColor Argv[0] is invalid");
