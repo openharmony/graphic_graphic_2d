@@ -811,6 +811,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
     dirtyFlag_ = dirtyFlag;
+
     PrepareForUIFirstNode(node);
     node.OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
