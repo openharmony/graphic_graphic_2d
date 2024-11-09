@@ -385,6 +385,11 @@ public:
     }
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+
+    bool HasWiredMirrorDisplay()
+    {
+        return hasWiredMirrorDisplay_;
+    }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -604,6 +609,8 @@ private:
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
     std::atomic<bool> isGlobalDarkColorMode_ = false;
+
+    mutable bool hasWiredMirrorDisplay_ = false;
 
     std::atomic_bool noNeedToPostTask_ = false;
 

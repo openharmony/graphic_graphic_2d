@@ -802,7 +802,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
         specialLayerType_ = GetSpecialLayerType(*params);
         if (RSSystemProperties::GetDrawMirrorCacheImageEnabled() && uniParam->HasMirrorDisplay() &&
-            curCanvas_->GetSurface() != nullptr && specialLayerType_ != HAS_SPECIAL_LAYER) {
+            curCanvas_->GetSurface() != nullptr && (specialLayerType_ != HAS_SPECIAL_LAYER ||
+            RSMainThread::Instance()->HasWiredMirrorDisplay())) {
             cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
         } else {
             SetCacheImgForCapture(nullptr);
