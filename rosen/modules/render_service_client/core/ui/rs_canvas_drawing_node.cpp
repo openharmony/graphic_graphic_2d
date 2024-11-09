@@ -70,7 +70,7 @@ void RSCanvasDrawingNode::CreateTextureExportRenderNodeInRT()
 bool RSCanvasDrawingNode::GetBitmap(Drawing::Bitmap& bitmap,
     std::shared_ptr<Drawing::DrawCmdList> drawCmdList, const Drawing::Rect* rect)
 {
-    if (IsUniRenderEnabled()) {
+    if (IsRenderServiceNode()) {
         auto renderServiceClient =
             std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
         if (renderServiceClient == nullptr) {
@@ -116,7 +116,7 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         RS_LOGE("RSCanvasDrawingNode::GetPixelmap: pixelmap is nullptr");
         return false;
     }
-    if (IsUniRenderEnabled()) {
+    if (IsRenderServiceNode()) {
         auto renderServiceClient =
             std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
         if (renderServiceClient == nullptr) {
