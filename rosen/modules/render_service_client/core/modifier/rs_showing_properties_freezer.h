@@ -42,9 +42,8 @@ public:
     std::optional<Vector2f> GetTranslate() const;
     std::optional<float> GetTranslateZ() const;
     std::optional<Vector2f> GetScale() const;
-    std::optional<float> GetScaleZ() const;
-    std::optional<Vector3f> GetSkew() const;
-    std::optional<Vector4f> GetPersp() const;
+    std::optional<Vector2f> GetSkew() const;
+    std::optional<Vector2f> GetPersp() const;
 
     std::optional<float> GetAlpha() const;
     std::optional<Vector4f> GetCornerRadius() const;
