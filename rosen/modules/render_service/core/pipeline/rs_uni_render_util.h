@@ -47,7 +47,7 @@ public:
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
     static void SetAllSurfaceDrawableGlobalDityRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-        const RectI& globalDirtyRegion);
+        const Occlusion::Region& globalDirtyRegion);
     /* we want to set visible dirty region of each surfacenode into DamageRegionKHR interface, hence
      * occlusion is calculated.
      * make sure this function is called after merge dirty history

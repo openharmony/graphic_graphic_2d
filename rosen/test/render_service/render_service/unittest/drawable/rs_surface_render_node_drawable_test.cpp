@@ -656,7 +656,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetGlobalDirtyRegion, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
 
-    RectI rect;
+    Occlusion::Region rect;
     surfaceDrawable_->SetGlobalDirtyRegion(rect);
 
     surfaceDrawable_->renderNode_ = std::weak_ptr<const RSRenderNode>();
@@ -763,7 +763,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetGlobalDirtyRegionTest, TestSize.Lev
     auto drawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(renderNode));
     ASSERT_NE(drawable, nullptr);
-    const RectI rect = RectI(0, 0, 100, 100);
+    const Occlusion::Region rect{Occlusion::Rect(0, 0, 100, 100)};
     drawable->SetGlobalDirtyRegion(rect);
     renderNode = nullptr;
     drawable->SetGlobalDirtyRegion(rect);
@@ -1082,7 +1082,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetAndGetTest001, TestSize.Level1)
     Occlusion::Region OccRegion;
     surfaceDrawable_->SetVisibleDirtyRegion(OccRegion);
     surfaceDrawable_->SetAlignedVisibleDirtyRegion(OccRegion);
-    RectI rect;
+    Occlusion::Region rect;
     surfaceDrawable_->SetGlobalDirtyRegion(rect);
     surfaceDrawable_->SetDirtyRegionAlignedEnable(true);
     surfaceDrawable_->SetDirtyRegionBelowCurrentLayer(OccRegion);
@@ -1105,7 +1105,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, SetAndGetTest002, TestSize.Level1)
     EXPECT_TRUE(region.IsEmpty());
 
     surfaceDrawable_->SetAlignedVisibleDirtyRegion(OccRegion);
-    RectI rect;
+    Occlusion::Region rect;
     surfaceDrawable_->SetGlobalDirtyRegion(rect);
     surfaceDrawable_->SetDirtyRegionAlignedEnable(true);
     surfaceDrawable_->SetDirtyRegionBelowCurrentLayer(OccRegion);

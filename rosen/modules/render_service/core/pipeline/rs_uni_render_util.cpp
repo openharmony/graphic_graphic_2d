@@ -200,7 +200,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-    const RectI& globalDirtyRegion)
+    const Occlusion::Region& globalDirtyRegion)
 {
     // Set Surface Global Dirty Region
     for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {

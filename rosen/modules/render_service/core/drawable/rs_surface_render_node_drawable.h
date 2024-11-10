@@ -222,7 +222,7 @@ public:
     const Occlusion::Region& GetVisibleDirtyRegion() const;
     void SetVisibleDirtyRegion(const Occlusion::Region& region);
     void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
-    void SetGlobalDirtyRegion(const RectI& rect);
+    void SetGlobalDirtyRegion(Occlusion::Region region);
     const Occlusion::Region& GetGlobalDirtyRegion() const;
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
