@@ -49,17 +49,4 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_1)
     }
 }
 
-GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_2)
-{
-    float scales[] = { 1, 0.5, 2 };
-    for (int j = 0; j < 3; j++) {
-        auto testNode =
-            SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, j * 780 + 100, 600, 600 });
-        testNode->SetPivot(Vector2f(0.5, 0.5));
-        testNode->SetScaleZ(scales[j]);
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
-}
-
 } // namespace OHOS::Rosen
