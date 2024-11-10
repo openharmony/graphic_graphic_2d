@@ -522,6 +522,28 @@ HWTEST_F(RSInterfacesTest, SetScreenActiveMode002, Function | SmallTest | Level2
 }
 
 /*
+* Function: SetScreenActiveRect
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetScreenActiveRect
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsInterfaces->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
 * Function: GetScreenActiveMode
 * Type: Function
 * Rank: Important(2)

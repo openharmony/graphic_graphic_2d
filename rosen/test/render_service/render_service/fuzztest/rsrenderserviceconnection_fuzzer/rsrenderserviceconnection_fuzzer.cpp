@@ -394,6 +394,26 @@ bool DoSetScreenActiveMode()
     return true;
 }
 
+bool DoSetScreenActiveRect()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    ScreenId id = GetData<uint64_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
+    rsConn_->SetScreenActiveRect(id, activeRect);
+    return true;
+}
+
 bool DoSetRefreshRateMode()
 {
     if (rsConn_ == nullptr) {
@@ -1173,6 +1193,7 @@ void DoFuzzerTest1()
     DoUnRegisterPointerLuminanceChangeCallback();
 #endif
     DoSetScreenActiveMode();
+    DoSetScreenActiveRect();
     DoSetRefreshRateMode();
     DoCreateVSyncConnection();
     DoSetScreenRefreshRate();

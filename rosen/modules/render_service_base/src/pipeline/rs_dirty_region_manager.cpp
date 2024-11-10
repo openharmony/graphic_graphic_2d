@@ -327,15 +327,6 @@ bool RSDirtyRegionManager::SetBufferAge(const int age)
     return true;
 }
 
-bool RSDirtyRegionManager::SetSurfaceSize(const int32_t width, const int32_t height)
-{
-    if (width < 0 || height < 0) {
-        return false;
-    }
-    surfaceRect_ = RectI(0, 0, width, height);
-    return true;
-}
-
 void RSDirtyRegionManager::MergeSurfaceRect()
 {
     return MergeDirtyRect(GetSurfaceRect());
@@ -380,7 +371,8 @@ void RSDirtyRegionManager::UpdateDebugRegionTypeEnable(DirtyRegionDebugType dirt
 RectI RSDirtyRegionManager::MergeHistory(unsigned int age, RectI rect) const
 {
     if (age == 0 || age > historySize_) {
-        return surfaceRect_;
+        rect = rect.JoinRect(surfaceRect_);
+        age = historySize_;
     }
     // GetHistory(historySize_) is equal to dirtyHistory_[historyHead_] (latest his rect)
     // therefore, this loop merges rect with age frames' dirtyRect

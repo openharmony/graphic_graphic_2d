@@ -492,6 +492,26 @@ HWTEST_F(RSClientTest, SetScreenActiveMode001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetScreenActiveRect Test
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSClientTest, SetScreenActiveRect001, Function | SmallTest | Level2)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsClient->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/**
  * @tc.name: SetScreenRefreshRate Test
  * @tc.desc: SetScreenRefreshRate Test
  * @tc.type:FUNC

@@ -464,6 +464,11 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     return {};
 }
 
+uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
     return {};

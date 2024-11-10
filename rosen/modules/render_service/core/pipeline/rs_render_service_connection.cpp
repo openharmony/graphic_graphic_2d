@@ -1678,6 +1678,21 @@ int32_t RSRenderServiceConnection::SetVirtualScreenRefreshRate(
     return screenManager_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
 }
 
+uint32_t RSRenderServiceConnection::SetScreenActiveRect(
+    ScreenId id, const Rect& activeRect)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    GraphicIRect dstActiveRect {
+        .x = activeRect.x,
+        .y = activeRect.y,
+        .w = activeRect.w,
+        .h = activeRect.h,
+    };
+    return screenManager_->SetScreenActiveRect(id, dstActiveRect);
+}
+
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
     if (!mainThread_) {

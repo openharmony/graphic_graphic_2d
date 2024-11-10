@@ -562,6 +562,11 @@ int32_t RSInterfaces::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrame
     return renderServiceClient_->SetScreenSkipFrameInterval(id, skipFrameInterval);
 }
 
+uint32_t RSInterfaces::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    return renderServiceClient_->SetScreenActiveRect(id, activeRect);
+}
+
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
 {
     return renderServiceClient_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);

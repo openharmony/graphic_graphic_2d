@@ -95,6 +95,8 @@ public:
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 
+    virtual uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect) = 0;
+
     virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
@@ -307,6 +309,8 @@ public:
     void RemoveVirtualScreen(ScreenId id) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
+
+    uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect) override;
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 

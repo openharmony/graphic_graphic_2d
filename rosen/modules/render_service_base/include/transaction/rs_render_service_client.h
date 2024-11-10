@@ -294,6 +294,8 @@ public:
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(

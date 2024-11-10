@@ -85,6 +85,16 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t uid = GetData<int32_t>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
     Drawing::Bitmap bitmap;
     RSScreenHDRCapability screenHdrCapability;
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL;
@@ -146,6 +156,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.RemoveVirtualScreen(id1);
     rsRenderServiceConnectionProxy.SetScreenChangeCallback(callback);
     rsRenderServiceConnectionProxy.SetScreenActiveMode(id1, width);
+    rsRenderServiceConnectionProxy.SetScreenActiveRect(id1, activeRect);
     rsRenderServiceConnectionProxy.SetScreenRefreshRate(id1, pid1, uid);
     rsRenderServiceConnectionProxy.SetRefreshRateMode(pid1);
     rsRenderServiceConnectionProxy.SyncFrameRateRange(id1, range, 0);

@@ -321,6 +321,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_REFRESH_RATE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_ACTIVE_RECT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_ACTIVE_RECT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_PIXEL_FORMAT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_PIXEL_FORMAT");
             break;

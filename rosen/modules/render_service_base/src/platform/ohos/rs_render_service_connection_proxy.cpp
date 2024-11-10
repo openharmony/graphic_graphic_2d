@@ -2326,6 +2326,31 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenRefreshRate(
     return result;
 }
 
+uint32_t RSRenderServiceConnectionProxy::SetScreenActiveRect(
+    ScreenId id, const Rect& activeRect)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteInt32(activeRect.x) || !data.WriteInt32(activeRect.y) ||
+        !data.WriteInt32(activeRect.w) || !data.WriteInt32(activeRect.h)) {
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    return reply.ReadUint32();
+}
+
 int32_t RSRenderServiceConnectionProxy::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
 {
     if (callback == nullptr) {

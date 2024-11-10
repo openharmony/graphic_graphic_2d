@@ -318,6 +318,25 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveMode, TestSize.Level
 }
 
 /**
+ * @tc.name: SetScreenActiveRect Test
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveRect, TestSize.Level1)
+{
+    ScreenId id = 1;
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    proxy->SetScreenActiveRect(id, activeRect);
+    ASSERT_NE(proxy->transactionDataIndex_, 0);
+}
+
+/**
  * @tc.name: SetScreenRefreshRate Test
  * @tc.desc: SetScreenRefreshRate Test
  * @tc.type:FUNC
