@@ -1110,7 +1110,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate001, Function | SmallTest | Level
             }
         }
     }
-    
+
     if (ifSupported) {
         EXPECT_GE(currentRate, rateToSet);
     } else {
@@ -1501,10 +1501,12 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
 
     int releaseFence = -1;
+    int32_t width = 0x100;
+    int32_t height = 0x100;
     sptr<SurfaceBuffer> buffer;
     BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
+        .width = width,
+        .height = height,
         .strideAlignment = 0x8,
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -1512,8 +1514,8 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     };
     BufferFlushConfig flushConfig = {
         .damage = {
-            .w = 0x100,
-            .h = 0x100,
+            .w = width,
+            .h = height,
         }
     };
     GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
@@ -1534,6 +1536,18 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     auto pixcelMap = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
 #if defined(RS_ENABLE_UNI_RENDER)
     ASSERT_NE(pixcelMap, nullptr);
+    EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {0, 0, 0, 0}), nullptr);
+    EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {0, 0, width + 1, height + 1}), nullptr);
+    EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {width - 1, height - 1, 2, 2}), nullptr);
+    EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {0, 0, width, height}), nullptr);
+    EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {width - 50, height - 50, 50, 50}), nullptr);
+    EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
+        {width / 2, height/ 2, width / 2, height/ 2}), nullptr);
 #endif
 }
 
