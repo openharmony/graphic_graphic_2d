@@ -141,10 +141,10 @@ static std::vector<RectI> MergeDirtyHistory(RSDisplayRenderNodeDrawable& display
     RSUniRenderUtil::MergeDirtyHistoryForDrawable(displayDrawable, bufferAge, params, false);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
-    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
-    allDirtyRegion.OrSelf(dirtyRegion);
     const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
     if (clipRectThreshold < 1.f) {
+        Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+        allDirtyRegion.OrSelf(dirtyRegion);
         auto bound = allDirtyRegion.GetBound();
         if (allDirtyRegion.GetSize() > 1 && !bound.IsEmpty() &&
             allDirtyRegion.Area() > bound.Area() * clipRectThreshold) {
@@ -153,7 +153,9 @@ static std::vector<RectI> MergeDirtyHistory(RSDisplayRenderNodeDrawable& display
                 allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
         }
     }
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, allDirtyRegion);
+    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
+        dirtyRegion.Or(globalDirtyRegion));
 
     // DFX START
     rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
