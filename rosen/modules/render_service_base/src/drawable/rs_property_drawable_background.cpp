@@ -242,7 +242,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        canvas.DrawBackground(brush);
+        canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
     } else {
         canvas.AttachBrush(brush);
         canvas.DrawBackground(brush);
@@ -278,7 +278,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
         brush.SetAntiAlias(antiAlias);
         canvas.AttachBrush(brush);
-        canvas.DrawBackground(brush);
+        canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
     } else {
         canvas.AttachBrush(brush);
         canvas.DrawBackground(brush);
