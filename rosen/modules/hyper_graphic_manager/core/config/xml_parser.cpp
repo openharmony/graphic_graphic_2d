@@ -488,6 +488,7 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
         auto name = ExtractPropertyValue("name", *currNode);
         sceneConfig.strategy = ExtractPropertyValue("strategy", *currNode);
         sceneConfig.priority = ExtractPropertyValue("priority", *currNode);
+        sceneConfig.doNotAutoClear = ExtractPropertyValue("doNotAutoClear", *currNode) == "1";
 
         sceneList[name] = sceneConfig;
         HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s",

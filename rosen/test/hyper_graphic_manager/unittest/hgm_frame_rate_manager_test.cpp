@@ -728,5 +728,59 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
     frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
     EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
 }
+
+/**
+ * @tc.name: HandlePackageEvent
+ * @tc.desc: Verify the result of HandlePackageEvent
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
+{
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    std::string pkgName0 = "com.pkg0";
+    std::string pkgName1 = "com.pkg1";
+    std::string scene0 = "SCENE0";
+    std::string scene1 = "SCENE1";
+    std::string scene2 = "SCENE2";
+
+    auto sceneListConfig = frameRateMgr->GetMultiAppStrategy().GetScreenSetting();
+    sceneListConfig.sceneList[scene0] = {"1", "1", false};
+    sceneListConfig.sceneList[scene1] = {"1", "1", true};
+    sceneListConfig.gameSceneList[scene0] = {"1", "1"};
+
+    frameRateMgr->GetMultiAppStrategy().SetScreenSetting(sceneListConfig);
+
+    auto checkFunc = [frameRateMgr, scene0, scene1] (bool scene0Existed, bool scene1Existed, bool gameScene0Existed,
+                                                     bool gameScene1Existed) {
+        auto sceneStack = frameRateMgr->sceneStack_;
+        EXPECT_EQ(std::find(sceneStack.begin(), sceneStack.end(),
+            std::pair<std::string, pid_t>({scene0, DEFAULT_PID})) != sceneStack.end(), scene0Existed);
+        EXPECT_EQ(std::find(sceneStack.begin(), sceneStack.end(),
+            std::pair<std::string, pid_t>({scene1, DEFAULT_PID})) != sceneStack.end(), scene1Existed);
+
+        auto gameScenes = frameRateMgr->gameScenes_;
+        EXPECT_EQ(gameScenes.find(scene0) != gameScenes.end(), gameScene0Existed);
+        EXPECT_EQ(gameScenes.find(scene1) != gameScenes.end(), gameScene1Existed);
+    };
+
+    frameRateMgr->HandleSceneEvent(DEFAULT_PID, {"VOTER_SCENE", true, OLED_NULL_HZ, OLED_MAX_HZ, scene0});
+    checkFunc(true, false, true, false);
+
+    frameRateMgr->HandlePackageEvent(DEFAULT_PID, {pkgName0});
+    checkFunc(false, false, false, false);
+
+    // multi scene
+    frameRateMgr->HandleSceneEvent(DEFAULT_PID, {"VOTER_SCENE", true, OLED_NULL_HZ, OLED_MAX_HZ, scene0});
+    frameRateMgr->HandleSceneEvent(DEFAULT_PID, {"VOTER_SCENE", true, OLED_NULL_HZ, OLED_MAX_HZ, scene1});
+    checkFunc(true, true, true, false);
+
+    frameRateMgr->HandlePackageEvent(DEFAULT_PID, {pkgName1});
+    checkFunc(false, true, false, false);
+}
 } // namespace Rosen
 } // namespace OHOS

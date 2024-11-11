@@ -759,9 +759,17 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
     if (multiAppStrategy_.HandlePkgsEvent(packageList) == EXEC_SUCCESS) {
-        sceneStack_.clear();
-        gameScenes_.clear();
-        ancoScenes_.clear();
+        auto sceneListConfig = multiAppStrategy_.GetScreenSetting().sceneList;
+        for (auto scenePid = sceneStack_.begin(); scenePid != sceneStack_.end();) {
+            if (auto iter = sceneListConfig.find(scenePid->first);
+                iter != sceneListConfig.end() && iter->second.doNotAutoClear) {
+                ++scenePid;
+                continue;
+            }
+            gameScenes_.erase(scenePid->first);
+            ancoScenes_.erase(scenePid->first);
+            scenePid = sceneStack_.erase(scenePid);
+        }
     }
     UpdateAppSupportedState();
 }
