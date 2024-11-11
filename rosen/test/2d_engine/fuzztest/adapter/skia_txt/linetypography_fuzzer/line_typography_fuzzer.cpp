@@ -23,13 +23,11 @@ namespace Rosen {
 namespace Drawing {
 void OHLineTypographyFuzz1(const uint8_t* data, size_t size)
 {
-    size_t startIndex = GetObject<size_t>();
     double width = GetObject<double>();
-    size_t count = GetObject<size_t>();
-    std::unique_ptr<SPText::ParagraphLineFetcher> lineFetcher_;
+     std::unique_ptr<SPText::ParagraphLineFetcher> lineFetcher_;
     AdapterTxt::LineTypography lineTypography(std::move(lineFetcher_));
-    lineTypography.GetLineBreak(startIndex, width);
-    lineTypography.CreateLine(startIndex, count);
+    size_t count = lineTypography.GetLineBreak(0, width);
+    lineTypography.CreateLine(0, count);
     lineTypography.GetTempTypography();
 }
 } // namespace Drawing

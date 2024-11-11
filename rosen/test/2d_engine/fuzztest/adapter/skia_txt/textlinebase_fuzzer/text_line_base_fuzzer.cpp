@@ -52,7 +52,7 @@ void OHTextLineBaseFuzz1(const uint8_t* data, size_t size)
     textLine_.at(0)->GetImageBounds();
     bool isHardBreak = GetObject<bool>();
     textLine_.at(0)->GetIndexAndOffsets(isHardBreak);
-    textLine_.at(0)->GetOffsetForStringIndex(GetObject<int32_t>());
+    textLine_.at(0)->GetOffsetForStringIndex(0);
 
     typography_.reset();
     textLine_.clear();
