@@ -130,6 +130,7 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     // 0: indicate normal parcel
     // 1: indicate ashmem parcel
     if (!data->WriteInt32(0)) {
+        ROSEN_LOGE("FillParcelWithTransactionData WriteInt32 failed");
         return false;
     }
 
