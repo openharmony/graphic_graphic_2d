@@ -16,6 +16,11 @@
 #include "rs_render_service_connection_stub.h"
 #include <memory>
 #include "ivsync_connection.h"
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_type.h"
+#include <sched.h>
+#endif
 #include "securec.h"
 #include "sys_binder.h"
 
@@ -39,6 +44,10 @@ constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = INT_MAX;
 constexpr size_t MAX_DATA_SIZE = INT_MAX;
+#ifdef RES_SCHED_ENABLE
+const uint32_t RS_IPC_QOS_LEVEL = 7;
+constexpr const char* RS_BUNDLE_NAME = "render_service";
+#endif
 static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
@@ -49,6 +58,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE),
@@ -274,12 +284,40 @@ bool IsValidCallingPid(pid_t pid, pid_t callingPid)
 
 }
 
+void RSRenderServiceConnectionStub::SetQos()
+{
+#ifdef RES_SCHED_ENABLE
+    std::string strBundleName = RS_BUNDLE_NAME;
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+    std::string strQos = std::to_string(RS_IPC_QOS_LEVEL);
+    std::unordered_map<std::string, std::string> mapPayload;
+    mapPayload["pid"] = strPid;
+    mapPayload[strTid] = strQos;
+    mapPayload["bundleName"] = strBundleName;
+    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
+        OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
+    struct sched_param param = {0};
+    param.sched_priority = 1;
+    if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+        RS_LOGE("RSRenderServiceConnectionStub Couldn't set SCHED_FIFO.");
+    } else {
+        RS_LOGI("RSRenderServiceConnectionStub set SCHED_FIFO succeed.");
+    }
+#endif
+}
+
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
 
     pid_t callingPid = GetCallingPid();
+    auto tid = gettid();
+    if (tids_.find(tid) == tids_.end()) {
+        SetQos();
+        tids_.insert(tid);
+    }
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
         std::cend(descriptorCheckList)) {
         auto token = data.ReadInterfaceToken();
@@ -503,6 +541,35 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT): {
+            // read the parcel data.
+            ScreenId id = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t x = -1;
+            int32_t y = -1;
+            int32_t w = -1;
+            int32_t h = -1;
+            if (!data.ReadInt32(x) || !data.ReadInt32(y) ||
+                !data.ReadInt32(w) || !data.ReadInt32(h)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            auto mainScreenRect = Rect {
+                .x = x,
+                .y = y,
+                .w = w,
+                .h = h
+            };
+            int32_t status = SetMirrorScreenVisibleRect(id, mainScreenRect);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CAST_SCREEN_ENABLE_SKIP_WINDOW): {
             // read the parcel data.
             ScreenId id = data.ReadUint64();
@@ -607,11 +674,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE): {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "SET_SCREEN_REFRESH_RATE");
-                return ERR_INVALID_STATE;
-            }
             ScreenId id = data.ReadUint64();
             int32_t sceneId = data.ReadInt32();
             int32_t rate = data.ReadInt32();
@@ -651,11 +713,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "GET_SCREEN_CURRENT_REFRESH_RATE");
-                return ERR_INVALID_STATE;
-            }
             ScreenId id = data.ReadUint64();
             uint32_t refreshRate = GetScreenCurrentRefreshRate(id);
             if (!reply.WriteUint32(refreshRate)) {
@@ -1606,21 +1663,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "NOTIFY_LIGHT_FACTOR_STATUS");
-                return ERR_INVALID_STATE;
-            }
             auto isSafe = data.ReadBool();
             NotifyLightFactorStatus(isSafe);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "NOTIFY_PACKAGE_EVENT");
-                return ERR_INVALID_STATE;
-            }
             auto listSize = data.ReadUint32();
             const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
@@ -1635,11 +1682,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "NOTIFY_REFRESH_RATE_EVENT");
-                return ERR_INVALID_STATE;
-            }
             EventInfo eventInfo = {
                 data.ReadString(), data.ReadBool(), data.ReadUint32(), data.ReadUint32(), data.ReadString(),
             };
@@ -1647,21 +1689,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "NOTIFY_DYNAMIC_MODE_EVENT");
-                return ERR_INVALID_STATE;
-            }
             auto enableDynamicMode = data.ReadBool();
             NotifyDynamicModeEvent(enableDynamicMode);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission to access"\
-                    "NOTIFY_TOUCH_EVENT");
-                return ERR_INVALID_STATE;
-            }
             auto touchStatus = data.ReadInt32();
             auto touchCnt = data.ReadInt32();
             NotifyTouchEvent(touchStatus, touchCnt);
@@ -1839,10 +1871,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
-            if (!securityManager_.IsInterfaceCodeAccessible(code)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_VMA_CACHE_STATUS");
-                return ERR_INVALID_STATE;
-            }
             bool flag = data.ReadBool();
             SetVmaCacheStatus(flag);
             break;

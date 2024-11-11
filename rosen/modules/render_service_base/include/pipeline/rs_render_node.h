@@ -787,6 +787,12 @@ public:
     {
         return isAccessibilityConfigChanged_;
     }
+
+    void ProcessBehindWindowOnTreeStateChanged();
+    void ProcessBehindWindowAfterApplyModifiers();
+    virtual bool NeedDrawBehindWindow() const { return false; }
+    virtual void AddChildBlurBehindWindow(NodeId id) {}
+    virtual void RemoveChildBlurBehindWindow(NodeId id) {}
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -1043,6 +1049,10 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    // for blur effct count
+    static std::unordered_map<pid_t, size_t> blurEffectCounter_;
+    void UpdateBlurEffectCounter(int deltaCount);
+    int GetBlurEffectDrawbleCount();
 
     void SetParent(WeakPtr parent);
     void ResetParent();
@@ -1124,6 +1134,7 @@ struct SharedTransitionParam {
     }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
+    RSB_EXPORT void ResetRelation();
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;

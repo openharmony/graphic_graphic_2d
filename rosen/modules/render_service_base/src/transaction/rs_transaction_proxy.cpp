@@ -126,6 +126,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
+        RS_LOGE("FlushImplicitTransaction failed");
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
@@ -145,6 +146,9 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
         transactionDataIndex_ = implicitRemoteTransactionData_->GetIndex();
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
+    } else {
+        RS_LOGE("FlushImplicitTransaction failed, [%{public}d, %{public}d]",
+            renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
     }
 }
 

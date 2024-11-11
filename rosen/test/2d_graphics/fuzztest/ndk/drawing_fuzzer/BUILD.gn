@@ -31,15 +31,17 @@ ohos_fuzztest("DrawingFuzzTest") {
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
-  cflags = [
+  cflags_cc = [
     "-g",
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-std=c++17",
   ]
   sources = [
     "drawing_fuzzer.cpp",
-    "get_object.h",
+    "drawing_text_run_fuzz.cpp",
+    "drawing_typography_fuzzer.cpp",
   ]
 
   deps = [

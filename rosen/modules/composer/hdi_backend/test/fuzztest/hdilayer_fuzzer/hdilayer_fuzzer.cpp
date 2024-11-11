@@ -114,10 +114,16 @@ namespace OHOS {
         int64_t timestamp = GetData<int64_t>();
         GraphicCompositionType type = GetData<GraphicCompositionType>();
         std::string result = GetStringFromData(STR_LEN);
+        uint32_t sequence = GetData<uint32_t>();
+        uint32_t index = GetData<uint32_t>();
+        uint32_t deleting = GetData<uint32_t>();
+        std::vector<uint32_t> deletingList = { deleting };
+        std::string windowName = GetStringFromData(STR_LEN);
 
         // test
         std::shared_ptr<HdiLayerInfo> layerInfo = GetLayerInfoFromData();
         std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(screenId);
+        Rosen::HdiDevice* hdiDeviceMock = Rosen::HdiDevice::GetInstance();
         hdiLayer->Init(layerInfo);
         hdiLayer->SetLayerStatus(inUsing);
         hdiLayer->UpdateLayerInfo(layerInfo);
@@ -126,7 +132,19 @@ namespace OHOS {
         hdiLayer->MergeWithFramebufferFence(fence);
         hdiLayer->MergeWithLayerFence(fence);
         hdiLayer->UpdateCompositionType(type);
+        hdiLayer->SetLayerCrop();
+        hdiLayer->SetLayerVisibleRegion();
+        hdiLayer->SetHdiDeviceMock(hdiDeviceMock);
+        hdiLayer->CheckAndUpdateLayerBufferCahce(sequence, index, deletingList);
+        hdiLayer->SetLayerMetaData();
+        hdiLayer->SetLayerMetaDataSet();
+        hdiLayer->SetReleaseFence(fence);
+        hdiLayer->SelectHitchsInfo(windowName, result);
+        hdiLayer->RecordMergedPresentTime(timestamp);
         hdiLayer->Dump(result);
+        hdiLayer->DumpByName(windowName, result);
+        hdiLayer->DumpMergedResult(result);
+        hdiLayer->ClearDump();
 
         return true;
     }

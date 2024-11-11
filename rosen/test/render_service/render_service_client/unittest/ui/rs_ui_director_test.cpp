@@ -644,4 +644,17 @@ HWTEST_F(RSUIDirectorTest, GetIndexTest001, TestSize.Level1)
     uint32_t index = director->GetIndex();
     EXPECT_TRUE(index != 0);
 }
+
+/**
+ * @tc.name: HasFirstFrameAnimationTest
+ * @tc.desc: test HasFirstFrameAnimation
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, HasFirstFrameAnimationTest, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    bool res = director->HasFirstFrameAnimation();
+    ASSERT_FALSE(res);
+}
 } // namespace OHOS::Rosen

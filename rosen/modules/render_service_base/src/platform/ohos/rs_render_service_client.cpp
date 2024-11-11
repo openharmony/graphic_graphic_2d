@@ -16,8 +16,9 @@
 #include "transaction/rs_render_service_client.h"
 #include "surface_type.h"
 #include "surface_utils.h"
-
+#ifdef RS_ENABLE_GL
 #include "backend/rs_surface_ohos_gl.h"
+#endif
 #include "backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "backend/rs_surface_ohos_vulkan.h"
@@ -55,6 +56,8 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
+    } else {
+        RS_LOGE("RSRenderServiceClient::CommitTransaction failed, renderService is nullptr");
     }
 }
 
@@ -207,12 +210,15 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
-        if (UNLIKELY(RSSystemProperties::GetPixelmapDfxEnabled()) || (i != callbackVector.size() - 1)) {
+        if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
                 surfaceCapture = std::move(pixelmapCopy);
             }
+        }
+        if (surfaceCapture) {
+            surfaceCapture->SetMemoryName("RSSurfaceCaptureForCallback");
         }
         callbackVector[i]->OnSurfaceCapture(surfaceCapture);
     }
@@ -364,6 +370,16 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     }
 
     return renderService->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetMirrorScreenVisibleRect(id, mainScreenRect);
 }
 
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)

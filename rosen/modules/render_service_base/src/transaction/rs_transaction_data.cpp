@@ -305,7 +305,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
     }
 
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
-        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap_;
+        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [_, followType, command] : payload_) {
         if (command == nullptr) {
@@ -319,11 +319,11 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
             continue;
         }
-        conflictPidToCommandMap_[commandPid][nodeId].insert(command->GetUniqueType());
+        conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);
     }
     lock.unlock();
-    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap_) {
+    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap) {
         conflictCommandPid = commandPid;
         commandMapDesc = PrintCommandMapDesc(commandTypeMap);
         return false;

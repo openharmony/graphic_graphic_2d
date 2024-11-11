@@ -79,6 +79,10 @@ public:
 
     virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const = 0;
 
+    virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
+
+    virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
+
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
@@ -234,7 +238,7 @@ public:
     virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 
-    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) = 0;
+    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -287,6 +291,10 @@ public:
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) override;
 
     const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const override;
+
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
+
+    Rect GetMirrorScreenVisibleRect(ScreenId id) const override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
@@ -449,7 +457,7 @@ public:
 
     static void ReleaseScreenDmaBuffer(uint64_t screenId);
 
-    bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) override;
+    bool GetDisplayPropertyForHardCursor(uint32_t screenId) override;
 
     uint32_t GetCurrentVirtualScreenNum() override
     {
@@ -524,7 +532,7 @@ private:
     mutable std::mutex blackListMutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
+    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
     uint32_t virtualScreenCount_ = 0;
     uint32_t currentVirtualScreenNum_ = 0;

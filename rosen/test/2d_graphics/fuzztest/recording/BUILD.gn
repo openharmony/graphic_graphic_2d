@@ -16,10 +16,12 @@ group("fuzztest") {
 
   deps = [
     "cmdlist_fuzzer:fuzztest",
+    "cmdlisthelper_fuzzer:fuzztest",
     "drawcmd_fuzzer:fuzztest",
     "drawcmdlist_fuzzer:fuzztest",
     "maskcmdlist_fuzzer:fuzztest",
     "memallocator_fuzzer:fuzztest",
     "opitem_fuzzer:fuzztest",
+    "recordingcanvas_fuzzer:fuzztest",
   ]
 }

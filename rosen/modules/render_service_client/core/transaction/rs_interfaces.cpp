@@ -100,6 +100,11 @@ int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
     return renderServiceClient_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
+int32_t RSInterfaces::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    return renderServiceClient_->SetMirrorScreenVisibleRect(id, mainScreenRect);
+}
+
 int32_t RSInterfaces::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return renderServiceClient_->SetCastScreenEnableSkipWindow(id, enable);

@@ -176,6 +176,7 @@ template("render_service_client_source_set") {
     ]
 
     deps = [
+      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/rosen/modules/platform:ipc_core",
       "$graphic_2d_root/rosen/modules/render_frame_trace:render_frame_trace",
     ]
@@ -233,6 +234,10 @@ template("render_service_client_source_set") {
     }
 
     external_deps += [ "graphic_surface:surface_headers" ]
+
+    if (!build_ohos_sdk && !is_mingw) {
+      external_deps += [ "samgr:samgr_proxy" ]
+    }
 
     if (rosen_cross_platform) {
       deps += [ "$rosen_root/modules/platform:hilog" ]

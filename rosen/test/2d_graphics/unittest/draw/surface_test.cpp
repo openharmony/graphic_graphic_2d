@@ -249,6 +249,21 @@ HWTEST_F(SurfaceTest, Wait006, TestSize.Level1)
     surface->Wait(syncs);
 }
 #endif
+
+#ifdef RS_ENABLE_VK
+/**
+ * @tc.name: ClearDrawingArea001
+ * @tc.desc: Test wait for the surface.
+ * @tc.type: FUNC
+ * @tc.require:IALEIN
+ */
+HWTEST_F(SurfaceTest, ClearDrawingArea001, TestSize.Level1)
+{
+    auto surface = std::make_unique<Surface>();
+    ASSERT_TRUE(surface != nullptr);
+    surface->ClearDrawingArea();
+}
+#endif
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

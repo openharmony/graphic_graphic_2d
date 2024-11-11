@@ -211,7 +211,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers rate:%{public}d, " \
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size());
-        ExecuteSwitchRefreshRate(param.rate);
+        ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
         output->SetLayerInfo(layers);
@@ -419,7 +419,7 @@ void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
     vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
 }
 
-void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
+void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate)
 {
     static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
     if (!refreshRateSwitch) {
@@ -427,10 +427,14 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         return;
     }
 
-    static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (hgmCore.GetFrameRateMgr() == nullptr) {
         RS_LOGD("FrameRateMgr is null");
+        return;
+    }
+    ScreenId id = output->GetScreenId();
+    auto screen = hgmCore.GetScreen(id);
+    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
     auto screenRefreshRateImme = hgmCore.GetScreenRefreshRateImme();
@@ -438,12 +442,12 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         RS_LOGD("ExecuteSwitchRefreshRate:rate change: %{public}u -> %{public}u", refreshRate, screenRefreshRateImme);
         refreshRate = screenRefreshRateImme;
     }
-    ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
+    ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
+    ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
-        int32_t sceneId = (lastScreenId != id) ? SWITCH_SCREEN_SCENE : 0;
-        lastScreenId = id;
+        int32_t sceneId = (lastCurScreenId != curScreenId) ? SWITCH_SCREEN_SCENE : 0;
         int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,

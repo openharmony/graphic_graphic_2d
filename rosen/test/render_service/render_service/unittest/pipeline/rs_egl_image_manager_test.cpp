@@ -21,6 +21,7 @@
 #include "pipeline/rs_egl_image_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "render_context/render_context.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,6 +45,7 @@ void RSEglImageManagerTest::SetUpTestCase()
     renderContext_->InitializeEglContext();
     renderContext_->SetUpGpuContext();
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
+    RSTestUtil::InitRenderNodeGC();
 }
 
 void RSEglImageManagerTest::TearDownTestCase()

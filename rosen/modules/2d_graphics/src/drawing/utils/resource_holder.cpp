@@ -37,9 +37,9 @@ bool ResourceHolder::IsEmpty() const
     return impl_->IsEmpty();
 }
 
-bool ResourceHolder::HasRealseableResourceCheck() const
+bool ResourceHolder::HaveReleaseableResourceCheck() const
 {
-    return impl_->HasRealseableResourceCheck();
+    return impl_->HaveReleaseableResourceCheck();
 }
 } // namespace Drawing
 } // namespace Rosen

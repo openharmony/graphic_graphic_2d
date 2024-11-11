@@ -110,9 +110,14 @@ public:
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
     virtual bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) = 0;
     virtual VirtualScreenStatus GetVirtualScreenStatus() const = 0;
-    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) = 0;
+    virtual bool GetDisplayPropertyForHardCursor() = 0;
+    virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
+    virtual void SetEnableVisibleRect(bool enable) = 0;
+    virtual bool GetEnableVisibleRect() const = 0;
+    virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
+    virtual Rect GetMainScreenVisibleRect() const = 0;
 };
 
 namespace impl {
@@ -195,9 +200,14 @@ public:
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus) override;
     VirtualScreenStatus GetVirtualScreenStatus() const override;
-    bool GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue) override;
+    bool GetDisplayPropertyForHardCursor() override;
+    void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
+    void SetEnableVisibleRect(bool enable) override;
+    bool GetEnableVisibleRect() const override;
+    void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
+    Rect GetMainScreenVisibleRect() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -262,7 +272,10 @@ private:
     std::unordered_set<uint64_t> whiteList_ = {};
     std::unordered_set<uint64_t> blackList_ = {};
     std::vector<uint64_t> securityExemptionList_ = {};
+    bool enableVisibleRect_ = false;
+    Rect mainScreenVisibleRect_ = {};
     std::atomic<bool> skipWindow_ = false;
+    bool isHardCursorSupport_ = false;
 };
 } // namespace impl
 } // namespace Rosen

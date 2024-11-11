@@ -17,6 +17,7 @@
 #define PARAMETERS_DEFINATION_H
 
 #define ZERO_ 0
+#define ZERO_POINT_FIVE_ 0.5
 #define ONE_ 1
 #define TWO_ 2
 #define THREE_ 3
@@ -39,6 +40,7 @@
 #define TWO_HUNDRED_ 200
 #define TWO_HUNDRED_FIFTY_ 250
 #define THREE_HUNDRED_ 300
+#define THREE_HUNDRED_TEN_ 310
 #define FOUR_HUNDRED_ 400
 #define FIVE_HUNDRED_ 500
 #define FIVE_HUNDRED_TEN_ 510
@@ -46,5 +48,7 @@
 #define FIVE_HUNDRED_SIXTY_ 560
 #define SIX_HUNDRED_ 600
 #define SIX_HUNDRED_TEN_ 610
+
+#define ONE_THOUSAND_ 1000
 
 #endif // PARAMETERS_DEFINATION_H

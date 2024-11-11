@@ -45,9 +45,7 @@ RSImageBase::~RSImageBase()
 {
     if (pixelMap_) {
 #ifdef ROSEN_OHOS
-        if (renderServiceImage_) {
-            pixelMap_->DecreaseUseCount();
-        }
+        pixelMap_->DecreaseUseCount();
 #endif
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
@@ -102,10 +100,11 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 }
 #endif
 
-void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
+void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+    Drawing::SrcRectConstraint constraint)
 {
 #ifdef ROSEN_OHOS
-    if (pixelMap_) {
+    if (pixelMap_ && pixelMap_->IsUnMap()) {
         pixelMap_->ReMap();
     }
 #endif
@@ -123,7 +122,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOpti
         RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
         return;
     }
-    canvas.DrawImageRect(*image_, src, dst, samplingOptions);
+    canvas.DrawImageRect(*image_, src, dst, samplingOptions, constraint);
 }
 
 void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
@@ -163,6 +162,9 @@ void RSImageBase::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelmap)
 #endif
     pixelMap_ = pixelmap;
     if (pixelMap_) {
+#ifdef ROSEN_OHOS
+        pixelMap_->IncreaseUseCount();
+#endif
         srcRect_.SetAll(0.0, 0.0, pixelMap_->GetWidth(), pixelMap_->GetHeight());
         image_ = nullptr;
         GenUniqueId(pixelMap_->GetUniqueId());
@@ -246,12 +248,9 @@ void RSImageBase::MarkRenderServiceImage()
 {
     renderServiceImage_ = true;
 #ifdef ROSEN_OHOS
-    if (!pixelMap_) {
-        return;
-    }
-    pixelMap_->IncreaseUseCount();
     if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED &&
         RSSystemProperties::GetRSImagePurgeEnabled() &&
+        pixelMap_ &&
         (pixelMap_->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
         !pixelMap_->IsEditable() &&
         !pixelMap_->IsAstc() &&

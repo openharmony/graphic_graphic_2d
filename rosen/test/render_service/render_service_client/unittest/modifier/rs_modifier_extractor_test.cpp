@@ -43,7 +43,8 @@ void RSModifierExtractorTest::TearDown() {}
  */
 HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
 {
-    RSModifierExtractor extractor;
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
     // Node is nullptr
     ASSERT_EQ(extractor.GetPivotZ(), 0.f);
 
@@ -53,8 +54,6 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
     ASSERT_EQ(extractor.GetBloom(), 0.f);
 
     // Node is not nullptr
-    RSNode nodeTest(true);
-    extractor.node_ = &nodeTest;
     ASSERT_EQ(extractor.GetBackgroundBlurRadius(), 0.f);
 
     ASSERT_EQ(extractor.GetBackgroundBlurSaturation(), 0.f);
@@ -89,8 +88,9 @@ HWTEST_F(RSModifierExtractorTest, NodeTest001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetBorderDashWidth001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f vector = extractor->GetBorderDashWidth();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetBorderDashWidth();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
 
@@ -102,8 +102,9 @@ HWTEST_F(RSModifierExtractorTest, GetBorderDashWidth001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetBorderDashGap001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f vector = extractor->GetBorderDashGap();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetBorderDashGap();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
 
@@ -115,8 +116,9 @@ HWTEST_F(RSModifierExtractorTest, GetBorderDashGap001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetOutlineDashWidth001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f vector = extractor->GetOutlineDashWidth();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetOutlineDashWidth();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
 
@@ -128,8 +130,9 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineDashWidth001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetOutlineDashGap001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f vector = extractor->GetOutlineDashWidth();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetOutlineDashWidth();
     EXPECT_EQ(vector, Vector4f(0.f));
 }
 
@@ -141,8 +144,9 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineDashGap001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetOutlineColor001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4<Color> vector = extractor->GetOutlineColor();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4<Color> vector = extractor.GetOutlineColor();
     EXPECT_TRUE(vector == Vector4<Color>(RgbPalette::Transparent()));
 }
 
@@ -154,8 +158,9 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineColor001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetOutlineWidth001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f vector = extractor->GetOutlineWidth();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetOutlineWidth();
     EXPECT_TRUE(vector == Vector4f(0.f));
 }
 
@@ -167,8 +172,9 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineWidth001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetOutlineStyle001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4<uint32_t> vector = extractor->GetOutlineStyle();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4<uint32_t> vector = extractor.GetOutlineStyle();
     EXPECT_TRUE(vector == Vector4<uint32_t>(static_cast<uint32_t>(BorderStyle::NONE)));
 }
 
@@ -180,8 +186,9 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineStyle001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetOutlineRadius001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f vector = extractor->GetOutlineRadius();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f vector = extractor.GetOutlineRadius();
     EXPECT_TRUE(vector == Vector4f(0.f));
 }
 
@@ -193,8 +200,9 @@ HWTEST_F(RSModifierExtractorTest, GetOutlineRadius001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    float radius = extractor->GetForegroundEffectRadius();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float radius = extractor.GetForegroundEffectRadius();
     EXPECT_TRUE(radius == 0.f);
 }
 
@@ -206,8 +214,9 @@ HWTEST_F(RSModifierExtractorTest, GetForegroundEffectRadius001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetShadowIsFilled001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    bool res = extractor->GetShadowIsFilled();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    bool res = extractor.GetShadowIsFilled();
     EXPECT_FALSE(res);
 }
 
@@ -219,8 +228,9 @@ HWTEST_F(RSModifierExtractorTest, GetShadowIsFilled001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetShadowColorStrategy001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    int strategy = extractor->GetShadowColorStrategy();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    int strategy = extractor.GetShadowColorStrategy();
     EXPECT_TRUE(strategy == 0);
 }
 
@@ -232,9 +242,24 @@ HWTEST_F(RSModifierExtractorTest, GetShadowColorStrategy001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    float degree = extractor->GetSpherizeDegree();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float degree = extractor.GetSpherizeDegree();
     EXPECT_TRUE(degree == 0.f);
+}
+
+/**
+ * @tc.name: GetAttractionFraction001
+ * @tc.desc: test results of GetAttractionFraction
+ * @tc.type: FUNC
+ * @tc.require: issueI9VXLH
+ */
+HWTEST_F(RSModifierExtractorTest, GetAttractionFraction001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float fraction = extractor.GetAttractionFractionValue();
+    EXPECT_TRUE(fraction == 0.f);
 }
 
 /**
@@ -245,8 +270,9 @@ HWTEST_F(RSModifierExtractorTest, GetSpherizeDegree001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector2f attractionDstPoint = extractor->GetAttractionDstPointValue();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector2f attractionDstPoint = extractor.GetAttractionDstPointValue();
     EXPECT_TRUE(attractionDstPoint.x_ == 0.f);
 }
 
@@ -258,8 +284,9 @@ HWTEST_F(RSModifierExtractorTest, GetAttractionDstPointValue001, TestSize.Level1
  */
 HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegree001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    float degree = extractor->GetLightUpEffectDegree();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float degree = extractor.GetLightUpEffectDegree();
     EXPECT_TRUE(degree == 0.f);
 }
 
@@ -271,8 +298,9 @@ HWTEST_F(RSModifierExtractorTest, GetLightUpEffectDegree001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetDynamicDimDegree001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    float degree = extractor->GetDynamicDimDegree();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float degree = extractor.GetDynamicDimDegree();
     EXPECT_TRUE(degree == 0.f);
 }
 
@@ -284,8 +312,9 @@ HWTEST_F(RSModifierExtractorTest, GetDynamicDimDegree001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetLightIntensity001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    float intensity = extractor->GetLightIntensity();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float intensity = extractor.GetLightIntensity();
     EXPECT_TRUE(intensity == 0.f);
 }
 
@@ -297,8 +326,9 @@ HWTEST_F(RSModifierExtractorTest, GetLightIntensity001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetLightPosition001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    Vector4f position = extractor->GetLightPosition();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    Vector4f position = extractor.GetLightPosition();
     EXPECT_TRUE(position == Vector4f(0.f));
 }
 
@@ -310,8 +340,9 @@ HWTEST_F(RSModifierExtractorTest, GetLightPosition001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetIlluminatedBorderWidth001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    float borderWidth = extractor->GetIlluminatedBorderWidth();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    float borderWidth = extractor.GetIlluminatedBorderWidth();
     EXPECT_TRUE(borderWidth == 0.f);
 }
 
@@ -323,8 +354,48 @@ HWTEST_F(RSModifierExtractorTest, GetIlluminatedBorderWidth001, TestSize.Level1)
  */
 HWTEST_F(RSModifierExtractorTest, GetIlluminatedType001, TestSize.Level1)
 {
-    auto extractor = std::make_shared<RSModifierExtractor>();
-    int illuminatedType = extractor->GetIlluminatedType();
+    NodeId id = 1;
+    RSModifierExtractor extractor(id);
+    int illuminatedType = extractor.GetIlluminatedType();
     EXPECT_TRUE(illuminatedType == 0);
+}
+
+/**
+ * @tc.name: GetScaleZ
+ * @tc.desc: test results of GetScaleZ
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetScaleZ, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetScaleZ(), 1.0f);
+}
+
+/**
+ * @tc.name: GetSkew
+ * @tc.desc: test results of GetSkew
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetSkew, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetSkew(), Vector3f(0.f, 0.f, 0.f));
+}
+
+/**
+ * @tc.name: GetPersp
+ * @tc.desc: test results of GetPersp
+ * @tc.type: FUNC
+ * @tc.require: issueIAP7XJ
+ */
+HWTEST_F(RSModifierExtractorTest, GetPersp, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto extractor = std::make_shared<RSModifierExtractor>(id);
+    EXPECT_EQ(extractor->GetPersp(), Vector4f(0.f, 0.f, 0.f, 1.f));
 }
 } // namespace OHOS::Rosen

@@ -43,7 +43,6 @@ declare_args() {
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
-  graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
   graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
@@ -110,12 +109,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
     gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 
-  if (graphic_2d_feature_enable_recording_dcl) {
-    rs_enable_recording_dcl = true
-    gpu_defines += [ "ENABLE_RECORDING_DCL" ]
-  } else {
-    rs_enable_recording_dcl = false
-  }
   ace_enable_gpu = true
   rs_enable_gpu = true
   surface_enable_gpu = true
@@ -125,7 +118,7 @@ if (graphic_2d_feature_ace_enable_gpu) {
     libvulkan += [ "//third_party/vulkan-loader:vulkan_loader" ]
   }
 } else {
-  gpu_defines = [ "ACE_DISABLE_GL" ]
+  gpu_defines += [ "ACE_DISABLE_GL" ]
   ace_enable_gpu = false
   rs_enable_gpu = false
   surface_enable_gpu = false
@@ -365,7 +358,6 @@ adapters = exec_script("$ace_root/build/search.py",
                        "list lines")
 if (defined(use_clang_coverage) && use_clang_coverage) {
   graphic_2d_feature_rs_enable_profiler = false
-  graphic_2d_feature_enable_recording_dcl = false
 }
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {

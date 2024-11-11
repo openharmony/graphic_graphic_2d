@@ -66,6 +66,8 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);

@@ -2165,6 +2165,206 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList007, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetVirtualScreenSecurityExemptionList001
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with abnormal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+
+    ScreenId id = 11;  // screenId for test
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = nullptr;
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+    screenManagerImpl.screens_.erase(id);
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList002
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenSecurityExemptionList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecurityExemptionList001
+ * @tc.desc: Test GetVirtualScreenSecurityExemptionList with abnormal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(INVALID_SCREEN_ID);
+    ASSERT_EQ(securityExemptionListGet.size(), 0);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
+    ASSERT_EQ(securityExemptionListGet.size(), 0);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecurityExemptionList002
+ * @tc.desc: Test GetVirtualScreenSecurityExemptionList with normal param
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecurityExemptionList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    auto ret = screenManagerImpl.SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    auto securityExemptionListGet = screenManagerImpl.GetVirtualScreenSecurityExemptionList(id);
+    ASSERT_EQ(securityExemptionListGet.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(securityExemptionListGet[i], securityExemptionList[i]);
+    }
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect001
+ * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rect = {0, 0, width, height};
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(INVALID_SCREEN_ID, rect);
+    ASSERT_EQ(ret, StatusCode::INVALID_ARGUMENTS);
+
+    screenManagerImpl.screens_.erase(id);
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[id] = nullptr;
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect002
+ * @tc.desc: Test SetMirrorScreenVisibleRect with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rect = {0, 0, width, height};
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+
+    rect = {-10, -10, -100, -100};  // test rect value
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: GetMirrorScreenVisibleRect001
+ * @tc.desc: Test GetMirrorScreenVisibleRect with abnormal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, GetMirrorScreenVisibleRect001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    auto rect = screenManagerImpl.GetMirrorScreenVisibleRect(INVALID_SCREEN_ID);
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    rect = screenManagerImpl.GetMirrorScreenVisibleRect(id);
+}
+
+/*
+ * @tc.name: GetMirrorScreenVisibleRect002
+ * @tc.desc: Test GetMirrorScreenVisibleRect with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenManagerTest, GetMirrorScreenVisibleRect002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rectSet = {0, 0, width, height};
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rectSet);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+
+    auto rectGet = screenManagerImpl.GetMirrorScreenVisibleRect(id);
+    ASSERT_EQ(rectSet.x, rectGet.x);
+    ASSERT_EQ(rectSet.y, rectGet.y);
+    ASSERT_EQ(rectSet.w, rectGet.w);
+    ASSERT_EQ(rectSet.h, rectGet.h);
+}
+
+/*
  * @tc.name: SetCastScreenEnableSkipWindow001
  * @tc.desc: Test SetCastScreenEnableSkipWindow, input id not in keys of screens_
  * @tc.type: FUNC

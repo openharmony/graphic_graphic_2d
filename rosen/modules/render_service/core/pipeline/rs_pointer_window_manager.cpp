@@ -79,6 +79,18 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
     }
 }
 
+bool RSPointerWindowManager::CheckHardCursorSupport(std::shared_ptr<RSDisplayRenderNode>& curDisplayNode)
+{
+    if (curDisplayNode == nullptr) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        return false;
+    }
+    return screenManager->GetDisplayPropertyForHardCursor(curDisplayNode->GetScreenId());
+}
+
 bool RSPointerWindowManager::HasMirrorDisplay() const
 {
     const std::shared_ptr<RSBaseRenderNode> rootNode =
@@ -99,71 +111,6 @@ bool RSPointerWindowManager::HasMirrorDisplay() const
         }
     }
     return false;
-}
-
-bool RSPointerWindowManager::HasVirtualDisplay() const
-{
-    const std::shared_ptr<RSBaseRenderNode> rootNode =
-        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
-    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
-        return false;
-    }
-    bool hasVirtualDisplay = false;
-    for (auto& child : *rootNode->GetSortedChildren()) {
-        if (!child || !child->IsInstanceOf<RSDisplayRenderNode>()) {
-            continue;
-        }
-        auto displayNode = child->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (!displayNode) {
-            continue;
-        }
-        auto screenManager = CreateOrGetScreenManager();
-        if (!screenManager) {
-            return false;
-        }
-        RSScreenType screenType;
-        screenManager->GetScreenType(displayNode->GetScreenId(), screenType);
-        if (screenType == RSScreenType::VIRTUAL_TYPE_SCREEN) {
-            hasVirtualDisplay = true;
-        }
-    }
-    return hasVirtualDisplay;
-}
-
-bool RSPointerWindowManager::CheckIsHardCursor() const
-{
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        return false;
-    }
-    std::shared_ptr<RSBaseRenderNode> rootNode =
-        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        RS_LOGE("CheckIsHardCursor rootNode is nullptr");
-        return false;
-    }
-    auto childCount = rootNode->GetChildrenCount();
-    if (childCount == 1) {
-        return true;
-    } else if (childCount < 1) {
-        return false;
-    }
-    bool hasMirrorDisplay = HasMirrorDisplay();
-    bool hasVirtualDisplay = HasVirtualDisplay();
-    // For expand physical screen.
-    if (!hasMirrorDisplay || (hasMirrorDisplay && hasVirtualDisplay)) {
-        return true;
-    }
-    return false;
-}
-
-bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
-{
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        return false;
-    }
-    uint64_t propertyValue = 0;
-    return screenManager->GetDisplayPropertyForHardCursor(screenId, propertyValue);
 }
 } // namespace Rosen
 } // namespace OHOS

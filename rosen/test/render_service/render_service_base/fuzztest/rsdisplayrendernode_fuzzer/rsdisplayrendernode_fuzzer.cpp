@@ -29,6 +29,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_thread_visitor.cpp"
 #include "screen_manager/screen_types.h"
+#include "params/rs_display_render_params.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -86,6 +87,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RectI dirtyShadow;
     Drawing::Matrix matrix;
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    rsDisplayRenderNode.stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
     auto sptr = std::make_shared<RSDisplayRenderNode>(id, config);
     rsDisplayRenderNode.SetIsOnTheTree(true);
     rsDisplayRenderNode.SetScreenId(id);
@@ -180,6 +182,7 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     config.screenId = id;
     config.isMirrored = true;
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    rsDisplayRenderNode.stagingRenderParams_ = std::make_unique<RSDisplayRenderParams>(id);
     RSDisplayRenderNode::ScreenRenderParams screenRenderParams;
     rsDisplayRenderNode.UpdateScreenRenderParams(screenRenderParams);
     rsDisplayRenderNode.UpdateOffscreenRenderParams(GetData<bool>());
@@ -191,6 +194,74 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetDisappearedSurfaceRegionBelowCurrent(GetData<uint64_t>());
     return true;
 }
+
+bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint64_t id = GetData<uint64_t>();
+    RSDisplayNodeConfig config;
+    config.mirrorNodeId = id;
+    config.screenId = id;
+    config.isMirrored = true;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    rsDisplayRenderNode.HandleCurMainAndLeashSurfaceNodes();
+    return true;
+}
+
+bool DoIsZoomStateChange(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    uint64_t id = GetData<uint64_t>();
+    RSDisplayNodeConfig config;
+    config.mirrorNodeId = id;
+    config.screenId = id;
+    config.isMirrored = true;
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    bool state = GetData<bool>();
+    rsDisplayRenderNode.UpdateZoomState(state);
+    rsDisplayRenderNode.IsZoomStateChange();
+    return true;
+}
+
+bool DoGetSortedChildren(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    NodeId id = GetData<NodeId>();
+    uint64_t screenId = GetData<uint64_t>();
+    bool isMirrored = GetData<bool>();
+    NodeId mirrorNodeId = GetData<NodeId>();
+    RSDisplayNodeConfig config = { screenId, isMirrored, mirrorNodeId };
+    RSDisplayRenderNode rsDisplayRenderNode(id, config);
+    auto oldScbPids = std::vector<int32_t>();
+    int32_t currentScbPid = GetData<int32_t>();
+    rsDisplayRenderNode.SetScbNodePid(oldScbPids, currentScbPid);
+    rsDisplayRenderNode.GetSortedChildren();
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -200,5 +271,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::Rosen::DoUpdateScreenRenderParams(data, size);
+    OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data, size);
+    OHOS::Rosen::DoIsZoomStateChange(data, size);
+    OHOS::Rosen::DoGetSortedChildren(data, size);
     return 0;
 }

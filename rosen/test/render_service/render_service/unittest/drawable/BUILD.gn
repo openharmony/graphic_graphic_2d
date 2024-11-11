@@ -214,7 +214,7 @@ ohos_unittest("RSSkpCaptureDFXTest") {
   }
 }
 
-## Build rs_test_common.a {{{
+## Build rs_test_common.a
 config("rs_test_common_public_config") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",

@@ -443,6 +443,12 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     return {};
 }
 
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(
+    ScreenId id, const Rect& mainScreenRect)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return {};

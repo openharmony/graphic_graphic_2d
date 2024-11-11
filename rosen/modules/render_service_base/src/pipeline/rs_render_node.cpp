@@ -22,7 +22,6 @@
 #include <set>
 #include <utility>
 
-#include "benchmarks/file_utils.h"
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
@@ -50,6 +49,7 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+#include "rs_profiler.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -173,6 +173,25 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
 
 namespace OHOS {
 namespace Rosen {
+
+std::unordered_map<pid_t, size_t> RSRenderNode::blurEffectCounter_ = {};
+
+void RSRenderNode::UpdateBlurEffectCounter(int deltaCount)
+{
+    if (LIKELY(deltaCount == 0)) {
+        return;
+    }
+    
+    auto pid = ExtractPid(GetId());
+    // Try to insert pid with value 0 and we got an iterator to the inserted element or to the existing element.
+    auto it = blurEffectCounter_.emplace(std::make_pair(pid, 0)).first;
+    if (deltaCount > 0 || (it->second > -deltaCount)) {
+        it->second += deltaCount;
+    } else {
+        blurEffectCounter_.erase(it);
+    }
+}
+
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
     context_ = context;
@@ -235,6 +254,12 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
+    
+    if (RS_PROFILER_PROCESS_ADD_CHILD(this, child, index)) {
+        RS_LOGI("Add child: blocked during replay");
+        return;
+    }
+
     // if child already has a parent, remove it from its previous parent
     if (auto prevParent = child->GetParent().lock()) {
         prevParent->RemoveChild(child, true);
@@ -1309,7 +1334,7 @@ void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
 {
     // update distortion effect's dirty region if it changes
     if (GetRenderProperties().GetDistortionDirty()) {
-        RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect_, GetRenderProperties(), false);
+        RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect_, GetRenderProperties());
         GetMutableRenderProperties().SetDistortionDirty(false);
     }
     selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect_.ConvertTo<float>());
@@ -2058,7 +2083,8 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
         GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter() && !filterRegion_.IsInsideOf(lastFilterRegion_)) {
+    if ((properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) &&
+        !filterRegion_.IsInsideOf(lastFilterRegion_)) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             if (!IsForceClearOrUseFilterCache(filterDrawable)) {
@@ -2102,7 +2128,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
         return;
     }
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter()) {
+    if (properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
@@ -2142,7 +2168,7 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     }
 
     // when background changed, skip-frame will enabled if filter region > 400 and blur radius > 25
-    if (IsLargeArea(oldDirty_.GetWidth(), oldDirty_.GetHeight())) {
+    if (IsLargeArea(filterRegion_.GetWidth(), filterRegion_.GetHeight())) {
         filterDrawable->MarkFilterRegionIsLargeArea();
     }
 }
@@ -2478,6 +2504,11 @@ void RSRenderNode::ApplyModifiers()
     MarkForegroundFilterCache();
     UpdateShouldPaint();
 
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT_TYPE))) {
+        ProcessBehindWindowAfterApplyModifiers();
+    }
+
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
         " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
@@ -2535,6 +2566,14 @@ void RSRenderNode::UpdateDrawableVec()
     }
 }
 
+int RSRenderNode::GetBlurEffectDrawbleCount()
+{
+    bool fgFilterValid = drawableVec_[static_cast<int32_t>(RSDrawableSlot::FOREGROUND_FILTER)] != nullptr;
+    bool bgFilterValid = drawableVec_[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_FILTER)] != nullptr;
+    bool cpFilterValid = drawableVec_[static_cast<int32_t>(RSDrawableSlot::COMPOSITING_FILTER)] != nullptr;
+    return static_cast<int>(fgFilterValid) + static_cast<int>(bgFilterValid) + static_cast<int>(cpFilterValid);
+}
+
 void RSRenderNode::UpdateDrawableVecV2()
 {
     // Step 1: Collect dirty slots
@@ -2543,6 +2582,7 @@ void RSRenderNode::UpdateDrawableVecV2()
         RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
+    auto preBlurDrawableCnt = GetBlurEffectDrawbleCount();
     // Step 2: Update or regenerate drawable if needed
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
     // Step 2.1 (optional): fuze some drawables
@@ -2562,6 +2602,7 @@ void RSRenderNode::UpdateDrawableVecV2()
         RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlotShadow);
         // Step 4: Generate drawCmdList from drawables
         UpdateDisplayList();
+        UpdateBlurEffectCounter(GetBlurEffectDrawbleCount() - preBlurDrawableCnt);
     }
     // Merge dirty slots
     if (dirtySlots_.empty()) {
@@ -3405,10 +3446,13 @@ void RSRenderNode::OnTreeStateChanged()
         ClearNeverOnTree();
     }
 
+    auto curBlurDrawableCnt = GetBlurEffectDrawbleCount();
     if (!isOnTheTree_) {
+        UpdateBlurEffectCounter(-curBlurDrawableCnt);
         startingWindowFlag_ = false;
     }
     if (isOnTheTree_) {
+        UpdateBlurEffectCounter(curBlurDrawableCnt);
         // Set dirty and force add to active node list, re-generate children list if needed
         SetDirty(true);
         SetParentSubTreeDirty();
@@ -3432,6 +3476,12 @@ void RSRenderNode::OnTreeStateChanged()
         drawCmdListNeedSync_ = true;
         uifirstNeedSync_ = true;
         AddToPendingSyncList();
+    }
+    auto& properties = GetMutableRenderProperties();
+    bool useEffect = properties.GetUseEffect();
+    UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
+    if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
+        ProcessBehindWindowOnTreeStateChanged();
     }
 }
 
@@ -4402,6 +4452,11 @@ std::string SharedTransitionParam::Dump() const
     return ", SharedTransitionParam: [" + std::to_string(inNodeId_) + " -> " + std::to_string(outNodeId_) + "]";
 }
 
+void SharedTransitionParam::ResetRelation()
+{
+    relation_ = NodeHierarchyRelation::UNKNOWN;
+}
+
 void SharedTransitionParam::InternalUnregisterSelf()
 {
     if (auto inNode = inNode_.lock()) {
@@ -4418,5 +4473,38 @@ void SharedTransitionParam::InternalUnregisterSelf()
     }
 }
 
+void RSRenderNode::ProcessBehindWindowOnTreeStateChanged()
+{
+    auto rootNode = GetInstanceRootNode();
+    if (!rootNode) {
+        return;
+    }
+    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowOnTreeStateChanged nodeId = %{public}" PRIu64
+        ", isOnTheTree_ = %{public}d", GetId(), isOnTheTree_);
+    if (isOnTheTree_) {
+        rootNode->AddChildBlurBehindWindow(GetId());
+    } else {
+        rootNode->RemoveChildBlurBehindWindow(GetId());
+    }
+}
+
+void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
+{
+    auto rootNode = GetInstanceRootNode();
+    if (!rootNode) {
+        return;
+    }
+    auto& properties = GetMutableRenderProperties();
+    bool useEffect = properties.GetUseEffect();
+    UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
+    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowAfterApplyModifiers nodeId = %{public}" PRIu64
+        ", isOnTheTree_ = %{public}d, useEffect = %{public}d, useEffectType = %{public}hd",
+        GetId(), isOnTheTree_, useEffect, useEffectType);
+    if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
+        rootNode->AddChildBlurBehindWindow(GetId());
+    } else {
+        rootNode->RemoveChildBlurBehindWindow(GetId());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

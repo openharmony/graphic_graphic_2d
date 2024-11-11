@@ -1230,6 +1230,25 @@ HWTEST_F(RSRenderNodeTest, UpdateHierarchyAndReturnIsLowerTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ResetRelation
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ResetRelationTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+
+    (void)sharedTransitionParam->UpdateHierarchyAndReturnIsLower(inNode->GetId());
+    EXPECT_NE(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
+
+    sharedTransitionParam->ResetRelation();
+    EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
+}
+
+/**
  * @tc.name: DumpTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -1360,7 +1379,7 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
 	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0, "
-        "ContainerConfig: [outR: 32 inR: 28 x: 0 y: 0 w: 0 h: 0]");
+        "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0]");
 }
 
 /**

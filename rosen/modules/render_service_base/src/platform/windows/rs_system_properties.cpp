@@ -132,17 +132,7 @@ bool RSSystemProperties::GetVkQueuePriorityEnable()
     return false;
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -515,6 +505,11 @@ bool RSSystemProperties::GetRenderParallelEnabled()
 bool RSSystemProperties::IsForceClient()
 {
     return false;
+}
+
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    return 0;
 }
 
 bool RSSystemProperties::GetTextBlobAsPixelMap()

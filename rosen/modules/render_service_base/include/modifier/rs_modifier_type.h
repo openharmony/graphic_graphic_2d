@@ -40,6 +40,7 @@ enum class RSModifierType : int16_t {
     ROTATION_Y,
     CAMERA_DISTANCE,
     SCALE,
+    SCALE_Z,
     SKEW,
     PERSP,
     TRANSLATE,
@@ -100,6 +101,7 @@ enum class RSModifierType : int16_t {
     PIXEL_STRETCH_PERCENT,
     PIXEL_STRETCH_TILE_MODE,
     USE_EFFECT,
+    USE_EFFECT_TYPE,
     COLOR_BLEND_MODE,
     COLOR_BLEND_APPLY_TYPE,
     SANDBOX,
@@ -168,6 +170,10 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR_STRATEGY,
     GEOMETRYTRANS,
     CUSTOM_CLIP_TO_FRAME,
+    BEHIND_WINDOW_FILTER_RADIUS,
+    BEHIND_WINDOW_FILTER_SATURATION,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS,
+    BEHIND_WINDOW_FILTER_MASK_COLOR,
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
@@ -192,6 +198,7 @@ enum class RSRenderPropertyType : int16_t {
     PROPERTY_QUATERNION,
     PROPERTY_FILTER,
     PROPERTY_VECTOR2F,
+    PROPERTY_VECTOR3F,
     PROPERTY_VECTOR4F,
     PROPERTY_VECTOR4_COLOR,
     PROPERTY_SKMATRIX,
@@ -223,6 +230,7 @@ public:
             case RSModifierType::ROTATION_Y: return "RotationY";
             case RSModifierType::CAMERA_DISTANCE: return "CameraDistance";
             case RSModifierType::SCALE: return "Scale";
+            case RSModifierType::SCALE_Z: return "ScaleZ";
             case RSModifierType::SKEW: return "Skew";
             case RSModifierType::PERSP: return "Persp";
             case RSModifierType::TRANSLATE: return "Translate";
@@ -283,6 +291,7 @@ public:
             case RSModifierType::PIXEL_STRETCH_PERCENT: return "PixelStretchPercent";
             case RSModifierType::PIXEL_STRETCH_TILE_MODE: return "PixelStretchTileMode";
             case RSModifierType::USE_EFFECT: return "UseEffect";
+            case RSModifierType::USE_EFFECT_TYPE: return "UseEffectType";
             case RSModifierType::COLOR_BLEND_MODE: return "ColorBlendMode";
             case RSModifierType::COLOR_BLEND_APPLY_TYPE: return "ColorBlendApplyType";
             case RSModifierType::SANDBOX: return "Sandbox";
@@ -344,6 +353,10 @@ public:
             case RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY: return "EnvForegroundColorStrategy";
             case RSModifierType::GEOMETRYTRANS: return "Geometrytrans";
             case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
+            case RSModifierType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
+            case RSModifierType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
+            case RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";
+            case RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR: return "BehindWindowFilterMaskColor";
             case RSModifierType::CHILDREN: return "Children";
             case RSModifierType::MAX_RS_MODIFIER_TYPE: return "MaxRsModifierType";
             default:

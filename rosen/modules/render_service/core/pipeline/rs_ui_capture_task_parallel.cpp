@@ -52,6 +52,7 @@
 namespace OHOS {
 namespace Rosen {
 
+#ifdef RS_ENABLE_GPU
 static inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
     Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
@@ -67,6 +68,7 @@ static inline void DrawCapturedImg(Drawing::Image& image,
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
 }
+#endif
 
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
@@ -185,18 +187,18 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
-    if (nodeParams) {
-        Drawing::Matrix relativeMatrix = Drawing::Matrix();
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
-        Drawing::Matrix invertMatrix;
-        if (nodeParams->GetMatrix().Invert(invertMatrix)) {
-            relativeMatrix.PreConcat(invertMatrix);
-        }
-        canvas.SetMatrix(relativeMatrix);
-    } else {
-        RS_LOGD("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
+    if (UNLIKELY(!nodeParams)) {
+        RS_LOGE("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
+        return false;
     }
+    Drawing::Matrix relativeMatrix = Drawing::Matrix();
+    relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
+    relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
+    Drawing::Matrix invertMatrix;
+    if (nodeParams->GetMatrix().Invert(invertMatrix)) {
+        relativeMatrix.PreConcat(invertMatrix);
+    }
+    canvas.SetMatrix(relativeMatrix);
 
     // make sure the previous uifirst task is completed.
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*nodeParams, false)) {

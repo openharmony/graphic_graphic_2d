@@ -290,6 +290,10 @@ int CacheData::DeSerialize(uint8_t const *buffer, const size_t size)
         LOGD("abandon, not enough room for cache header");
     }
 
+    if (buffer == nullptr) {
+        LOGD("abandon, buffer is null");
+        return -EINVAL;
+    }
     const Header *header = reinterpret_cast<const Header *>(buffer);
     size_t numShaders = header->numShaders_;
     size_t byteOffset = Align4(sizeof(Header));

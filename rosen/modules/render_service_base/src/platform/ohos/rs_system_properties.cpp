@@ -287,14 +287,6 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return (strcmp(enable, "true") == 0);
-}
-
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -343,16 +335,6 @@ bool RSSystemProperties::GetAFBCEnabled()
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return system::GetParameter(paraName, "0");
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
-{
-    // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
-    // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.directClientComposition.enabled", "1");
-    int changed = 0;
-    const char *status = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(status, 1) != 0;
 }
 
 bool RSSystemProperties::GetHighContrastStatus()
@@ -752,7 +734,7 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     static CachedHandle g_Handle = CachedParameterCreate("rosen.UIFirstdebug.surfacenames", "0");
     int changed = 0;
     const char *targetSurfacesStr = CachedParameterGetChanged(g_Handle, &changed);
-    if (strcmp(targetSurfacesStr, "0") == 0) {
+    if (targetSurfacesStr == nullptr || strcmp(targetSurfacesStr, "0") == 0) {
         SurfaceNames.clear();
         return false;
     }
@@ -793,6 +775,13 @@ bool RSSystemProperties::GetTransactionTerminateEnabled()
     static bool terminateEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.transactionTerminateEnabled", "0")).c_str()) != 0;
     return terminateEnabled;
+}
+
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    static int terminateLimit =
+        std::atoi((system::GetParameter("persist.sys.graphic.blurEffectTerminateLimit", "50")).c_str());
+    return terminateLimit > 0 ? static_cast<uint32_t>(terminateLimit) : 0;
 }
 
 bool RSSystemProperties::FindNodeInTargetList(std::string node)

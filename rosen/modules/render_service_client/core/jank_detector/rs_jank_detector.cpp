@@ -14,7 +14,7 @@
  */
 
 #include "jank_detector/rs_jank_detector.h"
-
+#include "platform/common/rs_log.h"
 #include <unistd.h>
 #ifdef ROSEN_OHOS
 #include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
@@ -100,12 +100,18 @@ void RSJankDetector::CalculateSkippedFrame(uint64_t renderStartTimeStamp, uint64
         uiEndTimeStamp = uiDrawFrame.endTimeStamp;
         frameMsg.abilityName = uiDrawFrame.abilityName;
     }
-    if (uiEndTimeStamp > uiStartTimeStamp) {
-        frameMsg.uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
+    if (uiEndTimeStamp < uiStartTimeStamp || renderEndTimeStamp < renderStartTimeStamp) {
+        uiDrawFrames_.clear();
+        ROSEN_LOGD("RSJankDetector::CalculateSkippedFrame, timestamp is invalid, "
+            "uiStartTimeStamp:%{public}" PRIu64 ", "
+            "uiEndTimeStamp:%{public}" PRIu64 ", "
+            "renderStartTimeStamp:%{public}" PRIu64 ", "
+            "renderEndTimeStamp:%{public}" PRIu64,
+            uiStartTimeStamp, uiEndTimeStamp, renderStartTimeStamp, renderEndTimeStamp);
+        return;
     }
-    if (renderEndTimeStamp > renderStartTimeStamp) {
-        frameMsg.renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
-    }
+    frameMsg.uiDrawTime = uiEndTimeStamp - uiStartTimeStamp;
+    frameMsg.renderDrawTime = renderEndTimeStamp - renderStartTimeStamp;
     // Currently, we do not consider the time consumption of UI thread
     frameMsg.totalTime = frameMsg.renderDrawTime;
     uiDrawFrames_.clear();

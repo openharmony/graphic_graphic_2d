@@ -119,7 +119,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
     return hasRunningAnimation;
 }
 
-bool RSModifierManager::HasFirstFrameAnimation()
+bool RSModifierManager::GetAndResetFirstFrameAnimationState()
 {
     // UI animation need this info to get expected frame rate, each window will call it once per frame
     return std::exchange(hasFirstFrameAnimation_, false);

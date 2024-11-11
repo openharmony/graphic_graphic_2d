@@ -1096,12 +1096,39 @@ const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
     return securityExemptionList_;
 }
 
-bool RSScreen::GetDisplayPropertyForHardCursor(uint32_t screenId, uint64_t& propertyValue)
+void RSScreen::SetEnableVisibleRect(bool enable)
 {
+    enableVisibleRect_ = enable;
+}
+
+bool RSScreen::GetEnableVisibleRect() const
+{
+    return enableVisibleRect_;
+}
+
+void RSScreen::SetMainScreenVisibleRect(const Rect& mainScreenRect)
+{
+    mainScreenVisibleRect_ = mainScreenRect;
+}
+
+Rect RSScreen::GetMainScreenVisibleRect() const
+{
+    return mainScreenVisibleRect_;
+}
+
+void RSScreen::SetDisplayPropertyForHardCursor()
+{
+    isHardCursorSupport_ = false;
     if (hdiScreen_) {
-        return hdiScreen_->GetDisplayPropertyForHardCursor(screenId, propertyValue);
+        isHardCursorSupport_ = hdiScreen_->GetDisplayPropertyForHardCursor(id_);
     }
-    return false;
+    RS_LOGI("%{public}s, RSScreen(id %{public}" PRIu64 ", isHardCursorSupport:%{public}d)",
+        __func__, id_, isHardCursorSupport_);
+}
+
+bool RSScreen::GetDisplayPropertyForHardCursor()
+{
+    return isHardCursorSupport_;
 }
 } // namespace impl
 } // namespace Rosen

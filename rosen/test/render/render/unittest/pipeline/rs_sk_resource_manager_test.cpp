@@ -134,5 +134,4 @@ HWTEST_F(RSSKResourceManagerTest, ReleaseResource001, TestSize.Level1)
     }
 #endif
 }
-
 } // namespace OHOS::Rosen

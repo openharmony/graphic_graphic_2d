@@ -140,6 +140,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     secExemptionList.emplace_back(id);
     rsInterfaces.SetVirtualScreenSecurityExemptionList(static_cast<ScreenId>(id), secExemptionList);
 
+    Rect rect = {GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()};
+    rsInterfaces.SetMirrorScreenVisibleRect(static_cast<ScreenId>(id), rect);
+
     auto callback1 = std::make_shared<SurfaceCaptureFuture>();
     rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
 

@@ -160,7 +160,15 @@ HWTEST_F(FontParserTest, CmapTableParserTest1, TestSize.Level1)
 {
     MockCmapTableParser mockCmapTableParser;
     CmapTableParser cmapTableParser_default;
-    CmapTableParser cmapTableParser("test data", 9);
+    char* data = new char[sizeof(CmapTables) + sizeof(EncodingRecord)];
+    CmapTables* p = reinterpret_cast<CmapTables*>(data);
+    p->version = { 0 };
+    p->numTables = { 1 };
+    p->encodingRecords[0].platformID = { 0 };
+    p->encodingRecords[0].encodingID = { 0 };
+    p->encodingRecords[0].subtableOffset = { 0 };
+    CmapTableParser cmapTableParser(data, sizeof(CmapTables) + sizeof(EncodingRecord));
+    cmapTableParser.Dump();
     struct NameRecord nameRecord;
     struct NameTable nameTable;
     nameRecord.encodingId = nameTable.count;

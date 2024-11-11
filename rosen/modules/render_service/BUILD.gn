@@ -167,7 +167,7 @@ ohos_shared_library("librender_service") {
     ]
   }
 
-  if (rs_enable_eglimage) {
+  if (rs_enable_eglimage && rs_enable_gpu) {
     sources += [ "core/pipeline/rs_egl_image_manager.cpp" ]
   }
 
@@ -381,6 +381,8 @@ ohos_shared_library("librender_service") {
     defines += tp_defines
   }
 
+  deps += [ "$graphic_2d_root/frameworks/opengl_wrapper:EGL" ]
+
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
@@ -419,6 +421,7 @@ ohos_executable("render_service") {
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "samgr:samgr_proxy",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

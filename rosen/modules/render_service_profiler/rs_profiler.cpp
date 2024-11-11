@@ -272,7 +272,7 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
     if (IsLoadSaveFirstScreenInProgress()) {
         // saving screen right now
     }
-    if (IsPlaying()) {
+    if (IsPlaying() && !g_playbackShouldBeTerminated) {
         SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
         SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
         SetMode(Mode::READ);
@@ -811,6 +811,13 @@ void RSProfiler::HiddenSpaceTurnOff()
         for (const auto& child : g_childOfDisplayNodes) {
             displayNode->AddChild(child);
         }
+        auto& listPostponed = RSProfiler::GetChildOfDisplayNodesPostponed();
+        for (const auto& childWeak : listPostponed) {
+            if (auto child = childWeak.lock()) {
+                displayNode->AddChild(child);
+            }
+        }
+        listPostponed.clear();
         FilterMockNode(*g_context);
         RSTypefaceCache::Instance().ReplayClear();
         g_childOfDisplayNodes.clear();
@@ -1110,9 +1117,11 @@ void RSProfiler::DumpDrawingCanvasNodes(const ArgList& args)
         return;
     }
     const auto& map = const_cast<RSContext&>(*g_context).GetMutableNodeMap();
-    for (const auto& item : map.renderNodeMap_) {
-        if (item.second->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-            Respond("CANVAS_DRAWING_NODE: " + std::to_string(item.second->GetId()));
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+                Respond("CANVAS_DRAWING_NODE: " + std::to_string(node->GetId()));
+            }
         }
     }
 }
@@ -1616,6 +1625,11 @@ void RSProfiler::TestSwitch(const ArgList& args)
 
 void RSProfiler::RecordStart(const ArgList& args)
 {
+    if (g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+        Respond("FAILED: Record start - replay is in progress");
+        return;
+    }
+
     g_recordStartTime = 0.0;
 
     ImageCache::Reset();
@@ -1667,6 +1681,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 void RSProfiler::RecordStop(const ArgList& args)
 {
     if (!IsRecording()) {
+        Respond("FAILED: Record stop - recording was not started");
         return;
     }
 
@@ -1724,6 +1739,10 @@ void RSProfiler::RecordStop(const ArgList& args)
 
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 {
+    if (g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+        Respond("FAILED: rsrecord_replay_prepare was already called");
+        return;
+    }
     g_playbackPid = args.Pid();
     g_playbackStartTime = 0.0;
     g_playbackPauseTime = args.Fp64(1);
@@ -1734,6 +1753,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         path = RSFile::GetDefaultPath();
     }
 
+    RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();
 
     auto &animeMap = RSProfiler::AnimeGetStartTimes();
@@ -1786,6 +1806,11 @@ void RSProfiler::RecordSendBinary(const ArgList& args)
 
 void RSProfiler::PlaybackStart(const ArgList& args)
 {
+    if (!g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
+        Respond("FAILED: rsrecord_replay was already called");
+        return;
+    }
+
     HiddenSpaceTurnOn();
 
     for (size_t pid : g_playbackFile.GetHeaderPids()) {
@@ -1827,10 +1852,19 @@ void RSProfiler::PlaybackStart(const ArgList& args)
 
 void RSProfiler::PlaybackStop(const ArgList& args)
 {
-    if (g_childOfDisplayNodes.empty()) {
+    if (!g_playbackFile.IsOpen() && g_childOfDisplayNodes.empty()) {
+        Respond("FAILED: Playback stop - no rsrecord_replay_* was called previously");
         return;
     }
-    HiddenSpaceTurnOff();
+    SetMode(Mode::NONE);
+    if (g_childOfDisplayNodes.empty()) {
+        // rsrecord_replay_prepare was called but rsrecord_replay_start was not
+        g_playbackFile.Close();
+        g_childOfDisplayNodes.clear();
+    } else {
+        g_playbackShouldBeTerminated = true;
+        HiddenSpaceTurnOff();
+    }
     FilterMockNode(*g_context);
     constexpr int maxCountForSecurity = 1000;
     for (int i = 0; !RSRenderNodeGC::Instance().IsBucketQueueEmpty() && i < maxCountForSecurity; i++) {
@@ -1838,7 +1872,6 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     }
     RSTypefaceCache::Instance().ReplayClear();
     ImageCache::Reset();
-    g_playbackShouldBeTerminated = true;
     g_replayLastPauseTimeReported = 0;
 
     Respond("Playback stop");

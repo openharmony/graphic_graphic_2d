@@ -100,7 +100,7 @@ public:
         const std::string locale = SIMPLIFIED_CHINESE);
     
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
-    bool ParserFontDescriptorFromPath(const std::string& path,
+    bool ParserFontDescriptorFromPath(const std::string& path, const std::string& fullName,
         std::vector<std::shared_ptr<FontDescriptor>>& descriptors,
         const std::string locale = SIMPLIFIED_CHINESE);
 

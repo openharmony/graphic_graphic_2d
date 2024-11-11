@@ -26,7 +26,7 @@ class RSNode;
 
 class RSC_EXPORT RSModifierExtractor {
 public:
-    RSModifierExtractor(RSNode* node = nullptr);
+    RSModifierExtractor(NodeId id);
     virtual ~RSModifierExtractor() = default;
 
     Vector4f GetBounds() const;
@@ -43,8 +43,9 @@ public:
     Vector2f GetTranslate() const;
     float GetTranslateZ() const;
     Vector2f GetScale() const;
-    Vector2f GetSkew() const;
-    Vector2f GetPersp() const;
+    float GetScaleZ() const;
+    Vector3f GetSkew() const;
+    Vector4f GetPersp() const;
 
     float GetAlpha() const;
     bool GetAlphaOffscreen() const;
@@ -128,7 +129,7 @@ public:
 
     std::string Dump() const;
 private:
-    const RSNode *node_;
+    NodeId id_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -231,18 +231,24 @@ public:
     void SetScale(const Vector2f& scale);
     void SetScaleX(float scaleX);
     void SetScaleY(float scaleY);
+    void SetScaleZ(const float& scaleZ);
 
     void SetSkew(float skew);
     void SetSkew(float skewX, float skewY);
-    void SetSkew(const Vector2f& skew);
+    void SetSkew(float skewX, float skewY, float skewZ);
+    void SetSkew(const Vector3f& skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
+    void SetSkewZ(float skewZ);
 
     void SetPersp(float persp);
     void SetPersp(float perspX, float perspY);
-    void SetPersp(const Vector2f& persp);
+    void SetPersp(float perspX, float perspY, float perspZ, float perspW);
+    void SetPersp(const Vector4f& persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
+    void SetPerspZ(float perspZ);
+    void SetPerspW(float perspW);
 
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
@@ -366,6 +372,7 @@ public:
     }
 
     void SetUseEffect(bool useEffect);
+    void SetUseEffectType(UseEffectType useEffectType);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -456,6 +463,11 @@ public:
     bool IsTextureExportNode() const
     {
         return isTextureExportNode_;
+    }
+
+    size_t GetAnimationsCount() const
+    {
+        return animations_.size();
     }
 
     bool IsGeometryDirty() const;

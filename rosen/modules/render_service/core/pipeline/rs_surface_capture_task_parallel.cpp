@@ -46,6 +46,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+#ifdef RS_ENABLE_GPU
 inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
     Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
@@ -61,6 +62,7 @@ inline void DrawCapturedImg(Drawing::Image& image,
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
 }
+#endif
 }
 
 void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
@@ -213,8 +215,8 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     }
     RSUniRenderThread::ResetCaptureParam();
 
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-#ifdef RS_ENABLE_UNI_RENDER
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && \
+    (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_UNI_RENDER))
     RSUniRenderUtil::OptimizedFlushAndSubmit(surface, gpuContext_.get(), !RSSystemProperties::IsPcType());
     if (curNodeParams && curNodeParams->IsNodeToBeCaptured()) {
         RSUifirstManager::Instance().AddCapturedNodes(curNodeParams->GetId());
@@ -239,7 +241,6 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
             return false;
         }
     }
-#endif
 #endif
     if (finalRotationAngle_) {
         pixelMap_->rotate(finalRotationAngle_);
@@ -321,14 +322,19 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
         Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
 
-#if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
+#if (defined(RS_ENABLE_GL) && defined(RS_ENABLE_EGLIMAGE))
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
         if (renderEngine == nullptr) {
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderEngine is nullptr");
             return nullptr;
         }
+#if (defined(RS_ENABLE_GPU) && (defined(NEW_RENDER_CONTEXT) || \
+    defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)))
         auto renderContext = renderEngine->GetRenderContext();
+#else
+        auto renderContext = nullptr;
+#endif
         if (renderContext == nullptr) {
             RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: renderContext is nullptr");
             return nullptr;
@@ -347,6 +353,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
     return Drawing::Surface::MakeRasterDirect(info, address, pixelmap->GetRowBytes());
 }
 
+#ifdef RS_ENABLE_GPU
 void RSSurfaceCaptureTaskParallel::SetupGpuContext()
 {
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
@@ -360,6 +367,7 @@ void RSSurfaceCaptureTaskParallel::SetupGpuContext()
         RS_LOGW("RSSurfaceCaptureTaskParallel::SetupGpuContext gpuContext_ is nullptr");
     }
 }
+#endif
 
 int32_t RSSurfaceCaptureTaskParallel::CalPixelMapRotation()
 {
@@ -462,6 +470,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         // To get dump image
         // execute "param set rosen.dumpsurfacetype.enabled 3 && setenforce 0"
         RSBaseRenderUtil::WritePixelMapToPng(*pixelmap);
+        pixelmap->SetMemoryName("RSSurfaceCaptureForClient");
         callback->OnSurfaceCapture(id, pixelmap.get());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(

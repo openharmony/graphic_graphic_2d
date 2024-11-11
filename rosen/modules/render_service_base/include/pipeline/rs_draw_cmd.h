@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GL))
 #include <GLES/gl.h>
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -108,8 +108,8 @@ public:
     RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst);
     ~RSExtendImageBaseObj() override = default;
-    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-        const Drawing::SamplingOptions& sampling) override;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
@@ -195,17 +195,18 @@ class DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
+            SrcRectConstraint constraint, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::PIXELMAP_RECT_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
+              constraint(constraint), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle objectHandle;
         SamplingOptions sampling;
+        SrcRectConstraint constraint;
         PaintHandle paintHandle;
     };
     DrawPixelMapRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src, const Rect& dst,
-        const SamplingOptions& sampling, const Paint& paint);
+        const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint);
     ~DrawPixelMapRectOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
@@ -221,6 +222,7 @@ public:
     }
 private:
     SamplingOptions sampling_;
+    SrcRectConstraint constraint_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;
 };
 

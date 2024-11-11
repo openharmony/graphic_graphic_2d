@@ -475,10 +475,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceParams->GetScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceParams->SetScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -528,10 +525,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceNodeParams->GetScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceNodeParams->SetScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -657,6 +651,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         return params;
     }
     params.useCPU = forceCPU;
+    params.useBilinearInterpolation = layer->GetNeedBilinearInterpolation();
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
@@ -709,17 +704,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& surface = layer->GetSurface();
     if (surface == nullptr) {
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) != GSERROR_OK) {
-        scalingMode = layer->GetScalingMode();
-    }
-
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -1153,17 +1144,13 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
         if (RSUniRenderJudgement::IsUniRender()) {
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                RS_TRACE_NAME("RSUniRenderUtil::PostReleaseSurfaceTask");
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                RS_TRACE_NAME("RSUniRenderUtil::PostReleaseSurfaceTask");
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -1400,13 +1387,8 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetScalingMode();
-        if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetScalingMode(scalingMode);
-        }
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
             srcRect.left_ = srcRect.left_ * scale;
             srcRect.top_ = srcRect.top_ * scale;
@@ -1450,8 +1432,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
 
     CheckForceHardwareAndUpdateDstRect(node);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
-        (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
+    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
         return;
     }
  
@@ -1590,22 +1571,19 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
 
 void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node)
 {
-    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
     const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (nodeParams == nullptr || surface == nullptr || buffer == nullptr) {
-        RS_LOGE("nodeParams or surface or buffer is nullptr");
+    if (surface == nullptr || buffer == nullptr) {
+        RS_LOGE("surface or buffer is nullptr");
         return;
     }
 
-    ScalingMode scalingMode = nodeParams->GetScalingMode();
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix());
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
+            node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
         if (degree % RS_ROTATION_90 == 0) {
             RSUniRenderUtil::LayerScaleFit(node);
         }
@@ -1911,6 +1889,18 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
     auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
+    canvas.DetachBrush();
+}
+
+void RSUniRenderUtil::ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
+    const Drawing::Rect& src, const Drawing::Rect& dst)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImageRect(cacheImageProcessed, src, dst, sampling, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 }
 

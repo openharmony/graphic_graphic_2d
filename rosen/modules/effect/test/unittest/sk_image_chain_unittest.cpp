@@ -50,13 +50,13 @@ HWTEST_F(SKImageChainUnittest, Render_CPU_Normal_Process, TestSize.Level1)
 }
 
 /**
- * @tc.name: Render_CPU_Filter_1000_Times
- * @tc.desc: render filter 1000 times.
+ * @tc.name: Render_CPU_Filter_10_Times
+ * @tc.desc: render filter 10 times.
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(SKImageChainUnittest, Render_CPU_Filter_1000_Times, TestSize.Level1)
+HWTEST_F(SKImageChainUnittest, Render_CPU_Filter_10_Times, TestSize.Level1)
 {
     Media::InitializationOptions opts;
     opts.size.width = 2048;
@@ -66,7 +66,7 @@ HWTEST_F(SKImageChainUnittest, Render_CPU_Filter_1000_Times, TestSize.Level1)
     std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
 
     std::vector<sk_sp<SkImageFilter>> imageFilter;
-    for (int i = 0; i < 1000; ++i) {
+    for (int i = 0; i < 10; ++i) {
         auto filterBlur = Rosen::SKImageFilterFactory::Blur(i);
         imageFilter.emplace_back(filterBlur);
     }

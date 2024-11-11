@@ -45,7 +45,7 @@ public:
         bool shouldClearFilteredCache);
     static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache,
-        Drawing::RectI& bounds);
+        Drawing::RectI& bounds, bool behindWindow = false);
     static void DrawColorFilter(Drawing::Canvas* canvas, const std::shared_ptr<Drawing::ColorFilter>& colorFilter);
     static void DrawLightUpEffect(Drawing::Canvas* canvas, const float lightUpEffectDegree);
     static void DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree);
@@ -65,7 +65,7 @@ public:
         const float& elevation, const bool& isFilled, Color spotColor);
     static void DrawShadowMaskFilter(Drawing::Canvas* canvas, Drawing::Path& path, const float& offsetX,
         const float& offsetY, const float& radius, const bool& isFilled, Color spotColor);
-    static void DrawUseEffect(RSPaintFilterCanvas* canvas);
+    static void DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffectType useEffectType);
 
     static bool IsDangerousBlendMode(int blendMode, int blendApplyType);
     static void BeginBlender(RSPaintFilterCanvas& canvas, std::shared_ptr<Drawing::Blender> blender,
@@ -82,7 +82,10 @@ public:
     static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
     static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark);
 
+    static std::shared_ptr<RSFilter> GenerateBehindWindowFilter(float radius, float saturation, float brightness,
+        RSColor maskColor);
 private:
+    static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;

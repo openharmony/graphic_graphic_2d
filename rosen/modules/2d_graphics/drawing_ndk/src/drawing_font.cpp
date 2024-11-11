@@ -402,7 +402,7 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
 OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* cFont, const uint16_t* glyphs, uint32_t count,
     OH_Drawing_Array* bounds)
 {
-    if (cFont == nullptr || glyphs == nullptr || bounds == nullptr || count <= 0) {
+    if (cFont == nullptr || glyphs == nullptr || bounds == nullptr || count == 0) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     size_t size = 0;

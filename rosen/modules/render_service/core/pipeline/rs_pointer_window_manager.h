@@ -66,12 +66,9 @@ public:
     const std::shared_ptr<RSSurfaceRenderNode>& GetHardCursorNode() const;
 
     void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
-    
-    bool CheckIsHardCursor() const;
-    bool HasMirrorDisplay() const;
-    bool HasVirtualDisplay() const;
 
-    bool CheckHardCursorSupport(uint32_t screenId);
+    bool CheckHardCursorSupport(std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
+    bool HasMirrorDisplay() const;
 
 private:
     bool isNeedForceCommitByPointer_{ false };
@@ -80,5 +77,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // RENDER_SERVICE_CORE_PIPELINE_RS_POINTER_WINDOW_MANAGER_H

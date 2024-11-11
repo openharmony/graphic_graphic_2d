@@ -42,6 +42,7 @@ constexpr uint32_t MAX_ARRAY_SIZE = 2500;
 constexpr size_t FUNCTYPE_SIZE = 4;
 constexpr size_t MATRIXTYPE_SIZE = 5;
 constexpr size_t POINTNUMBER = 4;
+constexpr size_t MATH_TEN = 10;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
@@ -194,6 +195,10 @@ bool DoMarshallingHelper002(const uint8_t* data, size_t size)
     RSMarshallingHelper::Marshalling(parcel, dataVal);
     RSMarshallingHelper::Unmarshalling(parcel, dataVal);
     RSMarshallingHelper::UnmarshallingWithCopy(parcel, dataVal);
+    Parcel parcel2;
+    parcel2.WriteUint32(UINT32_MAX);
+    RSMarshallingHelper::Marshalling(parcel2, dataVal);
+    RSMarshallingHelper::Unmarshalling(parcel2, dataVal);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -225,6 +230,16 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     static std::shared_ptr<MaskCmdList> maskCmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
     RSMarshallingHelper::Marshalling(parcel, maskCmdList);
     RSMarshallingHelper::Unmarshalling(parcel, maskCmdList);
+
+    Parcel parcel2;
+    auto imageData = std::make_shared<Data>();
+    imageData->BuildUninitialized(MATH_TEN);
+    maskCmdList->AddImageData(imageData->GetData(), imageData->GetSize());
+    size_t arrSize = GetData<size_t>() % MATH_TEN;
+    dataText[length - 1] = '\0';
+    maskCmdList->AddBitmapData(dataText, arrSize);
+    RSMarshallingHelper::Marshalling(parcel2, maskCmdList);
+    RSMarshallingHelper::Unmarshalling(parcel2, maskCmdList);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -274,6 +289,8 @@ bool DoMarshallingHelper005(const uint8_t* data, size_t size)
     std::shared_ptr<ColorSpace> colorSpace = ColorSpace::CreateRGB(
         static_cast<CMSTransferFuncType>(funcType % FUNCTYPE_SIZE),
         static_cast<CMSMatrixType>(matrixType % MATRIXTYPE_SIZE));
+    RSMarshallingHelper::ReadColorSpaceFromParcel(parcel, colorSpace);
+    parcel.WriteInt32(1);
     RSMarshallingHelper::ReadColorSpaceFromParcel(parcel, colorSpace);
     return true;
 }
@@ -387,6 +404,10 @@ bool DoMarshallingHelper009(const uint8_t* data, size_t size)
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader(shaderEffect);
     RSMarshallingHelper::Marshalling(parcel, shader);
     RSMarshallingHelper::Unmarshalling(parcel, shader);
+    Parcel parcel2;
+    std::shared_ptr<RSShader> shader_null = nullptr;
+    RSMarshallingHelper::Marshalling(parcel2, shader_null);
+    RSMarshallingHelper::Unmarshalling(parcel2, shader_null);
     return true;
 }
 
@@ -545,6 +566,337 @@ bool DoMarshallingHelper013(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoMarshallingHelper014(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetData<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
+    cmdListData.second = length;
+    bool isCopy = GetData<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    drawCmdList->SetReplacedOpList({{GetData<size_t>(), GetData<size_t>()}});
+    auto imageData = std::make_shared<Data>();
+    imageData->BuildUninitialized(MATH_TEN);
+    drawCmdList->AddImageData(imageData->GetData(), imageData->GetSize());
+    size_t arrSize = GetData<size_t>() % MATH_TEN;
+    dataText[length - 1] = '\0';
+    drawCmdList->AddBitmapData(dataText, arrSize);
+    RSMarshallingHelper::Marshalling(parcel, drawCmdList);
+    RSMarshallingHelper::Unmarshalling(parcel, drawCmdList);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    return true;
+}
+
+bool DoMarshallingHelper015(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel1;
+    parcel1.WriteUint32(GetData<uint32_t>());
+    RSMarshallingHelper::SkipData(parcel1);
+    Parcel parcel2;
+    RSMarshallingHelper::SkipImage(parcel2);
+    Parcel parcel3;
+    parcel3.WriteInt32(-1);
+    RSMarshallingHelper::SkipImage(parcel3);
+    Parcel parcel4;
+    parcel4.WriteInt32(1);
+    RSMarshallingHelper::SkipImage(parcel4);
+    Parcel parcel5;
+    int32_t size2 = GetData<int32_t>();
+    parcel5.WriteInt32(size2);
+    RSMarshallingHelper::SkipPixelMap(parcel5);
+    Parcel parcel6;
+    parcel6.WriteInt32(size2);
+    RSMarshallingHelper::SkipFromParcel(parcel6, size2);
+    RSMarshallingHelper::SkipFromParcel(parcel6, 0);
+    return true;
+}
+
+bool DoMarshallingHelper016(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    std::shared_ptr<Image> image_null = nullptr;
+    RSMarshallingHelper::Marshalling(parcel, image_null);
+    RSMarshallingHelper::Unmarshalling(parcel, image_null);
+    Parcel parcel2;
+    auto image = std::make_shared<Image>();
+    RSMarshallingHelper::Marshalling(parcel2, image);
+    RSMarshallingHelper::Unmarshalling(parcel2, image);
+    Parcel parcel4;
+    image = nullptr;
+    void* imagePixelPtr = nullptr;
+    RSMarshallingHelper::Marshalling(parcel4, image);
+    RSMarshallingHelper::Unmarshalling(parcel4, image, imagePixelPtr);
+    Parcel parcel5;
+    RSMarshallingHelper::Marshalling(parcel5, image);
+    RSMarshallingHelper::Unmarshalling(parcel5, image, imagePixelPtr);
+    return true;
+}
+
+bool DoMarshallingHelper017(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    std::shared_ptr<RSLinearGradientBlurPara> val = nullptr;
+    RSMarshallingHelper::Marshalling(parcel, val);
+    RSMarshallingHelper::Unmarshalling(parcel, val);
+    Parcel parcel2;
+    std::vector<std::pair<float, float>> fractionStops = {{GetData<float>(), GetData<float>()}};
+    std::shared_ptr<RSLinearGradientBlurPara> val2 = std::make_shared<RSLinearGradientBlurPara>(
+        GetData<float>(), fractionStops, GradientDirection::LEFT);
+    RSMarshallingHelper::Marshalling(parcel2, val2);
+    RSMarshallingHelper::Unmarshalling(parcel2, val2);
+    val2 = nullptr;
+    RSMarshallingHelper::Marshalling(parcel2, val2);
+    RSMarshallingHelper::Unmarshalling(parcel2, val2);
+
+    Parcel parcel3;
+    Vector2f anchor = {GetData<float>(), GetData<float>()};
+    std::shared_ptr<MotionBlurParam> mbp = std::make_shared<MotionBlurParam>(GetData<float>(), anchor);
+    RSMarshallingHelper::Marshalling(parcel3, mbp);
+    RSMarshallingHelper::Unmarshalling(parcel3, mbp);
+    Parcel parcel4;
+    std::shared_ptr<RSMagnifierParams> mfp = std::make_shared<RSMagnifierParams>();
+    RSMarshallingHelper::Marshalling(parcel4, mfp);
+    RSMarshallingHelper::Unmarshalling(parcel4, mfp);
+    return true;
+}
+
+bool DoMarshallingHelper018(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    std::shared_ptr<EmitterUpdater> eu = nullptr;
+    RSMarshallingHelper::Marshalling(parcel, eu);
+    RSMarshallingHelper::Unmarshalling(parcel, eu);
+    Parcel parcel2;
+    eu = std::make_shared<EmitterUpdater>(0);
+    RSMarshallingHelper::Marshalling(parcel2, eu);
+    RSMarshallingHelper::Unmarshalling(parcel2, eu);
+    Parcel parcel3;
+    parcel3.WriteUint32(1);
+    std::vector<std::shared_ptr<EmitterUpdater>> eus = {eu};
+    RSMarshallingHelper::Marshalling(parcel3, eus);
+    RSMarshallingHelper::Unmarshalling(parcel3, eus);
+    return true;
+}
+
+bool DoMarshallingHelper019(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    std::shared_ptr<ParticleNoiseField> val = nullptr;
+    RSMarshallingHelper::Marshalling(parcel, val);
+    RSMarshallingHelper::Unmarshalling(parcel, val);
+    Parcel parcel2;
+    std::shared_ptr<ParticleNoiseFields> val2;
+    RSMarshallingHelper::Marshalling(parcel2, val2);
+    RSMarshallingHelper::Unmarshalling(parcel2, val2);
+    Parcel parcel3;
+    EmitterConfig emitterConfig;
+    RSMarshallingHelper::Marshalling(parcel3, emitterConfig);
+    RSMarshallingHelper::Unmarshalling(parcel3, emitterConfig);
+    Parcel parcel4;
+    ParticleVelocity velocity;
+    RSMarshallingHelper::Marshalling(parcel4, velocity);
+    RSMarshallingHelper::Unmarshalling(parcel4, velocity);
+    Parcel parcel5;
+    ParticleUpdator randomUpdator = ParticleUpdator::RANDOM;
+    Range<float> val3 = Range<float>(GetData<float>(), GetData<float>());
+    Range<float> randomSpeed = Range<float>(GetData<float>(), GetData<float>());
+    std::vector<std::shared_ptr<ChangeInOverLife<float>>> valChangeOverLife;
+    RenderParticleParaType<float> accelerationValue =
+        RenderParticleParaType(val3, randomUpdator, randomSpeed, valChangeOverLife);
+    RSMarshallingHelper::Marshalling(parcel5, accelerationValue);
+    RSMarshallingHelper::Unmarshalling(parcel5, accelerationValue);
+    Parcel parcel6;
+    RenderParticleColorParaType color;
+    RSMarshallingHelper::Marshalling(parcel6, color);
+    RSMarshallingHelper::Unmarshalling(parcel6, color);
+    return true;
+}
+
+bool DoMarshallingHelper020(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    std::shared_ptr<ParticleRenderParams> val = nullptr;
+    RSMarshallingHelper::Marshalling(parcel, val);
+    RSMarshallingHelper::Unmarshalling(parcel, val);
+    val = std::make_shared<ParticleRenderParams>();
+    RSMarshallingHelper::Marshalling(parcel, val);
+    RSMarshallingHelper::Unmarshalling(parcel, val);
+    Parcel parcel2;
+    parcel2.WriteUint32(1);
+    std::vector<std::shared_ptr<ParticleRenderParams>> vals = {val};
+    RSMarshallingHelper::Marshalling(parcel2, vals);
+    RSMarshallingHelper::Unmarshalling(parcel2, vals);
+    Parcel parcel3;
+    std::shared_ptr<RSPath> val3 = nullptr;
+    RSMarshallingHelper::Marshalling(parcel3, val3);
+    RSMarshallingHelper::Unmarshalling(parcel3, val3);
+    Parcel parcel4;
+    val3 = std::make_shared<RSPath>();
+    RSMarshallingHelper::Marshalling(parcel4, val3);
+    RSMarshallingHelper::Unmarshalling(parcel4, val3);
+    Parcel parcel5;
+    std::shared_ptr<RSMask> val5 = nullptr;
+    RSMarshallingHelper::Marshalling(parcel5, val5);
+    RSMarshallingHelper::Unmarshalling(parcel5, val5);
+    val5 = std::make_shared<RSMask>();
+    RSMarshallingHelper::Marshalling(parcel5, val5);
+    RSMarshallingHelper::Unmarshalling(parcel5, val5);
+    Parcel parcel6;
+    static std::shared_ptr<MaskCmdList> maskCmdList = nullptr;
+    RSMarshallingHelper::Marshalling(parcel6, maskCmdList);
+    RSMarshallingHelper::Unmarshalling(parcel6, maskCmdList);
+    return true;
+}
+
+bool DoMarshallingHelper021(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    float blurRadiusX = GetData<float>();
+    float blurRadiusY = GetData<float>();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+    RSMarshallingHelper::Marshalling(parcel, filter);
+    RSMarshallingHelper::Unmarshalling(parcel, filter);
+
+    Parcel parcel2;
+    int styleInt = GetData<int>();
+    float dipScale = GetData<float>();
+    std::shared_ptr<RSFilter> filter2 = RSFilter::CreateMaterialFilter(styleInt, dipScale);
+    RSMarshallingHelper::Marshalling(parcel2, filter2);
+    RSMarshallingHelper::Unmarshalling(parcel2, filter2);
+
+    Parcel parcel3;
+    float lightUpDegree = GetData<float>();
+    auto filter3 = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
+    RSMarshallingHelper::Marshalling(parcel3, filter3);
+    RSMarshallingHelper::Unmarshalling(parcel3, filter3);
+    return true;
+}
+
+bool DoMarshallingHelper022(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    DATA = data;
+    g_size = size;
+    g_pos = 0;
+
+    Parcel parcel;
+    std::shared_ptr<RSImageBase> base = std::make_shared<RSImageBase>();
+    RSMarshallingHelper::Marshalling(parcel, base);
+    RSMarshallingHelper::Unmarshalling(parcel, base);
+    Parcel parcel2;
+    std::shared_ptr<RSImage> image = nullptr;
+    RSMarshallingHelper::Marshalling(parcel2, image);
+    RSMarshallingHelper::Unmarshalling(parcel2, image);
+    Parcel parcel3;
+    std::shared_ptr<RectT<float>> rect = nullptr;
+    RSMarshallingHelper::Marshalling(parcel3, rect);
+    RSMarshallingHelper::Unmarshalling(parcel3, rect);
+    rect = std::make_shared<RectT<float>>();
+    RSMarshallingHelper::Marshalling(parcel3, rect);
+    RSMarshallingHelper::Unmarshalling(parcel3, rect);
+    Parcel parcel4;
+    std::shared_ptr<DrawCmdList> drawCmdList = nullptr;
+    RSMarshallingHelper::Marshalling(parcel4, drawCmdList);
+    RSMarshallingHelper::Unmarshalling(parcel4, drawCmdList);
+    Parcel parcel5;
+    std::shared_ptr<RecordCmd> cmd = nullptr;
+    RSMarshallingHelper::Marshalling(parcel5, cmd);
+    RSMarshallingHelper::Unmarshalling(parcel5, cmd);
+    Parcel parcel6;
+    std::shared_ptr<RSExtendImageObject> eio = nullptr;
+    RSMarshallingHelper::Marshalling(parcel6, eio);
+    RSMarshallingHelper::Unmarshalling(parcel6, eio);
+    Parcel parcel7;
+    std::shared_ptr<RSExtendImageBaseObj> eibo = nullptr;
+    RSMarshallingHelper::Marshalling(parcel7, eibo);
+    RSMarshallingHelper::Unmarshalling(parcel7, eibo);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -566,5 +918,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoMarshallingHelper011(data, size);
     OHOS::Rosen::DoMarshallingHelper012(data, size);
     OHOS::Rosen::DoMarshallingHelper013(data, size);
+    OHOS::Rosen::DoMarshallingHelper014(data, size);
+    OHOS::Rosen::DoMarshallingHelper015(data, size);
+    OHOS::Rosen::DoMarshallingHelper016(data, size);
+    OHOS::Rosen::DoMarshallingHelper017(data, size);
+    OHOS::Rosen::DoMarshallingHelper018(data, size);
+    OHOS::Rosen::DoMarshallingHelper019(data, size);
+    OHOS::Rosen::DoMarshallingHelper020(data, size);
+    OHOS::Rosen::DoMarshallingHelper021(data, size);
+    OHOS::Rosen::DoMarshallingHelper022(data, size);
     return 0;
 }

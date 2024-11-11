@@ -243,6 +243,8 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
     displayParams->mirrorSource_ = GetMirrorSource();
+    displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
+    displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     RSRenderNode::UpdateRenderParams();
 }
 
@@ -445,17 +447,16 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
     std::vector<int32_t> oldScbPids = GetOldScbPids();
     currentChildrenList_->clear();
     for (auto& child : *fullChildrenList) {
+        if (child == nullptr) {
+            continue;
+        }
         auto childPid = ExtractPid(child->GetId());
         auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
         if (pidIter != oldScbPids.end()) {
-            if (child) {
-                child->SetIsOntheTreeOnlyFlag(false);
-            }
+            child->SetIsOntheTreeOnlyFlag(false);
             continue;
         } else if (childPid == currentScbPid) {
-            if (child) {
-                child->SetIsOntheTreeOnlyFlag(true);
-            }
+            child->SetIsOntheTreeOnlyFlag(true);
         }
         currentChildrenList_->emplace_back(child);
     }

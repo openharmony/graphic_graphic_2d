@@ -177,6 +177,41 @@ bool RoundCornerDisplay::GetBottomSurfaceSource()
     return true;
 }
 
+bool RoundCornerDisplay::HandleTopRcdDirty(RectI& dirtyRect)
+{
+    if ((static_cast<uint8_t>(rcdDirtyType_) & static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) !=
+        static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) {
+        return false;
+    }
+    if (curTop_ != nullptr) {
+        dirtyRect = dirtyRect.JoinRect(RectI(0, 0, curTop_->GetWidth(), curTop_->GetHeight()));
+    }
+    std::shared_lock<std::shared_mutex> lock(resourceMut_);
+    if (!hardInfo_.resourceChanged) {
+        rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
+            (~static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP)) & static_cast<uint8_t>(rcdDirtyType_));
+    }
+    return true;
+}
+
+bool RoundCornerDisplay::HandleBottomRcdDirty(RectI& dirtyRect)
+{
+    if ((static_cast<uint8_t>(rcdDirtyType_) & static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) !=
+        static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) {
+        return false;
+    }
+    if (curBottom_ != nullptr) {
+        dirtyRect = dirtyRect.JoinRect(
+            RectI(0, displayHeight_ - curBottom_->GetHeight(), curBottom_->GetWidth(), curBottom_->GetHeight()));
+    }
+    std::shared_lock<std::shared_mutex> lock(resourceMut_);
+    if (!hardInfo_.resourceChanged) {
+        rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
+            (~static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_BOTTOM)) & static_cast<uint8_t>(rcdDirtyType_));
+    }
+    return true;
+}
+
 bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
 {
     RS_TRACE_NAME("RoundCornerDisplay::LoadImgsbyResolution");
@@ -187,7 +222,7 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
     }
     rog_ = lcdModel_->GetRog(width, height);
     if (rog_ == nullptr) {
-        RS_LOGE("[%{public}s] Can't find resolution (%{public}u x %{public}u) in config file \n",
+        RS_LOGI("[%{public}s] Can't find resolution (%{public}u x %{public}u) in config file \n",
             __func__, width, height);
         return false;
     }
@@ -219,6 +254,8 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
         "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
         displayWidth_, width, displayHeight_, height);
     if (LoadImgsbyResolution(width, height)) {
+        rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
++            static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_ALL) | static_cast<uint8_t>(rcdDirtyType_));
         updateFlag_["display"] = true;
         displayWidth_ = width;
         displayHeight_ = height;
@@ -240,6 +277,8 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
     RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] notchStatus change from %{public}d to %{public}d \n", __func__,
         notchStatus_, status);
     notchStatus_ = status;
+    rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
++        static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP) | static_cast<uint8_t>(rcdDirtyType_));
     updateFlag_["notch"] = true;
 }
 
@@ -252,6 +291,8 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
     }
     lastOrientation_ = curOrientation_;
     curOrientation_ = orientation;
+    rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
++        static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP) | static_cast<uint8_t>(rcdDirtyType_));
     RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] curOrientation_ = %{public}d, lastOrientation_ = %{public}d \n",
         __func__, curOrientation_, lastOrientation_);
     updateFlag_["orientation"] = true;

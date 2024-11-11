@@ -38,30 +38,21 @@ RSColorSpaceConvert::RSColorSpaceConvert()
     colorSpaceConvertDisplayCreate_ = reinterpret_cast<VPEColorSpaceConvertDisplayCreate>(
         dlsym(handle_, "ColorSpaceConvertDisplayCreate"));
     if (colorSpaceConvertDisplayCreate_ == nullptr) {
-        RS_LOGW("[%{public}s]:load func failed, reason: %{public}s", __func__, dlerror());
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        RS_LOGW("[%{public}s]:load Create failed, reason: %{public}s", __func__, dlerror());
+        CloseLibraryHandle();
         return;
     }
     colorSpaceConvertDisplayDestroy_ = reinterpret_cast<VPEColorSpaceConvertDisplayDestroy>(
         dlsym(handle_, "ColorSpaceConvertDisplayDestroy"));
     if (colorSpaceConvertDisplayDestroy_ == nullptr) {
-        RS_LOGW("[%{public}s]:load func failed, reason: %{public}s", __func__, dlerror());
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        RS_LOGW("[%{public}s]:load Destroy failed, reason: %{public}s", __func__, dlerror());
+        CloseLibraryHandle();
         return;
     }
     colorSpaceConvertDisplayHandle_ = colorSpaceConvertDisplayCreate_();
     if (colorSpaceConvertDisplayHandle_ == nullptr) {
         RS_LOGE("ColorSpaceConvertDisplayCreate failed, return nullptr");
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        CloseLibraryHandle();
         return;
     }
     colorSpaceConverterDisplay_ = static_cast<ColorSpaceConvertDisplayHandleImpl *>(
@@ -75,14 +66,8 @@ RSColorSpaceConvert::~RSColorSpaceConvert()
         colorSpaceConvertDisplayHandle_ = nullptr;
     }
     if (handle_) {
-        if (dlclose(handle_) != 0) {
-            ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
-        }
-        handle_ = nullptr;
+        CloseLibraryHandle();
     }
-    colorSpaceConvertDisplayCreate_ = nullptr;
-    colorSpaceConvertDisplayDestroy_ = nullptr;
-    colorSpaceConverterDisplay_ = nullptr;
 }
 
 RSColorSpaceConvert& RSColorSpaceConvert::Instance()
@@ -166,6 +151,11 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
     }
 
+    if (!rsLuminance.IsHdrPictureOn()) {
+        scaler = 1.0f;
+        parameter.disableHeadRoom = true;
+    }
+
     ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
     if (ret != GSERROR_OK) {
         RS_LOGD("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
@@ -210,6 +200,17 @@ bool RSColorSpaceConvert::ConvertColorGamutToSpaceInfo(const GraphicColorGamut& 
     }
 
     return true;
+}
+
+void RSColorSpaceConvert::CloseLibraryHandle()
+{
+    colorSpaceConvertDisplayCreate_ = nullptr;
+    colorSpaceConvertDisplayDestroy_ = nullptr;
+    colorSpaceConverterDisplay_ = nullptr;
+    if (dlclose(handle_) != 0) {
+        ROSEN_LOGE("Could not close the handle. This indicates a leak. %{public}s", dlerror());
+    }
+    handle_ = nullptr;
 }
 
 } // namespace Rosen

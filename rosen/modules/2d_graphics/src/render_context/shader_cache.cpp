@@ -198,10 +198,13 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
         LOGD("store: cachedata has been destructed");
         return;
     }
+    RS_TRACE_BEGIN("Rewrite valueSize = " + std::to_string(valueSize) + ", keySize = " + std::to_string(keySize));
     cacheData_->Rewrite(key.GetData(), keySize, value, valueSize);
+    RS_TRACE_END();
 
     if (!savePending_ && saveDelaySeconds_ > 0) {
         savePending_ = true;
+        RS_TRACE_NAME("Post Writing Task");
         std::thread deferredSaveThread([this]() {
             sleep(saveDelaySeconds_);
             std::lock_guard<std::mutex> lock(mutex_);

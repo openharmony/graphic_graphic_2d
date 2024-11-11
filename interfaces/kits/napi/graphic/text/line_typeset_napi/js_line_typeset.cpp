@@ -148,7 +148,7 @@ napi_value JsLineTypeset::OnGetLineBreak(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Argv convert failed.");
     }
     size_t limitSize = lineTypography_->GetUnicodeSize();
-    if (index < 0 || index >= limitSize || width <= 0) {
+    if (index < 0 || limitSize <= static_cast<size_t>(index) || width <= 0) {
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Params exceeds reasonable range.");
     }
     size_t count = static_cast<size_t>(lineTypography_->GetLineBreak(static_cast<size_t>(index), width));
@@ -178,7 +178,8 @@ napi_value JsLineTypeset::OnCreateLine(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Argv convert failed");
     }
     size_t limitSize = lineTypography_->GetUnicodeSize();
-    if (index < 0 || index >= limitSize || count < 0 || count + index > limitSize) {
+    if (index < 0 || limitSize <= static_cast<size_t>(index) || count < 0 ||
+        static_cast<size_t>(count + index) > limitSize) {
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Params exceeds reasonable range.");
     }
     auto textLineBase = lineTypography_->CreateLine(static_cast<size_t>(index), static_cast<size_t>(count));

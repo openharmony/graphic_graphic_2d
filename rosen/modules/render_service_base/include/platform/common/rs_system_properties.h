@@ -139,6 +139,7 @@ public:
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
     static bool GetRenderNodePurgeEnabled();
+    static bool GetRSImagePurgeEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -149,7 +150,6 @@ public:
     static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
-    static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
     static DumpSurfaceType GetDumpSurfaceType();
@@ -167,7 +167,6 @@ public:
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
-    static bool GetAceDebugBoundaryEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -269,6 +268,7 @@ public:
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
+    static uint32_t GetBlurEffectTerminateLimit();
 
     static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();

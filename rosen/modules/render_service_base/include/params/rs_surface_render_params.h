@@ -373,19 +373,6 @@ public:
     const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
     bool IsWatermarkEmpty() const;
 
-    void SetScalingMode(ScalingMode scalingMode) override
-    {
-        if (scalingMode_ == scalingMode) {
-            return;
-        }
-        scalingMode_ = scalingMode;
-        needSync_ = true;
-    }
-    ScalingMode GetScalingMode() const override
-    {
-        return scalingMode_;
-    }
-
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
@@ -607,7 +594,6 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
-    ScalingMode scalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;

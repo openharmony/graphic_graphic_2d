@@ -238,10 +238,6 @@ public:
     {
         idleTimerExpiredFlag_ = flag;
     }
-    void SetRSIdleTimerExpiredFlag(bool flag)
-    {
-        rsIdleTimerExpiredFlag_ = flag;
-    }
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     bool GetWatermarkFlag();
 
@@ -307,7 +303,9 @@ public:
 
     bool GetParallelCompositionEnabled();
     void SetFrameIsRender(bool isRender);
+    void AddSelfDrawingNodes(std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode);
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
+    void ClearSelfDrawingNodes();
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
 
     bool IsOnVsync() const
@@ -458,7 +456,6 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
-    void UpdateAceDebugBoundaryEnabled();
 
     // UIFirst
     bool CheckParallelSubThreadNodesStatus();
@@ -506,6 +503,7 @@ private:
     bool CheckUIExtensionCallbackDataChanged() const;
     void ConfigureRenderService();
 
+    void CheckBlurEffectCountStatistics(std::shared_ptr<RSBaseRenderNode> rootNode);
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
     // Used for CommitAndReleaseLayers task
@@ -607,9 +605,6 @@ private:
     bool isFoldScreenDevice_ = false;
     std::atomic<bool> isGlobalDarkColorMode_ = false;
 
-    bool isAceDebugBoundaryEnabledOfLastFrame_ = false;
-    bool hasPostUpdateAceDebugBoundaryTask_ = false;
-
     std::atomic_bool noNeedToPostTask_ = false;
 
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
@@ -624,6 +619,7 @@ private:
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
@@ -670,7 +666,6 @@ private:
     std::string currentBundleName_ = "";
     bool forceUpdateUniRenderFlag_ = false;
     bool idleTimerExpiredFlag_ = false;
-    bool rsIdleTimerExpiredFlag_ = false;
     // for ui first
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;

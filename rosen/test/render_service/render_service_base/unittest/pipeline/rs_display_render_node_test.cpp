@@ -638,4 +638,22 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
 }
+
+/**
+ * @tc.name: SetHasSecLayerInVisibleRect001
+ * @tc.desc: test results of SetHasSecLayerInVisibleRect001
+ * @tc.type:FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetHasSecLayerInVisibleRect001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, false);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, false);
+
+    displayNode->SetHasSecLayerInVisibleRect(true);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, true);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, true);
+}
 } // namespace OHOS::Rosen
