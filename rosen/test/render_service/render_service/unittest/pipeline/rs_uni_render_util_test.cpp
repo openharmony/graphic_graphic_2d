@@ -2285,7 +2285,7 @@ HWTEST_F(RSUniRenderUtilTest, RequestPerf, TestSize.Level1)
  * @tc.require: #IB2XN0
  */
 HWTEST_F(RSUniRenderUtilTest, MultiLayersPerf, TestSize.Level1)
-{   
+{
     uint32_t layerNum = 0;
     RSUniRenderUtil::MultiLayersPerf(layerNum);
     layerNum = 20;
