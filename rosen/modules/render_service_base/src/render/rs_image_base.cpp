@@ -249,7 +249,7 @@ void RSImageBase::MarkRenderServiceImage()
     renderServiceImage_ = true;
 #ifdef ROSEN_OHOS
     if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED &&
-        RSSystemProperties::GetRenderNodePurgeEnabled() &&
+        RSSystemProperties::GetRSImagePurgeEnabled() &&
         pixelMap_ &&
         (pixelMap_->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
         !pixelMap_->IsEditable() &&
