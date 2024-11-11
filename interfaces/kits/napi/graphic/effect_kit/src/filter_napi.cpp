@@ -285,13 +285,12 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     size_t filterSize = sizeof(FilterNapi);
     auto srcPixelMap = filterNapi->GetSrcPixelMap();
     filterSize += srcPixelMap ? (srcPixelMap->GetCapacity()) * 2 : 0; // 2: srcPixelMap + dstPixelMap
-    NAPI_CALL(env, napi_wrap_with_size(env,
-                            _this,
-                            filterNapi,
-                            FilterNapi::Destructor,
-                            nullptr, /* finalize_hint */
-                            nullptr,
-                            filterSize));
+    status = napi_wrap_with_size(env, _this, filterNapi, FilterNapi::Destructor, nullptr, nullptr, filterSize);
+    if (!EFFECT_IS_OK(status)) {
+        delete filterNapi;
+        EFFECT_LOG_E("FilterNapi Constructor wrap fail.");
+        return nullptr;
+    }
     return _this;
 }
 
