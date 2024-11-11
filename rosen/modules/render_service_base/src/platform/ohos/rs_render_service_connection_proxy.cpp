@@ -2810,7 +2810,7 @@ uint32_t RSRenderServiceConnectionProxy::SetHidePrivacyContent(NodeId id, bool n
     if (!data.WriteBool(needHidePrivacyContent)) {
         return static_cast<uint32_t>(RSInterfaceErrorCode::WRITE_PARCEL_ERROR);
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

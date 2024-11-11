@@ -1647,12 +1647,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 }
                 break;
             }
-#ifndef RS_ENABLE_UNI_RENDER
-            if (callingPid == 0) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-#endif
             if (ExtractPid(id) != callingPid) {
                 RS_LOGW("The SetHidePrivacyContent isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1662,8 +1656,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             auto needHidePrivacyContent = data.ReadBool();
-            SetHidePrivacyContent(id, needHidePrivacyContent);
-            reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR));
+            if (!reply.WriteUint32(SetHidePrivacyContent(id, needHidePrivacyContent))) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {

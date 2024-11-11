@@ -436,10 +436,10 @@ enum class AncoHebcStatus : int32_t {
 enum class RSInterfaceErrorCode : uint32_t {
 #undef NO_ERROR
     NO_ERROR = 0,
-    NOT_SELF_CALLING,
     NONSYSTEM_CALLING,
-    UNKNOWN_ERROR,
+    NOT_SELF_CALLING,
     WRITE_PARCEL_ERROR,
+    UNKNOWN_ERROR,
 };
 
 } // namespace Rosen
