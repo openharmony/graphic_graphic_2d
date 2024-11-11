@@ -150,8 +150,8 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
         if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
             OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
             if (!cacheCompletedSurface_ || !cacheCompletedCleanupHelper_) {
-                RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage surface %p cleanupHelper %p",
-                    cacheCompletedSurface_.get(), cacheCompletedSurface_.get());
+                RS_LOGE("RSSurfaceRenderNodeDrawable::GetCompletedImage %{public}s is nullptr",
+                    cacheCompletedSurface_ == nullptr ? "surface" : "cleanupHelper");
                 return nullptr;
             }
         }
