@@ -293,7 +293,7 @@ napi_value JsRun::OnPaint(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
-    if(argv[0] == nullptr) {
+    if (argv[0] == nullptr) {
         TEXT_LOGE("JsRun::OnPaint argv[0] is invalid");
         return NapiGetUndefined(env);
     }
