@@ -1985,7 +1985,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata001, TestSize.Level
     ASSERT_NE(instanceRootNode, nullptr);
     auto rsContext = std::make_shared<RSContext>();
     auto& nodeMap = rsContext->GetMutableNodeMap();
-    nodeMap.renderNodeMap_[instanceRootNode->GetId()] = instanceRootNode;
+    NodeId instanceRootNodeId = instanceRootNode->GetId();
+    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
+    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
     // create subsurface node
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
@@ -2010,7 +2012,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata002, TestSize.Level
     ASSERT_NE(instanceRootNode, nullptr);
     auto rsContext = std::make_shared<RSContext>();
     auto& nodeMap = rsContext->GetMutableNodeMap();
-    nodeMap.renderNodeMap_[instanceRootNode->GetId()] = instanceRootNode;
+    NodeId instanceRootNodeId = instanceRootNode->GetId();
+    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
+    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
     // create subsurface node
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
@@ -4961,13 +4965,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeGlobalFilterForDisplay001, TestSize.L
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     NodeId id0 = 0;
-    nodeMap.renderNodeMap_[id0] = nullptr;
+    pid_t pid0 = ExtractPid(id0);
+    nodeMap.renderNodeMap_[pid0][id0] = nullptr;
     NodeId id1 = 1;
+    pid_t pid1 = ExtractPid(id1);
     auto node1 = std::make_shared<RSRenderNode>(id1);
-    nodeMap.renderNodeMap_[id1] = node1;
+    nodeMap.renderNodeMap_[pid1][id1] = node1;
     NodeId id2 = 2;
+    pid_t pid2 = ExtractPid(id2);
     auto node2 = std::make_shared<RSRenderNode>(id2);
-    nodeMap.renderNodeMap_[id2] = node2;
+    nodeMap.renderNodeMap_[pid2][id2] = node2;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -5018,13 +5025,15 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize
     NodeId id1 = 2;
     auto filterNode1 = std::make_shared<RSRenderNode>(id1);
     ASSERT_NE(filterNode1, nullptr);
-    nodeMap.renderNodeMap_[id1] = filterNode1;
+    pid_t pid1 = ExtractPid(id1);
+    nodeMap.renderNodeMap_[pid1][id1] = filterNode1;
     NodeId id2 = 3;
+    pid_t pid2 = ExtractPid(id2);
     auto filterNode2 = std::make_shared<RSRenderNode>(id2);
     ASSERT_NE(filterNode2, nullptr);
     ASSERT_NE(filterNode2->renderContent_, nullptr);
     filterNode2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
-    nodeMap.renderNodeMap_[id2] = filterNode2;
+    nodeMap.renderNodeMap_[pid2][id2] = filterNode2;
     surfaceNode1->visibleFilterChild_.emplace_back(filterNode1->GetId());
     surfaceNode1->visibleFilterChild_.emplace_back(filterNode2->GetId());
 
@@ -5099,13 +5108,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentFilter002, T
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     NodeId id0 = 0;
-    nodeMap.renderNodeMap_[id0] = nullptr;
+    pid_t pid0 = ExtractPid(id0);
+    nodeMap.renderNodeMap_[pid0][id0] = nullptr;
     NodeId id1 = 1;
+    pid_t pid1 = ExtractPid(id1);
     auto node1 = std::make_shared<RSRenderNode>(id1);
-    nodeMap.renderNodeMap_[id1] = node1;
+    nodeMap.renderNodeMap_[pid1][id1] = node1;
     NodeId id2 = 2;
+    pid_t pid2 = ExtractPid(id2);
     auto node2 = std::make_shared<RSRenderNode>(id2);
-    nodeMap.renderNodeMap_[id2] = node2;
+    nodeMap.renderNodeMap_[pid2][id2] = node2;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
