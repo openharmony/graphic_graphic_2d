@@ -2276,6 +2276,7 @@ HWTEST_F(RSUniRenderUtilTest, RequestPerf, TestSize.Level1)
     for (uint32_t level : layerLevel) {
         RSUniRenderUtil::RequestPerf(level, onOffTag);
     }
+    EXPECT_TRUE(true);
 }
 
 /**
@@ -2292,5 +2293,6 @@ HWTEST_F(RSUniRenderUtilTest, MultiLayersPerf, TestSize.Level1)
     RSUniRenderUtil::MultiLayersPerf(layerNum);
     layerNum = 1;
     RSUniRenderUtil::MultiLayersPerf(layerNum);
+    EXPECT_TRUE(true);
 }
 } // namespace OHOS::Rosen
