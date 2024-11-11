@@ -578,14 +578,14 @@ bool DoMarshallingHelper014(const uint8_t* data, size_t size)
     g_pos = 0;
 
     Parcel parcel;
-    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 2;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetData<char>();
     }
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length;
+    cmdListData.second = length - 1;
     bool isCopy = GetData<bool>();
     static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->SetReplacedOpList({{GetData<size_t>(), GetData<size_t>()}});
@@ -634,6 +634,9 @@ bool DoMarshallingHelper015(const uint8_t* data, size_t size)
     parcel6.WriteInt32(size2);
     RSMarshallingHelper::SkipFromParcel(parcel6, size2);
     RSMarshallingHelper::SkipFromParcel(parcel6, 0);
+    RSMarshallingHelper::BeginNoSharedMem(std::this_thread::get_id());
+    RSMarshallingHelper::EndNoSharedMem();
+    RSMarshallingHelper::GetUseSharedMem(std::this_thread::get_id());
     return true;
 }
 
@@ -664,6 +667,10 @@ bool DoMarshallingHelper016(const uint8_t* data, size_t size)
     Parcel parcel5;
     RSMarshallingHelper::Marshalling(parcel5, image);
     RSMarshallingHelper::Unmarshalling(parcel5, image, imagePixelPtr);
+    Parcel parcel6;
+    std::shared_ptr<RSRenderPropertyBase> val = nullptr;
+    RSMarshallingHelper::Marshalling(parcel6, val);
+    RSMarshallingHelper::Unmarshalling(parcel6, val);
     return true;
 }
 
