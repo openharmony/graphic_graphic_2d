@@ -316,6 +316,6 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
     params.hasSecLayerInVisibleRectChanged_ = true;
-    EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), false);
+    EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), true);
 }
 } // namespace OHOS::Rosen
