@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connection_stub.h"
 #include <memory>
+#include <mutex>
 #include "ivsync_connection.h"
 #ifdef RES_SCHED_ENABLE
 #include "res_sched_client.h"
@@ -314,9 +315,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
 
     pid_t callingPid = GetCallingPid();
     auto tid = gettid();
-    if (tids_.find(tid) == tids_.end()) {
-        SetQos();
-        tids_.insert(tid);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (tids_.find(tid) == tids_.end()) {
+            SetQos();
+            tids_.insert(tid);
+        }
     }
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
         std::cend(descriptorCheckList)) {
