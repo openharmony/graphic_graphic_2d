@@ -125,6 +125,7 @@ int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
  * after the animation frame associated with the previous VSync is complete. In addition, the self-drawing frames must
  * carry timestamps that align with VSync.
  * After the animation ends, disable DVSync.
+ * Only phones and tablets support DVSync.
  * On a platform that does not support DVSync or if another application has enabled DVSync, the attempt to enable it
  * will not take effect, and the application still receives normal VSync signals.
  *
