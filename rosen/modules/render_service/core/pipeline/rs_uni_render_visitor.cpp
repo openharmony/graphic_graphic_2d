@@ -148,7 +148,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
 #endif
     RSTagTracker::UpdateReleaseResourceEnabled(RSSystemProperties::GetReleaseResourceEnabled());
     isScreenRotationAnimating_ = RSSystemProperties::GetCacheEnabledForRotation();
-    isSkipCanvasNodeOutOfScreen_ = RSSystemParameters::GetSkipCanvasNodeOutofScreenEnabled();
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (renderEngine_ && renderEngine_->GetRenderContext()) {
         auto subThreadManager = RSSubThreadManager::Instance();
@@ -177,7 +176,6 @@ void RSUniRenderVisitor::PartialRenderOptionInit()
         (dirtyRegionDebugType_ == DirtyRegionDebugType::EGL_DAMAGE);
     isDisplayDirtyDfxEnabled_ = !isTargetDirtyRegionDfxEnabled_ &&
         (dirtyRegionDebugType_ == DirtyRegionDebugType::DISPLAY_DIRTY);
-    isCanvasNodeSkipDfxEnabled_ = (dirtyRegionDebugType_ == DirtyRegionDebugType::CANVAS_NODE_SKIP_RECT);
     isOpDropped_ = isPartialRenderEnabled_ &&
         (partialRenderType_ != PartialRenderType::SET_DAMAGE) && !isRegionDebugEnabled_;
     isVirtualDirtyDfxEnabled_ = RSSystemProperties::GetVirtualDirtyDebugEnabled();
@@ -2824,7 +2822,6 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
         }
         node.UpdateFilterCacheWithSelfDirty();
         if (curSurfaceNode_->IsTransparent()) {
-            globalFilterRects_.emplace_back(globalFilterRect);
             if (!isIntersect || (isIntersect && (node.GetRenderProperties().GetBackgroundFilter() ||
                 node.GetRenderProperties().GetNeedDrawBehindWindow()) && !node.IsBackgroundInAppOrNodeSelfDirty())) {
                 // record nodes which has transparent clean filter
@@ -2846,7 +2843,6 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
             globalFilter_.insert({node.GetId(), globalFilterRect});
         }
     } else {
-        globalFilterRects_.emplace_back(globalFilterRect);
         // record container nodes which need filter
         containerFilter_.insert({node.GetId(), globalFilterRect});
     }
@@ -2969,11 +2965,6 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->hasMirrorDisplay_ = hasMirrorDisplay_;
     renderThreadParams->isForceCommitLayer_ |=
         RSPointerWindowManager::Instance().IsNeedForceCommitByPointer();
-}
-
-void RSUniRenderVisitor::SetAppWindowNum(uint32_t num)
-{
-    appWindowNum_ = num;
 }
 
 void RSUniRenderVisitor::SendRcdMessage(RSDisplayRenderNode& node)
