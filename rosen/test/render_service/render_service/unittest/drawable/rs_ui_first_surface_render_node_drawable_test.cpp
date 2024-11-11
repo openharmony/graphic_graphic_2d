@@ -21,6 +21,8 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_thread.h"
+#include "pipeline/rs_uni_render_util.h"
+#include "skia_adapter/skia_surface.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -128,20 +130,43 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize
     if (surfaceDrawable_ == nullptr) {
         return;
     }
+
     uint32_t threadIndex = 1;
     bool isUIFirst = true;
-
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
-    auto rscanvas = RSPaintFilterCanvas(drawingCanvas_.get());
-    auto result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
+    auto paintFilterCanvas = RSPaintFilterCanvas(drawingCanvas_.get());
+    auto result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     EXPECT_EQ(result, nullptr);
 
+    paintFilterCanvas.canvas_->gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+    ASSERT_EQ(result, nullptr);
+
+    surfaceDrawable_->cacheCompletedBackendTexture_.isValid_ = true;
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+    ASSERT_NE(result, nullptr);
+
+#ifdef RS_ENABLE_VK
+    surfaceDrawable_->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
+    auto cacheBackendTexture_ = RSUniRenderUtil::MakeBackendTexture(10, 10, VkFormat::VK_FORMAT_A1R5G5B5_UNORM_PACK16);
+    auto vkTextureInfo = cacheBackendTexture_.GetTextureInfo().GetVkTextureInfo();
+    surfaceDrawable_->cacheCompletedCleanupHelper_ = new NativeBufferUtils::VulkanCleanupHelper(
+        RsVulkanContext::GetSingleton, vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
+    ASSERT_NE(result, nullptr);
+    delete surfaceDrawable_->cacheCompletedCleanupHelper_;
+    surfaceDrawable_->cacheCompletedCleanupHelper_ = nullptr;
+#endif
+
     isUIFirst = false;
-    result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 
     surfaceDrawable_->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    result = surfaceDrawable_->GetCompletedImage(rscanvas, threadIndex, isUIFirst);
+    auto skiaSurface = std::make_shared<Drawing::SkiaSurface>();
+    skiaSurface->skSurface_ = SkSurface::MakeRasterN32Premul(10, 10);
+    surfaceDrawable_->cacheCompletedSurface_->impl_ = skiaSurface;
+    result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 }
 
