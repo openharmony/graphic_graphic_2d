@@ -192,6 +192,10 @@ void RSUifirstManager::ProcessForceUpdateNode()
     if (!mainThread_) {
         return;
     }
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        pendingForceUpdateNode_.clear();
+        return;
+    }
     std::vector<std::shared_ptr<RSRenderNode>> toDirtyNodes;
     for (auto id : pendingForceUpdateNode_) {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
