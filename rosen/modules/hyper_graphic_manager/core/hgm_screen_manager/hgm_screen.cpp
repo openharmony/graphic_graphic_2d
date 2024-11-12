@@ -94,6 +94,7 @@ int32_t HgmScreen::SetRefreshRateRange(uint32_t minRate, uint32_t maxRate)
 
 int32_t HgmScreen::AddScreenModeInfo(int32_t width, int32_t height, uint32_t rate, int32_t modeId)
 {
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     if (supportedModeIds_.find(modeId) == supportedModeIds_.end()) {
         supportedModeIds_.emplace(modeId);
     } else {

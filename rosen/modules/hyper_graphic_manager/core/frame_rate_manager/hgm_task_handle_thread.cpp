@@ -16,6 +16,7 @@
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 #include "xcollie/watchdog.h"
+#include <unistd.h>
 
 namespace OHOS::Rosen {
 namespace {
@@ -68,6 +69,17 @@ void HgmTaskHandleThread::RemoveEvent(std::string eventId)
 {
     if (handler_) {
         handler_->RemoveTask(eventId);
+    }
+}
+
+void HgmTaskHandleThread::DetectMultiThreadingCalls()
+{
+    if (auto newTid = gettid(); curThreadId_ != newTid) {
+        // -1 means default curThreadId
+        if (curThreadId_ != -1) {
+            HGM_LOGE("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
+        }
+        curThreadId_ = newTid;
     }
 }
 }

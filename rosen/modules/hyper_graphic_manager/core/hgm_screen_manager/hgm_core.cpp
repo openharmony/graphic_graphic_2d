@@ -471,6 +471,7 @@ sptr<HgmScreen> HgmCore::GetScreen(ScreenId id) const
 
 std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
 {
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to find screen " PUBU64 "", id);
