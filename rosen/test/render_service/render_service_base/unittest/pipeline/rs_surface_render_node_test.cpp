@@ -82,7 +82,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrix001, TestSize.Level1)
     Drawing::Matrix matrix;
     bool sendMsg = false;
     surfaceRenderNode.SetContextMatrix(matrix, sendMsg);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
 }
 
 /**
@@ -97,7 +97,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextClipRegion001, TestSize.Level1)
     Drawing::Rect clipRegion { 0, 0, 0, 0 };
     bool sendMsg = false;
     surfaceRenderNode.SetContextClipRegion(clipRegion, sendMsg);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
 }
 
 /**
@@ -110,7 +110,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ConnectToNodeInRenderService001, TestSize.Leve
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
     surfaceRenderNode.ConnectToNodeInRenderService();
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
 }
 
 /**
@@ -201,7 +201,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearChildrenCache001, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
     surfaceRenderNode.ResetParent();
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
 }
 
 /**
@@ -213,7 +213,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ClearChildrenCache001, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion02, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
     surfaceRenderNode.SetAbilityBGAlpha(0);
@@ -239,7 +239,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion02, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
     surfaceRenderNode.SetAbilityBGAlpha(255);
@@ -268,7 +268,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion03, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion04, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
     surfaceRenderNode.SetAbilityBGAlpha(255);
@@ -296,7 +296,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion04, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
     surfaceRenderNode.SetAbilityBGAlpha(255);
@@ -325,7 +325,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion05, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
     surfaceRenderNode.SetAbilityBGAlpha(255);
@@ -354,7 +354,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion06, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, ResetSurfaceOpaqueRegion07, TestSize.Level1)
 {
     RSSurfaceRenderNode surfaceRenderNode(id, context);
-    ASSERT_EQ(surfaceRenderNode.Getid(), 0);
+    ASSERT_EQ(surfaceRenderNode.GetId(), 0);
     RectI screenRect {0, 0, 2560, 1600};
     RectI absRect {0, 100, 400, 500};
     surfaceRenderNode.SetAbilityBGAlpha(255);
@@ -517,7 +517,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyBeforeChildrenTest, Test
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->ProcessAnimatePropertyBeforeChildren(*canvas_, true);
-    ASSERT_EQ(node->Getid(), 0);
+    ASSERT_EQ(node->GetId(), 0);
 }
 
 /**
@@ -530,7 +530,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, ProcessAnimatePropertyAfterChildrenTest, TestS
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->ProcessAnimatePropertyAfterChildren(*canvas_);
-    ASSERT_EQ(node->Getid(), 0);
+    ASSERT_EQ(node->GetId(), 0);
 }
 
 /**
@@ -545,7 +545,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextMatrixTest, TestSize.Level1)
     bool sendMsg = false;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->SetContextMatrix(matrix, sendMsg);
-    ASSERT_EQ(node->Getid(), 0);
+    ASSERT_EQ(node->GetId(), 0);
 }
 
 /**
@@ -560,7 +560,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, RegisterBufferAvailableListenerTest, TestSize.
     bool isFromRenderThread = true;
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     node->RegisterBufferAvailableListener(callback, isFromRenderThread);
-    ASSERT_EQ(node->Getid(), 0);
+    ASSERT_EQ(node->GetId(), 0);
 }
 
 /**
