@@ -517,7 +517,7 @@ public:
         return isHwcEnabledBySolidLayer_;
     }
 
-    void SetIsHwcEnabledBySolidLayer(isHwcEnabledBySolidLayer)
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
     {
         isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
     }
