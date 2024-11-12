@@ -41,7 +41,7 @@ public:
     static RSMagicPointerRenderManager& GetInstance();
     static int64_t GetCurrentTime();
     void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
-    void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);  
+    void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
     void RegisterPointerLuminanceChangeCallback(pid_t pid, sptr<RSIPointerLuminanceChangeCallback> callback);
     void UnRegisterPointerLuminanceChangeCallback(pid_t pid);
     void SetCacheImgForPointer(std::shared_ptr<Drawing::Image> cacheImgForPointer)
