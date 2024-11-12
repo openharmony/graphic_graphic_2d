@@ -136,6 +136,8 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.AddVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.RemoveVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     std::vector<NodeId> secExemptionList = {};
     secExemptionList.emplace_back(id);
     rsInterfaces.SetVirtualScreenSecurityExemptionList(static_cast<ScreenId>(id), secExemptionList);

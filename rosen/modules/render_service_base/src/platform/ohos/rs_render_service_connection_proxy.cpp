@@ -555,6 +555,62 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenBlackList(ScreenId id, s
     return status;
 }
 
+int32_t RSRenderServiceConnectionProxy::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUInt64Vector(blackListVector)) {
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::AddVirtualScreenBlackList: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    int32_t status = reply.ReadInt32();
+    return status;
+}
+
+int32_t RSRenderServiceConnectionProxy::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return WRITE_PARCEL_ERR;
+    }
+
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUInt64Vector(blackListVector)) {
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RemoveVirtualScreenBlackList: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    int32_t status = reply.ReadInt32();
+    return status;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)

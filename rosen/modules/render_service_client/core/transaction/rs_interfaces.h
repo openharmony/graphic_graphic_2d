@@ -64,6 +64,10 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);

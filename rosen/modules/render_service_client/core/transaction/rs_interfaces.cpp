@@ -93,6 +93,16 @@ int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    return renderServiceClient_->AddVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackListVector);
+}
+
 int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)

@@ -552,6 +552,32 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
 }
 
+int32_t RSRenderServiceConnection::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    if (blackListVector.empty()) {
+        RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
+        return StatusCode::BLACKLIST_IS_EMPTY;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSRenderServiceConnection::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    if (blackListVector.empty()) {
+        RS_LOGW("RemoveVirtualScreenBlackList blackList is empty.");
+        return StatusCode::BLACKLIST_IS_EMPTY;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+}
+
 int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)
