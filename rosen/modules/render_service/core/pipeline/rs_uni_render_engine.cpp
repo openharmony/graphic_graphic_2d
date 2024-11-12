@@ -76,7 +76,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             .g = 0,
             .b = 0,
             .a = 0
-        }
+        };
         auto layerSurface = layer->GetSurface();
         if (layerSurface == nullptr) {
             const auto& layerColor = layer->GetLayerColor();
