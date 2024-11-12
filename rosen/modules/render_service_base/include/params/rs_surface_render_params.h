@@ -551,7 +551,7 @@ private:
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
-    bool isHwcEnabledBySolidLayer = false;
+    bool isHwcEnabledBySolidLayer_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
