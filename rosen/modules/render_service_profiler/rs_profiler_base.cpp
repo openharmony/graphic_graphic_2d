@@ -47,7 +47,7 @@
 
 namespace OHOS::Rosen {
 
-static Mode g_mode;
+static Mode g_mode = Mode::NONE;
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
