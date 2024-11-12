@@ -65,19 +65,16 @@ void RoundRectFuzzTest001(const uint8_t* data, size_t size)
 
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
-    scalar x = GetObject<scalar>();
-    scalar y = GetObject<scalar>();
-    Point point{xRad, yRad};
     std::vector<Point> radiusXY;
-    radiusXY.push_back(point);
-    Point point1{x, y};
-    std::vector<Point> radiusXY1;
-    radiusXY1.push_back(point1);
+    radiusXY.push_back({GetObject<scalar>(), GetObject<scalar>()});
+    radiusXY.push_back({GetObject<scalar>(), GetObject<scalar>()});
+    radiusXY.push_back({GetObject<scalar>(), GetObject<scalar>()});
+    radiusXY.push_back({GetObject<scalar>(), GetObject<scalar>()});
 
     Rect r;
     RoundRect roundRect = RoundRect(r, xRad, yRad);
     RoundRect roundRect1 = RoundRect(roundRect);
-    RoundRect roundRect2 = RoundRect(r, radiusXY1);
+    RoundRect roundRect2 = RoundRect(r, radiusXY);
 
     roundRect.SetRect(r);
     roundRect.GetRect();

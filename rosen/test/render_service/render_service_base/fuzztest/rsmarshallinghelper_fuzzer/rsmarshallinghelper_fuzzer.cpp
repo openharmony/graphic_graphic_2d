@@ -774,8 +774,15 @@ bool DoMarshallingHelper019(const uint8_t* data, size_t size)
         RenderParticleParaType(val3, randomUpdator, randomSpeed, valChangeOverLife);
     RSMarshallingHelper::Marshalling(parcel5, accelerationValue);
     RSMarshallingHelper::Unmarshalling(parcel5, accelerationValue);
+    accelerationValue.updator_ = ParticleUpdator::CURVE;
+    RSMarshallingHelper::Marshalling(parcel5, accelerationValue);
+    RSMarshallingHelper::Unmarshalling(parcel5, accelerationValue);
     Parcel parcel6;
     RenderParticleColorParaType color;
+    color.updator_ = ParticleUpdator::RANDOM;
+    RSMarshallingHelper::Marshalling(parcel6, color);
+    RSMarshallingHelper::Unmarshalling(parcel6, color);
+    color.updator_ = ParticleUpdator::CURVE;
     RSMarshallingHelper::Marshalling(parcel6, color);
     RSMarshallingHelper::Unmarshalling(parcel6, color);
     return true;

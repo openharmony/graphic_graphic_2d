@@ -30,6 +30,7 @@ constexpr size_t BLENDMODE_SIZE = 29;
 constexpr size_t MAX_SIZE = 5000;
 constexpr size_t MATRIX_SIZE = 9;
 constexpr size_t PIONTMODE_SIZE = 3;
+constexpr size_t PAINTSTYLE_SIZE = 4;
 } // namespace
 namespace Drawing {
 bool DrawCmdFuzzTest001(const uint8_t* data, size_t size)
@@ -57,7 +58,7 @@ bool DrawCmdFuzzTest001(const uint8_t* data, size_t size)
     dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length;
+    cmdListData.second = length - 1;
     auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
     Brush brush;
     DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
@@ -145,6 +146,15 @@ bool DrawCmdFuzzTest003(const uint8_t* data, size_t size)
     uint32_t green = GetObject<uint32_t>();
     Color color = Color(red, green, blue, alpha);
     Paint paint = Paint(color);
+    Filter filter;
+    paint.SetFilter(filter);
+    Color4f color4f { GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>() };
+    paint.SetColor(color4f, ColorSpace::CreateSRGB());
+    std::shared_ptr<BlurDrawLooper> blurDrawLooper = BlurDrawLooper::CreateBlurDrawLooper(GetObject<float>(),
+        GetObject<scalar>(), GetObject<scalar>(), color);
+    paint.SetLooper(blurDrawLooper);
+    uint32_t style = GetObject<uint32_t>();
+    paint.SetStyle(static_cast<Paint::PaintStyle>(style % PAINTSTYLE_SIZE));
     DrawOpItem::GeneratePaintFromHandle(paintHandle, *drawCmdList, paint);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -234,6 +244,8 @@ bool DrawCmdFuzzTest005(const uint8_t* data, size_t size)
     paint.SetAntiAlias(isAntiAlias);
     DrawWithPaintOpItem drawWithPaintOpItem = DrawWithPaintOpItem(paint, type);
     drawWithPaintOpItem.Marshalling(*drawCmdList);
+    std::string out = dataText;
+    drawWithPaintOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -313,6 +325,8 @@ bool DrawCmdFuzzTest007(const uint8_t* data, size_t size)
     DrawPointOpItem drawPointOpItem = DrawPointOpItem(*drawCmdList, &constructorHandle);
     drawPointOpItem.Marshalling(*drawCmdList);
     DrawPointOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawPointOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -466,6 +480,8 @@ bool DrawCmdFuzzTest010(const uint8_t* data, size_t size)
     drawPathOpItem.Marshalling(*drawCmdList);
     DrawPathOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawPathOpItem drawPathOpItemTwo = DrawPathOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawPathOpItemTwo.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -550,6 +566,8 @@ bool DrawCmdFuzzTest012(const uint8_t* data, size_t size)
     clipRegionOpItem.Marshalling(*drawCmdList);
     ClipRegionOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     ClipRegionOpItem clipRegionOpItemT = ClipRegionOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    clipRegionOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -604,6 +622,8 @@ bool DrawCmdFuzzTest013(const uint8_t* data, size_t size)
     drawShadowOpItem.Marshalling(*drawCmdList);
     DrawShadowOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawShadowOpItem drawShadowOpItemT = DrawShadowOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawShadowOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -676,6 +696,8 @@ bool DrawCmdFuzzTest015(const uint8_t* data, size_t size)
     DrawLineOpItem drawLineOpItem = DrawLineOpItem(*drawCmdList, &constructorHandle);
     drawLineOpItem.Marshalling(*drawCmdList);
     DrawLineOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawLineOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -744,6 +766,8 @@ bool DrawCmdFuzzTest017(const uint8_t* data, size_t size)
     DrawRectOpItem drawRectOpItem = DrawRectOpItem(*drawCmdList, &constructorHandle);
     drawRectOpItem.Marshalling(*drawCmdList);
     DrawRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawRectOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -811,6 +835,8 @@ bool DrawCmdFuzzTest019(const uint8_t* data, size_t size)
     DrawRoundRectOpItem drawRoundRectOpItem = DrawRoundRectOpItem(*drawCmdList, &constructorHandle);
     drawRoundRectOpItem.Marshalling(*drawCmdList);
     DrawRoundRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawRoundRectOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -885,6 +911,8 @@ bool DrawCmdFuzzTest021(const uint8_t* data, size_t size)
     DrawNestedRoundRectOpItem drawNestedRoundRectOpItem = DrawNestedRoundRectOpItem(*drawCmdList, &constructorHandle);
     drawNestedRoundRectOpItem.Marshalling(*drawCmdList);
     DrawNestedRoundRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawNestedRoundRectOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -958,6 +986,8 @@ bool DrawCmdFuzzTest023(const uint8_t* data, size_t size)
     DrawArcOpItem drawArcOpItem = DrawArcOpItem(*drawCmdList, &constructorHandle);
     drawArcOpItem.Marshalling(*drawCmdList);
     DrawArcOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawArcOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1026,6 +1056,8 @@ bool DrawCmdFuzzTest025(const uint8_t* data, size_t size)
     DrawPieOpItem drawPieOpItem = DrawPieOpItem(*drawCmdList, &constructorHandle);
     drawPieOpItem.Marshalling(*drawCmdList);
     DrawPieOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawPieOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1091,6 +1123,8 @@ bool DrawCmdFuzzTest027(const uint8_t* data, size_t size)
     DrawOvalOpItem drawOvalOpItem = DrawOvalOpItem(*drawCmdList, &constructorHandle);
     drawOvalOpItem.Marshalling(*drawCmdList);
     DrawOvalOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawOvalOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1158,6 +1192,8 @@ bool DrawCmdFuzzTest029(const uint8_t* data, size_t size)
     DrawCircleOpItem drawCircleOpItem = DrawCircleOpItem(*drawCmdList, &constructorHandle);
     drawCircleOpItem.Marshalling(*drawCmdList);
     DrawCircleOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawCircleOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1222,6 +1258,8 @@ bool DrawCmdFuzzTest031(const uint8_t* data, size_t size)
     RotateOpItem rotateOpItem = RotateOpItem(&constructorHandle);
     rotateOpItem.Marshalling(*drawCmdList);
     RotateOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    rotateOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1277,6 +1315,8 @@ bool DrawCmdFuzzTest033(const uint8_t* data, size_t size)
     ShearOpItem shearOpItem = ShearOpItem(&constructorHandle);
     shearOpItem.Marshalling(*drawCmdList);
     ShearOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    shearOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1380,6 +1420,8 @@ bool DrawCmdFuzzTest037(const uint8_t* data, size_t size)
     ClearOpItem clearOpItem = ClearOpItem(&constructorHandle);
     clearOpItem.Marshalling(*drawCmdList);
     ClearOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    clearOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1452,6 +1494,8 @@ bool DrawCmdFuzzTest039(const uint8_t* data, size_t size)
     drawRegionOpItem.Marshalling(*drawCmdList);
     DrawRegionOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawRegionOpItem drawRegionOpItemTwo = DrawRegionOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawRegionOpItemTwo.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1512,6 +1556,8 @@ bool DrawCmdFuzzTest040(const uint8_t* data, size_t size)
     drawVerticesOpItem.Marshalling(*drawCmdList);
     DrawVerticesOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawVerticesOpItem drawVerticesOpItemTwo = DrawVerticesOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawVerticesOpItemTwo.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1561,6 +1607,8 @@ bool DrawCmdFuzzTest041(const uint8_t* data, size_t size)
     DrawColorOpItem drawColorOpItem = DrawColorOpItem(&constructorHandle);
     drawColorOpItem.Marshalling(*drawCmdList);
     DrawColorOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawColorOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1642,6 +1690,8 @@ bool DrawCmdFuzzTest043(const uint8_t* data, size_t size)
     drawImageNineOpItem.Marshalling(*drawCmdList);
     DrawImageNineOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageNineOpItem drawImageNineOpItemT = DrawImageNineOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawImageNineOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1706,6 +1756,8 @@ bool DrawCmdFuzzTest044(const uint8_t* data, size_t size)
     Canvas canvas = Canvas(width, height);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     drawImageLatticeOpItemT.Playback(&canvas, &rect);
+    std::string out = dataText;
+    drawImageLatticeOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1770,6 +1822,8 @@ bool DrawCmdFuzzTest045(const uint8_t* data, size_t size)
         colorsT, mode, samplingOptions, hasCullRect, cullRect, paintHandle);
     drawAtlasOpItem.Marshalling(*drawCmdList);
     DrawAtlasOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawAtlasOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1843,14 +1897,10 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
     if (!buildBitmap) {
         return false;
     }
-    scalar px = GetObject<scalar>();
-    scalar py = GetObject<scalar>();
     Color color = Color(GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>());
     Paint paint = Paint(color);
-    DrawBitmapOpItem drawBitmapOpItem = DrawBitmapOpItem(bitmap, px, py, paint);
-    int32_t width = GetObject<int32_t>();
-    int32_t height = GetObject<int32_t>();
-    Canvas canvas = Canvas(width, height);
+    DrawBitmapOpItem drawBitmapOpItem = DrawBitmapOpItem(bitmap, GetObject<scalar>(), GetObject<scalar>(), paint);
+    Canvas canvas = Canvas(GetObject<int32_t>(), GetObject<int32_t>());
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     drawBitmapOpItem.Playback(&canvas, &rect);
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
@@ -1869,11 +1919,13 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
     paintHandle.blenderEnabled = GetObject<bool>();
     paintHandle.width = GetObject<scalar>();
     paintHandle.miterLimit = GetObject<scalar>();
-    DrawBitmapOpItem::ConstructorHandle constructorHandle = DrawBitmapOpItem::ConstructorHandle(bitmapT, px, py,
-        paintHandle);
+    DrawBitmapOpItem::ConstructorHandle constructorHandle = DrawBitmapOpItem::ConstructorHandle(bitmapT,
+        GetObject<scalar>(), GetObject<scalar>(), paintHandle);
     drawBitmapOpItem.Marshalling(*drawCmdList);
     DrawBitmapOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawBitmapOpItem drawBitmapOpItemT = DrawBitmapOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawBitmapOpItemT.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1934,6 +1986,8 @@ bool DrawCmdFuzzTest048(const uint8_t* data, size_t size)
     drawImageOpItem.Marshalling(*drawCmdList);
     DrawImageOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageOpItem drawImageOpItemT = DrawImageOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawImageOpItemT.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -1996,6 +2050,8 @@ bool DrawCmdFuzzTest049(const uint8_t* data, size_t size)
     drawImageRectOpItem.Marshalling(*drawCmdList);
     DrawImageRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageRectOpItem drawImageRectOpItemT = DrawImageRectOpItem(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawImageRectOpItemT.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2077,9 +2133,15 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     paintHandle.miterLimit = GetObject<scalar>();
     DrawTextBlobOpItem::ConstructorHandle constructorHandle = DrawTextBlobOpItem::ConstructorHandle(textBlob,
         globalUniqueId, x, y, paintHandle);
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    Canvas canvas = Canvas(width, height);
+    constructorHandle.GenerateCachedOpItem(*drawCmdList, &canvas);
     DrawTextBlobOpItem drawTextBlobOpItem = DrawTextBlobOpItem(*drawCmdList, &constructorHandle);
     drawTextBlobOpItem.Marshalling(*drawCmdList);
     DrawTextBlobOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawTextBlobOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2156,6 +2218,8 @@ bool DrawCmdFuzzTest053(const uint8_t* data, size_t size)
     DrawSymbolOpItem drawSymbolOpItem = DrawSymbolOpItem(*drawCmdList, &constructorHandle);
     drawSymbolOpItem.Marshalling(*drawCmdList);
     DrawSymbolOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    drawSymbolOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2286,6 +2350,8 @@ bool DrawCmdFuzzTest057(const uint8_t* data, size_t size)
     TranslateOpItem translateOpItem = TranslateOpItem(&constructorHandle);
     translateOpItem.Marshalling(*drawCmdList);
     TranslateOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    translateOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2340,6 +2406,8 @@ bool DrawCmdFuzzTest059(const uint8_t* data, size_t size)
     ScaleOpItem scaleOpItem = ScaleOpItem(&constructorHandle);
     scaleOpItem.Marshalling(*drawCmdList);
     ScaleOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    scaleOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2395,6 +2463,8 @@ bool DrawCmdFuzzTest061(const uint8_t* data, size_t size)
     ClipRectOpItem clipRectOpItem = ClipRectOpItem(&constructorHandle);
     clipRectOpItem.Marshalling(*drawCmdList);
     ClipRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    clipRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2449,6 +2519,8 @@ bool DrawCmdFuzzTest063(const uint8_t* data, size_t size)
     ClipIRectOpItem clipIRectOpItem = ClipIRectOpItem(&constructorHandle);
     clipIRectOpItem.Marshalling(*drawCmdList);
     ClipIRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    clipIRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2508,6 +2580,8 @@ bool DrawCmdFuzzTest065(const uint8_t* data, size_t size)
     ClipRoundRectOpItem clipRoundRectOpItem = ClipRoundRectOpItem(&constructorHandle);
     clipRoundRectOpItem.Marshalling(*drawCmdList);
     ClipRoundRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    clipRoundRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2620,6 +2694,8 @@ bool DrawCmdFuzzTest068(const uint8_t* data, size_t size)
     SetMatrixOpItem setMatrixOpItem = SetMatrixOpItem(&constructorHandle);
     setMatrixOpItem.Marshalling(*drawCmdList);
     SetMatrixOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    setMatrixOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2735,6 +2811,8 @@ bool DrawCmdFuzzTest072(const uint8_t* data, size_t size)
     ConcatMatrixOpItem concatMatrixOpItem = ConcatMatrixOpItem(&constructorHandle);
     concatMatrixOpItem.Marshalling(*drawCmdList);
     ConcatMatrixOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = dataText;
+    concatMatrixOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -2900,8 +2978,8 @@ bool DrawCmdFuzzTest076(const uint8_t* data, size_t size)
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);
     saveLayerOpItem.Playback(&canvas, &rect);
-    std::string str(dataText);
-    saveLayerOpItem.Dump(str);
+    std::string out = dataText;
+    saveLayerOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -3048,11 +3126,6 @@ bool DrawCmdFuzzTest080(const uint8_t* data, size_t size)
         radiusData);
     ClipAdaptiveRoundRectOpItem clipAdaptiveRoundRectOpItem = ClipAdaptiveRoundRectOpItem(*drawCmdList,
         &constructorHandle);
-    int32_t width = GetObject<int32_t>();
-    int32_t height = GetObject<int32_t>();
-    Canvas canvas = Canvas(width, height);
-    Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
-    clipAdaptiveRoundRectOpItem.Playback(&canvas, &rect);
     std::string out(dataText);
     clipAdaptiveRoundRectOpItem.Dump(out);
     if (dataText != nullptr) {
@@ -3127,6 +3200,58 @@ bool DrawCmdFuzzTest081(const uint8_t* data, size_t size)
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
+    }
+    return true;
+}
+
+bool DrawCmdFuzzTest082(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    Path path;
+    uint32_t strCount = GetObject<uint32_t>() % MAX_SIZE + 1;
+    char* str = new char[strCount];
+    for (size_t i = 0; i < strCount; i++) {
+        str[i] = GetObject<char>();
+    }
+    str[strCount - 1] = '\0';
+    path.BuildFromSVGString(str);
+    Point3 planeParams = Point3(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    Point3 devLightPos = Point3(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    scalar lightRadius = GetObject<scalar>();
+    Color ambient = Color(GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>());
+    Color spotColor = Color(GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>(),
+        GetObject<uint32_t>());
+    ShadowFlags flag = GetObject<ShadowFlags>();
+    bool isLimitElevation = GetObject<bool>();
+    DrawShadowStyleOpItem drawShadowStyleOpItem = DrawShadowStyleOpItem(path, planeParams, devLightPos, lightRadius,
+        ambient, spotColor, flag, isLimitElevation);
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    Canvas canvas = Canvas(width, height);
+    Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    drawShadowStyleOpItem.Playback(&canvas, &rect);
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(str);
+    cmdListData.second = strCount - 1;
+    bool isCopy = GetObject<bool>();
+    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    OpDataHandle pathT { GetObject<uint32_t>(), GetObject<size_t>() };
+    DrawShadowStyleOpItem::ConstructorHandle constructorHandle = DrawShadowStyleOpItem::ConstructorHandle(
+        pathT, planeParams, devLightPos, lightRadius, ambient, spotColor, flag, isLimitElevation);
+    drawShadowStyleOpItem.Marshalling(*drawCmdList);
+    DrawShadowStyleOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
+    std::string out = str;
+    drawShadowStyleOpItem.Dump(out);
+    if (str != nullptr) {
+        delete [] str;
+        str = nullptr;
     }
     return true;
 }
@@ -3220,6 +3345,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::DrawCmdFuzzTest079(data, size);
     OHOS::Rosen::Drawing::DrawCmdFuzzTest080(data, size);
     OHOS::Rosen::Drawing::DrawCmdFuzzTest081(data, size);
+    OHOS::Rosen::Drawing::DrawCmdFuzzTest082(data, size);
 
     return 0;
 }
