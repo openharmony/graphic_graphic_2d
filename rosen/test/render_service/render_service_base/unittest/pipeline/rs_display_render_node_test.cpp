@@ -640,6 +640,40 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddSecurityVisibleLayer001
+ * @tc.desc: test results of AddSecurityVisibleLayer
+ * @tc.type:FUNC
+ * @tc.require: issuesIB3N3D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, AddSecurityVisibleLayer001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;
+    displayNode->AddSecurityVisibleLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 1);
+}
+
+/**
+ * @tc.name: ClearSecurityVisibleLayerList001
+ * @tc.desc: test results of ClearSecurityVisibleLayerList
+ * @tc.type:FUNC
+ * @tc.require: issuesIB3N3D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityVisibleLayerList001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;  // test value for surface node id
+    displayNode->AddSecurityVisibleLayer(id);
+    id = 2;  // test value for surface node id
+    displayNode->AddSecurityVisibleLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 2);
+    displayNode->ClearSecurityVisibleLayerList();
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 0);
+}
+
+/**
  * @tc.name: SetHasSecLayerInVisibleRect001
  * @tc.desc: test results of SetHasSecLayerInVisibleRect001
  * @tc.type:FUNC

@@ -882,7 +882,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
 
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
-        specialLayerType_ == HAS_SPECIAL_LAYER) {
+        specialLayerType_ == HAS_SPECIAL_LAYER && (!enableVisibleRect_ || params.HasSecLayerInVisibleRect())) {
         DrawMirror(params, virtualProcesser,
             &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
