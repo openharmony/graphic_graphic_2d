@@ -103,12 +103,13 @@ struct VoteInfo {
 
     std::string ToSimpleString() const
     {
-        std::stringstream str;
-        str << "VOTER:" << voterName << ";";
-        str << "FPS:" << max << ";";
-        str << "EXT:" << extInfo << ";";
-        str << "PID:" << pid;
-        return str.str();
+        char buf[STRING_BUFFER_MAX_SIZE] = {0};
+        int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "VOTER:%s; FPS:%u; EXT:%s; PID:%d.",
+            voterName.c_str(), max, extInfo.c_str(), pid);
+        if (len <= 0) {
+            HGM_LOGE("failed to execute snprintf.");
+        }
+        return buf;
     }
 
     bool operator==(const VoteInfo& other) const
