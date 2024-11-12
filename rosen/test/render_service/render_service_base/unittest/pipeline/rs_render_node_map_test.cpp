@@ -165,7 +165,7 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
     NodeId id = 1;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
-    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap;
+    auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
     pid_t pid = 1;
     rsRenderNodeMap.MoveRenderNodeMap(subRenderNodeMap, pid);
     rsRenderNodeMap.renderNodeMap_[pid][id] = node;
