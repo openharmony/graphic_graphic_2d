@@ -79,7 +79,9 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
     surfaceNode->name_ = "SCBNegativeScreen";
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
+    ASSERT_EQ(rsRenderNodeMap.entryViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 1);
+    ASSERT_EQ(rsRenderNodeMap.negativeScreenNodeId_, 1);
 }
 
 /**
