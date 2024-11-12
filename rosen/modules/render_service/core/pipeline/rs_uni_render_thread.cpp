@@ -818,14 +818,20 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask()
+void RSUniRenderThread::ResetClearMemoryTask(bool isDoDirectComposition)
 {
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
-        ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        if (!isDoDirectComposition) {
+            ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        }
     }
-    RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
-    DefaultClearMemoryCache();
+    if (!isDefaultCleanTaskFinished_) {
+        RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
+        if (!isDoDirectComposition) {
+            DefaultClearMemoryCache();
+        }
+    }
 }
 
 void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
