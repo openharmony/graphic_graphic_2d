@@ -2274,7 +2274,7 @@ HWTEST_F(RSUniRenderUtilTest, RequestPerf, TestSize.Level1)
     uint32_t layerLevel[] = { 0, 1, 2, 3 };
     bool onOffTag = true;
     int count = 0;
-    int total = sizeof(layerLevel) / sizeof(layerLevel[0]);
+    int total = 4;
     for (uint32_t level : layerLevel) {
         RSUniRenderUtil::RequestPerf(level, onOffTag);
         count++;

@@ -303,10 +303,13 @@ HWTEST_F(RSPhysicalScreenProcessorTest, RequestPerf, TestSize.Level1)
 {
     uint32_t layerLevel[] = { 0, 1, 2, 3 };
     bool onOffTag = true;
+    int total = 4;
+    int num = 0;
     for (uint32_t level : layerLevel) {
         RSUniRenderUtil::RequestPerf(level, onOffTag);
+        num++;
     }
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(num == total);
 }
 
 /**
