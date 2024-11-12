@@ -470,7 +470,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         // 1 means enable dss by solid color layer
         if (auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
             iter != solidLayerConfigFromHgm.end() && iter->second == "1") {
-            rsCommonHook.SetWhiteListForSolidColorLayerFlag(true);
+            rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
         }
     }
 }
