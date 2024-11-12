@@ -4340,9 +4340,10 @@ void RSRenderNode::SetStartingWindowFlag(bool startingFlag)
     }
 }
 
-void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
+void RSRenderNode::MarkUifirstNode(bool isUifirstNode, bool isForceFlag)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isUifirstNode:%d", GetId(), isUifirstNode);
+    isForceFlag_ = isForceFlag;
     isUifirstNode_ = isUifirstNode;
     isUifirstDelay_ = 0;
 }

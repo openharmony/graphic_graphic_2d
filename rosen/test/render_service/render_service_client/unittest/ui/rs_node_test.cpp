@@ -7319,10 +7319,10 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
 HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    rsNode->MarkUifirstNode(true);
+    rsNode->MarkUifirstNode(true, true);
     EXPECT_TRUE(rsNode->isUifirstNode_);
 
-    rsNode->MarkUifirstNode(false);
+    rsNode->MarkUifirstNode(false, true);
     EXPECT_TRUE(!rsNode->isUifirstNode_);
 }
 } // namespace OHOS::Rosen

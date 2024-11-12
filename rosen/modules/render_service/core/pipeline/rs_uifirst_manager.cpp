@@ -1251,27 +1251,27 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]",
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
+        " isUifirstNode[%d], isForceFlag[%d]",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_);
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_,
+        node,isUifirstNode_, node.isForceFlag_);
+
+    if (node.isForceFlag) {
+        if (node.isUifirstNode_) {
+            if (node.IsLeashWindow()) {
+                RS_TRACE_NAME_FMT("uifirst_force IsLeashWindow node");
+                UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+            }
+        } else {
+            UifirstStateChange(node, MultiThreadCacheType::NONE);
+        }
+        return;
+    }
+
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
-        UifirstStateChange(node, MultiThreadCacheType::NONE);
-        if (GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
-            if (ancestorNodeHasAnimation && !node.isUifirstNode_) {
-                /* If window scaling behavior is interrupted by animation on pc, the tag can't be reset, so next
-                 vsync need to mark uifirst on the next frame
-                */
-                node.MarkUifirstNode(true);
-            }
-            return;
-        }
-        if (!node.isUifirstNode_) {
-            node.isUifirstDelay_++;
-            if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
-                node.isUifirstNode_ = true;
-            }
-            return;
-        }
+        UifirstStateChange(node, MultiThreadCacheType::NONE);                                                                                                                                                                                                                                                       c             
+        return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
         UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);

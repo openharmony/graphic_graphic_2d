@@ -139,7 +139,7 @@ public:
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
-    static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
+    static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode, bool isForceFlag);
 
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);

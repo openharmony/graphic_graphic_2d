@@ -401,7 +401,7 @@ public:
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
 
     // Mark uifirst node
-    void MarkUifirstNode(bool isUifirstNode);
+    void MarkUifirstNode(bool isUifirstNode, bool isForceFlag);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 

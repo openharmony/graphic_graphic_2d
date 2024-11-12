@@ -97,11 +97,11 @@ void RSNodeCommandHelper::MarkSuggestOpincNode(RSContext& context, NodeId nodeId
     }
 }
 
-void RSNodeCommandHelper::MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode)
+void RSNodeCommandHelper::MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode, bool isForceFlag)
 {
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        node->MarkUifirstNode(isUifirstNode);
+        node->MarkUifirstNode(isUifirstNode, isForceFlag);
     }
 }
 
