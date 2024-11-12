@@ -2273,10 +2273,13 @@ HWTEST_F(RSUniRenderUtilTest, RequestPerf, TestSize.Level1)
 {
     uint32_t layerLevel[] = { 0, 1, 2, 3 };
     bool onOffTag = true;
+    int count = 0;
+    int total = sizeof(layerLevel) / sizeof(layerLevel[0]);
     for (uint32_t level : layerLevel) {
         RSUniRenderUtil::RequestPerf(level, onOffTag);
+        count++;
     }
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(count == total);
 }
 
 /**
@@ -2288,11 +2291,16 @@ HWTEST_F(RSUniRenderUtilTest, RequestPerf, TestSize.Level1)
 HWTEST_F(RSUniRenderUtilTest, MultiLayersPerf, TestSize.Level1)
 {
     uint32_t layerNum = 0;
+    int total = 3;
+    int num = 0;
     RSUniRenderUtil::MultiLayersPerf(layerNum);
+    num++;
     layerNum = 20;
     RSUniRenderUtil::MultiLayersPerf(layerNum);
+    num++;
     layerNum = 1;
     RSUniRenderUtil::MultiLayersPerf(layerNum);
-    EXPECT_TRUE(true);
+    num++;
+    EXPECT_TRUE(num == total);
 }
 } // namespace OHOS::Rosen
