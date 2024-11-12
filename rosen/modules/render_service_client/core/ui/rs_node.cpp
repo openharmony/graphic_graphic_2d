@@ -107,8 +107,8 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
             }
         });
     }
-    hasCreateRenderRenderInRT_ = isTextureExportNode;
-    hasCreateRenderRenderInRS_ = !hasCreateRenderRenderInRT_;
+    hasCreateRenderNodeInRT_ = isTextureExportNode;
+    hasCreateRenderNodeInRS_ = !hasCreateRenderNodeInRT_;
     UpdateImplicitAnimator();
 }
 
@@ -135,8 +135,8 @@ RSNode::~RSNode()
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(id_);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
-    if ((IsRenderServiceNode() && hasCreateRenderRenderInRT_) ||
-        (!IsRenderServiceNode() && hasCreateRenderRenderInRS_)) {
+    if ((IsRenderServiceNode() && hasCreateRenderNodeInRT_) ||
+        (!IsRenderServiceNode() && hasCreateRenderNodeInRS_)) {
         command = std::make_unique<RSBaseNodeDestroy>(id_);
         transactionProxy->AddCommand(command, !IsRenderServiceNode());
     }
@@ -2765,9 +2765,9 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     if (!IsUniRenderEnabled()) {
         return;
     }
-    if ((isTextureExportNode_ && !hasCreateRenderRenderInRT_) ||
-        (!isTextureExportNode_ && !hasCreateRenderRenderInRS_)) {
-        CreateRenderNode();
+    if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
+        (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {
+        CreateRenderNodeForTextureExportSwitch();
     }
     DoFlushModifier();
 }
