@@ -203,7 +203,6 @@ int main()
 
     std::cout << "rs pointer window demo stage MoveTo" << std::endl;
     while (isRemote) {
-    // while (true) {
         // MoveTo
         MoveTo(surfaceNode, 0, 0);
         RSTransaction::FlushImplicitTransaction();
