@@ -453,9 +453,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
-        // solidLayerConfigFromHgm 1 means enable hardware by solid color layer
-        } else if (solidLayerConfigFromHgm[pkgNameForCheck] == "1") {
-            rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(true);
+        }
+        // 1 means enable dss by solid color layer
+        if (auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
+            iter != solidLayerConfigFromHgm.end() && iter->second == "1") {
+            rsCommonHook.SetWhiteListForSolidColorLayerFlag(true);
         }
     }
 }

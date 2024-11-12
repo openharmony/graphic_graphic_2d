@@ -488,6 +488,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
+    targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
     RSRenderParams::OnSync(target);
 }
 

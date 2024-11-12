@@ -479,6 +479,16 @@ public:
         return brightnessRatio_;
     }
 
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -498,6 +508,7 @@ private:
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
