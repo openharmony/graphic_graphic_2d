@@ -75,19 +75,16 @@ HWTEST_F(RSProfilerSocketTest, RSProfilerSocketAcceptClientTest, testing::ext::T
 }
 
 /*
- * @tc.name: RSProfilerSocketGetStatusTest
- * @tc.desc: Test public method GetStatus
+ * @tc.name: RSProfilerSocketAvailableTest
+ * @tc.desc: Test public method Available
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSProfilerSocketTest, RSProfilerSocketGetStatusTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSProfilerSocketTest, RSProfilerSocketAvailableTest, testing::ext::TestSize.Level1)
 {
     Socket s;
-    bool readyToReceive;
-    bool readyToSend;
-    s.GetStatus(readyToReceive, readyToSend);
-    EXPECT_FALSE(readyToReceive);
-    EXPECT_FALSE(readyToSend);
+    const auto size = s.Available();
+    EXPECT_EQ(size, 0);
 }
 
 } // namespace OHOS::Rosen
