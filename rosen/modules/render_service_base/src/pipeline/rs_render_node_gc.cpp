@@ -47,9 +47,26 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     }
 }
 
+bool RSRenderNodeGC::IsBucketQueueEmpty()
+{
+    std::lock_guard<std::mutex> lock(nodeMutex_);
+    return nodeBucket_.empty();
+}
+
 void RSRenderNodeGC::ReleaseNodeBucket()
 {
+    static auto callback = [] (uint32_t size, bool isHigh) {
+        if (isHigh) {
+            ROSEN_LOGW("RSRenderNodeGC::ReleaseNodeBucket remain buckets "
+                "exceed high threshold, cur[%{public}u]", size);
+            return;
+        }
+        ROSEN_LOGI("RSRenderNodeGC::ReleaseNodeBucket remain buckets "
+            "recover below low threshold, cur[%{public}u]", size);
+        return;
+    };
     std::vector<RSRenderNode*> toDele;
+    uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {
@@ -57,8 +74,10 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         }
         toDele.swap(nodeBucket_.front());
         nodeBucket_.pop();
+        remainBucketSize = nodeBucket_.size();
     }
-    RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu", toDele.size());
+    nodeBucketThrDetector_.Detect(remainBucketSize, callback);
+    RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu, remain node buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
             delete ptr;
@@ -69,6 +88,7 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 
 void RSRenderNodeGC::ReleaseNodeMemory()
 {
+    RS_TRACE_FUNC();
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {
@@ -111,7 +131,18 @@ void RSRenderNodeGC::DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAda
 
 void RSRenderNodeGC::ReleaseDrawableBucket()
 {
+    static auto callback = [] (uint32_t size, bool isHigh) {
+        if (isHigh) {
+            ROSEN_LOGW("RSRenderNodeGC::ReleaseDrawableBucket remain buckets "
+                "exceed high threshold, cur[%{public}u]", size);
+            return;
+        }
+        ROSEN_LOGI("RSRenderNodeGC::ReleaseDrawableBucket remain buckets "
+            "recover below low threshold, cur[%{public}u]", size);
+        return;
+    };
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter*> toDele;
+    uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(drawableMutex_);
         if (drawableBucket_.empty()) {
@@ -119,8 +150,10 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
         }
         toDele.swap(drawableBucket_.front());
         drawableBucket_.pop();
+        remainBucketSize = drawableBucket_.size();
     }
-    RS_TRACE_NAME_FMT("ReleaseDrawableMemory %zu", toDele.size());
+    drawableBucketThrDetector_.Detect(remainBucketSize, callback);
+    RS_TRACE_NAME_FMT("ReleaseDrawableMemory %zu, remain drawable buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
             delete ptr;
@@ -164,13 +197,25 @@ void RSRenderNodeGC::AddToOffTreeNodeBucket(const std::shared_ptr<RSBaseRenderNo
 
 void RSRenderNodeGC::ReleaseOffTreeNodeBucket()
 {
+    static auto callback = [] (uint32_t size, bool isHigh) {
+        if (isHigh) {
+            ROSEN_LOGW("RSRenderNodeGC::ReleaseOffTreeNodeBucket remain buckets "
+                "exceed high threshold, cur[%{public}u]", size);
+            return;
+        }
+        ROSEN_LOGI("RSRenderNodeGC::ReleaseOffTreeNodeBucket remain buckets "
+            "recover below low threshold, cur[%{public}u]", size);
+        return;
+    };
     std::vector<std::shared_ptr<RSBaseRenderNode>> toRemove;
     if (offTreeBucket_.empty()) {
         return;
     }
     toRemove.swap(offTreeBucket_.front());
     offTreeBucket_.pop();
-    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeBucket %d", toRemove.size());
+    uint32_t remainBucketSize = offTreeBucket_.size();
+    offTreeBucketThrDetector_.Detect(remainBucketSize, callback);
+    RS_TRACE_NAME_FMT("ReleaseOffTreeNodeBucket %d, remain offTree buckets %u", toRemove.size(), remainBucketSize);
     for (const auto& node : toRemove) {
         if (!node) {
             continue;

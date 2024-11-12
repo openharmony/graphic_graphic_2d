@@ -380,18 +380,29 @@ float OH_Drawing_FontGetMetrics(OH_Drawing_Font* cFont, OH_Drawing_Font_Metrics*
     FontMetrics metrics;
     ret = font->GetMetrics(&metrics);
 
+    cFontMetrics->flags = metrics.fFlags;
     cFontMetrics->top = metrics.fTop;
     cFontMetrics->ascent = metrics.fAscent;
     cFontMetrics->descent = metrics.fDescent;
     cFontMetrics->leading = metrics.fLeading;
     cFontMetrics->bottom = metrics.fBottom;
+    cFontMetrics->avgCharWidth = metrics.fAvgCharWidth;
+    cFontMetrics->maxCharWidth = metrics.fMaxCharWidth;
+    cFontMetrics->xMin = metrics.fXMin;
+    cFontMetrics->xMax = metrics.fXMax;
+    cFontMetrics->xHeight = metrics.fXHeight;
+    cFontMetrics->capHeight = metrics.fCapHeight;
+    cFontMetrics->underlineThickness = metrics.fUnderlineThickness;
+    cFontMetrics->underlinePosition = metrics.fUnderlinePosition;
+    cFontMetrics->strikeoutThickness = metrics.fStrikeoutThickness;
+    cFontMetrics->strikeoutPosition = metrics.fStrikeoutPosition;
     return ret;
 }
 
 OH_Drawing_ErrorCode OH_Drawing_FontGetBounds(const OH_Drawing_Font* cFont, const uint16_t* glyphs, uint32_t count,
     OH_Drawing_Array* bounds)
 {
-    if (cFont == nullptr || glyphs == nullptr || bounds == nullptr || count <= 0) {
+    if (cFont == nullptr || glyphs == nullptr || bounds == nullptr || count == 0) {
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     size_t size = 0;

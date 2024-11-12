@@ -38,6 +38,7 @@ HgmConfigCallbackManager::HgmConfigCallbackManager()
 HgmConfigCallbackManager::~HgmConfigCallbackManager() noexcept
 {
     animDynamicCfgCallbacks_.clear();
+    pendingAnimDynamicCfgCallbacks_.clear();
     refreshRateModeCallbacks_.clear();
     instance_ = nullptr;
 }
@@ -110,14 +111,40 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
 
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
 {
-    if (animDynamicCfgCallbacks_.empty()) {
+    pendingAnimDynamicCfgCallbacks_ = animDynamicCfgCallbacks_;
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    SyncHgmConfigChangeCallback(frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp());
+}
+
+void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
+    const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids)
+{
+    if (pendingAnimDynamicCfgCallbacks_.empty()) {
+        return;
+    }
+    decltype(pendingAnimDynamicCfgCallbacks_) callbacks;
+    for (const auto &[pid, _] : pids) {
+        if (pendingAnimDynamicCfgCallbacks_.find(pid) == pendingAnimDynamicCfgCallbacks_.end()) {
+            continue;
+        }
+        callbacks[pid] = pendingAnimDynamicCfgCallbacks_[pid];
+        pendingAnimDynamicCfgCallbacks_.erase(pid);
+    }
+    if (callbacks.empty()) {
         return;
     }
 
     auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
     auto data = std::make_shared<RSHgmConfigData>();
 
-    auto screenType = hgmCore.GetFrameRateMgr()->GetCurScreenStrategyId();
+    auto screenType = frameRateMgr->GetCurScreenStrategyId();
     auto settingMode = std::to_string(hgmCore.GetCurrentRefreshRateMode());
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
@@ -137,10 +164,9 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
         data->SetYDpi(screen->GetYDpi());
     }
 
-    for (auto& callback : animDynamicCfgCallbacks_) {
-        if (callback.second) {
-            callback.second->OnHgmConfigChanged(data);
-        }
+    for (auto &[pid, callback] : callbacks) {
+        HGM_LOGD("pid:%{public}d", pid);
+        callback->OnHgmConfigChanged(data);
     }
 }
 
@@ -167,6 +193,9 @@ void HgmConfigCallbackManager::UnRegisterHgmConfigChangeCallback(pid_t pid)
     if (animDynamicCfgCallbacks_.find(pid) != animDynamicCfgCallbacks_.end()) {
         animDynamicCfgCallbacks_.erase(pid);
         HGM_LOGD("HgmConfigCallbackManager %{public}s : remove a remote callback succeed.", __func__);
+    }
+    if (pendingAnimDynamicCfgCallbacks_.find(pid) != pendingAnimDynamicCfgCallbacks_.end()) {
+        pendingAnimDynamicCfgCallbacks_.erase(pid);
     }
 
     if (refreshRateModeCallbacks_.find(pid) != refreshRateModeCallbacks_.end()) {

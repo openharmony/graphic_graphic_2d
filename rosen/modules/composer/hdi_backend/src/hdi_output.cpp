@@ -275,18 +275,6 @@ uint32_t HdiOutput::GetScreenId() const
     return screenId_;
 }
 
-void HdiOutput::SetLayerCompCapacity(uint32_t layerCompositionCapacity)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    layerCompCapacity_ = layerCompositionCapacity;
-}
-
-uint32_t HdiOutput::GetLayerCompCapacity() const
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return layerCompCapacity_;
-}
-
 sptr<Surface> HdiOutput::GetFrameBufferSurface()
 {
     if (!CheckFbSurface()) {
@@ -321,52 +309,21 @@ void HdiOutput::RecordCompositionTime(int64_t timeStamp)
     compTimeRcdIndex_ = (compTimeRcdIndex_ + 1) % COMPOSITION_RECORDS_NUM;
 }
 
-void HdiOutput::SetDirectClientCompEnableStatus(bool enableStatus)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    directClientCompositionEnabled_ = enableStatus;
-}
-
-bool HdiOutput::GetDirectClientCompEnableStatus() const
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return directClientCompositionEnabled_;
-}
-
 int32_t HdiOutput::PreProcessLayersComp()
 {
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    bool doClientCompositionDirectly;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        if (layerIdMap_.empty()) {
-            HLOGI("layer map is empty, drop this frame");
-            return GRAPHIC_DISPLAY_PARAM_ERR;
-        }
-
-        uint32_t layersNum = layerIdMap_.size();
-        // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-        doClientCompositionDirectly = directClientCompositionEnabled_ &&
-            ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) && (layersNum > layerCompCapacity_));
-
-        for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
-            const LayerPtr &layer = iter->second;
-            if (doClientCompositionDirectly) {
-                layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-                continue;
-            }
-            ret = layer->SetHdiLayerInfo();
-            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-                HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
-                return GRAPHIC_DISPLAY_FAILURE;
-            }
-        }
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (layerIdMap_.empty()) {
+        HLOGI("layer map is empty, drop this frame");
+        return GRAPHIC_DISPLAY_PARAM_ERR;
     }
 
-    if (doClientCompositionDirectly) {
-        ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
-        HLOGD("Direct client composition is enabled.");
-        return GRAPHIC_DISPLAY_SUCCESS;
+    for (const auto &[layerId, layer] : layerIdMap_) {
+        ret = layer->SetHdiLayerInfo();
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+            return GRAPHIC_DISPLAY_FAILURE;
+        }
     }
 
     return ret;
@@ -553,7 +510,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = sampler_->AddPresentFenceTime(timestamp);
+        startSample = enableVsyncSample_.load() && sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
         bool presentTimeUpdated = false;
         LayerPtr uniRenderLayer = nullptr;
@@ -583,6 +540,18 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         historicalPresentfences_.push_back(fbFence);
     }
     return ret;
+}
+
+void HdiOutput::SetVsyncSamplerEnabled(bool enabled)
+{
+    RS_TRACE_NAME_FMT("HdiOutput::SetVsyncSamplerEnabled, enableVsyncSample_:%d", enabled);
+    HLOGI("Change enableVsyncSample_, value is %{public}d", enabled);
+    enableVsyncSample_.store(enabled);
+}
+
+bool HdiOutput::GetVsyncSamplerEnabled()
+{
+    return enableVsyncSample_.load();
 }
 
 int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
@@ -714,6 +683,10 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
 int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
     ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
+    if (!enableVsyncSample_.load()) {
+        ScopedBytrace func("disabled vsyncSample");
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }

@@ -96,14 +96,20 @@ bool RSCanvasNode::IsRecording() const
     return recordingCanvas_ != nullptr;
 }
 
-void RSCanvasNode::CreateTextureExportRenderNodeInRT()
+void RSCanvasNode::CreateRenderNodeForTextureExportSwitch()
 {
     CheckThread();
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), true);
     auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, false);
+    if (transactionProxy == nullptr) {
+        return;
     }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), isTextureExportNode_);
+    if (IsRenderServiceNode()) {
+        hasCreateRenderNodeInRS_ = true;
+    } else {
+        hasCreateRenderNodeInRT_ = true;
+    }
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
 }
 
 void RSCanvasNode::FinishRecording()

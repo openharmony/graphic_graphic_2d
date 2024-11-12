@@ -71,6 +71,10 @@ HWTEST_F(RSEventDetectorTest, settings, TestSize.Level1)
     rsTimeOutDetector.SetLoopFinishTag(1, 1, bundle, ability);
     rsTimeOutDetector.startTimeStampMs_ += rsTimeOutDetector.startTimeStampMs_;
     rsTimeOutDetector.SetLoopFinishTag(1, 1, bundle, ability);
+    ASSERT_EQ(rsTimeOutDetector.focusAppPid_, 1);
+    ASSERT_EQ(rsTimeOutDetector.focusAppUid_, 1);
+    ASSERT_EQ(rsTimeOutDetector.focusAppBundleName_, bundle);
+    ASSERT_EQ(rsTimeOutDetector.focusAppAbilityName_, ability);
 }
 
 /**

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <chrono>
+#include <mutex>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -35,11 +36,13 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
+std::mutex g_mutex;
 int g_counter = 0;
 std::vector<int> datas;
 constexpr int32_t SAMPLER_NUMBER = 6;
 static void OnVSync(int64_t time, void *data)
 {
+    std::unique_lock<std::mutex> locker(g_mutex);
     if (!data) {
         return;
     }
@@ -137,10 +140,14 @@ void VSyncMultiCallbackTest::Process2()
         .callback_ = OnVSync,
     };
     for (int i = 0; i < 10; i++) { // test 10 times
+        std::unique_lock<std::mutex> locker(g_mutex);
         int *userData = new int(g_counter++);
         fcb.userData_ = userData;
-        receiver->RequestNextVSyncWithMultiCallback(fcb);
-        datas.push_back(*userData);
+        auto ret = receiver->RequestNextVSyncWithMultiCallback(fcb);
+        if (ret == VSYNC_ERROR_OK) {
+            datas.push_back(*userData);
+        }
+        usleep(1); // 1us
     }
     sleep(1);
     EXPECT_EQ(datas.size(), 0);

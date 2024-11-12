@@ -46,13 +46,30 @@ void RSUifirstManagerTest::SetUpTestCase()
     if (mainThread_) {
         uifirstManager_.mainThread_ = mainThread_;
     }
-}
-
-void RSUifirstManagerTest::TearDownTestCase() {}
-void RSUifirstManagerTest::SetUp()
-{
     RSTestUtil::InitRenderNodeGC();
 }
+
+void RSUifirstManagerTest::TearDownTestCase()
+{
+    auto mainThread = RSMainThread::Instance();
+    if (!mainThread || !mainThread->context_) {
+        return;
+    }
+    auto& renderNodeMap = mainThread->context_->GetMutableNodeMap();
+    renderNodeMap.renderNodeMap_.clear();
+    renderNodeMap.surfaceNodeMap_.clear();
+    renderNodeMap.residentSurfaceNodeMap_.clear();
+    renderNodeMap.displayNodeMap_.clear();
+    renderNodeMap.canvasDrawingNodeMap_.clear();
+    renderNodeMap.uiExtensionSurfaceNodes_.clear();
+
+    uifirstManager_.subthreadProcessDoneNode_.clear();
+    uifirstManager_.markForceUpdateByUifirst_.clear();
+    uifirstManager_.pendingPostNodes_.clear();
+    uifirstManager_.pendingPostCardNodes_.clear();
+    uifirstManager_.pendingResetNodes_.clear();
+}
+void RSUifirstManagerTest::SetUp() {}
 
 void RSUifirstManagerTest::TearDown() {}
 
@@ -621,37 +638,6 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes, TestSize.Level1)
 }
 
 /**
- @tc.name: ReleaseSkipSyncBuffer001
- @tc.desc: Test ReleaseSkipSyncBuffer
- @tc.type: FUNC
- @tc.require: issueIAMKU9
- */
-HWTEST_F(RSUifirstManagerTest, ReleaseSkipSyncBuffer001, TestSize.Level1)
-{
-    std::function<void()> task = {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    uifirstManager_.ReleaseSkipSyncBuffer(tasks);
-    ASSERT_NE(tasks.empty(), true);
-}
-
-/**
- @tc.name: CollectSkipSyncBuffer001
- @tc.desc: Test CollectSkipSyncBuffer
- @tc.type: FUNC
- @tc.require: issueIAMKU9
- */
-HWTEST_F(RSUifirstManagerTest, CollectSkipSyncBuffer001, TestSize.Level1)
-{
-    NodeId id = 1;
-    std::function<void()> task = {};
-    std::vector<std::function<void()>> tasks;
-    tasks.push_back(task);
-    uifirstManager_.CollectSkipSyncBuffer(tasks, id);
-    ASSERT_NE(tasks.empty(), true);
-}
-
-/**
  * @tc.name: ResetUifirstNode
  * @tc.desc: Test ResetUifirstNode
  * @tc.type: FUNC
@@ -679,8 +665,10 @@ HWTEST_F(RSUifirstManagerTest, NotifyUIStartingWindow, TestSize.Level1)
     EXPECT_TRUE(parentNode);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     uifirstManager_.NotifyUIStartingWindow(id, false);
-    
-    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
 
     auto childNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
     EXPECT_TRUE(childNode);
@@ -1435,5 +1423,36 @@ HWTEST_F(RSUifirstManagerTest, GetUiFirstMode, TestSize.Level1)
         type = uifirstManager_.GetUiFirstMode();
         EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
     }
+}
+
+/**
+ * @tc.name: UpdateUifirstNodes002
+ * @tc.desc: Test UpdateUifirstNodes
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        return;
+    }
+
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    surfaceNode->isChildSupportUifirst_ = true;
+    surfaceNode->firstLevelNodeId_ = surfaceNode->GetId();
+    surfaceNode->forceUIFirst_ = true;
+    surfaceNode->hasSharedTransitionNode_ = false;
+    surfaceNode->hasFilter_ = false;
+    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    uifirstManager_.rotationChanged_ = false;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
+    auto param = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
+    EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE);
+
+    surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
+    uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
+    EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW);
 }
 }

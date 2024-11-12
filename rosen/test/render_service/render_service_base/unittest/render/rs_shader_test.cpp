@@ -66,7 +66,7 @@ HWTEST_F(RSShaderTest, SetSkShaderTest, TestSize.Level1)
     std::shared_ptr<RSShader> shaderPtr = RSShader::CreateRSShader();
     std::shared_ptr<Drawing::ShaderEffect> drawingShader;
     shaderPtr->SetDrawingShader(drawingShader);
-    ASSERT_TRUE(shaderPtr != nullptr);
+    ASSERT_EQ(shaderPtr->drShader_, drawingShader);
 }
 
 /**

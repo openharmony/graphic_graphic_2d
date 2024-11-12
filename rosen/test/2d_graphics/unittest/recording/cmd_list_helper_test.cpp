@@ -246,8 +246,8 @@ HWTEST_F(CmdListHelperTest, ImageBaseObj, TestSize.Level1)
         ImageBaseObj() = default;
         ~ImageBaseObj() override {};
         
-        void Playback(Canvas& canvas, const Rect& rect,
-            const SamplingOptions& sampling) override {};
+        void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
+            SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override {};
     };
     std::shared_ptr<ExtendImageBaseObj> object = std::make_shared<ImageBaseObj>();
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
@@ -469,16 +469,16 @@ HWTEST_F(CmdListHelperTest, ProfilerPopAllocators, TestSize.Level1)
 
 #ifdef ROSEN_OHOS
 /**
- * @tc.name: AddSurfaceBufferToCmdList
- * @tc.desc: Test the AddSurfaceBufferToCmdList function.
+ * @tc.name: AddSurfaceBufferEntryToCmdList
+ * @tc.desc: Test the AddSurfaceBufferEntryToCmdList function.
  * @tc.type: FUNC
  * @tc.require: I7SO7X
  */
 HWTEST_F(CmdListHelperTest, AddSurfaceBufferToCmdList, TestSize.Level1)
 {
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    uint32_t handle = CmdListHelper::AddSurfaceBufferToCmdList(*cmdList, nullptr);
-    auto sptr = CmdListHelper::GetSurfaceBufferFromCmdList(*cmdList, handle);
+    uint32_t handle = CmdListHelper::AddSurfaceBufferEntryToCmdList(*cmdList, nullptr);
+    auto sptr = CmdListHelper::GetSurfaceBufferEntryFromCmdList(*cmdList, handle);
     EXPECT_EQ(sptr, nullptr);
 }
 
@@ -491,28 +491,28 @@ HWTEST_F(CmdListHelperTest, AddSurfaceBufferToCmdList, TestSize.Level1)
 HWTEST_F(CmdListHelperTest, SurfaceBuffer, TestSize.Level1)
 {
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    sptr<SurfaceBuffer> sptr = cmdList->GetSurfaceBuffer(TEST_INVALIED_ID);
-    EXPECT_EQ(sptr, nullptr);
+    std::shared_ptr<SurfaceBufferEntry> surfaceBufferEntry = cmdList->GetSurfaceBufferEntry(TEST_INVALIED_ID);
+    EXPECT_EQ(surfaceBufferEntry, nullptr);
 
-    uint32_t id = cmdList->AddSurfaceBuffer(nullptr);
-    sptr = cmdList->GetSurfaceBuffer(id);
-    EXPECT_EQ(sptr, nullptr);
+    uint32_t id = cmdList->AddSurfaceBufferEntry(nullptr);
+    surfaceBufferEntry = cmdList->GetSurfaceBufferEntry(id);
+    EXPECT_EQ(surfaceBufferEntry, nullptr);
 }
 
 /**
- * @tc.name: AllSurfaceBuffer
- * @tc.desc: Test the AllSurfaceBuffer function.
+ * @tc.name: AllSurfaceBufferEntry
+ * @tc.desc: Test the AllSurfaceBufferEntry function.
  * @tc.type: FUNC
  * @tc.require: I7SO7X
  */
 HWTEST_F(CmdListHelperTest, AllSurfaceBuffer, TestSize.Level1)
 {
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    std::vector<sptr<SurfaceBuffer>> objectList;
-    uint32_t id = cmdList->GetAllSurfaceBuffer(objectList);
+    std::vector<std::shared_ptr<SurfaceBufferEntry>> objectList;
+    uint32_t id = cmdList->GetAllSurfaceBufferEntry(objectList);
     
     auto cmdList1 = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
-    id = cmdList1->SetupSurfaceBuffer(objectList);
+    id = cmdList1->SetupSurfaceBufferEntry(objectList);
     EXPECT_EQ(id, 0);
 }
 #endif

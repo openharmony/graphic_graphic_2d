@@ -18,6 +18,9 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "display_type.h"
 #include "draw/canvas.h"
 #include "draw/color.h"
@@ -58,7 +61,7 @@ shared_ptr<RSCanvasNode> canvasNode2;
 shared_ptr<RSSurfaceNode> surfaceNode1;
 shared_ptr<RSSurfaceNode> surfaceNode2;
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* rc_ = nullptr;
 #endif
 
@@ -111,8 +114,8 @@ bool WriteToPng(const string &fileName, const WriteToPngParam &param)
 
 void RenderContextInit()
 {
-#ifdef ACE_ENABLE_GPU
-    cout << "ACE_ENABLE_GPU is true" << endl;
+#ifdef RS_ENABLE_GPU
+    cout << "RS_ENABLE_GPU is true" << endl;
     cout << "Init RenderContext start" << endl;
     rc_ = RenderContextFactory::GetInstance().CreateEngine();
     if (rc_) {
@@ -137,7 +140,7 @@ void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
         cout << "surface is nullptr" << endl;
         return;
     }
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     if (rc_) {
         rsSurface->SetRenderContext(rc_);
     } else {
@@ -154,7 +157,7 @@ void DrawSurfaceNode(shared_ptr<RSSurfaceNode> surfaceNode)
         cout << "canvas is nullptr" << endl;
         return;
     }
-    canvas->Сlear(SK_ColorWHITE);
+    canvas->Clear(SK_ColorWHITE);
 
     Brush brush;
     brush.SetColor(SK_ColorGREEN);
@@ -230,8 +233,30 @@ public:
     }
 };
 
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "rs_uni_render_pixelmap_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 int main()
 {
+    InitNativeTokenInfo();
+
     cout << "rs local surface capture demo" << endl;
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
@@ -241,6 +266,7 @@ int main()
     auto window = Window::Create(demoName, option);
 
     window->Show();
+    sleep(2);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         cout << "rs local surface demo create window failed: " << rect.width_ << " " << rect.height_ << endl;

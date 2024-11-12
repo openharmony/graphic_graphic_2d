@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_DRAW_CMD_H
 
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GL))
 #include <GLES/gl.h>
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
@@ -30,6 +30,7 @@
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "surface_buffer.h"
+#include "sync_fence.h"
 #include "external_window.h"
 #endif
 #ifdef RS_ENABLE_VK
@@ -42,9 +43,9 @@ namespace Rosen {
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {})
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
         : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
-          pid_(pid), uid_(uid)
+          pid_(pid), uid_(uid), acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     int offSetX_ = 0;
@@ -53,6 +54,7 @@ struct DrawingSurfaceBufferInfo {
     int height_ = 0;
     pid_t pid_ = {};
     uint64_t uid_ = {};
+    sptr<SyncFence> acquireFence_ = nullptr;
 };
 #endif
 
@@ -73,9 +75,12 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+    bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+        SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
     void SetPaint(Drawing::Paint paint) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
@@ -103,11 +108,12 @@ public:
     RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst);
     ~RSExtendImageBaseObj() override = default;
-    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-        const Drawing::SamplingOptions& sampling) override;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -174,6 +180,12 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
     virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -183,17 +195,18 @@ class DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
+            SrcRectConstraint constraint, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::PIXELMAP_RECT_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
+              constraint(constraint), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle objectHandle;
         SamplingOptions sampling;
+        SrcRectConstraint constraint;
         PaintHandle paintHandle;
     };
     DrawPixelMapRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src, const Rect& dst,
-        const SamplingOptions& sampling, const Paint& paint);
+        const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint);
     ~DrawPixelMapRectOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
@@ -201,8 +214,15 @@ public:
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
     virtual void DumpItems(std::string& out) const override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
+    SrcRectConstraint constraint_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;
 };
 
@@ -232,7 +252,7 @@ public:
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
             pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid),
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
             paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;

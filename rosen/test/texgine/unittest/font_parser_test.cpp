@@ -127,6 +127,8 @@ HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
 {
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFile(), 0);
+    auto info = fontConfigJson.GetFontConfigJsonInfo();
+    EXPECT_EQ(info->fontDirSet.size(), 1);
     fontConfigJson.Dump();
 }
 
@@ -139,6 +141,13 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
 {
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFontFileMap(), 0);
+    auto map = fontConfigJson.GetFontFileMap();
+    EXPECT_EQ(map->size(), 261);
+    for (auto& it: *map) {
+        ASSERT_GT(it.second.size(), 3);
+        std::string end = it.second.substr(it.second.size() - 3, 3);
+        EXPECT_TRUE(end == "ttf" || end == "oft" || end == "ttc");
+    }
     fontConfigJson.Dump();
 }
 
@@ -151,7 +160,15 @@ HWTEST_F(FontParserTest, CmapTableParserTest1, TestSize.Level1)
 {
     MockCmapTableParser mockCmapTableParser;
     CmapTableParser cmapTableParser_default;
-    CmapTableParser cmapTableParser("test data", 9);
+    char* data = new char[sizeof(CmapTables) + sizeof(EncodingRecord)];
+    CmapTables* p = reinterpret_cast<CmapTables*>(data);
+    p->version = { 0 };
+    p->numTables = { 1 };
+    p->encodingRecords[0].platformID = { 0 };
+    p->encodingRecords[0].encodingID = { 0 };
+    p->encodingRecords[0].subtableOffset = { 0 };
+    CmapTableParser cmapTableParser(data, sizeof(CmapTables) + sizeof(EncodingRecord));
+    cmapTableParser.Dump();
     struct NameRecord nameRecord;
     struct NameTable nameTable;
     nameRecord.encodingId = nameTable.count;
@@ -183,30 +200,18 @@ HWTEST_F(FontParserTest, NameTableParserTest1, TestSize.Level1)
 HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
 {
     auto typeface = Drawing::Typeface::MakeDefault();
-    if (typeface == nullptr) {
-        LOGSO_FUNC_LINE(ERROR) << "typeface is nullptr";
-        return;
-    }
+    ASSERT_NE(typeface, nullptr);
     auto tag = HB_TAG('n', 'a', 'm', 'e');
     auto size = typeface->GetTableSize(tag);
-    if (size <= 0) {
-        LOGSO_FUNC_LINE(ERROR) << "haven't name";
-        return ;
-    }
+    ASSERT_GT(size, 0);
     std::unique_ptr<char[]> tableData = nullptr;
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
-    if (size != retTableData) {
-        LOGSO_FUNC_LINE(ERROR) << "get table data failed size:" << size << ",ret:" << retTableData;
-        return ;
-    }
+    ASSERT_EQ(size, retTableData);
     hb_blob_t* hblob = nullptr;
     hblob = hb_blob_create(
             reinterpret_cast<const char *>(tableData.get()), size, HB_MEMORY_MODE_WRITABLE, tableData.get(), nullptr);
-    if (hblob == nullptr) {
-        LOGSO_FUNC_LINE(ERROR) << "hblob is nullptr";
-        return ;
-    }
+    ASSERT_NE(hblob, nullptr);
     const char* data_ = nullptr;
     unsigned int length_ = 0;
     data_ = hb_blob_get_data(hblob, nullptr);
@@ -214,6 +219,7 @@ HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
     auto parseName = std::make_shared<NameTableParser>(data_, length_);
     auto nameTable = parseName->Parse(data_, length_);
     parseName->Dump();
+    hb_blob_destroy(hblob);
     EXPECT_NE(nameTable, nullptr);
 }
 
@@ -224,10 +230,17 @@ HWTEST_F(FontParserTest, NameTableParserTest2, TestSize.Level1)
  */
 HWTEST_F(FontParserTest, PostTableParserTest1, TestSize.Level1)
 {
-    PostTableParser postTableParser("test data", 9);
-    struct PostTable postTable;
-    postTable.underlinePosition = postTable.underlineThickness;
-    EXPECT_EQ(PostTableParser::Parse(nullptr, 0), nullptr);
+    PostTable postTable;
+    PostTableParser postTableParser(reinterpret_cast<char*>(&postTable), sizeof(postTable));
+    const PostTable* res = postTableParser.Parse(reinterpret_cast<char*>(&postTable), sizeof(postTable));
+    EXPECT_EQ(res->version.Get(), postTable.version.Get());
+    EXPECT_EQ(res->italicAngle.Get(), postTable.italicAngle.Get());
+    EXPECT_EQ(res->underlinePosition.Get(), postTable.underlinePosition.Get());
+    EXPECT_EQ(res->underlineThickness.Get(), postTable.underlineThickness.Get());
+    EXPECT_EQ(res->isFixedPitch.Get(), postTable.isFixedPitch.Get());
+    EXPECT_EQ(res->minMemType42.Get(), postTable.minMemType42.Get());
+    EXPECT_EQ(res->maxMemType42.Get(), postTable.maxMemType42.Get());
+    EXPECT_EQ(res->minMemType1.Get(), postTable.minMemType1.Get());
     postTableParser.Dump();
 }
 
@@ -238,19 +251,21 @@ HWTEST_F(FontParserTest, PostTableParserTest1, TestSize.Level1)
  */
 HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
 {
-    char test[4] = {'a', 'b', 'c', 'd'};
+    char test[] = {'a', 'b', 'c', 'd', 0};
     struct OpenTypeBasicType::Tag tag;
-    tag.Get();
+    EXPECT_EQ(tag.Get(), "\0\0\0\0");
     struct OpenTypeBasicType::Int16 int16;
-    int16.Get();
+    EXPECT_EQ(int16.Get(), 0);
     struct OpenTypeBasicType::Uint16 uint16;
+    EXPECT_EQ(uint16.Get(), 0);
     struct OpenTypeBasicType::Int32 int32;
-    int32.Get();
+    EXPECT_EQ(int32.Get(), 0);
     struct OpenTypeBasicType::Uint32 uint32;
+    EXPECT_EQ(uint32.Get(), 0);
     struct OpenTypeBasicType::Fixed fixed;
+    EXPECT_EQ(fixed.Get(), 0);
     std::copy(std::begin(test), std::end(test), std::begin(tag.tags));
-    int16.data = (int16_t)uint16.data;
-    fixed.data.data = int32.data = (int32_t)uint32.data;
+    EXPECT_EQ(tag.Get(), test);
 }
 
 /**

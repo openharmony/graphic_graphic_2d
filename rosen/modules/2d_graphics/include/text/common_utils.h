@@ -29,11 +29,10 @@ const uint16_t LOW_BYTE_MASK = 0x00FF;
 const uint16_t HIGH_BYTE_MASK = 0xFF00;
 const int BYTE_SHIFT = 8;
 
-[[maybe_unused]] static bool IsUtf8(const char* text)
+[[maybe_unused]] static bool IsUtf8(const char* text, uint32_t len)
 {
-    int len = strlen(text);
-    int n = 0;
-    for (int i = 0; i < len; i++) {
+    uint32_t n = 0;
+    for (uint32_t i = 0; i < len; i++) {
         uint32_t c = text[i];
         if (c <= 0x7F) { // 0x00 and 0x7F is the range of utf-8
             n = 0;
@@ -48,7 +47,7 @@ const int BYTE_SHIFT = 8;
         } else {
             return false;
         }
-        for (int j = 0; j < n && i < len; j++) {
+        for (uint32_t j = 0; j < n && i < len; j++) {
             // 0x80 and 0xC0 is the range of utf-8
             i++;
             if ((i == len) || ((text[i] & 0xC0) != 0x80)) {

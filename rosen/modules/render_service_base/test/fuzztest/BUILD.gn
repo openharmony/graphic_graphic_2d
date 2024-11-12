@@ -14,5 +14,12 @@
 group("fuzztest") {
   testonly = true
 
-  deps = [ "rsanimationbase_fuzzer:fuzztest" ]
+  deps = [
+    "rsanimationbase_fuzzer:fuzztest",
+    "rsanimationcommand_fuzzer:fuzztest",
+    "rsanimationtraceutils_fuzzer:fuzztest",
+    "rsnodeshowingcommand_fuzzer:fuzztest",
+    "rsrenderinteractiveimplictanimator_fuzzer:fuzztest",
+    "rsspringmodelbase_fuzzer:fuzztest",
+  ]
 }

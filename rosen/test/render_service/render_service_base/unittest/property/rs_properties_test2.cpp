@@ -308,29 +308,6 @@ HWTEST_F(PropertiesTest, SetForegroundColorTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBorderColorIsTransparentTest
- * @tc.desc: test results of GetBorderColorIsTransparent
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, GetBorderColorIsTransparentTest, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.border_ = std::make_shared<RSBorder>();
-    bool res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, false);
-
-    Color color(255, 255, 255, 255);
-    properties.border_->colors_.push_back(color);
-    res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, true);
-
-    properties.border_ = nullptr;
-    res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, true);
-}
-
-/**
  * @tc.name: SetBorderColorTest
  * @tc.desc: test results of SetBorderColor
  * @tc.type: FUNC
@@ -959,6 +936,32 @@ HWTEST_F(PropertiesTest, IsDistortionKValidTest, TestSize.Level1)
 
     properties.SetDistortionK(0.7f);
     ASSERT_TRUE(properties.IsDistortionKValid());
+}
+
+
+/**
+ * @tc.name: GetDistortionDirtyTest
+ * @tc.desc: test results of GetDistortionDirty
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(PropertiesTest, GetDistortionDirtyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // if distortionK_ has no value
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ > 1
+    properties.SetDistortionK(1.7f);
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ < 0
+    properties.SetDistortionK(-0.1f);
+    ASSERT_FALSE(properties.GetDistortionDirty());
+
+    // if distortionK_ > 0 and < 1
+    properties.SetDistortionK(0.7f);
+    ASSERT_TRUE(properties.GetDistortionDirty());
 }
 } // namespace Rosen
 } // namespace OHOS

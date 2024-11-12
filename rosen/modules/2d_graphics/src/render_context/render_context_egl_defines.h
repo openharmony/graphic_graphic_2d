@@ -31,11 +31,11 @@ typedef long long EGLint;
 #if defined(__cplusplus)
 #define EGL_CAST(type, value) (static_cast<type>(value))
 #else
-#define EGL_CAST(type, value) ((type) (value))
+#define EGL_CAST(type, value) ((type)(value))
 #endif
-#define EGL_NO_CONTEXT                    EGL_CAST(EGLContext,0)
-#define EGL_NO_DISPLAY                    EGL_CAST(EGLDisplay,0)
-#define EGL_NO_SURFACE                    EGL_CAST(EGLSurface,0)
-#define EGL_UNKNOWN                       EGL_CAST(EGLint,-1)
+#define EGL_NO_CONTEXT EGL_CAST(EGLContext, 0)
+#define EGL_NO_DISPLAY EGL_CAST(EGLDisplay, 0)
+#define EGL_NO_SURFACE EGL_CAST(EGLSurface, 0)
+#define EGL_UNKNOWN EGL_CAST(EGLint, -1)
 
 #endif // RENDER_SERVICE_BASE_SRC_PLATFORM_IOS_RENDER_CONTEXT_IOS_H

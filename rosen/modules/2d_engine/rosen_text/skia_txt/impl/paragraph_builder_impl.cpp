@@ -96,8 +96,8 @@ skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
 
 const char* DefaultLocale()
 {
-    static const char* localeZh = "zh-Hans";
-    return localeZh;
+    static const char* LOCALE_ZH = "zh-Hans";
+    return LOCALE_ZH;
 }
 } // anonymous namespace
 
@@ -178,6 +178,24 @@ skt::TextTabs ConvertToSkTextTab(const TextTab& tab)
     };
 }
 
+void ParagraphBuilderImpl::TextStyleToSKStrutStyle(skt::StrutStyle& strutStyle, const ParagraphStyle& txt)
+{
+    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
+    strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
+    strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
+    strutStyle.setHeightOverride(txt.strutHeightOverride);
+
+    std::vector<SkString> strutFonts;
+    std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
+        [](const std::string& f) { return SkString(f.c_str()); });
+    strutStyle.setFontFamilies(strutFonts);
+    strutStyle.setLeading(txt.strutLeading);
+    strutStyle.setForceStrutHeight(txt.forceStrutHeight);
+    strutStyle.setStrutEnabled(txt.strutEnabled);
+    strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
+    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
+}
+
 skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyle& txt)
 {
     skt::ParagraphStyle skStyle;
@@ -200,20 +218,7 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     skStyle.setTextStyle(textStyle);
     skStyle.setTextOverflower(txt.textOverflower);
     skt::StrutStyle strutStyle;
-    strutStyle.setFontStyle(MakeFontStyle(txt.strutFontWeight, txt.strutFontWidth, txt.strutFontStyle));
-    strutStyle.setFontSize(SkDoubleToScalar(txt.strutFontSize));
-    strutStyle.setHeight(SkDoubleToScalar(txt.strutHeight));
-    strutStyle.setHeightOverride(txt.strutHeightOverride);
-
-    std::vector<SkString> strutFonts;
-    std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
-        [](const std::string& f) { return SkString(f.c_str()); });
-    strutStyle.setFontFamilies(strutFonts);
-    strutStyle.setLeading(txt.strutLeading);
-    strutStyle.setForceStrutHeight(txt.forceStrutHeight);
-    strutStyle.setStrutEnabled(txt.strutEnabled);
-    strutStyle.setWordBreakType(static_cast<skt::WordBreakType>(txt.wordBreakType));
-    strutStyle.setLineBreakStrategy(static_cast<skt::LineBreakStrategy>(txt.breakStrategy));
+    TextStyleToSKStrutStyle(strutStyle, txt);
     skStyle.setStrutStyle(strutStyle);
 
     skStyle.setTextAlign(static_cast<skt::TextAlign>(txt.textAlign));

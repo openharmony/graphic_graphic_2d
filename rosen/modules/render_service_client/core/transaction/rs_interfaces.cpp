@@ -15,19 +15,18 @@
 
 #include <cstdint>
 #include <functional>
-#ifdef ROSEN_OHOS
-#include "parameters.h"
-#endif
 #include "rs_interfaces.h"
 #include "rs_trace.h"
 
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_divided_ui_capture.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_typeface_cache.h"
+#include "pipeline/rs_render_node.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -101,6 +100,11 @@ int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
     return renderServiceClient_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
+int32_t RSInterfaces::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    return renderServiceClient_->SetMirrorScreenVisibleRect(id, mainScreenRect);
+}
+
 int32_t RSInterfaces::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return renderServiceClient_->SetCastScreenEnableSkipWindow(id, enable);
@@ -120,8 +124,7 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
 bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
 #ifdef ROSEN_OHOS
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return false;
     }
     if (renderServiceClient_ == nullptr) {
@@ -186,17 +189,23 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
-        ROSEN_LOGW("node is nullptr");
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+}
+
+bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    return renderServiceClient_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
     if (!node) {
-        ROSEN_LOGW("node is nullptr");
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
@@ -773,11 +782,19 @@ bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
         return false;
     }
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
+        new (std::nothrow) RSDefaultSurfaceBufferCallback (
+            [callback](uint64_t uid, const std::vector<uint32_t>& bufferIds) {
+                callback->OnFinish(uid, bufferIds);
+            }
+        )
+    );
     return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
 bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 

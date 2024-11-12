@@ -176,11 +176,11 @@ HWTEST_F(RSRenderThreadTest, OnVsync001, TestSize.Level1)
     uint64_t frameCount = 1; // for test
     RSRenderThread::Instance().activeWindowCnt_ = 1;
     RSRenderThread::Instance().OnVsync(timestamp, frameCount);
-    EXPECT_TRUE(RSRenderThread::Instance().activeWindowCnt_);
+    EXPECT_EQ(RSRenderThread::Instance().timestamp_, timestamp);
 
     RSRenderThread::Instance().activeWindowCnt_ = 0;
     RSRenderThread::Instance().OnVsync(timestamp, frameCount);
-    EXPECT_TRUE(!RSRenderThread::Instance().activeWindowCnt_);
+    EXPECT_EQ(RSRenderThread::Instance().timestamp_, timestamp);
 }
 
 /**
@@ -224,7 +224,6 @@ HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
     RSRenderThread::Instance().context_ = std::make_shared<RSContext>();
     RSRenderThread::Instance().context_->animatingNodeList_.clear();
     RSRenderThread::Instance().Animate(timestamp);
-    EXPECT_TRUE(RSRenderThread::Instance().context_ != nullptr);
 
     NodeId id = 1; // for test
     NodeId tid = 1; // for test
@@ -233,14 +232,13 @@ HWTEST_F(RSRenderThreadTest, Animate001, TestSize.Level1)
     RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
     RsFrameReport::GetInstance().frameSchedSoLoaded_ = false;
     RSRenderThread::Instance().Animate(timestamp);
-    EXPECT_TRUE(render != nullptr);
 
     RSRenderThread::Instance().context_->animatingNodeList_.clear();
     render = nullptr;
     RSRenderThread::Instance().context_->animatingNodeList_[id] = render;
     RSRenderThread::Instance().context_->animatingNodeList_[tid] = render;
     RSRenderThread::Instance().Animate(timestamp);
-    EXPECT_TRUE(render == nullptr);
+    EXPECT_EQ(RSRenderThread::Instance().lastAnimateTimestamp_, timestamp);
 }
 
 /**

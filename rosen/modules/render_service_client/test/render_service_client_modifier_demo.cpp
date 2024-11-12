@@ -19,6 +19,9 @@
 
 #include "wm/window.h"
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "render/rs_border.h"
@@ -287,8 +290,30 @@ private:
     std::shared_ptr<RSAnimatableProperty<Color>> color_;
 };
 
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "rs_uni_render_pixelmap_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+}
+
 int main()
 {
+    InitNativeTokenInfo();
+
     int cnt = 0;
 
     // Init demo env
@@ -299,6 +324,7 @@ int main()
     option->SetWindowRect({ 0, 0, 720, 1280 });
     auto window = Window::Create("app_demo", option);
     window->Show();
+    sleep(2);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         std::cout << "rs app demo create window failed: " << rect.width_ << " " << rect.height_ << std::endl;

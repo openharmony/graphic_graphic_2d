@@ -131,7 +131,6 @@ HWTEST_F(RSCustomInterpolatorTest, ConvertTest, TestSize.Level1)
     int duration = 0;
     RSCustomInterpolator rsCustomInterpolator(func, duration);
     rsCustomInterpolator.Convert(duration);
-    EXPECT_EQ(duration, 0);
 
     auto f = [](float a) { return a; };
     func = f;

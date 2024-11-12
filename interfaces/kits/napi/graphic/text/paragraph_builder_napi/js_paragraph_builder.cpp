@@ -12,17 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "fontcollection_napi/js_fontcollection.h"
+
 #include "js_paragraph_builder.h"
+#include "fontcollection_napi/js_fontcollection.h"
 #include "line_typeset_napi/js_line_typeset.h"
 #include "napi_common.h"
 #include "paragraph_napi/js_paragraph.h"
+#include "utils/string_util.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-std::unique_ptr<Typography> drawingTypography;
-thread_local napi_ref JsParagraphBuilder::constructor_ = nullptr;
+namespace {
 const std::string CLASS_NAME = "ParagraphBuilder";
+}
+
+thread_local napi_ref JsParagraphBuilder::constructor_ = nullptr;
+
 napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = ARGC_TWO;
@@ -168,6 +173,10 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
     }
     std::string text = "";
     if (ConvertFromJsValue(env, argv[0], text)) {
+        if (!IsUtf8(text.c_str(), text.size())) {
+            TEXT_LOGE("Invalid utf-8 text");
+            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        }
         typographyCreate_->AppendText(Str8ToStr16(text));
     }
     return NapiGetUndefined(env);

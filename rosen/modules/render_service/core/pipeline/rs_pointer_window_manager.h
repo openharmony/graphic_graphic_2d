@@ -16,8 +16,10 @@
 #ifndef RENDER_SERVICE_CORE_PIPELINE_RS_POINTER_WINDOW_MANAGER_H
 #define RENDER_SERVICE_CORE_PIPELINE_RS_POINTER_WINDOW_MANAGER_H
 
+#include "params/rs_render_thread_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_processor_factory.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,6 +27,8 @@ class RSPointerWindowManager {
 public:
     RSPointerWindowManager() {}
     ~RSPointerWindowManager() = default;
+
+    static RSPointerWindowManager& Instance();
 
     void UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
         std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
@@ -39,10 +43,38 @@ public:
         isNeedForceCommitByPointer_ = isNeedForceCommitByPointer;
     }
 
+    void CollectInfoForHardCursor(NodeId id,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable)
+    {
+        hardCursorDrawables_.id = id;
+        hardCursorDrawables_.drawablePtr = cursorDrawable;
+    }
+
+    const HardCursorInfo& GetHardCursorDrawables() const
+    {
+        return hardCursorDrawables_;
+    }
+
+    void ResetHardCursorDrawables()
+    {
+        hardCursorDrawables_.id = INVALID_NODEID;
+        hardCursorDrawables_.drawablePtr = nullptr;
+        hardCursorNodes_ = nullptr;
+    }
+
+    void SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode);
+    const std::shared_ptr<RSSurfaceRenderNode>& GetHardCursorNode() const;
+
+    void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
+
+    bool CheckHardCursorSupport(std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
+    bool HasMirrorDisplay() const;
+
 private:
     bool isNeedForceCommitByPointer_{ false };
+    HardCursorInfo hardCursorDrawables_;
+    std::shared_ptr<RSSurfaceRenderNode> hardCursorNodes_;
 };
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // RENDER_SERVICE_CORE_PIPELINE_RS_POINTER_WINDOW_MANAGER_H

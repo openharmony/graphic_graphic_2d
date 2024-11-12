@@ -24,7 +24,7 @@
 #include "impl_interface/color_space_impl.h"
 #include "impl_interface/core_canvas_impl.h"
 #include "impl_interface/data_impl.h"
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "impl_interface/gpu_context_impl.h"
 #endif
 #include "impl_interface/font_impl.h"
@@ -47,6 +47,7 @@
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
+#include "impl_interface/trace_memory_dump_impl.h"
 #include "impl_interface/memory_stream_impl.h"
 
 namespace OHOS {
@@ -59,7 +60,7 @@ public:
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(void* rawCanvas);
     static std::unique_ptr<CoreCanvasImpl> CreateCoreCanvasImpl(int32_t width, int32_t height);
     static std::unique_ptr<DataImpl> CreateDataImpl();
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     static std::unique_ptr<GPUContextImpl> CreateGPUContextImpl();
 #endif
     static std::unique_ptr<TraceMemoryDumpImpl> CreateTraceMemoryDumpImpl(const char* categoryKey, bool itemizeType);

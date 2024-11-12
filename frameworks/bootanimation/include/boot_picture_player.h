@@ -33,6 +33,7 @@ public:
 private:
     void OnVsync();
     bool Draw();
+    bool Stop();
     bool OnDraw(Rosen::Drawing::CoreCanvas* canvas, int32_t curNo);
     void InitPicCoordinates(Rosen::ScreenId screenId);
     bool ReadPicZipFile(ImageStructVec& imgVec, int32_t& freq);

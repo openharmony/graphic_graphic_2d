@@ -172,7 +172,7 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
     // If rt buffer switches to be available
     // set its SurfaceRenderNode's render dirty
     if (!node.IsNotifyRTBufferAvailablePre() && node.IsNotifyRTBufferAvailable()) {
-        ROSEN_LOGD("Node id %{public}" PRIu64 "NotifyRTBufferAvailable and set node dirty", node.GetId());
+        ROSEN_LOGD("NotifyRTBufferAvailable and set it dirty");
         node.SetDirty();
     }
     auto rect = nodeParent->GetRenderProperties().GetBoundsRect();
@@ -523,6 +523,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
             SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
+        childSurfaceNodeIds_.clear();
     }
     RS_TRACE_END();
 
@@ -864,7 +865,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     childSurfaceNodeIds_.emplace_back(node.GetId());
 
     // 2. backup and reset environment variables before traversal children
-    std::vector<NodeId> siblingSurfaceNodeIds(std::move(childSurfaceNodeIds_));
+    auto siblingSurfaceNodeIds(std::move(childSurfaceNodeIds_));
     childSurfaceNodeIds_.clear();
     auto parentSurfaceNodeMatrix = parentSurfaceNodeMatrix_;
     parentSurfaceNodeMatrix_ = canvas_->GetTotalMatrix();
@@ -883,10 +884,12 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
             SendCommandFromRT(command, thisSurfaceNodeId, FollowType::FOLLOW_TO_SELF);
         }
         node.childSurfaceNodeIds_ = std::move(childSurfaceNodeIds_);
+        childSurfaceNodeIds_.clear();
     }
 
     // 5. restore environments variables before continue traversal siblings
     childSurfaceNodeIds_ = std::move(siblingSurfaceNodeIds);
+    siblingSurfaceNodeIds.clear();
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
 
     // 6.draw border

@@ -101,6 +101,16 @@ struct VoteInfo {
         return str.str();
     }
 
+    std::string ToSimpleString() const
+    {
+        std::stringstream str;
+        str << "VOTER:" << voterName << ";";
+        str << "FPS:" << max << ";";
+        str << "EXT:" << extInfo << ";";
+        str << "PID:" << pid;
+        return str.str();
+    }
+
     bool operator==(const VoteInfo& other) const
     {
         return this->min == other.min && this->max == other.max && this->voterName == other.voterName &&
@@ -126,7 +136,8 @@ public:
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
-    ScreenId GetCurScreenId() const { return curScreenId_; };
+    ScreenId GetCurScreenId() const { return curScreenId_.load(); };
+    ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); };
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -189,6 +200,7 @@ private:
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
+    void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
@@ -243,7 +255,8 @@ private:
     std::vector<std::pair<int64_t, VoteInfo>> frameRateVoteInfoVec_;
 
     int32_t curRefreshRateMode_ = HGM_REFRESHRATE_MODE_AUTO;
-    ScreenId curScreenId_ = 0;
+    std::atomic<ScreenId> curScreenId_ = 0;
+    std::atomic<ScreenId> lastCurScreenId_ = 0;
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
     int32_t idleFps_ = OLED_60_HZ;
@@ -265,6 +278,8 @@ private:
     uint32_t schedulePreferredFps_ = 60;
     int32_t schedulePreferredFpsChange_ = false;
     std::atomic<bool> isAdaptive_ = false;
+    // Does current game require Adaptive Sync
+    bool isGameSupportAS_ = false;
 
     uint64_t timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;

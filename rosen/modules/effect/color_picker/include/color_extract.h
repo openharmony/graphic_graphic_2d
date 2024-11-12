@@ -57,7 +57,7 @@ public:
     // Specified number of extracted theme colors, default value is 10;
     int specifiedFeatureColorNum_ = 10;
 
-    std::vector<uint32_t>  hist_;
+    std::vector<uint32_t> hist_;
     int distinctColorCount_ = 0;
     std::vector<uint32_t> colors_;
 
@@ -143,7 +143,7 @@ private:
             uint32_t maxRed = 0;
             uint32_t maxGreen = 0;
             uint32_t maxBlue = 0;
-            
+
             int count = 0;
 
             for (int i = lowerIndex_; i <= upperIndex_; i++) {

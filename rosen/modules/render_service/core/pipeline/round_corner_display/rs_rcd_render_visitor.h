@@ -57,7 +57,6 @@ private:
     std::mutex bufferMut_;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_ = nullptr;
     std::shared_ptr<RSProcessor> uniProcessor_ = nullptr;
-    bool isResourceChange_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

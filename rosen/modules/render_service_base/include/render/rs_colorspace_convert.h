@@ -61,6 +61,7 @@ public:
 
 private:
     RSColorSpaceConvert();
+    void CloseLibraryHandle();
     std::shared_ptr<VPEConvert> colorSpaceConverterDisplay_ = nullptr;
     VPEColorSpaceConvertDisplayCreate colorSpaceConvertDisplayCreate_ = nullptr;
     VPEColorSpaceConvertDisplayDestroy colorSpaceConvertDisplayDestroy_ = nullptr;

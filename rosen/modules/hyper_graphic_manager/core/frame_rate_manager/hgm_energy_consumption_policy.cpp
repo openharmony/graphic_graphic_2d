@@ -234,7 +234,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
         }
         lastAssuranceLog_ = lastAssuranceLog;
         RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
-        HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
+        HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
         return;
     }
 
@@ -245,7 +245,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
         }
         lastAssuranceLog_ = lastAssuranceLog;
         RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
-        HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
+        HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
         return;
     }
 
@@ -255,7 +255,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     }
     lastAssuranceLog_ = lastAssuranceLog;
     RS_TRACE_NAME_FMT("SetEnergyConsumptionRateRange rateType:%s", lastAssuranceLog_.c_str());
-    HGM_LOGI("change power policy is %{public}s", lastAssuranceLog.c_str());
+    HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
 }
 
 int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const std::string &componentName)

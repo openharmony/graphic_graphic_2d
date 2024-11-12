@@ -189,7 +189,7 @@ std::vector<std::string> EglSystemLayersManager::GetSystemLayersFromConfig(Json:
             return std::vector<std::string>{};
         }
 
-        return GetStringVectorFromJson(defaultArray);
+        return EglSystemLayersManager::GetStringVectorFromJson(defaultArray);
     }
 
     const Json::Value layersArray = appModeSection[processName];
@@ -198,7 +198,7 @@ std::vector<std::string> EglSystemLayersManager::GetSystemLayersFromConfig(Json:
         return std::vector<std::string>{};
     }
 
-    return GetStringVectorFromJson(layersArray);
+    return EglSystemLayersManager::GetStringVectorFromJson(layersArray);
 }
 
 std::vector<std::string> EglSystemLayersManager::GetSystemLayers()
@@ -232,7 +232,7 @@ std::vector<std::string> EglSystemLayersManager::GetSystemLayers()
 
     constexpr int pnameLen = 512;
     char pname[pnameLen + 1] = {0};
-    bool res = GetProcessName(getpid(), pname, pnameLen);
+    bool res = EglSystemLayersManager::GetProcessName(getpid(), pname, pnameLen);
     if (!res) {
         WLOGE("Failed to get process name");
         return std::vector<std::string>{};

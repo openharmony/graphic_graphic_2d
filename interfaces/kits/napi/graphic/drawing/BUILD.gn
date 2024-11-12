@@ -32,6 +32,7 @@ config("local_drawing_config") {
     "../../../../../rosen/modules/2d_graphics/include",
     "../../../../../rosen/modules/2d_graphics/src",
     "../../../../../rosen/modules/2d_graphics/src/drawing/engine_adapter",
+    "../../../../../rosen/modules/render_service_base/include",
   ]
 }
 
@@ -45,7 +46,10 @@ ohos_shared_library("drawing_napi") {
 
   deps = [ ":drawing_napi_impl" ]
 
-  external_deps = [ "napi:ace_napi" ]
+  external_deps = [
+    "napi:ace_napi",
+    "skia:skia_canvaskit",
+  ]
 
   if (current_os == "ohos" || current_os == "ohos_ng") {
     cflags = [ "-fstack-protector-strong" ]
@@ -67,7 +71,6 @@ if (is_arkui_x) {
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
       "image_filter_napi/js_image_filter.cpp",
-      "js_common.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",
       "lattice_napi/js_lattice.cpp",
@@ -109,7 +112,6 @@ if (is_arkui_x) {
       "font_napi/js_font.cpp",
       "font_napi/js_typeface.cpp",
       "image_filter_napi/js_image_filter.cpp",
-      "js_common.cpp",
       "js_drawing_init.cpp",
       "js_drawing_utils.cpp",
       "lattice_napi/js_lattice.cpp",

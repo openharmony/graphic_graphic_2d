@@ -200,7 +200,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-    const RectI& globalDirtyRegion)
+    const Occlusion::Region& globalDirtyRegion)
 {
     // Set Surface Global Dirty Region
     for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
@@ -475,10 +475,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceParams->GetPreScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceParams->SetPreScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -528,10 +525,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceNodeParams->GetPreScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceNodeParams->SetPreScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -657,6 +651,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         return params;
     }
     params.useCPU = forceCPU;
+    params.useBilinearInterpolation = layer->GetNeedBilinearInterpolation();
     Drawing::Filter filter;
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
@@ -709,17 +704,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& surface = layer->GetSurface();
     if (surface == nullptr) {
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) != GSERROR_OK) {
-        scalingMode = layer->GetScalingMode();
-    }
-
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -1153,15 +1144,13 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
         if (RSUniRenderJudgement::IsUniRender()) {
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -1398,13 +1387,8 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
-        if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetPreScalingMode(scalingMode);
-        }
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
             srcRect.left_ = srcRect.left_ * scale;
             srcRect.top_ = srcRect.top_ * scale;
@@ -1448,8 +1432,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
 
     CheckForceHardwareAndUpdateDstRect(node);
     // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || frameGravity == Gravity::TOP_LEFT ||
-        (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
+    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
         return;
     }
  
@@ -1588,22 +1571,19 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
 
 void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node)
 {
-    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
     const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (nodeParams == nullptr || surface == nullptr || buffer == nullptr) {
-        RS_LOGE("nodeParams or surface or buffer is nullptr");
+    if (surface == nullptr || buffer == nullptr) {
+        RS_LOGE("surface or buffer is nullptr");
         return;
     }
 
-    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetPreScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
-        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix());
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
+            node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
         if (degree % RS_ROTATION_90 == 0) {
             RSUniRenderUtil::LayerScaleFit(node);
         }
@@ -1912,6 +1892,18 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     canvas.DetachBrush();
 }
 
+void RSUniRenderUtil::ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
+    const Drawing::Rect& src, const Drawing::Rect& dst)
+{
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    canvas.AttachBrush(brush);
+    // Be cautious when changing FilterMode and MipmapMode that may affect clarity
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    canvas.DrawImageRect(cacheImageProcessed, src, dst, sampling, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    canvas.DetachBrush();
+}
+
 void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
 {
     if (!pixelMap || pixelMap->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
@@ -1929,6 +1921,165 @@ void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
             RS_LOGE("RSUniRenderUtil::FlushDmaSurfaceBuffer InvalidateCache failed, GSError=%{public}d", err);
         }
     }
+}
+
+std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
+    std::shared_ptr<RSRenderNode> hwcNode)
+{
+    if (!hwcNode) {
+        return std::nullopt;
+    }
+    auto relativeMat = Drawing::Matrix();
+    auto& property = hwcNode->GetRenderProperties();
+    if (auto geo = property.GetBoundsGeometry()) {
+        if (LIKELY(!property.GetSandBox().has_value())) {
+            relativeMat = geo->GetMatrix();
+        } else {
+            auto parent = hwcNode->GetParent().lock();
+            if (!parent) {
+                return std::nullopt;
+            }
+            if (auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry()) {
+                auto invertAbsParentMatrix = Drawing::Matrix();
+                parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+                relativeMat = geo->GetAbsMatrix();
+                relativeMat.PostConcat(invertAbsParentMatrix);
+            }
+        }
+    } else {
+        return std::nullopt;
+    }
+    return relativeMat;
+}
+
+bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<ScreenId> screenId)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderUtil::CheckRenderSkipIfScreenOff, failed to get screen manager!");
+        return false;
+    }
+    // in certain cases such as wireless display, render skipping may be disabled.
+    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
+    auto isScreenOff = screenId.has_value() ?
+        screenManager->IsScreenPowerOff(screenId.value()) : screenManager->IsAllScreensPowerOff();
+    RS_TRACE_NAME_FMT("CheckRenderSkipIfScreenOff disableRenderControl:[%d], PowerOff:[%d]",
+        disableRenderControlScreensCount, isScreenOff);
+    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
+        return false;
+    }
+    if (extraFrame && screenManager->GetPowerOffNeedProcessOneFrame()) {
+        RS_LOGI("RSUniRenderUtil::CheckRenderSkipIfScreenOff screen power off, one more frame.");
+        screenManager->ResetPowerOffNeedProcessOneFrame();
+        return false;
+    } else {
+        return !screenManager->GetPowerOffNeedProcessOneFrame();
+    }
+}
+
+void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode)
+{
+    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
+    if (hwcNode == nullptr) {
+        RS_LOGE("hwcNode is null.");
+        return;
+    }
+    if (!hwcNodeGeo) {
+        RS_LOGE("hwcNode Geometry is not prepared.");
+        return;
+    }
+    bool hasCornerRadius = !hwcNode->GetRenderProperties().GetCornerRadius().IsZero();
+    std::vector<RectI> currIntersectedRoundCornerAABBs = {};
+    float alpha = hwcNode->GetRenderProperties().GetAlpha();
+    Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
+    auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
+    bool isNodeRenderByDrawingCache = false;
+    RSUniRenderUtil::TraverseParentNodeAndReduce(hwcNode,
+        [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
+            if (isNodeRenderByDrawingCache) {
+                return;
+            }
+            // if the parent node of hwcNode is marked freeze or nodegroup, RS closes hardware composer of hwcNode.
+            isNodeRenderByDrawingCache = isNodeRenderByDrawingCache || parent->IsStaticCached() ||
+                (parent->GetNodeGroupType() != RSRenderNode::NodeGroupType::NONE);
+        },
+        [&alpha](std::shared_ptr<RSRenderNode> parent) {
+            auto& parentProperty = parent->GetRenderProperties();
+            alpha *= parentProperty.GetAlpha();
+        },
+        [&totalMatrix](std::shared_ptr<RSRenderNode> parent) {
+            if (auto opt = RSUniRenderUtil::GetMatrix(parent)) {
+                totalMatrix.PostConcat(opt.value());
+            } else {
+                return;
+            }
+        },
+        [&currIntersectedRoundCornerAABBs, hwcNodeRect](std::shared_ptr<RSRenderNode> parent) {
+            auto& parentProperty = parent->GetRenderProperties();
+            auto cornerRadius = parentProperty.GetCornerRadius();
+            auto maxCornerRadius = *std::max_element(std::begin(cornerRadius.data_), std::end(cornerRadius.data_));
+            auto parentGeo = parentProperty.GetBoundsGeometry();
+            static const std::array offsetVecs {
+                UIPoint { 0, 0 },
+                UIPoint { 1, 0 },
+                UIPoint { 0, 1 },
+                UIPoint { 1, 1 }
+            };
+
+            // The logic here is to calculate whether the HWC Node affects
+            // the round corner property of the parent node.
+            // The method is calculating the rounded AABB of each HWC node
+            // with respect to all parent nodes above it and storing the results.
+            // When a HWC node is found below, the AABBs and the HWC node
+            // are checked for intersection. If there is an intersection,
+            // the node above it is disabled from taking the HWC pipeline.
+            auto checkIntersectWithRoundCorner = [&currIntersectedRoundCornerAABBs, hwcNodeRect](
+                const RectI& rect, float radiusX, float radiusY) {
+                if (radiusX <= 0 || radiusY <= 0) {
+                    return;
+                }
+                UIPoint offset { rect.GetWidth() - radiusX, rect.GetHeight() - radiusY };
+                UIPoint anchorPoint { rect.GetLeft(), rect.GetTop() };
+                std::for_each(std::begin(offsetVecs), std::end(offsetVecs),
+                    [&currIntersectedRoundCornerAABBs, hwcNodeRect, offset,
+                        radiusX, radiusY, anchorPoint](auto offsetVec) {
+                        auto res = anchorPoint + offset * offsetVec;
+                        auto roundCornerAABB = RectI(res.x_, res.y_, radiusX, radiusY);
+                        if (!roundCornerAABB.IntersectRect(hwcNodeRect).IsEmpty()) {
+                            currIntersectedRoundCornerAABBs.push_back(roundCornerAABB);
+                        }
+                    }
+                );
+            };
+            if (parentGeo) {
+                auto parentRect = parentGeo->GetAbsRect();
+                checkIntersectWithRoundCorner(parentRect, maxCornerRadius, maxCornerRadius);
+
+                if (parentProperty.GetClipToRRect()) {
+                    RRect parentClipRRect = parentProperty.GetClipRRect();
+                    RectI parentClipRect = parentGeo->MapAbsRect(parentClipRRect.rect_);
+                    float maxClipRRectCornerRadiusX = 0, maxClipRRectCornerRadiusY = 0;
+                    constexpr size_t radiusVecSize = 4;
+                    for (size_t i = 0; i < radiusVecSize; ++i) {
+                        maxClipRRectCornerRadiusX = std::max(maxClipRRectCornerRadiusX, parentClipRRect.radius_[i].x_);
+                        maxClipRRectCornerRadiusY = std::max(maxClipRRectCornerRadiusY, parentClipRRect.radius_[i].y_);
+                    }
+                    checkIntersectWithRoundCorner(parentClipRect, maxClipRRectCornerRadiusX, maxClipRRectCornerRadiusY);
+                }
+            }
+        }
+    );
+    if (isNodeRenderByDrawingCache) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache",
+            hwcNode->GetName().c_str(), hwcNode->GetId());
+        hwcNode->SetHardwareForcedDisabledState(isNodeRenderByDrawingCache);
+    }
+    hwcNode->SetTotalMatrix(totalMatrix);
+    hwcNode->SetGlobalAlpha(alpha);
+    hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
 }
 } // namespace Rosen
 } // namespace OHOS

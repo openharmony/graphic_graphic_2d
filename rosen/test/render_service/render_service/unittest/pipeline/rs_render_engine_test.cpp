@@ -21,6 +21,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "recording/recording_canvas.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "rs_test_util.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -48,6 +49,7 @@ std::shared_ptr<Drawing::RecordingCanvas> drawingRecordingCanvas_ = nullptr;
 
 void RSRenderEngineTest::SetUpTestCase()
 {
+    RSTestUtil::InitRenderNodeGC();
     drawingCanvas_ = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
     bool isUnirender = RSUniRenderJudgement::IsUniRender();
     RSSurfaceCaptureConfig captureConfig;

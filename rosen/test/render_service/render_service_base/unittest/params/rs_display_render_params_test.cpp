@@ -264,4 +264,58 @@ HWTEST_F(RSDisplayRenderParamsTest, GetSecurityExemption001, TestSize.Level1)
     RSDisplayRenderParams params(id);
     EXPECT_FALSE(params.GetSecurityExemption());
 }
+
+/**
+ * @tc.name: HasSecLayerInVisibleRect001
+ * @tc.desc: test result of HasSecLayerInVisibleRect
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRect001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    EXPECT_EQ(params.HasSecLayerInVisibleRect(), false);
+}
+
+/**
+ * @tc.name: HasSecLayerInVisibleRect002
+ * @tc.desc: test result of HasSecLayerInVisibleRect
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRect002, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    params.hasSecLayerInVisibleRect_ = true;
+    EXPECT_EQ(params.HasSecLayerInVisibleRect(), true);
+}
+
+/**
+ * @tc.name: HasSecLayerInVisibleRectChanged001
+ * @tc.desc: test result of HasSecLayerInVisibleRectChanged
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), false);
+}
+
+/**
+ * @tc.name: HasSecLayerInVisibleRectChanged002
+ * @tc.desc: test result of HasSecLayerInVisibleRectChanged
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSDisplayRenderParams params(id);
+    params.hasSecLayerInVisibleRectChanged_ = true;
+    EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), true);
+}
 } // namespace OHOS::Rosen

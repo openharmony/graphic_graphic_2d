@@ -527,6 +527,9 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
     params.isProtectedLayer_ = true;
     params.animateState_ = false;
     ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
+    // set totalMatrix to 30 degrees
+    params.totalMatrix_.PostRotate(30.0f);
+    ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
 }
 
 /**

@@ -54,11 +54,13 @@ HWTEST_F(BootAnimationStrategyTest, BootAnimationStrategyTest_001, TestSize.Leve
     std::shared_ptr<BootAnimationStrategy> bas3 = std::make_shared<BootAnimationStrategy>();
     bas3->isAnimationEnd_ = true;
     system::SetParameter(BOOT_COMPLETED, "false");
+    EXPECT_EQ(false, system::GetBoolParameter(BOOT_COMPLETED, false));
     bas3->CheckExitAnimation();
 
     std::shared_ptr<BootAnimationStrategy> bas4 = std::make_shared<BootAnimationStrategy>();
     bas4->isAnimationEnd_ = true;
     system::SetParameter(BOOT_COMPLETED, "true");
+    EXPECT_EQ(true, system::GetBoolParameter(BOOT_COMPLETED, false));
     bas4->CheckExitAnimation();
 }
 

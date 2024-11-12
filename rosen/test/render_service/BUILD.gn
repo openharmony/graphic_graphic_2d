@@ -21,6 +21,7 @@ group("test") {
     "render_service/fuzztest/rsrenderserviceconnectionstub_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicesecurityutils_fuzzer:fuzztest",
     "render_service/fuzztest/rsrenderservicestub_fuzzer:fuzztest",
+    "render_service/fuzztest/rsscreenmanager_fuzzer:fuzztest",
     "render_service/fuzztest/rstransaction_fuzzer:fuzztest",
     "render_service/systemtest/pipeline:systemtest",
     "render_service/unittest/drawable:unittest",
@@ -33,6 +34,7 @@ group("test") {
     "render_service_base/fuzztest/hgmconfigchangecallbackproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rspipelinerender_fuzzer:fuzztest",
     "render_service_base/fuzztest/pipeline/rsrendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/platform/ohos/rsrenderserviceclient_fuzzer:fuzztest",
     "render_service_base/fuzztest/render/rspixelmapshader_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsaibarshaderfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationfraction_fuzzer:fuzztest",
@@ -58,7 +60,9 @@ group("test") {
     "render_service_base/fuzztest/rslistenedcanvas_fuzzer:fuzztest",
     "render_service_base/fuzztest/rslog_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsmarshallinghelper_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsmemorysnapshot_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsoverdrawcontroller_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsparticlenoise_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspath_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsproperty_fuzzer:fuzztest",
     "render_service_base/fuzztest/rspropertydrawable_fuzzer:fuzztest",
@@ -70,6 +74,7 @@ group("test") {
     "render_service_base/fuzztest/rsrenderframeratelinkermap_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderimage_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrendernodemap_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rsrenderparams_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnecthub_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnectionproxy_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsrenderserviceconnectionproxy_fuzzer:fuzztest",
@@ -88,7 +93,6 @@ group("test") {
     "render_service_base/fuzztest/rssurfaceocclusionchangecallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohos_fuzzer:fuzztest",
     "render_service_base/fuzztest/rssurfaceohosraster_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rssystemproperties_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsthreadhandlergeneric_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsunirenderjudgement_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsvsyncclientohos_fuzzer:fuzztest",
@@ -122,6 +126,8 @@ group("test") {
     "render_service_client/fuzztest/rspropertymodifier_fuzzer:fuzztest",
     "render_service_client/fuzztest/rsshowingpropertiesfreezer_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rscanvasdrawingnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rscanvasnode_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rsdisplaynode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rseffectnode_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsframeratelinker_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsframeratepolicy_fuzzer:fuzztest",
@@ -159,8 +165,5 @@ group("test") {
 
   if (graphic_2d_feature_rs_enable_profiler) {
     deps += [ "render_service_profiler/unittest:unittest" ]
-  }
-  if (graphic_2d_feature_enable_recording_dcl) {
-    deps += [ "render_service_base/unittest/benchmarks:unittest" ]
   }
 }

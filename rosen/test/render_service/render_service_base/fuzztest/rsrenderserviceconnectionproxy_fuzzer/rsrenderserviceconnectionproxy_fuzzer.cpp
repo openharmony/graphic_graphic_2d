@@ -208,7 +208,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
     rsRenderServiceConnectionProxy.ReportGameStateData(gameStateDataInfo);
-    rsRenderServiceConnectionProxy.SetHardwareEnabled(id1, true, SelfDrawingNodeType::DEFAULT);
+    rsRenderServiceConnectionProxy.SetHardwareEnabled(id1, true, SelfDrawingNodeType::DEFAULT, true);
     rsRenderServiceConnectionProxy.SetCacheEnabledForRotation(true);
     rsRenderServiceConnectionProxy.SetOnRemoteDiedCallback(onRemoteDiedCallback);
     rsRenderServiceConnectionProxy.RunOnRemoteDiedCallback();
@@ -219,11 +219,13 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(true);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(false);
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
+    rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(false);
     rsRenderServiceConnectionProxy.SetCurtainScreenUsingStatus(true);
     rsRenderServiceConnectionProxy.FillParcelWithTransactionData(transactionData, parcel);
     rsRenderServiceConnectionProxy.ReportDataBaseRs(messageParcel, reply, option, info);
     rsRenderServiceConnectionProxy.ReportGameStateDataRs(messageParcel, reply, option, gameStateDataInfo);
     rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(true);
+    rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(false);
     return true;
 }
 

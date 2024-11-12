@@ -44,8 +44,11 @@ public:
 #ifdef USE_SURFACE_TEXTURE
     virtual void DrawTextureImage(RSPaintFilterCanvas& canvas, bool freeze, const Drawing::Rect& clipRect) = 0;
     virtual void UpdateSurfaceDefaultSize(float width, float height) = 0;
+    virtual RSSurfaceExtConfig GetSurfaceExtConfig() = 0;
+    virtual void UpdateSurfaceExtConfig(const RSSurfaceExtConfig& config) = 0;
     virtual void SetAttachCallback(const RSSurfaceTextureAttachCallBack& attachCallback) = 0;
     virtual void SetUpdateCallback(const RSSurfaceTextureUpdateCallBack& updateCallback) = 0;
+    virtual void SetInitTypeCallback(const RSSurfaceTextureInitTypeCallBack& initTypeCallback) = 0;
     virtual void MarkUiFrameAvailable(bool available) = 0;
     virtual bool IsUiFrameAvailable() const = 0;
 #endif

@@ -894,7 +894,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyLightFactorStatus, TestSize.L
     GameStateData info;
     proxy->ReportGameStateData(info);
     NodeId id = 1;
-    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT);
+    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
     proxy->NotifyLightFactorStatus(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }

@@ -24,6 +24,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -70,15 +71,6 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     std::vector<GraphicIRect> damageRects;
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
-    bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
-    output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
-
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-    // enable direct GPU composition.
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
-#else
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
-#endif
 
     return true;
 }
@@ -118,15 +110,6 @@ bool RSComposerAdapter::Init(const RSDisplayRenderNode& node, const ScreenInfo& 
     std::vector<GraphicIRect> damageRects;
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
-    bool directClientCompEnableStatus = RSSystemProperties::GetDirectClientCompEnableStatus();
-    output_->SetDirectClientCompEnableStatus(directClientCompEnableStatus);
-
-#if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
-    // enable direct GPU composition.
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY);
-#else
-    output_->SetLayerCompCapacity(LAYER_COMPOSITION_CAPACITY_INVALID);
-#endif
 
     return true;
 }
@@ -160,12 +143,13 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 
     // set all layers' releaseFence.
     const auto layersReleaseFence = output_->GetLayersReleaseFence();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& [layer, fence] : layersReleaseFence) {
         if (layer == nullptr) {
             continue;
         }
 
-        auto nodePtr = static_cast<RSBaseRenderNode*>(layer->GetLayerAdditionalInfo());
+        auto nodePtr = nodeMap.GetRenderNode<RSRenderNode>(layer->GetNodeId());
         if (nodePtr == nullptr) {
             RS_LOGW("RSComposerAdapter::PostProcess: layer's node is nullptr.");
             continue;
@@ -437,7 +421,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     layer->SetZorder(info.zOrder);
     layer->SetAlpha(info.alpha);
     layer->SetLayerSize(info.dstRect);
-    layer->SetLayerAdditionalInfo(node);
+    layer->SetNodeId(node->GetId());
     layer->SetCompositionType(info.needClient ?
         GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT : GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     std::vector<GraphicIRect> visibleRegions;
@@ -779,8 +763,7 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
         return;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK &&
-        scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+    if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
         GraphicIRect dstRect = layer->GetLayerSize();
         GraphicIRect srcRect = layer->GetCropRect();
 

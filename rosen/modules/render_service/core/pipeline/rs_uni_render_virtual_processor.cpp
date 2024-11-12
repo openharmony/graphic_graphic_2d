@@ -60,6 +60,13 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
     virtualScreenHeight_ = static_cast<float>(virtualScreenInfo.height);
     originalVirtualScreenWidth_ = virtualScreenWidth_;
     originalVirtualScreenHeight_ = virtualScreenHeight_;
+    if (EnableVisibleRect()) {
+        const auto& rect = screenManager->GetMirrorScreenVisibleRect(virtualScreenId_);
+        visibleRect_ = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
+        // not support rotation for MirrorScreen visibleRect
+        canvasRotation_ = false;
+    }
+
     auto mirroredDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
     if (mirroredDisplayDrawable) {
@@ -291,15 +298,21 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_, virtualScreenHeight_,
         static_cast<int>(screenCorrection_), static_cast<int>(angle));
 
-    if (mirroredScreenWidth_ == virtualScreenWidth_ && mirroredScreenHeight_ == virtualScreenHeight_) {
+    float mirroredScreenWidth = mirroredScreenWidth_;
+    float mirroredScreenHeight = mirroredScreenHeight_;
+    if (EnableVisibleRect()) {
+        mirroredScreenWidth = visibleRect_.GetWidth();
+        mirroredScreenHeight = visibleRect_.GetHeight();
+    }
+
+    if (mirroredScreenWidth == virtualScreenWidth_ && mirroredScreenHeight == virtualScreenHeight_) {
         return;
     }
 
-    canvas.Clear(SK_ColorBLACK);
     if (scaleMode_ == ScreenScaleMode::FILL_MODE) {
-        Fill(canvas, mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_, virtualScreenHeight_);
+        Fill(canvas, mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_);
     } else if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
-        UniScale(canvas, mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_, virtualScreenHeight_);
+        UniScale(canvas, mirroredScreenWidth, mirroredScreenHeight, virtualScreenWidth_, virtualScreenHeight_);
     }
 }
 
@@ -348,6 +361,10 @@ void RSUniRenderVirtualProcessor::ProcessDisplaySurfaceForRenderThread(
     }
     auto params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceHandler, forceCPU_);
     params.isMirror = true;
+    if (EnableVisibleRect()) {
+        params.srcRect = visibleRect_;
+        params.dstRect = Drawing::Rect(0, 0, visibleRect_.GetWidth(), visibleRect_.GetHeight());
+    }
     renderEngine_->DrawDisplayNodeWithParams(*canvas_, *surfaceHandler, params);
     canvas_->Restore();
 }
@@ -392,23 +409,37 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         }
         canvas.Translate(startX, startY);
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
-        CanvasClipRegion(canvas, mainWidth, mainHeight);
     }
 }
 
-void RSUniRenderVirtualProcessor::CanvasClipRegion(RSPaintFilterCanvas& canvas, float mainWidth, float mainHeight)
+void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode()
 {
-    Drawing::Rect rect(0, 0, mainWidth, mainHeight);
-    canvas.GetTotalMatrix().MapRect(rect, rect);
-    Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
-    Drawing::Region clipRegion;
-    clipRegion.SetRect(rectI);
-    canvas.ClipRegion(clipRegion);
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::CanvasClipRegion: Canvas is null!");
+        return;
+    }
+    if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
+        Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
+        canvas_->GetTotalMatrix().MapRect(rect, rect);
+        Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+        Drawing::Region clipRegion;
+        clipRegion.SetRect(rectI);
+        canvas_->ClipRegion(clipRegion);
+    }
 }
 
 void RSUniRenderVirtualProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
 {
     RS_LOGI("RSUniRenderVirtualProcessor::ProcessRcdSurface() is not supported.");
+}
+
+bool RSUniRenderVirtualProcessor::EnableVisibleRect()
+{
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        return false;
+    }
+    return screenManager->QueryScreenInfo(virtualScreenId_).enableVisibleRect;
 }
 } // namespace Rosen
 } // namespace OHOS

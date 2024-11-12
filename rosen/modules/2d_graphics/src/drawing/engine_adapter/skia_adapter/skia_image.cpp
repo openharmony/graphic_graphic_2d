@@ -35,7 +35,7 @@
 #include "skia_surface.h"
 #include "skia_texture_info.h"
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "include/core/SkYUVAPixmaps.h"
 #include "skia_gpu_context.h"
 #endif
@@ -113,7 +113,7 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap)
     return false;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
 {
     if (!memory) {
@@ -252,7 +252,8 @@ bool SkiaImage::BuildFromTexture(GPUContext& gpuContext, const TextureInfo& info
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace, deleteFunc, cleanupHelper);
     } else {
         PostSkImgToTargetThread();
-        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),  SkiaTextureInfo::ConvertToGrBackendTexture(info),
+        skiaImage_ = SkImage::MakeFromTexture(grContext_.get(),
+            SkiaTextureInfo::ConvertToGrBackendTexture(info),
             SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
             SkiaImageInfo::ConvertToSkColorType(bitmapFormat.colorType),
             SkiaImageInfo::ConvertToSkAlphaType(bitmapFormat.alphaType), skColorSpace);
@@ -547,7 +548,7 @@ void SkiaImage::SetSkImage(const sk_sp<SkImage>& skImage)
     skiaImage_ = skImage;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 sk_sp<GrDirectContext> SkiaImage::GetGrContext() const
 {
     return grContext_;
@@ -623,7 +624,6 @@ bool SkiaImage::Deserialize(std::shared_ptr<Data> data)
 
     SkReadBuffer reader(data->GetData(), data->GetSize());
     bool type = reader.readBool();
-
     if (type) {
         PostSkImgToTargetThread();
         skiaImage_ = reader.readImage();

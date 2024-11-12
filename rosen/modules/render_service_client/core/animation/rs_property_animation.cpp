@@ -15,6 +15,7 @@
 
 #include "animation/rs_property_animation.h"
 
+#include "animation/rs_animation_trace_utils.h"
 #include "animation/rs_render_animation.h"
 #include "modifier/rs_modifier.h"
 #include "modifier/rs_property.h"
@@ -163,6 +164,24 @@ void RSPropertyAnimation::InitAdditiveMode()
             break;
         default:
             break;
+    }
+}
+
+void RSPropertyAnimation::DumpAnimationInfo(std::string& dumpInfo) const
+{
+    dumpInfo += ", isCustom:" + std::to_string(isCustom_);
+    RSRenderPropertyType type = RSRenderPropertyType::INVALID;
+    if (property_) {
+        type = property_->GetPropertyType();
+        dumpInfo += ", ModifierType: " + std::to_string(static_cast<int16_t>(property_->type_));
+    }
+    if (startValue_) {
+        dumpInfo += ", StartValue: " +
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(startValue_->GetRenderProperty(), type);
+    }
+    if (endValue_) {
+        dumpInfo += ", EndValue: " +
+            RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_->GetRenderProperty(), type);
     }
 }
 } // namespace Rosen

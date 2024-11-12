@@ -87,7 +87,7 @@ public:
     FontConfigJson() = default;
     int ParseFile(const char* fname = nullptr);
     int ParseFontFileMap(const char* fname = nullptr);
-    int ParseInstallConfig(const char* fname, std::vector<std::string>& fontPathList);
+    int ParseInstallConfig(const char* fontPath, std::vector<std::string>& fontPathList);
     std::shared_ptr<FontConfigJsonInfo> GetFontConfigJsonInfo()
     {
         return fontPtr;

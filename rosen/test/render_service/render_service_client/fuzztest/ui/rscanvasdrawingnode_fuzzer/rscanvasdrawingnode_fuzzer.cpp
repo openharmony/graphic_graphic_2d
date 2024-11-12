@@ -186,7 +186,7 @@ bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
     bool isRenderServiceNode = GetData<bool>();
     bool isTextureExportNode = GetData<bool>();
     RSCanvasDrawingNode canvasDrawingNode(isRenderServiceNode, isTextureExportNode);
-    canvasDrawingNode.CreateTextureExportRenderNodeInRT();
+    canvasDrawingNode.CreateRenderNodeForTextureExportSwitch();
     return true;
 }
 } // namespace Rosen

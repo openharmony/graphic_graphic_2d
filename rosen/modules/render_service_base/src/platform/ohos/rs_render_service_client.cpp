@@ -16,8 +16,9 @@
 #include "transaction/rs_render_service_client.h"
 #include "surface_type.h"
 #include "surface_utils.h"
-
+#ifdef RS_ENABLE_GL
 #include "backend/rs_surface_ohos_gl.h"
+#endif
 #include "backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "backend/rs_surface_ohos_vulkan.h"
@@ -55,6 +56,8 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
+    } else {
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderServiceClient::CommitTransaction failed, renderService is nullptr");
     }
 }
 
@@ -207,12 +210,15 @@ void RSRenderServiceClient::TriggerSurfaceCaptureCallback(NodeId id, std::shared
             continue;
         }
         std::shared_ptr<Media::PixelMap> surfaceCapture = pixelmap;
-        if (UNLIKELY(RSSystemProperties::GetPixelmapDfxEnabled()) || (i != callbackVector.size() - 1)) {
+        if (i != callbackVector.size() - 1) {
             if (pixelmap != nullptr) {
                 Media::InitializationOptions options;
                 std::unique_ptr<Media::PixelMap> pixelmapCopy = Media::PixelMap::Create(*pixelmap, options);
                 surfaceCapture = std::move(pixelmapCopy);
             }
+        }
+        if (surfaceCapture) {
+            surfaceCapture->SetMemoryName("RSSurfaceCaptureForCallback");
         }
         callbackVector[i]->OnSurfaceCapture(surfaceCapture);
     }
@@ -249,7 +255,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
         std::lock_guard<std::mutex> lock(mutex_);
         auto iter = surfaceCaptureCbMap_.find(id);
         if (iter != surfaceCaptureCbMap_.end()) {
-            ROSEN_LOGW("RSRenderServiceClient::TakeSurfaceCapture surfaceCaptureCbMap_.count(id) != 0");
+            ROSEN_LOGD("RSRenderServiceClient::TakeSurfaceCapture surfaceCaptureCbMap_.count(id) != 0");
             iter->second.emplace_back(callback);
             return true;
         }
@@ -261,6 +267,18 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
     renderService->TakeSurfaceCapture(id, surfaceCaptureCbDirector_, captureConfig);
+    return true;
+}
+
+bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        RS_LOGE("RSRenderServiceClient::SetHwcNodeBounds renderService is null!");
+        return false;
+    }
+    renderService->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 
@@ -352,6 +370,16 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     }
 
     return renderService->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetMirrorScreenVisibleRect(id, mainScreenRect);
 }
 
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
@@ -1324,12 +1352,22 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
     }
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->SetHardwareEnabled(id, isEnabled, selfDrawingType);
+        renderService->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
+}
+
+uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetHidePrivacyContent(id, needHidePrivacyContent);
+    }
+    return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
 }
 
 void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
@@ -1598,9 +1636,15 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
 void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
     const std::vector<uint32_t>& surfaceBufferIds) const
 {
-    std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
-    if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
-        iter->second->OnFinish(uid, surfaceBufferIds);
+    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
+    {
+        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
+            callback = iter->second;
+        }
+    }
+    if (callback) {
+        callback->OnFinish(uid, surfaceBufferIds);
     }
 }
 } // namespace Rosen

@@ -228,6 +228,13 @@ public:
         return isSecurityExemption_;
     }
 
+    void SetHasSecLayerInVisibleRect(bool hasSecLayer) {
+        bool lastHasSecLayerInVisibleRect = hasSecLayerInVisibleRect_;
+        hasSecLayerInVisibleRect_ = hasSecLayer;
+        hasSecLayerInVisibleRectChanged_ =
+            lastHasSecLayerInVisibleRect != hasSecLayerInVisibleRect_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
@@ -467,6 +474,8 @@ private:
 
     std::vector<NodeId> securityLayerList_;
     bool isSecurityExemption_ = false;
+    bool hasSecLayerInVisibleRect_ = false;
+    bool hasSecLayerInVisibleRectChanged_ = false;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;

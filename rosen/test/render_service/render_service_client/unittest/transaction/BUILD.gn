@@ -45,7 +45,6 @@ ohos_unittest("RSRenderServiceClientTransactionTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "init:libbegetutil",
   ]
 }
 

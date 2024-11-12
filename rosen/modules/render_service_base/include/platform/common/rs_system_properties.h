@@ -138,6 +138,8 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetRenderNodePurgeEnabled();
+    static bool GetRSImagePurgeEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -148,7 +150,6 @@ public:
     static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
-    static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
     static DumpSurfaceType GetDumpSurfaceType();
@@ -166,7 +167,6 @@ public:
     static bool GetAFBCEnabled();
     static bool GetReleaseResourceEnabled();
     static bool GetRSScreenRoundCornerEnable();
-    static bool GetAceDebugBoundaryEnabled();
 
     static void SetDrawTextAsBitmap(bool flag);
     static bool GetDrawTextAsBitmap();
@@ -179,6 +179,7 @@ public:
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
+    static bool GetHardCursorEnabled();
 
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();
@@ -257,7 +258,7 @@ public:
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
     static bool GetSkipDisplayIfScreenOffEnabled();
-
+    static bool GetBatchRemovingOnRemoteDiedEnabled();
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();
 #endif
@@ -267,6 +268,7 @@ public:
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
+    static uint32_t GetBlurEffectTerminateLimit();
 
     static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();

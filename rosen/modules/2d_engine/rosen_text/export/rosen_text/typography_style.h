@@ -28,6 +28,7 @@ namespace Rosen {
 struct TextTab {
     TextTab() = default;
     TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
+    TextTab(const TextTab& other) : alignment(other.alignment), location(other.location) {};
     TextTab& operator=(const TextTab&) = default;
 
     bool operator==(const TextTab& rhs) const
@@ -75,7 +76,8 @@ struct TypographyStyle {
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     float textSplitRatio = 0.5f;
 
-    bool operator==(const TypographyStyle &rhs) const {
+    bool operator==(const TypographyStyle &rhs) const
+    {
         return
             this->ELLIPSIS == rhs.ELLIPSIS &&
             this->fontWeight == rhs.fontWeight &&

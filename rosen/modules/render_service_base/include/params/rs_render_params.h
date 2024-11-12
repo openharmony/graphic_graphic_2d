@@ -268,6 +268,7 @@ public:
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool GetHardCursorStatus() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
     virtual void SetLayerCreated(bool layerCreated) {}
@@ -303,11 +304,6 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
-    virtual ScalingMode GetPreScalingMode() const
-    {
-        return ScalingMode::SCALING_MODE_FREEZE;
-    }
     virtual void SetNeedClient(bool needClient) {}
     virtual bool GetNeedClient() const { return false; }
     virtual bool GetFingerprint() { return false; }

@@ -66,6 +66,8 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
@@ -99,6 +101,9 @@ public:
 
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
+
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ,
+        float positionW);
 
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);

@@ -25,148 +25,69 @@ using namespace OHOS::Rosen::SPText;
 namespace txt {
 class TypefaceFontAssetProviderTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
-    static inline std::shared_ptr<TypefaceFontAssetProvider> typefaceFontAssetProvider_ = nullptr;
+    void SetUp() override;
+    void TearDown() override;
+    std::shared_ptr<TypefaceFontAssetProvider> typefaceFontAssetProvider_ = nullptr;
 };
 
-void TypefaceFontAssetProviderTest::SetUpTestCase()
+void TypefaceFontAssetProviderTest::SetUp()
 {
     typefaceFontAssetProvider_ = std::make_shared<TypefaceFontAssetProvider>();
-    if (!typefaceFontAssetProvider_) {
-        std::cout << "TypefaceFontAssetProviderTest::SetUpTestCase error typefaceFontAssetProvider_ is nullptr"
-            << std::endl;
-    }
+    ASSERT_NE(typefaceFontAssetProvider_, nullptr);
 }
 
-void TypefaceFontAssetProviderTest::TearDownTestCase()
+void TypefaceFontAssetProviderTest::TearDown()
 {
+    typefaceFontAssetProvider_.reset();
 }
 
 /*
  * @tc.name: TypefaceFontAssetProviderTest001
- * @tc.desc: test for RegisterTypeface
+ * @tc.desc: test for RegisterTypeface and getFamily
  * @tc.type: FUNC
  */
 HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest001, TestSize.Level1)
 {
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
-    EXPECT_EQ(skTypeface != nullptr, true);
+    ASSERT_NE(skTypeface, nullptr);
     typefaceFontAssetProvider_->RegisterTypeface(skTypeface);
-    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyCount() > 0, true);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest002
- * @tc.desc: test for GetFamilyName
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest002, TestSize.Level1)
-{
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
-    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(0).empty(), false);
-    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(-1).empty(), true);
+    typefaceFontAssetProvider_->RegisterTypeface(nullptr);
+    typefaceFontAssetProvider_->RegisterTypeface(nullptr, "");
+    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyCount(), 1);
+    std::string result = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x2d, 0x53, 0x61, 0x6e, 0x73 };
+    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(0), result);
+    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(-1), "");
     int index = typefaceFontAssetProvider_->GetFamilyCount() + 1;
-    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(index).empty(), true);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest003
- * @tc.desc: test for MatchFamily
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest003, TestSize.Level1)
-{
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
-    std::string familyName = typefaceFontAssetProvider_->GetFamilyName(0);
-    EXPECT_EQ(typefaceFontAssetProvider_->MatchFamily(familyName) != nullptr, true);
+    EXPECT_EQ(typefaceFontAssetProvider_->GetFamilyName(index), "");
 }
 
 /*
  * @tc.name: TypefaceFontAssetProviderTest004
- * @tc.desc: test for TypefaceFontStyleSet count
+ * @tc.desc: test for TypefaceFontStyleSet
  * @tc.type: FUNC
  */
 HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest004, TestSize.Level1)
 {
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
+    sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
+    ASSERT_NE(skTypeface, nullptr);
+    typefaceFontAssetProvider_->RegisterTypeface(skTypeface);
     std::string familyName = typefaceFontAssetProvider_->GetFamilyName(0);
     SkFontStyleSet* skFontStyleSet = typefaceFontAssetProvider_->MatchFamily(familyName);
-    EXPECT_EQ(skFontStyleSet != nullptr, true);
+    ASSERT_NE(skFontStyleSet, nullptr);
     TypefaceFontStyleSet* typefaceFontStyleSet = static_cast<TypefaceFontStyleSet*>(skFontStyleSet);
-    EXPECT_EQ(typefaceFontStyleSet != nullptr, true);
-    EXPECT_EQ(typefaceFontStyleSet->count() > 0, true);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest005
- * @tc.desc: test for TypefaceFontStyleSet getStyle
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest005, TestSize.Level1)
-{
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
-    std::string familyName = typefaceFontAssetProvider_->GetFamilyName(0);
-    SkFontStyleSet* skFontStyleSet = typefaceFontAssetProvider_->MatchFamily(familyName);
-    EXPECT_EQ(skFontStyleSet != nullptr, true);
-    TypefaceFontStyleSet* typefaceFontStyleSet = static_cast<TypefaceFontStyleSet*>(skFontStyleSet);
-    EXPECT_EQ(typefaceFontStyleSet != nullptr, true);
+    EXPECT_EQ(typefaceFontStyleSet->count(), 1);
     SkFontStyle style;
     SkString name;
+    typefaceFontStyleSet->getStyle(INT_MAX, &style, &name);
     typefaceFontStyleSet->getStyle(0, &style, &name);
-    EXPECT_EQ(name.isEmpty(), true);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest006
- * @tc.desc: test for TypefaceFontStyleSet matchStyle
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest006, TestSize.Level1)
-{
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
-    std::string familyName = typefaceFontAssetProvider_->GetFamilyName(0);
-    SkFontStyleSet* skFontStyleSet = typefaceFontAssetProvider_->MatchFamily(familyName);
-    EXPECT_EQ(skFontStyleSet != nullptr, true);
-    TypefaceFontStyleSet* typefaceFontStyleSet = static_cast<TypefaceFontStyleSet*>(skFontStyleSet);
-    EXPECT_EQ(typefaceFontStyleSet != nullptr, true);
+    EXPECT_TRUE(name.isEmpty());
     SkFontStyle pattern;
-    EXPECT_EQ(typefaceFontStyleSet->matchStyle(pattern) != nullptr, true);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest007
- * @tc.desc: test for TypefaceFontStyleSet createTypeface
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest007, TestSize.Level1)
-{
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
-    std::string familyName = typefaceFontAssetProvider_->GetFamilyName(0);
-    SkFontStyleSet* skFontStyleSet = typefaceFontAssetProvider_->MatchFamily(familyName);
-    EXPECT_EQ(skFontStyleSet != nullptr, true);
-    TypefaceFontStyleSet* typefaceFontStyleSet = static_cast<TypefaceFontStyleSet*>(skFontStyleSet);
-    EXPECT_EQ(typefaceFontStyleSet != nullptr, true);
-    EXPECT_EQ(typefaceFontStyleSet->createTypeface(0) != nullptr, true);
-    EXPECT_EQ(typefaceFontStyleSet->count() > 0, true);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest008
- * @tc.desc: test for TypefaceFontStyleSet unregisterTypefaces
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest008, TestSize.Level1)
-{
-    EXPECT_EQ(typefaceFontAssetProvider_ != nullptr, true);
-    std::string familyName = typefaceFontAssetProvider_->GetFamilyName(0);
-    SkFontStyleSet* skFontStyleSet = typefaceFontAssetProvider_->MatchFamily(familyName);
-    EXPECT_EQ(skFontStyleSet != nullptr, true);
-    TypefaceFontStyleSet* typefaceFontStyleSet = static_cast<TypefaceFontStyleSet*>(skFontStyleSet);
-    EXPECT_EQ(typefaceFontStyleSet != nullptr, true);
+    EXPECT_NE(typefaceFontStyleSet->matchStyle(pattern), nullptr);
+    EXPECT_NE(typefaceFontStyleSet->createTypeface(0), nullptr);
+    EXPECT_EQ(typefaceFontStyleSet->count(), 1);
     typefaceFontStyleSet->unregisterTypefaces();
     EXPECT_EQ(typefaceFontStyleSet->count(), 0);
+    EXPECT_EQ(typefaceFontStyleSet->createTypeface(100), nullptr);
 }
 
 /*
@@ -176,23 +97,14 @@ HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest008, TestSi
  */
 HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest009, TestSize.Level1)
 {
-    std::unique_ptr<TypefaceFontAssetProvider> fontProvider = std::make_unique<TypefaceFontAssetProvider>();
+    auto fontProvider = std::make_unique<TypefaceFontAssetProvider>();
     std::string familyName("test");
     fontProvider->familyNames_.emplace_back(familyName);
     sk_sp<SkTypeface> skTypeface = SkTypeface::MakeDefault();
+    ASSERT_NE(skTypeface, nullptr);
     fontProvider->RegisterTypeface(skTypeface, familyName);
     EXPECT_NE(fontProvider->MatchFamily(familyName), nullptr);
     fontProvider->RegisterTypeface(nullptr, familyName);
-}
-
-/*
- * @tc.name: TypefaceFontAssetProviderTest010
- * @tc.desc: test for createTypeface with invalid index
- * @tc.type: FUNC
- */
-HWTEST_F(TypefaceFontAssetProviderTest, TypefaceFontAssetProviderTest010, TestSize.Level1)
-{
-    TypefaceFontStyleSet fontStyleSet;
-    EXPECT_EQ(fontStyleSet.createTypeface(1), nullptr);
+    EXPECT_EQ(fontProvider->MatchFamily(familyName), nullptr);
 }
 } // namespace txt

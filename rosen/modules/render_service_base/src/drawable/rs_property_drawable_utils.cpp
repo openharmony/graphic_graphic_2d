@@ -26,6 +26,7 @@
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_color_picker.h"
+#include "render/rs_maskcolor_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -103,8 +104,8 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GetShadowRegionImage(Dr
         ROSEN_LOGE("RSPropertyDrawableUtils::GetShadowRegionImage drSurface is null");
         return nullptr;
     }
-    static int deviceWidth = drSurface->Width();
-    static int deviceHeight = drSurface->Height();
+    const int deviceWidth = drSurface->Width();
+    const int deviceHeight = drSurface->Height();
     Drawing::Rect regionRect = {0, 0, clipIBounds.GetWidth(), clipIBounds.GetHeight()};
     Drawing::Rect regionRectDev;
     matrix.MapRect(regionRectDev, regionRect);
@@ -319,6 +320,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
+        if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
+            g_blurCnt--;
+        }
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
             filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
@@ -340,6 +344,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         filter->SetSnapshotOutset(false);
     }
 
+    if (imageClipIBounds.IsEmpty()) {
+        return;
+    }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter image null");
@@ -426,7 +433,7 @@ int RSPropertyDrawableUtils::GetAndResetBlurCnt()
 void RSPropertyDrawableUtils::DrawBackgroundEffect(
     RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
     const std::unique_ptr<RSFilterCacheManager>& cacheManager, bool shouldClearFilteredCache,
-    Drawing::RectI& bounds)
+    Drawing::RectI& bounds, bool behindWindow)
 {
     if (rsFilter == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawBackgroundEffect null filter");
@@ -450,9 +457,12 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
+        if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
+            g_blurCnt--;
+        }
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
-        canvas->SetEffectData(data);
+        behindWindow ? canvas->SetBehindWindowData(data) : canvas->SetEffectData(data);
         return;
     }
 #endif
@@ -482,7 +492,7 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
         return;
     }
     auto data = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(imageCache), std::move(imageRect));
-    canvas->SetEffectData(std::move(data));
+    behindWindow ? canvas->SetBehindWindowData(std::move(data)) : canvas->SetEffectData(std::move(data));
 }
 
 void RSPropertyDrawableUtils::DrawColorFilter(
@@ -785,6 +795,11 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
         return;
     }
+    if (std::isinf(pixelStretch->x_) || std::isinf(pixelStretch->y_) ||
+        std::isinf(pixelStretch->z_) || std::isinf(pixelStretch->w_)) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch skip original pixelStretch");
+        return;
+    }
     auto surface = canvas->GetSurface();
     if (surface == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch surface null");
@@ -958,9 +973,10 @@ void RSPropertyDrawableUtils::DrawShadowMaskFilter(Drawing::Canvas* canvas, Draw
     canvas->DetachBrush();
 }
 
-void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas)
+void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffectType useEffectType)
 {
-    const auto& effectData = canvas->GetEffectData();
+    const auto& effectData = useEffectType == UseEffectType::EFFECT_COMPONENT ?
+        canvas->GetEffectData() : canvas->GetBehindWindowData();
     if (effectData == nullptr || effectData->cachedImage_ == nullptr || !RSSystemProperties::GetEffectMergeEnabled()) {
         return;
     }
@@ -1029,8 +1045,6 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
     }
 
     // save layer mode
-    CeilMatrixTrans(&canvas);
-
     Drawing::Brush blendBrush_;
     blendBrush_.SetAlphaF(canvas.GetAlpha());
     blendBrush_.SetBlender(blender);
@@ -1313,6 +1327,55 @@ void RSPropertyDrawableUtils::RSFilterRemovePixelStretch(const std::shared_ptr<R
     std::shared_ptr<RSPixelStretchParams> pixelStretchParams = nullptr;
     mesaBlurFilter->SetPixelStretchParams(pixelStretchParams);
     return;
+}
+
+std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(float radius,
+    float saturation, float brightness, RSColor maskColor)
+{
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSPropertyDrawableUtils::GenerateBehindWindowFilter, Radius: %f, Saturation: %f, "
+        "Brightness: %f, MaskColor: %08X", radius, saturation, brightness, maskColor.AsArgbInt());
+    uint32_t hash = SkOpts::hash(&radius, sizeof(radius), 0);
+    std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
+    std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
+        Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, radius, radius);
+        std::shared_ptr<RSDrawingFilter> filter = nullptr;
+    if (RSSystemProperties::GetKawaseEnabled()) {
+        std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
+        auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
+        filter = filter?
+            filter->Compose(colorImageFilter, hash) : std::make_shared<RSDrawingFilter>(colorImageFilter, hash);
+        filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(kawaseBlurFilter));
+    } else {
+        hash = SkOpts::hash(&saturation, sizeof(saturation), hash);
+        hash = SkOpts::hash(&brightness, sizeof(brightness), hash);
+        filter = filter?
+            filter->Compose(blurColorFilter, hash) : std::make_shared<RSDrawingFilter>(blurColorFilter, hash);
+    }
+    std::shared_ptr<RSMaskColorShaderFilter> maskColorShaderFilter = std::make_shared<RSMaskColorShaderFilter>(
+        BLUR_COLOR_MODE::DEFAULT, maskColor);
+    filter = filter->Compose(std::static_pointer_cast<RSShaderFilter>(maskColorShaderFilter));
+    filter->SetSkipFrame(RSDrawingFilter::CanSkipFrame(radius));
+    filter->SetSaturationForHPS(saturation);
+    filter->SetBrightnessForHPS(brightness);
+    filter->SetFilterType(RSFilter::MATERIAL);
+    return filter;
+}
+
+std::shared_ptr<Drawing::ColorFilter> RSPropertyDrawableUtils::GenerateMaterialColorFilter(float sat, float brt)
+{
+    float normalizedDegree = brt - 1.0;
+    const float brightnessMat[] = {
+        1.000000f, 0.000000f, 0.000000f, 0.000000f, normalizedDegree,
+        0.000000f, 1.000000f, 0.000000f, 0.000000f, normalizedDegree,
+        0.000000f, 0.000000f, 1.000000f, 0.000000f, normalizedDegree,
+        0.000000f, 0.000000f, 0.000000f, 1.000000f, 0.000000f,
+    };
+    Drawing::ColorMatrix cm;
+    cm.SetSaturation(sat);
+    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
+    cm.GetArray(cmArray);
+    return Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat, Drawing::Clamp::NO_CLAMP);
 }
 } // namespace Rosen
 } // namespace OHOS

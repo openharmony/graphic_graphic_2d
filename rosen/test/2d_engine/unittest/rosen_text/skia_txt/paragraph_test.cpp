@@ -15,7 +15,9 @@
 
 #include "gtest/gtest.h"
 #include "font_collection.h"
+#include "modules/skparagraph/src/ParagraphImpl.h"
 #include "paragraph_builder.h"
+#include "paragraph_impl.h"
 #include "paragraph_style.h"
 #include "text_style.h"
 
@@ -29,44 +31,51 @@ namespace txt {
 namespace skt = skia::textlayout;
 class ParagraphTest : public testing::Test {
 public:
-    static void SetUpTestCase();
-    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+
     static bool AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-    static inline std::shared_ptr<Paragraph> paragraph_ = nullptr;
+    static skia::textlayout::ParagraphImpl* GetParagraphSkiaImpl(const std::shared_ptr<Paragraph>& paragraph);
+    static ParagraphImpl* GetParagraphImpl(const std::shared_ptr<Paragraph>& paragraph);
+
+protected:
+    std::shared_ptr<Paragraph> paragraph_;
+    int layoutWidth_ = 50;
+    std::u16string text_ = u"text";
 };
 
-void ParagraphTest::SetUpTestCase()
+void ParagraphTest::SetUp()
 {
     ParagraphStyle paragraphStyle;
     std::shared_ptr<FontCollection> fontCollection = std::make_shared<FontCollection>();
-    if (!fontCollection) {
-        std::cout << "ParagraphTest::SetUpTestCase error fontCollection is nullptr" << std::endl;
-        return;
-    }
+    ASSERT_NE(fontCollection, nullptr);
     fontCollection->SetupDefaultFontManager();
     std::shared_ptr<ParagraphBuilder> paragraphBuilder = ParagraphBuilder::Create(paragraphStyle, fontCollection);
-    if (!paragraphBuilder) {
-        std::cout << "ParagraphTest::SetUpTestCase error paragraphBuilder is nullptr" << std::endl;
-        return;
-    }
-    std::u16string text(u"text");
-    paragraphBuilder->AddText(text);
+    ASSERT_NE(paragraphBuilder, nullptr);
+    paragraphBuilder->AddText(text_);
     // 50 just for test
-    PlaceholderRun placeholderRun(50, 50, PlaceholderAlignment::BASELINE,
-     SPText::TextBaseline::ALPHABETIC, 0.0);
+    PlaceholderRun placeholderRun(50, 50, PlaceholderAlignment::BASELINE, SPText::TextBaseline::ALPHABETIC, 0.0);
     paragraphBuilder->AddPlaceholder(placeholderRun);
     paragraph_ = paragraphBuilder->Build();
-    if (!paragraph_) {
-        std::cout << "ParagraphTest::SetUpTestCase error paragraph_ is nullptr" << std::endl;
-        return;
-    }
+    ASSERT_NE(paragraph_, nullptr);
     // 50 just for test
-    paragraph_->Layout(50);
+    paragraph_->Layout(layoutWidth_);
     paragraph_->MeasureText();
 }
 
-void ParagraphTest::TearDownTestCase()
+void ParagraphTest::TearDown()
 {
+    paragraph_.reset();
+}
+
+ParagraphImpl* ParagraphTest::GetParagraphImpl(const std::shared_ptr<Paragraph>& paragraph)
+{
+    return static_cast<ParagraphImpl*>(paragraph.get());
+}
+
+skia::textlayout::ParagraphImpl* ParagraphTest::GetParagraphSkiaImpl(const std::shared_ptr<Paragraph>& paragraph)
+{
+    return static_cast<skia::textlayout::ParagraphImpl*>(GetParagraphImpl(paragraph)->paragraph_.get());
 }
 
 bool ParagraphTest::AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
@@ -81,446 +90,227 @@ bool ParagraphTest::AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimat
  */
 HWTEST_F(ParagraphTest, ParagraphTest001, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetMaxWidth() > 0, true);
+    EXPECT_EQ(paragraph_->GetMaxWidth(), layoutWidth_);
+    EXPECT_EQ(paragraph_->GetHeight(), 19);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLine()), 44);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetMinIntrinsicWidth()), 78);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetMaxIntrinsicWidth()), 78);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetAlphabeticBaseline()), 14);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetIdeographicBaseline()), 18);
+    EXPECT_EQ(paragraph_->GetGlyphsBoundsTop(), -11);
+    EXPECT_EQ(paragraph_->GetGlyphsBoundsBottom(), 1);
+    EXPECT_EQ(paragraph_->GetGlyphsBoundsLeft(), 0);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetGlyphsBoundsRight()), 36);
+    EXPECT_TRUE(paragraph_->DidExceedMaxLines());
+    EXPECT_EQ(paragraph_->GetLineCount(), 1);
+    EXPECT_EQ(paragraph_->GetUnresolvedGlyphsCount(), 0);
+    EXPECT_EQ(paragraph_->GetRectsForRange(0, text_.size(), RectHeightStyle::MAX, RectWidthStyle::TIGHT).size(), 1);
+    EXPECT_EQ(paragraph_->GetRectsForPlaceholders().size(), 0);
+    EXPECT_EQ(paragraph_->GetGlyphPositionAtCoordinate(0.0, 0.0).affinity, OHOS::Rosen::SPText::Affinity::DOWNSTREAM);
+    EXPECT_EQ(paragraph_->GetGlyphPositionAtCoordinate(0.0, 0.0).position, 0.0);
+    EXPECT_EQ(paragraph_->GetWordBoundary(0).start, 0);
+    EXPECT_EQ(paragraph_->GetActualTextRange(0, false).start, 0);
+    EXPECT_EQ(paragraph_->GetActualTextRange(-1, false).start, 0);
+    EXPECT_EQ(paragraph_->GetLineMetrics().size(), 1);
+    EXPECT_EQ(static_cast<int>(paragraph_->GetLongestLineWithIndent()), 44);
 }
 
 /*
  * @tc.name: ParagraphTest002
- * @tc.desc: test for GetHeight
+ * @tc.desc: test for SetIndents
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest002, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetHeight() > 0, true);
+    // 0.5 just for test
+    std::vector<float> indents = { 0.5, 1 };
+    paragraph_->SetIndents(indents);
+    EXPECT_EQ(paragraph_->DetectIndents(0), 0.5);
+    EXPECT_EQ(paragraph_->DetectIndents(indents.size()), 1);
 }
 
 /*
  * @tc.name: ParagraphTest003
- * @tc.desc: test for GetLongestLine
+ * @tc.desc: test for MarkDirty
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest003, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetLongestLine() > 0, true);
+    paragraph_->MarkDirty();
+    auto paragraphImpl = GetParagraphSkiaImpl(paragraph_);
+    EXPECT_EQ(paragraphImpl->fState, skia::textlayout::kIndexed);
 }
 
 /*
  * @tc.name: ParagraphTest004
- * @tc.desc: test for GetMinIntrinsicWidth
+ * @tc.desc: test for UpdateFontSize
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest004, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetMinIntrinsicWidth() > 0, true);
+    // 2 24.0 just for test
+    paragraph_->UpdateFontSize(0, text_.size(), 24.0);
+    auto paragraphImpl = GetParagraphSkiaImpl(paragraph_);
+    ASSERT_GT(paragraphImpl->fTextStyles.size(), 0);
+    EXPECT_EQ(paragraphImpl->fTextStyles.at(0).fStyle.getFontSize(), 24);
 }
 
 /*
  * @tc.name: ParagraphTest005
- * @tc.desc: test for GetMaxIntrinsicWidth
+ * @tc.desc: test for Paint
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest005, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetMaxIntrinsicWidth() > 0, true);
+    SkCanvas skCanvas;
+    paragraph_->Paint(&skCanvas, 0.0, 0.0);
+    Canvas canvas;
+    paragraph_->Paint(&canvas, 0.0, 0.0);
+    Path path;
+    paragraph_->Paint(&canvas, &path, 0.0, 0.0);
 }
 
 /*
  * @tc.name: ParagraphTest006
- * @tc.desc: test for GetAlphabeticBaseline
+ * @tc.desc: test for GetLineMetricsAt
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest006, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetAlphabeticBaseline() > 0, true);
+    skia::textlayout::LineMetrics lineMetrics;
+    auto metrics = paragraph_->MeasureText();
+    ASSERT_TRUE(paragraph_->GetLineMetricsAt(0, &lineMetrics));
+    EXPECT_EQ(lineMetrics.fAscent, -metrics.fAscent);
+    EXPECT_EQ(lineMetrics.fDescent, metrics.fDescent);
 }
 
 /*
  * @tc.name: ParagraphTest007
- * @tc.desc: test for GetIdeographicBaseline
+ * @tc.desc: test for SetAnimation
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest007, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetIdeographicBaseline() > 0, true);
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        ParagraphTest::AnimationFunc;
+    paragraph_->SetAnimation(animationFunc);
+    auto paragraphImpl = GetParagraphImpl(paragraph_);
+    EXPECT_TRUE(paragraphImpl->animationFunc_(nullptr));
 }
 
 /*
  * @tc.name: ParagraphTest008
- * @tc.desc: test for GetGlyphsBoundsTop
+ * @tc.desc: test for SetParagraghId
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest008, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetGlyphsBoundsTop() > 0, true);
+    paragraph_->SetParagraghId(1);
+    auto paragraphImpl = GetParagraphImpl(paragraph_);
+    EXPECT_EQ(paragraphImpl->id_, 1);
 }
 
 /*
  * @tc.name: ParagraphTest009
- * @tc.desc: test for GetGlyphsBoundsBottom
+ * @tc.desc: test for GetFontMetricsResult
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest009, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    paragraph_->GetGlyphsBoundsBottom();
+    SPText::TextStyle textStyle;
+    auto fontMetrics = paragraph_->GetFontMetricsResult(textStyle);
+    EXPECT_EQ(static_cast<int>(fontMetrics.fTop), -14);
 }
 
 /*
  * @tc.name: ParagraphTest010
- * @tc.desc: test for GetGlyphsBoundsLeft
+ * @tc.desc: test for GetLineFontMetrics
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest010, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    paragraph_->GetGlyphsBoundsLeft();
+    size_t charNumber = 1;
+    std::vector<Drawing::FontMetrics> fontMetrics;
+    ASSERT_TRUE(paragraph_->GetLineFontMetrics(1, charNumber, fontMetrics));
+    ASSERT_GT(fontMetrics.size(), 0);
+    auto metrics = paragraph_->MeasureText();
+    EXPECT_EQ(metrics.fAscent, fontMetrics.at(0).fAscent);
+    EXPECT_EQ(metrics.fDescent, fontMetrics.at(0).fDescent);
+}
+
+/*
+ * @tc.name: ParagraphTest011
+ * @tc.desc: test for CloneSelf
+ * @tc.type: FUNC
+ */
+HWTEST_F(ParagraphTest, ParagraphTest011, TestSize.Level1)
+{
+    auto paragraphClone = paragraph_->CloneSelf();
+    EXPECT_EQ(paragraphClone->GetHeight(), paragraph_->GetHeight());
+    EXPECT_EQ(paragraphClone->GetMaxWidth(), paragraph_->GetMaxWidth());
+    EXPECT_EQ(paragraphClone->GetMinIntrinsicWidth(), paragraph_->GetMinIntrinsicWidth());
+    EXPECT_EQ(paragraphClone->GetGlyphsBoundsBottom(), paragraph_->GetGlyphsBoundsBottom());
+    EXPECT_EQ(paragraphClone->GetGlyphsBoundsLeft(), paragraph_->GetGlyphsBoundsLeft());
+    EXPECT_EQ(paragraphClone->GetLongestLine(), paragraph_->GetLongestLine());
+    EXPECT_EQ(paragraphClone->GetLongestLineWithIndent(), paragraph_->GetLongestLineWithIndent());
 }
 
 /*
  * @tc.name: ParagraphTest012
- * @tc.desc: test for DidExceedMaxLines
+ * @tc.desc: test for SkStyleToTextStyle
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest012, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->DidExceedMaxLines(), true);
+    skt::TextStyle skStyle;
+    skStyle.setBackgroundPaintID(-1);
+    skStyle.addShadow(skia::textlayout::TextShadow());
+    skStyle.setColor(0xFF0000FF);           // used for testing. Set the color to blue.
+    skStyle.setDecorationColor(0xFF000000); // used for testing. Set the color to black.
+    skStyle.setDecorationThicknessMultiplier(2.0f);
+    skStyle.setFontFamilies({ SkString("sans-serif") });
+    skStyle.setFontSize(12.0f);
+    skStyle.setHeight(1.5f);
+    SPText::TextStyle txt = paragraph_->SkStyleToTextStyle(skStyle);
+    EXPECT_EQ(txt.color, skStyle.getColor());
+    EXPECT_EQ(txt.decorationColor, skStyle.fDecoration.fColor);
+    EXPECT_EQ(txt.decorationThicknessMultiplier, skStyle.fDecoration.fThicknessMultiplier);
+    EXPECT_EQ(txt.fontSize, skStyle.getFontSize());
+    EXPECT_EQ(txt.height, skStyle.getHeight());
+    ASSERT_GT(txt.fontFamilies.size(), 0);
+    EXPECT_EQ(txt.fontFamilies.back(), std::string(skStyle.fFontFamilies.back().c_str()));
 }
 
 /*
  * @tc.name: ParagraphTest013
- * @tc.desc: test for GetLineCount
+ * @tc.desc: test for UpdateColor
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest013, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetLineCount() > 0, true);
+    RSColor color(255, 0, 0, 255);
+    std::u16string text = u"text";
+    paragraph_->UpdateColor(0, text.length(), color);
+    auto paragraphImpl = GetParagraphImpl(paragraph_);
+    for (auto p: paragraphImpl->paints_) {
+        EXPECT_EQ(p.color, color);
+    }
 }
 
 /*
  * @tc.name: ParagraphTest014
- * @tc.desc: test for SetIndents
+ * @tc.desc: test for SkStyleToTextStyle
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTest014, TestSize.Level1)
 {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    std::vector<float> indents;
-    // 0.5 just for test
-    indents.emplace_back(0.5);
-    paragraph_->SetIndents(indents);
-}
-
-/*
- * @tc.name: ParagraphTest015
- * @tc.desc: test for DetectIndents
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest015, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->DetectIndents(0) > 0, true);
-}
-
-/*
- * @tc.name: ParagraphTest016
- * @tc.desc: test for MarkDirty
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest016, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    paragraph_->MarkDirty();
-}
-
-/*
- * @tc.name: ParagraphTest017
- * @tc.desc: test for GetUnresolvedGlyphsCount
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest017, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    // 50 just for test
-    paragraph_->Layout(50);
-    EXPECT_EQ(paragraph_->GetUnresolvedGlyphsCount(), 0);
-}
-
-/*
- * @tc.name: ParagraphTest018
- * @tc.desc: test for UpdateFontSize
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest018, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    // 2 24.0 just for test
-    paragraph_->UpdateFontSize(0, 2, 24.0);
-}
-
-/*
- * @tc.name: ParagraphTest019
- * @tc.desc: test for Paint
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest019, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    SkCanvas canvas;
-    paragraph_->Paint(&canvas, 0.0, 0.0);
-}
-
-/*
- * @tc.name: ParagraphTest020
- * @tc.desc: test for Paint
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest020, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    Canvas canvas;
-    paragraph_->Paint(&canvas, 0.0, 0.0);
-}
-
-/*
- * @tc.name: ParagraphTest021
- * @tc.desc: test for GetRectsForRange
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest021, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    // 2 just for test
-    EXPECT_EQ(paragraph_->GetRectsForRange(0, 2, RectHeightStyle::MAX, RectWidthStyle::TIGHT).size(), 1);
-}
-
-/*
- * @tc.name: ParagraphTest022
- * @tc.desc: test for GetRectsForPlaceholders
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest022, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    // 2 just for test
-    EXPECT_EQ(paragraph_->GetRectsForPlaceholders().size(), 0);
-}
-
-/*
- * @tc.name: ParagraphTest023
- * @tc.desc: test for GetGlyphPositionAtCoordinate
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest023, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    paragraph_->GetGlyphPositionAtCoordinate(0.0, 0.0);
-}
-
-/*
- * @tc.name: ParagraphTest024
- * @tc.desc: test for GetWordBoundary
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest024, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetWordBoundary(0).start, 0);
-}
-
-/*
- * @tc.name: ParagraphTest025
- * @tc.desc: test for GetActualTextRange
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest025, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetActualTextRange(0, false).start, 0);
-}
-
-/*
- * @tc.name: ParagraphTest026
- * @tc.desc: test for GetLineMetrics
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest026, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetLineMetrics().size() > 0, true);
-}
-
-/*
- * @tc.name: ParagraphTest027
- * @tc.desc: test for GetLineMetricsAt
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest027, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    skia::textlayout::LineMetrics lineMetrics;
-    EXPECT_EQ(paragraph_->GetLineMetricsAt(0, &lineMetrics), true);
-}
-
-/*
- * @tc.name: ParagraphTest028
- * @tc.desc: test for SetAnimation
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest028, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
-        ParagraphTest::AnimationFunc;
-    paragraph_->SetAnimation(animationFunc);
-}
-
-/*
- * @tc.name: ParagraphTest029
- * @tc.desc: test for SetParagraghId
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest029, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    paragraph_->SetParagraghId(0);
-}
-
-/*
- * @tc.name: ParagraphTest030
- * @tc.desc: test for MeasureText
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest030, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->MeasureText().fFlags != 0, true);
-}
-
-/*
- * @tc.name: ParagraphTest031
- * @tc.desc: test for GetFontMetricsResult
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest031, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    SPText::TextStyle textStyle;
-    EXPECT_EQ(paragraph_->GetFontMetricsResult(textStyle).fFlags != 0, true);
-}
-
-/*
- * @tc.name: ParagraphTest032
- * @tc.desc: test for GetLineFontMetrics
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest032, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    size_t charNumber = 1;
-    std::vector<Drawing::FontMetrics> fontMetrics;
-    EXPECT_EQ(paragraph_->GetLineFontMetrics(1, charNumber, fontMetrics), true);
-}
-
-/*
- * @tc.name: ParagraphTest033
- * @tc.desc: test for GetTextLines
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest033, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetTextLines().size() > 0, true);
-}
-
-/*
- * @tc.name: ParagraphTest034
- * @tc.desc: test for CloneSelf
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest034, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->CloneSelf() != nullptr, true);
-}
-
-/*
- * @tc.name: ParagraphTest035
- * @tc.desc: test for GetLongestLineWithIndent
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest035, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    EXPECT_EQ(paragraph_->GetLongestLineWithIndent() > 0, true);
-}
-
-/*
- * @tc.name: ParagraphTest036
- * @tc.desc: test for SkStyleToTextStyle
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest036, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    skt::TextStyle skStyle;
-    skStyle.setColor(0xFF0000FF); // used for testing. Set the color to blue.
-    skStyle.setDecorationColor(0xFF000000); // used for testing. Set the color to black.
-    skStyle.setDecorationThicknessMultiplier(2.0f);
-    skStyle.setFontFamilies({ SkString("sans-serif")});
-    skStyle.setFontSize(12.0f);
-    skStyle.setHeight(1.5f);
-    SPText::TextStyle txt = paragraph_->SkStyleToTextStyle(skStyle);
-}
-
-/*
- * @tc.name: ParagraphTest037
- * @tc.desc: test for UpdateColor
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest037, TestSize.Level1)
-{
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    RSColor color(255, 0, 0, 255);
-    std::u16string text(u"text");
-    paragraph_->UpdateColor(0, text.length(), color);
-}
-
-/*
- * @tc.name: ParagraphTest038
- * @tc.desc: test for UpdateColor
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest038, TestSize.Level1) {
-    EXPECT_EQ(paragraph_ != nullptr, true);
-    RSColor rsColor(10, 10, 10, 10);
-    paragraph_->UpdateColor(0, 10, rsColor);
-}
-
-/*
- * @tc.name: ParagraphTest039
- * @tc.desc: test for SkStyleToTextStyle
- * @tc.type: FUNC
- */
-HWTEST_F(ParagraphTest, ParagraphTest039, TestSize.Level1) {
-    EXPECT_EQ(paragraph_ != nullptr, true);
     auto metrics = paragraph_->GetLineMetrics();
-    for (const skia::textlayout::LineMetrics &skLineMetrics : metrics) {
+    for (auto skLineMetrics : metrics) {
         for (const auto& [index, styleMetrics] : skLineMetrics.fLineMetrics) {
             OHOS::Rosen::SPText::TextStyle spTextStyle = paragraph_->SkStyleToTextStyle(*styleMetrics.text_style);
+            EXPECT_EQ(spTextStyle.color, styleMetrics.text_style->fColor);
+            EXPECT_EQ(spTextStyle.decorationColor, styleMetrics.text_style->fDecoration.fColor);
         }
     }
-
-    EXPECT_EQ(paragraph_->GetLongestLine() <= 50, true);
-    EXPECT_EQ(paragraph_->GetLongestLineWithIndent() <= 50, true);
 }
 } // namespace txt

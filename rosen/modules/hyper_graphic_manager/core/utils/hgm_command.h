@@ -101,6 +101,8 @@ public:
         int32_t drawMin;
         int32_t drawMax;
         int32_t down;
+        // Does this game app require Adaptive Sync?
+        bool supportAS;
         // <bufferName, fps>
         std::vector<std::pair<std::string, int32_t>> appBufferList;
         std::vector<std::string> appBufferBlackList;
@@ -111,6 +113,7 @@ public:
     struct SceneConfig {
         std::string strategy;
         std::string priority;
+        bool doNotAutoClear;
     };
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;

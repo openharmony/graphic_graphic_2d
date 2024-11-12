@@ -23,6 +23,7 @@
 #include "render/rs_shader_filter.h"
 #include "render/rs_aibar_shader_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
+#include "drawable/rs_property_drawable_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -435,5 +436,25 @@ HWTEST_F(RSPropertyDrawableTest, MarkBlurIntersectWithDRM001, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     EXPECT_NE(filterDrawable, nullptr);
     filterDrawable->MarkBlurIntersectWithDRM(true, true);
+}
+
+/**
+ * @tc.name: RSFilterDrawableTest012
+ * @tc.desc: Test RSFilterDrawable needDrawBehindWindow branch
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest012, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(&canvas, &rect);
+    drawable->filter_ = RSPropertyDrawableUtils::GenerateBehindWindowFilter(80.0f, 1.9f, 1.0f, RSColor(0xFFFFFFE5));
+    EXPECT_NE(drawable->filter_, nullptr);
+    drawFunc(&canvas, &rect);
+    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

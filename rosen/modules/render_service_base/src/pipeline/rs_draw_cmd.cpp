@@ -19,8 +19,10 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
+#include "rs_trace.h"
 #include "utils/system_properties.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "platform/common/rs_system_properties.h"
@@ -41,6 +43,9 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
+#ifdef ROSEN_OHOS
+constexpr uint32_t FENCE_WAIT_TIME = 3000; // ms
+#endif
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 constexpr uint8_t ASTC_HEADER_SIZE = 16;
 #endif
@@ -77,6 +82,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
+    rsImage_->SetDynamicRangeMode(imageInfo.dynamicRangeMode);
     rsImage_->SetFitMatrix(imageInfo.fitMatrix);
     imageInfo_ = imageInfo;
 }
@@ -97,7 +103,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
         rsImage_->SetScale(imageInfo.scale);
-        rsImage_->SetDyamicRangeMode(imageInfo.dynamicRangeMode);
+        rsImage_->SetDynamicRangeMode(imageInfo.dynamicRangeMode);
         RectF frameRect(imageInfo.frameRect.GetLeft(),
                         imageInfo.frameRect.GetTop(),
                         imageInfo.frameRect.GetRight(),
@@ -118,6 +124,13 @@ void RSExtendImageObject::SetPaint(Drawing::Paint paint)
 {
     if (rsImage_) {
         rsImage_->SetPaint(paint);
+    }
+}
+
+void RSExtendImageObject::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
     }
 }
 
@@ -192,7 +205,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            if (GetRsImageCache(canvas, pixelMap,
+                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -205,8 +219,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
             RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
             if (!nativeWindowBuffer_) {
-                sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
-                nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+                sptr<SurfaceBuffer> sfBuffer(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
+                nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
             }
             OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
             if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
@@ -228,6 +242,34 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
+}
+#endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+{
+    if (pixelMap == nullptr) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Image> imageCache = nullptr;
+    if (!pixelMap->IsEditable()) {
+        imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
+            rsImage_->GetUniqueId(), gettid());
+    }
+    if (imageCache) {
+        this->image_ = imageCache;
+    } else {
+        bool ret = MakeFromTextureForVK(
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace);
+        if (ret && image_ && !pixelMap->IsEditable()) {
+            SKResourceManager::Instance().HoldResource(image_);
+            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
+                rsImage_->GetUniqueId(), image_, gettid());
+        }
+        return ret;
+    }
+    return true;
 }
 #endif
 
@@ -413,10 +455,10 @@ RSExtendImageBaseObj::RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap
 }
 
 void RSExtendImageBaseObj::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-    const Drawing::SamplingOptions& sampling)
+    const Drawing::SamplingOptions& sampling, Drawing::SrcRectConstraint constraint)
 {
     if (rsImage_) {
-        rsImage_->DrawImage(canvas, sampling);
+        rsImage_->DrawImage(canvas, sampling, constraint);
     }
 }
 
@@ -424,6 +466,13 @@ void RSExtendImageBaseObj::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageBaseObj::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
     }
 }
 
@@ -463,8 +512,8 @@ RSExtendDrawFuncObj *RSExtendDrawFuncObj::Unmarshalling(Parcel &parcel)
 
 namespace Drawing {
 /* DrawImageWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM, DrawImageWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawImageWithParm, DrawOpItem::IMAGE_WITH_PARM_OPITEM,
+    DrawImageWithParmOpItem::Unmarshalling, sizeof(DrawImageWithParmOpItem::ConstructorHandle));
 
 DrawImageWithParmOpItem::DrawImageWithParmOpItem(
     const DrawCmdList& cmdList, DrawImageWithParmOpItem::ConstructorHandle* handle)
@@ -525,8 +574,8 @@ void DrawImageWithParmOpItem::Dump(std::string& out) const
 }
 
 /* DrawPixelMapWithParmOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, DrawPixelMapWithParmOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapWithParm, DrawOpItem::PIXELMAP_WITH_PARM_OPITEM,
+    DrawPixelMapWithParmOpItem::Unmarshalling, sizeof(DrawPixelMapWithParmOpItem::ConstructorHandle));
 
 DrawPixelMapWithParmOpItem::DrawPixelMapWithParmOpItem(
     const DrawCmdList& cmdList, DrawPixelMapWithParmOpItem::ConstructorHandle* handle)
@@ -583,18 +632,20 @@ void DrawPixelMapWithParmOpItem::DumpItems(std::string& out) const
 }
 
 /* DrawPixelMapRectOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM, DrawPixelMapRectOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
+    DrawPixelMapRectOpItem::Unmarshalling, sizeof(DrawPixelMapRectOpItem::ConstructorHandle));
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling),
+      constraint_(handle->constraint)
 {
     objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
 }
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src,
-    const Rect& dst, const SamplingOptions& sampling, const Paint& paint)
-    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling)
+    const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling), constraint_(constraint)
 {
     objectHandle_ = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
 }
@@ -610,7 +661,7 @@ void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto objectHandle = CmdListHelper::AddImageBaseObjToCmdList(cmdList, objectHandle_);
-    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, constraint_, paintHandle);
 }
 
 void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -620,7 +671,7 @@ void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     canvas->AttachPaint(paint_);
-    objectHandle_->Playback(*canvas, *rect, sampling_);
+    objectHandle_->Playback(*canvas, *rect, sampling_, constraint_);
 }
 
 void DrawPixelMapRectOpItem::SetNodeId(NodeId id)
@@ -639,7 +690,8 @@ void DrawPixelMapRectOpItem::DumpItems(std::string& out) const
 }
 
 /* DrawFuncOpItem */
-REGISTER_UNMARSHALLING_FUNC(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM, DrawFuncOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawFunc, DrawOpItem::DRAW_FUNC_OPITEM,
+    DrawFuncOpItem::Unmarshalling, sizeof(DrawFuncOpItem::ConstructorHandle));
 
 DrawFuncOpItem::DrawFuncOpItem(const DrawCmdList& cmdList, DrawFuncOpItem::ConstructorHandle* handle)
     : DrawOpItem(DRAW_FUNC_OPITEM)
@@ -672,8 +724,8 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 
 #ifdef ROSEN_OHOS
 /* DrawSurfaceBufferOpItem */
-REGISTER_UNMARSHALLING_FUNC(
-    DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM, DrawSurfaceBufferOpItem::Unmarshalling);
+UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
+    DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
 DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
     DrawSurfaceBufferOpItem::ConstructorHandle* handle)
@@ -682,7 +734,11 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
                          handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_,
                          handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
 {
-    surfaceBufferInfo_.surfaceBuffer_ = CmdListHelper::GetSurfaceBufferFromCmdList(cmdList, handle->surfaceBufferId);
+    auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
+    if (surfaceBufferEntry) {
+        surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
+        surfaceBufferInfo_.acquireFence_ = surfaceBufferEntry->acquireFence_;
+    }
 }
 
 DrawSurfaceBufferOpItem::~DrawSurfaceBufferOpItem()
@@ -701,8 +757,10 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
 {
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    std::shared_ptr<SurfaceBufferEntry> surfaceBufferEntry =
+        std::make_shared<SurfaceBufferEntry>(surfaceBufferInfo_.surfaceBuffer_, surfaceBufferInfo_.acquireFence_);
     cmdList.AddOp<ConstructorHandle>(
-        CmdListHelper::AddSurfaceBufferToCmdList(cmdList, surfaceBufferInfo_.surfaceBuffer_),
+        CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
         surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
         surfaceBufferInfo_.width_, surfaceBufferInfo_.height_,
         surfaceBufferInfo_.pid_, surfaceBufferInfo_.uid_, paintHandle);
@@ -798,6 +856,13 @@ Drawing::BitmapFormat DrawSurfaceBufferOpItem::CreateBitmapFormat(int32_t buffer
 void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
 #ifdef RS_ENABLE_VK
+    if (surfaceBufferInfo_.acquireFence_) {
+        RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::DrawWithVulkan waitfence");
+        int res = surfaceBufferInfo_.acquireFence_->Wait(FENCE_WAIT_TIME);
+        if (res < 0) {
+            LOGW("DrawSurfaceBufferOpItem::DrawWithVulkan waitfence timeout");
+        }
+    }
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
         surfaceBufferInfo_.surfaceBuffer_->GetWidth(), surfaceBufferInfo_.surfaceBuffer_->GetHeight());
     if (!backendTexture.IsValid()) {
@@ -829,6 +894,13 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
 {
 #ifdef RS_ENABLE_GL
+    if (surfaceBufferInfo_.acquireFence_) {
+        RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::DrawWithGles waitfence");
+        int res = surfaceBufferInfo_.acquireFence_->Wait(FENCE_WAIT_TIME);
+        if (res < 0) {
+            LOGW("DrawSurfaceBufferOpItem::DrawWithGles waitfence timeout");
+        }
+    }
     if (!CreateEglTextureId()) {
         return;
     }

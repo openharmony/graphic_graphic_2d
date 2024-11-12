@@ -50,7 +50,6 @@
         "graphic_2d_feature_enable_flutter_vulkan",
         "graphic_2d_feature_enable_opengl",
         "graphic_2d_feature_enable_opinc",
-        "graphic_2d_feature_enable_recording_dcl",
         "graphic_2d_feature_enable_rspipeline",
         "graphic_2d_feature_enable_stack_culling",
         "graphic_2d_feature_enable_vulkan",
@@ -99,7 +98,6 @@
           "bounds_checking_function",
           "egl",
           "opengles",
-          "node",
           "vulkan-headers",
           "vulkan-loader",
           "cJSON",
@@ -114,7 +112,6 @@
           "skia"
         ],
         "third_party": [
-          "flutter",
           "skia"
         ]
       },
@@ -256,6 +253,7 @@
             "header": {
               "header_files": [
                 "animation/rs_animation_timing_protocol.h",
+                "common/rs_common_def.h",
                 "common/rs_macros.h",
                 "common/rs_rect.h",
                 "common/rs_vector3.h",
@@ -272,6 +270,7 @@
                 "render/rs_path.h",
                 "render/rs_border.h",
                 "render/rs_image_base.h",
+                "screen_manager/screen_types.h",
                 "modifier/rs_animatable_arithmetic.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include"
@@ -465,6 +464,7 @@
           "//foundation/graphic/graphic_2d/rosen/modules/animation/window_animation/test:test",
           "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/test:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_engine:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/graphics_effect/test:test",
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo"
         ]
       }

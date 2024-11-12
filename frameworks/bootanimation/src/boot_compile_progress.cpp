@@ -210,7 +210,11 @@ void BootCompileProgress::DrawCompileProgress()
         return;
     }
     std::shared_ptr<Rosen::Drawing::TextBlob> textBlob = Rosen::Drawing::TextBlob::MakeFromString(info, font);
-
+    auto textBound = textBlob->Bounds();
+    if (textBound == nullptr) {
+        LOGE("textBound is null");
+        return;
+    }
     Rosen::Drawing::Brush whiteBrush;
     whiteBrush.SetColor(0xFFFFFFFF);
     whiteBrush.SetAntiAlias(true);
@@ -218,7 +222,7 @@ void BootCompileProgress::DrawCompileProgress()
 
     double scale = 0.5;
     float scalarX = windowWidth_ * scale - textBlob->Bounds()->GetWidth() / NUMBER_TWO;
-    float scalarY = TEXT_BLOB_OFFSET + textBlob->Bounds()->GetHeight() / NUMBER_TWO;
+    float scalarY = TEXT_BLOB_OFFSET + textBound->GetHeight() / NUMBER_TWO;
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
     canvas->DetachBrush();
 

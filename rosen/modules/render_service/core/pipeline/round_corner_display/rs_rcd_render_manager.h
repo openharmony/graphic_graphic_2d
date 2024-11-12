@@ -56,8 +56,9 @@ public:
     bool GetRcdRenderEnabled() const;
 
     void CheckRenderTargetNode(const RSContext& context);
-    RSRcdSurfaceRenderNodePtr GetContentSurfaceNodes(NodeId id) const;
-    RSRcdSurfaceRenderNodePtr GetBackgroundSurfaceNodes(NodeId id) const;
+    RSRcdSurfaceRenderNodePtr GetTopSurfaceNode(NodeId id);
+    RSRcdSurfaceRenderNodePtr GetBottomSurfaceNode(NodeId id);
+
     void DoProcessRenderTask(NodeId id, const RcdProcessInfo& info);
 
     void DoProcessRenderMainThreadTask(NodeId id, const RcdProcessInfo& info);
@@ -71,12 +72,14 @@ private:
     static bool CheckExist(NodeId id, const RSRenderNodeMap& map);
     RSRcdSurfaceRenderNodePtr GetTopRenderNode(NodeId id);
     RSRcdSurfaceRenderNodePtr GetBottomRenderNode(NodeId id);
+    void RemoveRcdResource(NodeId id);
 
     bool rcdRenderEnabled_ = false;
     constexpr static NodeId TOP_RCD_NODE_ID = 1;
     constexpr static NodeId BACKGROUND_RCD_NODE_ID = 2;
 
-    std::mutex nodeMapMut_;
+    std::mutex topNodeMapMut_;
+    std::mutex bottomNodeMapMut_;
     // key nodeId of display screen, rcd rendernode
     RSRcdSurfaceRenderNodePtrMap topSurfaceNodeMap_;
     RSRcdSurfaceRenderNodePtrMap bottomSurfaceNodeMap_;

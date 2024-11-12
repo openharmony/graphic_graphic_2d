@@ -62,5 +62,9 @@ void RSTestUtil::InitRenderNodeGC()
     auto& renderNodeGC = RSRenderNodeGC::Instance();
     renderNodeGC.nodeBucket_ = std::queue<std::vector<RSRenderNode*>>();
     renderNodeGC.drawableBucket_ = std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>>();
+    auto& memTrack = MemoryTrack::Instance();
+    memTrack.memNodeMap_ = std::unordered_map<NodeId, MemoryInfo>();
+    auto& memorySnapshot = MemorySnapshot::Instance();
+    memorySnapshot.appMemorySnapshots_ = std::unordered_map<pid_t, MemorySnapshotInfo>();
 }
 }

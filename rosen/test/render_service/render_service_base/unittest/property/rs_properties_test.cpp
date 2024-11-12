@@ -918,24 +918,6 @@ HWTEST_F(RSPropertiesTest, SetBorderStyle001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetBorderColorIsTransparent001
- * @tc.desc: test results of GetBorderColorIsTransparent
- * @tc.type: FUNC
- * @tc.require: issueI9QKVM
- */
-HWTEST_F(RSPropertiesTest, GetBorderColorIsTransparent001, TestSize.Level1)
-{
-    RSProperties properties;
-    properties.border_ = std::make_shared<RSBorder>();
-    bool res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, false);
-
-    properties.border_ = nullptr;
-    res = properties.GetBorderColorIsTransparent();
-    EXPECT_NE(res, true);
-}
-
-/**
  * @tc.name: SetOutlineWidth001
  * @tc.desc: test results of SetOutlineWidth
  * @tc.type: FUNC
@@ -1214,7 +1196,7 @@ HWTEST_F(RSPropertiesTest, SetNGetForegroundEffectRadius001, TestSize.Level1)
     RSProperties properties;
     properties.SetForegroundEffectRadius(1.f);
     EXPECT_EQ(properties.GetForegroundEffectRadius(), 1.f);
-    EXPECT_TRUE(properties.IsForegroundEffectRadiusValid());
+    EXPECT_FALSE(properties.IsForegroundEffectRadiusValid());
 }
 
 /**
@@ -2271,11 +2253,11 @@ HWTEST_F(RSPropertiesTest, SetForegroundBlurSaturation001, TestSize.Level1)
     RSProperties properties;
     float foregroundBlurSaturation = -1.f;
     properties.SetForegroundBlurSaturation(foregroundBlurSaturation);
-    EXPECT_EQ(foregroundBlurSaturation, -1.f);
+    EXPECT_EQ(properties.GetForegroundBlurSaturation(), -1.f);
 
     foregroundBlurSaturation = 2.f;
     properties.SetForegroundBlurSaturation(foregroundBlurSaturation);
-    EXPECT_NE(foregroundBlurSaturation, 0.f);
+    EXPECT_NE(properties.GetForegroundBlurSaturation(), 0.f);
 }
 
 /**
@@ -2289,11 +2271,11 @@ HWTEST_F(RSPropertiesTest, SetForegroundBlurBrightness001, TestSize.Level1)
     RSProperties properties;
     float foregroundBlurBrightness = -1.f;
     properties.SetForegroundBlurBrightness(foregroundBlurBrightness);
-    EXPECT_EQ(foregroundBlurBrightness, -1.f);
+    EXPECT_EQ(properties.GetForegroundBlurBrightness(), -1.f);
 
     foregroundBlurBrightness = 2.f;
     properties.SetForegroundBlurBrightness(foregroundBlurBrightness);
-    EXPECT_NE(foregroundBlurBrightness, 0.f);
+    EXPECT_NE(properties.GetForegroundBlurBrightness(), 0.f);
 }
 
 /**
@@ -2325,11 +2307,11 @@ HWTEST_F(RSPropertiesTest, SetForegroundBlurRadiusX001, TestSize.Level1)
     RSProperties properties;
     float foregroundBlurRadiusX = -1.f;
     properties.SetForegroundBlurRadiusX(foregroundBlurRadiusX);
-    EXPECT_EQ(foregroundBlurRadiusX, -1.f);
+    EXPECT_EQ(properties.GetForegroundBlurRadiusX(), -1.f);
 
     foregroundBlurRadiusX = 2.f;
     properties.SetForegroundBlurRadiusX(foregroundBlurRadiusX);
-    EXPECT_NE(foregroundBlurRadiusX, 0.f);
+    EXPECT_NE(properties.GetForegroundBlurRadiusX(), 0.f);
 }
 
 /**
@@ -2343,11 +2325,11 @@ HWTEST_F(RSPropertiesTest, SetForegroundBlurRadiusY001, TestSize.Level1)
     RSProperties properties;
     float foregroundBlurRadiusY = -1.f;
     properties.SetForegroundBlurRadiusY(foregroundBlurRadiusY);
-    EXPECT_EQ(foregroundBlurRadiusY, -1.f);
+    EXPECT_EQ(properties.GetForegroundBlurRadiusY(), -1.f);
 
     foregroundBlurRadiusY = 2.f;
     properties.SetForegroundBlurRadiusY(foregroundBlurRadiusY);
-    EXPECT_NE(foregroundBlurRadiusY, 0.f);
+    EXPECT_NE(properties.GetForegroundBlurRadiusY(), 0.f);
 }
 
 /**
@@ -2644,6 +2626,20 @@ HWTEST_F(RSPropertiesTest, SetNGetSpherize001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetNGetAttractionFraction001
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction001, TestSize.Level1)
+{
+    RSProperties properties;
+    float attractionFraction{1.f};
+    properties.SetAttractionFraction(attractionFraction);
+    EXPECT_EQ(properties.GetAttractionFraction(), attractionFraction);
+}
+
+/**
  * @tc.name: SetNGetAttractionDstPoint001
  * @tc.desc: test
  * @tc.type:FUNC
@@ -2655,6 +2651,34 @@ HWTEST_F(RSPropertiesTest, SetNGetAttractionDstPoint001, TestSize.Level1)
     Vector2f attractionDstPoint = Vector2f(1.f, 1.f);
     properties.SetAttractionDstPoint(attractionDstPoint);
     EXPECT_EQ(properties.GetAttractionDstPoint(), attractionDstPoint);
+}
+
+/**
+ * @tc.name: SetNGetAttractionFraction002
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction002, TestSize.Level1)
+{
+    RSProperties properties;
+    float attractionFraction{0.f};
+    properties.SetAttractionFraction(attractionFraction);
+    EXPECT_EQ(properties.isDrawn_, false);
+}
+
+/**
+ * @tc.name: SetNGetAttractionFraction003
+ * @tc.desc: test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction003, TestSize.Level1)
+{
+    RSProperties properties;
+    float attractionFraction{0.5f};
+    properties.SetAttractionFraction(attractionFraction);
+    EXPECT_EQ(properties.isDrawn_, true);
 }
 
 /**

@@ -22,16 +22,19 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_surface_node_command.h"
+#include "common/rs_background_thread.h"
 #include "delegate/rs_functional_delegate.h"
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_property_trace.h"
+#include "render/rs_image_cache.h"
 #include "render/rs_typeface_cache.h"
 #include "render_context/shader_cache.h"
 #include "rs_frame_report.h"
@@ -125,6 +128,7 @@ RSRenderThread::RSRenderThread()
             context_->activeNodesInRoot_.clear();
         }
         RSRenderNodeGC::Instance().ReleaseNodeMemory();
+        ReleasePixelMapInBackgroundThread();
         context_->pendingSyncNodes_.clear();
 #ifdef ROSEN_OHOS
         FRAME_TRACE::RenderFrameTrace::GetInstance().RenderEndFrameTrace(RT_INTERVAL_NAME);
@@ -147,6 +151,18 @@ RSRenderThread::RSRenderThread()
         thread.detach();
     });
 #endif
+#ifdef ROSEN_OHOS
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
+        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+#endif
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSRenderThread::Instance().RequestNextVSync();
+        },
+        .isRequestedNextVSync = []() {
+            return RSRenderThread::Instance().IsRequestedNextVSync();
+        },
+    });
 }
 
 RSRenderThread::~RSRenderThread()
@@ -166,6 +182,14 @@ void RSRenderThread::Start()
     std::unique_lock<std::mutex> cmdLock(rtMutex_);
     if (thread_ == nullptr) {
         thread_ = std::make_unique<std::thread>([this] { this->RSRenderThread::RenderLoop(); });
+    }
+}
+
+void RSRenderThread::ReleasePixelMapInBackgroundThread()
+{
+    if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
+        static std::function<void()> task = []() -> void { RSImageCache::Instance().ReleaseUniqueIdList(); };
+        RSBackgroundThread::Instance().PostTask(task);
     }
 }
 
@@ -222,6 +246,16 @@ void RSRenderThread::RequestNextVSync()
     } else {
         hasSkipVsync_ = true;
     }
+}
+
+bool RSRenderThread::IsRequestedNextVSync()
+{
+#ifdef __OHOS__
+    if (receiver_ != nullptr) {
+        return receiver_->IsRequestedNextVSync();
+    }
+#endif
+    return false;
 }
 
 int32_t RSRenderThread::GetTid()
@@ -475,6 +509,7 @@ void RSRenderThread::Render()
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }

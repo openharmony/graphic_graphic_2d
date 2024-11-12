@@ -23,14 +23,14 @@
 #include <utility>
 #include <vector>
 
-#include "sys_binder.h"
 #include "message_parcel.h"
 #include "rs_profiler.h"
 #include "rs_profiler_cache.h"
-#include "rs_profiler_network.h"
-#include "rs_profiler_utils.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
+#include "rs_profiler_network.h"
+#include "rs_profiler_utils.h"
+#include "sys_binder.h"
 
 #include "animation/rs_animation_manager.h"
 #include "command/rs_base_node_command.h"
@@ -88,6 +88,7 @@ bool RSProfiler::enabled_ = RSSystemProperties::GetProfilerEnabled();
 bool RSProfiler::betaRecordingEnabled_ = RSSystemProperties::GetBetaRecordingMode() != 0;
 int8_t RSProfiler::signalFlagChanged_ = 0;
 std::atomic_bool RSProfiler::dcnRedraw_ = false;
+std::vector<RSRenderNode::WeakPtr> g_childOfDisplayNodesPostponed;
 
 constexpr size_t GetParcelMaxCapacity()
 {
@@ -101,7 +102,11 @@ bool RSProfiler::IsEnabled()
 
 bool RSProfiler::IsBetaRecordEnabled()
 {
+#ifdef RS_PROFILER_BETA_ENABLED
     return betaRecordingEnabled_;
+#else
+    return false;
+#endif
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -344,14 +349,21 @@ void RSProfiler::FilterForPlayback(RSContext& context, pid_t pid)
     };
 
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(map.renderNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool {
-        if (canBeRemoved(pair.first, pid) == false) {
-            return false;
+    auto iter = map.renderNodeMap_.find(pid);
+    if (iter != map.renderNodeMap_.end()) {
+        auto& submap = iter->second;
+        EraseIf(submap, [](const auto& pair) -> bool {
+            if (Utils::ExtractNodeId(pair.first) == 1) {
+                return false;
+            }
+            // remove node from tree
+            pair.second->RemoveFromTree(false);
+            return true;
+        });
+        if (submap.empty()) {
+            map.renderNodeMap_.erase(pid);
         }
-        // remove node from tree
-        pair.second->RemoveFromTree(false);
-        return true;
-    });
+    }
 
     EraseIf(
         map.surfaceNodeMap_, [pid, canBeRemoved](const auto& pair) -> bool { return canBeRemoved(pair.first, pid); });
@@ -399,13 +411,14 @@ void RSProfiler::GetSurfacesTrees(
     list.clear();
 
     const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    for (const auto& item : map.renderNodeMap_) {
-        if (item.second->GetType() == RSRenderNodeType::SURFACE_NODE) {
-            std::string tree;
-            item.second->DumpTree(treeDumpDepth, tree);
-
-            const auto node = item.second->ReinterpretCastTo<RSSurfaceRenderNode>();
-            list.insert({ node->GetName(), { node->GetId(), tree } });
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node->GetType() == RSRenderNodeType::SURFACE_NODE) {
+                std::string tree;
+                node->DumpTree(treeDumpDepth, tree);
+                const auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+                list.insert({ surfaceNode->GetName(), { surfaceNode->GetId(), tree } });
+            }
         }
     }
 }
@@ -417,18 +430,25 @@ void RSProfiler::GetSurfacesTrees(const RSContext& context, pid_t pid, std::map<
     list.clear();
 
     const RSRenderNodeMap& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    for (const auto& item : map.renderNodeMap_) {
-        if (item.second->GetId() == Utils::GetRootNodeId(pid)) {
-            std::string tree;
-            item.second->DumpTree(treeDumpDepth, tree);
-            list.insert({ item.second->GetId(), tree });
+    for (const auto& [_, submap] : map.renderNodeMap_) {
+        for (const auto& [_, node] : submap) {
+            if (node->GetId() == Utils::GetRootNodeId(pid)) {
+                std::string tree;
+                node->DumpTree(treeDumpDepth, tree);
+                list.insert({ node->GetId(), tree });
+            }
         }
     }
 }
 
 size_t RSProfiler::GetRenderNodeCount(const RSContext& context)
 {
-    return const_cast<RSContext&>(context).GetMutableNodeMap().renderNodeMap_.size();
+    const auto& renderNodeMap = const_cast<RSContext&>(context).GetMutableNodeMap().renderNodeMap_;
+    size_t mapSize = 0;
+    for (const auto& [_, submap] : renderNodeMap) {
+        mapSize += submap.size();
+    }
+    return mapSize;
 }
 
 NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
@@ -442,29 +462,31 @@ NodeId RSProfiler::GetRandomSurfaceNode(const RSContext& context)
 
 void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data, uint32_t fileVersion)
 {
-    const auto& map = const_cast<RSContext&>(context).GetMutableNodeMap();
-    const uint32_t count = map.renderNodeMap_.size();
-    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    const auto& renderNodeMap = const_cast<RSContext&>(context).GetMutableNodeMap().renderNodeMap_;
     const auto& rootRenderNode = context.GetGlobalRootRenderNode();
     if (rootRenderNode == nullptr) {
         RS_LOGE("RSProfiler::MarshalNodes rootRenderNode is nullptr");
         return;
     }
-
     std::vector<std::shared_ptr<RSRenderNode>> nodes;
     nodes.emplace_back(rootRenderNode);
-
-    for (const auto& item : map.renderNodeMap_) {
-        if (const auto& node = item.second) {
-            MarshalNode(*node, data, fileVersion);
-            std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
-            if (!parent && (node != rootRenderNode)) {
+    size_t mapSize = 0;
+    for (const auto& [_, submap] : renderNodeMap) {
+        mapSize += submap.size();
+        for (const auto& [_, node] : submap) {
+            std::shared_ptr<RSRenderNode> parent;
+            if (node != nullptr) {
+                MarshalNode(*node, data, fileVersion);
+            }
+            if (node != nullptr && !(parent = node->GetParent().lock()) && (node != rootRenderNode)) {
                 nodes.emplace_back(node);
             }
         }
     }
 
-    const uint32_t nodeCount = nodes.size();
+    const uint32_t count = static_cast<uint32_t>(mapSize);
+    data.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    const uint32_t nodeCount = static_cast<uint32_t>(nodes.size());
     data.write(reinterpret_cast<const char*>(&nodeCount), sizeof(nodeCount));
     for (const auto& node : nodes) { // no nullptr in nodes, omit check
         MarshalTree(*node, data, fileVersion);
@@ -664,7 +686,6 @@ void RSProfiler::UnmarshalNodes(RSContext& context, std::stringstream& data, uin
             return;
         }
         if (Utils::IsNodeIdPatched(node->GetId())) {
-            ROSEN_LOGD("Node id %{public}" PRIu64 " set dirty, unmarshal nodes", node->GetId());
             node->SetContentDirty();
             node->SetDirty();
         }
@@ -893,6 +914,9 @@ std::string RSProfiler::GetCommandParcelList(double recordStartTime)
     std::string retStr;
 
     uint16_t cmdCount = g_commandLoop[index].cmdCount;
+    if (cmdCount > COMMAND_PARSE_LIST_SIZE) {
+        cmdCount = COMMAND_PARSE_LIST_SIZE;
+    }
     if (cmdCount > 0) {
         uint16_t copyBytes = sizeof(PacketParsedCommandList) - (COMMAND_PARSE_LIST_SIZE - cmdCount) * sizeof(uint32_t);
         retStr.resize(copyBytes, ' ');
@@ -943,14 +967,44 @@ void RSProfiler::ExecuteCommand(const RSCommand* command)
     g_commandExecuteCount++;
 }
 
-int RSProfiler::PerfTreeFlatten(
-    const RSRenderNode& node, std::unordered_set<NodeId>& nodeSet, std::unordered_map<NodeId, int>& mapNode2Count)
+uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
+    std::vector<std::pair<NodeId, uint32_t>>& nodeSet,
+    std::unordered_map<NodeId, uint32_t>& mapNode2Count, int depth)
 {
-    if (node.renderContent_ == nullptr) {
+    if (!node) {
         return 0;
     }
 
-    int nodeCmdListCount = 0;
+    constexpr uint32_t depthToAnalyze = 10;
+    uint32_t drawCmdListCount = CalcNodeCmdListCount(*node);
+    uint32_t valuableChildrenCount = 0;
+    if (node->GetSortedChildren()) {
+        for (auto& child : *node->GetSortedChildren()) {
+            if (child && child->GetType() != RSRenderNodeType::EFFECT_NODE && depth < depthToAnalyze) {
+                nodeSet.emplace_back(child->id_, depth + 1);
+            }
+        }
+        for (auto& child : *node->GetSortedChildren()) {
+            if (child) {
+                drawCmdListCount += PerfTreeFlatten(child, nodeSet, mapNode2Count, depth + 1);
+                valuableChildrenCount++;
+            }
+        }
+    }
+
+    if (drawCmdListCount > 0) {
+        mapNode2Count[node->id_] = drawCmdListCount;
+    }
+    return drawCmdListCount;
+}
+
+uint32_t RSProfiler::CalcNodeCmdListCount(RSRenderNode& node)
+{
+    if (!node.renderContent_) {
+        return 0;
+    }
+
+    uint32_t nodeCmdListCount = 0;
     for (auto& [type, modifiers] : node.renderContent_->drawCmdModifiers_) {
         if (type >= RSModifierType::ENV_FOREGROUND_COLOR) {
             continue;
@@ -965,31 +1019,7 @@ int RSProfiler::PerfTreeFlatten(
             }
         }
     }
-
-    int drawCmdListCount = nodeCmdListCount;
-    int valuableChildrenCount = 0;
-    if (node.GetSortedChildren()) {
-        for (auto& child : *node.GetSortedChildren()) {
-            if (child) {
-                drawCmdListCount += PerfTreeFlatten(*child, nodeSet, mapNode2Count);
-                valuableChildrenCount++;
-            }
-        }
-    }
-    for (auto& [child, pos] : node.disappearingChildren_) {
-        if (child) {
-            drawCmdListCount += PerfTreeFlatten(*child, nodeSet, mapNode2Count);
-            valuableChildrenCount++;
-        }
-    }
-
-    if (drawCmdListCount > 0) {
-        mapNode2Count[node.id_] = drawCmdListCount;
-        if (valuableChildrenCount != 1 || nodeCmdListCount != 0) {
-            nodeSet.insert(node.id_);
-        }
-    }
-    return drawCmdListCount;
+    return nodeCmdListCount;
 }
 
 void RSProfiler::MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
@@ -1106,7 +1136,7 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
     }
 
     [[maybe_unused]] const uint64_t id = parcel.ReadUint64();
- 
+
     if (g_mode == Mode::READ) {
         constexpr uint32_t skipBytes = 24u;
         parcel.SkipBytes(skipBytes);
@@ -1142,7 +1172,7 @@ void RSProfiler::SendMessageBase(const std::string& msg)
     g_msgBaseList.push(msg);
 }
 
-std::unordered_map<AnimationId, std::vector<int64_t>> &RSProfiler::AnimeGetStartTimes()
+std::unordered_map<AnimationId, std::vector<int64_t>>& RSProfiler::AnimeGetStartTimes()
 {
     return g_animeStartMap;
 }
@@ -1189,6 +1219,30 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
     }
 
     return nanoTime;
+}
+
+bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr child, int index)
+{
+    if (!parent || !child || !IsEnabled()) {
+        return false;
+    }
+    if (RSProfiler::GetMode() != Mode::READ) {
+        return false;
+    }
+
+    if (parent->GetType() == RSRenderNodeType::DISPLAY_NODE &&
+        ! (child->GetId() & Utils::ComposeNodeId(Utils::GetMockPid(0), 0))) {
+        // BLOCK LOCK-SCREEN ATTACH TO DISPLAY
+        g_childOfDisplayNodesPostponed.clear();
+        g_childOfDisplayNodesPostponed.emplace_back(child);
+        return true;
+    }
+    return false;
+}
+
+std::vector<RSRenderNode::WeakPtr>& RSProfiler::GetChildOfDisplayNodesPostponed()
+{
+    return g_childOfDisplayNodesPostponed;
 }
 
 } // namespace OHOS::Rosen

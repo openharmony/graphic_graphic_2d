@@ -25,6 +25,9 @@
 #include "include/core/SkRect.h"
 #include "wm/window.h"
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "animation/rs_transition.h"
 #include "animation/rs_transition_effect.h"
 #include "modifier/rs_extended_modifier.h"
@@ -493,10 +496,31 @@ void Transition4()
     }
 }
 
+void InitNativeTokenInfo()
+{
+    uint64_t tokenId;
+    const char *perms[1];
+    perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "render_service_client_transition_demo",
+        .aplStr = "system_basic",
+    };
+    tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+    std::cout << "init native token for float window" << std::endl;
+}
+
 int main()
 {
     std::cout << "transition demo start!" << std::endl;
-
+    InitNativeTokenInfo();
     // create window
     sptr<WindowOption> option = new WindowOption();
     option->SetWindowType(WindowType::WINDOW_TYPE_FLOAT);
@@ -504,6 +528,7 @@ int main()
     option->SetWindowRect({ 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT });
     auto window = Window::Create("transition", option);
     window->Show();
+    sleep(1);
     auto rect = window->GetRect();
     while (rect.width_ == 0 && rect.height_ == 0) {
         std::cout << "create window failed: " << rect.width_ << " " << rect.height_ << std::endl;
@@ -511,6 +536,7 @@ int main()
         window->Destroy();
         window = Window::Create("transition_demo", option);
         window->Show();
+        sleep(1);
         rect = window->GetRect();
     }
     std::cout << "create window " << rect.width_ << " " << rect.height_ << std::endl;

@@ -77,6 +77,16 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -122,17 +132,7 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -214,6 +214,11 @@ void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
@@ -503,6 +508,11 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
+uint32_t RSSystemProperties::GetBlurEffectTerminateLimit()
+{
+    return 0;
+}
+
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
@@ -529,6 +539,11 @@ bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 }
 
 bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
 {
     return false;
 }

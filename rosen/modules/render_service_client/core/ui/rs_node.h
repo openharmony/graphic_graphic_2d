@@ -366,6 +366,7 @@ public:
     }
 
     void SetUseEffect(bool useEffect);
+    void SetUseEffectType(UseEffectType useEffectType);
 
     void SetUseShadowBatching(bool useShadowBatching);
 
@@ -458,6 +459,11 @@ public:
         return isTextureExportNode_;
     }
 
+    size_t GetAnimationsCount() const
+    {
+        return animations_.size();
+    }
+
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
@@ -497,6 +503,10 @@ protected:
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
 
+    // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
+    bool hasCreateRenderNodeInRT_ = false;
+    bool hasCreateRenderNodeInRS_ = false;
+
     bool drawContentLast_ = false;
 
     virtual void OnAddChildren();
@@ -529,7 +539,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
-    virtual void CreateTextureExportRenderNodeInRT() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -599,7 +609,7 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;

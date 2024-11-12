@@ -16,6 +16,9 @@
 
 namespace OHOS {
 namespace Rosen {
+
+constexpr float MAX_ALPHA = 255.0f;
+
 RSMaskColorShaderFilter::RSMaskColorShaderFilter(int colorMode, RSColor maskColor)
     : colorMode_(colorMode), maskColor_(maskColor)
 {
@@ -76,6 +79,12 @@ void RSMaskColorShaderFilter::PostProcess(Drawing::Canvas& canvas)
     brush.SetColor(maskColor_.AsArgbInt());
 
     canvas.DrawBackground(brush);
+}
+
+float RSMaskColorShaderFilter::GetPostProcessAlpha() const
+{
+    float rawAlpha = static_cast<float>(maskColor_.GetAlpha());
+    return (rawAlpha / MAX_ALPHA);
 }
 } // namespace Rosen
 } // namespace OHOS

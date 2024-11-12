@@ -21,6 +21,7 @@
 #include "hdi_layer_info.h"
 #include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
+#include "rs_uni_render_util.h"
 #include "string_utils.h"
 #include "surface_type.h"
 
@@ -111,10 +112,6 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
-    ScalingMode scalingMode = params.GetPreScalingMode();
-    if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params.SetPreScalingMode(scalingMode);
-    }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
     layer->SetSdrNit(params.GetSdrNit());
@@ -227,7 +224,11 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
     if (params.GetIsProtectedLayer() == false) {
         return false;
     }
-    if (params.GetAnimateState() == true) {
+    if (params.GetAnimateState() == true ||
+        RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
+        return true;
+    }
+    if (!params.GetCornerRadiusInfoForDRM().empty()) {
         return true;
     }
     bool forceClientForDRM = false;
@@ -250,6 +251,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto& layerInfo = params.layerInfo_;
+    layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
@@ -278,6 +280,15 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layer->SetCornerRadiusInfoForDRM(params.GetCornerRadiusInfoForDRM());
+    auto bufferBackgroundColor = params.GetBackgroundColor();
+    GraphicLayerColor backgroundColor = {
+        .r = bufferBackgroundColor.GetRed(),
+        .g = bufferBackgroundColor.GetGreen(),
+        .b = bufferBackgroundColor.GetBlue(),
+        .a = bufferBackgroundColor.GetAlpha()
+    };
+    layer->SetBackgroundColor(backgroundColor);
 
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(layerInfo.dstRect);
@@ -302,7 +313,6 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-    layer->SetScalingMode(params.GetPreScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;

@@ -63,6 +63,14 @@ enum RoundCornerSurfaceType {
     BOTTOM_SURFACE
 };
 
+enum class RoundCornerDirtyType : uint8_t {
+    // Use bit operation to judge dirty type
+    RCD_DIRTY_NONE = 0x00,
+    RCD_DIRTY_TOP = 0x01,
+    RCD_DIRTY_BOTTOM = 0x02,
+    RCD_DIRTY_ALL = 0x03
+};
+
 class RoundCornerDisplay {
 public:
     RoundCornerDisplay() {};
@@ -84,6 +92,10 @@ public:
     void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
 
     void DrawBottomRoundCorner(RSPaintFilterCanvas* canvas);
+
+    bool HandleTopRcdDirty(RectI& dirtyRect);
+
+    bool HandleBottomRcdDirty(RectI& dirtyRect);
 
     bool IsSupportHardware() const
     {
@@ -108,8 +120,9 @@ public:
     rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
     {
         std::unique_lock<std::shared_mutex> lock(resourceMut_);
-        if (hardInfo_.resourceChanged)
+        if (hardInfo_.resourceChanged) {
             hardInfo_.resourcePreparing = true;
+        }
         return hardInfo_;
     }
 
@@ -124,8 +137,6 @@ public:
     void InitOnce();
 
 private:
-    int resourceDesyncCnt = 0;
-    
     NodeId renderTargetId_ = 0;
     bool isInit = false;
     // load config
@@ -156,6 +167,9 @@ private:
 
     // status of the notch
     int notchStatus_ = WINDOW_NOTCH_DEFAULT;
+
+    // type of rcd dirty region
+    RoundCornerDirtyType rcdDirtyType_ = RoundCornerDirtyType::RCD_DIRTY_NONE;
 
     int showResourceType_ = (notchStatus_ == WINDOW_NOTCH_DEFAULT) ? TOP_PORTRAIT : TOP_HIDDEN;
     bool lastNotchStatus_ = false;

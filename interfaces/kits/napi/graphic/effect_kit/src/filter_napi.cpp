@@ -111,17 +111,22 @@ static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ct
         }
     }
 
+    if (ctx == nullptr) {
+        EFFECT_LOG_E("Failed to delete ctx, ctx is nullptr");
+    } else {
+        delete ctx;
+    }
     ctx = nullptr;
 }
 
 FilterNapi::FilterNapi() : env_(nullptr), wrapper_(nullptr)
 {
-    EFFECT_LOG_I("FilterNapi");
+    EFFECT_LOG_D("FilterNapi");
 }
 
 FilterNapi::~FilterNapi()
 {
-    EFFECT_LOG_I("~FilterNapi");
+    EFFECT_LOG_D("~FilterNapi");
     napi_delete_reference(env_, wrapper_);
 }
 
@@ -129,7 +134,7 @@ void FilterNapi::Destructor(napi_env env,
                             void* nativeObject,
                             void* finalize_hint)
 {
-    EFFECT_LOG_I("FilterNapi::Destructor");
+    EFFECT_LOG_D("FilterNapi::Destructor");
     FilterNapi* obj = static_cast<FilterNapi *>(nativeObject);
 
     std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
@@ -243,7 +248,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     napi_status status;
     EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
     if (!EFFECT_IS_OK(status)) {
-        EFFECT_LOG_I("FilterNapi Constructor fail");
+        EFFECT_LOG_E("FilterNapi Constructor fail");
         return nullptr;
     }
     FilterNapi* filterNapi = new(std::nothrow) FilterNapi();
@@ -258,44 +263,42 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
         valueType = EffectKitNapiUtils::GetInstance().GetType(env, argv[0]);
     }
     if (valueType == napi_undefined) {
-        EFFECT_LOG_I("FilterNapi parse input PixelMapNapi fail, the type is napi_undefined");
-    }
-    if (valueType == napi_object) {
+        EFFECT_LOG_E("FilterNapi parse input PixelMapNapi fail, the type is napi_undefined");
+        return nullptr;
+    } else if (valueType == napi_object) {
         Media::PixelMapNapi* tempPixelMap = nullptr;
         napi_unwrap(env, argv[0], reinterpret_cast<void**>(&tempPixelMap));
         if (tempPixelMap == nullptr) {
-            EFFECT_LOG_I("Constructor fail when parse input PixelMapNapi, the PixelMap is NULL!");
-        } else {
-            std::shared_ptr<Media::PixelMap>* sharPixelPoint = tempPixelMap->GetPixelMap();
-            filterNapi->srcPixelMap_ = *sharPixelPoint;
+            EFFECT_LOG_E("Constructor fail when parse input PixelMapNapi, the PixelMap is NULL!");
+            return nullptr;
         }
+
+        std::shared_ptr<Media::PixelMap> sharPixelPoint = tempPixelMap->GetPixelNapiInner();
+        if (sharPixelPoint == nullptr) {
+            EFFECT_LOG_E("Constructor fail, the srcPixelMap is NULL!");
+            return nullptr;
+        }
+
+        filterNapi->srcPixelMap_ = sharPixelPoint;
     }
 
     size_t filterSize = sizeof(FilterNapi);
     auto srcPixelMap = filterNapi->GetSrcPixelMap();
     filterSize += srcPixelMap ? (srcPixelMap->GetCapacity()) * 2 : 0; // 2: srcPixelMap + dstPixelMap
-    NAPI_CALL(env, napi_wrap_with_size(env,
-                            _this,
-                            filterNapi,
-                            FilterNapi::Destructor,
-                            nullptr, /* finalize_hint */
-                            nullptr,
-                            filterSize));
+    status = napi_wrap_with_size(env, _this, filterNapi, FilterNapi::Destructor, nullptr, nullptr, filterSize);
+    if (!EFFECT_IS_OK(status)) {
+        delete filterNapi;
+        EFFECT_LOG_E("FilterNapi Constructor wrap fail.");
+        return nullptr;
+    }
     return _this;
 }
 
 DrawError FilterNapi::Render(bool forceCPU)
 {
     Rosen::SKImageChain skImage(srcPixelMap_);
-    for (auto filter : skFilters_) {
-        skImage.SetFilters(filter);
-    }
-    skImage.ForceCPU(forceCPU);
-    DrawError ret = skImage.Draw();
-    if (ret == DrawError::ERR_OK) {
-        dstPixelMap_ = skImage.GetPixelMap();
-    }
-    EFFECT_LOG_I("skImage.Draw() = %{public}d", ret);
+    DrawError ret = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
+
     return ret;
 }
 
@@ -421,8 +424,12 @@ napi_value FilterNapi::GetPixelMapAsync(napi_env env, napi_callback_info info)
     if (ctx->callback == nullptr) {
         napi_create_promise(env, &(ctx->deferred), &result);
     }
-    std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
-    filterNapiManager[ctx->filterNapi].store(false);
+
+    {
+        std::unique_lock<std::shared_mutex> lock(filterNapiManagerMutex);
+        filterNapiManager[ctx->filterNapi].store(false);
+    }
+
     if (ctx->errorMsg != nullptr) {
         EffectKitNapiUtils::GetInstance().CreateAsyncWork(
             env, status, "GetPixelMapAsyncError",

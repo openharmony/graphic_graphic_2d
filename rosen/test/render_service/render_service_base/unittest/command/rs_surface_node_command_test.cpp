@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_surface_render_node.h"
+#include "params/rs_surface_render_params.h"
 #include "pipeline/rs_display_render_node.h"
 
 using namespace testing;
@@ -68,6 +69,50 @@ HWTEST_F(RSSurfaceNodeCommandTest, TestRSSurfaceNodeCommand003, TestSize.Level1)
     auto context2 = std::make_shared<RSContext>();
     SurfaceNodeCommandHelper::Create(*context2, id2);
     SurfaceNodeCommandHelper::SetContextClipRegion(*context2, id2, clipRect);
+}
+
+/**
+ * @tc.name: TestSetWatermarkEnabled
+ * @tc.desc: SetWatermarkEnabled test
+ * @tc.type: FUNC
+ * @tc.require: issueIB209E
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetWatermarkEnabledTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    SurfaceNodeCommandHelper::SetWatermarkEnabled(context, nodeId, "test", true);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+    nodeId = 10;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetWatermarkEnabled(context, nodeId, "test", true);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode->stagingRenderParams_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    EXPECT_EQ(surfaceParams->GetWatermarksEnabled().at("test"), true);
+}
+
+/**
+ * @tc.name: TestSetLeashPersistentId
+ * @tc.desc: SetLeashPersistentId test
+ * @tc.type: FUNC
+ * @tc.require: issueIB209E
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetLeashPersistentIdTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    LeashPersistentId leashPersistentId = 1;
+    SurfaceNodeCommandHelper::SetLeashPersistentId(context, nodeId, leashPersistentId);
+    ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
+    nodeId = 10;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetLeashPersistentId(context, nodeId, leashPersistentId);
+    auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(surfaceNode, nullptr);
+    EXPECT_EQ(surfaceNode->leashPersistentId_, leashPersistentId);
 }
 
 /**
@@ -371,7 +416,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, AttachToDisplay001, TestSize.Level1)
 
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
-    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
     std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
     context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
     SurfaceNodeCommandHelper::AttachToDisplay(context, 0, 1);
@@ -397,7 +442,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, DetachToDisplay001, TestSize.Level1)
     SurfaceNodeCommandHelper::DetachToDisplay(context, -1, 0);
     std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     EXPECT_NE(renderNode, nullptr);
-    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    context.nodeMap.renderNodeMap_[0][0] = renderNode;
     std::shared_ptr<RSDisplayRenderNode> displayNodeTest1 = nullptr;
     context.nodeMap.displayNodeMap_.emplace(0, displayNodeTest1);
     SurfaceNodeCommandHelper::DetachToDisplay(context, 0, 1);
@@ -501,7 +546,17 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
     std::string name = "name";             // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
     SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, windowType);
-    ASSERT_TRUE(context.GetMutableNodeMap().renderNodeMap_.count(1));
+    EXPECT_TRUE([&context]() -> bool {
+        auto& renderNodemap = context.GetMutableNodeMap().renderNodeMap_;
+        auto iter = renderNodemap.find(ExtractPid(1));
+        if (iter != renderNodemap.end()) {
+            auto& submap = iter->second;
+            if (submap.find(1) != submap.end()) {
+                return true;
+            }
+        }
+        return false;
+    }());
 }
 
 /**

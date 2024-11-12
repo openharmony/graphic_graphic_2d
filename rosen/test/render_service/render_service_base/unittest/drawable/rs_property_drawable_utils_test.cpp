@@ -224,7 +224,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
     std::shared_ptr<RSFilter> rsFilter = nullptr;
     std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
-    Drawing::RectI bounds(0.0, 0.0, 400.0, 400.0);
+    Drawing::RectI bounds(0, 0, 400, 400);
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     rsFilter = std::make_shared<RSFilter>();
     rsFilter->type_ = RSFilter::NONE;
@@ -236,8 +236,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
     paintFilterCanvas.canvas_ = &canvasTest2;
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     paintFilterCanvas.SetDisableFilterCache(true);
-    auto surfaceTwo = Drawing::Surface::MakeRasterN32Premul(10, 10);
-    paintFilterCanvas.surface_ = surfaceTwo.get();
     rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds);
     int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
     ASSERT_NE(lastBlurCnt, 0);
@@ -409,19 +407,19 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest014, tes
     RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest2);
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
     paintFilterCanvasTest.SetEffectData(effectData);
-    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest);
+    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::DEFAULT);
     effectData = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     EXPECT_NE(effectData, nullptr);
     effectData->cachedImage_ = nullptr;
     paintFilterCanvasTest.SetEffectData(effectData);
-    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest);
+    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::DEFAULT);
 
     std::shared_ptr<Drawing::Image> cachedImage = std::make_shared<Drawing::Image>();
     EXPECT_NE(cachedImage, nullptr);
     effectData->cachedImage_ = cachedImage;
     paintFilterCanvasTest.SetEffectData(effectData);
     paintFilterCanvasTest.SetVisibleRect(Drawing::Rect(0.0f, 0.0f, 1.0f, 1.0f));
-    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest);
+    rsPropertyDrawableUtilsTest2->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::DEFAULT);
 }
 
 /**
@@ -672,5 +670,105 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing
     std::shared_ptr<RSMESABlurShaderFilter> mesaFilter = std::make_shared<RSMESABlurShaderFilter>(radius);
     std::shared_ptr<RSDrawingFilter> filter2 = std::make_shared<RSDrawingFilter>(mesaFilter);
     rsPropertyDrawableUtils->RSFilterRemovePixelStretch(filter2);
+}
+
+/**
+ * @tc.name: DrawBackgroundEffectTest002
+ * @tc.desc: DrawBackgroundEffectTest behindWindow branch
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest002, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtils, nullptr);
+    // GetAndResetBlurCnt test
+    rsPropertyDrawableUtils->g_blurCnt = 0;
+    EXPECT_EQ(rsPropertyDrawableUtils->GetAndResetBlurCnt(), 0);
+    // DrawBackgroundEffect test
+    Drawing::Canvas canvasTest1;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest1);
+    std::shared_ptr<RSFilter> rsFilter = nullptr;
+    std::unique_ptr<RSFilterCacheManager> cacheManager = std::make_unique<RSFilterCacheManager>();
+    Drawing::RectI bounds(0, 0, 400, 400);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds, true);
+    rsFilter = std::make_shared<RSFilter>();
+    rsFilter->type_ = RSFilter::NONE;
+    paintFilterCanvas.surface_ = nullptr;
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds, true);
+    Drawing::Surface surface;
+    paintFilterCanvas.surface_ = &surface;
+    Drawing::Canvas canvasTest2;
+    paintFilterCanvas.canvas_ = &canvasTest2;
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds, true);
+    paintFilterCanvas.SetDisableFilterCache(true);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(&paintFilterCanvas, rsFilter, cacheManager, false, bounds, true);
+    int lastBlurCnt = rsPropertyDrawableUtils->g_blurCnt;
+    ASSERT_NE(lastBlurCnt, 0);
+    rsPropertyDrawableUtils->DrawBackgroundEffect(nullptr, rsFilter, cacheManager, false, bounds);
+    ASSERT_EQ(lastBlurCnt, lastBlurCnt);
+}
+
+/**
+ * @tc.name: DrawUseEffectTest002
+ * @tc.desc: DrawUseEffectTest behindWindow branch
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawUseEffectTest002, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
+    EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
+    Drawing::Canvas canvasTest;
+    RSPaintFilterCanvas paintFilterCanvasTest(&canvasTest);
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
+    paintFilterCanvasTest.SetBehindWindowData(effectData);
+    rsPropertyDrawableUtilsTest->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::BEHIND_WINDOW);
+    effectData = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
+    EXPECT_NE(effectData, nullptr);
+    effectData->cachedImage_ = nullptr;
+    paintFilterCanvasTest.SetBehindWindowData(effectData);
+    rsPropertyDrawableUtilsTest->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::BEHIND_WINDOW);
+
+    std::shared_ptr<Drawing::Image> cachedImage = std::make_shared<Drawing::Image>();
+    EXPECT_NE(cachedImage, nullptr);
+    effectData->cachedImage_ = cachedImage;
+    paintFilterCanvasTest.SetBehindWindowData(effectData);
+    paintFilterCanvasTest.SetVisibleRect(Drawing::Rect(0.0f, 0.0f, 1.0f, 1.0f));
+    rsPropertyDrawableUtilsTest->DrawUseEffect(&paintFilterCanvasTest, UseEffectType::BEHIND_WINDOW);
+}
+
+/**
+ * @tc.name: GenerateBehindWindowFilterTest001
+ * @tc.desc: GenerateBehindWindowFilterTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(rsPropertyDrawableUtilsTest1, nullptr);
+    float radius = 80.0f;
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    RSColor maskColor(0xFFFFFFE5);
+    auto filter = rsPropertyDrawableUtilsTest1->GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
+    ASSERT_NE(filter, nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialColorFilterTest001
+ * @tc.desc: GenerateMaterialColorFilterTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateMaterialColorFilterTest001, testing::ext::TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
+    ASSERT_NE(rsPropertyDrawableUtilsTest1, nullptr);
+    float saturation = 1.9f;
+    float brightness = 1.0f;
+    auto filter = rsPropertyDrawableUtilsTest1->GenerateMaterialColorFilter(saturation, brightness);
+    ASSERT_NE(filter, nullptr);
 }
 } // namespace OHOS::Rosen

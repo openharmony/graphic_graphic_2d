@@ -37,10 +37,8 @@ config("color_manager_config") {
 
 config("color_manager_public_config") {
   include_dirs = [ "export" ]
-  if (defined(use_new_skia) && use_new_skia) {
+  if (is_arkui_x) {
     include_dirs += [ "$skia_root_new" ]
-  } else {
-    include_dirs += [ "$flutter_root" ]
   }
 }
 
@@ -56,6 +54,12 @@ template("color_manager_source_set") {
 
     configs = [ ":color_manager_config" ]
     public_configs = [ ":color_manager_public_config" ]
+
+    if (defined(use_new_skia) && use_new_skia) {
+      external_deps = [ "skia:skia_canvaskit" ]
+    } else {
+      include_dirs += [ "$flutter_root" ]
+    }
 
     part_name = "graphic_2d"
     subsystem_name = "graphic"

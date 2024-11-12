@@ -88,6 +88,13 @@ void SurfaceNodeCommandHelper::SetSecurityLayer(RSContext& context, NodeId id, b
     }
 }
 
+void SurfaceNodeCommandHelper::SetLeashPersistentId(RSContext& context, NodeId id, LeashPersistentId leashPersistentId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        node->SetLeashPersistentId(leashPersistentId);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetIsTextureExportNode(RSContext& context, NodeId id, bool isTextureExportNode)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {

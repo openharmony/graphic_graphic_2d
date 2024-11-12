@@ -29,13 +29,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#define SIMPLIFIED_CHINESE "zh-hans"
-#define TRADITIONAL_CHINESE "zh-hant"
-#define ENGLISH "en-latn"
-#define LANGUAGE_SC 2052
-#define LANGUAGE_TC 1028
-#define LANGUAGE_EN 1033
-#define LANGUAGE_DEFAULT LANGUAGE_SC
+const std::string SIMPLIFIED_CHINESE = "zh-hans";
+const std::string TRADITIONAL_CHINESE = "zh-hant";
+const std::string ENGLISH = "en-latn";
+const unsigned int LANGUAGE_SC = 2052;
+const unsigned int LANGUAGE_TC = 1028;
+const unsigned int LANGUAGE_EN = 1033;
+const unsigned int LANGUAGE_DEFAULT = LANGUAGE_SC;
 
 class FontParser {
 public:
@@ -100,7 +100,7 @@ public:
         const std::string locale = SIMPLIFIED_CHINESE);
     
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
-    bool ParserFontDescriptorFromPath(const std::string& path,
+    bool ParserFontDescriptorFromPath(const std::string& path, const std::string& fullName,
         std::vector<std::shared_ptr<FontDescriptor>>& descriptors,
         const std::string locale = SIMPLIFIED_CHINESE);
 

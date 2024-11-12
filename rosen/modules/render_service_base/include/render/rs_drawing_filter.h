@@ -43,9 +43,15 @@ public:
 
     std::string GetDescription() override;
     std::string GetDetailedDescription() override;
-    Drawing::Brush GetBrush() const;
+    Drawing::Brush GetBrush(float brushAlpha = 1.0f) const;
+
+    struct DrawImageRectParams {
+        bool discardCanvas;
+        bool offscreenDraw;
+    };
+
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect& src, const Drawing::Rect& dst, bool discardCanvas = false);
+        const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params = { false, false });
     std::vector<std::shared_ptr<RSShaderFilter>> GetShaderFilters() const;
     void InsertShaderFilter(std::shared_ptr<RSShaderFilter> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
@@ -89,12 +95,23 @@ public:
     void PostProcess(Drawing::Canvas& canvas);
 
     void ApplyColorFilter(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-        const Drawing::Rect& src, const Drawing::Rect& dst);
+        const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
 
 private:
+    struct DrawImageRectAttributes {
+        Drawing::Rect src;
+        Drawing::Rect dst;
+        bool discardCanvas;
+        float brushAlpha;
+    };
+    void DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
+        const DrawImageRectAttributes& attr);
+    float PrepareAlphaForOnScreenDraw(RSPaintFilterCanvas& paintFilterCanvas);
+    std::shared_ptr<Drawing::ImageFilter> ProcessImageFilter(float brushAlpha) const;
+
     void ApplyImageEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-        const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer, const Drawing::Rect& src,
-        const Drawing::Rect& dst);
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer,
+        const DrawImageRectAttributes& attr);
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters_;
     uint32_t imageFilterHash_ = 0;

@@ -45,7 +45,10 @@ public:
     void AddLayer(const std::string& name, NodeId id, RCDLayerType type);
 
     // Get rendertarget nodeId info via layername
-    std::pair<NodeId, RCDLayerType> GetNodeId(const std::string& layerName) const;
+    std::pair<NodeId, RCDLayerType> GetLayerPair(const std::string& layerName);
+
+    // Check the layer is RCD layer via layername
+    bool CheckLayerIsRCD(const std::string& layerName);
 
     // the soft draw api: draw all rendertarget node input and canvas.
     void DrawRoundCorner(const RCDLayerInfoVec& layerInfos, RSPaintFilterCanvas* canvas);
@@ -53,11 +56,8 @@ public:
     // only add once rcd module for screen via nodeId
     void AddRoundCornerDisplay(NodeId id);
 
-    // remove rcd module for screen via nodeId
-    void RemoveRoundCornerDisplay(NodeId id);
-
-    // remove rcd layer info for screen via nodeId
-    void RemoveRCDLayerInfo(NodeId id);
+    // remove rcd resuorce for screen via nodeId
+    void RemoveRCDResource(NodeId id);
 
     // update displayWidth_ and displayHeight_
     void UpdateDisplayParameter(NodeId id, uint32_t width, uint32_t height);
@@ -71,11 +71,8 @@ public:
     // update hardwareInfo_.resourceChanged and resourcePreparing
     void UpdateHardwareResourcePrepared(NodeId id, bool prepared);
 
-    // the soft draw top rcd api: draw rendertarget node input and canvas.
-    void DrawTopRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
-
-    // the soft draw bottom rcd api: draw rendertarget node input and canvas.
-    void DrawBottomRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
+    // handle rcdDirtyType_ and assign dirty rect
+    bool HandleRoundCornerDirtyRect(NodeId id, RectI &dirtyRect, const RCDLayerType type);
 
     // run rcd hardwareComposer buffer prepare task via rendertarget ID
     void RunHardwareTask(NodeId id, const std::function<void()>& task);
@@ -90,9 +87,23 @@ public:
     bool IsNotchNeedUpdate(NodeId id, bool notchStatus);
 
 private:
-    bool CheckExist(NodeId id) const;
+    bool CheckExist(NodeId id);
+
+    // the soft draw top rcd api: draw rendertarget node input and canvas.
+    void DrawTopRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
+
+    // the soft draw bottom rcd api: draw rendertarget node input and canvas.
+    void DrawBottomRoundCorner(NodeId id, RSPaintFilterCanvas* canvas);
+
+    // remove rcd module for screen via nodeId
+    void RemoveRoundCornerDisplay(NodeId id);
+
+    // remove rcd layer info for screen via nodeId
+    void RemoveRCDLayerInfo(NodeId id);
+
     std::mutex rcdMapMut_;
     RoundCornerDisplayMap rcdMap_; // key, value : rendertargetNodeId, rcd module
+    std::mutex rcdLayerMapMut_;
     RCDLayerMap rcdlayerMap_; // key, value : rcdLayerName, rendertargetNodeId
 };
 } // namespace Rosen

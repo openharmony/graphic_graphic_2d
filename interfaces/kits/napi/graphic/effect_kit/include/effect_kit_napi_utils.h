@@ -104,7 +104,6 @@ public:
         napi_async_work& work)
     {
         napi_value resource = nullptr;
-
         status = napi_create_string_utf8(env, workName, NAPI_AUTO_LENGTH, &resource);
         if (status == napi_ok) {
             status = napi_create_async_work(
@@ -117,7 +116,7 @@ public:
         return status;
     };
 private:
-    EffectKitNapiUtils() {};
+    EffectKitNapiUtils() {}
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -319,17 +319,6 @@ HWTEST_F(RSSystemPropertiesTest, GetRSEventProperty, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDirectClientCompEnableStatus
- * @tc.desc: GetDirectClientCompEnableStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDirectClientCompEnableStatus, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetDirectClientCompEnableStatus());
-}
-
-/**
  * @tc.name: GetHighContrastStatus
  * @tc.desc: GetHighContrastStatus Test
  * @tc.type:FUNC
@@ -1018,6 +1007,7 @@ HWTEST_F(RSSystemPropertiesTest, GetSubTreePrepareCheckType, TestSize.Level1)
     EXPECT_FALSE(RSSystemProperties::GetDumpUIPixelmapEnabled());
     EXPECT_EQ(RSSystemProperties::GetVirtualScreenScaleModeDFX(), 2);
     ASSERT_EQ(RSSystemProperties::GetSubTreePrepareCheckType(), SubTreePrepareCheckType::ENABLED);
+    EXPECT_TRUE(RSSystemProperties::GetBlurEffectTerminateLimit() > 0);
 }
 } // namespace Rosen
 } // namespace OHOS

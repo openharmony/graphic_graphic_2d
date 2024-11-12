@@ -40,6 +40,7 @@ enum class BreakStrategy {
 struct TextTab {
     TextTab() = default;
     TextTab(TextAlign alignment, float location) : alignment(alignment), location(location) {};
+    TextTab(const TextTab& other) : alignment(other.alignment), location(other.location) {};
     TextTab& operator=(const TextTab&) = default;
     TextAlign alignment = TextAlign::LEFT;
     static constexpr float INVALID_LOCATION = -1.0f;

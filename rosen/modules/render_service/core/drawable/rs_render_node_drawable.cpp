@@ -25,6 +25,7 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
+#include "pipeline/rs_main_thread.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -156,7 +157,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     }
 
     if (needUpdateCache) {
-        filterRectMap_.clear();
+        filterInfoVec_.clear();
     }
     bool isForegroundFilterCache = params.GetForegroundFilterCache() != nullptr;
     // in case of no filter
@@ -193,12 +194,12 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
 
 void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas& canvas, const RSRenderParams& params)
 {
-    if (filterRectMap_.empty()) {
+    if (filterInfoVec_.empty()) {
         return;
     }
     RSRenderNodeDrawableAdapter* root = curDrawingCacheRoot_;
     curDrawingCacheRoot_ = this;
-    filterNodeSize_ = filterRectMap_.size();
+    filterNodeSize_ = filterInfoVec_.size();
     Drawing::AutoCanvasRestore arc(canvas, true);
     bool isOpDropped = isOpDropped_;
     isOpDropped_ = false;
@@ -209,8 +210,8 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
 
     DrawBackground(canvas, params.GetBounds());
     Drawing::Region filterRegion;
-    for (auto& [_, filterRectVec] : filterRectMap_) {
-        for (auto& rect: filterRectVec) {
+    for (auto& item : filterInfoVec_) {
+        for (auto& rect: item.rectVec_) {
             Drawing::Region region;
             region.SetRect(rect);
             filterRegion.Op(region, Drawing::RegionOp::UNION);
@@ -221,6 +222,7 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     canvas.ClipPath(filetrPath);
     DrawContent(canvas, params.GetFrameRect());
     DrawChildren(canvas, params.GetBounds());
+    curDrawingCacheRoot_->SetLastDrawnFilterNodeId(0);
 
     SetCacheType(drawableCacheType);
     isOpDropped_ = isOpDropped;
@@ -261,6 +263,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
             DrawForeground(canvas, params.GetBounds());
             return;
         }
+        CollectInfoForNodeWithoutFilter(canvas);
     }
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}hu", GetCacheType());
     switch (GetCacheType()) {
@@ -280,33 +283,14 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
 void RSRenderNodeDrawable::DrawWithoutNodeGroupCache(
     Drawing::Canvas& canvas, const RSRenderParams& params, DrawableCacheType originalCacheType)
 {
-    if (drawBlurForCache_ && curDrawingCacheRoot_ && curDrawingCacheRoot_->GetFilterRectMap().count(GetId()) > 0) {
-        CheckShadowRectAndDrawBackground(canvas, params);
-        curDrawingCacheRoot_->ReduceFilterNodeSize();
-        Drawing::Rect dst;
-        canvas.GetTotalMatrix().MapRect(dst, params.GetBounds());
-        Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
-            static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
-
-        bool isIntersected = false;
-        auto& filterRectMap = curDrawingCacheRoot_->GetFilterRectMap();
-        auto begin = filterRectMap.find(GetId());
-        for (auto iter = ++begin; iter != filterRectMap.end(); ++iter) {
-            for (auto rect : iter->second) {
-                if (rect.Intersect(dstRect)) {
-                    isIntersected = true;
-                    break;
-                }
-            }
-        }
-        if (isIntersected) {
-            DrawContent(canvas, params.GetFrameRect());
-            DrawChildren(canvas, params.GetBounds());
-            // DrawChildren may reduce filterNodeSize, if still have filter in other subtree of
-            // curDrawingCacheRoot_,  we should draw foreground here
-            if (curDrawingCacheRoot_->GetFilterNodeSize() > 0) {
-                DrawForeground(canvas, params.GetBounds());
-            }
+    if (drawBlurForCache_ && curDrawingCacheRoot_) {
+        auto& filterInfoVec = curDrawingCacheRoot_->GetfilterInfoVec();
+        auto begin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
+            [nodeId = GetId()](const auto& item) -> bool { return item.nodeId_ == nodeId; });
+        if (begin == filterInfoVec.end()) {
+            CheckRegionAndDrawWithoutFilter(filterInfoVec, canvas, params);
+        } else {
+            CheckRegionAndDrawWithFilter(begin, filterInfoVec, canvas, params);
         }
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
@@ -340,6 +324,85 @@ void RSRenderNodeDrawable::DrawWithNodeGroupCache(Drawing::Canvas& canvas, const
         DrawAfterCacheWithProperty(canvas, params.GetBounds());
     }
     UpdateCacheInfoForDfx(canvas, params.GetBounds(), params.GetId());
+}
+
+void RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter(
+    const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params)
+{
+    if (!curDrawingCacheRoot_) {
+        return;
+    }
+    auto& withoutFilterMatrixMap = curDrawingCacheRoot_->GetWithoutFilterMatrixMap();
+    if (withoutFilterMatrixMap.find(GetId()) == withoutFilterMatrixMap.end()) {
+        RS_LOGE("RSRenderNodeDrawable::CheckRegionAndDrawWithoutFilter can not find matrix of cached node in "
+                "withoutFilterMatrixMap");
+        return;
+    }
+    auto matrix = withoutFilterMatrixMap.at(GetId());
+    Drawing::Rect dst;
+    matrix.MapRect(dst, params.GetBounds());
+    Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
+        static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
+    auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
+        [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
+            const auto& item) -> bool { return item.nodeId_ == nodeId; });
+    if (filterBegin == filterInfoVec.end()) {
+        filterBegin = filterInfoVec.begin();
+    } else {
+        filterBegin++; // check isIntersect with undrawn filters
+    }
+    if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
+        RSRenderNodeDrawable::OnDraw(canvas);
+    }
+}
+
+void RSRenderNodeDrawable::CheckRegionAndDrawWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+    const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::Canvas& canvas, const RSRenderParams& params)
+{
+    if (!curDrawingCacheRoot_ || begin == filterInfoVec.end()) {
+        return;
+    }
+    curDrawingCacheRoot_->SetLastDrawnFilterNodeId(GetId());
+    CheckShadowRectAndDrawBackground(canvas, params);
+    curDrawingCacheRoot_->ReduceFilterNodeSize();
+    Drawing::Rect dst;
+    auto matrix = begin->matrix_;
+    matrix.MapRect(dst, params.GetBounds());
+    Drawing::RectI dstRect(static_cast<int>(dst.GetLeft()), static_cast<int>(dst.GetTop()),
+        static_cast<int>(dst.GetLeft() + dst.GetWidth()), static_cast<int>(dst.GetTop() + dst.GetHeight()));
+    begin++; // check isIntersect with undrawn filters
+    if (IsIntersectedWithFilter(begin, filterInfoVec, dstRect)) {
+        DrawContent(canvas, params.GetFrameRect());
+        DrawChildren(canvas, params.GetBounds());
+        // DrawChildren may reduce filterNodeSize, if still have filter in other subtree of
+        // curDrawingCacheRoot_, we should draw foreground here
+        if (curDrawingCacheRoot_->GetFilterNodeSize() > 0) {
+            auto filterBegin = std::find_if(filterInfoVec.begin(), filterInfoVec.end(),
+                [nodeId = curDrawingCacheRoot_->GetLastDrawnFilterNodeId()](
+                    const auto& item) -> bool { return item.nodeId_ == nodeId; });
+            if (filterBegin != filterInfoVec.end()) {
+                filterBegin++; // check isIntersect with undrawn filters
+            }
+            if (IsIntersectedWithFilter(filterBegin, filterInfoVec, dstRect)) {
+                DrawForeground(canvas, params.GetBounds());
+            }
+        }
+    }
+}
+
+bool RSRenderNodeDrawable::IsIntersectedWithFilter(std::vector<FilterNodeInfo>::const_iterator& begin,
+    const std::vector<FilterNodeInfo>& filterInfoVec, Drawing::RectI& dstRect)
+{
+    bool isIntersected = false;
+    for (auto iter = begin; iter != filterInfoVec.end() && !isIntersected; ++iter) {
+        for (auto rect : iter->rectVec_) {
+            if (rect.Intersect(dstRect)) {
+                isIntersected = true;
+                break;
+            }
+        }
+    }
+    return isIntersected;
 }
 
 void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const Drawing::Rect& rect, NodeId id)
@@ -424,8 +487,9 @@ std::shared_ptr<Drawing::Surface> RSRenderNodeDrawable::GetCachedSurface(pid_t t
 }
 
 void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, const Vector2f& cacheSize,
-    pid_t threadId, bool isHdrOn)
+    pid_t threadId, bool isNeedFP16)
 {
+    std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
         return;
@@ -447,17 +511,15 @@ void RSRenderNodeDrawable::InitCachedSurface(Drawing::GPUContext* gpuContext, co
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
         Drawing::ImageInfo info = Drawing::ImageInfo::MakeN32Premul(width, height);
-        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
         cachedSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext, true, info);
     }
 #endif
 #ifdef RS_ENABLE_VK
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
         OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
-        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
         auto colorType = Drawing::ColorType::COLORTYPE_RGBA_8888;
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-        if (isHdrOn) {
+        if (isNeedFP16) {
             colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             format = VK_FORMAT_R16G16B16A16_SFLOAT;
         }
@@ -679,11 +741,14 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 {
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
-    bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(curCanvas->GetScreenId());
+    bool isHdrOn = curCanvas->GetHdrOn();
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool isNeedFP16 = isHdrOn || isScRGBEnable;
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);
-        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isHdrOn);
+        InitCachedSurface(curCanvas->GetGPUContext().get(), params.GetCacheSize(), threadId, isNeedFP16);
         cacheSurface = GetCachedSurface(threadId);
         if (cacheSurface == nullptr) {
             return;
@@ -732,10 +797,14 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     isOpDropped_ = isOpDropped;
 
     // get image & backend
-    cachedImage_ = cacheSurface->GetImageSnapshot();
-    if (cachedImage_) {
-        SetCacheType(DrawableCacheType::CONTENT);
+    {
+        std::scoped_lock<std::recursive_mutex> lock(cacheMutex_);
+        cachedImage_ = cacheSurface->GetImageSnapshot();
+        if (cachedImage_) {
+            SetCacheType(DrawableCacheType::CONTENT);
+        }
     }
+
 #if RS_ENABLE_GL
     // vk backend has been created when surface init.
     if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&

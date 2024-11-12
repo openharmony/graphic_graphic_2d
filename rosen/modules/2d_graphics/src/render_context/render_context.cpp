@@ -500,6 +500,7 @@ sk_sp<SkColorSpace> RenderContext::ConvertColorGamutToSkColorSpace(GraphicColorG
             skColorSpace = SkColorSpace::MakeRGB(SkNamedTransferFn::kSRGB, SkNamedGamut::kRec2020);
             break;
         default:
+            skColorSpace = SkColorSpace::MakeSRGB();
             break;
     }
 

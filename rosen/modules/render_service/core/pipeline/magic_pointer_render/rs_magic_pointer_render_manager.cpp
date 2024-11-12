@@ -220,7 +220,7 @@ bool RSMagicPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcess
     bool find = false;
     RectI pRect;
     int displayNodeIndex = INT_MAX;
-    for (int i = 0; i < layers.size(); ++i) {
+    for (int i = 0; i < static_cast<int>(layers.size()); ++i) {
         std::string name = layers[i]->GetSurface()->GetName();
         if (name.find(DISPLAY) != std::string::npos) {
             displayNodeIndex = i;

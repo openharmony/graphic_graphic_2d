@@ -173,19 +173,19 @@ public:
         boundRect_ = boundRect;
     }
 
-    void SetLayerAdditionalInfo(void *info)
-    {
-        additionalInfo_ = info;
-    }
-
-    void* GetLayerAdditionalInfo()
-    {
-        return additionalInfo_;
-    }
-
     void SetLayerColor(GraphicLayerColor layerColor)
     {
         layerColor_ = layerColor;
+    }
+
+    void SetBackgroundColor(GraphicLayerColor backgroundColor)
+    {
+        backgroundColor_ = backgroundColor;
+    }
+
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
     }
 
     void SetColorTransform(const std::vector<float> &matrix)
@@ -363,6 +363,16 @@ public:
         return layerColor_;
     }
 
+    GraphicLayerColor GetBackgroundColor() const
+    {
+        return backgroundColor_;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     std::vector<GraphicHDRMetaData> &GetMetaData()
     {
         return metaData_;
@@ -408,30 +418,21 @@ public:
         return brightnessRatio_;
     }
 
-    int32_t SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(int32_t sdrNit)
     {
-        return sdrNit_ = sdrNit;
+        sdrNit_ = sdrNit;
     }
 
-    int32_t SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(int32_t displayNit)
     {
-        return displayNit_ = displayNit;
+        displayNit_ = displayNit;
     }
 
-    int32_t SetBrightnessRatio(float brightnessRatio)
+    void SetBrightnessRatio(float brightnessRatio)
     {
-        return brightnessRatio_ = brightnessRatio;
+        brightnessRatio_ = brightnessRatio;
     }
 
-    void SetScalingMode(ScalingMode scalingMode)
-    {
-        scalingMode_ = scalingMode;
-    }
-
-    ScalingMode GetScalingMode() const
-    {
-        return scalingMode_;
-    }
     // source crop tuning
     int32_t GetLayerSourceTuning() const
     {
@@ -463,6 +464,16 @@ public:
         return arsrTag_;
     }
 
+    void SetNeedBilinearInterpolation(bool need)
+    {
+        needBilinearInterpolation_ = need;
+    }
+
+    bool GetNeedBilinearInterpolation() const
+    {
+        return needBilinearInterpolation_;
+    }
+
     void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -491,10 +502,10 @@ public:
         preMulti_ = layerInfo->IsPreMulti();
         displayNit_ = layerInfo->GetDisplayNit();
         brightnessRatio_ = layerInfo->GetBrightnessRatio();
-        scalingMode_ = layerInfo->GetScalingMode();
         layerSource_ = layerInfo->GetLayerSourceTuning();
         rotationFixed_ = layerInfo->GetRotationFixed();
         arsrTag_ = layerInfo->GetLayerArsr();
+        needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
     }
 
     void Dump(std::string &result) const
@@ -595,6 +606,7 @@ private:
     GraphicBlendType blendType_;
     std::vector<float> colorTransformMatrix_;
     GraphicLayerColor layerColor_;
+    GraphicLayerColor backgroundColor_;
     GraphicColorDataSpace colorSpace_ = GraphicColorDataSpace::GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
     std::vector<GraphicHDRMetaData> metaData_;
     GraphicHDRMetaDataSet metaDataSet_;
@@ -604,22 +616,22 @@ private:
     bool IsSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
-    void *additionalInfo_ = nullptr;
     sptr<IConsumerSurface> cSurface_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
     sptr<SurfaceBuffer> pbuffer_ = nullptr;
     bool preMulti_ = false;
+    bool needBilinearInterpolation_ = false;
     LayerMask layerMask_ = LayerMask::LAYER_MASK_NORMAL;
     mutable std::mutex mutex_;
     int32_t sdrNit_ = 500; // default sdr nit
     int32_t displayNit_ = 500; // default luminance for sdr
     float brightnessRatio_ = 1.0f; // default ratio for sdr
     uint64_t nodeId_ = 0;
-    ScalingMode scalingMode_;
     int32_t layerSource_ = 0; // default layer source tag
     bool rotationFixed_ = false;
     bool arsrTag_ = true;
+    std::vector<float> drmCornerRadiusInfo_;
 };
 } // namespace Rosen
 } // namespace OHOS

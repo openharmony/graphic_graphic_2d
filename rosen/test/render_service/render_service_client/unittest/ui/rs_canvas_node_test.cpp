@@ -3532,15 +3532,15 @@ HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateTextureExportRenderNodeInRT
- * @tc.desc: test results of CreateTextureExportRenderNodeInRT
+ * @tc.name: CreateRenderNodeForTextureExportSwitch
+ * @tc.desc: test results of CreateRenderNodeForTextureExportSwitch
  * @tc.type: FUNC
  * @tc.require: issueI9KDPI
  */
-HWTEST_F(RSCanvasNodeTest, CreateTextureExportRenderNodeInRT, TestSize.Level1)
+HWTEST_F(RSCanvasNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->CreateTextureExportRenderNodeInRT();
+    canvasNode->CreateRenderNodeForTextureExportSwitch();
     ASSERT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
 
@@ -3657,14 +3657,14 @@ HWTEST_F(RSCanvasNodeTest, BeginRecording001, TestSize.Level1)
 
 /**
  * @tc.name: CreateTextureExportRenderNodeInRT001
- * @tc.desc: test results of CreateTextureExportRenderNodeInRT
+ * @tc.desc: test results of CreateRenderNodeForTextureExportSwitch
  * @tc.type: FUNC
  * @tc.require: issueI9R0EY
  */
 HWTEST_F(RSCanvasNodeTest, CreateTextureExportRenderNodeInRT001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->CreateTextureExportRenderNodeInRT();
+    canvasNode->CreateRenderNodeForTextureExportSwitch();
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
 

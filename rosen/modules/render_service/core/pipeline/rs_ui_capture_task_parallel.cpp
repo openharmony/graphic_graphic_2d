@@ -45,9 +45,18 @@
 #include "drawable/rs_canvas_render_node_drawable.h"
 #include "pipeline/rs_canvas_render_node.h"
 
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/native_buffer_utils.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 
+namespace {
+    const std::string UICAPTURE_TASK_PREFIX = "uicapture_task_";
+};
+
+#ifdef RS_ENABLE_GPU
 static inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
     Drawing::TextureOrigin& textureOrigin, Drawing::BitmapFormat& bitmapFormat)
@@ -63,6 +72,7 @@ static inline void DrawCapturedImg(Drawing::Image& image,
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
 }
+#endif
 
 void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
@@ -85,7 +95,7 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         ProcessUiCaptureCallback(callback, id, nullptr);
         return;
     }
-
+    auto taskName = UICAPTURE_TASK_PREFIX + std::to_string(id);
     std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
         RSSystemProperties::SetForceHpsBlurDisabled(true);
         if (!captureHandle->Run(callback)) {
@@ -93,7 +103,8 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         }
         RSSystemProperties::SetForceHpsBlurDisabled(false);
     };
-    RSUniRenderThread::Instance().PostTask(captureTask);
+    // Make the priority of uicapture task is lower than render task
+    RSUniRenderThread::Instance().PostTask(captureTask, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
 }
 
 bool RSUiCaptureTaskParallel::CreateResources()
@@ -117,7 +128,17 @@ bool RSUiCaptureTaskParallel::CreateResources()
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: Invalid RSRenderNodeType!");
         return false;
     }
-
+#ifdef RS_ENABLE_VK
+    float nodeBoundsWidth = node->GetRenderProperties().GetBoundsWidth();
+    float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
+    int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
+    int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
+    if (width * height > static_cast<int32_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE)) {
+        RS_LOGE("RSUiCaptureTaskParallel::CreateResources: image is too large, width:%{public}d, height::%{public}d",
+            width, height);
+        return false;
+    }
+#endif
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         // Determine whether cache can be used
         auto curNode = surfaceNode;
@@ -171,19 +192,26 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
     const auto& nodeParams = nodeDrawable_->GetRenderParams();
-    if (nodeParams) {
-        Drawing::Matrix relativeMatrix = Drawing::Matrix();
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
-        relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
-        Drawing::Matrix invertMatrix;
-        if (nodeParams->GetMatrix().Invert(invertMatrix)) {
-            relativeMatrix.PreConcat(invertMatrix);
-        }
-        canvas.SetMatrix(relativeMatrix);
-    } else {
-        RS_LOGD("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
+    if (UNLIKELY(!nodeParams)) {
+        RS_LOGE("RSUiCaptureTaskParallel::Run: RenderParams is nullptr!");
+        return false;
     }
+    Drawing::Matrix relativeMatrix = Drawing::Matrix();
+    relativeMatrix.Set(Drawing::Matrix::Index::SCALE_X, captureConfig_.scaleX);
+    relativeMatrix.Set(Drawing::Matrix::Index::SCALE_Y, captureConfig_.scaleY);
+    Drawing::Matrix invertMatrix;
+    if (nodeParams->GetMatrix().Invert(invertMatrix)) {
+        relativeMatrix.PreConcat(invertMatrix);
+    }
+    canvas.SetMatrix(relativeMatrix);
 
+    // make sure the previous uifirst task is completed.
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*nodeParams, false)) {
+        RS_LOGE("RSUiCaptureTaskParallel::Run: CheckMatchAndWaitNotify fail");
+        return false;
+    }
+    RSUiFirstProcessStateCheckerHelper stateCheckerHepler(
+        nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
     RSUniRenderThread::SetCaptureParam(
         CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY));
     nodeDrawable_->OnCapture(canvas);

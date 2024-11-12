@@ -50,7 +50,7 @@ HWTEST_F(RSKeyframeAnimationTest, AddKeyFrameTest001, Level1)
     auto value = std::make_shared<RSPropertyBase>();
     RSKeyframeAnimation rsKeyframeAnimation(value);
     RSAnimationTimingCurve timingCurve;
-    rsKeyframeAnimation.AddKeyFrame(3.f, value, timingCurve);
+    rsKeyframeAnimation.AddKeyFrame(1.f, value, timingCurve);
     ASSERT_NE(value, nullptr);
 }
 

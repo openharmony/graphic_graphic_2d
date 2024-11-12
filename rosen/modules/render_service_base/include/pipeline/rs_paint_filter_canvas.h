@@ -47,7 +47,7 @@ public:
 
     uint32_t GetSaveCount() const override;
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> GetGPUContext() override;
 #endif
 
@@ -241,6 +241,9 @@ public:
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
+    // behind window cache relate
+    void SetBehindWindowData(const std::shared_ptr<CachedEffectData>& behindWindowData);
+    const std::shared_ptr<CachedEffectData>& GetBehindWindowData() const;
 
     // for foregroundFilter to store offscreen canvas & surface
     struct OffscreenData {
@@ -294,11 +297,14 @@ public:
     float GetBrightnessRatio() const;
     void SetBrightnessRatio(float brightnessRatio);
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
+    bool GetHdrOn() const;
+    void SetHdrOn(bool isHdrOn);
 
 protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
+        std::shared_ptr<CachedEffectData> behindWindowData_;
         std::shared_ptr<Drawing::Blender> blender_;
         bool hasOffscreenLayer_;
     };
@@ -361,6 +367,7 @@ private:
     bool recordingState_ = false;
     bool recordDrawable_ = false;
     bool isCapture_ = false;
+    bool isHdrOn_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

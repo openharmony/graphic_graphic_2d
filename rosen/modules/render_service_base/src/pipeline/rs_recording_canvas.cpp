@@ -88,14 +88,14 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
     Drawing::SrcRectConstraint constraint)
 {
     if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<Drawing::DrawPixelMapRectOpItem>(pixelMap, src, dst, sampling);
+        AddDrawOpDeferred<Drawing::DrawPixelMapRectOpItem>(pixelMap, src, dst, sampling, constraint);
         return;
     }
     auto object = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
     auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
     auto objectHandle =
         Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCallList, object);
-    AddDrawOpImmediate<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling);
+    AddDrawOpImmediate<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling, constraint);
 }
 
 void ExtendRecordingCanvas::DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc)
@@ -118,8 +118,10 @@ void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& su
         AddDrawOpDeferred<Drawing::DrawSurfaceBufferOpItem>(surfaceBufferInfo);
         return;
     }
+    std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry = std::make_shared<Drawing::SurfaceBufferEntry>(
+        surfaceBufferInfo.surfaceBuffer_, surfaceBufferInfo.acquireFence_);
     AddDrawOpImmediate<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
-        Drawing::CmdListHelper::AddSurfaceBufferToCmdList(*cmdList_, surfaceBufferInfo.surfaceBuffer_),
+        Drawing::CmdListHelper::AddSurfaceBufferEntryToCmdList(*cmdList_, surfaceBufferEntry),
         surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
         surfaceBufferInfo.width_, surfaceBufferInfo.height_, surfaceBufferInfo.pid_, surfaceBufferInfo.uid_);
 }

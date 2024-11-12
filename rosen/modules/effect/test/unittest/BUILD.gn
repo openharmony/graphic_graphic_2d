@@ -79,8 +79,13 @@ ohos_unittest("EffectTest") {
     "hilog:libhilog",
     "image_framework:image",
     "image_framework:pixelmap",
-    "skia:skia_canvaskit",
   ]
+
+  if (defined(use_new_skia) && use_new_skia) {
+    external_deps += [ "skia:skia_canvaskit" ]
+  } else {
+    include_dirs += [ "$flutter_root" ]
+  }
 }
 
 config("effect_test_config") {

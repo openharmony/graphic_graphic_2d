@@ -336,6 +336,13 @@ private:
     // the node.
     std::unordered_map<std::shared_ptr<RSLightSource>, Vector4f> lightSourcesAndPosMap_;
 };
+
+enum class UseEffectType : int16_t {
+    EFFECT_COMPONENT = 0,
+    BEHIND_WINDOW,
+    DEFAULT = EFFECT_COMPONENT,
+    MAX = BEHIND_WINDOW
+};
 } // namespace Rosen
 } // namespace OHOS
 

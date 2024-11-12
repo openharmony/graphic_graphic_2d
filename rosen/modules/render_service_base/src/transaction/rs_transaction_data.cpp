@@ -117,7 +117,17 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
             RS_LOGW("failed RSTransactionData::Marshalling, indexVerifier is wrong, SIGSEGV may have occurred");
         } else {
             parcel.WriteUint8(1);
+            if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+                RS_LOGE("RSTransactionData::Marshalling failed to write begin position marshallingIndex:%{public}zu",
+                    marshallingIndex_);
+                success = false;
+            }
             success = success && command->Marshalling(parcel);
+            if (!parcel.WriteUint32(static_cast<uint32_t>(parcel.GetWritePosition()))) {
+                RS_LOGE("RSTransactionData::Marshalling failed to write end position marshallingIndex:%{public}zu",
+                    marshallingIndex_);
+                success = false;
+            }
         }
         if (!success) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
@@ -248,6 +258,9 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
             return false;
         }
         if (hasCommand) {
+            if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+                RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition begin failed index:%{public}zu", i);
+            }
             if (!(parcel.ReadUint16(commandType) && parcel.ReadUint16(commandSubType))) {
                 return false;
             }
@@ -262,6 +275,11 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
                 return false;
             }
             RS_PROFILER_PATCH_COMMAND(parcel, command);
+            if (!RSMarshallingHelper::CheckReadPosition(parcel)) {
+                RS_LOGE("RSTransactionData::Unmarshalling, CheckReadPosition end failed index:%{public}zu"
+                    " commandType:[%{public}u, %{public}u]", i, static_cast<uint32_t>(commandType),
+                    static_cast<uint32_t>(commandSubType));
+            }
             payloadLock.lock();
             payload_.emplace_back(nodeId, static_cast<FollowType>(followType), std::move(command));
             payloadLock.unlock();
@@ -287,7 +305,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
     }
 
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
-        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap_;
+        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [_, followType, command] : payload_) {
         if (command == nullptr) {
@@ -301,11 +319,11 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
             continue;
         }
-        conflictPidToCommandMap_[commandPid][nodeId].insert(command->GetUniqueType());
+        conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);
     }
     lock.unlock();
-    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap_) {
+    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap) {
         conflictCommandPid = commandPid;
         commandMapDesc = PrintCommandMapDesc(commandTypeMap);
         return false;

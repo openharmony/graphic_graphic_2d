@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
+#include <unordered_map>
+
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
 #include <iconsumer_surface.h>
@@ -25,10 +27,12 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "include/gpu/GrBackendSemaphore.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_draw_window_cache.h"
 
 namespace OHOS::Rosen {
 class RSRenderThreadParams;
@@ -101,6 +105,12 @@ public:
     }
 
     void UpdateCompletedCacheSurface();
+#ifdef RS_ENABLE_GL
+    // only use in RT thread
+    void FlushSemaphore(RSPaintFilterCanvas& canvas);
+    // only use in RSSubThread
+    void WaitSemaphore();
+#endif
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
 
@@ -113,7 +123,7 @@ public:
         std::function<void(std::shared_ptr<Drawing::Surface>&&,
         std::shared_ptr<Drawing::Surface>&&, uint32_t, uint32_t)>;
     void InitCacheSurface(Drawing::GPUContext* grContext, ClearCacheSurfaceFunc func = nullptr,
-        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isHdrOn = false);
+        uint32_t threadIndex = UNI_MAIN_THREAD_INDEX, bool isNeedFP16 = false);
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
@@ -131,6 +141,7 @@ public:
     bool HasCachedTexture() const;
 
     void SetTextureValidFlag(bool isValid);
+#ifdef RS_ENABLE_GPU
     void SetCacheSurfaceNeedUpdated(bool isCacheSurfaceNeedUpdate)
     {
         isCacheSurfaceNeedUpdate_ = isCacheSurfaceNeedUpdate;
@@ -140,6 +151,7 @@ public:
     {
         return isCacheSurfaceNeedUpdate_;
     }
+#endif
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     void UpdateBackendTexture();
 #endif
@@ -210,7 +222,7 @@ public:
     const Occlusion::Region& GetVisibleDirtyRegion() const;
     void SetVisibleDirtyRegion(const Occlusion::Region& region);
     void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
-    void SetGlobalDirtyRegion(const RectI& rect);
+    void SetGlobalDirtyRegion(Occlusion::Region region);
     const Occlusion::Region& GetGlobalDirtyRegion() const;
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
@@ -233,10 +245,8 @@ public:
     }
     void RegisterDeleteBufferListenerOnSync(sptr<IConsumerSurface> consumer) override;
 #endif
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return surfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+
+    bool IsHardwareEnabledTopSurface() const;
 
     inline bool CheckCacheSurface()
     {
@@ -250,7 +260,9 @@ private:
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    void MergeSubSurfaceNodesDirtyRegionForMainWindow(
+        RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const;
+    Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
@@ -295,9 +307,13 @@ private:
     mutable std::recursive_mutex completeResourceMutex_; // only lock complete Resource
     std::shared_ptr<Drawing::Surface> cacheSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> cacheCompletedSurface_ = nullptr;
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+#ifdef RS_ENABLE_GPU
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
+#ifdef RS_ENABLE_GL
+    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRT_;
+    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRSSub_;
+#endif
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
     NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
@@ -338,6 +354,9 @@ private:
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
+
+    RSDrawWindowCache drawWindowCache_;
+    friend class OHOS::Rosen::RSDrawWindowCache;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -412,6 +412,58 @@ HWTEST_F(RSMaterialFilterTest, GetDetailedDescription001, TestSize.Level1)
     MATERIAL_BLUR_STYLE style = MATERIAL_BLUR_STYLE::STYLE_CARD_DARK;
     RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
 
-    ASSERT_NE(rsMaterialFilter.GetDetailedDescription(), "");
+    ASSERT_EQ(rsMaterialFilter.colorMode_, mode);
+    ASSERT_EQ(rsMaterialFilter.type_, RSDrawingFilterOriginal::FilterType::MATERIAL);
 }
+
+/**
+ * @tc.name: IsEqual001
+ * @tc.desc: Verify function IsEqual
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsEqual001, TestSize.Level1)
+{
+    float radius = 1.0f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor() };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    std::shared_ptr<RSFilter> rsMaterialFilterOhter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    EXPECT_TRUE(rsMaterialFilter->IsEqual(rsMaterialFilterOhter));
+}
+
+/**
+ * @tc.name: IsEqual002
+ * @tc.desc: Verify function IsEqual
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, IsEqual002, TestSize.Level1)
+{
+    float radius = 1.0f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor() };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    EXPECT_TRUE(rsMaterialFilter->IsEqual(nullptr));
+}
+
+/**
+ * @tc.name: GetDetailedDescription002
+ * @tc.desc: Verify function GetDetailedDescription
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSMaterialFilterTest, GetDetailedDescription002, TestSize.Level1)
+{
+    float radius = 1.0f;
+    float saturation = 1.0f;
+    float brightness = 1.0f;
+    struct MaterialParam materialParam = { radius, saturation, brightness, RSColor(255) };
+    BLUR_COLOR_MODE mode = BLUR_COLOR_MODE::DEFAULT;
+    std::shared_ptr<RSFilter> rsMaterialFilter = std::make_shared<RSMaterialFilter>(materialParam, mode);
+    EXPECT_TRUE(rsMaterialFilter->GetDetailedDescription().find("RSMaterialFilterBlur, radius: ")!=std::string::npos);
+}
+
+
 } // namespace OHOS::Rosen

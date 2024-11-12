@@ -43,6 +43,7 @@ public:
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
+    void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -129,6 +130,7 @@ private:
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable);
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
@@ -154,12 +156,16 @@ private:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
-    bool SkipDisplayIfScreenOff() const;
-    int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
+    int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
+    bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
+    void FindHardCursorNodes(RSDisplayRenderParams& params);
+    // For P3-scRGB Control
+    bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
+    void RenderOverDraw();
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -199,6 +205,9 @@ private:
 #endif
     int64_t lastRefreshTime_ = 0;
     bool virtualDirtyRefresh_ = false;
+    bool enableVisibleRect_ = false;
+    Drawing::RectI curVisibleRect_;
+    Drawing::RectI lastVisibleRect_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

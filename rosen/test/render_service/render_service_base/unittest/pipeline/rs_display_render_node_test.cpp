@@ -166,6 +166,54 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkipFrameTest008
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 55
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest008, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 55; // skipFrameInterval 55
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest009
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 45
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest009, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 45; // skipFrameInterval 45
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest010
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 25
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest010, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 25; // skipFrameInterval 25
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
  * @tc.name: SetMirrorSourceTest
  * @tc.desc: test results of SetMirrorSource
  * @tc.type:FUNC
@@ -589,5 +637,23 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
     ASSERT_NE(displayNode, nullptr);
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
+}
+
+/**
+ * @tc.name: SetHasSecLayerInVisibleRect001
+ * @tc.desc: test results of SetHasSecLayerInVisibleRect001
+ * @tc.type:FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetHasSecLayerInVisibleRect001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, false);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, false);
+
+    displayNode->SetHasSecLayerInVisibleRect(true);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRect_, true);
+    EXPECT_EQ(displayNode->hasSecLayerInVisibleRectChanged_, true);
 }
 } // namespace OHOS::Rosen

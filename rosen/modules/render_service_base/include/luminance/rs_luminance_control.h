@@ -55,6 +55,8 @@ public:
     RSB_EXPORT float GetHdrDisplayNits(ScreenId screenId);
     RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
+    RSB_EXPORT float CalScaler(const float& maxContentLightLevel);
+    RSB_EXPORT bool IsHdrPictureOn();
 
 private:
     RSLuminanceControl() = default;
@@ -82,6 +84,8 @@ private:
     using GetHdrDisplayNitsFunc = float(*)(ScreenId);
     using GetDisplayNitsFunc = float(*)(ScreenId);
     using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
+    using CalScalerFunc = float(*)(const float&);
+    using IsHdrPictureOnFunc = bool(*)();
 
     SetHdrStatusFunc setHdrStatus_{nullptr};
     IsHdrOnFunc isHdrOn_{nullptr};
@@ -96,6 +100,8 @@ private:
     GetHdrDisplayNitsFunc getHdrDisplayNits_{nullptr};
     GetDisplayNitsFunc getDisplayNits_{nullptr};
     GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
+    CalScalerFunc calScaler_{nullptr};
+    IsHdrPictureOnFunc isHdrPictureOn_{nullptr};
 #endif
 };
 

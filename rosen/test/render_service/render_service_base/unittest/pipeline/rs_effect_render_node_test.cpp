@@ -147,6 +147,7 @@ HWTEST_F(RSEffectRenderNodeTest, SetEffectRegion, TestSize.Level1)
     rsEffectRenderNode.renderContent_->renderProperties_.boundsGeo_->absRect_.data_[0] = 1.f;
     rsEffectRenderNode.renderContent_->renderProperties_.boundsGeo_->absRect_.data_[1] = 1.f;
     rsEffectRenderNode.SetEffectRegion(rectI);
+    ASSERT_FALSE(rsEffectRenderNode.GetMutableRenderProperties().GetHaveEffectRegion());
 }
 
 /**

@@ -23,12 +23,6 @@ std::unique_ptr<PixelMap> PixelMap::Create(const InitializationOptions &opts)
     return nullptr;
 }
 
-std::unique_ptr<PixelMap> PixelMap::Create(
-    const uint32_t* colors, uint32_t colorLength, const InitializationOptions& opts)
-{
-    return nullptr;
-}
-
 int32_t PixelMap::GetRowBytes()
 {
     return 0;

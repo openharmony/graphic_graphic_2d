@@ -52,10 +52,10 @@ private:
     uint32_t currRealtimeRefreshRate_ = 1;
     std::atomic<uint32_t> realtimeFrameCount_ = 0;
 
-    static constexpr uint8_t IDLE_FPS_THRESHOLD_ = 8;
-    static constexpr auto NS_PER_S_ =
+    static constexpr uint8_t IDLE_FPS_THRESHOLD = 8;
+    static constexpr auto NS_PER_S =
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
-    static constexpr auto NS_FPS_SHOW_INTERVAL_ =
+    static constexpr auto NS_FPS_SHOW_INTERVAL =
         std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(250));
 
     std::mutex threadMutex_;

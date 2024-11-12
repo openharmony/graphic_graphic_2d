@@ -46,6 +46,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
+const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 
 inline int64_t GenerateCurrentTimeStamp()
 {
@@ -876,7 +877,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     return config;
 }
 
-GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
+GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
 {
     auto availableBufferCnt = surfaceHandler.GetAvailableBufferCount();
     const auto surfaceConsumer = surfaceHandler.GetConsumer();
@@ -886,28 +887,27 @@ GSError RSBaseRenderUtil::DropFrameProcess(RSSurfaceHandler& surfaceHandler)
         return OHOS::GSERROR_NO_CONSUMER;
     }
 
-    int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1;
-    // maxDirtyListSize > 2 means QueueSize >3 too
-    if (maxDirtyListSize > 2 && availableBufferCnt >= maxDirtyListSize) {
+    // maxDirtyListSize should minus one buffer used for displaying, and another one that has just been acquried.
+    int32_t maxDirtyListSize = static_cast<int32_t>(surfaceConsumer->GetQueueSize()) - 1 - 1;
+    // maxDirtyListSize > 1 means QueueSize >3 too
+    if (maxDirtyListSize > 1 && availableBufferCnt >= maxDirtyListSize) {
         RS_TRACE_NAME("DropFrame");
-        OHOS::sptr<SurfaceBuffer> cbuffer;
-        Rect damage;
-        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-        int64_t timestamp = 0;
-        auto ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
+        IConsumerSurface::AcquireBufferReturnValue returnValue;
+        returnValue.fence = SyncFence::InvalidFence();
+        int32_t ret = surfaceConsumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64 "): AcquireBuffer failed("
                 " ret: %{public}d), do nothing ", surfaceHandler.GetNodeId(), ret);
             return OHOS::GSERROR_NO_BUFFER;
         }
 
-        ret = surfaceConsumer->ReleaseBuffer(cbuffer, SyncFence::InvalidFence());
+        ret = surfaceConsumer->ReleaseBuffer(returnValue.buffer, returnValue.fence);
         if (ret != OHOS::SURFACE_ERROR_OK) {
             RS_LOGW("RSBaseRenderUtil::DropFrameProcess(node: %{public}" PRIu64
                     "): ReleaseBuffer failed(ret: %{public}d), Acquire done ",
                 surfaceHandler.GetNodeId(), ret);
         }
-        surfaceHandler.ReduceAvailableBuffer();
+        surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(surfaceConsumer->GetAvailableBufferCount()));
         RS_LOGD("RsDebug RSBaseRenderUtil::DropFrameProcess (node: %{public}" PRIu64 "), drop one frame",
             surfaceHandler.GetNodeId());
     }
@@ -954,11 +954,14 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
         RS_LOGE("Consume and update buffer fail for consumer is nullptr");
         return false;
     }
-    DropFrameProcess(surfaceHandler);
+
+    bool acqiureWithPTSEnable =
+        RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
+    uint64_t acquireTimeStamp = acqiureWithPTSEnable ? presentWhen : CONSUME_DIRECTLY;
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
-        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(presentWhen), false);
+        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
@@ -969,12 +972,14 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
         surfaceBuffer->buffer = returnValue.buffer;
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
-        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, "
-            "presentWhen = %{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
-            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
-        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, "
-            "presentWhen = %" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
-            surfaceHandler.GetNodeId(), presentWhen, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
+        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
+            "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
+            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
+            surfaceBuffer->buffer->GetSeqNum());
+        RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
+            "%" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
+            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
+            surfaceBuffer->buffer->GetSeqNum());
         // The damages of buffer will be merged here, only single damage is supported so far
         Rect damageAfterMerge = MergeBufferDamages(returnValue.damages);
         if (damageAfterMerge.h <= 0 || damageAfterMerge.w <= 0) {
@@ -1010,6 +1015,8 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
         consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
+    // should drop frame after acquire buffer to avoid drop key frame
+    DropFrameProcess(surfaceHandler, acquireTimeStamp);
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         return true;
@@ -1494,6 +1501,38 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
     param.height = static_cast<uint32_t>(image->GetHeight());
     param.data = static_cast<uint8_t *>(bitmap.GetPixels());
     param.stride = static_cast<uint32_t>(bitmap.GetRowBytes());
+    param.bitDepth = Detail::BITMAP_DEPTH;
+
+    return WriteToPng(filename, param);
+}
+
+bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo)
+{
+    if (!bitmap) {
+        RS_LOGE("RSSubThread::DrawableCache no bitmap to dump");
+        return false;
+    }
+    // create dir if not exists
+    if (access(DUMP_CANVASDRAWING_DIR.c_str(), F_OK) == -1) {
+        if (mkdir(DUMP_CANVASDRAWING_DIR.c_str(), (S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) != 0) {
+            RS_LOGE("DumpImageDrawingToPng create %s directory failed, errno: %d",
+                DUMP_CANVASDRAWING_DIR.c_str(), errno);
+            return false;
+        }
+    }
+    const uint32_t maxLen = 80;
+    time_t now = time(nullptr);
+    tm* curr_tm = localtime(&now);
+    char timechar[maxLen] = {0};
+    (void)strftime(timechar, maxLen, "%Y%m%d%H%M%S", curr_tm);
+    std::string filename = DUMP_CANVASDRAWING_DIR + "/" + "CacheRenderNode_Draw_"
+        + std::string(timechar) + "_" + debugInfo + ".png";
+
+    WriteToPngParam param;
+    param.width = static_cast<uint32_t>(bitmap->GetWidth());
+    param.height = static_cast<uint32_t>(bitmap->GetHeight());
+    param.data = static_cast<uint8_t *>(bitmap->GetPixels());
+    param.stride = static_cast<uint32_t>(bitmap->GetRowBytes());
     param.bitDepth = Detail::BITMAP_DEPTH;
 
     return WriteToPng(filename, param);

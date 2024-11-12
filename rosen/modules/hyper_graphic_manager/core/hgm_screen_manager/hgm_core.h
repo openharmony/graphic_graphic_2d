@@ -115,6 +115,42 @@ public:
         return timestamp_.load();
     }
 
+    // called by RSMainThread
+    void SetActualTimestamp(int64_t timestamp)
+    {
+        actualTimestamp_.store(timestamp);
+    }
+
+    // called by RSMainThread/RSUniRenderThread
+    int64_t GetActualTimestamp() const
+    {
+        return actualTimestamp_.load();
+    }
+
+    // called by RSMainThread
+    void SetVsyncId(uint64_t vsyncId)
+    {
+        vsyncId_.store(vsyncId);
+    }
+
+    // called by RSMainThread/RSUniRenderThread
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_.load();
+    }
+
+    // called by RSMainThread
+    void SetForceRefreshFlag(bool isForceRefresh)
+    {
+        isForceRefresh_.store(isForceRefresh);
+    }
+
+    // called by RSMainThread/RSUniRenderThread
+    bool GetForceRefreshFlag() const
+    {
+        return isForceRefresh_.load();
+    }
+
     bool GetLtpoEnabled() const
     {
         return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
@@ -228,6 +264,21 @@ public:
     {
         return enableDynamicMode_;
     }
+
+    bool IsDelayMode() const
+    {
+        return isDelayMode_;
+    }
+
+    void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
+    {
+        multiSelfOwnedScreenEnable_.store(multiSelfOwnedScreenEnable);
+    }
+
+    bool GetMultiSelfOwnedScreenEnable() const
+    {
+        return multiSelfOwnedScreenEnable_.load();
+    }
 private:
     HgmCore();
     ~HgmCore() = default;
@@ -267,6 +318,10 @@ private:
     std::atomic<uint32_t> screenRefreshRateImme_{ 0 };
     std::atomic<uint64_t> pendingConstraintRelativeTime_{ 0 };
     std::atomic<uint64_t> timestamp_{ 0 };
+    std::atomic<int64_t> actualTimestamp_{ 0 };
+    std::atomic<uint64_t> vsyncId_{ 0 };
+    std::atomic<bool> isForceRefresh_{ false };
+    bool isDelayMode_ = false;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
@@ -278,6 +333,7 @@ private:
     RefreshRateUpdateCallback refreshRateUpdateCallback_ = nullptr;
     std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
+    std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

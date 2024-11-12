@@ -18,9 +18,6 @@
 
 #include <algorithm>
 #include <string>
-#ifdef ROSEN_OHOS
-#include "parameters.h"
-#endif
 #include "command/rs_base_node_command.h"
 #include "command/rs_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -67,7 +64,9 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
-    if (type == RSSurfaceNodeType::APP_WINDOW_NODE) {
+    RS_LOGD("RSSurfaceNode::Create HDRClient name: %{public}s, type: %{public}hhu, id: %{public}" PRIu64,
+        node->name_.c_str(), type, node->GetId());
+    if (type == RSSurfaceNodeType::APP_WINDOW_NODE || type == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
         auto callback = &RSSurfaceNode::SetHDRPresent;
         RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
     }
@@ -122,6 +121,16 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_TEXTURE,
+                .additionalData = nullptr,
+            };
+            node->CreateSurfaceExt(config);
+        }
+#endif
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS)
+        if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
+            RSSurfaceExtConfig config = {
+                .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
                 .additionalData = nullptr,
             };
             node->CreateSurfaceExt(config);
@@ -246,6 +255,24 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     }
 }
 
+void RSSurfaceNode::SetLeashPersistentId(LeashPersistentId leashPersistentId)
+{
+    leashPersistentId_ = leashPersistentId;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSurfaceNodeSetLeashPersistentId>(GetId(), leashPersistentId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetLeashPersistentId, \
+        surfaceNodeId:[%{public}" PRIu64 "] leashPersistentId:[%{public}" PRIu64 "]", GetId(), leashPersistentId);
+}
+
+LeashPersistentId RSSurfaceNode::GetLeashPersistentId() const
+{
+    return leashPersistentId_;
+}
+
 void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
 {
     isSecurityLayer_ = isSecurityLayer;
@@ -329,21 +356,26 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
-void RSSurfaceNode::CreateTextureExportRenderNodeInRT()
+void RSSurfaceNode::CreateRenderNodeForTextureExportSwitch()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
-        RSSurfaceNodeType::SELF_DRAWING_NODE, true);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
     }
-    transactionProxy->AddCommand(command, false);
-    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
-    transactionProxy->AddCommand(command, false);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
+        RSSurfaceNodeType::SELF_DRAWING_NODE, isTextureExportNode_);
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
+    if (!IsRenderServiceNode()) {
+        hasCreateRenderNodeInRT_ = true;
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+        transactionProxy->AddCommand(command, false);
 
-    RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
-    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
-    transactionProxy->AddCommand(command, false);
+        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
+        transactionProxy->AddCommand(command, false);
+    } else {
+        hasCreateRenderNodeInRS_ = true;
+    }
 }
 
 void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
@@ -366,12 +398,15 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
         return;
     }
     isTextureExportNode_ = isTextureExportNode;
+    if (!IsUniRenderEnabled()) {
+        return;
+    }
     if (!isTextureExportNode_) {
         SetIsTextureExportNode(isTextureExportNode);
         DoFlushModifier();
         return;
     }
-    CreateTextureExportRenderNodeInRT();
+    CreateRenderNodeForTextureExportSwitch();
     SetIsTextureExportNode(isTextureExportNode);
     SetSurfaceIdToRenderNode();
     DoFlushModifier();
@@ -657,8 +692,10 @@ void RSSurfaceNode::AttachToDisplay(uint64_t screenId)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
-        RS_LOGI("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
-            "screen id: %{public}" PRIu64, GetName().c_str(), GetId(), screenId);
+        if (strcmp(GetName().c_str(), "pointer window") != 0) {
+            RS_LOGI("RSSurfaceNode:attach to display, node:[name: %{public}s, id: %{public}" PRIu64 "], "
+                "screen id: %{public}" PRIu64, GetName().c_str(), GetId(), screenId);
+        }
         RS_TRACE_NAME_FMT("RSSurfaceNode:attach to display, node:[name: %s, id: %" PRIu64 "], "
             "screen id: %" PRIu64, GetName().c_str(), GetId(), screenId);
     }
@@ -677,12 +714,12 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
     }
 }
 
-void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable)
 {
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
-        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType);
+        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
 }
 
@@ -747,6 +784,11 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         GetId(), config.type);
         return;
     }
+#ifdef ROSEN_IOS
+    if (texture->GetSurfaceExtConfig().additionalData == nullptr) {
+        texture->UpdateSurfaceExtConfig(config);
+    }
+#endif
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
         GetId(), config.type, texture.get());
     std::unique_ptr<RSCommand> command =
@@ -775,6 +817,15 @@ void RSSurfaceNode::MarkUiFrameAvailable(bool available)
 
 void RSSurfaceNode::SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback)
 {
+#if defined(ROSEN_IOS)
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetAttachCallback(attachCallback);
+    }
+#else
     RSSurfaceTextureConfig config = {
         .type = RSSurfaceExtType::SURFACE_TEXTURE,
     };
@@ -782,10 +833,20 @@ void RSSurfaceNode::SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttach
     if (texture) {
         texture->SetAttachCallback(attachCallback);
     }
+#endif // ROSEN_IOS
 }
 
 void RSSurfaceNode::SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback)
 {
+#if defined(ROSEN_IOS)
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetUpdateCallback(updateCallback);
+    }
+#else
     RSSurfaceTextureConfig config = {
         .type = RSSurfaceExtType::SURFACE_TEXTURE,
         .additionalData = nullptr
@@ -794,6 +855,20 @@ void RSSurfaceNode::SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdate
     if (texture) {
         texture->SetUpdateCallback(updateCallback);
     }
+#endif // ROSEN_IOS
+}
+
+void RSSurfaceNode::SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback)
+{
+#if defined(ROSEN_IOS)
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetInitTypeCallback(initTypeCallback);
+    }
+#endif // ROSEN_IOS
 }
 #endif
 
@@ -863,8 +938,7 @@ bool RSSurfaceNode::GetSkipDraw() const
 void RSSurfaceNode::SetWatermarkEnabled(const std::string& name, bool isEnabled)
 {
 #ifdef ROSEN_OHOS
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     if (name.empty() || name.length() > WATERMARK_NAME_LENGTH_LIMIT) {
@@ -898,13 +972,24 @@ void RSSurfaceNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
     }
     abilityState_ = abilityState;
     transactionProxy->AddCommand(command, true);
-    ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
+    ROSEN_LOGI("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
         GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
 }
 
 RSSurfaceNodeAbilityState RSSurfaceNode::GetAbilityState() const
 {
     return abilityState_;
+}
+
+RSInterfaceErrorCode RSSurfaceNode::SetHidePrivacyContent(bool needHidePrivacyContent)
+{
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        return static_cast<RSInterfaceErrorCode>(
+            renderServiceClient->SetHidePrivacyContent(GetId(), needHidePrivacyContent));
+    }
+    return RSInterfaceErrorCode::UNKNOWN_ERROR;
 }
 } // namespace Rosen
 } // namespace OHOS

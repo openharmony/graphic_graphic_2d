@@ -72,7 +72,6 @@ private:
     SkiaTypeface() = default;
 
     sk_sp<SkTypeface> skTypeface_;
-    mutable uint32_t hash_ { 0 };
 };
 } // namespace Drawing
 } // namespace Rosen

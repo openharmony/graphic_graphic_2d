@@ -234,7 +234,6 @@ public:
     Vector4f GetOutlineDashGap() const;
     Vector4f GetOutlineRadius() const;
     const std::shared_ptr<RSBorder>& GetOutline() const;
-    bool GetBorderColorIsTransparent() const;
 
     void SetForegroundEffectRadius(const float foregroundEffectRadius);
     float GetForegroundEffectRadius() const;
@@ -472,6 +471,8 @@ public:
     bool IsWaterRippleValid() const;
     bool IsFlyOutValid() const;
     bool IsDistortionKValid() const;
+    void SetDistortionDirty(bool distortionEffectDirty);
+    bool GetDistortionDirty() const;
     std::string GetFgBrightnessDescription() const;
     std::string GetBgBrightnessDescription() const;
 
@@ -531,6 +532,10 @@ public:
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
+    void SetUseEffectType(int useEffectType);
+    int GetUseEffectType() const;
+    void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
+    bool GetNeedDrawBehindWindow() const;
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
@@ -608,6 +613,8 @@ private:
     bool foregroundEffectDirty_ = false;
     bool needFilter_ = false;
     bool useEffect_ = false;
+    int useEffectType_ = 0;
+    bool needDrawBehindWindow_ = false;
     bool alphaOffscreen_ = false;
     std::optional<Vector4f> pixelStretch_;
     std::optional<Vector4f> pixelStretchPercent_;
@@ -633,7 +640,8 @@ private:
     std::optional<RSWaterRipplePara> waterRippleParams_ = std::nullopt;
     std::optional<RSFlyOutPara> flyOutParams_ = std::nullopt;
     float flyOutDegree_ = 0.0f;
-    std::optional<float> distortionK_;
+    std::optional<float> distortionK_ = std::nullopt;
+    bool distortionEffectDirty_ = false;
     float foregroundEffectRadius_ = 0.f;
     bool haveEffectRegion_ = false;
     bool isAttractionValid_ = false;

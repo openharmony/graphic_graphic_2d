@@ -14,6 +14,7 @@
  */
 
 #include "transaction/rs_marshalling_helper.h"
+#include "image_type.h"
 #include "rs_profiler.h"
 
 #include <cstddef>
@@ -64,10 +65,6 @@
 #endif
 #include "recording/mask_cmd_list.h"
 #include "property/rs_properties_def.h"
-
-#ifdef RS_ENABLE_RECORDING
-#include "benchmarks/rs_recording_thread.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -1433,7 +1430,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
+#ifdef ROSEN_OHOS
+    MemoryTrack::Instance().RemovePictureRecord(context);
+#else
     MemoryTrack::Instance().RemovePictureRecord(addr);
+#endif
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
@@ -1459,9 +1460,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         return false;
     }
     MemoryInfo info = {
-        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType()
+        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), val
     };
+
+#ifdef ROSEN_OHOS
+    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+#else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
+#endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
@@ -1487,6 +1493,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rect
     }
     return parcel.WriteInt32(1) && val->Marshalling(parcel);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<float>>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -1614,18 +1621,26 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         return ret;
     }
 #ifdef ROSEN_OHOS
-    std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
-    uint32_t surfaceBufferSize = val->GetAllSurfaceBuffer(surfaceBufferVec);
+    std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
+    uint32_t surfaceBufferSize = val->GetAllSurfaceBufferEntry(surfaceBufferEntryVec);
     ret = parcel.WriteUint32(surfaceBufferSize);
     if (surfaceBufferSize > 0) {
-        for (const auto& object : surfaceBufferVec) {
+        for (const auto& object : surfaceBufferEntryVec) {
             if (!object) {
                 ROSEN_LOGE("RSMarshallingHelper::Marshalling DrawCmdList surfaceBufferVec has null object");
                 return false;
             }
+            auto surfaceBuffer = object->surfaceBuffer_;
             MessageParcel* parcelSurfaceBuffer =  static_cast<MessageParcel*>(&parcel);
             WriteSurfaceBufferImpl(
-                *parcelSurfaceBuffer, object->GetSeqNum(), object);
+                *parcelSurfaceBuffer, surfaceBuffer->GetSeqNum(), surfaceBuffer);
+            auto acquireFence = object->acquireFence_;
+            if (acquireFence) {
+                parcel.WriteBool(true);
+                acquireFence->WriteToMessageParcel(*parcelSurfaceBuffer);
+            } else {
+                parcel.WriteBool(false);
+            }
         }
     }
 #endif
@@ -1658,7 +1673,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val = nullptr;
         return false;
     }
-    std::vector<std::pair<uint32_t, uint32_t>> replacedOpList;
+    std::vector<std::pair<size_t, size_t>> replacedOpList;
     for (uint32_t i = 0; i < replacedOpListSize; ++i) {
         auto regionPos = parcel.ReadUint32();
         auto replacePos = parcel.ReadUint32();
@@ -1769,13 +1784,13 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         return ret;
     }
 #ifdef ROSEN_OHOS
-    uint32_t surfaceBufferSize = parcel.ReadUint32();
-    if (surfaceBufferSize > 0) {
-        if (surfaceBufferSize > PARTICLE_UPPER_LIMIT) {
+    uint32_t surfaceBufferEntrySize = parcel.ReadUint32();
+    if (surfaceBufferEntrySize > 0) {
+        if (surfaceBufferEntrySize > PARTICLE_UPPER_LIMIT) {
             return false;
         }
-        std::vector<sptr<SurfaceBuffer>> surfaceBufferVec;
-        for (uint32_t i = 0; i < surfaceBufferSize; ++i) {
+        std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
+        for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
             sptr<SurfaceBuffer> surfaceBuffer;
             MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
             uint32_t sequence = 0U;
@@ -1784,9 +1799,16 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
                 ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
                 return false;
             }
-            surfaceBufferVec.emplace_back(surfaceBuffer);
+            sptr<SyncFence> acquireFence = nullptr;
+            bool hasAcquireFence = parcel.ReadBool();
+            if (hasAcquireFence) {
+                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer);
+            }
+            std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry =
+                std::make_shared<Drawing::SurfaceBufferEntry>(surfaceBuffer, acquireFence);
+            surfaceBufferEntryVec.emplace_back(surfaceBufferEntry);
         }
-        val->SetupSurfaceBuffer(surfaceBufferVec);
+        val->SetupSurfaceBufferEntry(surfaceBufferEntryVec);
     }
 #endif
 
@@ -2242,6 +2264,18 @@ bool RSMarshallingHelper::GetUseSharedMem(std::thread::id tid)
 {
     if (tid == g_tid) {
         return g_useSharedMem;
+    }
+    return true;
+}
+
+bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
+{
+    auto curPosition = parcel.GetReadPosition();
+    auto positionRead = parcel.ReadUint32();
+    if (positionRead != static_cast<uint32_t>(curPosition)) {
+        RS_LOGE("RSMarshallingHelper::CheckReadPosition failed, curPosition:%{public}zu, positionRead:%{public}u",
+            curPosition, positionRead);
+        return false;
     }
     return true;
 }

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "gtest/gtest.h"
-#include "parameters.h"
 #include "impl_interface/typeface_impl.h"
 #include "skia_adapter/skia_typeface.h"
 
@@ -90,6 +89,20 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
     node = std::make_shared<RSNode>(true);
     res = instance.TakeSurfaceCaptureForUI(node, callback, 1.f, 1.f, true);
     EXPECT_TRUE(res == false);
+}
+
+/**
+ * @tc.name: SetHwcNodeBoundsTest
+ * @tc.desc: test results of SetHwcNodeBounds
+ * @tc.type: FUNC
+ * @tc.require: issueIB2QCC
+ */
+HWTEST_F(RSInterfacesTest, SetHwcNodeBoundsTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    bool res = instance.SetHwcNodeBounds(nodeId, 1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(res);
 }
 
 /**
@@ -385,8 +398,7 @@ HWTEST_F(RSInterfacesTest, GetRefreshInfo001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     RSInterfaces& instance = RSInterfaces::GetInstance();
@@ -408,8 +420,7 @@ HWTEST_F(RSInterfacesTest, SetWatermark001, TestSize.Level1)
  */
 HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
 {
-    static bool flag = system::GetParameter("const.product.devicetype", "pc") != "pc";
-    if (flag) {
+    if (!RSSystemProperties::IsPcType()) {
         return;
     }
     RSInterfaces& instance = RSInterfaces::GetInstance();
