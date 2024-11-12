@@ -1103,6 +1103,24 @@ HWTEST_F(PathTest, Dump001, TestSize.Level1)
     path.Dump(out);
     EXPECT_FALSE(out.empty());
 }
+
+/**
+ * @tc.name: Serialize001
+ * @tc.desc: Data returned shouldn't be nullptr
+ * @tc.type: FUNC
+ * @tc.require: issuelI6M9U9
+ */
+HWTEST_F(PathTest, Serialize001, TestSize.Level1)
+{
+    Path path1;
+    path1.MoveTo(1.0f, 2.0f);
+    path1.LineTo(3.0f, 4.0f);
+    auto data1 = path1.Serialize();
+    ASSERT_TRUE(data1 != nullptr);
+    Path path2;
+    auto data2 = path2.Serialize();
+    ASSERT_TRUE(data2 != nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
