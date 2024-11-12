@@ -236,9 +236,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
             properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
-    canvas.AttachBrush(brush);
     canvas.DrawBackground(brush);
-    canvas.DetachBrush();
     return true;
 }
 
@@ -264,9 +262,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Brush brush;
     auto shaderEffect = bgShader->GetDrawingShader();
     brush.SetShaderEffect(shaderEffect);
-    canvas.AttachBrush(brush);
     canvas.DrawBackground(brush);
-    canvas.DetachBrush();
     return true;
 }
 
