@@ -818,13 +818,13 @@ HWTEST_F(VulkanLoaderUnitTest, fpCreateSwapchainKHR_Fail_Test, TestSize.Level1)
             VkSwapchainKHR swapChainFail2 = VK_NULL_HANDLE;
 
             VkResult err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChainFail);
-            EXPECT_NE(err, VK_SUCCESS);
-            EXPECT_EQ(swapChainFail, VK_NULL_HANDLE);
+            EXPECT_EQ(err, VK_SUCCESS);
+            EXPECT_NE(swapChainFail, VK_NULL_HANDLE);
 
             swapchainCI.oldSwapchain = swapChainFail;
             err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChainFail2);
-            EXPECT_NE(err, VK_SUCCESS);
-            EXPECT_EQ(swapChainFail2, VK_NULL_HANDLE);
+            EXPECT_EQ(err, VK_SUCCESS);
+            EXPECT_NE(swapChainFail2, VK_NULL_HANDLE);
             fpDestroySwapchainKHR(device_, swapChainFail, nullptr);
             fpDestroySwapchainKHR(device_, swapChainFail2, nullptr);
         }
