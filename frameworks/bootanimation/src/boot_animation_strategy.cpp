@@ -15,6 +15,7 @@
 
 #include "boot_animation_strategy.h"
 
+#include <dlfcn.h>
 #include "log.h"
 #include <parameters.h>
 #include "util.h"
@@ -39,10 +40,41 @@ bool BootAnimationStrategy::CheckExitAnimation()
     bool bootEventCompleted = system::GetBoolParameter(BOOT_COMPLETED, false);
     if (bootEventCompleted) {
         LOGI("read boot completed is true");
+#ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
+        return CheckExitAnimationExt();
+#else
         return true;
+#endif
     }
     return false;
 }
+
+#ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
+#define CHECK_EXIT_ANIMATION_EXT_PATH "libwatch_bootanimation_ext.z.so"
+#define CHECK_EXIT_ANIMATION_EXT_FUNC_NAME "CheckExitAnimationExt"
++typedef bool(*Func)();
+bool BootAnimationStrategy::CheckExitAnimationExt()
+{
+    LOGI("CheckExitAnimationExt");
+    void *handler = dlopen(CHECK_EXIT_ANIMATION_EXT_PATH, RTLD_LAZY | RTLD_NODELETE);
+    if (handler == nullptr) {
+        LOGI("CheckExitAnimationExt Dlopen failed, reason: %{public}s", dlerror());
+        dlclose(handler);
+        return true;
+    }
+
+    Func CheckExitAnimationExtFunc = (Func)dlsym(handler, CHECK_EXIT_ANIMATION_EXT_FUNC_NAME);
+    if (CheckExitAnimationExtFunc == nullptr) {
+        LOGI("CheckExitAnimationExt find function failed, reason: %{public}s", dlerror());
+        dlclose(handler);
+        return true;
+    }
+
+    bool resCode = CheckExitAnimationExtFunc();
+    dlclose(handler);
+    return resCode;
+}
+#endif
 
 bool BootAnimationStrategy::CheckNeedOtaCompile() const
 {
