@@ -60,7 +60,6 @@ private:
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
-    size_t layerNum_ = 0;
     bool isPhone_ = false;
 };
 } // namespace Rosen

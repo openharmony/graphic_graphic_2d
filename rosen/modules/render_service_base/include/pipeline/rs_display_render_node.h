@@ -436,13 +436,13 @@ public:
     }
 
     bool IsZoomStateChange() const;
+    void HandleCurMainAndLeashSurfaceNodes();
 protected:
     void OnSync() override;
 private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
-    void HandleCurMainAndLeashSurfaceNodes();
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };

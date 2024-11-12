@@ -153,6 +153,7 @@ public:
     // RTthread needs to draw one more frame when screen is turned off. For other threads, use extraframe default value.
     static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
+    static void MultiLayersPerf(size_t layerNum);
 
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
@@ -165,6 +166,8 @@ private:
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
+    static bool FrameAwareTraceBoost(size_t layerNum);
+    static void RequestPerf(uint32_t layerLevel, bool onOffTag);
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };

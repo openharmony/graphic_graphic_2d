@@ -208,6 +208,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     isHardwareForcedDisabled_ = visitor.isHardwareForcedDisabled_;
     doAnimate_ = visitor.doAnimate_;
     isDirty_ = visitor.isDirty_;
+    layerNum_ = visitor.layerNum_;
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
@@ -716,6 +717,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
         ProcessUnpairedSharedTransitionNode();
     }
+    node.HandleCurMainAndLeashSurfaceNodes();
+    layerNum_ += node.GetSurfaceCountForMultiLayersPerf();
     node.RenderTraceDebug();
 }
 

@@ -565,7 +565,7 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize
 
 /**
  * @tc.name: HandleCurMainAndLeashSurfaceNodes004
- * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window and on the tree
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
@@ -575,10 +575,28 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
-    
+    surfaceNode->isOnTheTree_ = true;
     displayNode->RecordMainAndLeashSurfaces(surfaceNode);
     displayNode->HandleCurMainAndLeashSurfaceNodes();
     ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 1);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes005
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window and not on the tree
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->isOnTheTree_ = false;
+    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
 }
 
 /**

@@ -50,11 +50,32 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
+#ifdef SOC_PERF_ENABLE
+#include "socperf_client.h"
+#endif
+#include "render_frame_trace.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
+constexpr int64_t PERF_TIME_OUT = 950;
+constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
+constexpr uint32_t PERF_LAYER_START_NUM = 12;
+constexpr uint32_t PERF_LEVEL_0 = 0;
+constexpr uint32_t PERF_LEVEL_1 = 1;
+constexpr uint32_t PERF_LEVEL_2 = 2;
+constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
+constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
+constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
+void PerfRequest(int32_t perfRequestCode, bool onOffTag)
+{
+#ifdef SOC_PERF_ENABLE
+    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
+    RS_LOGD("RSProcessor::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
+#endif
+}
 }
 void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
     int32_t bufferAge, RSDisplayRenderParams& params, bool useAlignedDirtyRegion)
@@ -2080,6 +2101,94 @@ void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode>
     hwcNode->SetTotalMatrix(totalMatrix);
     hwcNode->SetGlobalAlpha(alpha);
     hwcNode->SetIntersectedRoundCornerAABBs(std::move(currIntersectedRoundCornerAABBs));
+}
+
+#ifdef FRAME_AWARE_TRACE
+bool RSUniRenderUtil::FrameAwareTraceBoost(size_t layerNum)
+{
+    using namespace FRAME_TRACE;
+    constexpr uint32_t FRAME_TRACE_LAYER_NUM_1 = 11;
+    constexpr uint32_t FRAME_TRACE_LAYER_NUM_2 = 13;
+    constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
+    RenderFrameTrace& ft = RenderFrameTrace::GetInstance();
+    if (layerNum != FRAME_TRACE_LAYER_NUM_1 && layerNum != FRAME_TRACE_LAYER_NUM_2) {
+        if (ft.RenderFrameTraceIsOpen()) {
+            ft.RenderFrameTraceClose();
+            PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, false);
+            RS_LOGD("RsDebug RSUniRenderUtil::Perf: FrameTrace 0");
+        }
+        return false;
+    }
+ 
+    static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
+    auto currentTime = std::chrono::steady_clock::now();
+    bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
+        count() > PERF_TIME_OUT;
+    if (isTimeOut || !ft.RenderFrameTraceIsOpen()) {
+        if (!ft.RenderFrameTraceOpen()) {
+            return false;
+        }
+        PerfRequest(FRAME_TRACE_PERF_REQUESTED_CODE, true);
+        RS_LOGD("RsDebug RSProcessor::Perf: FrameTrace 1");
+        lastRequestPerfTime = currentTime;
+    }
+    return true;
+}
+#endif
+
+void RSUniRenderUtil::RequestPerf(uint32_t layerLevel, bool onOffTag)
+{
+    switch (layerLevel) {
+        case PERF_LEVEL_0: {
+            // do nothing
+            RS_LOGD("RsDebug RSProcessor::perf do nothing");
+            break;
+        }
+        case PERF_LEVEL_1: {
+            PerfRequest(PERF_LEVEL_1_REQUESTED_CODE, onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level1 %{public}d", onOffTag);
+            break;
+        }
+        case PERF_LEVEL_2: {
+            PerfRequest(PERF_LEVEL_2_REQUESTED_CODE, onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level2 %{public}d", onOffTag);
+            break;
+        }
+        default: {
+            PerfRequest(PERF_LEVEL_3_REQUESTED_CODE, onOffTag);
+            RS_LOGD("RsDebug RSProcessor::Perf: level3 %{public}d", onOffTag);
+            break;
+        }
+    }
+}
+
+void RSUniRenderUtil::MultiLayersPerf(size_t layerNum)
+{
+#ifdef FRAME_AWARE_TRACE
+    if (FrameAwareTraceBoost(layerNum)) {
+        RS_LOGD("FrameAwareTraceBoost return true");
+        return;
+    }
+#endif
+    RS_LOGD("FrameAwareTraceBoost return false");
+    static uint32_t lastLayerLevel = 0;
+    constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
+    static std::chrono::steady_clock::time_point lastRequestPerfTime = std::chrono::steady_clock::now();
+    auto curLayerLevel = layerNum / PERF_LEVEL_INTERVAL;
+    if (curLayerLevel == 0 && layerNum >= PERF_LAYER_START_NUM) {
+        curLayerLevel = 1;
+    }
+    auto currentTime = std::chrono::steady_clock::now();
+    bool isTimeOut = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastRequestPerfTime).
+        count() > PERF_TIME_OUT;
+    if (curLayerLevel != lastLayerLevel || isTimeOut) {
+        if (!isTimeOut) {
+            RequestPerf(lastLayerLevel, false);
+        }
+        RequestPerf(curLayerLevel, true);
+        lastLayerLevel = curLayerLevel;
+        lastRequestPerfTime = currentTime;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

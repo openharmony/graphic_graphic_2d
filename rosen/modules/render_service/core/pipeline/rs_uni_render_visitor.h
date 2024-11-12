@@ -126,6 +126,10 @@ public:
     {
         return newColorSpace_;
     }
+    uint32_t GetLayerNum() const
+    {
+        return layerNum_;
+    }
 
     void SetAppWindowNum(uint32_t num);
 
@@ -437,6 +441,7 @@ private:
     // anco RSSurfaceNode process
     bool ancoHasGpu_ = false;
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
+    uint32_t layerNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
