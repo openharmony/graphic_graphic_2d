@@ -1251,12 +1251,9 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isUifirstNode[%d], isForceFlag[%d]",
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_,
-        node,isUifirstNode_, node.isForceFlag_);
-
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_);
     if (node.isForceFlag) {
         if (node.isUifirstNode_) {
             if (node.IsLeashWindow()) {
@@ -1270,7 +1267,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
     }
 
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
-        UifirstStateChange(node, MultiThreadCacheType::NONE);                                                                                                                                                                                                                                                       c             
+        UifirstStateChange(node, MultiThreadCacheType::NONE);
         return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
