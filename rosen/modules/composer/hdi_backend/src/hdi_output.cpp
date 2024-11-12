@@ -39,6 +39,7 @@ namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
+static int32_t SOLID_SURFACE_COUNT = 0;
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -131,10 +132,9 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             continue;
         }
         if (layerInfo->GetSurface() == nullptr) {
-            int32_t ret = CreateLayerLocked(layerInfo->GetNodeId(), layerInfo);
+            int32_t ret = CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
             if (ret != GRAPHIC_DISPLAY_SUCCESS) {
                 HLOGE("HdiOutput::SetLayerInfo failed %{public}zu.", surfaceIdMap_.size());
-                return;
             }
             continue;
         }
@@ -727,7 +727,8 @@ void HdiOutput::Dump(std::string &result) const
             continue;
         }
         auto surface = layer->GetLayerInfo()->GetSurface();
-        const std::string& name = surface ? surface->GetName() : "Layer Without Surface";
+        const std::string& name = surface ? surface->GetName() :
+            "Layer Without Surface" + std::to_string(SOLID_SURFACE_COUNT);
         auto info = layer->GetLayerInfo();
         result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result +=  " LayerId[" + std::to_string(layer->GetLayerId()) + "]:\n";

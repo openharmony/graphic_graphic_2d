@@ -516,6 +516,16 @@ public:
         return brightnessRatio_;
     }
 
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
+
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
     inline bool HasSubSurfaceNodes() const
@@ -546,6 +556,7 @@ private:
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;

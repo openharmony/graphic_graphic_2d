@@ -199,8 +199,8 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
 
 void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params)
 {
-    if (auto color = params.GetBackgroundColor(); color != RgbPalette::Black() &&
-        color != RgbPalette::Transparent()) {
+    auto color = params.GetBackgroundColor();
+    if (!params.GetIsHwcEnabledBySolidLayer()) {
         auto solidColorLayer = HdiLayerInfo::CreateHdiLayerInfo();
         solidColorLayer->CopyLayerInfo(layer);
         if (layer->GetZorder() > 0) {
