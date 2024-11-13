@@ -305,10 +305,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_MIRROR_SCREEN_VISIBLE_RECT): {
-            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_MIRROR_SCREEN_VISIBLE_RECT");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROTATION_CACHE_ENABLED): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ROTATION_CACHE_ENABLED");
             break;
