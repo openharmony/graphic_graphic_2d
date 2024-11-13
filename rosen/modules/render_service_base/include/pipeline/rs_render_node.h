@@ -792,7 +792,7 @@ public:
         return isAccessibilityConfigChanged_;
     }
 
-    const NodeId GetDisplayNodeId() const
+    NodeId GetDisplayNodeId() const
     {
         return displayNodeId_;
     }

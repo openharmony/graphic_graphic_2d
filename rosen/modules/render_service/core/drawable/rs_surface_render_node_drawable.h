@@ -68,7 +68,7 @@ public:
         return name_;
     }
 
-    const NodeId GetDisplayNodeId()
+    NodeId GetDisplayNodeId()
     {
         return displayNodeId_;
     }
