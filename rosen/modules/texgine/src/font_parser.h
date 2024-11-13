@@ -134,7 +134,8 @@ private:
         }
     }
 #ifdef BUILD_NON_SDK_VER
-    static std::string ToUtf8(const std::string& gbkStr);
+    static std::string ConvertToString(const std::string& src, const std::string& srcType,
+        const std::string& targetType);
 #endif
 
     const char* data_;
