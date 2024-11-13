@@ -3608,6 +3608,9 @@ HWTEST_F(RSMainThreadTest, IsHardwareEnabledNodesNeedSync, TestSize.Level2)
     node3->SetDstRect(dstRect);
     mainThread->hardwareEnabledNodes_.emplace_back(node3);
     ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
+}
+
+/**
  * @tc.name: SendClientDumpNodeTreeCommands
  * @tc.desc: test SendClientDumpNodeTreeCommands
  * @tc.type: FUNC
