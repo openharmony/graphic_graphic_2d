@@ -61,6 +61,7 @@ constexpr const char* MEM_RS_TYPE = "renderservice";
 constexpr const char* MEM_CPU_TYPE = "cpu";
 constexpr const char* MEM_GPU_TYPE = "gpu";
 constexpr const char* MEM_JEMALLOC_TYPE = "jemalloc";
+constexpr const char* MEM_SNAPSHOT = "snapshot";
 constexpr int DUPM_STRING_BUF_SIZE = 4000;
 }
 
@@ -85,6 +86,9 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
         std::string out;
         DumpMallocStat(out);
         log.AppendFormat("%s\n... detail dump at hilog\n", out.c_str());
+    }
+    if (type.empty() || type == MEM_SNAPSHOT) {
+        DumpMemorySnapshot(log);
     }
 }
 
@@ -499,6 +503,19 @@ void MemoryManager::DumpMallocStat(std::string& log)
             }
         },
         &log, nullptr);
+}
+
+void MemoryManager::DumpMemorySnapshot(DfxString& log)
+{
+    log.AppendFormat("\n---------------\nmemorySnapshots:\n");
+    std::unordered_map<pid_t, MemorySnapshotInfo> memorySnapshotInfo;
+    MemorySnapshot::Instance().GetMemorySnapshot(memorySnapshotInfo);
+    for (auto& [pid, snapshotInfo] : memorySnapshotInfo) {
+        std::string infoStr = "pid: " + std::to_string(pid) +
+            ", cpu: " + std::to_string(snapshotInfo.cpuMemory) +
+            ", gpu: " + std::to_string(snapshotInfo.gpuMemory);
+        log.AppendFormat("%s\n", infoStr.c_str());
+    }
 }
 
 uint64_t ParseMemoryLimit(const cJSON* json, const char* name)
