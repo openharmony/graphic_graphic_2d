@@ -397,11 +397,12 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
-    // Mark opinc node
-    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
 
-    // Mark uifirst node
-    void MarkUifirstNode(bool isUifirstNode, bool isForceFlag);
+    void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
+     // will be abandoned  
+    void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -594,6 +595,8 @@ private:
     bool isSuggestOpincNode_ = false;
 
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

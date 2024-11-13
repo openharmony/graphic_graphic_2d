@@ -1249,23 +1249,47 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     return node.QuerySubAssignable(isDisplayRotation);
 }
 
+bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
+{
+    if (node.isForceFlag_ && node.IsLeashWindow()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("ForceUpdateUifirstNodes: isUifirstEnable: %d", node.isUifirstEnable_);
+        if (!node.isUifirstEnable_) {
+            UifirstStateChange(node, MultiThreadCacheType::NONE);
+            return true;
+        }
+        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        return true;
+    }
+    return false;
+}
+
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]",
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
+        " isForceFlag:[%d]",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_);
-    if (node.isForceFlag) {
-        if (node.isUifirstNode_) {
-            if (node.IsLeashWindow()) {
-                RS_TRACE_NAME_FMT("uifirst_force IsLeashWindow node");
-                UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_);
+    if (ForceUpdateUifirstNodes(node)) {
+        return;
+    }
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
+        UifirstStateChange(node, MultiThreadCacheType::NONE);
+        if (GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
+            if (ancestorNodeHasAnimation && !node.isUifirstNode_) {
+                /* If window scaling behavior is interrupted by animation on pc, the tag can't be reset, so next
+                 vsync need to mark uifirst on the next frame
+                */
+                node.MarkUifirstNode(true);
             }
-        } else {
-            UifirstStateChange(node, MultiThreadCacheType::NONE);
+            return;
+        if (!node.isUifirstNode_) {
+            node.isUifirstDelay_++;
+            if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
+                node.isUifirstNode_ = true;
+            }
         }
         return;
     }
-
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         return;

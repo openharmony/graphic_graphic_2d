@@ -139,8 +139,8 @@ public:
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
-    static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode, bool isForceFlag);
-
+    static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
+    static void ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag, bool isUifirstEnable);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
 
@@ -266,6 +266,9 @@ ADD_COMMAND(RSMarkSuggestOpincNode,
 
 ADD_COMMAND(RSMarkUifirstNode,
     ARG(RS_NODE, MARK_UIFIRST_NODE, RSNodeCommandHelper::MarkUifirstNode, NodeId, bool))
+
+ADD_COMMAND(RSForceUifirstNode,
+    ARG(RS_NODE, MARK_SUGGEST_OPINC_NODE, RSNodeCommandHelper::ForceUifirstNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,

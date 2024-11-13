@@ -7302,7 +7302,7 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     rsNode->MarkNodeGroup(true);
     rsNode->MarkNodeSingleFrameComposer(true);
     rsNode->MarkSuggestOpincNode(true);
-    rsNode->MarkUifirstNode(true, true);
+    rsNode->MarkUifirstNode(true);
     rsNode->SetDrawRegion(std::make_shared<RectF>());
     rsNode->AddAnimation(std::make_shared<RSAnimation>());
     string out2;
@@ -7319,10 +7319,10 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
 HWTEST_F(RSNodeTest, MarkUifirstNode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    rsNode->MarkUifirstNode(true, true);
+    rsNode->MarkUifirstNode(true);
     EXPECT_TRUE(rsNode->isUifirstNode_);
 
-    rsNode->MarkUifirstNode(false, true);
+    rsNode->MarkUifirstNode(false);
     EXPECT_TRUE(!rsNode->isUifirstNode_);
 }
 } // namespace OHOS::Rosen

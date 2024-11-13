@@ -2371,14 +2371,27 @@ void RSNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
     }
 }
 
-void RSNode::MarkUifirstNode(bool isUifirstNode, bool isForceFlag)
+void RSNode::MarkUifirstNode(bool isUifirstNode)
 {
-    if (isUifirstNode_ == isUifirstNode && isForceFlag_ == isForceFlag) {
+    if (isUifirstNode_ == isUifirstNode) {
         return;
     }
     isUifirstNode_ = isUifirstNode;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(GetId(), isUifirstNode);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
+void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
+{
+    if (isUifirstNode_ == isUifirstNode && isUifirstEnable_ == isUifirstEnable) {
+        return;
+    }
     isForceFlag_ = isForceFlag;
-    std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(GetId(), isUifirstNode, isForceFlag);
+    isUifirstNode_ = isUifirstNode;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSForceUifirstNode>(GetId(), isForceFlag, isUifirstEnable);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());
