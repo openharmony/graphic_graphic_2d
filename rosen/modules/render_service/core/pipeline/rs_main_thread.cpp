@@ -2551,12 +2551,15 @@ void RSMainThread::SurfaceOcclusionCallback()
                 if (!geoPtr) {
                     continue;
                 }
-                auto dstRect = geoPtr->GetAbsRect();
-                if (dstRect.IsEmpty()) {
+                auto absRect = geoPtr->GetAbsRect();
+                if (absRect.IsEmpty()) {
                     continue;
                 }
-                visibleAreaRatio = static_cast<float>(savedAppWindowNode_[listener.first].second->
-                    GetVisibleRegion().Area()) / static_cast<float>(dstRect.GetWidth() * dstRect.GetHeight());
+                auto surfaceRegion = Occlusion::Region{ Occlusion::Rect{ absRect } };
+                auto visibleRegion = savedAppWindowNode_[listener.first].second->GetVisibleRegion();
+                // take the intersection of these two regions to get rid of shadow area, then calculate visible ratio
+                visibleAreaRatio = static_cast<float>(visibleRegion.And(surfaceRegion).Area()) /
+                    static_cast<float>(surfaceRegion.Area());
                 auto& partitionVector = std::get<2>(listener.second); // get tuple 2 partition points vector
                 bool vectorEmpty = partitionVector.empty();
                 if (vectorEmpty && (visibleAreaRatio > 0.0f)) {
@@ -2615,6 +2618,9 @@ bool RSMainThread::CheckSurfaceOcclusionNeedProcess(NodeId id)
         }
         savedAppWindowNode_[id] = std::make_pair(surfaceNode, appWindowNode);
     } else {
+        if (!savedAppWindowNode_[id].first || !savedAppWindowNode_[id].second) {
+            return false;
+        }
         auto appWindowNodeId = savedAppWindowNode_[id].first->GetInstanceRootNodeId();
         auto lastAppWindowNodeId = savedAppWindowNode_[id].second->GetId();
         if (appWindowNodeId != lastAppWindowNodeId && appWindowNodeId != INVALID_NODEID) {
