@@ -418,5 +418,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsAccessTimesVerific
     return times < restrictedTimes;
 }
 #endif
+
 } // namespace Rosen
 } // namespace OHOS
