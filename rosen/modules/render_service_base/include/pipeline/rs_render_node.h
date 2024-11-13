@@ -726,8 +726,8 @@ public:
 
     // arkui mark uifirst
     void MarkUifirstNode(bool isUifirstNode, bool isForceFlag);
-    void isUifirstNode_ = false;
-    void isForceFlag_ = false;
+    bool isUifirstNode_ = false;
+    bool isForceFlag_ = false;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
