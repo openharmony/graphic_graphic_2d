@@ -201,7 +201,7 @@ void RSMagicPointerRenderManager::ProcessColorPicker(std::shared_ptr<RSProcessor
 bool RSMagicPointerRenderManager::GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext)
 {
     if (gpuContext == nullptr) {
-       return false; 
+        return false;
     }
     const auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
