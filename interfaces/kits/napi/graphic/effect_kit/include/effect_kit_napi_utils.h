@@ -19,9 +19,24 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
-#define EFFECT_IS_OK(x) ((x) == napi_ok)
-#define EFFECT_NOT_NULL(p) ((p) != nullptr)
-#define EFFECT_IS_READY(x, p) (EFFECT_IS_OK(x) && EFFECT_NOT_NULL(p))
+#define EFFECT_NAPI_CHECK_RET(x, res) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        return (res); \
+    } \
+} while (0)
+
+#define EFFECT_NAPI_CHECK_RET_VOID_D(x, msg) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        msg; \
+        return; \
+    } \
+} while (0)
 
 #define EFFECT_NAPI_CHECK_RET_D(x, res, msg) \
 do \
@@ -29,6 +44,17 @@ do \
     if (!(x)) \
     { \
         msg; \
+        return (res); \
+    } \
+} while (0)
+
+#define EFFECT_NAPI_CHECK_RET_DELETE_POINTER(x, res, msg, pointer) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        msg; \
+        delete pointer; \
         return (res); \
     } \
 } while (0)
@@ -43,15 +69,6 @@ do \
             res; \
         } \
         return (result); \
-    } \
-} while (0)
-
-#define EFFECT_NAPI_CHECK_RET(x, res) \
-do \
-{ \
-    if (!(x)) \
-    { \
-        return (res); \
     } \
 } while (0)
 

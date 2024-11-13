@@ -73,6 +73,7 @@ void BuildMsgOnError(napi_env env, const std::unique_ptr<FilterAsyncContext>& ct
 
 static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ctx, const napi_value& valueParam)
 {
+    EFFECT_NAPI_CHECK_RET_VOID_D(ctx == nullptr, EFFECT_LOG_E("FilterAsyncCommonComplete FilterAsyncContext is nullptr"));
     napi_value result[NUM_2] = {};
     napi_get_undefined(env, &result[NUM_0]);
     napi_get_undefined(env, &result[NUM_1]);
@@ -111,11 +112,7 @@ static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ct
         }
     }
 
-    if (ctx == nullptr) {
-        EFFECT_LOG_E("Failed to delete ctx, ctx is nullptr");
-    } else {
-        delete ctx;
-    }
+    delete ctx;
     ctx = nullptr;
 }
 
@@ -135,7 +132,8 @@ void FilterNapi::Destructor(napi_env env,
                             void* finalize_hint)
 {
     EFFECT_LOG_D("FilterNapi::Destructor");
-    FilterNapi* obj = static_cast<FilterNapi *>(nativeObject);
+    FilterNapi* obj = static_cast<FilterNapi*>(nativeObject);
+    if ()
 
     std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
     auto manager = filterNapiManager.find(obj);
@@ -205,6 +203,7 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
     }
     return exports;
 }
+
 napi_value FilterNapi::CreateEffect(napi_env env, napi_callback_info info)
 {
     const size_t requireArgc = 1;
@@ -350,6 +349,10 @@ napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
 void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void* data)
 {
     auto ctx = static_cast<FilterAsyncContext*>(data);
+    if (ctx == nullptr) {
+        EFFECT_LOG_E("GetPixelMapAsyncComplete empty context");
+        return;
+    }
     napi_value value = nullptr;
     if (ctx->dstPixelMap_ == nullptr) {
         ctx->status = ERROR;
@@ -364,6 +367,10 @@ void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void
 void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
 {
     auto ctx = static_cast<FilterAsyncContext*>(data);
+    if (ctx == nullptr) {
+        EFFECT_LOG_E("GetPixelMapAsyncExecute empty context");
+        return;
+    }
 
     bool managerFlag = false;
     {
@@ -392,9 +399,13 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
 
 static void GetPixelMapAsyncErrorComplete(napi_env env, napi_status status, void* data)
 {
+    auto ctx = static_cast<FilterAsyncContext*>(data);
+    if (ctx == nullptr) {
+        EFFECT_LOG_E("GetPixelMapAsyncErrorComplete empty context");
+        return;
+    }
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    auto ctx = static_cast<FilterAsyncContext*>(data);
     ctx->status = ERROR;
     FilterAsyncCommonComplete(env, ctx, result);
 }
@@ -521,7 +532,7 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
     FilterNapi* thisFilter = nullptr;
     NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter)));
     if (thisFilter == nullptr) {
-        EFFECT_LOG_I("FilterNapi napi_unwrap is Faild");
+        EFFECT_LOG_I("FilterNapi napi_unwrap fail");
         return nullptr;
     }
     auto brightness = Rosen::SKImageFilterFactory::Brightness(fBright);
@@ -603,7 +614,7 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     if (!EFFECT_IS_OK(status) || argc != NUM_1) {
         EFFECT_LOG_E("FilterNapi parsing input fail");
         napi_throw_error(env, std::to_string(ERR_INVALID_PARAM).c_str(),
-            "FilterNapi parse input falid, Color matrix mismatch");
+            "FilterNapi parse input fail, Color matrix mismatch");
         return nullptr;
     }
     res = ParseColorMatrix(env, argv[NUM_0], colorMatrix);
