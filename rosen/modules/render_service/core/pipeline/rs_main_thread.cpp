@@ -538,7 +538,6 @@ void RSMainThread::Init()
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
-    qosPidCal_ = deviceType_ == DeviceType::PC;
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
@@ -2034,7 +2033,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     UpdateUIFirstSwitch();
     UpdateRogSizeIfNeeded();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-    uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
     int64_t rsPeriod = 0;
     if (receiver_) {
@@ -2795,7 +2793,6 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 
 void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 {
-    isOnVsync_.store(true);
     SetFrameInfo(frameCount);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
@@ -2827,7 +2824,6 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 #endif
     ProcessScreenHotPlugEvents();
     RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
-    isOnVsync_.store(false);
 }
 
 void RSMainThread::RSJankStatsOnVsyncStart(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
@@ -3649,16 +3645,6 @@ void RSMainThread::SetScreenPowerOnChanged(bool val)
 bool RSMainThread::GetScreenPowerOnChanged() const
 {
     return screenPowerOnChanged_;
-}
-
-void RSMainThread::SetNoNeedToPostTask(bool noNeedToPostTask)
-{
-    noNeedToPostTask_ = noNeedToPostTask;
-}
-
-bool RSMainThread::GetNoNeedToPostTask()
-{
-    return noNeedToPostTask_.load();
 }
 
 void RSMainThread::SetAccessibilityConfigChanged()
