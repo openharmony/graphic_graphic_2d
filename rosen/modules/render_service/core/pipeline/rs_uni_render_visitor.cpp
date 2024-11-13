@@ -194,6 +194,7 @@ RSUniRenderVisitor::RSUniRenderVisitor(const RSUniRenderVisitor& visitor) : RSUn
     displayHasProtectedSurface_ = visitor.displayHasProtectedSurface_;
     displaySpecailSurfaceChanged_ = visitor.displaySpecailSurfaceChanged_;
     hasCaptureWindow_ = visitor.hasCaptureWindow_;
+    hasFingerprint_ = visitor.hasFingerprint_;
     parentSurfaceNodeMatrix_ = visitor.parentSurfaceNodeMatrix_;
     curAlpha_ = visitor.curAlpha_;
     dirtyFlag_ = visitor.dirtyFlag_;
@@ -325,8 +326,14 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         RS_LOGD("SetHDRPresent true, surfaceNode: %{public}" PRIu64 "", node.GetId());
         hasUniRenderHdrSurface_ = true;
     }
-    if (hasFingerprint_) {
+    if (hasFingerprint_[currentVisitDisplay_]) {
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat hasFingerprint is true.");
+        return;
+    }
+    if (node.GetFingerprint()) {
+        hasFingerprint_[currentVisitDisplay_] = true;
+        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for fingerprint.");
         return;
     }
     if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
@@ -335,13 +342,6 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
     }
 
     const sptr<SurfaceBuffer>& buffer = node.GetRSSurfaceHandler()->GetBuffer();
-
-    if (node.GetFingerprint()) {
-        hasFingerprint_ = true;
-        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for fingerprint.");
-        return;
-    }
 
     auto bufferPixelFormat = buffer->GetFormat();
     if ((bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 ||
@@ -710,6 +710,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     screenRenderParams.displayHasProtectedSurface = std::move(displayHasProtectedSurface_);
     screenRenderParams.displaySpecailSurfaceChanged = std::move(displaySpecailSurfaceChanged_);
     screenRenderParams.hasCaptureWindow = std::move(hasCaptureWindow_);
+    curDisplayNode_->SetFingerprint(hasFingerprint_[currentVisitDisplay_]);
     curDisplayNode_->UpdateScreenRenderParams(screenRenderParams);
     curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
     UpdateColorSpaceAfterHwcCalc(node);
@@ -1215,6 +1216,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     displayHasProtectedSurface_.emplace(currentVisitDisplay_, false);
     displaySpecailSurfaceChanged_.emplace(currentVisitDisplay_, false);
     hasCaptureWindow_.emplace(currentVisitDisplay_, false);
+    hasFingerprint_.emplace(currentVisitDisplay_, false);
     curDisplayDirtyManager_ = node.GetDirtyManager();
     curDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSDisplayRenderNode>();
     if (!curDisplayDirtyManager_ || !curDisplayNode_) {

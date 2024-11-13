@@ -332,6 +332,7 @@ private:
     std::map<ScreenId, bool> displayHasProtectedSurface_;
     std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
+    std::map<ScreenId, bool> hasFingerprint_;
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
     // record nodes which has transparent clean filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
@@ -366,7 +367,6 @@ private:
     bool filterInGlobal_ = true;
     // opinc feature
     bool autoCacheEnable_ = false;
-    bool hasFingerprint_ = false;
     bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
     // to record and pass container node dirty to leash node.
     bool curContainerDirty_ = false;

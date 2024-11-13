@@ -153,10 +153,7 @@ public:
         return hasFingerprint_;
     }
 
-    void SetFingerprint(bool hasFingerprint)
-    {
-        hasFingerprint_ = hasFingerprint;
-    }
+    void SetFingerprint(bool hasFingerprint);
 
     void SetScreenRotation(const ScreenRotation& screenRotation)
     {

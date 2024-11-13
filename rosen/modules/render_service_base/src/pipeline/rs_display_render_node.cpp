@@ -403,6 +403,23 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
     }
 }
 
+void RSDisplayRenderNode::SetFingerprint(bool hasFingerprint)
+{
+    if (hasFingerprint_ == hasFingerprint) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetFingerprint(hasFingerprint);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    hasFingerprint_ = hasFingerprint;
+}
+
 void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)
 {
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());

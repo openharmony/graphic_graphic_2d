@@ -136,6 +136,9 @@ public:
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
 
+    void SetFingerprint(bool hasFingerprint) override;
+    bool GetFingerprint() override;
+
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
@@ -205,6 +208,7 @@ private:
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
+    bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;

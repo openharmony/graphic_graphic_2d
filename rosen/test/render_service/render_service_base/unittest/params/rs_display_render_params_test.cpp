@@ -222,6 +222,22 @@ HWTEST_F(RSDisplayRenderParamsTest, HasCaptureWindow, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Fingerprint001
+ * @tc.desc: test SetFingerprint and GetFingerprint
+ * @tc.type: FUNC
+ * @tc.require: issuesIB2QEK
+ */
+HWTEST_F(RSDisplayRenderParamsTest, Fingerprint001, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[3];
+    RSDisplayRenderParams params(id);
+    EXPECT_FALSE(params.GetFingerprint());
+
+    params.SetFingerprint(true);
+    EXPECT_TRUE(params.GetFingerprint());
+}
+
+/**
  * @tc.name: SetNeedOffscreen
  * @tc.desc:
  * @tc.type:FUNC
