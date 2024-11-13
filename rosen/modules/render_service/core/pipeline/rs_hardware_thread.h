@@ -77,7 +77,7 @@ private:
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers);
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
-    void AddRefreshRateCount();
+    void AddRefreshRateCount(const OutputPtr& output);
     int64_t GetCurTimeCount();
     bool IsInAdaptiveMode(const OutputPtr &output);
 

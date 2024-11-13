@@ -213,7 +213,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             currentRate, param.frameTimestamp, param.vsyncId, layers.size());
         ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
-        AddRefreshRateCount();
+        AddRefreshRateCount(output);
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
@@ -670,7 +670,7 @@ void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<La
     RS_LOGD("RsDebug RSHardwareThread::Redraw flush frame buffer end");
 }
 
-void RSHardwareThread::AddRefreshRateCount()
+void RSHardwareThread::AddRefreshRateCount(const OutputPtr& output)
 {
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
@@ -684,7 +684,10 @@ void RSHardwareThread::AddRefreshRateCount()
     if (!success) {
         iter->second++;
     }
-    RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
+    if (output == nullptr) {
+        return;
+    }
+    RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(output->GetScreenId());
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
         RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
