@@ -202,6 +202,24 @@ int32_t HdiDeviceImpl::SetScreenMode(uint32_t screenId, uint32_t modeId)
     return g_composer->SetDisplayMode(screenId, modeId);
 }
 
+int32_t HdiDeviceImpl::SetScreenActiveRect(uint32_t screenId, const GraphicIRect& activeRect)
+{
+    if (activeRect.w <= 0 || activeRect.h <= 0) {
+        return GRAPHIC_DISPLAY_PARAM_ERR;
+    }
+    CHECK_FUNC(g_composer);
+    IRect hdiActiveRect {
+        .x = activeRect.x,
+        .y = activeRect.y,
+        .w = activeRect.w,
+        .h = activeRect.h,
+    };
+    // to call SetDisplayActiveRegion, when HDI api is accessible
+    (void)screenId;
+    (void)hdiActiveRect;
+    return GRAPHIC_DISPLAY_SUCCESS;
+}
+
 int32_t HdiDeviceImpl::SetScreenOverlayResolution(uint32_t screenId, uint32_t width, uint32_t height)
 {
     CHECK_FUNC(g_composer);

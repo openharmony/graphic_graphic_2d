@@ -672,7 +672,8 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     UpdateVirtualScreenInfo(node);
     ancestorNodeHasAnimation_ = false;
     displayNodeRotationChanged_ = node.IsRotationChanged();
-    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_;
+    dirtyFlag_ = isDirty_ || displayNodeRotationChanged_ || zoomStateChange_ ||
+        curDisplayDirtyManager_->IsSurfaceRectChanged();
     prepareClipRect_ = screenRect_;
     hasAccumulatedClip_ = false;
 
@@ -823,6 +824,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
         ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_);
+    curSurfaceDirtyManager_->ClipDirtyRectWithinSurface();
 
     auto dirtyRect = node.GetDirtyManager()->GetCurrentFrameDirtyRegion();
     RS_LOGD("QuickPrepare [%{public}s, %{public}" PRIu64 "] DirtyRect[%{public}d, %{public}d, %{public}d, %{public}d]",
@@ -1229,8 +1231,13 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         return false;
     }
     screenInfo_ = screenManager_->QueryScreenInfo(node.GetScreenId());
-    curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
-    screenRect_ = RectI{0, 0, screenInfo_.width, screenInfo_.height};
+    if (screenInfo_.activeRect.IsEmpty()) {
+        curDisplayDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        screenRect_ = RectI{0, 0, screenInfo_.width, screenInfo_.height};
+    } else {
+        curDisplayDirtyManager_->SetSurfaceRect(screenInfo_.activeRect);
+        screenRect_ = screenInfo_.activeRect;
+    }
 
     // 3 init Occlusion info
     needRecalculateOcclusion_ = false;
@@ -1290,7 +1297,11 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
             return false;
         }
         curSurfaceDirtyManager_->Clear();
-        curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        if (screenInfo_.activeRect.IsEmpty()) {
+            curSurfaceDirtyManager_->SetSurfaceSize(screenInfo_.width, screenInfo_.height);
+        } else {
+            curSurfaceDirtyManager_->SetSurfaceRect(screenInfo_.activeRect);
+        }
         filterInGlobal_ = curSurfaceNode_->IsTransparent();
         // update surfaceNode contentDirty and subTreeDirty flag for UIFirst purging policy
         RSMainThread::Instance()->CheckAndUpdateInstanceContentStaticStatus(curSurfaceNode_);
@@ -1915,6 +1926,16 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     CheckMergeDisplayDirtyByRoundCornerDisplay(*curDisplayNode_, screenManager_);
     ResetDisplayDirtyRegion();
+    if (curDisplayDirtyManager_) {
+        curDisplayDirtyManager_->ClipDirtyRectWithinSurface();
+        if (curDisplayDirtyManager_->IsSurfaceRectChanged()) {
+            RS_TRACE_NAME_FMT("SurfaceRectChanged, form %s to %s",
+                curDisplayDirtyManager_->GetLastSurfaceRect().ToString().c_str(),
+                curDisplayDirtyManager_->GetLastSurfaceRect().ToString().c_str());
+            curDisplayDirtyManager_->MergeDirtyRect(curDisplayDirtyManager_->GetSurfaceRect());
+            curDisplayDirtyManager_->MergeDirtyRect(curDisplayDirtyManager_->GetLastSurfaceRect());
+        }
+    }
     curDisplayNode_->ClearCurrentSurfacePos();
     std::swap(preMainAndLeashWindowNodesIds_, curMainAndLeashWindowNodesIds_);
 

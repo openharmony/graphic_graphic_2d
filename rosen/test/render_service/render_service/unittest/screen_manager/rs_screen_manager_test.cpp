@@ -736,6 +736,30 @@ HWTEST_F(RSScreenManagerTest, SetScreenActiveMode_001, testing::ext::TestSize.Le
 }
 
 /*
+ * @tc.name: SetScreenActiveRect001
+ * @tc.desc: Test SetScreenActiveRect
+ * @tc.type: FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenActiveRect001, testing::ext::TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = 1;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    screenManager->MockHdiScreenConnected(rsScreen);
+
+    GraphicIRect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(screenManager->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
  * @tc.name: GetScreenActiveMode_001
  * @tc.desc: Test GetScreenActiveMode
  * @tc.type: FUNC

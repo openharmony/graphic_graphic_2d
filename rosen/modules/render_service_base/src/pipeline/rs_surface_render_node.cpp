@@ -2103,7 +2103,8 @@ bool RSSurfaceRenderNode::CheckIfOcclusionReusable(std::queue<NodeId>& surfaceNo
 
 bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
 {
-    return GetZorderChanged() || GetDstRectChanged() || IsOpaqueRegionChanged();
+    return GetZorderChanged() || GetDstRectChanged() || IsOpaqueRegionChanged() ||
+        GetDirtyManager()->IsSurfaceRectChanged();
 }
 
 bool RSSurfaceRenderNode::CheckParticipateInOcclusion()

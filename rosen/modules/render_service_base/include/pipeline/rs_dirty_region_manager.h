@@ -117,7 +117,32 @@ public:
     // align current frame dirtyregion before merge history
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
-    bool SetSurfaceSize(const int32_t width, const int32_t height);
+
+    bool SetSurfaceRect(const RectI& rect)
+    {
+        if (rect.IsEmpty()) {
+            return false;
+        }
+        lastSurfaceRect_ = surfaceRect_;
+        surfaceRect_ = rect;
+        return true;
+    }
+
+    bool SetSurfaceSize(const int32_t width, const int32_t height)
+    {
+        return SetSurfaceRect(RectI(0, 0, width, height));
+    }
+
+    bool IsSurfaceRectChanged() const
+    {
+        return lastSurfaceRect_ != surfaceRect_;
+    }
+
+    const RectI& GetLastSurfaceRect() const
+    {
+        return lastSurfaceRect_;
+    }
+
     RectI GetSurfaceRect() const
     {
         return surfaceRect_;
@@ -185,6 +210,7 @@ private:
     RectI GetHistory(unsigned int i) const;
     void AlignHistory();
 
+    RectI lastSurfaceRect_;         // dirtyregion clipbounds of last frame
     RectI surfaceRect_;             // dirtyregion clipbounds
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame

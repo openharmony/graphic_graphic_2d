@@ -116,6 +116,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
@@ -1491,6 +1492,24 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_REPLY;
             }
             if (!reply.WriteUint32(actualRefreshRate)) {
+                return ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT): {
+            ScreenId id = data.ReadUint64();
+            auto x = data.ReadInt32();
+            auto y = data.ReadInt32();
+            auto w = data.ReadInt32();
+            auto h = data.ReadInt32();
+            Rect activeRect {
+                .x = x,
+                .y = y,
+                .w = w,
+                .h = h
+            };
+            uint32_t result = SetScreenActiveRect(id, activeRect);
+            if (!reply.WriteUint32(result)) {
                 return ERR_INVALID_REPLY;
             }
             break;

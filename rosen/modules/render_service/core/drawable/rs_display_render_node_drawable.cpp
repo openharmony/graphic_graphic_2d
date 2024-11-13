@@ -78,7 +78,7 @@ std::string RectVectorToString(std::vector<RectI>& regionRects)
     return results;
 }
 
-Drawing::Region GetFlippedRegion(std::vector<RectI>& rects, ScreenInfo& screenInfo)
+Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& screenInfo)
 {
     Drawing::Region region;
 
@@ -800,6 +800,18 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             // watermark and color filter should be applied after offscreen render.
             DrawWatermarkIfNeed(*params, *curCanvas_);
             SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
+            auto dirtyManager = GetSyncDirtyManager();
+            if (!dirtyManager->GetDirtyRegion().IsInsideOf(dirtyManager->GetSurfaceRect())) {
+                RS_TRACE_NAME_FMT("global dirty region:[%s] is not inside of surface rect:[%s], \
+                    clear extra area to black",
+                    dirtyManager->GetDirtyRegion().ToString().c_str(),
+                    dirtyManager->GetSurfaceRect().ToString().c_str());
+                curCanvas_->Save();
+                curCanvas_->ClipRegion(GetFlippedRegion({dirtyManager->GetSurfaceRect()}, screenInfo),
+                    Drawing::ClipOp::DIFFERENCE);
+                curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+                curCanvas_->Restore();
+            }
         }
         rsDirtyRectsDfx.OnDraw(*curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())

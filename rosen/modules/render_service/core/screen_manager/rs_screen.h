@@ -20,6 +20,7 @@
 #include <optional>
 #include <unordered_set>
 
+#include <common/rs_rect.h>
 #include <surface_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>
@@ -54,9 +55,11 @@ public:
     virtual uint32_t Height() const = 0;
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
+    virtual RectI GetActiveRect() const = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
     virtual void SetActiveMode(uint32_t modeId) = 0;
+    virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
     virtual void SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetPowerStatus(uint32_t powerStatus) = 0;
@@ -146,9 +149,11 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
+    RectI GetActiveRect() const override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
     void SetActiveMode(uint32_t modeId) override;
+    uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
     void SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
     void SetPowerStatus(uint32_t powerStatus) override;
@@ -239,6 +244,7 @@ private:
     uint32_t phyHeight_ = 0;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
+    RectI activeRect_;
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;

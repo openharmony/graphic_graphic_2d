@@ -1112,6 +1112,15 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     return renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
 }
 
+uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenActiveRect(id, activeRect);
+}
+
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
 {
 public:

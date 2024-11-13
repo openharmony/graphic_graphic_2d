@@ -253,6 +253,11 @@ uint32_t RSScreen::PhyHeight() const
     return phyHeight_;
 }
 
+RectI RSScreen::GetActiveRect() const
+{
+    return activeRect_;
+}
+
 bool RSScreen::IsEnable() const
 {
     if (id_ == INVALID_SCREEN_ID) {
@@ -305,6 +310,26 @@ void RSScreen::SetActiveMode(uint32_t modeId)
                 "TARGETRATE", activeMode->freshRate, "WIDTH", phyWidth_, "HEIGHT", phyHeight_);
             modeInfo = activeMode.value();
         }
+    }
+}
+
+uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
+{
+    if (IsVirtual()) {
+        RS_LOGW("RSScreen %{public}s failed: virtual screen not support", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    if (hdiScreen_ == nullptr) {
+        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr",  __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    
+    if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed",  __func__);
+        return StatusCode::HDI_ERROR;
+    } else {
+        activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+        return StatusCode::SUCCESS;
     }
 }
 

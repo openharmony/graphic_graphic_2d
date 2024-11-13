@@ -92,6 +92,16 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     int64_t interval = GetData<int64_t>();
     int32_t rangeSize = GetData<int32_t>();
 #endif
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -101,6 +111,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
 #endif
     rsInterfaces.SetScreenActiveMode(static_cast<ScreenId>(id), modeId);
+    rsInterfaces.SetScreenActiveRect(static_cast<ScreenId>(id), activeRect);
     rsInterfaces.SetScreenPowerStatus(static_cast<ScreenId>(id), static_cast<ScreenPowerStatus>(status));
     rsInterfaces.SetScreenBacklight(static_cast<ScreenId>(id), level);
     rsInterfaces.SetScreenColorGamut(static_cast<ScreenId>(id), modeIdx);

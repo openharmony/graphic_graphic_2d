@@ -1355,6 +1355,18 @@ void RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
     screensIt->second->SetActiveMode(modeId);
 }
 
+uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    return screensIt->second->SetScreenActiveRect(activeRect);
+}
+
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1651,6 +1663,7 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
     screen->GetScreenHDRFormat(info.hdrFormat);
     info.whiteList = screen->GetWhiteList();
     info.enableVisibleRect = screen->GetEnableVisibleRect();
+    info.activeRect = screen->GetActiveRect();
     return info;
 }
 
