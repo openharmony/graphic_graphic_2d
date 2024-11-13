@@ -113,7 +113,9 @@ HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level1)
     EXPECT_NE(instance.curThreadId_, -1);
     int32_t curThreadId = instance.curThreadId_;
     instance.DetectMultiThreadingCalls();
-    EXPECTEQ(curThreadId, instance.curThreadId_);
+    EXPECT_EQ(curThreadId, instance.curThreadId_);
+    std::thread([&instance]() { instance.DetectMultiThreadingCalls(); }).join();
+    EXPECT_NE(curThreadId, instance.curThreadId_);
 }
 } // namespace Rosen
 } // namespace OHOS
