@@ -17,6 +17,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
@@ -192,7 +193,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            if (GetRsImageCache(canvas, pixelMap,
+                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -228,6 +230,34 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
+}
+#endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+{
+    if (pixelMap == nullptr) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Image> imageCache = nullptr;
+    if (!pixelMap->IsEditable()) {
+        imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
+            rsImage_->GetUniqueId(), gettid());
+    }
+    if (imageCache) {
+        this->image_ = imageCache;
+    } else {
+        bool ret = MakeFromTextureForVK(
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace);
+        if (ret && image_ && !pixelMap->IsEditable()) {
+            SKResourceManager::Instance().HoldResource(image_);
+            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
+                rsImage_->GetUniqueId(), image_, gettid());
+        }
+        return ret;
+    }
+    return true;
 }
 #endif
 
