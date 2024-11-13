@@ -2140,6 +2140,192 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenBlackList006, TestSize.Level1)
 }
 
 /*
+ * @tc.name: AddVirtualScreenBlackList001
+ * @tc.desc: Test AddVirtualScreenBlackList, when id is INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManager->AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList002
+ * @tc.desc: Test AddVirtualScreenBlackList, input id in screens_, and screens_[id] is multiple
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList003
+ * @tc.desc: Test AddVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, screens_[mainId]==null
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    std::vector<uint64_t> blackList = {};
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+
+    screenManagerImpl.screens_[mainId] = nullptr;
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList004
+ * @tc.desc: Test AddVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId,  screens_[mainId]!=nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList001
+ * @tc.desc: Test RemoveVirtualScreenBlackList, when id is INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManager->RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList002
+ * @tc.desc: Test RemoveVirtualScreenBlackList, input id in screens_, and screens_[id] is multiple
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = nullptr;
+    std::vector<uint64_t> blackList = {};
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+
+    ScreenId mainId = id;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList003
+ * @tc.desc: Test RemoveVirtualScreenBlackList, id!=mainId, screens_[id]!=nullptr,screens_[mainId]==nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+    std::vector<uint64_t> blackList = {};
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+
+    screenManagerImpl.screens_[mainId] = nullptr;
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList004
+ * @tc.desc: Test RemoveVirtualScreenBlackList, id!=mainId, screens_[id]!=nullptr, screens_[mainId]!=nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, RemoveVirtualScreenBlackList004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    ScreenId mainId = 0;
+    screenManagerImpl.SetDefaultScreenId(mainId);
+
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManagerImpl.screens_[mainId] = std::make_unique<impl::RSScreen>(mainId, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[mainId], nullptr);
+    std::vector<uint64_t> blackList = {};
+
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, blackList), StatusCode::SUCCESS);
+}
+
+/*
  * @tc.name: SetVirtualScreenBlackList007
  * @tc.desc: Test SetVirtualScreenBlackList, screens_[id]!=nullptr, id!=mainId, mainId is one of key of screens_ but
  * screens_[mainId]!=nullptr screens_[]!=null id==DefaultScreenId
