@@ -1508,16 +1508,16 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceIdToRenderNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateTextureExportRenderNodeInRT Test
- * @tc.desc: CreateTextureExportRenderNodeInRT
+ * @tc.name: CreateRenderNodeForTextureExportSwitch Test
+ * @tc.desc: CreateRenderNodeForTextureExportSwitch
  * @tc.type: FUNC
  * @tc.require:SR000HSUII
  */
-HWTEST_F(RSSurfaceNodeTest, CreateTextureExportRenderNodeInRT, TestSize.Level1)
+HWTEST_F(RSSurfaceNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    surfaceNode->CreateTextureExportRenderNodeInRT();
+    surfaceNode->CreateRenderNodeForTextureExportSwitch();
     bool res = true;
     ASSERT_EQ(true, res);
 }

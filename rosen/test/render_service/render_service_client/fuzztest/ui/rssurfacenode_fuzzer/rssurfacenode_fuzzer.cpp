@@ -645,7 +645,7 @@ bool DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(const uint8_t*
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->NeedForcedSendToRemote();
-    surfaceNode->CreateTextureExportRenderNodeInRT();
+    surfaceNode->CreateRenderNodeForTextureExportSwitch();
     return true;
 }
 
