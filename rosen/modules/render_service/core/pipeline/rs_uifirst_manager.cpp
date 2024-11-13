@@ -1282,17 +1282,14 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
                 node.MarkUifirstNode(true);
             }
             return;
+        }
         if (!node.isUifirstNode_) {
             node.isUifirstDelay_++;
             if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
                 node.isUifirstNode_ = true;
             }
+            return;
         }
-        return;
-    }
-    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
-        UifirstStateChange(node, MultiThreadCacheType::NONE);
-        return;
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
         UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
