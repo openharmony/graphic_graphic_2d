@@ -7302,7 +7302,7 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     rsNode->MarkNodeGroup(true);
     rsNode->MarkNodeSingleFrameComposer(true);
     rsNode->MarkSuggestOpincNode(true);
-    rsNode->MarkUifirstNode(true);
+    rsNode->MarkUifirstNode(true, true);
     rsNode->SetDrawRegion(std::make_shared<RectF>());
     rsNode->AddAnimation(std::make_shared<RSAnimation>());
     string out2;
