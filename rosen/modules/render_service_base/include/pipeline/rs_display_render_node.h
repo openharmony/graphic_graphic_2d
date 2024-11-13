@@ -258,6 +258,21 @@ public:
         return isSecurityExemption_;
     }
 
+    void AddSecurityVisibleLayer(NodeId id)
+    {
+        securityVisibleLayerList_.emplace_back(id);
+    }
+
+    void ClearSecurityVisibleLayerList()
+    {
+        securityVisibleLayerList_.clear();
+    }
+
+    const std::vector<NodeId>& GetSecurityVisibleLayerList()
+    {
+        return securityVisibleLayerList_;
+    }
+
     void SetHasSecLayerInVisibleRect(bool hasSecLayer) {
         bool lastHasSecLayerInVisibleRect = hasSecLayerInVisibleRect_;
         hasSecLayerInVisibleRect_ = hasSecLayer;
@@ -505,8 +520,12 @@ private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
 
-    std::vector<NodeId> securityLayerList_;
+    // Use in virtual screen security exemption
+    std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
     bool isSecurityExemption_ = false;
+
+    // Use in mirror screen visible rect projection
+    std::vector<NodeId> securityVisibleLayerList_;  // surface node id
     bool hasSecLayerInVisibleRect_ = false;
     bool hasSecLayerInVisibleRectChanged_ = false;
 

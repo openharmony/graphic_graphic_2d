@@ -426,6 +426,7 @@ void RSUniRenderVisitor::UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRen
     if (node.GetHasSecurityLayer()) {
         displayHasSecSurface_[currentVisitDisplay_] = true;
         curDisplayNode_->AddSecurityLayer(node.IsLeashWindow() ? node.GetLeashPersistentId() : node.GetId());
+        curDisplayNode_->AddSecurityVisibleLayer(node.GetId());
     }
     if (node.GetHasSkipLayer() && node.GetName().find(CAPTURE_WINDOW_NAME) == std::string::npos) {
         displayHasSkipSurface_[currentVisitDisplay_] = true;
@@ -588,6 +589,7 @@ void RSUniRenderVisitor::UpdateVirtualScreenInfo(RSDisplayRenderNode& node)
     // only for virtual screen
     if (!(node.IsMirrorDisplay())) {
         node.ClearSecurityLayerList();
+        node.ClearSecurityVisibleLayerList();
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
@@ -642,9 +644,9 @@ void RSUniRenderVisitor::UpdateVirtualScreenVisibleRectSecurity(RSDisplayRenderN
     }
     auto rect = screenManager_->GetMirrorScreenVisibleRect(node.GetScreenId());
     RectI visibleRect(rect.x, rect.y, rect.w, rect.h);
-    auto securityLayerList = mirrorNode.GetSecurityLayerList();
+    auto securityVisibleLayerList = mirrorNode.GetSecurityVisibleLayerList();
     bool hasSecLayerInVisibleRect = false;
-    for (const auto& secLayerId : securityLayerList) {
+    for (const auto& secLayerId : securityVisibleLayerList) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
             RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(secLayerId));
         if (surfaceNode == nullptr) {

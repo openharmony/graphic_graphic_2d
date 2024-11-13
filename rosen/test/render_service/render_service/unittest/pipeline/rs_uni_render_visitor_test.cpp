@@ -2518,6 +2518,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo003, TestSize.Level2)
     auto mirrorNode = std::make_shared<RSDisplayRenderNode>(mirrorId, displayConfig, rsContext->weak_from_this());
     mirrorNode->AddSecurityLayer(1);  // layerId for test
     mirrorNode->AddSecurityLayer(2);  // layerId for test
+    mirrorNode->AddSecurityVisibleLayer(1);  // layerId for test
+    mirrorNode->AddSecurityVisibleLayer(2);  // layerId for test
     rsDisplayRenderNode->mirrorSource_ = mirrorNode;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
