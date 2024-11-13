@@ -78,7 +78,7 @@ public:
     void MemoryManagementBetweenFrames();
     void FlushGpuMemoryInWaitQueueBetweenFrames();
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
-    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids);
+    void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
     void SetDefaultClearMemoryFinished(bool isFinished);
     bool IsDefaultClearMemroyFinished();
     bool GetClearMemoryFinished() const;

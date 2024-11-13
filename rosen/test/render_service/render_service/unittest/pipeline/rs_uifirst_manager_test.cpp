@@ -648,8 +648,10 @@ HWTEST_F(RSUifirstManagerTest, NotifyUIStartingWindow, TestSize.Level1)
     EXPECT_TRUE(parentNode);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     uifirstManager_.NotifyUIStartingWindow(id, false);
-    
-    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNode->GetId()] = parentNode;
+
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
 
     auto childNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
     EXPECT_TRUE(childNode);
@@ -759,6 +761,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     EXPECT_TRUE(uifirstManager_.pendingPostNodes_.size() == 1);
 
     node = std::make_shared<RSRenderNode>(1);
+    DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     uifirstManager_.pendingPostCardNodes_.clear();
     res = uifirstManager_.CollectSkipSyncNode(node);
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(1);
@@ -768,7 +771,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     res = uifirstManager_.CollectSkipSyncNode(node);
     node->id_ = 0;
     res = uifirstManager_.CollectSkipSyncNode(node);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     uifirstManager_.entryViewNodeId_ = 1;
     uifirstManager_.negativeScreenNodeId_ = 1;
@@ -776,7 +779,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     uifirstManager_.processingCardNodeSkipSync_.clear();
     uifirstManager_.processingCardNodeSkipSync_.insert(0);
     res = uifirstManager_.CollectSkipSyncNode(node);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     node->uifirstRootNodeId_ = 1;
     uifirstManager_.processingCardNodeSkipSync_.insert(1);
@@ -787,7 +790,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     uifirstManager_.processingNodePartialSync_.clear();
     uifirstManager_.processingNodePartialSync_.insert(0);
     res = uifirstManager_.CollectSkipSyncNode(node);
-    EXPECT_TRUE(res);
+    EXPECT_FALSE(res);
 
     uifirstManager_.processingNodePartialSync_.insert(1);
     node->instanceRootNodeId_ = 1;
@@ -798,6 +801,7 @@ HWTEST_F(RSUifirstManagerTest, CollectSkipSyncNode001, TestSize.Level1)
     uifirstManager_.processingNodeSkipSync_.insert(1);
     res = uifirstManager_.CollectSkipSyncNode(node);
     EXPECT_TRUE(res);
+    node->renderDrawable_ = nullptr;
 }
 
 /**

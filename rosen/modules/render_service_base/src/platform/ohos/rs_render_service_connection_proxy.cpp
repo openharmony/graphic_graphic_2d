@@ -118,7 +118,10 @@ bool RSRenderServiceConnectionProxy::FillParcelWithTransactionData(
     // write a flag at the begin of parcel to identify parcel type
     // 0: indicate normal parcel
     // 1: indicate ashmem parcel
-    data->WriteInt32(0);
+    if (!data->WriteInt32(0)) {
+        ROSEN_LOGE("FillParcelWithTransactionData WriteInt32 failed");
+        return false;
+    }
 
     // 1. marshalling RSTransactionData
     RS_TRACE_BEGIN("MarshRSTransactionData cmdCount:" + std::to_string(transactionData->GetCommandCount()) +

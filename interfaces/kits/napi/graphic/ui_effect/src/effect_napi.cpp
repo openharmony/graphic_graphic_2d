@@ -114,8 +114,13 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
         return nullptr;
     }
     napi_value object = nullptr;
-    napi_create_object(env, &object);
-    napi_wrap(
+    napi_status status = napi_create_object(env, &object);
+    if (status != napi_ok) {
+        delete effectObj;
+        UIEFFECT_LOG_E("EffectNapi CreateEffect create object fail.");
+        return nullptr;
+    }
+    status = napi_wrap(
         env, object, effectObj,
         [](napi_env env, void* data, void* hint) {
             VisualEffect* effectObj = (VisualEffect*)data;
@@ -123,10 +128,20 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
             effectObj = nullptr;
         },
         nullptr, nullptr);
+    if (status != napi_ok) {
+        delete effectObj;
+        UIEFFECT_LOG_E("EffectNapi CreateEffect wrap fail.");
+        return nullptr;
+    }
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetbackgroundColorBlender),
     };
-    NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
+    status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
+    if (status != napi_ok) {
+        delete effectObj;
+        UIEFFECT_LOG_E("EffectNapi CreateEffect define properties fail.");
+        return nullptr;
+    }
     return object;
 }
 

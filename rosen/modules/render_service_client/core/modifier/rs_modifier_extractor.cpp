@@ -26,19 +26,20 @@
 
 namespace OHOS {
 namespace Rosen {
-RSModifierExtractor::RSModifierExtractor(RSNode* node) : node_(node) {}
+RSModifierExtractor::RSModifierExtractor(NodeId id) : id_(id) {}
 constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS(T, propertyType, defaultValue, operator)                                        \
     do {                                                                                                            \
-        if (!node_) {                                                                                                \
+        auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
+        if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                      \
+        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
         T value = defaultValue;                                                                                     \
-        if (node_->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
-            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node_->modifiers_.size());                \
+        if (node->modifiers_.size() > DEBUG_MODIFIER_SIZE) {                                                        \
+            ROSEN_LOGD("RSModifierExtractor modifier size is %{public}zu", node->modifiers_.size());                \
         }                                                                                                           \
-        for (auto& [_, modifier] : node_->modifiers_) {                                                              \
+        for (auto& [_, modifier] : node->modifiers_) {                                                              \
             if (modifier->GetModifierType() == RSModifierType::propertyType) {                                      \
                 value operator std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();             \
             }                                                                                                       \
@@ -48,12 +49,13 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 
 #define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
     do {                                                                                                            \
-        if (node_ == nullptr) {                                                                                     \
+        auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
+        if (!node) {                                                                                     \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node_->GetPropertyMutex());                                     \
-        auto typeIter = node_->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
-        if (typeIter != node_->modifiersTypeMap_.end()) {                                                            \
+        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                     \
+        auto typeIter = node->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
+        if (typeIter != node->modifiersTypeMap_.end()) {                                                            \
             auto modifier = typeIter->second;                                                                         \
             return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                       \
         } else {                                                                                                     \

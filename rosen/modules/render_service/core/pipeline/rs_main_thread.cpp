@@ -652,17 +652,19 @@ void RSMainThread::Init()
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
     frameRateMgr_ = OHOS::Rosen::HgmCore::Instance().GetFrameRateMgr();
-    frameRateMgr_->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
-        RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
-            RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
-                idleTimerExpired? "True":"False", forceUpdate? "True": "False");
-            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
-            RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
-            RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
-            RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+    if (frameRateMgr_ != nullptr) {
+        frameRateMgr_->SetForceUpdateCallback([this](bool idleTimerExpired, bool forceUpdate) {
+            RSMainThread::Instance()->PostTask([this, idleTimerExpired, forceUpdate]() {
+                RS_TRACE_NAME_FMT("RSMainThread::TimerExpiredCallback Run idleTimerExpiredFlag: %s  forceUpdateFlag: %s",
+                    idleTimerExpired? "True":"False", forceUpdate? "True": "False");
+                RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
+                RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
+                RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
+                RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
+            });
         });
-    });
-    frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+        frameRateMgr_->Init(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+    }
     SubscribeAppState();
     PrintCurrentStatus();
     RSLuminanceControl::Get().Init();
@@ -827,10 +829,12 @@ void RSMainThread::ProcessCommand()
         case RSContext::PurgeType::GENTLY:
             isUniRender_ ? RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, false) :
                 ClearMemoryCache(context_->clearMoment_, false);
+                isNeedResetClearMemoryTask_ = true;
             break;
         case RSContext::PurgeType::STRONGLY:
             isUniRender_ ? RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, true) :
                 ClearMemoryCache(context_->clearMoment_, true);
+                isNeedResetClearMemoryTask_ = true;
             break;
         default:
             break;
@@ -1919,9 +1923,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
-    RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
-        RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
-    });
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
         && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
@@ -1947,6 +1948,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
+        });
         RSUifirstManager::Instance().ProcessForceUpdateNode();
         doDirectComposition_ = false;
         uniVisitor->SetAnimateState(doWindowAnimate_);
@@ -2160,6 +2164,13 @@ void RSMainThread::OnUniRenderDraw()
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         drawFrame_.PostAndWait();
         return;
+    }
+    // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
+    if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
+        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids), true);
+        });
+        isNeedResetClearMemoryTask_ = false;
     }
 
     UpdateDisplayNodeScreenId();
@@ -2806,7 +2817,10 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         auto frameRateGetFunc = [this](const RSPropertyUnit unit, float velocity) -> int32_t {
-            return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
+            if (frameRateMgr_ != nullptr) {
+                return frameRateMgr_->GetExpectedFrameRate(unit, velocity);
+            }
+            return 0;
         };
         node->animationManager_.SetRateDeciderEnable(isRateDeciderEnabled, frameRateGetFunc);
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
@@ -3353,6 +3367,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (!IsResidentProcess(remotePid)) {
             if (isUniRender_) {
                 RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true, remotePid);
+                isNeedResetClearMemoryTask_ = true;
             } else {
                 ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
             }
@@ -4044,6 +4059,7 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
                         if (isUniRender_) {
                             RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
+                            isNeedResetClearMemoryTask_ = true;
                         } else {
                             ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
                         }

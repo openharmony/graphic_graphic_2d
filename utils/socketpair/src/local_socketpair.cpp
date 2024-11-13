@@ -139,16 +139,16 @@ int32_t LocalSocketPair::SendData(const void *vaddr, size_t size)
         return -1;
     }
     ssize_t length = TEMP_FAILURE_RETRY(send(sendFd_, vaddr, size, MSG_DONTWAIT | MSG_NOSIGNAL));
-    if (length < 0) {
+    if (length <= 0) {
         int errnoRecord = errno;
         ScopedBytrace func("SocketPair SendData failed, errno = " + std::to_string(errnoRecord) +
                             ", sendFd_ = " + std::to_string(sendFd_) + ", receiveFd_ = " + std::to_string(receiveFd_) +
                             ", length = " + std::to_string(length));
-        LOGD("%{public}s send failed:%{public}d, length = %{public}d", __func__, errnoRecord,
-            static_cast<int32_t>(length));
         if (errnoRecord == EAGAIN) {
             return ERRNO_EAGAIN;
         } else {
+            LOGE("%{public}s send failed, errno:%{public}d, length:%{public}d, sendFd:%{public}d, receiveFd:%{public}d",
+                __func__, errnoRecord, static_cast<int32_t>(length), sendFd_, receiveFd_);
             return ERRNO_OTHER;
         }
     }

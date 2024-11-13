@@ -145,8 +145,13 @@ private:
     void ReportEventResponse(const JankFrames& jankFrames) const;
     void ReportEventComplete(const JankFrames& jankFrames) const;
     void ReportEventJankFrame(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
-    std::tuple<int64_t, int64_t, int64_t> GetMaxJankInfo(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
+    void ReportEventJankFrameWithoutDelay(const JankFrames& jankFrames) const;
+    void ReportEventJankFrameWithDelay(const JankFrames& jankFrames) const;
+    void GetMaxJankInfo(const JankFrames& jankFrames, bool isReportTaskDelayed,
+        int64_t& maxFrameTimeFromStart, int64_t& maxHitchTimeFromStart, int64_t& duration) const;
     void ReportEventHitchTimeRatio(const JankFrames& jankFrames, bool isReportTaskDelayed) const;
+    void ReportEventHitchTimeRatioWithoutDelay(const JankFrames& jankFrames) const;
+    void ReportEventHitchTimeRatioWithDelay(const JankFrames& jankFrames) const;
     void ReportEventFirstFrame();
     void ReportEventFirstFrameByPid(pid_t appPid) const;
     void HandleImplicitAnimationEndInAdvance(JankFrames& jankFrames, bool isReportTaskDelayed);

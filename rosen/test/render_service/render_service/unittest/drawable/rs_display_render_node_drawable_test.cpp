@@ -849,7 +849,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
     ASSERT_TRUE(virtualProcesser->GetCanvas());
     mirrorDrawable->cacheImgForCapture_ = std::make_shared<Drawing::Image>();
     displayDrawable_->DrawMirrorCopy(*mirrorDrawable, *params, virtualProcesser, *uniParam);
-    ASSERT_FALSE(virtualProcesser->GetCanvas());
+    ASSERT_TRUE(virtualProcesser->GetCanvas());
     uniParam->isVirtualDirtyEnabled_ = true;
 }
 

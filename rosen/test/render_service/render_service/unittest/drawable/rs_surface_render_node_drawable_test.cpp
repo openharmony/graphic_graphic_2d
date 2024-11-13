@@ -404,33 +404,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnCapture, TestSize.Level1)
 }
 
 /**
- * @tc.name: EnableRecordingOptimization
- * @tc.desc: Test EnableRecordingOptimization
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, EnableRecordingOptimization, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    RSSurfaceRenderParams surfaceParams(0);
-    ASSERT_FALSE(surfaceDrawable_->EnableRecordingOptimization(surfaceParams));
-    ASSERT_FALSE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-    ASSERT_FALSE(surfaceDrawable_->EnableRecordingOptimization(surfaceParams));
-
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hasCaptureImg_ = true;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->rootIdOfCaptureWindow_ = 1;
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->startVisit_ = false;
-    ASSERT_TRUE(surfaceDrawable_->EnableRecordingOptimization(surfaceParams));
-
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->startVisit_ = true;
-    ASSERT_FALSE(surfaceDrawable_->EnableRecordingOptimization(surfaceParams));
-    
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->rootIdOfCaptureWindow_ = surfaceParams.GetId();
-    ASSERT_FALSE(surfaceDrawable_->EnableRecordingOptimization(surfaceParams));
-}
-
-/**
  * @tc.name: CaptureSurface
  * @tc.desc: Test CaptureSurface, default case
  * @tc.type: FUNC

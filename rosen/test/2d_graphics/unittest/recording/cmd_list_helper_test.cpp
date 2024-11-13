@@ -246,8 +246,8 @@ HWTEST_F(CmdListHelperTest, ImageBaseObj, TestSize.Level1)
         ImageBaseObj() = default;
         ~ImageBaseObj() override {};
         
-        void Playback(Canvas& canvas, const Rect& rect,
-            const SamplingOptions& sampling) override {};
+        void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
+            SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override {};
     };
     std::shared_ptr<ExtendImageBaseObj> object = std::make_shared<ImageBaseObj>();
     auto cmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);

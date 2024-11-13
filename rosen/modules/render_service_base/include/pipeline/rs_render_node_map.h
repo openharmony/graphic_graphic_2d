@@ -68,11 +68,7 @@ public:
     void ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRenderNode> surfaceNode);
 
     uint32_t GetVisibleLeashWindowCount() const;
-
-    uint64_t GetSize() const
-    {
-        return renderNodeMap_.size();
-    }
+    uint64_t GetSize() const;
 
     // call from main thread
     void AddOffTreeNode(NodeId nodeId);
@@ -87,7 +83,7 @@ private:
     RSRenderNodeMap& operator=(const RSRenderNodeMap&&) = delete;
 
 private:
-    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap_;
+    std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> renderNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> surfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> residentSurfaceNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSDisplayRenderNode>> displayNodeMap_;

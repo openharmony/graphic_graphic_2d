@@ -336,7 +336,9 @@ int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
 
 void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+    if (hgmFrameRateMgr_ != nullptr) {
+        hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+    }
 
     if (refreshRateModeChangeCallback_ != nullptr) {
         auto refreshRateModeName = GetCurrentRefreshRateModeName();
