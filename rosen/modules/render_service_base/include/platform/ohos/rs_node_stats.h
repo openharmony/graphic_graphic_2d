@@ -59,7 +59,7 @@ private:
     void SortNodeStats(bool isSortByNodeCountDescendingOrder = true);
     std::pair<RSNodeDescription, RSNodeCount> GetNodeStatsToReportByIndex(size_t index) const;
     RSNodeDescription CheckEmptyAndReviseNodeDescription(const RSNodeDescription& nodeDescription) const;
-    std::pair<uint32_t, uint32_t> GetCurrentRSNodeLimit() const;
+    void GetCurrentRSNodeLimit(uint32_t& rsNodeLimit, uint32_t& rsNodeReportLimit) const;
     int64_t GetCurrentSystimeMs() const;
     int64_t GetCurrentSteadyTimeMs() const;
 

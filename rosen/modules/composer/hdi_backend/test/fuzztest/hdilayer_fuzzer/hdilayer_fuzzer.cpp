@@ -79,7 +79,6 @@ namespace OHOS {
         GraphicIRect crop = GetData<GraphicIRect>();
         bool preMulti = GetData<bool>();
         GraphicIRect layerRect = GetData<GraphicIRect>();
-        void* info = static_cast<void*>(GetStringFromData(STR_LEN).data());
         bool change = GetData<bool>();
 
         // test
@@ -94,7 +93,6 @@ namespace OHOS {
         layerInfo->SetCropRect(crop);
         layerInfo->SetPreMulti(preMulti);
         layerInfo->SetLayerSize(layerRect);
-        layerInfo->SetLayerAdditionalInfo(info);
         layerInfo->SetTunnelHandleChange(change);
         return layerInfo;
     }

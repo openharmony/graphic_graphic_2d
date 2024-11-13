@@ -111,9 +111,9 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = surfaceHandler->GetPreBuffer();
-    ScalingMode scalingMode = params.GetPreScalingMode();
+    ScalingMode scalingMode = params.GetScalingMode();
     if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params.SetPreScalingMode(scalingMode);
+        params.SetScalingMode(scalingMode);
     }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
@@ -173,12 +173,15 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
     RSSurfaceRenderParams& params)
 {
     auto surfaceHandler = drawable.GetMutableRSSurfaceHandlerUiFirstOnDraw();
+    if (!surfaceHandler) {
+        return;
+    }
     auto buffer = surfaceHandler->GetBuffer();
     if (buffer == nullptr && surfaceHandler->GetAvailableBufferCount() <= 0) {
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", params.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(params.GetId());
     }
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true) || !surfaceHandler->GetBuffer()) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler) || !surfaceHandler->GetBuffer()) {
         RS_LOGE("CreateUIFirstLayer ConsumeAndUpdateBuffer or GetBuffer return  false");
         return;
     }
@@ -204,6 +207,9 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
     }
     if (params.GetAnimateState() == true ||
         RSUniRenderUtil::GetRotationDegreeFromMatrix(params.GetTotalMatrix()) % RS_ROTATION_90 != 0) {
+        return true;
+    }
+    if (!params.GetCornerRadiusInfoForDRM().empty()) {
         return true;
     }
     bool forceClientForDRM = false;
@@ -248,6 +254,15 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     bool forceClient = RSSystemProperties::IsForceClient() || forceClientForDRM;
     layer->SetCompositionType(forceClient ? GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT :
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    layer->SetCornerRadiusInfoForDRM(params.GetCornerRadiusInfoForDRM());
+    auto bufferBackgroundColor = params.GetBackgroundColor();
+    GraphicLayerColor backgroundColor = {
+        .r = bufferBackgroundColor.GetRed(),
+        .g = bufferBackgroundColor.GetGreen(),
+        .b = bufferBackgroundColor.GetBlue(),
+        .a = bufferBackgroundColor.GetAlpha()
+    };
+    layer->SetBackgroundColor(backgroundColor);
 
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(layerInfo.dstRect);
@@ -271,7 +286,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-    layer->SetScalingMode(params.GetPreScalingMode());
+    layer->SetScalingMode(params.GetScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetClearCacheSet(params.GetBufferClearCacheSet());
     layer->SetLayerArsr(layerInfo.arsrTag);

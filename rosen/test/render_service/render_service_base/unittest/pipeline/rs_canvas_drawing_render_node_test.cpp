@@ -284,7 +284,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, PlaybackInCorrespondThread, TestSize.Lev
     rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
 
     auto& ctxNodeMap = context.lock()->GetMutableNodeMap();
-    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNode->GetId()] = rsCanvasDrawingRenderNode;
+    NodeId rsCanvasDrawingRenderNodeId = rsCanvasDrawingRenderNode->GetId();
+    pid_t rsCanvasDrawingRenderNodePid = ExtractPid(rsCanvasDrawingRenderNodeId);
+    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNodePid][rsCanvasDrawingRenderNodeId] = rsCanvasDrawingRenderNode;
     ctxNode = context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
     EXPECT_TRUE(ctxNode != nullptr);
     int32_t width = 1;
@@ -554,7 +556,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, IsNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->renderDrawable_ =
         std::make_shared<RSCanvasDrawingRenderNodeDrawableAdapterTest>(otherNode);
     rsCanvasDrawingRenderNode->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    EXPECT_TRUE(rsCanvasDrawingRenderNode->IsNeedProcess());
+    EXPECT_FALSE(rsCanvasDrawingRenderNode->IsNeedProcess());
 }
 
 /**

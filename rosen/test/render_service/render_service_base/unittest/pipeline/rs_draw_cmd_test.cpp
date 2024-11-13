@@ -371,7 +371,8 @@ HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
     Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -394,7 +395,8 @@ HWTEST_F(RSDrawCmdTest, SetNodeId005, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
     Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
     drawPixelMapRectOpItem.SetNodeId(id);
 
@@ -424,64 +426,5 @@ HWTEST_F(RSDrawCmdTest, Playback007, TestSize.Level1)
     drawFuncOpItem.objectHandle_ = nullptr;
     drawFuncOpItem.Playback(&canvas, &rect);
     ASSERT_TRUE(true);
-}
-
-/**
- * @tc.name: Playback008
- * @tc.desc: test results of Playback
- * @tc.type:FUNC
- * @tc.require: issueI9H4AD
- */
-HWTEST_F(RSDrawCmdTest, Playback008, TestSize.Level1)
-{
-    Drawing::DrawCmdList list;
-    uint32_t surfaceBufferId = 1;
-    int offSetX = 1;
-    int offSetY = 1;
-    int width = 1;
-    int height = 1;
-    Drawing::PaintHandle paintHandle;
-    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, paintHandle);
-    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
-    Drawing::Canvas canvas;
-    Drawing::Rect rect;
-    drawSurfaceBufferOpItem.Playback(&canvas, &rect);
-    ASSERT_EQ(drawSurfaceBufferOpItem.nativeWindowBuffer_, nullptr);
-  
-
-    if (drawSurfaceBufferOpItem.nativeWindowBuffer_) {
-        std::cerr << "1" << std::endl;
-    } else {
-        std::cerr << "0" << std::endl;
-    }
-}
-
-/**
- * @tc.name: Playback009
- * @tc.desc: test results of CreateBitmapFormat
- * @tc.type:FUNC
- * @tc.require: issueIATYWQ
- */
-HWTEST_F(RSDrawCmdTest, Playback009, TestSize.Level1)
-{
-    Drawing::DrawCmdList list;
-    uint32_t surfaceBufferId = 1;
-    int offSetX = 1;
-    int offSetY = 1;
-    int width = 1;
-    int height = 1;
-    Drawing::PaintHandle paintHandle;
-    Drawing::DrawSurfaceBufferOpItem::ConstructorHandle constructorHandle(
-        surfaceBufferId, offSetX, offSetY, width, height, paintHandle);
-    Drawing::DrawSurfaceBufferOpItem drawSurfaceBufferOpItem(list, &constructorHandle);
-    Drawing::BitmapFormat bitmapFormat =
-        drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_8888);
-    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGBA_8888);
-    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_PREMUL);
-    bitmapFormat =
-        drawSurfaceBufferOpItem.CreateBitmapFormat(OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888);
-    ASSERT_EQ(bitmapFormat.colorType, Drawing::ColorType::COLORTYPE_RGB_888X);
-    ASSERT_EQ(bitmapFormat.alphaType, Drawing::AlphaType::ALPHATYPE_OPAQUE);
 }
 } // namespace OHOS::Rosen

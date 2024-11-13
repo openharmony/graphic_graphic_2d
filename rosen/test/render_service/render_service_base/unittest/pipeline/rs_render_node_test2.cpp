@@ -187,6 +187,8 @@ HWTEST_F(RSRenderNodeTest2, Animate, TestSize.Level1)
     std::weak_ptr<RSContext> context2 = context_shared;
     RSRenderNode node2(id, context2);
     node2.Animate(timestamp, period, isDisplaySyncEnabled);
+    RSSurfaceRenderNode node3(id, context2);
+    node3.Animate(timestamp, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }
 
@@ -1283,6 +1285,28 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawingCacheInfoBeforeChildrenTest035, TestSiz
     nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
     nodeTest->DisableDrawingCacheByHwcNode();
     EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: CollectAndUpdateLocalDistortionEffectRecttest
+ * @tc.desc: CollectAndUpdateLocalDistortionEffectRect
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalDistortionEffectRecttest, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    float width = 100.0f; // 100: set width of bounds
+    float height = 100.0f; // 100: set height of bounds
+    Vector4f bounds(0.0, 0.0, width, height);
+    node.renderContent_->renderProperties_.SetBounds(bounds);
+    node.CollectAndUpdateLocalDistortionEffectRect();
+    EXPECT_FALSE(node.localDistortionEffectRect_.width_ > static_cast<int>(width));
+
+    node.renderContent_->renderProperties_.SetDistortionK(0.5f); // 0.5 is k of value in distortion
+    EXPECT_TRUE(node.renderContent_->renderProperties_.GetDistortionDirty());
+    node.CollectAndUpdateLocalDistortionEffectRect();
+    EXPECT_FALSE(node.renderContent_->renderProperties_.GetDistortionDirty());
 }
 } // namespace Rosen
 } // namespace OHOS

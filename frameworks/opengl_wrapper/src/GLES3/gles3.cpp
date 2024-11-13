@@ -21,15 +21,16 @@
 #include "wrapper_log.h"
 
 using GetGlHookTableFunc = OHOS::GlHookTable* (*)();
+using GetGlHookTableKeyFunc = pthread_key_t(*)();
 template<typename Func = void*>
 Func GetEglApi(const char* procname)
 {
 #if (defined(__aarch64__) || defined(__x86_64__))
-    static const char* libEGL = "/system/lib64/libEGL.so";
+    static const char* LIB_EGL = "/system/lib64/libEGL.so";
 #else
-    static const char* libEGL = "/system/lib/platformsdk/libEGL.so";
+    static const char* LIB_EGL = "/system/lib/platformsdk/libEGL.so";
 #endif
-    void* dlEglHandle = dlopen(libEGL, RTLD_NOW | RTLD_GLOBAL);
+    void* dlEglHandle = dlopen(LIB_EGL, RTLD_NOW | RTLD_GLOBAL);
 
     void* func = dlsym(dlEglHandle, procname);
     if (func) {
@@ -39,11 +40,28 @@ Func GetEglApi(const char* procname)
     return nullptr;
 }
 static GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("GetHookTable");
+static GetGlHookTableKeyFunc g_pfnGetGlHookTableKey = GetEglApi<GetGlHookTableKeyFunc>("GetHookTableKey");
+
+static pthread_key_t g_glHookTableKey = -1;
+
+__attribute__((__always_inline__))__inline__ static OHOS::GlHookTable *GetHookTable()
+{
+    if (__builtin_expect(g_glHookTableKey != static_cast<pthread_key_t>(-1), 1)) {
+        OHOS::GlHookTable *table = static_cast<OHOS::GlHookTable *>(pthread_getspecific(g_glHookTableKey));
+        if (__builtin_expect(table != nullptr, 1)) {
+            return table;
+        }
+    }
+
+    OHOS::GlHookTable *table = g_pfnGetGlHookTable();
+    g_glHookTableKey = g_pfnGetGlHookTableKey();
+    return table;
+}
 
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(api, ...)                                                         \
     do {                                                                                \
-        OHOS::GlHookTable *table = g_pfnGetGlHookTable();                               \
+        OHOS::GlHookTable *table = GetHookTable();                               \
         if (table && table->table3.api) {                                               \
             table->table3.api(__VA_ARGS__);                                             \
         } else {                                                                        \
@@ -54,7 +72,7 @@ static GetGlHookTableFunc g_pfnGetGlHookTable = GetEglApi<GetGlHookTableFunc>("G
 
 #undef CALL_HOOK_API_RET
 #define CALL_HOOK_API_RET(api, ...) do {                                                \
-        OHOS::GlHookTable *table = g_pfnGetGlHookTable();                               \
+        OHOS::GlHookTable *table = GetHookTable();                               \
         if (table && table->table3.api) {                                               \
             return table->table3.api(__VA_ARGS__);                                      \
         } else {                                                                        \

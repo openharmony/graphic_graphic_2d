@@ -98,10 +98,10 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
     } else {
         auto stream = std::make_unique<SkMemoryStream>(data, dataLength, true);
         auto typeface = SkTypeface::MakeFromStream(std::move(stream));
-        dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
         if (!typeface) {
             return nullptr;
         } else {
+            dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
             typeface->setIsCustomTypeface(true);
             std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
             return new Typeface(typefaceImpl);

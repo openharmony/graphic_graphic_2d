@@ -38,11 +38,19 @@ using DynamicRangeMode = enum {
 };
 
 using VPEConvert = Media::VideoProcessingEngine::ColorSpaceConverterDisplay;
+using VPEColorSpaceConvertDisplayHandle = Media::VideoProcessingEngine::ColorSpaceConvertDisplayHandle;
 using VPEParameter = Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter;
+using VPEColorSpaceConvertDisplayCreate = VPEColorSpaceConvertDisplayHandle *(*)();
+using VPEColorSpaceConvertDisplayDestroy = void(*)(VPEColorSpaceConvertDisplayHandle *);
+
+struct ColorSpaceConvertDisplayHandleImpl {
+    std::shared_ptr<VPEConvert> obj;
+};
+
 class RSB_EXPORT RSColorSpaceConvert {
 public:
     ~RSColorSpaceConvert();
-    static RSColorSpaceConvert Instance();
+    static RSColorSpaceConvert& Instance();
 
     bool ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> inputShader,
         const sptr<SurfaceBuffer>& surfaceBuffer, Drawing::Paint& paint, GraphicColorGamut targetColorSpace,
@@ -54,6 +62,10 @@ public:
 private:
     RSColorSpaceConvert();
     std::shared_ptr<VPEConvert> colorSpaceConverterDisplay_ = nullptr;
+    VPEColorSpaceConvertDisplayCreate colorSpaceConvertDisplayCreate_ = nullptr;
+    VPEColorSpaceConvertDisplayDestroy colorSpaceConvertDisplayDestroy_ = nullptr;
+    VPEColorSpaceConvertDisplayHandle *colorSpaceConvertDisplayHandle_ = nullptr;
+    void *handle_ = nullptr;
 };
 
 } // namespace Rosen

@@ -41,6 +41,7 @@
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -125,6 +126,9 @@ public:
     {
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
+
+    void DumpTree(int depth, std::string& out) const;
+    virtual void Dump(std::string& out) const;
 
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
@@ -343,9 +347,11 @@ public:
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
-    
+
     void SetWaterRippleParams(const RSWaterRipplePara& params, float progress);
     void SetFlyOutParams(const RSFlyOutPara& params, float degree);
+
+    void SetDistortionK(const float distortionK);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -535,7 +541,7 @@ private:
     void SetForegroundBlurColorMode(int colorMode);
     void SetForegroundBlurRadiusX(float blurRadiusX);
     void SetForegroundBlurRadiusY(float blurRadiusY);
-    
+
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -588,7 +594,7 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;

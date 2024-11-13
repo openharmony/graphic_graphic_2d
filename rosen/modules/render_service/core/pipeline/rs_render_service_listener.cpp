@@ -60,6 +60,11 @@ void RSRenderServiceListener::OnBufferAvailable()
             " RT buffer available", node->GetId());
         node->NotifyRTBufferAvailable(node->GetIsTextureExportNode());
     }
+    if (node->IsLayerTop()) {
+        // Ensure that the compose task is completed within single frame
+        RSMainThread::Instance()->ForceRefreshForUni();
+        return;
+    }
     RSMainThread::Instance()->RequestNextVSync();
 }
 
@@ -82,18 +87,15 @@ void RSRenderServiceListener::OnTunnelHandleChange()
 
 void RSRenderServiceListener::OnCleanCache()
 {
-    std::weak_ptr<RSSurfaceRenderNode> surfaceNode = surfaceRenderNode_;
-    RSMainThread::Instance()->PostTask([surfaceNode]() {
-        auto node = surfaceNode.lock();
-        if (node == nullptr) {
-            RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
-            return;
-        }
-        RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
-        node->NeedClearBufferCache();
-        node->GetRSSurfaceHandler()->ResetBufferAvailableCount();
-        node->ResetPreBuffer();
-        node->GetRSSurfaceHandler()->ResetPreBuffer();
+    auto node = surfaceRenderNode_.lock();
+    if (node == nullptr) {
+        RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+        return;
+    }
+    RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
+    node->GetRSSurfaceHandler()->ResetBufferAvailableCount();
+    RSMainThread::Instance()->PostTask([nodePtr = node]() {
+        nodePtr->NeedClearBufferCache();
     });
 }
 

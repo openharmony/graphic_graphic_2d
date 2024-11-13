@@ -30,6 +30,7 @@
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "surface_buffer.h"
+#include "sync_fence.h"
 #include "external_window.h"
 #endif
 
@@ -43,15 +44,19 @@ class VulkanCleanupHelper;
 #endif
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
-    DrawingSurfaceBufferInfo(
-        const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height)
+    DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
+        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
+          pid_(pid), uid_(uid), acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     int offSetX_ = 0;
     int offSetY_ = 0;
     int width_ = 0;
     int height_ = 0;
+    pid_t pid_ = {};
+    uint64_t uid_ = {};
+    sptr<SyncFence> acquireFence_ = nullptr;
 };
 #endif
 
@@ -102,8 +107,8 @@ public:
     RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap>& pixelMap, const Drawing::Rect& src,
         const Drawing::Rect& dst);
     ~RSExtendImageBaseObj() override = default;
-    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-        const Drawing::SamplingOptions& sampling) override;
+    void Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& sampling,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) override;
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
@@ -180,17 +185,18 @@ class DrawPixelMapRectOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(const OpDataHandle& objectHandle, const SamplingOptions& sampling,
-            const PaintHandle& paintHandle)
+            SrcRectConstraint constraint, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::PIXELMAP_RECT_OPITEM), objectHandle(objectHandle), sampling(sampling),
-              paintHandle(paintHandle) {}
+              constraint(constraint), paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         OpDataHandle objectHandle;
         SamplingOptions sampling;
+        SrcRectConstraint constraint;
         PaintHandle paintHandle;
     };
     DrawPixelMapRectOpItem(const DrawCmdList& cmdList, ConstructorHandle* handle);
     DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src, const Rect& dst,
-        const SamplingOptions& sampling, const Paint& paint);
+        const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint);
     ~DrawPixelMapRectOpItem() override = default;
 
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
@@ -199,6 +205,7 @@ public:
     void SetNodeId(NodeId id) override;
 private:
     SamplingOptions sampling_;
+    SrcRectConstraint constraint_;
     std::shared_ptr<ExtendImageBaseObj> objectHandle_;
 };
 
@@ -226,9 +233,10 @@ class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            const PaintHandle& paintHandle)
+            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height), paintHandle(paintHandle) {}
+            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
+            paintHandle(paintHandle) {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;
@@ -243,14 +251,16 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
+    RSB_EXPORT static void RegisterSurfaceBufferCallback(std::function<void(pid_t, uint64_t, uint32_t)> callback);
 private:
-    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    void OnDestruct();
     void Clear();
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
     Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+    mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

@@ -45,11 +45,7 @@ RSImageBase::~RSImageBase()
     if (pixelMap_) {
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
-            if (renderServiceImage_) {
-                RSImageCache::Instance().CollectUniqueId(uniqueId_);
-            } else {
-                RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
-            }
+            RSImageCache::Instance().CollectUniqueId(uniqueId_);
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -100,7 +96,8 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat)
 }
 #endif
 
-void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions)
+void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+    Drawing::SrcRectConstraint constraint)
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
@@ -116,7 +113,7 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOpti
         RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
         return;
     }
-    canvas.DrawImageRect(*image_, src, dst, samplingOptions);
+    canvas.DrawImageRect(*image_, src, dst, samplingOptions, constraint);
 }
 
 void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)

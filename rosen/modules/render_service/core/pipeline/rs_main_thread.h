@@ -105,6 +105,8 @@ public:
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
+    void SendClientDumpNodeTreeCommands(uint32_t taskId);
+    void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void UpdateAnimateNodeFlag();
@@ -345,7 +347,7 @@ public:
     }
 
     bool IsHardwareEnabledNodesNeedSync();
-    bool IsOcclusionNodesNeedSync(NodeId id);
+    bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
@@ -477,6 +479,8 @@ private:
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
 
+    void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -595,12 +599,23 @@ private:
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
+
+    // for client node tree dump
+    struct NodeTreeDumpTask {
+        size_t count = 0;
+        size_t completionCount = 0;
+        std::map<pid_t, std::optional<std::string>> data;
+    };
+    std::mutex nodeTreeDumpMutex_;
+    std::condition_variable nodeTreeDumpCondVar_;
+    std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
     // used for watermark
     std::mutex watermarkMutex_;

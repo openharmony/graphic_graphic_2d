@@ -17,13 +17,12 @@
 #define ROSEN_MODULES_SPTEXT_PARAGRAPH_H
 
 #include "include/core/SkRect.h"
+#include "line_metrics.h"
 #include "modules/skparagraph/include/Metrics.h"
 #include "modules/skparagraph/include/Paragraph.h"
 #include "paragraph_style.h"
-#include "line_metrics.h"
-#include "text_line_base.h"
-
 #include "rosen_text/symbol_animation_config.h"
+#include "text_line_base.h"
 #include "utils.h"
 
 class SkCanvas;

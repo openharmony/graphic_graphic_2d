@@ -486,9 +486,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceParams->GetPreScalingMode();
+    ScalingMode scalingMode = surfaceParams->GetScalingMode();
     if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceParams->SetPreScalingMode(scalingMode);
+        surfaceParams->SetScalingMode(scalingMode);
     }
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
@@ -539,9 +539,9 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceNodeParams->GetPreScalingMode();
+    ScalingMode scalingMode = surfaceNodeParams->GetScalingMode();
     if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceNodeParams->SetPreScalingMode(scalingMode);
+        surfaceNodeParams->SetScalingMode(scalingMode);
     }
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
@@ -1164,15 +1164,13 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
         if (RSUniRenderJudgement::IsUniRender()) {
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -1410,9 +1408,9 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
         const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+        ScalingMode scalingMode = nodeParams->GetScalingMode();
         if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetPreScalingMode(scalingMode);
+            nodeParams->SetScalingMode(scalingMode);
         }
         if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
@@ -1606,9 +1604,9 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node)
         return;
     }
 
-    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
+    ScalingMode scalingMode = nodeParams->GetScalingMode();
     if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetPreScalingMode(scalingMode);
+        nodeParams->SetScalingMode(scalingMode);
     }
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
@@ -1918,6 +1916,63 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
+}
+
+std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
+    std::shared_ptr<RSRenderNode> hwcNode)
+{
+    if (!hwcNode) {
+        return std::nullopt;
+    }
+    auto relativeMat = Drawing::Matrix();
+    auto& property = hwcNode->GetRenderProperties();
+    if (auto geo = property.GetBoundsGeometry()) {
+        if (LIKELY(!property.GetSandBox().has_value())) {
+            relativeMat = geo->GetMatrix();
+        } else {
+            auto parent = hwcNode->GetParent().lock();
+            if (!parent) {
+                return std::nullopt;
+            }
+            if (auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry()) {
+                auto invertAbsParentMatrix = Drawing::Matrix();
+                parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+                relativeMat = geo->GetAbsMatrix();
+                relativeMat.PostConcat(invertAbsParentMatrix);
+            }
+        }
+    } else {
+        return std::nullopt;
+    }
+    return relativeMat;
+}
+
+bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<ScreenId> screenId)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderUtil::CheckRenderSkipIfScreenOff, failed to get screen manager!");
+        return false;
+    }
+    // in certain cases such as wireless display, render skipping may be disabled.
+    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
+    auto isScreenOff = screenId.has_value() ?
+        screenManager->IsScreenPowerOff(screenId.value()) : screenManager->IsAllScreensPowerOff();
+    RS_TRACE_NAME_FMT("CheckRenderSkipIfScreenOff disableRenderControl:[%d], PowerOff:[%d]",
+        disableRenderControlScreensCount, isScreenOff);
+    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
+        return false;
+    }
+    if (extraFrame && screenManager->GetPowerOffNeedProcessOneFrame()) {
+        RS_LOGI("RSUniRenderUtil::CheckRenderSkipIfScreenOff screen power off, one more frame.");
+        screenManager->ResetPowerOffNeedProcessOneFrame();
+        return false;
+    } else {
+        return !screenManager->GetPowerOffNeedProcessOneFrame();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

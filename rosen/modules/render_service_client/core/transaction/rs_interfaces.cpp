@@ -680,5 +680,24 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
+
+void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
 } // namespace Rosen
 } // namespace OHOS

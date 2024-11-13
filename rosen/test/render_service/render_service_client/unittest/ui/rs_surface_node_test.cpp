@@ -376,6 +376,20 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipLayer001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLeashPersistId001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceNodeTest, SetLeashPersistId001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    LeashPersistentId leashPersistentId = 50;
+    surfaceNode->SetLeashPersistentId(leashPersistentId);
+    EXPECT_TRUE(surfaceNode->GetLeashPersistentId() == leashPersistentId);
+}
+
+/**
  * @tc.name: SetSkipLayer002
  * @tc.desc:
  * @tc.type:FUNC

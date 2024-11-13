@@ -29,7 +29,7 @@
 #define GET_TID GetCurrentThreadId
 #endif
 
-#if defined(BUILD_SDK_MAC) || defined(BUILD_SDK_IOS)
+#ifdef BUILD_SDK_MAC
 #include <stdlib.h>
 #include <sys/syscall.h>
 #define GET_TID() syscall(SYS_thread_selfid)

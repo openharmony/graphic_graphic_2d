@@ -24,6 +24,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -160,12 +161,13 @@ void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 
     // set all layers' releaseFence.
     const auto layersReleaseFence = output_->GetLayersReleaseFence();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& [layer, fence] : layersReleaseFence) {
         if (layer == nullptr) {
             continue;
         }
 
-        auto nodePtr = static_cast<RSBaseRenderNode*>(layer->GetLayerAdditionalInfo());
+        auto nodePtr = nodeMap.GetRenderNode<RSRenderNode>(layer->GetNodeId());
         if (nodePtr == nullptr) {
             RS_LOGW("RSComposerAdapter::PostProcess: layer's node is nullptr.");
             continue;
@@ -437,7 +439,7 @@ void RSComposerAdapter::SetComposeInfoToLayer(
     layer->SetZorder(info.zOrder);
     layer->SetAlpha(info.alpha);
     layer->SetLayerSize(info.dstRect);
-    layer->SetLayerAdditionalInfo(node);
+    layer->SetNodeId(node->GetId());
     layer->SetCompositionType(info.needClient ?
         GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT : GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     std::vector<GraphicIRect> visibleRegions;
@@ -622,7 +624,7 @@ LayerInfoPtr RSComposerAdapter::CreateLayer(RSDisplayRenderNode& node) const
     }
     auto displayDrawable = std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(drawable);
     auto surfaceHandler = displayDrawable->GetMutableRSSurfaceHandlerOnDraw();
-    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, true)) {
+    if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler)) {
         RS_LOGE("RSComposerAdapter::CreateLayer consume buffer failed.");
         return nullptr;
     }

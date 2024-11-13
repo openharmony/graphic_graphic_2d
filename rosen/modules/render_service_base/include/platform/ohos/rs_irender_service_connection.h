@@ -26,6 +26,7 @@
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -257,7 +258,8 @@ public:
 
     virtual void ReportGameStateData(GameStateData info) = 0;
 
-    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) = 0;
+    virtual void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) = 0;
 
     virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
 
@@ -287,9 +289,15 @@ public:
 
     virtual bool SetAncoForceDoDirect(bool direct) = 0;
 
+    virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
     virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
 #endif
+
+    virtual void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) = 0;
+
+    virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

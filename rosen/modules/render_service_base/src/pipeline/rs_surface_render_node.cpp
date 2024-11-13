@@ -817,6 +817,19 @@ void RSSurfaceRenderNode::SetSecurityLayer(bool isSecurityLayer)
     SyncSecurityInfoToFirstLevelNode();
 }
 
+void RSSurfaceRenderNode::SetLeashPersistentId(NodeId leashPersistentId)
+{
+    if (leashPersistentId_ == leashPersistentId) {
+        return;
+    }
+
+    leashPersistentId_ = leashPersistentId;
+    SetDirty();
+
+    ROSEN_LOGD("RSSurfaceRenderNode::SetLeashPersistentId, Node id: %{public}" PRIu64 ", leashPersistentId:%{public}"
+        "" PRIu64, GetId(), leashPersistentId);
+}
+
 void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
 {
     if (isSkipLayer_ == isSkipLayer) {
@@ -831,6 +844,11 @@ void RSSurfaceRenderNode::SetSkipLayer(bool isSkipLayer)
         skipLayerIds_.erase(GetId());
     }
     SyncSkipInfoToFirstLevelNode();
+}
+
+LeashPersistentId RSSurfaceRenderNode::GetLeashPersistentId() const
+{
+    return leashPersistentId_;
 }
 
 void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
@@ -1017,6 +1035,18 @@ void RSSurfaceRenderNode::NotifyTreeStateChange()
     }
 }
 
+void RSSurfaceRenderNode::SetLayerTop(bool isTop)
+{
+    isLayerTop_ = isTop;
+    SetContentDirty();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetLayerTop(isTop);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -1027,44 +1057,25 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
     return colorSpace_;
 }
 
-void RSSurfaceRenderNode::UpdateColorSpaceToIntanceRootNode()
+void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
 {
-    auto parentInstance = GetInstanceRootNode();
-    if (!parentInstance) {
-        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceToIntanceRootNode get parent instance root node info failed.");
-        return;
-    }
 #ifndef ROSEN_CROSS_PLATFORM
     if (!GetRSSurfaceHandler() || !GetRSSurfaceHandler()->GetBuffer()) {
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata node(%{public}s) did not have buffer.",
+            GetName().c_str());
         return;
     }
     const sptr<SurfaceBuffer>& buffer = GetRSSurfaceHandler()->GetBuffer();
     using namespace HDI::Display::Graphic::Common::V1_0;
     CM_ColorSpaceInfo colorSpaceInfo;
     if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
-        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceToIntanceRootNode get color space info failed.");
+        RS_LOGD("RSSurfaceRenderNode::UpdateColorSpaceWithMetadata get color space info failed.");
         return;
     }
     // currently, P3 is the only supported wide color gamut, this may be modified later.
-    auto subColorSpace = colorSpaceInfo.primaries != COLORPRIMARIES_SRGB ?
+    colorSpace_ = colorSpaceInfo.primaries != COLORPRIMARIES_SRGB ?
         GRAPHIC_COLOR_GAMUT_DISPLAY_P3 : GRAPHIC_COLOR_GAMUT_SRGB;
-    if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        parentSurface->subColorSpace_ = parentSurface->subColorSpace_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3 ?
-            GRAPHIC_COLOR_GAMUT_DISPLAY_P3 : subColorSpace;
-    }
-    // Set subColorSpace_ of the node itself, in case the parent surface is not obtained.
-    subColorSpace_ = subColorSpace;
 #endif
-}
-
-GraphicColorGamut RSSurfaceRenderNode::GetSubSurfaceColorSpace() const
-{
-    return subColorSpace_.value_or(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-}
-
-void RSSurfaceRenderNode::ResetSubSurfaceColorSpace()
-{
-    subColorSpace_ = std::nullopt;
 }
 
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
@@ -1088,42 +1099,25 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 #endif
 }
 
-void RSSurfaceRenderNode::OnSkipSync()
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams && surfaceParams->IsBufferDirty()) {
-        auto preBuffer = surfaceParams->GetPreBuffer();
-        if (!preBuffer) {
-            return;
-        }
-        auto context = GetContext().lock();
-        if (context && !surfaceParams->GetHardwareEnabled()) {
-            context->GetMutableSkipSyncBuffer().push_back({ GetFirstLevelNodeId(), preBuffer,
-                GetRSSurfaceHandler()->GetConsumer(), surfaceParams->GetLastFrameHardwareEnabled() });
-            surfaceParams->SetPreBuffer(nullptr);
-            RS_LOGD("CollectSkipSyncBuffer fId[%" PRIu64"], sId[%" PRIu64"]",
-                GetFirstLevelNodeId(), surfaceParams->GetId());
-        }
-    }
-#endif
-}
-
 #ifndef ROSEN_CROSS_PLATFORM
 void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
     const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (!surfaceParams->IsBufferSynced()) {
+        auto curBuffer = surfaceParams->GetBuffer();
+        auto consumer = GetRSSurfaceHandler()->GetConsumer();
+        if (curBuffer && consumer) {
+            auto fence = surfaceParams->GetAcquireFence();
+            consumer->ReleaseBuffer(curBuffer, fence);
+        }
+    } else {
+        surfaceParams->SetPreBuffer(preBuffer);
+    }
+
     surfaceParams->SetBuffer(buffer, damageRect);
     surfaceParams->SetAcquireFence(acquireFence);
-    surfaceParams->SetPreBuffer(preBuffer);
-    AddToPendingSyncList();
-}
-
-void RSSurfaceRenderNode::ResetPreBuffer()
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    surfaceParams->SetPreBuffer(nullptr);
+    surfaceParams->SetBufferSynced(false);
     AddToPendingSyncList();
 }
 
@@ -1626,7 +1620,7 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
 {
     auto contentStatic = false;
-    if (IsLeashWindow()) {
+    if (IsLeashWindow() || IsAbilityComponent()) {
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
     } else {
         contentStatic = surfaceCacheContentStatic_;
@@ -1639,7 +1633,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
         AddToPendingSyncList();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
-        "[%d] name [%s] Id:%" PRIu64 "", contentStatic, GetName().c_str(), GetId());
+        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] forceUpdate:[%d]",
+        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), GetForceUpdateByUifirst());
 }
 
 bool RSSurfaceRenderNode::IsOccludedByFilterCache() const
@@ -2768,6 +2763,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->SetHidePrivacyContent(needHidePrivacyContent_);
     surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
     surfaceParams->isTransparent_ = IsTransparent();
+    surfaceParams->leashPersistentId_ = leashPersistentId_;
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();
@@ -2842,6 +2838,18 @@ void RSSurfaceRenderNode::SetUifirstUseStarting(NodeId id)
     }
 }
 
+void RSSurfaceRenderNode::SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+{
+    if (drmCornerRadiusInfo_ != drmCornerRadiusInfo) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+        if (surfaceParams) {
+            surfaceParams->SetCornerRadiusInfoForDRM(drmCornerRadiusInfo);
+            drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+        }
+        AddToPendingSyncList();
+    }
+}
+
 void RSSurfaceRenderNode::SetSkipDraw(bool skip)
 {
     isSkipDraw_ = skip;
@@ -2895,7 +2903,7 @@ void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState
     }
 
     abilityState_ = abilityState;
-    ROSEN_LOGD("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
+    ROSEN_LOGI("RSSurfaceRenderNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "] ability state: %{public}s",
         GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
 }
 

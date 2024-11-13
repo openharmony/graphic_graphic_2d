@@ -15,7 +15,13 @@
 
 #include "rs_render_service_connection_stub.h"
 #include <memory>
+#include <mutex>
 #include "ivsync_connection.h"
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_type.h"
+#include <sched.h>
+#endif
 #include "securec.h"
 #include "sys_binder.h"
 
@@ -39,6 +45,10 @@ constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = INT_MAX;
 constexpr size_t MAX_DATA_SIZE = INT_MAX;
+#ifdef RES_SCHED_ENABLE
+const uint32_t RS_IPC_QOS_LEVEL = 7;
+constexpr const char* RS_BUNDLE_NAME = "render_service";
+#endif
 static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
@@ -139,7 +149,10 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -162,8 +175,8 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
         if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
             int32_t val = dup(flat->handle);
             if (val < 0) {
-                ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d", val);
-                return;
+                ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d, handle:%{public}" PRIu32, val,
+                    static_cast<uint32_t>(flat->handle));
             }
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
@@ -255,11 +268,41 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
 }
 }
 
+void RSRenderServiceConnectionStub::SetQos()
+{
+#ifdef RES_SCHED_ENABLE
+    std::string strBundleName = RS_BUNDLE_NAME;
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+    std::string strQos = std::to_string(RS_IPC_QOS_LEVEL);
+    std::unordered_map<std::string, std::string> mapPayload;
+    mapPayload["pid"] = strPid;
+    mapPayload[strTid] = strQos;
+    mapPayload["bundleName"] = strBundleName;
+    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
+        OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
+    struct sched_param param = {0};
+    param.sched_priority = 1;
+    if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+        RS_LOGE("RSRenderServiceConnectionStub Couldn't set SCHED_FIFO.");
+    } else {
+        RS_LOGI("RSRenderServiceConnectionStub set SCHED_FIFO succeed.");
+    }
+#endif
+}
+
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
-
+    auto tid = gettid();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (tids_.find(tid) == tids_.end()) {
+            SetQos();
+            tids_.insert(tid);
+        }
+    }
     pid_t callingPid = GetCallingPid();
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
         std::cend(descriptorCheckList)) {
@@ -443,12 +486,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t width = data.ReadUint32();
             uint32_t height = data.ReadUint32();
             sptr<Surface> surface = nullptr;
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject != nullptr) {
-                auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
-                surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+            if (data.ReadBool()) {
+                auto remoteObject = data.ReadRemoteObject();
+                if (remoteObject != nullptr) {
+                    auto bufferProducer = iface_cast<IBufferProducer>(remoteObject);
+                    surface = Surface::CreateSurfaceAsProducer(bufferProducer);
+                }
             }
-
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
             std::vector<NodeId> whiteList;
@@ -1457,7 +1501,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto isEnabled = data.ReadBool();
             auto selfDrawingType = static_cast<SelfDrawingNodeType>(data.ReadUint8());
-            SetHardwareEnabled(id, isEnabled, selfDrawingType);
+            auto dynamicHardwareEnable = data.ReadBool();
+            SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {
@@ -1699,6 +1744,30 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetVmaCacheStatus(flag);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK) : {
+            auto pid = data.ReadInt32();
+            auto uid = data.ReadUint64();
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest remoteObject == nullptr");
+                break;
+            }
+            sptr<RSISurfaceBufferCallback> callback = iface_cast<RSISurfaceBufferCallback>(remoteObject);
+            if (callback == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest remoteObject cast error");
+                break;
+            }
+            RegisterSurfaceBufferCallback(pid, uid, callback);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK) : {
+            auto pid = data.ReadInt32();
+            auto uid = data.ReadUint64();
+            UnregisterSurfaceBufferCallback(pid, uid);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
             auto id = data.ReadUint64();
             auto mirrorId = data.ReadUint64();
@@ -1711,6 +1780,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 .isSync = true,
             };
             reply.WriteBool(CreateNode(config, id));
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
+            std::string nodeIdStr = data.ReadString();
+            bool isTop = data.ReadBool();
+            SetLayerTop(nodeIdStr, isTop);
             break;
         }
         default: {

@@ -70,7 +70,7 @@ static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
     }
-    if ((data == nullptr) || (dataLength == 0)) {
+    if ((data == nullptr) != (dataLength == 0)) {
         return ERROR_BUFFER_SIZE_ZERO;
     }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
@@ -119,7 +119,7 @@ uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& 
     }
     if (size <= 0) {
         ifs.close();
-        return ERROR_GET_SIZE_FAILED;
+        return ERROR_BUFFER_SIZE_ZERO;
     }
     ifs.seekg(ifs.beg);
     if (!ifs.good()) {

@@ -100,6 +100,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::MOTION_BLUR_PARA, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::FLY_OUT_DEGREE, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::FLY_OUT_PARAMS, RSPropertyDrawableSlot::FOREGROUND_FILTER },
+    { RSModifierType::DISTORTION_K, RSPropertyDrawableSlot::FOREGROUND_FILTER },
     { RSModifierType::MAGNIFIER_PARA, RSPropertyDrawableSlot::BACKGROUND_FILTER },
     { RSModifierType::DYNAMIC_LIGHT_UP_RATE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },
     { RSModifierType::DYNAMIC_LIGHT_UP_DEGREE, RSPropertyDrawableSlot::DYNAMIC_LIGHT_UP },

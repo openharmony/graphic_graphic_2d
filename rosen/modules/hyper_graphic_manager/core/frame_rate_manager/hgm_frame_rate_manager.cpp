@@ -238,6 +238,7 @@ void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrame
             "AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()), linker->GetId(),
             linker->GetAceAnimatorExpectedFrameRate());
         idleDetector_.SetAceAnimatorIdleState(false);
+        idleDetector_.UpdateAceAnimatorExpectedFrameRate(linker->GetAceAnimatorExpectedFrameRate());
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "] "
@@ -336,6 +337,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
 
     UpdateGuaranteedPlanVote(timestamp);
+    idleDetector_.ResetAceAnimatorExpectedFrameRate();
     VoteInfo resultVoteInfo = ProcessRefreshRateVote();
     // max used here
     finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};

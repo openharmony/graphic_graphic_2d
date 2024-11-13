@@ -75,7 +75,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
 
     RS_LOGI_IF(DEBUG_NODE,
         "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
-        " followType:%{public}hhu", nodeId, isRenderServiceCommand, followType);
+        " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
     if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
         AddRemoteCommand(command, nodeId, followType);
         return;
@@ -126,6 +126,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
+        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction failed, DataStack not empty");
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
@@ -145,6 +146,10 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         renderServiceClient_->CommitTransaction(implicitRemoteTransactionData_);
         transactionDataIndex_ = implicitRemoteTransactionData_->GetIndex();
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
+    } else {
+        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d,]" \
+            " transactionData empty:%{public}d",
+            renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
     }
 }
 

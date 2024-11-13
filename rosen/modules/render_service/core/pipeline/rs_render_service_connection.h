@@ -100,7 +100,7 @@ private:
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-    
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
@@ -247,7 +247,8 @@ private:
 
     void ReportGameStateData(GameStateData info) override;
 
-    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
+    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) override;
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
@@ -285,6 +286,11 @@ private:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
     bool SetAncoForceDoDirect(bool direct) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

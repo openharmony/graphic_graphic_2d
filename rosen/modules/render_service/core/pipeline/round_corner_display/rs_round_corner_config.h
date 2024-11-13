@@ -102,6 +102,7 @@ struct RoundCornerLayer {
 
 struct RoundCornerHardware {
     bool resourceChanged = false;
+    bool resourcePreparing = false;
     RoundCornerLayer* topLayer = nullptr;
     RoundCornerLayer* bottomLayer = nullptr;
 };

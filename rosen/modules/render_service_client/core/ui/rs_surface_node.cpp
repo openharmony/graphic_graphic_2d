@@ -245,6 +245,24 @@ void RSSurfaceNode::OnBoundsSizeChanged() const
     }
 }
 
+void RSSurfaceNode::SetLeashPersistentId(LeashPersistentId leashPersistentId)
+{
+    leashPersistentId_ = leashPersistentId;
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSurfaceNodeSetLeashPersistentId>(GetId(), leashPersistentId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+    ROSEN_LOGD("RSSurfaceNode::SetLeashPersistentId, \
+        surfaceNodeId:[%{public}" PRIu64 "] leashPersistentId:[%{public}" PRIu64 "]", GetId(), leashPersistentId);
+}
+
+LeashPersistentId RSSurfaceNode::GetLeashPersistentId() const
+{
+    return leashPersistentId_;
+}
+
 void RSSurfaceNode::SetSecurityLayer(bool isSecurityLayer)
 {
     isSecurityLayer_ = isSecurityLayer;
@@ -667,12 +685,12 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
     }
 }
 
-void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable)
 {
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
     if (renderServiceClient != nullptr) {
-        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType);
+        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
 }
 
@@ -855,7 +873,7 @@ void RSSurfaceNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)
     }
     abilityState_ = abilityState;
     transactionProxy->AddCommand(command, true);
-    ROSEN_LOGD("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
+    ROSEN_LOGI("RSSurfaceNode::SetAbilityState, surfaceNodeId:[%{public}" PRIu64 "], ability state: %{public}s",
         GetId(), abilityState_ == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background");
 }
 

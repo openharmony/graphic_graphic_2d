@@ -95,7 +95,7 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
     : isRenderServiceNode_(isRenderServiceNode), isTextureExportNode_(isTextureExportNode),
-    id_(id), stagingPropertiesExtractor_(this), showingPropertiesFreezer_(id)
+    id_(id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(id)
 {
     InitUniRenderEnabled();
     if (g_isUniRenderEnabled && isTextureExportNode) {
@@ -338,27 +338,27 @@ void RSNode::FallbackAnimationsToRoot()
         ROSEN_LOGE("Failed to move animation to root, root node is null!");
         return;
     }
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (auto& [animationId, animation] : animations_) {
         if (animation && animation->GetRepeatCount() == -1) {
             continue;
         }
-        std::unique_lock<std::mutex> lock(animationMutex_);
         RSNodeMap::MutableInstance().RegisterAnimationInstanceId(animationId, id_, instanceId_);
         target->AddAnimationInner(std::move(animation));
     }
-    std::unique_lock<std::mutex> lock(animationMutex_);
     animations_.clear();
 }
 
 void RSNode::AddAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     animations_.emplace(animation->GetId(), animation);
     animatingPropertyNum_[animation->GetPropertyId()]++;
 }
 
 void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     if (auto it = animatingPropertyNum_.find(animation->GetPropertyId()); it != animatingPropertyNum_.end()) {
         it->second--;
         if (it->second == 0) {
@@ -371,6 +371,7 @@ void RSNode::RemoveAnimationInner(const std::shared_ptr<RSAnimation>& animation)
 
 void RSNode::FinishAnimationByProperty(const PropertyId& id)
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (const auto& [animationId, animation] : animations_) {
         if (animation->GetPropertyId() == id) {
             animation->Finish();
@@ -380,16 +381,10 @@ void RSNode::FinishAnimationByProperty(const PropertyId& id)
 
 void RSNode::CancelAnimationByProperty(const PropertyId& id, const bool needForceSync)
 {
-    animatingPropertyNum_.erase(id);
     std::vector<std::shared_ptr<RSAnimation>> toBeRemoved;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_, std::defer_lock);
-        if (!lock.try_lock()) {
-            // The Arkui component has logic to cancel animation within the callback of another animation. However, this
-            // approach may cause a deadlock. Although it is a dirty workaround, it currently works as intended.
-            FinishAnimationByProperty(id);
-            return;
-        }
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        animatingPropertyNum_.erase(id);
         EraseIf(animations_, [id, &toBeRemoved](const auto& pair) {
             if (pair.second && (pair.second->GetPropertyId() == id)) {
                 toBeRemoved.emplace_back(pair.second);
@@ -438,7 +433,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
     auto animationId = animation->GetId();
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
         if (animations_.find(animationId) != animations_.end()) {
             ROSEN_LOGE("Failed to add animation, animation already exists!");
             return;
@@ -452,10 +447,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
         FinishAnimationByProperty(animation->GetPropertyId());
     }
 
-    {
-        std::unique_lock<std::mutex> lock(animationMutex_);
-        AddAnimationInner(animation);
-    }
+    AddAnimationInner(animation);
 
     animation->StartInner(shared_from_this());
     if (!isStartAnimation) {
@@ -465,6 +457,7 @@ void RSNode::AddAnimation(const std::shared_ptr<RSAnimation>& animation, bool is
 
 void RSNode::RemoveAllAnimations()
 {
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     for (const auto& [id, animation] : animations_) {
         RemoveAnimation(animation);
     }
@@ -477,11 +470,13 @@ void RSNode::RemoveAnimation(const std::shared_ptr<RSAnimation>& animation)
         return;
     }
 
-    if (animations_.find(animation->GetId()) == animations_.end()) {
-        ROSEN_LOGE("Failed to remove animation, animation not exists!");
-        return;
+    {
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
+        if (animations_.find(animation->GetId()) == animations_.end()) {
+            ROSEN_LOGE("Failed to remove animation, animation not exists!");
+            return;
+        }
     }
-
     animation->Finish();
 }
 
@@ -504,14 +499,14 @@ const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
 
 bool RSNode::HasPropertyAnimation(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     auto it = animatingPropertyNum_.find(id);
     return it != animatingPropertyNum_.end() && it->second > 0;
 }
 
 std::vector<AnimationId> RSNode::GetAnimationByPropertyId(const PropertyId& id)
 {
-    std::unique_lock<std::mutex> lock(animationMutex_);
+    std::unique_lock<std::recursive_mutex> lock(animationMutex_);
     std::vector<AnimationId> animations;
     for (auto& [animateId, animation] : animations_) {
         if (animation->GetPropertyId() == id) {
@@ -1462,6 +1457,11 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
             };
             SetFlyOutParams(rs_fly_out_param, degree);
         }
+        if (filterPara->GetParaType() == FilterPara::DISTORT) {
+            auto distortPara = std::static_pointer_cast<DistortPara>(filterPara);
+            auto distortionK = distortPara->GetDistortionK();
+            SetDistortionK(distortionK);
+        }
     }
 }
 
@@ -1859,6 +1859,11 @@ void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
         RSAnimatableProperty<float>>(RSModifierType::FLY_OUT_DEGREE, degree);
 }
 
+void RSNode::SetDistortionK(const float distortionK)
+{
+    SetProperty<RSDistortionKModifier, RSAnimatableProperty<float>>(RSModifierType::DISTORTION_K, distortionK);
+}
+
 void RSNode::SetFreeze(bool isFreeze)
 {
     ROSEN_LOGE("SetFreeze only support RSSurfaceNode and RSCanvasNode in uniRender");
@@ -2030,7 +2035,7 @@ bool RSNode::AnimationCallback(AnimationId animationId, AnimationCallbackEvent e
 {
     std::shared_ptr<RSAnimation> animation = nullptr;
     {
-        std::unique_lock<std::mutex> lock(animationMutex_);
+        std::unique_lock<std::recursive_mutex> lock(animationMutex_);
         auto animationItr = animations_.find(animationId);
         if (animationItr == animations_.end()) {
             ROSEN_LOGE("Failed to find animation[%{public}" PRIu64 "]!", animationId);
@@ -2758,6 +2763,67 @@ void RSNode::SetParent(NodeId parentId)
 RSNode::SharedPtr RSNode::GetParent()
 {
     return RSNodeMap::Instance().GetNode(parent_);
+}
+
+void RSNode::DumpTree(int depth, std::string& out) const
+{
+    for (int i = 0; i < depth; i++) {
+        out += "  ";
+    }
+    out += "| ";
+    Dump(out);
+    for (auto childId : children_) {
+        if (auto child = RSNodeMap::Instance().GetNode(childId)) {
+            out += "\n";
+            child->DumpTree(depth + 1, out);
+        }
+    }
+}
+
+void RSNode::Dump(std::string& out) const
+{
+    auto iter = RSUINodeTypeStrs.find(GetType());
+    out += (iter != RSUINodeTypeStrs.end() ? iter->second : "RSNode");
+    out += "[" + std::to_string(id_);
+    out += "], parent[" + std::to_string(parent_);
+    out += "], instanceId[" + std::to_string(instanceId_);
+    if (auto node = ReinterpretCastTo<RSSurfaceNode>()) {
+        out += "], name[" + node->GetName();
+    } else if (!nodeName_.empty()) {
+        out += "], nodeName[" + nodeName_;
+    }
+    out += "], frameNodeId[" + std::to_string(frameNodeId_);
+    out += "], frameNodeTag[" + frameNodeTag_;
+    out += "], extendModifierIsDirty[";
+    out += extendModifierIsDirty_ ? "true" : "false";
+    out += "], isNodeGroup[";
+    out += isNodeGroup_ ? "true" : "false";
+    out += "], isSingleFrameComposer[";
+    out += isNodeSingleFrameComposer_ ? "true" : "false";
+    out += "], isSuggestOpincNode[";
+    out += isSuggestOpincNode_ ? "true" : "false";
+    out += "], isUifirstNode[";
+    out += isUifirstNode_ ? "true" : "false";
+    out += "], drawRegion[";
+    if (drawRegion_) {
+        out += "x:" + std::to_string(drawRegion_->GetLeft());
+        out += " y:" + std::to_string(drawRegion_->GetTop());
+        out += " width:" + std::to_string(drawRegion_->GetWidth());
+        out += " height:" + std::to_string(drawRegion_->GetHeight());
+    } else {
+        out += "null";
+    }
+    out += "], outOfParent[" + std::to_string(static_cast<int>(outOfParent_));
+    out += "], animations[";
+    for (const auto& [id, anim] : animations_) {
+        out += "{id:" + std::to_string(id);
+        out += " propId:" + std::to_string(anim->GetPropertyId());
+        out += "} ";
+    }
+    if (!animations_.empty()) {
+        out.pop_back();
+    }
+    out += "]";
 }
 
 std::string RSNode::DumpNode(int depth) const

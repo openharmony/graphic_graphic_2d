@@ -108,6 +108,7 @@ struct TextStyle {
     RectStyle backgroundRect = {0, 0.0, 0.0, 0.0, 0.0};
     int styleId = 0;
     bool operator ==(const TextStyle &rhs) const;
+
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     // symbol glyph

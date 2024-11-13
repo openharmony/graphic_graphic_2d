@@ -1926,21 +1926,68 @@ HWTEST_F(RSUniRenderVisitorTest, PrepareTypesOfSurfaceRenderNodeBeforeUpdate002,
     ASSERT_FALSE(rsUniRenderVisitor->curSurfaceNode_->GetChildHardwareEnabledNodes().empty());
 }
 
+/**
+ * @tc.name: CheckColorSpaceWithSelfDrawingNode001
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
+ *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
+ *           and this node will be drawn with gpu
+ * @tc.type: FUNC
+ * @tc.require: issueIAW3W0
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode001, TestSize.Level2)
+{
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    selfDrawingNode->SetHardwareForcedDisabledState(true);
+    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    selfDrawingNode->SetIsOnTheTree(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode);
+    ASSERT_EQ(rsUniRenderVisitor->newColorSpace_, selfDrawingNode->GetColorSpace());
+}
+
+/**
+ * @tc.name: CheckColorSpaceWithSelfDrawingNode002
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
+ *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
+ *           and this node will not be drawn with gpu
+ * @tc.type: FUNC
+ * @tc.require: issueIAW3W0
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode002, TestSize.Level2)
+{
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    selfDrawingNode->SetProtectedLayer(true);
+    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    selfDrawingNode->SetIsOnTheTree(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode);
+    ASSERT_NE(rsUniRenderVisitor->newColorSpace_, selfDrawingNode->GetColorSpace());
+}
+
+
 #ifndef ROSEN_CROSS_PLATFORM
 /**
- * @tc.name: UpdateColorSpaceToIntanceRootNode
- * @tc.desc: test results of UpdateColorSpaceToIntanceRootNode, if node has no buffer
+ * @tc.name: UpdateColorSpaceWithMetadata
+ * @tc.desc: test results of UpdateColorSpaceWithMetadata, if node has no buffer
  * @tc.type: FUNC
- * @tc.require: issueIAOTNY
+ * @tc.require: issueIAW3W0
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceToIntanceRootNode001, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata001, TestSize.Level1)
 {
     // register instance root node
     auto instanceRootNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(instanceRootNode, nullptr);
     auto rsContext = std::make_shared<RSContext>();
     auto& nodeMap = rsContext->GetMutableNodeMap();
-    nodeMap.renderNodeMap_[instanceRootNode->GetId()] = instanceRootNode;
+    NodeId instanceRootNodeId = instanceRootNode->GetId();
+    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
+    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
     // create subsurface node
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
@@ -1948,35 +1995,63 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceToIntanceRootNode001, TestSize.
     surfaceNode->instanceRootNodeId_ = instanceRootNode->GetId();
 
     ASSERT_NE(surfaceNode->GetInstanceRootNode(), nullptr);
-    surfaceNode->UpdateColorSpaceToIntanceRootNode();
-    ASSERT_EQ(surfaceNode->GetSubSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    surfaceNode->UpdateColorSpaceWithMetadata();
+    ASSERT_EQ(surfaceNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
- * @tc.name: UpdateColorSpaceToIntanceRootNode
- * @tc.desc: test results of UpdateColorSpaceToIntanceRootNode, if node has buffer
+ * @tc.name: UpdateColorSpaceWithMetadata
+ * @tc.desc: test results of UpdateColorSpaceWithMetadata, if node has buffer
  * @tc.type: FUNC
- * @tc.require: issueIAOTNY
+ * @tc.require: issueIAW3W0
  */
-HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceToIntanceRootNode002, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata002, TestSize.Level1)
 {
     // register instance root node
     auto instanceRootNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(instanceRootNode, nullptr);
     auto rsContext = std::make_shared<RSContext>();
     auto& nodeMap = rsContext->GetMutableNodeMap();
-    nodeMap.renderNodeMap_[instanceRootNode->GetId()] = instanceRootNode;
+    NodeId instanceRootNodeId = instanceRootNode->GetId();
+    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
+    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
     // create subsurface node
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
+    const sptr<SurfaceBuffer>& buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_NE(buffer, nullptr);
     surfaceNode->context_ = rsContext;
     surfaceNode->instanceRootNodeId_ = instanceRootNode->GetId();
 
     ASSERT_NE(surfaceNode->GetInstanceRootNode(), nullptr);
-    surfaceNode->UpdateColorSpaceToIntanceRootNode();
-    ASSERT_EQ(surfaceNode->GetSubSurfaceColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    surfaceNode->UpdateColorSpaceWithMetadata();
+    ASSERT_EQ(surfaceNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 #endif
+
+/*
+ * @tc.name: UpdateColorSpaceAfterHwcCalc_001
+ * @tc.desc: Test UpdateColorSpaceAfterHwcCalc when there is a P3 selfDrawingNode.
+ * @tc.type: FUNC
+ * @tc.require: issueIAW3W0
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    selfDrawingNode->SetAncestorDisplayNode(displayNode);
+    selfDrawingNode->SetHardwareForcedDisabledState(true);
+    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
+    ASSERT_EQ(rsUniRenderVisitor->newColorSpace_, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
 
 /*
  * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent001
@@ -4890,13 +4965,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeGlobalFilterForDisplay001, TestSize.L
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     NodeId id0 = 0;
-    nodeMap.renderNodeMap_[id0] = nullptr;
+    pid_t pid0 = ExtractPid(id0);
+    nodeMap.renderNodeMap_[pid0][id0] = nullptr;
     NodeId id1 = 1;
+    pid_t pid1 = ExtractPid(id1);
     auto node1 = std::make_shared<RSRenderNode>(id1);
-    nodeMap.renderNodeMap_[id1] = node1;
+    nodeMap.renderNodeMap_[pid1][id1] = node1;
     NodeId id2 = 2;
+    pid_t pid2 = ExtractPid(id2);
     auto node2 = std::make_shared<RSRenderNode>(id2);
-    nodeMap.renderNodeMap_[id2] = node2;
+    nodeMap.renderNodeMap_[pid2][id2] = node2;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -4947,13 +5025,15 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateOccludedStatusWithFilterNode002, TestSize
     NodeId id1 = 2;
     auto filterNode1 = std::make_shared<RSRenderNode>(id1);
     ASSERT_NE(filterNode1, nullptr);
-    nodeMap.renderNodeMap_[id1] = filterNode1;
+    pid_t pid1 = ExtractPid(id1);
+    nodeMap.renderNodeMap_[pid1][id1] = filterNode1;
     NodeId id2 = 3;
+    pid_t pid2 = ExtractPid(id2);
     auto filterNode2 = std::make_shared<RSRenderNode>(id2);
     ASSERT_NE(filterNode2, nullptr);
     ASSERT_NE(filterNode2->renderContent_, nullptr);
     filterNode2->renderContent_->renderProperties_.SetBackgroundFilter(filter);
-    nodeMap.renderNodeMap_[id2] = filterNode2;
+    nodeMap.renderNodeMap_[pid2][id2] = filterNode2;
     surfaceNode1->visibleFilterChild_.emplace_back(filterNode1->GetId());
     surfaceNode1->visibleFilterChild_.emplace_back(filterNode2->GetId());
 
@@ -5028,13 +5108,16 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparentFilter002, T
     surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::ABILITY_COMPONENT_NODE);
     auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
     NodeId id0 = 0;
-    nodeMap.renderNodeMap_[id0] = nullptr;
+    pid_t pid0 = ExtractPid(id0);
+    nodeMap.renderNodeMap_[pid0][id0] = nullptr;
     NodeId id1 = 1;
+    pid_t pid1 = ExtractPid(id1);
     auto node1 = std::make_shared<RSRenderNode>(id1);
-    nodeMap.renderNodeMap_[id1] = node1;
+    nodeMap.renderNodeMap_[pid1][id1] = node1;
     NodeId id2 = 2;
+    pid_t pid2 = ExtractPid(id2);
     auto node2 = std::make_shared<RSRenderNode>(id2);
-    nodeMap.renderNodeMap_[id2] = node2;
+    nodeMap.renderNodeMap_[pid2][id2] = node2;
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);

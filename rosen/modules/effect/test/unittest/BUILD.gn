@@ -32,7 +32,6 @@ ohos_unittest("EffectTest") {
       "algo_filter_unittest.cpp",
       "brightness_filter_unittest.cpp",
       "contrast_filter_unittest.cpp",
-      "effect_chain_unittest.cpp",
       "effect_filter_unittest.cpp",
       "egl_manager_test.cpp",
       "filter_factory_unittest.cpp",
@@ -63,6 +62,11 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/utils/color_manager:color_manager",
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
     "//foundation/multimedia/image_framework/interfaces/kits/js/common:image",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   configs = [

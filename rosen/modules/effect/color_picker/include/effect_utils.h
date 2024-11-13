@@ -20,12 +20,12 @@
 
 namespace OHOS {
 namespace Rosen {
-// The "0xD001405" is the domain ID for graphic module that alloted by the OS.
+// The "0xD001400" is the domain ID for graphic module that alloted by the OS.
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001405
 
 #undef LOG_TAG
-#define LOG_TAG "EffectNapi"
+#define LOG_TAG "EffectKit"
 
 #define EFFECT_LOG_D(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
 

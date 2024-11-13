@@ -27,6 +27,7 @@
 #include "command/rs_node_showing_command.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
+#include "ipc_callbacks/rs_surface_buffer_callback_stub.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/buffer_available_callback_stub.h"
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
@@ -56,6 +57,8 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
+    } else {
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderServiceClient::CommitTransaction failed, renderService is nullptr");
     }
 }
 
@@ -1257,11 +1260,12 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
     }
 }
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->SetHardwareEnabled(id, isEnabled, selfDrawingType);
+        renderService->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
 }
 
@@ -1446,6 +1450,91 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
     }
     ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
     return false;
+}
+
+class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
+public:
+    explicit SurfaceBufferCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    ~SurfaceBufferCallbackDirector() noexcept override = default;
+    void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override
+    {
+        client_->TriggerSurfaceBufferCallback(uid, surfaceBufferIds);
+    }
+
+private:
+    RSRenderServiceClient* client_;
+};
+
+bool RSRenderServiceClient::RegisterSurfaceBufferCallback(
+    pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback renderService == nullptr!");
+        return false;
+    }
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback callback == nullptr!");
+        return false;
+    }
+    {
+        std::unique_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (surfaceBufferCallbacks_.find(uid) == std::end(surfaceBufferCallbacks_)) {
+            surfaceBufferCallbacks_.emplace(uid, callback);
+        } else {
+            ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback callback exists"
+                " in uid %{public}s", std::to_string(uid).c_str());
+            return false;
+        }
+        if (surfaceBufferCbDirector_ == nullptr) {
+            surfaceBufferCbDirector_ = new SurfaceBufferCallbackDirector(this);
+        }
+    }
+    renderService->RegisterSurfaceBufferCallback(pid, uid, surfaceBufferCbDirector_);
+    return true;
+}
+
+bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::UnregisterSurfaceBufferCallback renderService == nullptr!");
+        return false;
+    }
+    {
+        std::unique_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        auto iter = surfaceBufferCallbacks_.find(uid);
+        if (iter == std::end(surfaceBufferCallbacks_)) {
+            ROSEN_LOGE("RSRenderServiceClient::UnregisterSurfaceBufferCallback invaild uid.");
+            return false;
+        }
+        surfaceBufferCallbacks_.erase(iter);
+    }
+    renderService->UnregisterSurfaceBufferCallback(pid, uid);
+    return true;
+}
+
+void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
+    const std::vector<uint32_t>& surfaceBufferIds) const
+{
+    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
+    {
+        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
+            callback = iter->second;
+        }
+    }
+    if (callback) {
+        callback->OnFinish(uid, surfaceBufferIds);
+    }
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTop(nodeIdStr, isTop);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

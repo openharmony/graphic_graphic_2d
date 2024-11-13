@@ -710,7 +710,6 @@ public:
         lastFrameSynced_ = false;
         // clear flag: after skips sync, node not in RSMainThread::Instance()->GetContext.pendingSyncNodes_
         addedToPendingSyncList_ = false;
-        OnSkipSync();
     }
     void Sync()
     {
@@ -752,6 +751,11 @@ public:
     }
     void MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark);
     virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
+    bool GetIsFullChildrenListValid() const
+    {
+        return isFullChildrenListValid_;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -782,7 +786,6 @@ protected:
 
     virtual void InitRenderParams();
     virtual void OnSync();
-    virtual void OnSkipSync() {};
     virtual void ClearResource() {};
 
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
@@ -883,7 +886,7 @@ private:
     RectI oldClipRect_;
     Drawing::Matrix oldAbsMatrix_;
     bool childHasFilter_ = false;  // only collect children filter status
-    
+
     // aim to record children rect in abs coords, without considering clip
     RectI absChildrenRect_;
     // aim to record current frame clipped children dirty region, in abs coords
@@ -903,6 +906,7 @@ private:
     void CollectAndUpdateLocalOutlineRect();
     void CollectAndUpdateLocalPixelStretchRect();
     void CollectAndUpdateLocalForegroundEffectRect();
+    void CollectAndUpdateLocalDistortionEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion();
     bool UpdateSelfDrawRect();
@@ -1025,6 +1029,7 @@ private:
     RectI localOutlineRect_;
     RectI localPixelStretchRect_;
     RectI localForegroundEffectRect_;
+    RectI localDistortionEffectRect_;
     // map parentMatrix
     RectI absDrawRect_;
     pid_t appPid_ = 0;
@@ -1104,6 +1109,7 @@ struct SharedTransitionParam {
     }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
+    RSB_EXPORT void ResetRelation();
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;

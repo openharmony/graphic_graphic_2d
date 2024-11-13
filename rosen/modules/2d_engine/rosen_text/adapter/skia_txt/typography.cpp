@@ -152,7 +152,7 @@ double Typography::GetGlyphsBoundsRight()
 
 Drawing::FontMetrics Typography::MeasureText()
 {
-    std::shared_lock<std::shared_mutex> readLock(mutex_);
+    std::unique_lock<std::shared_mutex> writeLock(mutex_);
     return paragraph_->MeasureText();
 }
 
@@ -253,7 +253,7 @@ double Typography::GetLineHeight(int lineNumber)
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < static_cast<int>(lines.size())) {
+    if ((0 <= lineNumber) && (lineNumber < static_cast<int>(lines.size()))) {
         return lines[lineNumber].fHeight;
     }
     return 0.0;
@@ -263,7 +263,7 @@ double Typography::GetLineWidth(int lineNumber)
 {
     std::shared_lock<std::shared_mutex> readLock(mutex_);
     const auto &lines = paragraph_->GetLineMetrics();
-    if (lineNumber < static_cast<int>(lines.size())) {
+    if ((0 <= lineNumber) && (lineNumber < static_cast<int>(lines.size()))) {
         return lines[lineNumber].fWidth;
     }
     return 0.0;

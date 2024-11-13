@@ -150,6 +150,10 @@ public:
             }
         }
     }
+    static std::optional<Drawing::Matrix> GetMatrix(std::shared_ptr<RSRenderNode> hwcNode);
+    // RTthread needs to draw one more frame when screen is turned off. For other threads, use extraframe default value.
+    static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
+
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -162,6 +166,7 @@ private:
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static inline int currentUIExtensionIndex_ = -1;
+    static inline std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };
 }
 }

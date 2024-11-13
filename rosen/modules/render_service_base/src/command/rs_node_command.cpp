@@ -17,6 +17,11 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+RSNodeCommandHelper::DumpNodeTreeProcessor gDumpNodeTreeProcessor = nullptr;
+RSNodeCommandHelper::CommitDumpNodeTreeProcessor gCommitDumpNodeTreeProcessor = nullptr;
+}
+
 void RSNodeCommandHelper::AddModifier(RSContext& context, NodeId nodeId,
     const std::shared_ptr<RSRenderModifier>& modifier)
 {
@@ -141,6 +146,31 @@ void RSNodeCommandHelper::UnregisterGeometryTransitionPair(RSContext& context, N
         inNode->SetSharedTransitionParam(nullptr);
         outNode->SetSharedTransitionParam(nullptr);
     }
+}
+
+void RSNodeCommandHelper::DumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId)
+{
+    if (gDumpNodeTreeProcessor) {
+        gDumpNodeTreeProcessor(nodeId, pid, taskId);
+    }
+}
+
+void RSNodeCommandHelper::SetDumpNodeTreeProcessor(DumpNodeTreeProcessor processor)
+{
+    gDumpNodeTreeProcessor = processor;
+}
+
+void RSNodeCommandHelper::CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
+    const std::string& result)
+{
+    if (gCommitDumpNodeTreeProcessor) {
+        gCommitDumpNodeTreeProcessor(nodeId, pid, taskId, result);
+    }
+}
+
+void RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor)
+{
+    gCommitDumpNodeTreeProcessor = processor;
 }
 } // namespace Rosen
 } // namespace OHOS
