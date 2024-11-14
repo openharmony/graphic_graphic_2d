@@ -14,5 +14,8 @@
 import("//build/ohos.gni")
 
 group("ffi_packages") {
-  deps = [ "color_manager:cj_color_manager_ffi" ]
+  deps = [
+    "color_manager:cj_color_manager_ffi",
+    "effect_kit:cj_effect_kit_ffi",
+  ]
 }
