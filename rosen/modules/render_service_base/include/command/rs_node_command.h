@@ -66,6 +66,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_SUGGEST_OPINC_NODE,
 
     MARK_UIFIRST_NODE,
+    MARK_UIFIRST_NODE_FORCE,
 
     SET_NODE_NAME,
     UPDATE_MODIFIER_MOTION_BLUR_PTR,
@@ -140,7 +141,7 @@ public:
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
 
     static void MarkUifirstNode(RSContext& context, NodeId nodeId, bool isUifirstNode);
-
+    static void ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag, bool isUifirstEnable);
     static void SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect);
     static void SetOutOfParent(RSContext& context, NodeId nodeId, OutOfParentType outOfParent);
 
@@ -266,6 +267,9 @@ ADD_COMMAND(RSMarkSuggestOpincNode,
 
 ADD_COMMAND(RSMarkUifirstNode,
     ARG(RS_NODE, MARK_UIFIRST_NODE, RSNodeCommandHelper::MarkUifirstNode, NodeId, bool))
+
+ADD_COMMAND(RSForceUifirstNode,
+    ARG(RS_NODE, MARK_UIFIRST_NODE_FORCE, RSNodeCommandHelper::ForceUifirstNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSSetDrawRegion,
     ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,

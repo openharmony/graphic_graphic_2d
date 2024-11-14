@@ -729,8 +729,11 @@ public:
         return context_;
     }
 
-    // arkui mark uifirst
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -871,6 +874,8 @@ protected:
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
     ModifierDirtyTypes dirtyTypes_;
