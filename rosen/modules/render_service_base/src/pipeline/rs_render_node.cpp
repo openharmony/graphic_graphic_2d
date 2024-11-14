@@ -1447,15 +1447,6 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         return;
     }
     auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
-    auto curNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-    auto parent = GetParent().lock() ? GetParent().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-    if (curNode && curNode->GetGlobalPositionEnabled()) {
-        dirtyRect.left_ -= curNode->GetCurDisplayOffsetX();
-        dirtyRect.top_ -= curNode->GetCurDisplayOffsetY();
-    } else if (parent && parent->GetGlobalPositionEnabled()) {
-        dirtyRect.left_ -= parent->GetCurDisplayOffsetX();
-        dirtyRect.top_ -= parent->GetCurDisplayOffsetY();
-    }
     dirtyRect = dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1534,10 +1525,14 @@ void RSRenderNode::UpdateDrawRect(
     } else if (parent != nullptr) {
         // case b. use parent matrix
         auto parentMatrix = &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-        auto offset = !IsInstanceOf<RSSurfaceRenderNode>()
+        bool isSurfaceRenderNode = IsInstanceOf<RSSurfaceRenderNode>();
+        auto offset = !isSurfaceRenderNode
                           ? std::make_optional<Drawing::Point>(parent->GetRenderProperties().GetFrameOffsetX(),
                                 parent->GetRenderProperties().GetFrameOffsetY())
                           : std::nullopt;
+        if (isSurfaceRenderNode && GetGlobalPositionEnabled()) {
+            offset = std::make_optional<Drawing::Point>(-GetCurDisplayOffsetX(), -GetCurDisplayOffsetY());
+        }
         accumGeoDirty = properties.UpdateGeometryByParent(parentMatrix, offset) || accumGeoDirty;
     } else {
         // case c. no parent
@@ -2857,6 +2852,11 @@ void RSRenderNode::SetBootAnimation(bool isBootAnimation)
 bool RSRenderNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+bool RSRenderNode::GetGlobalPositionEnabled() const
+{
+    return false;
 }
 
 bool RSRenderNode::NeedInitCacheSurface()

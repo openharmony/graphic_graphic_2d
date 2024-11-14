@@ -479,6 +479,7 @@ public:
 
     bool IsZoomStateChange() const;
     void HandleCurMainAndLeashSurfaceNodes();
+
 protected:
     void OnSync() override;
 private:

@@ -807,6 +807,10 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
     node.SetCurDisplayOffsetX(curDisplayNode_->GetDisplayOffsetX());
     node.SetCurDisplayOffsetY(curDisplayNode_->GetDisplayOffsetY());
+    if (node.GetGlobalPositionEnabled()) {
+        parentSurfaceNodeMatrix_.Translate(
+            -curDisplayNode_->GetDisplayOffsetX(), -curDisplayNode_->GetDisplayOffsetY());
+    }
     
     dirtyFlag_ = node.UpdateDrawRectAndDirtyRegion(
         *curSurfaceDirtyManager_, dirtyFlag_, prepareClipRect_, parentSurfaceNodeMatrix);
@@ -924,6 +928,15 @@ void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::CalculateOcclusion curDisplayNode is nullptr");
         return;
     }
+
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
+    bool isFirstLevelCrossNode = firstLevelNode && firstLevelNode->IsCrossNode();
+    if (!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && isFirstLevelCrossNode) {
+        RS_LOGD("RSUniRenderVisitor::CalculateOcclusion NodeName: %{public}s, NodeId: %{public}" PRIu64 ""
+            "not paticipate in occlusion when cross node in expand screen", node.GetName().c_str(), node.GetId());
+        return;
+    }
+
     // CheckAndUpdateOpaqueRegion only in mainWindow
     auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
     auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
@@ -1294,7 +1307,11 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
         node.UpdateCurCornerRadius(curCornerRadius_);
         curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-        curSurfaceDirtyManager_ = node.GetDirtyManager();
+        // dirty manager should not be overrode by cross node in expand screen
+        auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
+        bool isFirstLevelCrossNode = firstLevelNode && firstLevelNode->IsCrossNode();
+        curSurfaceDirtyManager_ = (!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && isFirstLevelCrossNode) ?
+            std::make_shared<RSDirtyRegionManager>() : node.GetDirtyManager();
         if (!curSurfaceDirtyManager_ || !curSurfaceNode_) {
             RS_LOGE("RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc %{public}s has invalid"
                 " SurfaceDirtyManager or node ptr", node.GetName().c_str());
@@ -1466,11 +1483,8 @@ void RSUniRenderVisitor::UpdateDstRect(RSSurfaceRenderNode& node, const RectI& a
     auto dstRect = absRect;
     if (!node.IsHardwareEnabledTopSurface()) {
         // If the screen is expanded, intersect the destination rectangle with the screen rectangle
-        dstRect = dstRect.IntersectRect(RectI(curDisplayNode_->GetDisplayOffsetX(),
-            curDisplayNode_->GetDisplayOffsetY(), screenInfo_.width, screenInfo_.height));
-        // Remove the offset of the screen
-        dstRect.left_ = dstRect.left_ - curDisplayNode_->GetDisplayOffsetX();
-        dstRect.top_ = dstRect.top_ - curDisplayNode_->GetDisplayOffsetY();
+        dstRect = dstRect.IntersectRect(RectI(0, 0, screenInfo_.width, screenInfo_.height));
+        // global positon has been transformd to screen position in absRect
     }
     // If the node is a hardware-enabled type, intersect its destination rectangle with the prepare clip rectangle
     if (node.IsHardwareEnabledType() || node.IsHardwareEnabledTopSurface()) {
