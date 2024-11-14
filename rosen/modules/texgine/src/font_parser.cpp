@@ -141,16 +141,17 @@ int FontParser::ProcessNameTable(const struct NameTable* nameTable, FontParser::
         const char* data = stringStorage + stringOffset;
         if (platformId == FontParser::PlatformId::MACINTOSH) {
 #ifdef BUILD_NON_SDK_VER
-            std::string nameString = ToUtf8(std::string(data, len));
+            std::string nameString = ConvertToString(std::string(data, len), "GB2312", "UTF-8");
 #else
             std::string nameString(data, len);
 #endif
             GetStringFromNameId(nameId, languageId, nameString, fontDescriptor);
         } else if (platformId == FontParser::PlatformId::WINDOWS) {
-            std::wstring_convert<std::codecvt_utf16<char16_t>, char16_t> converter;
-            std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converterUtf8;
-            const std::u16string u16str = converter.from_bytes(data, data + len);
-            std::string nameString = converterUtf8.to_bytes(u16str);
+#ifdef BUILD_NON_SDK_VER
+            std::string nameString = ConvertToString(std::string(data, len), "UTF-16BE", "UTF-8");
+#else
+            std::string nameString(data, len);
+#endif
             GetStringFromNameId(nameId, languageId, nameString, fontDescriptor);
         }
     }
@@ -319,16 +320,16 @@ int FontParser::SetFontDescriptor(const unsigned int languageId)
 }
 
 #ifdef BUILD_NON_SDK_VER
-std::string FontParser::ToUtf8(const std::string& str)
+std::string FontParser::ConvertToString(const std::string& src, const std::string& srcType,
+    const std::string& targetType)
 {
     std::string utf8Str;
-    // UTF-8 and GB2312 is encoding format of string
-    iconv_t conv = iconv_open("UTF-8", "GB2312");
+    iconv_t conv = iconv_open(targetType.c_str(), srcType.c_str());
     if (conv == (iconv_t)-1) {
         return utf8Str;
     }
-    char* inBuf = const_cast<char*>(str.c_str());
-    size_t inBytesLeft = str.length();
+    char* inBuf = const_cast<char*>(src.c_str());
+    size_t inBytesLeft = src.length();
     size_t outBytesLeft = inBytesLeft * 2;
     char* outBuf = new char[outBytesLeft];
     char* outBufStart = outBuf;
