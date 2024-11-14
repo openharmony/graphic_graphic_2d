@@ -331,7 +331,11 @@ napi_value JsTextBlob::MakeFromPosText(napi_env env, napi_callback_info info)
     }
 
     JsFont* jsFont = nullptr;
-    GET_UNWRAP_PARAM(ARGC_THREE, jsFont);
+    if ((napi_unwrap(env, argv[ARGC_THREE], reinterpret_cast<void**>(&jsFont)) != napi_ok) || jsFont == nullptr) {
+        delete[] buffer;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_THREE) + " type.");
+    }
     std::shared_ptr<Font> font = jsFont->GetFont();
     if (font == nullptr) {
         delete[] buffer;
