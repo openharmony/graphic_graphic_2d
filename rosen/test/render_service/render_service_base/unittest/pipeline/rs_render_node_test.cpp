@@ -1009,12 +1009,12 @@ HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateClipAbsDrawRectChangeStateTest
+ * @tc.name: UpdateSrcOrClipedAbsDrawRectChangeStateTest
  * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueIAZV18
  */
-HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto left = 0;
@@ -1023,15 +1023,15 @@ HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1
     auto height = 1048;
     RectI rectI(left, top, width, height);
 
-    node->clipAbsDrawRectChange_ = true;
-    node->UpdateClipAbsDrawRectChangeState(rectI);
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
     EXPECT_FALSE(node->geometryChangeNotPerceived_);
 
     EXPECT_EQ(RSSystemProperties::GetSkipGeometryNotChangeEnabled(), true);
-    node->clipAbsDrawRectChange_ = true;
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
     node->geometryChangeNotPerceived_ = true;
-    node->UpdateClipAbsDrawRectChangeState(rectI);
-    EXPECT_FALSE(node->clipAbsDrawRectChange_);
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
+    EXPECT_FALSE(node->srcOrClipedAbsDrawRectChangeFlag_);
 }
 
 /**

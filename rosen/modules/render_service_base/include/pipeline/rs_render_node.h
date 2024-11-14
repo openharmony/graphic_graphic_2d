@@ -820,7 +820,7 @@ protected:
     bool isChildSupportUifirst_ = true;
     bool childHasSharedTransition_ = false;
     bool lastFrameSynced_ = true;
-    bool clipAbsDrawRectChange_ = false;
+    bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isUifirstNode_ = true;
     int isUifirstDelay_ = 0;
@@ -848,7 +848,7 @@ private:
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
     void ResetParent();
-    void UpdateClipAbsDrawRectChangeState(const RectI& clipRect);
+    void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
