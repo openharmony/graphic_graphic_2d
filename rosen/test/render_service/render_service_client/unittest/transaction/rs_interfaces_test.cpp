@@ -477,7 +477,8 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
 {
     class TestSurfaceBufferCallback : public SurfaceBufferCallback {
     public:
-        void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override {}
+        void OnFinish(const FinishCallbackRet& ret) {}
+        void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();

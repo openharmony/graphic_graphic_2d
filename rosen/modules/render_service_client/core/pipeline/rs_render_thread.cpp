@@ -152,9 +152,13 @@ RSRenderThread::RSRenderThread()
     });
 #endif
 #ifdef ROSEN_OHOS
-    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
-        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback({
+        .OnFinish = RSSurfaceBufferCallbackManager::Instance().GetOnFinishCb(),
+        .OnAfterAcquireBuffer = RSSurfaceBufferCallbackManager::Instance().GetOnAfterAcquireBufferCb(),
+    });
+    Drawing::DrawSurfaceBufferOpItem::SetIsUniRender(false);
 #endif
+    RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
         .requestNextVsync = []() {
             RSRenderThread::Instance().RequestNextVSync();
@@ -162,6 +166,14 @@ RSRenderThread::RSRenderThread()
         .isRequestedNextVSync = []() {
             return RSRenderThread::Instance().IsRequestedNextVSync();
         },
+    });
+    RSSurfaceBufferCallbackManager::Instance().SetRenderContextFuncs({
+        .getRootNodeIdForRT = [this]() {
+            if (visitor_) {
+                return visitor_->GetActiveSubtreeRootId();
+            }
+            return INVALID_NODEID;
+        }
     });
 }
 

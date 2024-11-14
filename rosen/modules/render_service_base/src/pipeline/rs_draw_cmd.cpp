@@ -767,23 +767,97 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
 }
 
 namespace {
-    std::function<void(pid_t, uint64_t, uint32_t)> surfaceBufferFenceCallback;
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> surfaceBufferFinishCb;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> surfaceBufferAfterAcquireCb;
+    bool contextIsUniRender = true;
 }
 
 void DrawSurfaceBufferOpItem::OnDestruct()
 {
-    if (surfaceBufferFenceCallback && surfaceBufferInfo_.surfaceBuffer_) {
-        std::invoke(surfaceBufferFenceCallback, surfaceBufferInfo_.pid_,
-            surfaceBufferInfo_.uid_, surfaceBufferInfo_.surfaceBuffer_->GetSeqNum());
+    ReleaseBuffer();
+}
+
+void DrawSurfaceBufferOpItem::SetIsUniRender(bool isUniRender)
+{
+    contextIsUniRender = isUniRender;
+}
+ 
+void DrawSurfaceBufferOpItem::OnAfterDraw()
+{
+    isRendered_ = true;
+    if (contextIsUniRender) {
+        return;
+    }
+#ifdef RS_ENABLE_GL
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        auto sync = eglCreateSyncKHR(disp, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
+        if (sync == EGL_NO_SYNC_KHR) {
+            RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw Error on eglCreateSyncKHR %{public}d",
+                static_cast<int>(eglGetError()));
+        } else {
+            auto fd = eglDupNativeFenceFDANDROID(disp, sync);
+            eglDestroySyncKHR(disp, sync);
+            if (fd == EGL_NO_NATIVE_FENCE_FD_ANDROID) {
+                RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw: Error on eglDupNativeFenceFD");
+            } else {
+                releaseFence_ = new (std::nothrow) SyncFence(fd);
+                if (!releaseFence_) {
+                    releaseFence_ = SyncFence::INVALID_FENCE;
+                }
+            }
+        }
+        if (releaseFence_ && releaseFence_->IsValid()) {
+            ReleaseBuffer();
+        }
+    }
+#endif
+#ifdef RS_ENABLE_VK
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        ReleaseBuffer();
+    }
+#endif
+}
+
+void DrawSurfaceBufferOpItem::ReleaseBuffer()
+{
+    if (!isReleased_) {
+        RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release",
+            std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str());
+        if (surfaceBufferFinishCb && surfaceBufferInfo_.surfaceBuffer_) {
+            std::invoke(surfaceBufferFinishCb, DrawSurfaceBufferFinishCbData {
+                .uid = surfaceBufferInfo_.uid_,
+                .pid = surfaceBufferInfo_.pid_,
+                .surfaceBufferId = surfaceBufferInfo_.surfaceBuffer_->GetSeqNum(),
+                .releaseFence = releaseFence_,
+                .isRendered = isRendered_,
+                .isNeedTriggerCbDirectly = releaseFence_ && releaseFence_->IsValid(),
+            });
+            isReleased_ = true;
+        }
+    }
+}
+ 
+void DrawSurfaceBufferOpItem::OnAfterAcquireBuffer()
+{
+    if (surfaceBufferAfterAcquireCb && surfaceBufferInfo_.surfaceBuffer_) {
+        std::invoke(surfaceBufferAfterAcquireCb, DrawSurfaceBufferAfterAcquireCbData {
+            .uid = surfaceBufferInfo_.uid_,
+            .pid = surfaceBufferInfo_.pid_,
+        });
     }
 }
 
 void DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
-    std::function<void(pid_t, uint64_t, uint32_t)> callback)
+    DrawSurfaceBufferOpItemCb callbacks)
 {
-    if (std::exchange(surfaceBufferFenceCallback, callback)) {
+    if (std::exchange(surfaceBufferFinishCb, callbacks.OnFinish)) {
         RS_LOGE("DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback"
-            " registered callback twice incorrectly.");
+            " registered OnFinish twice incorrectly.");
+    }
+    if (std::exchange(surfaceBufferAfterAcquireCb, callbacks.OnAfterAcquireBuffer)) {
+        RS_LOGE("DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback"
+            " registered OnAfterAcquireBuffer twice incorrectly.");
     }
 }
 
@@ -835,15 +909,14 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         DrawWithVulkan(canvas);
-        return;
     }
 #endif
 #ifdef RS_ENABLE_GL
     if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         DrawWithGles(canvas);
-        return;
     }
 #endif
+    OnAfterDraw();
 }
 
 Drawing::BitmapFormat DrawSurfaceBufferOpItem::CreateBitmapFormat(int32_t bufferFormat)
@@ -861,6 +934,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         int res = surfaceBufferInfo_.acquireFence_->Wait(FENCE_WAIT_TIME);
         if (res < 0) {
             LOGW("DrawSurfaceBufferOpItem::DrawWithVulkan waitfence timeout");
+        } else {
+            OnAfterAcquireBuffer();
         }
     }
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
@@ -899,6 +974,8 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         int res = surfaceBufferInfo_.acquireFence_->Wait(FENCE_WAIT_TIME);
         if (res < 0) {
             LOGW("DrawSurfaceBufferOpItem::DrawWithGles waitfence timeout");
+        } else {
+            OnAfterAcquireBuffer();
         }
     }
     if (!CreateEglTextureId()) {

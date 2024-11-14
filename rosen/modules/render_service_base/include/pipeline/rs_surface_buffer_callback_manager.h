@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "common/rs_common_def.h"
 #include "refbase.h"
 
 namespace OHOS {
@@ -36,18 +37,50 @@ public:
         std::function<void()> requestNextVsync;
         std::function<bool()> isRequestedNextVSync;
     };
+    struct RenderContextFuncs {
+        std::function<NodeId()> getRootNodeIdForRT;
+    };
+ 
+#ifdef ROSEN_OHOS
+    using OnFinishCb = std::function<void(const Drawing::DrawSurfaceBufferFinishCbData&)>;
+    using OnAfterAcquireBufferCb = std::function<void(const Drawing::DrawSurfaceBufferAfterAcquireCbData&)>;
+#endif
 
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback);
     void UnregisterSurfaceBufferCallback(pid_t pid);
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
+#ifdef ROSEN_OHOS
+    OnFinishCb GetOnFinishCb() const;
+    OnAfterAcquireBufferCb GetOnAfterAcquireBufferCb() const;
+#endif
+
     std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback() const;
     void SetRunPolicy(std::function<void(std::function<void()>)> runPolicy);
     void SetVSyncFuncs(VSyncFuncs vSyncFuncs);
+    void SetIsUniRender(bool isUniRender);
+    void SetRenderContextFuncs(RenderContextFuncs contextFuncs);
+#ifdef RS_ENABLE_VK
+    void SetReleaseFenceForVulkan(int releaseFenceFd, NodeId rootNodeId);
+#endif
+ 
+    void RunSurfaceBufferCallback();
+#ifdef RS_ENABLE_VK
+    void RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId);
+#endif
 
     static RSSurfaceBufferCallbackManager& Instance();
 private:
+    static constexpr size_t ROOTNODEIDS_POS = 3;
+    struct BufferQueueData {
+        std::vector<uint32_t> bufferIds;
+        std::vector<uint8_t> isRenderedFlags;
+#ifdef ROSEN_OHOS
+        std::vector<sptr<SyncFence>> releaseFences;
+#endif
+        std::vector<NodeId> rootNodeIds;
+    };
     RSSurfaceBufferCallbackManager() = default;
     ~RSSurfaceBufferCallbackManager() noexcept = default;
 
@@ -59,6 +92,15 @@ private:
     sptr<RSISurfaceBufferCallback> GetSurfaceBufferCallback(pid_t pid, uint64_t uid) const;
     size_t GetSurfaceBufferCallbackSize() const;
 
+#ifdef ROSEN_OHOS
+    void OnAfterAcquireBuffer(const Drawing::DrawSurfaceBufferAfterAcquireCbData& data);
+    void OnFinish(const Drawing::DrawSurfaceBufferFinishCbData& data);
+#endif
+ 
+#ifdef ROSEN_OHOS
+    void EnqueueSurfaceBufferId(const Drawing::DrawSurfaceBufferFinishCbData& data);
+#endif
+
     void EnqueueSurfaceBufferId(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void OnSurfaceBufferOpItemDestruct(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void RunSurfaceBufferCallback();
@@ -67,17 +109,85 @@ private:
 
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
         surfaceBufferCallbacks_;
-    std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> stagingSurfaceBufferIds_;
+    std::map<std::pair<pid_t, uint64_t>, BufferQueueData> stagingSurfaceBufferIds_;
     mutable std::shared_mutex registerSurfaceBufferCallbackMutex_;
     std::mutex surfaceBufferOpItemMutex_;
     std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
         std::invoke(task);
     };
     VSyncFuncs vSyncFuncs_;
-
-    friend class RSMainThread;
-    friend class RSRenderThread;
+    RenderContextFuncs renderContextFuncs_;
+    bool isUniRender_ = {};
 };
+
+namespace RSSurfaceBufferCallbackMgrUtil {
+namespace Detail {
+template<class... Iters, class UnaryPred, size_t... Is>
+std::tuple<Iters...> FindIf(std::tuple<Iters...> begin, std::tuple<Iters...> end,
+    UnaryPred unaryPred, std::index_sequence<Is...>)
+{
+    for (; begin != end; (++std::get<Is>(begin), ...)) {
+        if (unaryPred(begin)) {
+            return begin;
+        }
+    }
+    return end;
+}
+ 
+template<class... Iters, class UnaryPred, size_t... Is>
+std::tuple<Iters...> RemoveIf(std::tuple<Iters...> begin, std::tuple<Iters...> end,
+    UnaryPred unaryPred, std::index_sequence<Is...>)
+{
+    begin = Detail::FindIf(begin, end, unaryPred, std::make_index_sequence<sizeof...(Iters)>());
+    if (begin != end) {
+        for (auto i = begin; i != end; (++std::get<Is>(i), ...)) {
+            if (!unaryPred(i)) {
+                ((*(std::get<Is>(begin)++) = std::move(*std::get<Is>(i))), ...);
+            }
+        }
+    }
+    return begin;
+}
+ 
+template <class... InputIters, class... OutPutIters, class UnaryPred, size_t... Is>
+std::tuple<OutPutIters...> CopyIf(std::tuple<InputIters...> inputBegin,
+    std::tuple<InputIters...> inputEnd, std::tuple<OutPutIters...> outputBegin, UnaryPred unaryPred,
+    std::index_sequence<Is...>)
+{
+    for (; inputBegin != inputEnd; (++std::get<Is>(inputBegin), ...)) {
+        if (unaryPred(inputBegin))
+        {
+            ((*std::get<Is>(outputBegin) = *std::get<Is>(inputBegin)), ...);
+            (++std::get<Is>(outputBegin), ...);
+        }
+    }
+    return outputBegin;
+}
+} // namespace Detail
+ 
+template<class... Iters, class UnaryPred>
+std::tuple<Iters...> FindIf(std::tuple<Iters...> begin,
+    std::tuple<Iters...> end, UnaryPred unaryPred)
+{
+    return Detail::FindIf(begin, end, unaryPred, std::make_index_sequence<sizeof...(Iters)>());
+}
+ 
+template<class... Iters, class UnaryPred>
+std::tuple<Iters...> RemoveIf(std::tuple<Iters...> begin,
+    std::tuple<Iters...> end, UnaryPred unaryPred)
+{
+    return Detail::RemoveIf(begin, end, unaryPred, std::make_index_sequence<sizeof...(Iters)>());
+}
+ 
+template<class... InputIters, class... OutPutIters, class UnaryPred>
+std::tuple<OutPutIters...> CopyIf(std::tuple<InputIters...> inputBegin,
+    std::tuple<InputIters...> inputEnd, std::tuple<OutPutIters...> outputBegin, UnaryPred unaryPred)
+{
+    static_assert(sizeof...(InputIters) == sizeof...(OutPutIters));
+    return Detail::CopyIf(inputBegin, inputEnd, outputBegin, unaryPred,
+        std::make_index_sequence<sizeof...(InputIters)>());
+}
+} // namespace RSSurfaceBufferCallbackMgrUtil
 } // namespace Rosen
 } // namespace OHOS
 

@@ -514,8 +514,11 @@ void RSMainThread::Init()
         RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(
             std::bind(&RSMainThread::OnCommitDumpClientNodeTree, this, _1, _2, _3, _4));
     }
-    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
-        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback({
+        .OnFinish = RSSurfaceBufferCallbackManager::Instance().GetOnFinishCb(),
+        .OnAfterAcquireBuffer = RSSurfaceBufferCallbackManager::Instance().GetOnAfterAcquireBufferCb(),
+    });
+    RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(true);
 
     RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
         RSHardwareThread::Instance().PostTask(task);
