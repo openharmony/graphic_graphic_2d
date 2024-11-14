@@ -17,7 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <stdint.h>
+
 #include <cmath>
 
 #include "drawing_bitmap.h"
