@@ -636,7 +636,7 @@ namespace OHOS {
         // get data
         float response = GetData<float>();
         float dampingRatio = GetData<float>();
-        double blendDuration = GetData<double>();
+        float blendDuration = GetData<float>();
         float zeroThreshold = GetData<float>();
         AnimationId animationId = GetData<AnimationId>();
         PropertyId propertyId = GetData<PropertyId>();

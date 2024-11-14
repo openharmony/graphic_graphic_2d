@@ -60,7 +60,8 @@ private:
 
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes_;
 
-    std::vector<std::tuple<int64_t, int64_t, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> durationKeyframes_;
+    std::vector<std::tuple<int64_t, int64_t,
+        std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> durationKeyframes_;
 
     bool isDurationKeyframe_ { false };
 

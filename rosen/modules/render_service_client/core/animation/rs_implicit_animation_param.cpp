@@ -179,7 +179,7 @@ std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
     auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(property);
     keyFrameAnimation->SetDurationKeyframe(isCreateDurationKeyframe);
     if (isCreateDurationKeyframe) {
-        keyFrameAnimation->AddKeyFrame(startDuration, startDuration + (int64_t)duration_, endValue, timingCurve_);
+        keyFrameAnimation->AddKeyFrame(startDuration, startDuration + static_cast<int64_t>(duration_), endValue, timingCurve_);
     } else {
         keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
     }
@@ -211,7 +211,7 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
 
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
     if (keyframeAnimation != nullptr) {
-        keyframeAnimation->AddKeyFrame(startDuration, startDuration + (int64_t)duration_, endValue, timingCurve_);
+        keyframeAnimation->AddKeyFrame(startDuration, startDuration + static_cast<int64_t>(duration_), endValue, timingCurve_);
     }
 }
 

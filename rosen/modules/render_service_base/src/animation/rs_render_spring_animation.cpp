@@ -27,7 +27,7 @@ namespace Rosen {
 namespace {
 constexpr static float SECOND_TO_MILLISECOND = 1e3;
 constexpr static float MILLISECOND_TO_SECOND = 1e-3;
-constexpr static float SECOND_TO_NANOSECOND = 1e9;
+constexpr static double SECOND_TO_NANOSECOND = 1e9;
 constexpr static float RESPONSE_THRESHOLD = 0.001f;
 constexpr static float FRACTION_THRESHOLD = 0.001f;
 constexpr static float FRAME_TIME_INTERVAL = 1.0f / 90.0f;
@@ -56,7 +56,7 @@ void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
     out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
 }
 
-void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, double blendDuration)
+void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)
 {
     response_ = response;
     dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
@@ -315,7 +315,7 @@ RSRenderSpringAnimation::GetSpringStatus() const
     // if animation is never started, return start value and initial velocity
     // fraction_threshold will change with animationScale.
     if (ROSEN_EQ(animationFraction_.GetAnimationScale(), 0.0f) ||
-        ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationFraction_.GetAnimationScale())) {ß
+        ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationFraction_.GetAnimationScale())) {
         return { startValue_, endValue_, initialVelocity_ };
     }
 

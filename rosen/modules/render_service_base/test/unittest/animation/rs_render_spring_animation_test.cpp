@@ -782,11 +782,11 @@ HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus003, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSpringStatus003
+ * @tc.name: GetSpringStatus004
  * @tc.desc: Verify the GetSpringStatus
  * @tc.type:FUNC
  */
-HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus003, TestSize.Level1)
+HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus004, TestSize.Level1)
 {
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
