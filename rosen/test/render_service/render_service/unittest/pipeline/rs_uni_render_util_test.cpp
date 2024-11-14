@@ -213,7 +213,7 @@ HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceDrawableGlobalDityRegionTest001, Func
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    RectI globalDirtyRegion;
+    Occlusion::Region globalDirtyRegion;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
@@ -234,7 +234,7 @@ HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceDrawableGlobalDityRegionTest002, Func
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    RectI globalDirtyRegion;
+    Occlusion::Region globalDirtyRegion;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     auto param = std::make_unique<RSSurfaceRenderParams>(drawable->nodeId_);
@@ -256,7 +256,7 @@ HWTEST_F(RSUniRenderUtilTest, SetAllSurfaceDrawableGlobalDityRegionTest003, Func
 {
     NodeId nodeId = 1;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> allSurfaceDrawables;
-    RectI globalDirtyRegion;
+    Occlusion::Region globalDirtyRegion;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto drawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
     allSurfaceDrawables.push_back(drawable);

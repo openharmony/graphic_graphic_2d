@@ -231,7 +231,9 @@ static std::vector<RectI> MergeDirtyHistory(RSDisplayRenderNodeDrawable& display
                 allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
         }
     }
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, dirtyManager->GetDirtyRegion());
+    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
+        dirtyRegion.Or(globalDirtyRegion));
 
     // DFX START
     rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
