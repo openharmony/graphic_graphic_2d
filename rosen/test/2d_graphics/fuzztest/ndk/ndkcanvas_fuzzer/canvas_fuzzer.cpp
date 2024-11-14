@@ -62,7 +62,13 @@ void CanvasFuzzTest009(const uint8_t* data, size_t size)
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
-    OH_Drawing_TextBlob* textBlob = OH_Drawing_TextBlobCreateFromString("fuzztest", font, TEXT_ENCODING_UTF8);
+    uint16_t textSize = GetObject<uint16_t>() % MAX_ARRAY_MAX;
+    char* text = new char[textSize];
+    for (int i = 0; i < textSize; i++) {
+        text[i] = GetObject<char>();
+    }
+    OH_Drawing_TextBlob* textBlob = OH_Drawing_TextBlobCreateFromString(text, font,
+        GetObject<OH_Drawing_TextEncoding>());
 
     OH_Drawing_CanvasDrawTextBlob(canvas, textBlob, GetObject<float>(), GetObject<float>());
     OH_Drawing_CanvasDrawTextBlob(nullptr, textBlob, GetObject<float>(), GetObject<float>());
@@ -71,6 +77,10 @@ void CanvasFuzzTest009(const uint8_t* data, size_t size)
     OH_Drawing_CanvasDestroy(canvas);
     OH_Drawing_FontDestroy(font);
     OH_Drawing_TextBlobDestroy(textBlob);
+    if (text != nullptr) {
+        delete[] text;
+        text = nullptr;
+    }
 }
 
 void CanvasFuzzTest008(const uint8_t* data, size_t size)

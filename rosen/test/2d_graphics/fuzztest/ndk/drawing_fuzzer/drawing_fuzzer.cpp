@@ -45,11 +45,15 @@ void NativeDrawingBitmapTest(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
-    uint32_t width = static_cast<uint32_t>(data[0]);
-    uint32_t height = static_cast<uint32_t>(data[1]);
+    uint32_t width = GetObject<uint32_t>();
+    uint32_t height = GetObject<uint32_t>();
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat bitmapFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL };
+    OH_Drawing_BitmapFormat bitmapFormat { GetObject<OH_Drawing_ColorFormat>(), GetObject<OH_Drawing_AlphaFormat>() };
     OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
     OH_Drawing_BitmapDestroy(bitmap);
 }
@@ -187,7 +191,7 @@ void NativeDrawingColorTest(const uint8_t* data, size_t size)
 
     uint32_t color = GetObject<uint32_t>();
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetAntiAlias(brush, false);
+    OH_Drawing_BrushSetAntiAlias(brush, GetObject<bool>());
     OH_Drawing_BrushIsAntiAlias(brush);
     OH_Drawing_BrushSetColor(brush, color);
     OH_Drawing_BrushGetColor(brush);

@@ -54,7 +54,7 @@ bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
 
         std::vector<uint16_t> glyphIds = {};
         TextBlob::GetDrawingGlyphIDforTextBlob(textblob.get(), glyphIds);
-        TextBlob::GetDrawingPathforTextBlob(0, textblob.get());
+        TextBlob::GetDrawingPathforTextBlob(GetObject<uint16_t>() % MAX_SIZE, textblob.get());
     }
     if (text != nullptr) {
         delete [] text;

@@ -30,6 +30,7 @@ constexpr size_t MAX_ARRAY_SIZE = 5000;
 constexpr size_t DIRECTION_SIZE = 2;
 constexpr size_t FILLTYPE_SIZE = 4;
 constexpr size_t MATRIXFLAG_SIZE = 3;
+constexpr size_t PATH_OP_SIZE = 5;
 } // namespace
 namespace Drawing {
 bool PathAddFuzzTest(const uint8_t* data, size_t size)
@@ -46,8 +47,8 @@ bool PathAddFuzzTest(const uint8_t* data, size_t size)
     Path path;
     Rect rect = GetObject<Rect>();
     Rect oval = GetObject<Rect>();
-    path.AddRect(rect, PathDirection::CCW_DIRECTION);
-    path.AddOval(oval, PathDirection::CCW_DIRECTION);
+    path.AddRect(rect, GetObject<PathDirection>());
+    path.AddOval(oval, GetObject<PathDirection>());
     path.Close();
     return true;
 }
@@ -77,7 +78,7 @@ bool PathOpFuzzTest(const uint8_t* data, size_t size)
     op.MoveTo(px, py);
 
     Path path2;
-    path2.Op(op, path1, PathOp::DIFFERENCE);
+    path2.Op(op, path1, static_cast<PathOp>(GetObject<uint32_t>() % PATH_OP_SIZE));
     path1.Close();
     path2.Reset();
     return true;
