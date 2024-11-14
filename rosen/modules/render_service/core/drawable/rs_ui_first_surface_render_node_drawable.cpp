@@ -114,12 +114,12 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
     cacheSurface_.reset();
 }
 
-Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float imgHeight)
+Drawing::Matrix RSSurfaceRenderNodeDrawable::GetGravityMatrix(float imgWidth, float imgHeight)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetGravityTranslate surfaceParams is nullptr");
-        return Vector2f{};
+        return Drawing::Matrix();
     }
     auto gravity = surfaceParams->GetUIFirstFrameGravity();
     float boundsWidth = surfaceParams->GetCacheSize().x_;
@@ -127,7 +127,7 @@ Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float 
     Drawing::Matrix gravityMatrix;
     RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
         imgWidth, imgHeight, gravityMatrix);
-    return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
+    return gravityMatrix;
 }
 
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
@@ -274,7 +274,10 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         return false;
     }
     canvas.Save();
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+    const auto& gravityMatrix = GetGravityMatrix(cacheImage->GetWidth(), cacheImage->GetHeight());
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
+    } else {
         float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
         float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
         canvas.Scale(scaleX, scaleY);
@@ -288,8 +291,9 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    auto gravityTranslate = GetGravityTranslate(cacheImage->GetWidth(), cacheImage->GetHeight());
-    canvas.DrawImage(*cacheImage, gravityTranslate.x_, gravityTranslate.y_, samplingOptions);
+    auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
+    auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
     canvas.DetachBrush();
     canvas.Restore();
 #ifdef RS_ENABLE_GL

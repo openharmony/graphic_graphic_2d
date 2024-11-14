@@ -387,16 +387,24 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, InitCacheSurfaceTest, TestSize.
 }
 
 /**
- * @tc.name: GetGravityTranslate
- * @tc.desc: Test If GetGravityTranslate Can Run
+ * @tc.name: GetGravityMatrix
+ * @tc.desc: Test If GetGravityMatrix Can Run
  * @tc.type: FUNC
  * @tc.require: issueIAH6OI
  */
-HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetGravityTranslateTest, TestSize.Level1)
+HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetGravityMatrixTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
-    Vector2f res = surfaceDrawable_->GetGravityTranslate(1.f, 1.f);
-    ASSERT_EQ(res, Vector2f(0, 0));
+    Drawing::Matrix res = surfaceDrawable_->GetGravityMatrix(1.f, 1.f);
+    ASSERT_EQ(res, Drawing::Matrix());
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
+    surfaceDrawable_->renderParams_->SetCacheSize(Vector2f(100, 100));
+    auto surfaceparams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceparams, nullptr);
+    surfaceparams->SetUIFirstFrameGravity(Gravity::TOP_LEFT);
+    Drawing::Matrix matrix = surfaceDrawable_->GetGravityMatrix(100, 100);
+    ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_X), 0);
+    ASSERT_EQ(matrix.Get(Drawing::Matrix::TRANS_Y), 0);
 }
 
 /**
