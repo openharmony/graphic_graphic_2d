@@ -161,14 +161,14 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         RS_LOGD("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
     }
 
-    // Set brightness to screen brightness when HDR Vivid, otherwise 500 nits
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
-    parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
-    parameter.currentDisplayNits = displayNits;
+    parameter.tmoNits = (dynamicRangeMode == DynamicRangeMode::STANDARD ?
+        sdrNits : std::clamp(sdrNits * scaler, sdrNits, displayNits));
+    parameter.currentDisplayNits = (dynamicRangeMode == DynamicRangeMode::STANDARD ? sdrNits : displayNits);
     parameter.sdrNits = sdrNits;
-    RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f. SdrNits:%{public}f.", parameter.tmoNits,
-        parameter.currentDisplayNits, parameter.sdrNits);
+    RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f. SdrNits:%{public}f. DynamicRangeMode:%{public}u",
+        parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
     return true;
 }
 
