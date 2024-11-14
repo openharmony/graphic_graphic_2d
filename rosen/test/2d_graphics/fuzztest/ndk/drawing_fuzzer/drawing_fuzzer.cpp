@@ -17,6 +17,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <stdint.h>
+#include <cmath>
 
 #include "drawing_bitmap.h"
 #include "drawing_brush.h"
@@ -332,7 +334,9 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
         double x = GetObject<double>();
         double y = GetObject<double>();
         OH_Drawing_TextLinePaint(nullptr, nullptr, x, y);
-        OH_Drawing_TextLinePaint(line, OH_Drawing_CanvasCreate(), x, y);
+        auto canvas = OH_Drawing_CanvasCreate();
+        OH_Drawing_TextLinePaint(line, canvas, x, y);
+        OH_Drawing_CanvasDestroy(canvas);
         double ascent = 0.0, descent = 0.0, leading = 0.0;
         OH_Drawing_TextLineGetTypographicBounds(nullptr, &ascent, &descent, &leading);
         OH_Drawing_TextLineGetTypographicBounds(line, &ascent, &descent, &leading);
@@ -350,6 +354,7 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
         OH_Drawing_Point* point = OH_Drawing_PointCreate(pointX, pointY);
         int32_t index = OH_Drawing_TextLineGetStringIndexForPosition(line, point);
         int32_t index1 = OH_Drawing_TextLineGetStringIndexForPosition(nullptr, point);
+        OH_Drawing_PointDestroy(point);
         OH_Drawing_TextLineGetOffsetForStringIndex(line, index);
         OH_Drawing_TextLineGetOffsetForStringIndex(nullptr, index1);
         OH_Drawing_TextLineEnumerateCaretOffsets(line, [](double, int, bool) { return false; });
@@ -364,6 +369,9 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
     if (data == nullptr || size < DATA_MIN_SIZE) {
         return;
     }
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     uint32_t width = static_cast<float>(data[1]);
     uint32_t red = static_cast<float>(data[1]);
     uint32_t gree = static_cast<float>(data[1]);
@@ -390,7 +398,7 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
             "World测试文本";
     OH_Drawing_TypographyHandlerAddText(handler, text.c_str());
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
-    OH_Drawing_TypographyLayout(typography, GetObject<double>());
+    OH_Drawing_TypographyLayout(typography, GetObject<double>() + 1);
     OH_Drawing_TypographyGetTextLines(nullptr);
     OH_Drawing_Array* linesArray = OH_Drawing_TypographyGetTextLines(typography);
     OHDrawingTextLineArray(linesArray, data, size);

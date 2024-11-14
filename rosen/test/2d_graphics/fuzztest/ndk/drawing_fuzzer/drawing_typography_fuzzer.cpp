@@ -143,19 +143,23 @@ void SetTextStyle(OH_Drawing_TextStyle* txtStyle)
     OH_Drawing_SetTextStyleEllipsisModal(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTextStyleEllipsis(txtStyle, dest.get());
     OH_Drawing_TextStyleAddFontVariation(txtStyle, dest.get(), GetObject<float>());
-    OH_Drawing_SetTextStyleForegroundBrush(txtStyle, OH_Drawing_BrushCreate());
-    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, OH_Drawing_BrushCreate());
-    OH_Drawing_SetTextStyleBackgroundPen(txtStyle, OH_Drawing_PenCreate());
-    OH_Drawing_SetTextStyleForegroundPen(txtStyle, OH_Drawing_PenCreate());
+    auto brus = OH_Drawing_BrushCreate();
+    auto pen = OH_Drawing_PenCreate();
+    OH_Drawing_SetTextStyleForegroundBrush(txtStyle, brus);
+    OH_Drawing_SetTextStyleBackgroundBrush(txtStyle, brus);
+    OH_Drawing_SetTextStyleBackgroundPen(txtStyle, pen);
+    OH_Drawing_SetTextStyleForegroundPen(txtStyle, pen);
+    OH_Drawing_TextStyleGetBackgroundBrush(txtStyle, brus);
+    OH_Drawing_TextStyleGetForegroundBrush(txtStyle, brus);
+    OH_Drawing_TextStyleGetBackgroundPen(txtStyle, pen);
+    OH_Drawing_TextStyleGetForegroundPen(txtStyle, pen);
+    OH_Drawing_BrushDestroy(brus);
+    OH_Drawing_PenDestroy(pen);
 }
 
 OH_Drawing_TextStyle* CreateTextStyle(OH_Drawing_TextStyle* txtStyle)
 {
     SetTextStyle(txtStyle);
-    OH_Drawing_TextStyleGetBackgroundBrush(txtStyle, OH_Drawing_BrushCreate());
-    OH_Drawing_TextStyleGetForegroundBrush(txtStyle, OH_Drawing_BrushCreate());
-    OH_Drawing_TextStyleGetBackgroundPen(txtStyle, OH_Drawing_PenCreate());
-    OH_Drawing_TextStyleGetForegroundPen(txtStyle, OH_Drawing_PenCreate());
     OH_Drawing_TextShadow* shadow = OH_Drawing_CreateTextShadow();
     OH_Drawing_Point* offset = OH_Drawing_PointCreate(GetObject<float>(), GetObject<float>());
     OH_Drawing_SetTextShadow(shadow, GetObject<uint32_t>(), offset, GetObject<double>());
