@@ -136,7 +136,7 @@ public:
 
     bool IsCurFrameStatic(DeviceType deviceType);
 
-    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+    Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
     bool HasCachedTexture() const;
 
