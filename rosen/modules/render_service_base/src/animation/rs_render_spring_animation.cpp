@@ -56,10 +56,10 @@ void RSRenderSpringAnimation::DumpAnimationInfo(std::string& out) const
     out += ", EndValue: " + RSAnimationTraceUtils::GetInstance().ParseRenderPropertyVaule(endValue_, type);
 }
 
-void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, float blendDuration)
+void RSRenderSpringAnimation::SetSpringParameters(float response, float dampingRatio, double blendDuration)
 {
     response_ = response;
-    dampingRatio_ = dampingRatio;
+    dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     blendDuration_ = blendDuration * SECOND_TO_NANOSECOND; // convert to ns
 }
 

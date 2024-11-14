@@ -69,7 +69,7 @@ void RSRenderKeyframeAnimation::AddKeyframes(const std::vector<std::tuple<float,
     keyframes_ = keyframes;
 }
 
-void RSRenderKeyframeAnimation::AddKeyframe(int startDuration, int endDuration,
+void RSRenderKeyframeAnimation::AddKeyframe(int64_t startDuration, int64_t endDuration,
     const std::shared_ptr<RSRenderPropertyBase>& value, const std::shared_ptr<RSInterpolator>& interpolator)
 {
     if (startDuration > endDuration) {

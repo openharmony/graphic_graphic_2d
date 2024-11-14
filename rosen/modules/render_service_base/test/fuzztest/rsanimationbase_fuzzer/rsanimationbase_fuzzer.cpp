@@ -389,8 +389,8 @@ namespace OHOS {
         auto property = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
         auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
         auto fraction = GetData<float>();
-        auto startDuration = GetData<int>();
-        auto endDuration = GetData<int>();
+        auto startDuration = GetData<int64_t>();
+        auto endDuration = GetData<int64_t>();
         auto isDuration = GetData<bool>();
         std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSInterpolator>>>
             keyframes;
@@ -636,7 +636,7 @@ namespace OHOS {
         // get data
         float response = GetData<float>();
         float dampingRatio = GetData<float>();
-        float blendDuration = GetData<float>();
+        double blendDuration = GetData<double>();
         float zeroThreshold = GetData<float>();
         AnimationId animationId = GetData<AnimationId>();
         PropertyId propertyId = GetData<PropertyId>();

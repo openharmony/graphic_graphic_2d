@@ -42,7 +42,7 @@ public:
     void AddKeyFrames(const
         std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>>& keyframes);
 
-    void AddKeyFrame(int startDuration, int endDuration, const std::shared_ptr<RSPropertyBase>& value,
+    void AddKeyFrame(int64_t startDuration, int64_t endDuration, const std::shared_ptr<RSPropertyBase>& value,
         const RSAnimationTimingCurve& timingCurve);
 
     void SetDurationKeyframe(bool isDuration);
@@ -60,7 +60,7 @@ private:
 
     std::vector<std::tuple<float, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> keyframes_;
 
-    std::vector<std::tuple<int, int, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> durationKeyframes_;
+    std::vector<std::tuple<int64_t, int64_t, std::shared_ptr<RSPropertyBase>, RSAnimationTimingCurve>> durationKeyframes_;
 
     bool isDurationKeyframe_ { false };
 

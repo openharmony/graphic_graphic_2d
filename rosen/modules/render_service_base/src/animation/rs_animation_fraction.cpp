@@ -180,7 +180,7 @@ bool RSAnimationFraction::IsFinished() const
         if (repeatCount_ == INFINITE) {
             return false;
         }
-        int64_t totalDuration = (duration_ * repeatCount_ + startDelay_) * MS_TO_NS;
+        int64_t totalDuration = ((int64_t)duration_ * repeatCount_ + startDelay_) * MS_TO_NS;
         return runningTime_ >= totalDuration;
     } else {
         return runningTime_ <= 0;

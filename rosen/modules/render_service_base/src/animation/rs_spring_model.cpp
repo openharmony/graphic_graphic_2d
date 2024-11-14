@@ -53,7 +53,7 @@ void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParame
 
     // calculate internal parameters
     double naturalAngularVelocity = 2 * FLOAT_PI / response_;
-    if(ROSEN_EQ(naturalAngularVelocity, 0.0f)) {
+    if(ROSEN_EQ(naturalAngularVelocity, 0.0f, DOUBLE_NEAR_ZERO_THRESHOLD)) {
         naturalAngularVelocity = DOUBLE_NEAR_ZERO_THRESHOLD;
     }
     if (dampingRatio_ < 1) { // Under-damped Systems
@@ -213,9 +213,6 @@ float RSSpringModel<float>::EstimateDurationForUnderDampedModel() const
         ROSEN_LOGE("RSSpringModel<float>::EstimateDurationForUnderDampedModel, dampingAngularVelocity equal zero.");
         // critical damping spring will almost rest at 2 * natural period
         return response_ * 2;
-    }
-    if (ROSEN_EQ(dampingRatio_, 0.0f)) {
-        dampingRatio_ = FLOAT_NEAR_ZERO_THRESHOLD;
     }
     double tmpCoeffA = -1.0 / (dampingRatio_ * naturalAngularVelocity);
     double tmpCoeffB =
