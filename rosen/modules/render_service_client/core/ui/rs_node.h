@@ -397,7 +397,7 @@ public:
     // Mark preferentially draw node and childrens
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
-
+    // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
     // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
