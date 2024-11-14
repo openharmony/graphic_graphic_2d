@@ -14,21 +14,39 @@
  */
 
 #include "line_typography_fuzzer.h"
+#include <codecvt>
 #include <cstddef>
+#include <iostream>
+#include <locale>
+#include <string>
 #include "get_object.h"
 #include "line_typography.h"
+#include "typography_create.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 void OHLineTypographyFuzz1(const uint8_t* data, size_t size)
 {
-    double width = GetObject<double>();
-     std::unique_ptr<SPText::ParagraphLineFetcher> lineFetcher_;
-    AdapterTxt::LineTypography lineTypography(std::move(lineFetcher_));
-    size_t count = lineTypography.GetLineBreak(0, width);
-    lineTypography.CreateLine(0, count);
-    lineTypography.GetTempTypography();
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    typographyStyle.fontSize = std::fabs(GetObject<double>() + 1);
+    std::unique_ptr<TypographyCreate> handler = TypographyCreate::Create(typographyStyle, fontCollection);
+    std::string text = "world";
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+    std::u16string wideText = convert.from_bytes(text);
+    handler->AppendText(wideText);
+    std::unique_ptr<LineTypography> lineTypography = handler->CreateLineTypography();
+    if (lineTypography == nullptr) {
+        return;
+    }
+    size_t count = lineTypography->GetLineBreak(0, GetObject<uint32_t>() + 1);
+    lineTypography->CreateLine(0, count);
+    lineTypography->GetTempTypography();
 }
 } // namespace Drawing
 } // namespace Rosen

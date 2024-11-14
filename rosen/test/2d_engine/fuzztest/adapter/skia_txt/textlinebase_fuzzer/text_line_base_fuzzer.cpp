@@ -24,36 +24,41 @@ namespace Rosen {
 namespace Drawing {
 void OHTextLineBaseFuzz1(const uint8_t* data, size_t size)
 {
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     TypographyStyle typographyStyle;
-    typographyStyle.maxLines = GetObject<int>();
+    typographyStyle.maxLines = std::abs(GetObject<int>() + 1);
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::shared_ptr<TypographyCreate> typographyCreate = TypographyCreate::Create(typographyStyle, fontCollection);
     typographyCreate->AppendText(u"Hello World!");
     std::unique_ptr<Typography> typography_ = typographyCreate->CreateTypography();
-    typography_->Layout(GetObject<int>());
+    typography_->Layout(std::abs(GetObject<int>()) + 1);
     std::vector<std::unique_ptr<TextLineBase>> textLine_ = typography_->GetTextLines();
 
-    textLine_.at(0)->GetGlyphCount();
-    textLine_.at(0)->GetTextRange();
-    Drawing::Canvas canvas;
-    textLine_.at(0)->Paint(&canvas, GetObject<double>(), GetObject<double>());
-    textLine_.at(0)->GetGlyphRuns();
-    std::string ellipsisStr;
-    EllipsisModal myEllipsisModal = OHOS::Rosen::EllipsisModal(GetObject<int>() % DATA_MAX_ENUM_SIZE1);
-    textLine_.at(0)->CreateTruncatedLine(GetObject<double>(), static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
-    textLine_.at(0)->CreateTruncatedLine(GetObject<double>(), myEllipsisModal, ellipsisStr);
-    double ascent = GetObject<double>();
-    double descent = GetObject<double>();
-    double leading = GetObject<double>();
-    textLine_.at(0)->GetTypographicBounds(&ascent, &descent, &leading);
-    textLine_.at(0)->GetImageBounds();
-    textLine_.at(0)->GetTrailingSpaceWidth();
-    textLine_.at(0)->GetImageBounds();
-    bool isHardBreak = GetObject<bool>();
-    textLine_.at(0)->GetIndexAndOffsets(isHardBreak);
-    textLine_.at(0)->GetOffsetForStringIndex(0);
-
+    if (textLine_.size() != 0) {
+        textLine_.at(0)->GetGlyphCount();
+        textLine_.at(0)->GetTextRange();
+        Drawing::Canvas canvas;
+        textLine_.at(0)->Paint(&canvas, std::fabs(GetObject<double>()), std::fabs(GetObject<double>()));
+        textLine_.at(0)->GetGlyphRuns();
+        std::string ellipsisStr;
+        EllipsisModal myEllipsisModal = OHOS::Rosen::EllipsisModal(GetObject<int>() % DATA_MAX_ENUM_SIZE1);
+        textLine_.at(0)->CreateTruncatedLine(
+            std::fabs(GetObject<double>()), static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
+        textLine_.at(0)->CreateTruncatedLine(std::fabs(GetObject<double>()), myEllipsisModal, ellipsisStr);
+        double ascent = GetObject<double>();
+        double descent = GetObject<double>();
+        double leading = GetObject<double>();
+        textLine_.at(0)->GetTypographicBounds(&ascent, &descent, &leading);
+        textLine_.at(0)->GetImageBounds();
+        textLine_.at(0)->GetTrailingSpaceWidth();
+        textLine_.at(0)->GetImageBounds();
+        bool isHardBreak = GetObject<bool>();
+        textLine_.at(0)->GetIndexAndOffsets(isHardBreak);
+        textLine_.at(0)->GetOffsetForStringIndex(0);
+    }
     typography_.reset();
     textLine_.clear();
 }

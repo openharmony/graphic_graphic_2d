@@ -42,7 +42,7 @@
 #include <cstdint>
 #else
 #include <stddef.h>
-#include "stdint.h"
+#include <stdint.h>
 #endif
 #include "drawing_canvas.h"
 #include "drawing_color.h"
