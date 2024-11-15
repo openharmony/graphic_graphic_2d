@@ -528,13 +528,6 @@ void RSMainThread::Init()
         },
     });
 
-    if (RSGraphicConfig::LoadConfigXml()) {
-        if (RSGraphicConfig::GetConfig().IsMap()) {
-            RSGraphicConfig::DumpConfig(*RSGraphicConfig::GetConfig().mapValue);
-        }
-        ConfigureRenderService();
-    }
-
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
     isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
@@ -4387,19 +4380,6 @@ void RSMainThread::SetHardwareTaskNum(uint32_t num)
     rsVSyncDistributor_->SetHardwareTaskNum(num);
 }
 
-void RSMainThread::ConfigureRenderService()
-{
-    const auto& config = RSGraphicConfig::GetConfig();
-    RSGraphicConfig::ConfigItem item = config["blurEffect"];
-    if (item.IsMap()) {
-        auto subItem = item["blurSwitchOpen"].GetProp("enable");
-        if (subItem.IsBool()) {
-            isBlurSwitchOpen_ = subItem.boolValue;
-            RS_LOGI("RSMainThread::ConfigureRenderService isBlurSwitchOpen_:%{public}d", isBlurSwitchOpen_);
-        }
-    }
-}
-
 uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
 {
     return rsVSyncDistributor_->GetRealTimeOffsetOfDvsync(time);
@@ -4412,11 +4392,6 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount)
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
-}
-
-bool RSMainThread::IsBlurSwitchOpen() const
-{
-    return isBlurSwitchOpen_;
 }
 } // namespace Rosen
 } // namespace OHOS
