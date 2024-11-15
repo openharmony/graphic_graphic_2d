@@ -14,6 +14,7 @@
  */
 
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include <mutex>
 
 #include "skia_adapter/skia_canvas.h"
 #include "src/core/SkCanvasPriv.h"
@@ -55,6 +56,21 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableB
         }
     }
     return nullptr;
+}
+
+std::vector<RSRenderNodeDrawableAdapter::SharedPtr> RSRenderNodeDrawableAdapter::GetDrawableVectorById(
+    const std::unordered_set<NodeId>& ids)
+{
+    std::vector<RSRenderNodeDrawableAdapter::SharedPtr> vec;
+    std::lock_guard<std::mutex> lock(cacheMapMutex_);
+    for (const auto& id : ids) {
+        if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
+            if (const auto ptr = cacheIt->second.lock()) {
+                vec.push_back(ptr);
+            }
+        }
+    }
+    return vec;
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(

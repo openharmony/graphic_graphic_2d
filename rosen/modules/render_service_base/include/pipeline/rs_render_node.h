@@ -1053,6 +1053,9 @@ private:
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+    // purge resource
+    inline void SetPurgeStatus(bool flag);
+    inline void SyncPurgeFunc();
 
     // Test pipeline
     bool addedToPendingSyncList_ = false;
@@ -1078,6 +1081,7 @@ private:
 
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
+    const bool isPurgeable_;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;

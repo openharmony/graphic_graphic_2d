@@ -207,6 +207,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
     canvasDrawingNodeMap_.erase(id);
+    purgeableNodeMap_.erase(id);
 }
 
 void RSRenderNodeMap::MoveRenderNodeMap(
@@ -358,6 +359,21 @@ const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() 
         }
     }
     return nullptr;
+}
+
+void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, true));
+}
+
+void RSRenderNodeMap::RemoveOffTreeNode(NodeId nodeId)
+{
+    purgeableNodeMap_.insert(std::pair(nodeId, false));
+}
+
+std::unordered_map<NodeId, bool>&& RSRenderNodeMap::GetAndClearPurgeableNodeIds()
+{
+    return std::move(purgeableNodeMap_);
 }
 
 const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
