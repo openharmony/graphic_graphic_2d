@@ -52,7 +52,7 @@ bool BootAnimationStrategy::CheckExitAnimation()
 #ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
 #define CHECK_EXIT_ANIMATION_EXT_PATH "libwatch_bootanimation_ext.z.so"
 #define CHECK_EXIT_ANIMATION_EXT_FUNC_NAME "CheckExitAnimationExt"
-+typedef bool(*Func)();
+typedef bool(*Func)();
 bool BootAnimationStrategy::CheckExitAnimationExt()
 {
     LOGI("CheckExitAnimationExt");
