@@ -388,7 +388,7 @@ bool GEKawaseBlurShaderFilter::InitBlurEffectForAdvancedFilter()
         LOGE("%s: RuntimeShader blurEffectAF create failed", __func__);
         return false;
     }
-
+    
     return true;
 }
 
