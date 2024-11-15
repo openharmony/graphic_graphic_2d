@@ -14,8 +14,11 @@
  */
 
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -198,7 +201,6 @@ void RSSurfaceBufferCallbackManager::OnFinish(
         RS_LOGE("RSSurfaceBufferCallbackManager::OnFinish Pair:"
             "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
             std::to_string(data.pid).c_str(), std::to_string(data.uid).c_str());
-        return;
     }
 }
 
@@ -217,6 +219,19 @@ void RSSurfaceBufferCallbackManager::OnAfterAcquireBuffer(
     }
 }
 #endif
+
+std::string RSSurfaceBufferCallbackManager::SerializeBufferIdVec(
+    const std::vector<uint32_t>& bufferIdVec)
+{
+    std::string ret;
+    for (const auto& id : bufferIdVec) {
+        ret += std::to_string(id) + ",";
+    }
+    if (!ret.empty()) {
+        ret.pop_back();
+    }
+    return ret;
+}
 
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
 {
@@ -239,6 +254,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
                 } else {
                     continue;
                 }
+                RS_TRACE_NAME_FMT("RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback"
+                    "Release Buffer %s", SerializeBufferIdVec(data.bufferIds).c_str());
                 callback->OnFinish({
                     .uid = uid,
                     .surfaceBufferIds = std::move(data.bufferIds),
@@ -313,6 +330,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
             } else {
                 continue;
             }
+            RS_TRACE_NAME_FMT("RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan"
+                "Release Buffer %s", SerializeBufferIdVec(data.bufferIds).c_str());
             callback->OnFinish({
                 .uid = uid,
                 .surfaceBufferIds = std::move(data.bufferIds),

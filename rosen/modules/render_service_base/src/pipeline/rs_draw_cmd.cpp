@@ -795,20 +795,19 @@ void DrawSurfaceBufferOpItem::OnAfterDraw()
         if (sync == EGL_NO_SYNC_KHR) {
             RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw Error on eglCreateSyncKHR %{public}d",
                 static_cast<int>(eglGetError()));
-        } else {
-            auto fd = eglDupNativeFenceFDANDROID(disp, sync);
-            eglDestroySyncKHR(disp, sync);
-            if (fd == EGL_NO_NATIVE_FENCE_FD_ANDROID) {
-                RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw: Error on eglDupNativeFenceFD");
-            } else {
-                releaseFence_ = new (std::nothrow) SyncFence(fd);
-                if (!releaseFence_) {
-                    releaseFence_ = SyncFence::INVALID_FENCE;
-                }
-            }
+            return;
         }
+        auto fd = eglDupNativeFenceFDANDROID(disp, sync);
+        eglDestroySyncKHR(disp, sync);
+        if (fd == EGL_NO_NATIVE_FENCE_FD_ANDROID) {
+            RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw: Error on eglDupNativeFenceFD");
+            return;
+        }
+        releaseFence_ = new (std::nothrow) SyncFence(fd);
         if (releaseFence_ && releaseFence_->IsValid()) {
             ReleaseBuffer();
+        } else {
+            releaseFence_ = SyncFence::INVALID_FENCE;
         }
     }
 #endif
@@ -821,20 +820,22 @@ void DrawSurfaceBufferOpItem::OnAfterDraw()
 
 void DrawSurfaceBufferOpItem::ReleaseBuffer()
 {
-    if (!isReleased_) {
-        RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release",
-            std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str());
-        if (surfaceBufferFinishCb && surfaceBufferInfo_.surfaceBuffer_) {
-            std::invoke(surfaceBufferFinishCb, DrawSurfaceBufferFinishCbData {
-                .uid = surfaceBufferInfo_.uid_,
-                .pid = surfaceBufferInfo_.pid_,
-                .surfaceBufferId = surfaceBufferInfo_.surfaceBuffer_->GetSeqNum(),
-                .releaseFence = releaseFence_,
-                .isRendered = isRendered_,
-                .isNeedTriggerCbDirectly = releaseFence_ && releaseFence_->IsValid(),
-            });
-            isReleased_ = true;
-        }
+    if (isReleased_) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release, isNeedTriggerCbDirectly = %d",
+        std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str(),
+        releaseFence_ && releaseFence_->IsValid());
+    if (surfaceBufferFinishCb && surfaceBufferInfo_.surfaceBuffer_) {
+        std::invoke(surfaceBufferFinishCb, DrawSurfaceBufferFinishCbData {
+            .uid = surfaceBufferInfo_.uid_,
+            .pid = surfaceBufferInfo_.pid_,
+            .surfaceBufferId = surfaceBufferInfo_.surfaceBuffer_->GetSeqNum(),
+            .releaseFence = releaseFence_,
+            .isRendered = isRendered_,
+            .isNeedTriggerCbDirectly = releaseFence_ && releaseFence_->IsValid(),
+        });
+        isReleased_ = true;
     }
 }
  

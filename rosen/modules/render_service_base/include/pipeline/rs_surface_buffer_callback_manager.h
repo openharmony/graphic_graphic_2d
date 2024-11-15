@@ -105,6 +105,8 @@ private:
 #endif
     void RequestNextVSync();
 
+    static std::string SerializeBufferIdVec(const std::vector<uint32_t>& bufferIdVec);
+
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
         surfaceBufferCallbacks_;
     std::map<std::pair<pid_t, uint64_t>, BufferQueueData> stagingSurfaceBufferIds_;
