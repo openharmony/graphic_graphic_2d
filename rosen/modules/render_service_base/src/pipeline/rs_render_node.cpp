@@ -709,7 +709,6 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
             std::string(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ?
             "foreground" : "background");
     }
-    out += ", subSurfaceCnt[" + std::to_string(subSurfaceCnt_) + "]";
     if (sharedTransitionParam_) {
         out += sharedTransitionParam_->Dump();
     }
