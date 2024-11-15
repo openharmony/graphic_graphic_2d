@@ -256,6 +256,11 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetFilterCacheEnabled()
 {
     return false;

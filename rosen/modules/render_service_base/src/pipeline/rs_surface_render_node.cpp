@@ -2692,9 +2692,12 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     } else {
         hasTransparentSurface_ = IsTransparent();
     }
-    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, hasFilter: %d, "
-        "isRotation: %d", GetId(), hasTransparentSurface_, ChildHasVisibleFilter(), HasFilter(), isRotation);
-    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && !isRotation;
+    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, "
+        "hasFilter: %d, isRotation: %d & %d globalAlpha[%f]", GetId(), hasTransparentSurface_, ChildHasVisibleFilter(),
+        HasFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(), GetGlobalAlpha());
+    bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ?
+        !(isRotation && ROSEN_EQ(GetGlobalAlpha(), 0.0f)) : !isRotation;
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && rotateOptimize;
 }
 
 bool RSSurfaceRenderNode::GetHasTransparentSurface() const

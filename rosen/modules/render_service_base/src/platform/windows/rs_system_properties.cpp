@@ -250,6 +250,11 @@ float RSSystemProperties::GetAnimationScale()
     return 1.f;
 }
 
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
     return false;

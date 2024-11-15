@@ -713,6 +713,12 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
     return proxyNodeDebugEnabled;
 }
 
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    static bool debugEnable = system::GetBoolParameter("const.cache.optimize.rotate.enable", false);
+    return debugEnable;
+}
+
 bool RSSystemProperties::GetUIFirstEnabled()
 {
 #ifdef ROSEN_EMULATOR
