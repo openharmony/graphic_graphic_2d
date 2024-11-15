@@ -1643,6 +1643,58 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
 }
 
 /*
+ * @tc.name: AddVirtualScreenBlackList
+ * @tc.desc: Test AddVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueIB3TS6
+ */
+HWTEST_F(RSInterfacesTest, AddVirtualScreenBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeId> blackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->AddVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList
+ * @tc.desc: Test RemoveVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueIB3TS6
+ */
+HWTEST_F(RSInterfacesTest, RemoveVirtualScreenBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeId> blackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->RemoveVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: MarkPowerOffNeedProcessOneFrame
  * @tc.desc: Test MarkPowerOffNeedProcessOneFrame
  * @tc.type: FUNC
