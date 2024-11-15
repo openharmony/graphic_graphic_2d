@@ -31,7 +31,7 @@ OH_Drawing_LineTypography* OH_Drawing_CreateLineTypography(OH_Drawing_Typography
         return nullptr;
     }
     TypographyCreate* rosenHandler = reinterpret_cast<TypographyCreate*>(handler);
-    auto lineTypography = rosenHandler->CreateLineTypography();
+    std::unique_ptr<LineTypography> lineTypography = rosenHandler->CreateLineTypography();
     if (lineTypography == nullptr) {
         LOGE("Create line typography failed.");
         return nullptr;

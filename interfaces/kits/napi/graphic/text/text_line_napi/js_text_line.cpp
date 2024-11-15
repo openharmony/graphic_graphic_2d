@@ -529,6 +529,11 @@ napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info 
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_ref refCallback = nullptr;
+    std::unique_ptr<napi_ref, std::function<void(napi_ref*)>> refCallbackGuard(&refCallback, [env](napi_ref* ref) {
+        if (ref != nullptr && *ref != nullptr) {
+            TEXT_CHECK(napi_delete_reference(env, *ref) == napi_ok, TEXT_LOGE("Failed to release ref callback"));
+        }
+    });
     status = napi_create_reference(env, argv[0], 1, &refCallback);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to napi_create_reference");

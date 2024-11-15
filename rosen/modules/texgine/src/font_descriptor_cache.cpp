@@ -447,7 +447,7 @@ bool FontDescriptorCache::IsDefault(FontDescSharedPtr desc)
 void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result)
 {
     if (desc == nullptr) {
-        TEXT_LOGE("desc is nullptr");
+        TEXT_LOGE("Desc is nullptr");
         return;
     }
 

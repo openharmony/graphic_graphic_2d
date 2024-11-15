@@ -24,14 +24,23 @@ ParagraphLineFetcherImpl::ParagraphLineFetcherImpl(
 {}
 size_t ParagraphLineFetcherImpl::GetLineBreak(size_t startIndex, SkScalar width) const
 {
+    if (lineFetcher_ == nullptr) {
+        return 0;
+    }
     return lineFetcher_->getLineBreak(startIndex, width);
 }
 std::unique_ptr<TextLineBase> ParagraphLineFetcherImpl::CreateLine(size_t startIndex, size_t count)
 {
+    if (lineFetcher_ == nullptr) {
+        return nullptr;
+    }
     return std::make_unique<TextLineImpl>(lineFetcher_->createLine(startIndex, count), paints_);
 }
 std::unique_ptr<Paragraph> ParagraphLineFetcherImpl::GetTempParagraph()
 {
+    if (lineFetcher_ == nullptr) {
+        return nullptr;
+    }
     std::vector<PaintRecord> paints = paints_;
     return std::make_unique<ParagraphImpl>(lineFetcher_->getTempParagraph(), std::move(paints));
 }
