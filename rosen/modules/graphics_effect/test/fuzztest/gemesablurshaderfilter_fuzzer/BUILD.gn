@@ -18,9 +18,9 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 module_out_path = "graphic_2d/rosen/modules/graphics_effect"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("GEKawaseBlurShaderFilterFuzzTest") {
+ohos_fuzztest("GEMesaBlurShaderFilterFuzzTest") {
   module_out_path = module_out_path
-  fuzz_config_file = "$graphic_2d_root/rosen/modules/graphics_effect/test/fuzztest/gekawaseblurshaderfilter_fuzzer"
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/graphics_effect/test/fuzztest/gemesablurshaderfilter_fuzzer"
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/graphics_effect/src",
@@ -30,7 +30,7 @@ ohos_fuzztest("GEKawaseBlurShaderFilterFuzzTest") {
   ]
 
   sources = [
-    "ge_kawase_blur_shader_filter_fuzzer.cpp",
+    "ge_mesa_blur_shader_filter_fuzzer.cpp",
     "get_object.h",
   ]
 
@@ -56,6 +56,6 @@ ohos_fuzztest("GEKawaseBlurShaderFilterFuzzTest") {
 group("fuzztest") {
   testonly = true
 
-  deps = [ ":GEKawaseBlurShaderFilterFuzzTest" ]
+  deps = [ ":GEMesaBlurShaderFilterFuzzTest" ]
 }
 ###############################################################################
