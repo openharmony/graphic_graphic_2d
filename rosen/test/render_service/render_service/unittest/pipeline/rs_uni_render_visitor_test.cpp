@@ -3183,7 +3183,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_002, TestSize
         ASSERT_EQ(childNode, nullptr);
         surfaceNode->ResetChildHardwareEnabledNodes();
         surfaceNode->AddChildHardwareEnabledNodes(childNode);
-        rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+        rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
         rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*parentNode);
     }
 
@@ -3195,7 +3195,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_002, TestSize
         ASSERT_FALSE(childNode->IsOnTheTree());
         surfaceNode->ResetChildHardwareEnabledNodes();
         surfaceNode->AddChildHardwareEnabledNodes(childNode);
-        rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+        rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
         rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*parentNode);
     }
 
@@ -3209,7 +3209,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_002, TestSize
         ASSERT_TRUE(childNode->GetCalcRectInPrepare());
         surfaceNode->ResetChildHardwareEnabledNodes();
         surfaceNode->AddChildHardwareEnabledNodes(childNode);
-        rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+        rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
         rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*parentNode);
     }
 }
@@ -3242,7 +3242,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_003, TestSize
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->ResetChildHardwareEnabledNodes();
     surfaceNode->AddChildHardwareEnabledNodes(childNode);
-    rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
     rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*parentNode);
 }
 
@@ -3283,7 +3283,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_004, TestSize
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->ResetChildHardwareEnabledNodes();
     surfaceNode->AddChildHardwareEnabledNodes(childNode);
-    rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
     rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*parentNode);
 }
 
@@ -3320,7 +3320,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_005, TestSize
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->ResetChildHardwareEnabledNodes();
     surfaceNode->AddChildHardwareEnabledNodes(childNode);
-    rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
     NodeId displayNodeId = 3;
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
@@ -3371,7 +3371,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_006, TestSize
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->ResetChildHardwareEnabledNodes();
     surfaceNode->AddChildHardwareEnabledNodes(childNode);
-    rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
     NodeId displayNodeId = 4;
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
