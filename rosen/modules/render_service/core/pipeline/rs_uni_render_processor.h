@@ -31,7 +31,7 @@ public:
     }
     
     RSUniRenderProcessor();
-    ~RSUniRenderProcessor() override;
+    ~RSUniRenderProcessor() noexcept override;
 
     bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
