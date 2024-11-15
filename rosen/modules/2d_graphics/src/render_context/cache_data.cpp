@@ -36,7 +36,7 @@ CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
 
 CacheData::~CacheData() {}
 
-void CacheData::CacheReadFromFile(std::string filePath)
+void CacheData::CacheReadFromFile(const std::string filePath)
 {
     if (filePath.length() <= 0) {
         LOGD("abandon, because of empty filename.");
