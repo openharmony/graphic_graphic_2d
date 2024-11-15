@@ -100,9 +100,11 @@ public:
         const std::string locale = SIMPLIFIED_CHINESE);
     
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
-    bool ParserFontDescriptorFromPath(const std::string& path, const std::string& fullName,
-        std::vector<std::shared_ptr<FontDescriptor>>& descriptors,
-        const std::string locale = SIMPLIFIED_CHINESE);
+    std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
+        const std::string& path, const std::string& locale = SIMPLIFIED_CHINESE);
+    std::vector<std::shared_ptr<FontDescriptor>> CreateFontDescriptors(
+        const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces,
+        const std::string& locale = SIMPLIFIED_CHINESE);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
@@ -134,7 +136,8 @@ private:
         }
     }
 #ifdef BUILD_NON_SDK_VER
-    static std::string ToUtf8(const std::string& gbkStr);
+    static std::string ConvertToString(const std::string& src, const std::string& srcType,
+        const std::string& targetType);
 #endif
 
     const char* data_;

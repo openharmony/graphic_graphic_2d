@@ -23,6 +23,7 @@ ohos_unittest("EffectTest") {
   deps = [ "//third_party/googletest:gtest_main" ]
 
   sources = [
+    "color_picker_common_unittest.cpp",
     "color_picker_unittest.cpp",
     "test_picture_files.cpp",
   ]
@@ -34,6 +35,7 @@ ohos_unittest("EffectTest") {
       "contrast_filter_unittest.cpp",
       "effect_filter_unittest.cpp",
       "egl_manager_test.cpp",
+      "filter_common_unittest.cpp",
       "filter_factory_unittest.cpp",
       "filter_unittest.cpp",
       "gaussian_blur_filter_unittest.cpp",
@@ -56,6 +58,7 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
     "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
+    "$graphic_2d_root/rosen/modules/effect/effect_common:effect_common",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk:native_effect_ndk",
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain:skeffectchain",
@@ -95,6 +98,7 @@ config("effect_test_config") {
     "//third_party/openGLES/api",
     "//third_party/skia",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
+    "$graphic_2d_root/rosen/modules/effect/effect_common/include",
     "$graphic_2d_root/rosen/modules/effect/effectChain/include",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",

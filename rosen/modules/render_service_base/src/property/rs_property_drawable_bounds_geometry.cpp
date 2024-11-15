@@ -919,7 +919,14 @@ void RSBackgroundDrawable::Draw(const RSRenderContent& content, RSPaintFilterCan
         auto blender = RSPropertiesPainter::MakeDynamicBrightnessBlender(properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
-    canvas.DrawBackground(brush);
+    // use drawrrect to avoid texture update in phone screen rotation scene
+    canvas.AttachBrush(brush);
+    if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
+        canvas.DrawRoundRect(RSPropertiesPainter::RRect2DrawingRRect(properties.GetRRect()));
+    } else {
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
+    }
+    canvas.DetachBrush();
 }
 
 RSPropertyDrawable::DrawablePtr RSBackgroundColorDrawable::Generate(const RSRenderContent& content)

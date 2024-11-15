@@ -103,6 +103,7 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
     NativeWindowHandleOpt(mNativeWindow, SET_BUFFER_GEOMETRY, width, height);
     NativeWindowHandleOpt(mNativeWindow, GET_BUFFER_GEOMETRY, &mHeight, &mWidth);
     NativeWindowHandleOpt(mNativeWindow, SET_COLOR_GAMUT, colorSpace_);
+    NativeWindowHandleOpt(mNativeWindow, SET_TIMEOUT, timeOut_);
 }
 
 

@@ -456,7 +456,7 @@ public:
     bool GetBootAnimation() const override;
 
     void SetGlobalPositionEnabled(bool isEnabled);
-    bool GetGlobalPositionEnabled() const;
+    bool GetGlobalPositionEnabled() const override;
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetLeashPersistentId(uint64_t leashPersistentId);
@@ -1311,7 +1311,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
-    ScreenId screenId_ = -1;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
 
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;

@@ -40,6 +40,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
+#include "image/image.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -57,6 +58,7 @@
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
+#include "text/hm_symbol.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
@@ -70,12 +72,12 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-    bool g_useSharedMem = true;
-    std::thread::id g_tid = std::thread::id();
-    constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+bool g_useSharedMem = true;
+std::thread::id g_tid = std::thread::id();
+constexpr size_t LARGE_MALLOC = 200000000;
+constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 }
 
- 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
     {                                                                      \
@@ -1527,6 +1529,10 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
+    if (cmdListData.second > LARGE_MALLOC) {
+        ROSEN_LOGW("RSMarshallingHelper::Marshalling this time malloc memory, size:%{public}u", cmdListData.second);
+    }
+
     parcel.WriteInt32(val->GetWidth());
     parcel.WriteInt32(val->GetHeight());
 

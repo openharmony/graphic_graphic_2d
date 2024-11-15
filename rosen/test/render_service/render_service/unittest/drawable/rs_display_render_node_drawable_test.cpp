@@ -1199,6 +1199,21 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrame, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UseCanvasSizeTest
+ * @tc.desc: Test SetUseCanvasSize and GetUseCanvasSize
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, UseCanvasSizeTest, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    displayDrawable_->SetUseCanvasSize(true);
+    EXPECT_TRUE(displayDrawable_->GetUseCanvasSize());
+    displayDrawable_->SetUseCanvasSize(false);
+    EXPECT_FALSE(displayDrawable_->GetUseCanvasSize());
+}
+
+/**
  * @tc.name: EnablescRGBForP3AndUiFirstTest
  * @tc.desc: Test ScRGB For P3 Controller
  * @tc.type: FUNC

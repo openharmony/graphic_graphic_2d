@@ -172,6 +172,8 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
+    static void SetScreenSwitchStatus(bool flag);
+    static bool GetScreenSwitchStatus();
     static void SetDefaultDeviceRotationOffset(uint32_t offset);
     static uint32_t GetDefaultDeviceRotationOffset();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
@@ -291,6 +293,7 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
+    inline static bool isScreenSwitching_ = false;
     inline static std::atomic<uint32_t> defaultDeviceRotationOffset_ = 0;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;

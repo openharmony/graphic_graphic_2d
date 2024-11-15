@@ -279,6 +279,8 @@ public:
 
     void DisableCacheForRotation();
 
+    void SetScreenSwitching(bool flag);
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);

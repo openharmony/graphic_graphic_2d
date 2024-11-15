@@ -3046,6 +3046,26 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
+void RSRenderServiceConnectionProxy::SetScreenSwitchStatus(bool flag)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteBool(flag)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchStatus: Send Request err.");
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
     MessageParcel data;

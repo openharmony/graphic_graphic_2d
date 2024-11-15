@@ -39,7 +39,7 @@ bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* text = new char[count];
     for (size_t i = 0; i < count - 1; i++) {
         text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。 TextEncoding::UTF8 text 传>128会导致崩溃
@@ -54,7 +54,7 @@ bool TextBlobFuzzTest001(const uint8_t* data, size_t size)
 
         std::vector<uint16_t> glyphIds = {};
         TextBlob::GetDrawingGlyphIDforTextBlob(textblob.get(), glyphIds);
-        TextBlob::GetDrawingPathforTextBlob(0, textblob.get());
+        TextBlob::GetDrawingPathforTextBlob(GetObject<uint16_t>() % MAX_SIZE, textblob.get());
     }
     if (text != nullptr) {
         delete [] text;
@@ -91,8 +91,10 @@ bool TextBlobFuzzTest002(const uint8_t* data, size_t size)
     Point ptTwo { GetObject<scalar>(), GetObject<scalar>() };
     pointsVector.push_back(ptOne);
     pointsVector.push_back(ptTwo);
-    TextBlob::GetDrawingPointsForTextBlob(textBlob.get(), pointsVector);
-    textBlob->UniqueID();
+    if (textBlob) {
+        TextBlob::GetDrawingPointsForTextBlob(textBlob.get(), pointsVector);
+        textBlob->UniqueID();
+    }
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -114,10 +116,10 @@ bool TextBlobFuzzTest003(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
     char* text = new char[count];
     for (size_t i = 0; i < count; i++) {
-        text[i] = GetObject<char>();
+        text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。 TextEncoding::UTF8 text 传>128会导致崩溃
     }
     text[count - 1] = '\0';
     Font font;
@@ -142,13 +144,13 @@ bool TextBlobFuzzTest004(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    size_t length = GetObject<size_t>() % MAX_SIZE + 2;
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* path = new char[length];
     for (size_t i = 0; i < length; i++) {
         path[i] = GetObject<char>();
     }
     path[length - 1] = '\0';
-    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, length);
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, length - 1);
     bool isCustomTypeface = GetObject<bool>();
     TextBlob::Context context = TextBlob::Context(typeface, isCustomTypeface);
     context.SetTypeface(typeface);
@@ -172,22 +174,19 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    scalar cos = GetObject<scalar>();
-    scalar sin = GetObject<scalar>();
-    scalar tx = GetObject<scalar>();
-    scalar ty = GetObject<scalar>();
-    RSXform xform[] = { RSXform::Make(cos, sin, tx, ty), RSXform::Make(cos, sin, tx, ty),
-        RSXform::Make(cos, sin, tx, ty) };
-    uint32_t count = GetObject<uint32_t>() % TEXT_SIZE + 2;
+    uint32_t count = GetObject<uint32_t>() % TEXT_SIZE + 1;
     char* text = new char[count];
-    for (size_t i = 0; i < count - 1; i++) {
+    for (size_t i = 0; i < count; i++) {
         text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。TextEncoding::UTF8 text 传>128会导致崩溃
     }
-    text[count - 1] = '\0';
+    RSXform xform[count];
+    for (size_t i = 0; i < count; i++) {
+        xform[i] = RSXform::Make(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    }
     Font font;
     scalar fSize = GetObject<scalar>();
     font.SetSize(fSize);
-    auto textBlob = TextBlob::MakeFromRSXform(text, count - 1, xform, font, TextEncoding::UTF8);
+    auto textBlob = TextBlob::MakeFromRSXform(text, count, xform, font, TextEncoding::UTF8);
     uint32_t countT = GetObject<uint32_t>() % MAX_SIZE + 1;
     float* bounds = new float[countT];
     float* intervals = new float[countT];
@@ -201,7 +200,9 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
     uint32_t green = GetObject<uint32_t>();
     Color color = Color(red, green, blue, alpha);
     Paint paint = Paint(color);
-    textBlob->GetIntercepts(bounds, intervals, &paint);
+    if (textBlob) {
+        textBlob->GetIntercepts(bounds, intervals, &paint);
+    }
     if (text != nullptr) {
         delete [] text;
         text = nullptr;

@@ -115,6 +115,16 @@ public:
         isFirstTimeToProcessor_ = false;
     }
 
+    void SetUseCanvasSize(bool useCanvasSize)
+    {
+        useCanvasSize_ = useCanvasSize;
+    }
+
+    bool GetUseCanvasSize() const
+    {
+        return useCanvasSize_;
+    }
+
     ScreenRotation GetOriginScreenRotation() const
     {
         return originScreenRotation_;
@@ -189,6 +199,8 @@ private:
     uint64_t virtualSurfaceUniqueId_ = 0;
     bool resetRotate_ = false;
     bool isFirstTimeToProcessor_ = true;
+    // Do not use canvas size when recording HDR screen
+    bool useCanvasSize_ = true;
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;

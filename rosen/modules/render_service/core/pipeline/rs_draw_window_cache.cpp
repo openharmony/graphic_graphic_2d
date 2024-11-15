@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
-#include "drawable/rs_surface_render_node_drawable.h"
 #include "rs_draw_window_cache.h"
+
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "pipeline/rs_main_thread.h"
 #include "rs_uni_render_thread.h"
 #include "rs_trace.h"
 
@@ -110,9 +112,14 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     auto boundSize = surfaceParams.GetFrameRect();
     // draw background
     surfaceDrawable->DrawBackground(canvas, boundSize);
-    float scaleX = boundSize.GetWidth() / static_cast<float>(image_->GetWidth());
-    float scaleY = boundSize.GetHeight() / static_cast<float>(image_->GetHeight());
-    canvas.Scale(scaleX, scaleY);
+    const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(image_->GetWidth(), image_->GetHeight());
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
+    } else {
+        float scaleX = boundSize.GetWidth() / static_cast<float>(image_->GetWidth());
+        float scaleY = boundSize.GetHeight() / static_cast<float>(image_->GetHeight());
+        canvas.Scale(scaleX, scaleY);
+    }
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (image_->IsTextureBacked()) {
             RS_LOGI("RSDrawWindowCache::DealWithCachedWindow convert image from texture to raster image.");
@@ -122,9 +129,10 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    auto gravityTranslate = surfaceDrawable->GetGravityTranslate(image_->GetWidth(), image_->GetHeight());
+    auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
+    auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
     // draw content/children
-    canvas.DrawImage(*image_, gravityTranslate.x_, gravityTranslate.y_, samplingOptions);
+    canvas.DrawImage(*image_, translateX, translateY, samplingOptions);
     canvas.DetachBrush();
     // draw foreground
     surfaceDrawable->DrawForeground(canvas, boundSize);

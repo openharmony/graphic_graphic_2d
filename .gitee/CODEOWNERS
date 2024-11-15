@@ -40,3 +40,11 @@ rosen/modules/render_service_client/core/animation/ @comicchang
 
 [graphiccontentdisplay test]
 rosen/test/render/render/unittest/transaction/ @graphiccontentdisplay
+
+[test]
+rosen/test/render/render/unittest/pipeline/ @aslklw
+rosen/test/render/render/unittest/pipeline/parallel_render/ @xiaojianfeng_jeffery
+rosen/test/render/render/unittest/pipeline/parallel_render/rs_render_task_unit_test.cpp @wang-dehai
+
+rosen/test/render/render/unittest/screen_manager/ @xiaojianfeng_jeffery
+rosen/test/render/render/unittest/screen_manager/ @wang-dehai

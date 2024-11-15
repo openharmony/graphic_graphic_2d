@@ -197,6 +197,9 @@ void RecordingCanvasFuzzTest003(const uint8_t* data, size_t size)
     recordcanvas1.DrawTextBlob(row_blob, x, y);
     recordcanvas1.SetIsCustomTextType(true);
     recordcanvas1.DrawTextBlob(row_blob, x, y);
+    recordcanvas.GenerateCachedOpForTextblob(row_blob, x, y);
+    Paint paint;
+    recordcanvas.GenerateCachedOpForTextblob(row_blob, x, y, paint);
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -320,6 +323,7 @@ void RecordingCanvasFuzzTest006(const uint8_t* data, size_t size)
     recordcanvas.ResetMatrix();
     recordcanvas1.ResetMatrix();
     recordcanvas.ConcatMatrix(matrix);
+    matrix.Reset();
     recordcanvas1.ConcatMatrix(matrix);
     recordcanvas.Translate(dx, dy);
     recordcanvas1.Translate(dx, dy);

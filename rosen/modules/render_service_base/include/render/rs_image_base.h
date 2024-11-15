@@ -27,8 +27,8 @@
 #include "transaction/rs_marshalling_helper.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "surface_buffer.h"
 #include "external_window.h"
+#include "surface_buffer.h"
 #endif
 
 namespace OHOS {
@@ -82,7 +82,7 @@ protected:
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)
-    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
+    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
 #endif
 #endif

@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
-#include <unordered_map>
-
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
 #include <iconsumer_surface.h>
@@ -27,7 +25,6 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
-#include "include/gpu/GrBackendSemaphore.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
@@ -105,12 +102,6 @@ public:
     }
 
     void UpdateCompletedCacheSurface();
-#ifdef RS_ENABLE_GL
-    // only use in RT thread
-    void FlushSemaphore(RSPaintFilterCanvas& canvas);
-    // only use in RSSubThread
-    void WaitSemaphore();
-#endif
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
 
@@ -136,7 +127,7 @@ public:
 
     bool IsCurFrameStatic(DeviceType deviceType);
 
-    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+    Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
     bool HasCachedTexture() const;
 
@@ -310,10 +301,6 @@ private:
 #ifdef RS_ENABLE_GPU
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
-#ifdef RS_ENABLE_GL
-    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRT_;
-    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRSSub_;
-#endif
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
     NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;

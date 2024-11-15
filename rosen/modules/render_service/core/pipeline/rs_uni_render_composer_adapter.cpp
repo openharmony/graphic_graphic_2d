@@ -178,6 +178,9 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSDisplayRe
 ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode& node) const
 {
     const auto& buffer = node.GetBuffer(); // we guarantee the buffer is valid.
+    if (buffer == nullptr) {
+        RS_LOGW("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNode buffer is nullptr");
+    }
     const RectI& dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
     ComposeInfo info {};

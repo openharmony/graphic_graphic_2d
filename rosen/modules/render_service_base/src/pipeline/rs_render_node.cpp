@@ -1447,15 +1447,6 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         return;
     }
     auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
-    auto curNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-    auto parent = GetParent().lock() ? GetParent().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-    if (curNode && curNode->GetGlobalPositionEnabled()) {
-        dirtyRect.left_ -= curNode->GetCurDisplayOffsetX();
-        dirtyRect.top_ -= curNode->GetCurDisplayOffsetY();
-    } else if (parent && parent->GetGlobalPositionEnabled()) {
-        dirtyRect.left_ -= parent->GetCurDisplayOffsetX();
-        dirtyRect.top_ -= parent->GetCurDisplayOffsetY();
-    }
     dirtyRect = dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1534,10 +1525,14 @@ void RSRenderNode::UpdateDrawRect(
     } else if (parent != nullptr) {
         // case b. use parent matrix
         auto parentMatrix = &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-        auto offset = !IsInstanceOf<RSSurfaceRenderNode>()
+        bool isSurfaceRenderNode = IsInstanceOf<RSSurfaceRenderNode>();
+        auto offset = !isSurfaceRenderNode
                           ? std::make_optional<Drawing::Point>(parent->GetRenderProperties().GetFrameOffsetX(),
                                 parent->GetRenderProperties().GetFrameOffsetY())
                           : std::nullopt;
+        if (isSurfaceRenderNode && GetGlobalPositionEnabled()) {
+            offset = std::make_optional<Drawing::Point>(-GetCurDisplayOffsetX(), -GetCurDisplayOffsetY());
+        }
         accumGeoDirty = properties.UpdateGeometryByParent(parentMatrix, offset) || accumGeoDirty;
     } else {
         // case c. no parent
@@ -2859,6 +2854,11 @@ bool RSRenderNode::GetBootAnimation() const
     return isBootAnimation_;
 }
 
+bool RSRenderNode::GetGlobalPositionEnabled() const
+{
+    return false;
+}
+
 bool RSRenderNode::NeedInitCacheSurface()
 {
     auto cacheType = GetCacheType();
@@ -3819,7 +3819,7 @@ void RSRenderNode::SetNodeName(const std::string& nodeName)
     auto& uiFrameworkTypeTable = context->GetUiFrameworkTypeTable();
     for (auto uiFwkType : uiFrameworkTypeTable) {
         if (nodeName.rfind(uiFwkType, 0) == 0) {
-            context->UpdateUiFrameworkDirtyNodes(weak_from_this());
+            context->UpdateUIFrameworkDirtyNodes(weak_from_this());
         }
     }
 }
@@ -4365,6 +4365,22 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
     RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isUifirstNode:%d", GetId(), isUifirstNode);
     isUifirstNode_ = isUifirstNode;
     isUifirstDelay_ = 0;
+}
+
+
+void RSRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
+{
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isForceFlag:%d, isUifirstEnable:%d",
+        GetId(), isForceFlag, isUifirstEnable);
+    ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
+        GetId(), isForceFlag, isUifirstEnable);
+    isForceFlag_ = isForceFlag;
+    isUifirstEnable_ = isUifirstEnable;
+}
+
+bool RSRenderNode::GetUifirstNodeForceFlag() const
+{
+    return isForceFlag_;
 }
 
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)

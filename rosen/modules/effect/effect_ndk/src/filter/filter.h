@@ -32,7 +32,7 @@ public:
     explicit Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap);
 
     std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap();
-    bool Blur(float radius);
+    bool Blur(float radius, SkTileMode skTileMode = SkTileMode::kDecal);
     bool Brightness(float brightness);
     bool Grayscale();
     bool Invert();

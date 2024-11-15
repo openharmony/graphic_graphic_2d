@@ -331,6 +331,37 @@ bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetHwcNodeBounds(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    NodeId id = static_cast<NodeId>(newPid) << 32;
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteFloat(1.0f);
+    dataParcel.WriteFloat(1.0f);
+    dataParcel.WriteFloat(1.0f);
+    dataParcel.WriteFloat(1.0f);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -1028,7 +1059,7 @@ bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
     auto newPid = getpid();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub_ =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
     MessageParcel dataParcel;
@@ -1059,6 +1090,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
     OHOS::Rosen::DoSetScreenPowerStatus(data, size);
+    OHOS::Rosen::DoSetHwcNodeBounds(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetScreenActiveRect(data, size);
     OHOS::Rosen::DoGetScreenActiveMode(data, size);

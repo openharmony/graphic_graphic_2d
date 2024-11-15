@@ -1439,6 +1439,14 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
     }
 }
 
+void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetScreenSwitchStatus(flag);
+    }
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1564,21 +1572,21 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return renderService->RegisterUIExtensionCallback(userId, cb);
 }
 
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetAncoForceDoDirect(direct);
+    }
+    ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
+    return false;
+}
+
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         return renderService->SetVirtualScreenStatus(id, screenStatus);
-    }
-    return false;
-}
-
-bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService == nullptr!");
-        return renderService->SetAncoForceDoDirect(direct);
     }
     return false;
 }
@@ -1591,14 +1599,6 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
         return;
     }
     renderService->SetFreeMultiWindowStatus(enable);
-}
-
-void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->SetLayerTop(nodeIdStr, isTop);
-    }
 }
 
 class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
@@ -1675,6 +1675,14 @@ void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
     }
     if (callback) {
         callback->OnFinish(uid, surfaceBufferIds);
+    }
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTop(nodeIdStr, isTop);
     }
 }
 } // namespace Rosen

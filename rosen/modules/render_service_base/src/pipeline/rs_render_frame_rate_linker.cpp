@@ -34,12 +34,52 @@ FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
     return ((FrameRateLinkerId)pid_ << 32) | (currentId);
 }
 
-RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id) : id_(id) {}
-RSRenderFrameRateLinker::RSRenderFrameRateLinker() : id_(GenerateId()) {}
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id, ObserverType observer)
+    : id_(id), observer_(observer)
+{
+    Notify();
+}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(ObserverType observer)
+    : RSRenderFrameRateLinker(GenerateId(), observer) {}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id) : RSRenderFrameRateLinker(id, nullptr) {}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker() : RSRenderFrameRateLinker(GenerateId(), nullptr) {}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(const RSRenderFrameRateLinker& other)
+{
+    Copy(std::move(other));
+}
+
+RSRenderFrameRateLinker::RSRenderFrameRateLinker(const RSRenderFrameRateLinker&& other)
+{
+    Copy(std::move(other));
+}
+
+RSRenderFrameRateLinker& RSRenderFrameRateLinker::operator=(const RSRenderFrameRateLinker& other)
+{
+    Copy(std::move(other));
+    return *this;
+}
+
+RSRenderFrameRateLinker& RSRenderFrameRateLinker::operator=(const RSRenderFrameRateLinker&& other)
+{
+    Copy(std::move(other));
+    return *this;
+}
+
+RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
+{
+    Notify();
+}
 
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
-    expectedRange_ = range;
+    if (expectedRange_ != range) {
+        expectedRange_ = range;
+        Notify();
+    }
 }
 
 const FrameRateRange& RSRenderFrameRateLinker::GetExpectedRange() const
@@ -49,7 +89,10 @@ const FrameRateRange& RSRenderFrameRateLinker::GetExpectedRange() const
 
 void RSRenderFrameRateLinker::SetFrameRate(uint32_t rate)
 {
-    frameRate_ = rate;
+    if (frameRate_ != rate) {
+        frameRate_ = rate;
+        Notify();
+    }
 }
 
 uint32_t RSRenderFrameRateLinker::GetFrameRate() const
@@ -59,8 +102,25 @@ uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 
 void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate)
 {
-    animatorExpectedFrameRate_ = animatorExpectedFrameRate;
+    if (animatorExpectedFrameRate_ != animatorExpectedFrameRate) {
+        animatorExpectedFrameRate_ = animatorExpectedFrameRate;
+        Notify();
+    }
 }
 
+void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
+{
+    id_ = other.id_;
+    expectedRange_ = other.expectedRange_;
+    frameRate_ = other.frameRate_;
+    animatorExpectedFrameRate_ = other.animatorExpectedFrameRate_;
+}
+
+void RSRenderFrameRateLinker::Notify()
+{
+    if (observer_ != nullptr) {
+        observer_(*this);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

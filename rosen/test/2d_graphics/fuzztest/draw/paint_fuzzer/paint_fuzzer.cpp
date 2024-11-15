@@ -63,7 +63,7 @@ bool PaintFuzzTest001(const uint8_t* data, size_t size)
     int g = GetObject<int>();
     int b = GetObject<int>();
     paint.SetARGB(a, r, g, b);
-    Color4f cf;
+    Color4f cf {GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
     paint.SetColor(cf, colorSpace);
     paint.GetColor();
     paint.GetColor4f();

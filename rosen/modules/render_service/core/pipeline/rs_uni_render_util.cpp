@@ -2003,11 +2003,11 @@ bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<
 
 void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode)
 {
-    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     if (hwcNode == nullptr) {
         RS_LOGE("hwcNode is null.");
         return;
     }
+    auto hwcNodeGeo = hwcNode->GetRenderProperties().GetBoundsGeometry();
     if (!hwcNodeGeo) {
         RS_LOGE("hwcNode Geometry is not prepared.");
         return;

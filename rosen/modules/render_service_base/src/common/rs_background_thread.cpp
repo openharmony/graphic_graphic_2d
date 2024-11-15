@@ -111,7 +111,6 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
     if (!RSSystemProperties::IsUseVulkan()) {
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         if (gpuContext == nullptr) {
-            RS_LOGE("BuildFromVK fail");
             return nullptr;
         }
         CreateShareEglContext();

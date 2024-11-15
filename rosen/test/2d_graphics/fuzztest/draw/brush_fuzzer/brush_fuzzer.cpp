@@ -100,7 +100,8 @@ void BrushFuzzTestInner04(Brush& brush)
         right,
         bottom,
     };
-    brush.ComputeFastBounds(rect, &rect);
+    RectF rect2 {GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>()};
+    brush.ComputeFastBounds(rect, &rect2);
 }
 
 void BrushFuzzTestInner05(Brush& brush)

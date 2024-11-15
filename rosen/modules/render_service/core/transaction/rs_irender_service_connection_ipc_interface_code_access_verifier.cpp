@@ -321,6 +321,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_ROTATION_CACHE_ENABLED");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SWITCH_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SWITCH_STATUS");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SKIP_FRAME_INTERVAL): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_SKIP_FRAME_INTERVAL");
             break;

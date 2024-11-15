@@ -53,7 +53,7 @@ public:
     HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
 
     void RegisterStrategyChangeCallback(const StrategyChangeCallback& callback);
-    bool CheckPidValid(pid_t pid);
+    bool CheckPidValid(pid_t pid, bool onlyCheckForegroundApp = false);
 
     std::string GetAppStrategyConfigName(const std::string& pkgName);
     HgmErrCode GetFocusAppStrategyConfig(PolicyConfigData::StrategyConfig& strategyRes);

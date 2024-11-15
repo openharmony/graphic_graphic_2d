@@ -141,10 +141,10 @@ static std::vector<RectI> MergeDirtyHistory(RSDisplayRenderNodeDrawable& display
     RSUniRenderUtil::MergeDirtyHistoryForDrawable(displayDrawable, bufferAge, params, false);
     Occlusion::Region dirtyRegion = RSUniRenderUtil::MergeVisibleDirtyRegion(
         curAllSurfaceDrawables, RSUniRenderThread::Instance().GetDrawStatusVec(), false);
-    Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
-    allDirtyRegion.OrSelf(dirtyRegion);
     const auto clipRectThreshold = RSSystemProperties::GetClipRectThreshold();
     if (clipRectThreshold < 1.f) {
+        Occlusion::Region allDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+        allDirtyRegion.OrSelf(dirtyRegion);
         auto bound = allDirtyRegion.GetBound();
         if (allDirtyRegion.GetSize() > 1 && !bound.IsEmpty() &&
             allDirtyRegion.Area() > bound.Area() * clipRectThreshold) {
@@ -153,7 +153,9 @@ static std::vector<RectI> MergeDirtyHistory(RSDisplayRenderNodeDrawable& display
                 allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
         }
     }
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, allDirtyRegion);
+    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
+        dirtyRegion.Or(globalDirtyRegion));
 
     // DFX START
     rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
@@ -670,7 +672,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->SetBrightnessRatio(hdrBrightnessRatio);
         hdrBrightnessRatio = 1.0f;
     }
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR content in UniRender:%{public}d, BrightnessRatio:%{public}f",
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDRDraw isHdrOn: %{public}d, BrightnessRatio: %{public}f",
         isHdrOn, hdrBrightnessRatio);
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor) &&
@@ -685,10 +687,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
 
     CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR isHdrOn: %{public}d", isHdrOn);
-    if (isHdrOn) {
-        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
-    }
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
@@ -1029,6 +1027,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
+    // Recording HDR screen cannot use canvas size
+    SetUseCanvasSize(false);
 
     // set mirror screen capture param
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
@@ -1700,7 +1700,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     if (!params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || offscreenSurface_ == nullptr) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
         bool isScRGBEnable = EnablescRGBForP3AndUiFirst(params->GetNewColorSpace());
-        if (!params->GetNeedOffscreen() && (params->GetHDRPresent() || isScRGBEnable)) {
+        if (!params->GetNeedOffscreen() && (params->GetHDRPresent() || isScRGBEnable) && GetUseCanvasSize()) {
             offscreenWidth = curCanvas_->GetWidth();
             offscreenHeight = curCanvas_->GetHeight();
         }

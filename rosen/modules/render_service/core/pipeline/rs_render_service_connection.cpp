@@ -25,7 +25,6 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
-#include "pipeline/rs_pointer_drawing_manager.h"
 
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -34,6 +33,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -430,12 +430,17 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+        auto observer = [] (const RSRenderFrameRateLinker& linker) {
+            if (auto mainThread = RSMainThread::Instance(); mainThread != nullptr) {
+                mainThread->UpdateFrameRateLinker(linker);
+            }
+        };
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (!connection) {
                 return;
             }
-            auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
+            auto linker = std::make_shared<RSRenderFrameRateLinker>(id, observer);
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
@@ -1034,19 +1039,16 @@ void RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positio
 
     // adapt video scene pointer
     if (screenManager_->GetCurrentVirtualScreenNum() > 0 ||
-        !RSPointerDrawingManager::Instance().GetIsPointerEnableHwc()) {
+        !RSPointerWindowManager::Instance().GetIsPointerEnableHwc()) {
         // when has virtual screen or pointer is enable hwc, we can't skip
-        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(false);
+        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(false);
         RSMainThread::Instance()->RequestNextVSync();
     } else {
-        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(true);
+        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(true);
     }
 
-    // record status here
-    std::lock_guard<std::mutex> lock(RSPointerDrawingManager::Instance().mtx_);
-    RSPointerDrawingManager::Instance().SetBoundHasUpdate(true);
-    RSPointerDrawingManager::Instance().SetBound({positionX, positionY, positionZ, positionW});
-    RSPointerDrawingManager::Instance().SetRsNodeId(rsNodeId);
+    RSPointerWindowManager::Instance().SetHwcNodeBounds(rsNodeId, positionX, positionY,
+        positionZ, positionW);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
@@ -1905,12 +1907,10 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, touchStatus, touchCnt]() {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            frameRateMgr->HandleTouchEvent(pid, touchStatus, touchCnt);
-        }
-    });
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+    }
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
@@ -2009,6 +2009,17 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     }
     auto task = [isEnabled]() {
         RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
+    };
+    mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::SetScreenSwitchStatus(bool flag)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [flag]() {
+        RSSystemProperties::SetScreenSwitchStatus(flag);
     };
     mainThread_->PostTask(task);
 }

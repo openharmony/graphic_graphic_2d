@@ -120,6 +120,20 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHwcNodeBounds_Test
+ * @tc.desc: Test Set HwcNode Bounds
+ * @tc.type:FUNC
+ * @tc.require: IB2O0L
+ */
+HWTEST_F(RSClientTest, SetHwcNodeBounds_Test, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->SetHwcNodeBounds(TEST_ID, 1.0f, 1.0f,
+        1.0f, 1.0f);
+    ASSERT_EQ(ret, true);
+}
+
+/**
  * @tc.name: RegisterBufferAvailableListener Test a notfound id True
  * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
  * @tc.type:FUNC

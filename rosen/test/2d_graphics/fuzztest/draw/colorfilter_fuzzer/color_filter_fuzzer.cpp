@@ -18,6 +18,7 @@
 #include <cstdint>
 #include "get_object.h"
 #include "effect/color_filter.h"
+#include "utils/data.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +27,7 @@ constexpr size_t BLENDMODE_SIZE = 29;
 constexpr size_t FILTERTYPE_SIZE = 8;
 constexpr size_t MATRIX_SIZE = 20;
 constexpr size_t OVER_DRAW_COLOR_NUM = 6;
+constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
 bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
@@ -39,7 +41,15 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     g_pos = 0;
 
     std::shared_ptr<ColorFilter> colorFilter = ColorFilter::CreateLinearToSrgbGamma();
-    colorFilter->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    colorFilter->Deserialize(dataVal);
     colorFilter->Serialize();
     colorFilter->GetType();
     colorFilter->GetDrawingType();
@@ -49,6 +59,10 @@ bool ColorFilterFuzzTest001(const uint8_t* data, size_t size)
     float f1[MATRIX_SIZE];
     float f2[MATRIX_SIZE];
     colorFilter->InitWithCompose(f1, f2);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
 
     return true;
 }

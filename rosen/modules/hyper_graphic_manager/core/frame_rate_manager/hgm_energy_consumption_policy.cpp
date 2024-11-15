@@ -125,7 +125,7 @@ void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool
     }
     isAnimationEnergyConsumptionAssuranceMode_ = isEnergyConsumptionAssuranceMode;
     firstAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
-    lastAnimationTimestamp_ = firstAnimationTimestamp_;
+    lastAnimationTimestamp_ = firstAnimationTimestamp_.load();
 }
 
 void HgmEnergyConsumptionPolicy::StatisticAnimationTime(uint64_t timestamp)
@@ -146,7 +146,7 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::string &componentN
         return;
     }
     firstAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
-    lastAnimationTimestamp_ = firstAnimationTimestamp_;
+    lastAnimationTimestamp_ = firstAnimationTimestamp_.load();
 }
 
 void HgmEnergyConsumptionPolicy::SetTouchState(TouchState touchState)

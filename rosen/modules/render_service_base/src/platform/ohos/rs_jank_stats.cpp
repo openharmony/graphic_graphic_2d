@@ -107,6 +107,7 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
             ReportEventResponse(jankFrames);
             jankFrames.isUpdateJankFrame_ = true;
         }
+        // skip jank frame statistic at the first frame of animation && at the end frame of implicit animation
         if (jankFrames.isUpdateJankFrame_ && !jankFrames.isFirstFrame_ && !(!jankFrames.isDisplayAnimator_ &&
             (jankFrames.isReportEventComplete_ || jankFrames.isReportEventJankFrame_))) {
             UpdateJankFrame(jankFrames, skipJankAnimatorFrame, dynamicRefreshRate);

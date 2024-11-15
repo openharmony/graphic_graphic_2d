@@ -383,6 +383,11 @@ public:
     {
         return hasWiredMirrorDisplay_;
     }
+
+    void UpdateFrameRateLinker(const RSRenderFrameRateLinker& linker)
+    {
+        postHgmTaskFlag_ = true;
+    }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -643,6 +648,7 @@ private:
     bool hasProtectedLayer_ = false;
 
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
+    bool postHgmTaskFlag_ = false;
     pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 

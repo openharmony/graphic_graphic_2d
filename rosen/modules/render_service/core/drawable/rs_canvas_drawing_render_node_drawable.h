@@ -103,6 +103,8 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
     bool isPurge_ = false;
+    bool isPurgeMatrix_ = false;
+    Drawing::Matrix purgeMatrix_;
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif

@@ -230,18 +230,21 @@ void RSMask::Dump(std::string& out) const
     maskPen_.Dump(out);
     out += " brush";
     maskBrush_.Dump(out);
+    out += " path[";
     if (maskPath_ != nullptr) {
-        out += " path[isValid:" + std::to_string(maskPath_->IsValid());
+        out += "isValid:" + std::to_string(maskPath_->IsValid());
         auto bounds = maskPath_->GetBounds();
         out += " bounds[top:" + std::to_string(bounds.GetTop()) + " bottom:" + std::to_string(bounds.GetBottom());
         out += " left:" + std::to_string(bounds.GetLeft()) + " right:" + std::to_string(bounds.GetRight()) + "]";
-        out += " drawingType:" + std::to_string(static_cast<int>(maskPath_->GetDrawingType())) + "]";
+        out += " drawingType:" + std::to_string(static_cast<int>(maskPath_->GetDrawingType()));
     }
+    out += "] pixelMap[";
     if (pixelMap_ != nullptr) {
         out += " pixelMap[width:" + std::to_string(pixelMap_->GetWidth());
         out += " height:" + std::to_string(pixelMap_->GetHeight());
-        out += " byteCount:" + std::to_string(pixelMap_->GetByteCount()) + "]";
+        out += " byteCount:" + std::to_string(pixelMap_->GetByteCount());
     }
+    out += "]";
     if (image_ != nullptr) {
         out += " image";
         image_->Dump(out);

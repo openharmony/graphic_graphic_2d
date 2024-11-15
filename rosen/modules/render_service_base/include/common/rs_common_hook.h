@@ -16,10 +16,10 @@
 #ifndef RS_COMMON_HOOK_H
 #define RS_COMMON_HOOK_H
 
+#include <atomic>
 #include <functional>
 #include <string>
 #include <unordered_map>
-#include <atomic>
 
 #include "animation/rs_frame_rate_range.h"
 

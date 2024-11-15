@@ -89,6 +89,8 @@ public:
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
+    virtual bool GetGlobalPositionEnabled() const;
+
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
@@ -727,8 +729,11 @@ public:
         return context_;
     }
 
-    // arkui mark uifirst
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -869,6 +874,8 @@ protected:
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
     ModifierDirtyTypes dirtyTypes_;
@@ -1116,7 +1123,7 @@ private:
     friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
-    friend class RSPointerDrawingManager;
+    friend class RSPointerWindowManager;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;

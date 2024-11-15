@@ -15,7 +15,6 @@
 
 #include <memory>
 
-#include "EGL/egl.h"
 #include "impl_interface/region_impl.h"
 #include "rs_trace.h"
 
@@ -114,12 +113,12 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
     cacheSurface_.reset();
 }
 
-Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float imgHeight)
+Drawing::Matrix RSSurfaceRenderNodeDrawable::GetGravityMatrix(float imgWidth, float imgHeight)
 {
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetGravityTranslate surfaceParams is nullptr");
-        return Vector2f{};
+        return Drawing::Matrix();
     }
     auto gravity = surfaceParams->GetUIFirstFrameGravity();
     float boundsWidth = surfaceParams->GetCacheSize().x_;
@@ -127,7 +126,7 @@ Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float 
     Drawing::Matrix gravityMatrix;
     RSPropertiesPainter::GetGravityMatrix(gravity, RectF {0.0f, 0.0f, boundsWidth, boundsHeight},
         imgWidth, imgHeight, gravityMatrix);
-    return {gravityMatrix.Get(Drawing::Matrix::TRANS_X), gravityMatrix.Get(Drawing::Matrix::TRANS_Y)};
+    return gravityMatrix;
 }
 
 std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
@@ -219,45 +218,6 @@ std::shared_ptr<Drawing::Image> RSSurfaceRenderNodeDrawable::GetCompletedImage(
 #endif
 }
 
-#ifdef RS_ENABLE_GL
-void RSSurfaceRenderNodeDrawable::FlushSemaphore(RSPaintFilterCanvas& canvas)
-{
-    auto* surface = canvas.GetSurface();
-    if (surface == nullptr ||RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    RS_TRACE_NAME("FlushSemaphore");
-    // init or get context's semaphore
-    auto& semaphore = semaphoresForRT_[eglGetCurrentContext()];
-    // clear previous semaphore
-    auto sync = semaphore.glSync();
-    if (sync != nullptr) {
-        eglDestroySync(eglGetCurrentDisplay(), sync);
-    }
-    semaphore = {};
-    // flush
-    Drawing::FlushInfo flushInfo;
-    flushInfo.numSemaphores = 1;
-    flushInfo.backendSemaphore = &semaphore;
-    surface->Flush(&flushInfo);
-}
-
-void RSSurfaceRenderNodeDrawable::WaitSemaphore()
-{
-    if (cacheSurface_ == nullptr || semaphoresForRSSub_.empty() ||
-        RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    RS_TRACE_NAME("WaitSemaphore");
-    std::vector<GrGLsync> syncs;
-    for (const auto& [key, value]: semaphoresForRSSub_) {
-        syncs.push_back(value.glSync());
-    }
-    cacheSurface_->Wait(syncs);
-    semaphoresForRSSub_.clear();
-}
-#endif
-
 bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     uint32_t threadIndex, bool isUIFirst)
 {
@@ -274,7 +234,10 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
         return false;
     }
     canvas.Save();
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+    const auto& gravityMatrix = GetGravityMatrix(cacheImage->GetWidth(), cacheImage->GetHeight());
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
+        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
+    } else {
         float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
         float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
         canvas.Scale(scaleX, scaleY);
@@ -288,13 +251,11 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    auto gravityTranslate = GetGravityTranslate(cacheImage->GetWidth(), cacheImage->GetHeight());
-    canvas.DrawImage(*cacheImage, gravityTranslate.x_, gravityTranslate.y_, samplingOptions);
+    auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
+    auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
+    canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
     canvas.DetachBrush();
     canvas.Restore();
-#ifdef RS_ENABLE_GL
-    FlushSemaphore(canvas);
-#endif
     return true;
 }
 
@@ -428,9 +389,6 @@ void RSSurfaceRenderNodeDrawable::UpdateCompletedCacheSurface()
     std::swap(cacheSurfaceThreadIndex_, completedSurfaceThreadIndex_);
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
-#ifdef RS_ENABLE_GL
-    std::swap(semaphoresForRT_, semaphoresForRSSub_);
-#endif
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {

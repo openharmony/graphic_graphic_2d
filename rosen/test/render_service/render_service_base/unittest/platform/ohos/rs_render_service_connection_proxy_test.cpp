@@ -502,6 +502,19 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
 }
 
 /**
+ * @tc.name: SetHwcNodeBounds Test
+ * @tc.desc: SetHwcNodeBounds Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB2O0L
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
+{
+    NodeId id = 1;
+    proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
  * @tc.name: GetVirtualScreenResolution Test
  * @tc.desc: GetVirtualScreenResolution Test
  * @tc.type:FUNC

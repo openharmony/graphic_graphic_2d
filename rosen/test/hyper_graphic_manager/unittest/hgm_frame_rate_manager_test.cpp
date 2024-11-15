@@ -140,13 +140,14 @@ HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest 
     PART("HgmUiFrameworkDirtyNodeTest") {
         STEP("1. Test empty uiFwkDirtyNodes") {
             ASSERT_EQ(uiFwkDirtyNodes.size(), 0);
-            frameRateMgr.GetUiFrameworkDirtyNodes(uiFwkDirtyNodes);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            frameRateMgr.voterTouchEffective_ = true;
             {
                 std::shared_ptr<RSRenderNode> renderNode1 = std::make_shared<RSRenderNode>(0);
                 uiFwkDirtyNodes.emplace_back(renderNode1);
                 ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
             }
-            ASSERT_EQ(frameRateMgr.GetUiFrameworkDirtyNodes(uiFwkDirtyNodes).empty(), true);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
             ASSERT_EQ(uiFwkDirtyNodes.size(), 0);
         }
         STEP("2. Test uiFwkDirtyNodes with a clean renderNode") {
@@ -154,7 +155,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest 
             uiFwkDirtyNodes.emplace_back(renderNode2);
             ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
             ASSERT_EQ(renderNode2->IsDirty(), false);
-            ASSERT_EQ(frameRateMgr.GetUiFrameworkDirtyNodes(uiFwkDirtyNodes).empty(), true);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
             ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
         }
         STEP("3. Test uiFwkDirtyNodes with a dirty renderNode") {
@@ -162,13 +163,21 @@ HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest 
             uiFwkDirtyNodes.emplace_back(renderNode3);
             ASSERT_EQ(uiFwkDirtyNodes.size(), 2);
 
-            frameRateMgr.GetUiFrameworkDirtyNodes(uiFwkDirtyNodes);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
             ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
 
             renderNode3->SetDirty();
             ASSERT_EQ(renderNode3->IsDirty(), true);
-            ASSERT_EQ(frameRateMgr.GetUiFrameworkDirtyNodes(uiFwkDirtyNodes).empty(), false);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
             ASSERT_EQ(uiFwkDirtyNodes.size(), 1);
+        }
+        STEP("4. other branch") {
+            frameRateMgr.surfaceData_.emplace_back(std::tuple<std::string, pid_t, UIFWKType>());
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            frameRateMgr.voterGamesEffective_ = true;
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
+            frameRateMgr.voterTouchEffective_ = false;
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
         }
     }
 }
@@ -227,12 +236,15 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1
     HgmFrameRateManager frameRateMgr;
     InitHgmFrameRateManager(frameRateMgr);
     PolicyConfigData::StrategyConfig strategyConfig;
+    std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
     PART("CaseDescription") {
         STEP("1. init") {
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
             std::vector<std::string> supportedAppBufferList = { otherSurface };
             frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, appPid, UIFWKType::FROM_SURFACE);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, lastTime);
+            sleep(1);
         }
         STEP("2. handle touch up event") {
             frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
@@ -281,12 +293,15 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1
     HgmFrameRateManager frameRateMgr;
     InitHgmFrameRateManager(frameRateMgr);
     PolicyConfigData::StrategyConfig strategyConfig;
+    std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
     PART("CaseDescription") {
         STEP("1. init") {
             frameRateMgr.idleDetector_.SetAppSupportedState(true);
             std::vector<std::string> supportedAppBufferList = { otherSurface };
             frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, lastTime, appPid, UIFWKType::FROM_SURFACE);
+            frameRateMgr.UpdateSurfaceTime(otherSurface, appPid, UIFWKType::FROM_SURFACE);
+            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, lastTime);
+            sleep(1);
         }
         STEP("2. handle touch up event") {
             std::vector<std::string> appBufferBlackList = { otherSurface };
@@ -499,8 +514,9 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
     HgmFrameRateManager frameRateMgr;
     VoteInfo resultVoteInfo;
     VoteRange voteRange = { OLED_MIN_HZ, OLED_MAX_HZ };
+    bool voterGamesEffective = false;
     auto voterIter = std::find(frameRateMgr.voters_.begin(), frameRateMgr.voters_.end(), "VOTER_GAMES");
-    frameRateMgr.ProcessRefreshRateVote(voterIter, resultVoteInfo, voteRange);
+    frameRateMgr.ProcessRefreshRateVote(voterIter, resultVoteInfo, voteRange, voterGamesEffective);
     frameRateMgr.DeliverRefreshRateVote({"VOTER_GAMES", OLED_120_HZ, OLED_90_HZ, OLED_NULL_HZ}, true);
     frameRateMgr.DeliverRefreshRateVote({"VOTER_THERMAL", OLED_120_HZ, OLED_90_HZ, OLED_NULL_HZ}, true);
     frameRateMgr.DeliverRefreshRateVote({"VOTER_MULTISELFOWNEDSCREEN", OLED_120_HZ, OLED_90_HZ, OLED_NULL_HZ}, true);

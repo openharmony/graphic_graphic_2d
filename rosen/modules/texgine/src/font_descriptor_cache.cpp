@@ -57,7 +57,7 @@ void FontDescriptorCache::ClearFontFileCache()
 
 void FontDescriptorCache::ParserSystemFonts()
 {
-    for (auto& item : parser_.GetSystemFonts()) {
+    for (auto& item : parser_.GetSystemFonts(locale_)) {
         FontDescriptorScatter(item);
     }
     Dump();
@@ -65,74 +65,12 @@ void FontDescriptorCache::ParserSystemFonts()
 
 void FontDescriptorCache::ParserStylishFonts()
 {
-    icu::Locale locale = icu::Locale::getDefault();
-    std::vector<TextEngine::FontParser::FontDescriptor> descriptors =
-        parser_.GetVisibilityFonts(std::string(locale.getName()));
+    std::vector<TextEngine::FontParser::FontDescriptor> descriptors = parser_.GetVisibilityFonts(locale_);
     for (const auto& descriptor : descriptors) {
         FontDescSharedPtr descriptorPtr = std::make_shared<TextEngine::FontParser::FontDescriptor>(descriptor);
         descriptorPtr->weight = WeightAlignment(descriptorPtr->weight);
         stylishFullNameMap_[descriptorPtr->fullName].emplace(descriptorPtr);
     }
-}
-
-void FontDescriptorCache::ParserInstallFonts()
-{
-    installPathMap_.clear();
-    std::vector<std::string> fontPathList;
-    std::string fontPath = INSTALL_FONT_CONFIG_FILE;
-
-    if (!ParseInstalledConfigFile(fontPath, fontPathList)) {
-        TEXT_LOGE("Failed to parse the installed fonts");
-        return;
-    }
-
-    for (const auto& path : fontPathList) {
-        if (!ProcessInstalledFontPath(path)) {
-            TEXT_LOGE("Failed to process font path");
-        }
-    }
-}
-
-bool FontDescriptorCache::ParseInstalledConfigFile(const std::string& fontPath, std::vector<std::string>& fontPathList)
-{
-    std::shared_ptr<Drawing::FontMgr> fontMgr = Drawing::FontMgr::CreateDynamicFontMgr();
-    std::ifstream configFile(fontPath);
-    if (!configFile.is_open()) {
-        return false;
-    }
-    configFile.close();
-    return (fontMgr->ParseInstallFontConfig(fontPath, fontPathList) == Drawing::FontCheckCode::SUCCESSED);
-}
-
-bool FontDescriptorCache::ProcessInstalledFontPath(const std::string& path)
-{
-    std::shared_ptr<Drawing::FontMgr> fontMgr = Drawing::FontMgr::CreateDefaultFontMgr();
-    if (access(path.c_str(), F_OK) != 0) {
-        TEXT_LOGE("Path does not exist");
-        return false;
-    }
-    int fd = open(path.c_str(), O_RDONLY);
-    if (fd == -1) {
-        return false;
-    }
-    std::vector<Drawing::FontByteArray> fullNameVec;
-    int ret = fontMgr->GetFontFullName(fd, fullNameVec);
-    close(fd);
-    if (ret != Drawing::FontCheckCode::SUCCESSED || fullNameVec.empty()) {
-        return false;
-    }
-    std::vector<std::string> fullNameStringVec;
-    for (const auto& fullName : fullNameVec) {
-        std::string fullNameString;
-        if (Drawing::ConvertToString(fullName.strData.get(), fullName.strLen, fullNameString)) {
-            fullNameStringVec.push_back(fullNameString);
-        } else {
-            fullNameStringVec.clear();
-            return false;
-        }
-    }
-    installPathMap_[path] = fullNameStringVec;
-    return true;
 }
 
 void FontDescriptorCache::FontDescriptorScatter(FontDescSharedPtr desc)
@@ -169,13 +107,28 @@ void FontDescriptorCache::FontDescriptorScatter(FontDescSharedPtr desc)
     }
 }
 
+bool FontDescriptorCache::ParserInstallFontsPathList(std::vector<std::string>& fontPathList)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr = Drawing::FontMgr::CreateDynamicFontMgr();
+    if (fontMgr == nullptr) {
+        return false;
+    }
+    int ret = fontMgr->ParseInstallFontConfig(INSTALL_FONT_CONFIG_FILE, fontPathList);
+    return ret == Drawing::FontCheckCode::SUCCESSED;
+}
+
 std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
 {
-    ParserInstallFonts();
     std::unordered_set<std::string> fullNameList;
-    for (const auto& pathAndFonts : installPathMap_) {
-        for (const auto& fullName : pathAndFonts.second) {
-            fullNameList.emplace(fullName);
+    std::vector<std::string> fontPathList;
+    if (!ParserInstallFontsPathList(fontPathList)) {
+        TEXT_LOGE("Parser install fonts path list failed");
+        return fullNameList;
+    }
+    for (const auto& path : fontPathList) {
+        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path, locale_);
+        for (const auto& item : descriptors) {
+            fullNameList.emplace(item->fullName);
         }
     }
     return fullNameList;
@@ -248,25 +201,14 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
 
 bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result)
 {
-    ParserInstallFonts();
-    std::string path;
-    for (const auto& pathAndFonts : installPathMap_) {
-        for (const auto& font : pathAndFonts.second) {
-            if (font == fullName) {
-                path = pathAndFonts.first;
-                break;
-            }
-        }
-        if (!path.empty()) {
-            break;
-        }
+    std::vector<std::string> fontPathList;
+    if (!ParserInstallFontsPathList(fontPathList)) {
+        TEXT_LOGE("Parser install fonts path list failed");
+        return false;
     }
-    
-    //Setting the locale to English is to ensure consistency with the fullName format obtained from Skia.
-    std::string locale = TextEngine::ENGLISH;
-    std::vector<FontDescSharedPtr> descriptors;
-    if (parser_.ParserFontDescriptorFromPath(path, fullName, descriptors, locale)) {
-        for (auto& item : descriptors) {
+    for (const auto& path : fontPathList) {
+        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path, locale_);
+        for (const auto& item : descriptors) {
             if (item->fullName == fullName) {
                 item->weight = WeightAlignment(item->weight);
                 result = item;
@@ -274,7 +216,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
             }
         }
     }
-    TEXT_LOGE_LIMIT3_MIN("Failed to parser fontDescriptor from path, path: %{public}s", path.c_str());
+    TEXT_LOGE_LIMIT3_MIN("Parser installed fontDescriptor by name failed, fullName: %{public}s", fullName.c_str());
     return false;
 }
 
