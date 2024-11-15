@@ -3154,7 +3154,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeRectInSkippedSubTree_001, TestSize
         ASSERT_NE(surfaceNode, nullptr);
         surfaceNode->ResetChildHardwareEnabledNodes();
         ASSERT_EQ(surfaceNode->GetChildHardwareEnabledNodes().size(), 0);
-        rsUniRenderVisitor=>curSurfaceNode_ = surfaceNode;
+        rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
         rsUniRenderVisitor->UpdateHwcNodeRectInSkippedSubTree(*parentNode);
     }
 }
