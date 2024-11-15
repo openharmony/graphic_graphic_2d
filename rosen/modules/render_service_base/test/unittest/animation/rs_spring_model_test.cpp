@@ -386,5 +386,158 @@ HWTEST_F(RSSpringModelTest, RSSpringModelRRectTest001, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest001 end";
 }
+
+/**
+ * @tc.name: RSSpringModelRRectTest002
+ * @tc.desc: Verify the RSSpringModelRRectTest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, RSSpringModelRRectTest002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest002 start";
+
+    RectF rect1;
+    rect1.SetAll(0.f, 0.f, 0.f, 0.f);
+    RectF rect2;
+    rect2.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect initialOffset(rect1, 0.f, 0.f);
+    RRect initialVelocity(rect2, 1.f, 1.f);
+
+    auto model1 = std::make_shared<RSSpringModel<RRect>>(0.0f, 0.0f, initialOffset, initialVelocity, 0.0f);
+    model1->dampingRatio_ = -1.0f;
+    auto result = model1->CalculateDisplacement(1.0f);
+    EXPECT_TRUE(result == initialOffset);
+    auto duration = model1->EstimateDuration();
+    EXPECT_TRUE(duration == 0.0f);
+
+    auto model2 = std::make_shared<RSSpringModel<RRect>>(0.0f, 0.0f, initialOffset, initialVelocity, 0.0f);
+    model2->CalculateSpringParameters();
+    duration = model2->EstimateDuration();
+    EXPECT_FALSE(duration == 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest002 end";
+}
+
+/**
+ * @tc.name: RSSpringModelRRectTest003
+ * @tc.desc: Verify the RSSpringModelRRectTest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, RSSpringModelRRectTest003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest003 start";
+
+    RectF rect1;
+    rect1.SetAll(0.f, 0.f, 0.f, 0.f);
+    RectF rect2;
+    rect2.SetAll(1.f, 1.f, 1.f, 1.f);
+    RRect initialOffset(rect1, 0.f, 0.f);
+    RRect initialVelocity(rect2, 1.f, 1.f);
+
+    auto model1 = std::make_shared<RSSpringModel<RRect>>(0.0f, 0.0f, initialOffset, initialVelocity, 0.0f);
+    model1->response_ = -1.0f;
+    auto duration = model1->EstimateDurationForUnderDampedModel();
+    EXPECT_TRUE(duration == 0.0f);
+    duration = model1->EstimateDurationForCriticalDampedModel();
+    EXPECT_TRUE(duration == 0.0f);
+    duration = model1->EstimateDurationForOverDampedModel();
+    EXPECT_TRUE(duration == 0.0f);
+
+    auto model2 = std::make_shared<RSSpringModel<RRect>>(0.0f, 0.0f, initialOffset, initialVelocity, 0.0f);
+    model2->dampingRatio_ = 1.0f;
+    auto duration2 = model2->EstimateDurationForUnderDampedModel();
+    EXPECT_TRUE(duration2 == 0.0f);
+    duration2 = model2->EstimateDurationForOverDampedModel();
+    EXPECT_TRUE(duration2 == 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest RSSpringModelRRectTest003 end";
+}
+
+/**
+ * @tc.name: CalculateSpringParameters001
+ * @tc.desc: Verify the CalculateSpringParameters
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, CalculateSpringParameters001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest CalculateSpringParameters001 start";
+
+    auto initialOffset = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto initialVelocity = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto model1 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>(0.0f, 0.0f,
+        initialOffset, initialVelocity, 0.0f);
+    model1->response_ = INFINITY;
+    model1->CalculateSpringParameters();
+    auto duration = model1->EstimateDuration();
+    EXPECT_EQ(duration, 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest CalculateSpringParameters001 end";
+}
+
+/**
+ * @tc.name: EstimateDuration001
+ * @tc.desc: Verify the EstimateDuration
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, EstimateDuration001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest EstimateDuration001 start";
+
+    auto initialOffset = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto initialVelocity = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto model1 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>(0.0f, 0.0f,
+        initialOffset, initialVelocity, 0.0f);
+    model1->dampingRatio_ = -1.0f;
+    model1->coeffDecay_ = 0.0f;
+    auto duration = model1->EstimateDuration();
+    EXPECT_EQ(duration, 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest EstimateDuration001 end";
+}
+
+/**
+ * @tc.name: EstimateDurationForUnderDampedModel001
+ * @tc.desc: Verify the EstimateDurationForUnderDampedModel
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, EstimateDurationForUnderDampedModel001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest EstimateDurationForUnderDampedModel001 start";
+
+    auto initialOffset = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto initialVelocity = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto model1 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>(0.0f, 0.0f,
+        initialOffset, initialVelocity, 0.0f);
+    model1->response_ = 1.0f;
+    model1->dampingRatio_ = 0.0f;
+    auto duration1 = model1->EstimateDurationForUnderDampedModel();
+    EXPECT_EQ(duration1, 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest EstimateDurationForUnderDampedModel001 end";
+}
+
+/**
+ * @tc.name: EstimateDurationForOverDampedModel001
+ * @tc.desc: Verify the EstimateDurationForOverDampedModel
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSpringModelTest, EstimateDurationForOverDampedModel001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSSpringModelTest EstimateDurationForOverDampedModel001 start";
+
+    auto initialOffset = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto initialVelocity = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+
+    auto model1 = std::make_shared<RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>>(0.0f, 0.0f,
+        initialOffset, initialVelocity, 0.0f);
+    model1->dampingRatio_ = 1.0f;
+    auto duration = model1->EstimateDurationForOverDampedModel();
+    EXPECT_EQ(duration, 0.0f);
+
+    GTEST_LOG_(INFO) << "RSSpringModelTest EstimateDurationForOverDampedModel001 end";
+}
 } // namespace Rosen
 } // namespace OHOS
