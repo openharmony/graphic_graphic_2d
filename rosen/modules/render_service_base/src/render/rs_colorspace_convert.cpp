@@ -93,9 +93,6 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
         dynamicRangeMode)) {
         return false;
     }
-    if (dynamicRangeMode == DynamicRangeMode::STANDARD) {
-        parameter.disableHeadRoom = true;
-    }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
     
@@ -151,7 +148,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
     }
 
-    if (!rsLuminance.IsHdrPictureOn()) {
+    if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
         scaler = 1.0f;
         parameter.disableHeadRoom = true;
     }
@@ -163,9 +160,8 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
-    parameter.tmoNits = (dynamicRangeMode == DynamicRangeMode::STANDARD ?
-        sdrNits : std::clamp(sdrNits * scaler, sdrNits, displayNits));
-    parameter.currentDisplayNits = (dynamicRangeMode == DynamicRangeMode::STANDARD ? sdrNits : displayNits);
+    parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
+    parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;
     RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f. SdrNits:%{public}f. DynamicRangeMode:%{public}u",
         parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
