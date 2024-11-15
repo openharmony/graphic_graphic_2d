@@ -582,10 +582,8 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     }
     isNeedUpdateAppOffset_ = false;
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
-    if (currRefreshRate_ != lastRefreshRate) {
-        if (forceUpdateCallback_ != nullptr) {
-            forceUpdateCallback_(false, true);
-        }
+    if (forceUpdateCallback_ != nullptr) {
+        forceUpdateCallback_(false, true);
     }
     changeGeneratorRateValid_.store(false);
 }
