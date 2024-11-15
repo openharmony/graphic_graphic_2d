@@ -199,7 +199,7 @@ void RSSurfaceBufferCallbackManager::OnFinish(
             "[Pid: %{public}s, Uid: %{public}s] Callback not exists.",
             std::to_string(data.pid).c_str(), std::to_string(data.uid).c_str());
         return;
-     }
+    }
 }
 
 void RSSurfaceBufferCallbackManager::OnAfterAcquireBuffer(

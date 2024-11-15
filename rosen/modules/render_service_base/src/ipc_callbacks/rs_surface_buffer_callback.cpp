@@ -25,7 +25,6 @@ RSDefaultSurfaceBufferCallback::RSDefaultSurfaceBufferCallback(
 }
 
 void RSDefaultSurfaceBufferCallback::OnFinish(const FinishCallbackRet& ret)
- 
 {
     if (finishCallback_) {
         std::invoke(finishCallback_, ret);
@@ -37,6 +36,11 @@ void RSDefaultSurfaceBufferCallback::OnAfterAcquireBuffer(const AfterAcquireBuff
     if (afterAcquireBufferCallback_) {
         std::invoke(afterAcquireBufferCallback_, ret);
     }
+}
+
+sptr<IRemoteObject> RSDefaultSurfaceBufferCallback::AsObject()
+{
+    return nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

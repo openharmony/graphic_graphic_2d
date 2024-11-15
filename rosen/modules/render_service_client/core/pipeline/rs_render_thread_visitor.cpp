@@ -568,6 +568,7 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
             RSSurfaceBufferCallbackManager::Instance().SetReleaseFenceForVulkan(fenceFd, rootId);
             RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferSubCallbackForVulkan(rootId);
         }
+        ::close(fenceFd);
     }
 #endif
 #ifdef ROSEN_OHOS

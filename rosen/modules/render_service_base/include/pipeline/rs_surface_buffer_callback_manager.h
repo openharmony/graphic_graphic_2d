@@ -30,7 +30,10 @@ namespace OHOS {
 namespace Rosen {
 
 class RSISurfaceBufferCallback;
-
+namespace Drawing {
+struct DrawSurfaceBufferFinishCbData;
+struct DrawSurfaceBufferAfterAcquireCbData;
+} // namespace Drawing
 class RSB_EXPORT RSSurfaceBufferCallbackManager {
 public:
     struct VSyncFuncs {
@@ -100,11 +103,6 @@ private:
 #ifdef ROSEN_OHOS
     void EnqueueSurfaceBufferId(const Drawing::DrawSurfaceBufferFinishCbData& data);
 #endif
-
-    void EnqueueSurfaceBufferId(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
-    void OnSurfaceBufferOpItemDestruct(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
-    void RunSurfaceBufferCallback();
-
     void RequestNextVSync();
 
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
