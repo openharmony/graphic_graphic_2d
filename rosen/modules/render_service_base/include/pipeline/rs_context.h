@@ -168,7 +168,7 @@ public:
         return uiFrameworkTypeTable_;
     }
 
-    void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
+    void UpdateUIFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
     {
         uiFrameworkDirtyNodes_.emplace_back(uiFwkDirtyNode);
     }

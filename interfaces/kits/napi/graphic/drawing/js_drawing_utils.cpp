@@ -187,6 +187,9 @@ bool ConvertFromJsPoint3d(napi_env env, napi_value src, Point3& point3d)
 
 bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t size)
 {
+    if (point == nullptr) {
+        return false;
+    }
     napi_value tempValue = nullptr;
     for (size_t idx = 0; idx < size; idx++) {
         double* curEdge = point + idx;
@@ -200,6 +203,9 @@ bool ConvertFromJsPoint(napi_env env, napi_value jsValue, double* point, size_t 
 
 bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count)
 {
+    if (points == nullptr) {
+        return false;
+    }
     for (uint32_t i = 0; i < count; i++)  {
         napi_value tempPoint = nullptr;
         if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {

@@ -31,8 +31,10 @@ public:
     void SetEnergyConsumptionConfig(std::unordered_map<std::string, std::string> animationPowerConfig);
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
+    // called by RSMainThread
     void StatisticAnimationTime(uint64_t timestamp);
     void StartNewAnimation(const std::string &componentName);
+    // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     
@@ -43,12 +45,12 @@ public:
 private:
     // <rateType, <isEnable, idleFps>>
     std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
-    bool isAnimationEnergyAssuranceEnable_ = false;
-    bool isAnimationEnergyConsumptionAssuranceMode_ = false;
+    std::atomic<bool> isAnimationEnergyAssuranceEnable_ = false;
+    std::atomic<bool> isAnimationEnergyConsumptionAssuranceMode_ = false;
     bool isTouchIdle_ = false;
     int64_t rsAnimationTouchIdleTime_ = 1000;
-    uint64_t firstAnimationTimestamp_ = 0;
-    uint64_t lastAnimationTimestamp_ = 0;
+    std::atomic<uint64_t> firstAnimationTimestamp_ = 0;
+    std::atomic<uint64_t> lastAnimationTimestamp_ = 0;
     // Unit: ms
     int animationIdleDuration_ = 2000;
     int animationIdleFps_ = 60;

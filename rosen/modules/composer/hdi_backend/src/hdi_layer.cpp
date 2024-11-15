@@ -533,10 +533,10 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetTransformMode");
     ret = SetLayerVisibleRegion();
     CheckRet(ret, "SetLayerVisibleRegion");
-    ret = SetLayerDirtyRegion();
-    CheckRet(ret, "SetLayerDirtyRegion");
     ret = SetLayerCrop();
     CheckRet(ret, "SetLayerCrop");
+    ret = SetLayerDirtyRegion();
+    CheckRet(ret, "SetLayerDirtyRegion");
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");
     ret = SetLayerCompositionType();

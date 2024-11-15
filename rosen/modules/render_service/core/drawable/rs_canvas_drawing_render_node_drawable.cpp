@@ -51,10 +51,6 @@ RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared
 
 RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (curThreadInfo_.second && surface_) {
-        curThreadInfo_.second(std::move(surface_));
-    }
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
@@ -64,6 +60,10 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
         }
     }
 #endif
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (curThreadInfo_.second && surface_) {
+        curThreadInfo_.second(std::move(surface_));
+    }
 #endif
 }
 
@@ -108,9 +108,11 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         // The second param is null, 0 is an invalid value.
         RSUniRenderUtil::ClearNodeCacheSurface(std::move(surface), nullptr, idx, 0);
     };
+#if defined(RS_ENABLE_GPU) && defined(RS_ENABLE_PARALLEL_RENDER)
     auto threadId = paintFilterCanvas->GetIsParallelCanvas() ?
         RSSubThreadManager::Instance()->GetReThreadIndexMap()[threadIdx] : RSUniRenderThread::Instance().GetTid();
     SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
+#endif
 
     auto& bounds = params->GetBounds();
     auto surfaceParams = params->GetCanvasDrawingSurfaceParams();
@@ -157,8 +159,8 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
         return;
     }
 
-    int enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
-    if (enabled < 0) {
+    bool enabled = RSSystemParameters::GetDumpCanvasDrawingNodeEnabled();
+    if (!enabled) {
         return;
     }
     std::string debugNodeId = std::to_string(GetId());
@@ -215,8 +217,6 @@ void RSCanvasDrawingRenderNodeDrawable::Purge()
 #ifdef RS_ENABLE_VK
     std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (curThreadInfo_.second && surface_) {
-        curThreadInfo_.second(std::move(surface_));
-        surface_ = nullptr;
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             if (vulkanCleanupHelper_ && !isPurge_) {
@@ -224,6 +224,10 @@ void RSCanvasDrawingRenderNodeDrawable::Purge()
                 isPurge_ = true;
             }
         }
+        purgeMatrix_ = canvas_->GetTotalMatrix();
+        isPurgeMatrix_ = true;
+        curThreadInfo_.second(std::move(surface_));
+        surface_ = nullptr;
     }
 #endif
     RSRenderNodeDrawableAdapter::Purge();
@@ -306,6 +310,7 @@ bool RSCanvasDrawingRenderNodeDrawable::InitSurface(int width, int height, RSPai
     return false;
 }
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
 bool RSCanvasDrawingRenderNodeDrawable::InitSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas)
 {
     if (IsNeedResetSurface()) {
@@ -404,6 +409,7 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForVK(float width, float height, st
         }
     }
 }
+#endif
 
 void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::shared_ptr<RSContext> context,
     NodeId nodeId, RSPaintFilterCanvas& rscanvas)
@@ -462,6 +468,15 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
     if (surface_ && surface_->GetImageInfo().GetWidth() > EDGE_WIDTH_LIMIT) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
     }
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        if (vulkanCleanupHelper_ && isPurge_) {
+            vulkanCleanupHelper_->UnRef();
+            isPurge_ = false;
+        }
+    }
+#endif
     if (preThreadInfo_.second && surface_) {
         preThreadInfo_.second(std::move(surface_));
     }
@@ -473,12 +488,6 @@ void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
     backendTexture_ = {};
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-#ifdef RS_ENABLE_VK
-        if (vulkanCleanupHelper_ && isPurge_) {
-            vulkanCleanupHelper_->UnRef();
-            isPurge_ = false;
-        }
-#endif
         vulkanCleanupHelper_ = nullptr;
     }
 #endif
@@ -540,11 +549,13 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
         return false;
     }
     std::shared_ptr<Drawing::Image> image;
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Drawing::GPUContext> grContext;
     if (!GetCurrentContextAndImage(grContext, image, tid)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: GetCurrentContextAndImage failed");
         return false;
     }
+#endif
 
     if (image == nullptr) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: image is nullptr");
@@ -666,6 +677,13 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
             backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
             if (!backendTexture_.IsValid()) {
+                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                    if (vulkanCleanupHelper_ && isPurge_) {
+                        vulkanCleanupHelper_->UnRef();
+                        isPurge_ = false;
+                    }
+                }
                 surface_ = nullptr;
                 recordingCanvas_ = nullptr;
                 image_ = nullptr;
@@ -673,10 +691,6 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
                 backendTexture_ = {};
                 if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                     RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                    if (vulkanCleanupHelper_ && isPurge_) {
-                        vulkanCleanupHelper_->UnRef();
-                        isPurge_ = false;
-                    }
                     vulkanCleanupHelper_ = nullptr;
                 }
                 RS_LOGE(
@@ -715,6 +729,12 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
     }
     recordingCanvas_ = nullptr;
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface_.get());
+#ifdef RS_ENABLE_VK
+    if (isPurgeMatrix_) {
+        canvas_->SetMatrix(purgeMatrix_);
+        isPurgeMatrix_ = false;
+    }
+#endif
     if (isNewCreate) {
         canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     }
@@ -811,6 +831,13 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
         backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
         if (!backendTexture_.IsValid()) {
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                if (vulkanCleanupHelper_ && isPurge_) {
+                    vulkanCleanupHelper_->UnRef();
+                    isPurge_ = false;
+                }
+            }
             surface_ = nullptr;
             recordingCanvas_ = nullptr;
             image_ = nullptr;
@@ -818,10 +845,6 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
             backendTexture_ = {};
             if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
                 RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                if (vulkanCleanupHelper_ && isPurge_) {
-                    vulkanCleanupHelper_->UnRef();
-                    isPurge_ = false;
-                }
                 vulkanCleanupHelper_ = nullptr;
             }
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK backendTexture invalid, nodeId[%{public}" PRIu64 "]",

@@ -79,9 +79,6 @@ bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDr
 void RSUniRenderProcessor::PostProcess()
 {
     uniComposerAdapter_->CommitLayers(layers_);
-    if (!isPhone_) {
-        MultiLayersPerf(layerNum_);
-    }
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
@@ -112,10 +109,6 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
-    ScalingMode scalingMode = params.GetScalingMode();
-    if (surfaceHandler->GetConsumer()->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        params.SetScalingMode(scalingMode);
-    }
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
     layer->SetSdrNit(params.GetSdrNit());
@@ -206,8 +199,8 @@ void RSUniRenderProcessor::CreateUIFirstLayer(DrawableV2::RSSurfaceRenderNodeDra
 
 void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params)
 {
-    if (auto color = params.GetBackgroundColor(); color != RgbPalette::Black() &&
-        color != RgbPalette::Transparent()) {
+    auto color = params.GetBackgroundColor();
+    if (!params.GetIsHwcEnabledBySolidLayer()) {
         auto solidColorLayer = HdiLayerInfo::CreateHdiLayerInfo();
         solidColorLayer->CopyLayerInfo(layer);
         if (layer->GetZorder() > 0) {
@@ -255,6 +248,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
 {
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     auto& layerInfo = params.layerInfo_;
+    layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
     layer->SetPreBuffer(preBuffer);
@@ -316,7 +310,6 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_0),
         layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_1), layerInfo.matrix.Get(Drawing::Matrix::Index::PERSP_2)};
     layer->SetMatrix(matrix);
-    layer->SetScalingMode(params.GetScalingMode());
     layer->SetLayerSourceTuning(params.GetLayerSourceTuning());
     layer->SetLayerArsr(layerInfo.arsrTag);
     return layer;
@@ -392,7 +385,6 @@ void RSUniRenderProcessor::ProcessDisplaySurface(RSDisplayRenderNode& node)
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    layerNum_ = node.GetSurfaceCountForMultiLayersPerf();
     auto drawable = node.GetRenderDrawable();
     if (!drawable) {
         return;
@@ -422,15 +414,6 @@ void RSUniRenderProcessor::ProcessDisplaySurfaceForRenderThread(
         layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
-    auto displayParams = static_cast<RSDisplayRenderParams*>(params.get());
-    for (const auto& drawable : displayParams->GetAllMainAndLeashSurfaceDrawables()) {
-        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        if (!surfaceDrawable || !surfaceDrawable->GetRenderParams() ||
-            surfaceDrawable->GetRenderParams()->IsLeashWindow()) {
-            continue;
-        }
-        layerNum_++;
-    }
     auto surfaceHandler = displayDrawable.GetRSSurfaceHandlerOnDraw();
     if (!surfaceHandler) {
         return;

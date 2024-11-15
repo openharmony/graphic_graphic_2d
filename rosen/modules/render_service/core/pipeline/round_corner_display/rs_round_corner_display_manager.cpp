@@ -230,6 +230,28 @@ void RoundCornerDisplayManager::DrawBottomRoundCorner(NodeId id, RSPaintFilterCa
     rcdMap_[id]->DrawBottomRoundCorner(canvas);
 }
 
+bool RoundCornerDisplayManager::HandleRoundCornerDirtyRect(NodeId id, RectI &dirtyRect, const RCDLayerType type)
+{
+    std::lock_guard<std::mutex> lock(rcdMapMut_);
+    if (!CheckExist(id)) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module not exist \n", __func__, id);
+        return false;
+    }
+    if (rcdMap_[id] == nullptr) {
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] nodeId:%{public}" PRIu64 " rcd module is null \n", __func__, id);
+        RemoveRoundCornerDisplay(id);
+        return false;
+    }
+    bool isDirty = false;
+    if (type == RCDLayerType::TOP) {
+        isDirty = rcdMap_[id]->HandleTopRcdDirty(dirtyRect) || isDirty;
+    }
+    if (type == RCDLayerType::BOTTOM) {
+        isDirty = rcdMap_[id]->HandleBottomRcdDirty(dirtyRect) || isDirty;
+    }
+    return isDirty;
+}
+
 void RoundCornerDisplayManager::RunHardwareTask(NodeId id, const std::function<void()>& task)
 {
     {

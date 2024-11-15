@@ -33,7 +33,6 @@ namespace TextEngine {
  *        including parameters for default TextStyle, multi-text, and line style.
  */
 struct TypographyStyle {
-    const static inline std::u16string ELLIPSIS = u"\u2026";
     // default TextStyle
     FontWeight fontWeight = FontWeight::W400;
     FontStyle fontStyle = FontStyle::NORMAL;

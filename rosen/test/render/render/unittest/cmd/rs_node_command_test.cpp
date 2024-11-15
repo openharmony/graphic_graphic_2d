@@ -201,11 +201,12 @@ HWTEST_F(RSNodeCmdUniTest, SetFreezeUniTest001, TestSize.Level1)
     ASSERT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 
     nodeId = 0;
+    pid_t pid = ExtractPid(nodeId);
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
     std::shared_ptr<RSBaseRenderNode> renderNode = std::make_shared<RSBaseRenderNode>(0);
 
     renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
-    context.nodeMap.renderNodeMap_.at(nodeId) = renderNode;
+    context.nodeMap.renderNodeMap_[pid][nodeId] = renderNode;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     ASSERT_NE(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }

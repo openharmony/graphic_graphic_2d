@@ -99,7 +99,7 @@ void HgmStateMachine<State, Event>::ChangeState(State state)
         // change state
         RS_TRACE_NAME_FMT("StateMachine state change: %s -> %s",
             State2String(lastState).c_str(), State2String(state).c_str());
-        HGM_LOGI("StateMachine state change: %{public}s -> %{public}s",
+        HGM_LOGD("StateMachine state change: %{public}s -> %{public}s",
             State2String(lastState).c_str(), State2String(state).c_str());
         state_.store(state);
 

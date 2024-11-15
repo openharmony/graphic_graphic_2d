@@ -18,6 +18,7 @@ group("fuzztest") {
 
   deps += [
     # deps file
+    "adapter/skia_txt:fuzztest",
     "hm_symbol:fuzztest",
   ]
 }

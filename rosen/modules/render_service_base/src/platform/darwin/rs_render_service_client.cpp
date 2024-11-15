@@ -443,6 +443,11 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     return {};
 }
 
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    return {};
+}
+
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
     return {};
@@ -455,6 +460,11 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
 
 int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+{
+    return {};
+}
+
+uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
 {
     return {};
 }
@@ -564,6 +574,10 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
+void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
+{
+}
+
 void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
@@ -597,7 +611,8 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
 }
 #endif
@@ -615,21 +630,17 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return {};
 }
 
-bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
-{
-    return false;
-}
-
 bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
     return false;
 }
 
-void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
+bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
+    return false;
 }
 
-void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
 }
 
@@ -642,6 +653,10 @@ bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t ui
 bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
     return false;
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
 }
 } // namespace Rosen
 } // namespace OHOS

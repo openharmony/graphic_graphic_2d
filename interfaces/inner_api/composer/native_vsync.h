@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_NATIVE_VSYNC_H_
-#define NDK_INCLUDE_NATIVE_VSYNC_H_
-
 /**
  * @addtogroup NativeVsync
  * @{
@@ -36,6 +33,9 @@
  * @since 9
  * @version 1.0
  */
+
+#ifndef NDK_INCLUDE_NATIVE_VSYNC_H_
+#define NDK_INCLUDE_NATIVE_VSYNC_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,6 +125,7 @@ int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
  * after the animation frame associated with the previous VSync is complete. In addition, the self-drawing frames must
  * carry timestamps that align with VSync.
  * After the animation ends, disable DVSync.
+ * Only phones and tablets support DVSync.
  * On a platform that does not support DVSync or if another application has enabled DVSync, the attempt to enable it
  * will not take effect, and the application still receives normal VSync signals.
  *
@@ -142,4 +143,5 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
 }
 #endif
 
+/** @} */
 #endif

@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "offscreen_render/rs_offscreen_render_thread.h"
 #include "pipeline/rs_uni_ui_capture.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
@@ -53,10 +54,55 @@ HWTEST_F(RSUniUiCaptureTest, TakeLocalCapture001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = 0.0;
-    captureConfig.scaleY = 0.0;
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 0.f;
+    RSUniUICapture rsUniUICapture1(nodeId, captureConfig);
+    EXPECT_EQ(nullptr, rsUniUICapture1.TakeLocalCapture());
+
+    captureConfig.scaleX = 1.f;
+    captureConfig.scaleY = 0.f;
+    RSUniUICapture rsUniUICapture2(nodeId, captureConfig);
+    EXPECT_EQ(nullptr, rsUniUICapture2.TakeLocalCapture());
+
+    captureConfig.scaleX = 0.f;
+    captureConfig.scaleY = 1.f;
+    RSUniUICapture rsUniUICapture3(nodeId, captureConfig);
+    EXPECT_EQ(nullptr, rsUniUICapture3.TakeLocalCapture());
+
+    captureConfig.scaleX = -1.f;
+    captureConfig.scaleY = -1.f;
+    RSUniUICapture rsUniUICapture4(nodeId, captureConfig);
+    EXPECT_EQ(nullptr, rsUniUICapture4.TakeLocalCapture());
+
+    captureConfig.scaleX = 1.f;
+    captureConfig.scaleY = -1.f;
+    RSUniUICapture rsUniUICapture5(nodeId, captureConfig);
+    EXPECT_EQ(nullptr, rsUniUICapture5.TakeLocalCapture());
+}
+
+/**
+ * @tc.name: CopyDataToPixelMapTest
+ * @tc.desc: test CopyDataToPixelMap api
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, CopyDataToPixelMapTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSSurfaceCaptureConfig captureConfig;
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
-    EXPECT_EQ(nullptr, rsUniUICapture.TakeLocalCapture());
+    auto img = std::make_shared<Drawing::Image>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_FALSE(rsUniUICapture.CopyDataToPixelMap(img, pixelMap));
+
+    Media::ImageInfo imageInfo;
+    Media::Size infoSize;
+    infoSize.width = 1;
+    infoSize.height = 1;
+    imageInfo.size = infoSize;
+    imageInfo.pixelFormat = Media::PixelFormat::RGBA_8888;
+    pixelMap->SetImageInfo(imageInfo, true);
+    EXPECT_FALSE(rsUniUICapture.CopyDataToPixelMap(img, pixelMap));
 }
 
 /**
@@ -155,7 +201,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
 
 /**
  * @tc.name: PrepareCanvasRenderNodeTest
- * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.desc: Test RSUniUiCapture.PrepareCanvasRenderNode api
  * @tc.type:
  * @tc.require:
  */
@@ -173,7 +219,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareCanvasRenderNodeTest, TestSize.Level1)
 
 /**
  * @tc.name: PrepareSurfaceRenderNodeTest
- * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.desc: Test RSUniUiCapture.PrepareSurfaceRenderNode api
  * @tc.type:
  * @tc.require:
  */
@@ -191,7 +237,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareSurfaceRenderNodeTest, TestSize.Level1)
 
 /**
  * @tc.name: PrepareRootRenderNodeTest
- * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.desc: Test RSUniUiCapture.PrepareRootRenderNode api
  * @tc.type:
  * @tc.require:
  */
@@ -209,7 +255,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareRootRenderNodeTest, TestSize.Level1)
 
 /**
  * @tc.name: PrepareEffectRenderNodeTest
- * @tc.desc: Test RSUniUiCapture.CreateSurface api
+ * @tc.desc: Test RSUniUiCapture.PrepareEffectRenderNode api
  * @tc.type:
  * @tc.require:
  */
@@ -239,16 +285,28 @@ HWTEST_F(RSUniUiCaptureTest, CreateSurface, TestSize.Level1)
     captureConfig.scaleY = 0.0;
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
 
-    std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
-    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelmap));
+    std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
+    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap));
 
-    const uint32_t color[8] = { 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80 };
-    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
-    const int32_t offset = 0;
-    Media::InitializationOptions opts;
-    int32_t stride = 3;
-    std::shared_ptr<Media::PixelMap> pixelMap1 = Media::PixelMap::Create(color, colorLength, offset, stride, opts);
-    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap1));
+    pixelMap = std::make_shared<Media::PixelMap>();
+    EXPECT_EQ(nullptr, rsUniUICapture.CreateSurface(pixelMap));
+
+    Media::ImageInfo info;
+    int32_t pixelMapWidth = 4;
+    int32_t pixelMapHeight = 3;
+    int32_t bytesPerPixel = 4;
+    info.size.width = pixelMapWidth;
+    info.size.height = pixelMapHeight;
+    info.pixelFormat = Media::PixelFormat::RGBA_8888;
+    info.colorSpace = Media::ColorSpace::SRGB;
+    pixelMap->SetImageInfo(info);
+    int32_t rowDataSize = pixelMapWidth * bytesPerPixel;
+    uint32_t bufferSize = rowDataSize * pixelMapHeight;
+    void *buffer = malloc(bufferSize);
+    EXPECT_NE(buffer, nullptr);
+    pixelMap->SetPixelsAddr(buffer, nullptr, bufferSize, Media::AllocatorType::HEAP_ALLOC, nullptr);
+    RSOffscreenRenderThread::Instance().handler_.reset();
+    EXPECT_NE(nullptr, rsUniUICapture.CreateSurface(pixelMap));
 }
 
 /**

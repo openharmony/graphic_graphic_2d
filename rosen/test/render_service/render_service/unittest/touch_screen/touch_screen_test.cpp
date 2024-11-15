@@ -80,9 +80,9 @@ bool TouchScreenTest::IsFoldScreen()
  */
 HWTEST_F(TouchScreenTest, InitTouchScreen_001, TestSize.Level1)
 {
-    ASSERT_EQ(nullptr, TOUCH_SCREEN->tsSetFeatureConfig_);
+    ASSERT_EQ(false, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
     TOUCH_SCREEN->InitTouchScreen();
-    ASSERT_NE(nullptr, TOUCH_SCREEN->tsSetFeatureConfig_);
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
 }
 
 /*
@@ -94,14 +94,14 @@ HWTEST_F(TouchScreenTest, InitTouchScreen_001, TestSize.Level1)
 HWTEST_F(TouchScreenTest, SetFeatureConfig_001, TestSize.Level1)
 {
     TOUCH_SCREEN->InitTouchScreen();
-    ASSERT_NE(nullptr, TOUCH_SCREEN->tsSetFeatureConfig_);
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
 
     int32_t feature = 12;
     const char* config = "0";
     if (IsFoldScreen()) {
-        ASSERT_EQ(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+        ASSERT_EQ(TOUCH_SCREEN->SetFeatureConfig(feature, config), 0);
     } else {
-        ASSERT_LT(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+        ASSERT_LT(TOUCH_SCREEN->SetFeatureConfig(feature, config), 0);
     }
 }
 
@@ -114,14 +114,14 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_001, TestSize.Level1)
 HWTEST_F(TouchScreenTest, SetFeatureConfig_002, TestSize.Level1)
 {
     TOUCH_SCREEN->InitTouchScreen();
-    ASSERT_NE(nullptr, TOUCH_SCREEN->tsSetFeatureConfig_);
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
 
     int32_t feature = 12;
     const char* config = "1";
     if (IsFoldScreen()) {
-        ASSERT_EQ(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+        ASSERT_EQ(TOUCH_SCREEN->SetFeatureConfig(feature, config), 0);
     } else {
-        ASSERT_LT(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+        ASSERT_LT(TOUCH_SCREEN->SetFeatureConfig(feature, config), 0);
     }
 }
 
@@ -134,11 +134,26 @@ HWTEST_F(TouchScreenTest, SetFeatureConfig_002, TestSize.Level1)
 HWTEST_F(TouchScreenTest, SetFeatureConfig_003, TestSize.Level1)
 {
     TOUCH_SCREEN->InitTouchScreen();
-    ASSERT_NE(nullptr, TOUCH_SCREEN->tsSetFeatureConfig_);
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetFeatureConfigHandleValid());
 
     int32_t feature = 12;
     const char* config = "-1";
-    ASSERT_LT(TOUCH_SCREEN->tsSetFeatureConfig_(feature, config), 0);
+    ASSERT_LT(TOUCH_SCREEN->SetFeatureConfig(feature, config), 0);
+}
+
+/*
+ * @tc.name: SetFeatureConfig_004
+ * @tc.desc: Test SetFeatureConfig
+ * @tc.type: FUNC
+ * @tc.require: issueIB39L8
+ */
+HWTEST_F(TouchScreenTest, SetFeatureConfig_004, TestSize.Level1)
+{
+    TOUCH_SCREEN->InitTouchScreen();
+    ASSERT_EQ(true, TOUCH_SCREEN->IsSetAftConfigHandleValid());
+
+    const char* config = "version:3+main";
+    ASSERT_EQ(TOUCH_SCREEN->SetAftConfig(config), 0);
 }
 
 }

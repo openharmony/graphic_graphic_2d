@@ -246,7 +246,7 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
         return OHOS::INVALID_OPERATION;
     }
     if (write(fd, dumpString.c_str(), dumpString.size()) < 0) {
-        RS_LOGE("RSRenderService::DumpNodesNotOnTheTree write failed");
+        RS_LOGE("RSRenderService::DumpNodesNotOnTheTree write failed, string size: %{public}zu", dumpString.size());
         return UNKNOWN_ERROR;
     }
     return OHOS::NO_ERROR;

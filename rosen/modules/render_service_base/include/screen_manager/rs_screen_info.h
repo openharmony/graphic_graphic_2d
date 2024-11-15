@@ -20,6 +20,7 @@
 #include <surface_type.h>
 #include <unordered_set>
 
+#include "common/rs_rect.h"
 #include "screen_types.h"
 #include "platform/common/rs_log.h"
 
@@ -42,11 +43,14 @@ struct ScreenInfo {
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     std::unordered_set<uint64_t> whiteList = {};
+    RectI activeRect;
 
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL; // skip frame interval for change screen refresh rate
 
     GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
+
+    bool enableVisibleRect = false;
 
     uint32_t GetRotatedWidth() const
     {

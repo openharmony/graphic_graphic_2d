@@ -83,6 +83,10 @@ public:
 
     virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const = 0;
 
+    virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
+
+    virtual Rect GetMirrorScreenVisibleRect(ScreenId id) const = 0;
+
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
     
     virtual const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const = 0;
@@ -94,6 +98,8 @@ public:
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
 
     virtual void SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
+
+    virtual uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect) = 0;
 
     virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
@@ -296,6 +302,10 @@ public:
 
     const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const override;
 
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
+
+    Rect GetMirrorScreenVisibleRect(ScreenId id) const override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
     
     const std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const override;
@@ -307,6 +317,8 @@ public:
     void RemoveVirtualScreen(ScreenId id) override;
 
     void SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
+
+    uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect) override;
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 

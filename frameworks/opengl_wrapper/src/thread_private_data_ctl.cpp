@@ -93,7 +93,7 @@ void ThreadPrivateDataCtl::SetError(EGLint error)
 {
     ValidateKey();
     ThreadPrivateData *data = GetPrivateData();
-    if (data->error != error) {
+    if (data && data->error != error) {
         WLOGW("ThreadPrivateDataCtl::SetError error = %{public}d.", error);
         data->error = error;
     }

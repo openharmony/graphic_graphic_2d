@@ -16,12 +16,13 @@
 #ifndef ROSEN_MODULES_SPTEXT_TEXTLINE_IMPL_H
 #define ROSEN_MODULES_SPTEXT_TEXTLINE_IMPL_H
 
-#include "modules/skparagraph/include/TextLineBase.h"
-#include "txt/paint_record.h"
-#include "txt/text_line_base.h"
 #include <cstdint>
 #include <memory>
 #include <utility>
+
+#include "modules/skparagraph/include/TextLineBase.h"
+#include "txt/paint_record.h"
+#include "txt/text_line_base.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -51,7 +51,7 @@ private:
 
     static napi_value CreateEffect(napi_env env, napi_callback_info info);
     static napi_value CreateBrightnessBlender(napi_env env, napi_callback_info info);
-    static napi_value SetbackgroundColorBlender(napi_env env, napi_callback_info info);
+    static napi_value SetBackgroundColorBlender(napi_env env, napi_callback_info info);
     static bool ParseBrightnessBlender(napi_env env, napi_value jsObject, BrightnessBlender* blender);
 
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;

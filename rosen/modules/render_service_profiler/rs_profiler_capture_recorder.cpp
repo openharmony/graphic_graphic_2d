@@ -19,7 +19,6 @@
 #include <cstring>
 #include <filesystem>
 
-#include "benchmarks/file_utils.h"
 #include "include/core/SkDocument.h"
 #include "include/core/SkPicture.h"
 #include "include/core/SkPictureRecorder.h"
@@ -50,15 +49,20 @@ static const BoolParameter IS_MSKP("mskp.isMskp");
 
 RSCaptureRecorder::RSCaptureRecorder()
 {
+    profilerEnabled_ = RSSystemProperties::GetProfilerEnabled();
     InvalidateDrawingCanvasNodeId();
 }
 
 RSCaptureRecorder::~RSCaptureRecorder() = default;
 
+void RSCaptureRecorder::SetProfilerEnabled(bool val)
+{
+    profilerEnabled_ = val;
+}
+
 bool RSCaptureRecorder::IsRecordingEnabled()
 {
-    static const bool profilerEnabled = RSSystemProperties::GetProfilerEnabled();
-    return profilerEnabled && RSSystemProperties::GetInstantRecording();
+    return profilerEnabled_ && RSSystemProperties::GetInstantRecording();
 }
 
 void RSCaptureRecorder::InvalidateDrawingCanvasNodeId()

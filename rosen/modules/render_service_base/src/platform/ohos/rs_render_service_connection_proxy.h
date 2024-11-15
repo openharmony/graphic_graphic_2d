@@ -82,6 +82,8 @@ public:
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
@@ -211,6 +213,8 @@ public:
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) override;
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect) override;
+
     int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) override;
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -259,6 +263,8 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
+    void SetScreenSwitchStatus(bool flag) override;
+
     void SetDefaultDeviceRotationOffset(uint32_t offset) override;
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
@@ -278,7 +284,8 @@ public:
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) override;
 
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config) override;
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;

@@ -190,6 +190,21 @@ HWTEST_F(RoundRectTest, RoundRectRoundRectOffsetTest002, TestSize.Level1)
     ASSERT_TRUE(roundRect != nullptr);
     roundRect->Offset(200.0f, 40.8f);
 }
+
+/**
+ * @tc.name: RoundRectDumpTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require:AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(RoundRectTest, RoundRectDumpTest001, TestSize.Level1)
+{
+    std::unique_ptr<RoundRect> roundRect = std::make_unique<RoundRect>();
+    ASSERT_TRUE(roundRect != nullptr);
+    std::string out;
+    roundRect->Dump(out);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

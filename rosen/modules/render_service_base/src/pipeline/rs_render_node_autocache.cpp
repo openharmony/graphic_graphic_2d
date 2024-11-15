@@ -154,6 +154,9 @@ void RSRenderNode::NodeCacheStateChange(NodeChangeType type)
             if (unchangeCount_ > unchangeCountUpper_) {
                 nodeCacheState_ = NodeCacheState::STATE_UNCHANGE;
             }
+            if (stagingRenderParams_) {
+                stagingRenderParams_->OpincSetCacheChangeFlag(false, lastFrameSynced_);
+            }
             break;
         case NodeChangeType::SELF_DIRTY:
             NodeCacheStateReset(NodeCacheState::STATE_CHANGE);

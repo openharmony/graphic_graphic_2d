@@ -14,30 +14,14 @@
  */
 
 #include <cstddef>
-#include <memory>
 
-#include "drawing_bitmap.h"
-#include "drawing_brush.h"
-#include "drawing_canvas.h"
-#include "drawing_color.h"
-#include "drawing_font_collection.h"
 #include "drawing_fuzzer.h"
-#include "drawing_path.h"
-#include "drawing_pen.h"
-#include "drawing_point.h"
-#include "drawing_text_declaration.h"
-#include "drawing_text_typography.h"
-#include "drawing_types.h"
-#include "get_object.h"
-
 namespace OHOS::Rosen::Drawing {
-
-namespace {
-std::unique_ptr<char> GetRandomString()
+std::unique_ptr<char[]> GetRandomString()
 {
     // 使用随机的 char 数组可能会 crash ，所以暂时使用常量
     const char s[] = "你好";
-    std::unique_ptr dest = std::make_unique<char>(sizeof(s));
+    std::unique_ptr dest = std::make_unique<char[]>(sizeof(s));
     dest.get()[sizeof(s) - 1] = 0;
     strcpy_s(dest.get(), sizeof(s), s);
     return dest;
@@ -45,25 +29,32 @@ std::unique_ptr<char> GetRandomString()
 
 void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle)
 {
-    std::unique_ptr<char> str = GetRandomString();
-    OH_Drawing_SetTypographyTextDirection(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextAlign(typoStyle, GetObject<int>());
+    std::unique_ptr str = GetRandomString();
+    // 这是用于测试的字体家族字符串的二进制表示
+    const char fontFamiliesTest[] = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x5f, 0x53, 0x61, 0x6e,
+        0x73 };
+    const char* fontFamilies[] = { str.get() };
+    const char* fontFamilies1[] = { fontFamiliesTest };
+
+    OH_Drawing_SetTypographyTextDirection(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE1);
+    OH_Drawing_SetTypographyTextAlign(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE4);
     OH_Drawing_SetTypographyTextMaxLines(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextWordBreakType(typoStyle, GetObject<int>());
+    OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
+    OH_Drawing_SetTypographyTextWordBreakType(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextFontWeight(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextFontStyle(typoStyle, GetObject<int>());
+    OH_Drawing_SetTypographyTextEllipsisModal(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
+    OH_Drawing_SetTypographyTextFontWeight(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE5);
+    OH_Drawing_SetTypographyTextFontStyle(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTypographyTextFontFamily(typoStyle, str.get());
+    OH_Drawing_SetTypographyTextFontFamily(typoStyle, fontFamiliesTest);
     OH_Drawing_SetTypographyTextFontSize(typoStyle, GetObject<double>());
     OH_Drawing_SetTypographyTextFontHeight(typoStyle, GetObject<double>());
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, GetObject<double>());
     OH_Drawing_SetTypographyTextUseLineStyle(typoStyle, GetObject<bool>());
-    OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, GetObject<int>());
-    OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, GetObject<int>());
-    const char* fontFamilies[] = { str.get() };
+    OH_Drawing_SetTypographyTextLineStyleFontWeight(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE5);
+    OH_Drawing_SetTypographyTextLineStyleFontStyle(typoStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, 1, fontFamilies);
+    OH_Drawing_SetTypographyTextLineStyleFontFamilies(typoStyle, 1, fontFamilies1);
     OH_Drawing_SetTypographyTextLineStyleFontSize(typoStyle, GetObject<double>());
     OH_Drawing_SetTypographyTextLineStyleFontHeight(typoStyle, GetObject<double>());
     OH_Drawing_SetTypographyTextLineStyleHalfLeading(typoStyle, GetObject<double>());
@@ -129,22 +120,27 @@ void SetTextStyle(OH_Drawing_TextStyle* txtStyle)
     uint32_t alpha = GetObject<uint32_t>();
     OH_Drawing_SetTextStyleColor(txtStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
     OH_Drawing_SetTextStyleFontSize(txtStyle, GetObject<double>());
-    OH_Drawing_SetTextStyleFontWeight(txtStyle, GetObject<int>());
-    OH_Drawing_SetTextStyleBaseLine(txtStyle, GetObject<int>());
-    OH_Drawing_SetTextStyleDecoration(txtStyle, GetObject<int>());
+    OH_Drawing_SetTextStyleFontWeight(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE5);
+    OH_Drawing_SetTextStyleBaseLine(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE1);
+    OH_Drawing_SetTextStyleDecoration(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE3);
     OH_Drawing_SetTextStyleDecorationColor(txtStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
     OH_Drawing_SetTextStyleFontHeight(txtStyle, GetObject<double>());
-    OH_Drawing_SetTextStyleFontStyle(txtStyle, GetObject<int>());
+    OH_Drawing_SetTextStyleFontStyle(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE3);
     std::unique_ptr dest = GetRandomString();
     OH_Drawing_SetTextStyleLocale(txtStyle, dest.get());
     const char* fontFamilies[] = { dest.get() };
+    // 这是用于测试的字体家族字符串的二进制表示
+    const char fontFamiliesTest[] = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x5f, 0x53, 0x61, 0x6e,
+        0x73 };
+    const char* fontFamilies1[] = { fontFamiliesTest };
     OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
-    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, GetObject<int>());
+    OH_Drawing_SetTextStyleFontFamilies(txtStyle, 1, fontFamilies);
+    OH_Drawing_SetTextStyleDecorationStyle(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE3);
     OH_Drawing_SetTextStyleDecorationThicknessScale(txtStyle, GetObject<double>());
     OH_Drawing_SetTextStyleLetterSpacing(txtStyle, GetObject<double>());
     OH_Drawing_SetTextStyleWordSpacing(txtStyle, GetObject<double>());
     OH_Drawing_SetTextStyleHalfLeading(txtStyle, GetObject<int>());
-    OH_Drawing_SetTextStyleEllipsisModal(txtStyle, GetObject<int>());
+    OH_Drawing_SetTextStyleEllipsisModal(txtStyle, GetObject<int>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTextStyleEllipsis(txtStyle, dest.get());
     OH_Drawing_TextStyleAddFontVariation(txtStyle, dest.get(), GetObject<float>());
     OH_Drawing_SetTextStyleForegroundBrush(txtStyle, OH_Drawing_BrushCreate());
@@ -291,7 +287,7 @@ OH_Drawing_Canvas* CreateCanvas(OH_Drawing_Bitmap* bitmap)
     OH_Drawing_CanvasClear(canvas, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
     return canvas;
 }
-} // namespace
+
 
 void OHDrawingParserTest()
 {
@@ -340,6 +336,7 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_PathArcTo(path, GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>(),
         GetObject<float>(), GetObject<float>());
     OH_Drawing_TypographyPaintOnPath(typography, canvas, path, GetObject<double>(), GetObject<double>());
+    OH_Drawing_TypographyPaintOnPath(typography, canvas, nullptr, GetObject<double>(), GetObject<double>());
     OH_Drawing_TypographyPaint(typography, canvas, position[0], position[1]);
 
     OH_Drawing_FontDescriptor* fontDescriptor = OH_Drawing_CreateFontDescriptor();

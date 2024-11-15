@@ -73,8 +73,8 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         RS_LOGE("bhdr pixelMap_ || image_ is nullptr");
         return false;
     }
+    RS_LOGD("RSImage::HDRConvert HDRDraw pixelMap_ IsHdr: %{public}d", pixelMap_->IsHdr());
     if (!pixelMap_->IsHdr()) {
-        RS_LOGD("bhdr pixelMap_ is not hdr");
         return false;
     }
 

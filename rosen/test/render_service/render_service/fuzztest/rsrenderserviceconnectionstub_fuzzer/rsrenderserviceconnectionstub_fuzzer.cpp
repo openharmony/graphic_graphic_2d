@@ -331,6 +331,37 @@ bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetHwcNodeBounds(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    pid_t newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    NodeId id = static_cast<NodeId>(newPid) << 32;
+    dataParcel.WriteUint64(id);
+    dataParcel.WriteFloat(1.0f);
+    dataParcel.WriteFloat(1.0f);
+    dataParcel.WriteFloat(1.0f);
+    dataParcel.WriteFloat(1.0f);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -344,6 +375,37 @@ bool DoSetScreenActiveMode(const uint8_t* data, size_t size)
 
     FuzzedDataProvider fdp(data, size);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetScreenActiveRect(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
     auto newPid = getpid();
 
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
@@ -982,6 +1044,36 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, RSMainThread::Instance(), nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+    
+    FuzzedDataProvider fdp(data, size);
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -998,7 +1090,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
     OHOS::Rosen::DoSetScreenPowerStatus(data, size);
+    OHOS::Rosen::DoSetHwcNodeBounds(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
+    OHOS::Rosen::DoSetScreenActiveRect(data, size);
     OHOS::Rosen::DoGetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetRefreshRateMode(data, size);
     OHOS::Rosen::DoGetScreenSupportedRefreshRates(data, size);
@@ -1014,6 +1108,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetScreenColorGamut(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
+    OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
 
     return 0;
 }

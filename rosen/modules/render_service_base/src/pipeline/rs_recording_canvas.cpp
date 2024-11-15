@@ -88,14 +88,14 @@ void ExtendRecordingCanvas::DrawPixelMapRect(const std::shared_ptr<Media::PixelM
     Drawing::SrcRectConstraint constraint)
 {
     if (!addDrawOpImmediate_) {
-        AddDrawOpDeferred<Drawing::DrawPixelMapRectOpItem>(pixelMap, src, dst, sampling);
+        AddDrawOpDeferred<Drawing::DrawPixelMapRectOpItem>(pixelMap, src, dst, sampling, constraint);
         return;
     }
     auto object = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
     auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
     auto objectHandle =
         Drawing::CmdListHelper::AddImageBaseObjToCmdList(*drawCallList, object);
-    AddDrawOpImmediate<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling);
+    AddDrawOpImmediate<Drawing::DrawPixelMapRectOpItem::ConstructorHandle>(objectHandle, sampling, constraint);
 }
 
 void ExtendRecordingCanvas::DrawDrawFunc(Drawing::RecordingCanvas::DrawFunc&& drawFunc)

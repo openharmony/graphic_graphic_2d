@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,10 +24,12 @@
 #include "rs_window_animation_target.h"
 #include "rs_iwindow_animation_controller.h"
 #include "rs_window_animation_proxy.h"
+#include "ui/rs_surface_node.h"
 
 namespace OHOS {
     using namespace Rosen;
     namespace {
+        constexpr size_t STR_LEN = 10;
         const uint8_t* g_data = nullptr;
         size_t g_size = 0;
         size_t g_pos;
@@ -70,6 +72,47 @@ namespace OHOS {
         return str;
     }
 
+    class RSWindowAnimationFinishedCallbackStubMock : public RSWindowAnimationFinishedCallbackStub {
+    public:
+        RSWindowAnimationFinishedCallbackStubMock() = default;
+        virtual ~RSWindowAnimationFinishedCallbackStubMock() = default;
+
+        void OnAnimationFinished() override {};
+    };
+
+    class RSWindowAnimationStubMock : public RSWindowAnimationStub {
+    public:
+        RSWindowAnimationStubMock() = default;
+        virtual ~RSWindowAnimationStubMock() = default;
+
+        void OnStartApp(StartingAppType type, const sptr<RSWindowAnimationTarget>& startingWindowTarget,
+            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnAppTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+            const sptr<RSWindowAnimationTarget>& toWindowTarget,
+            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnAppBackTransition(const sptr<RSWindowAnimationTarget>& fromWindowTarget,
+            const sptr<RSWindowAnimationTarget>& toWindowTarget,
+            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnMinimizeWindow(const sptr<RSWindowAnimationTarget>& minimizingWindowTarget,
+            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnMinimizeAllWindow(std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget,
+            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnCloseWindow(const sptr<RSWindowAnimationTarget>& closingWindowTarget,
+            const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnScreenUnlock(const sptr<RSIWindowAnimationFinishedCallback>& finishedCallback) override {};
+
+        void OnWindowAnimationTargetsUpdate(const sptr<RSWindowAnimationTarget>& fullScreenWindowTarget,
+            const std::vector<sptr<RSWindowAnimationTarget>>& floatingWindowTargets) override {};
+
+        void OnWallpaperUpdate(const sptr<RSWindowAnimationTarget>& wallpaperTarget) override {};
+    };
+
     void FinishedCallbackFuzzTest()
     {
         // test
@@ -84,6 +127,27 @@ namespace OHOS {
         sptr<RSWindowAnimationFinishedCallbackProxy> finishedCallbackProxy =
             new RSWindowAnimationFinishedCallbackProxy(finishedCallback);
         finishedCallbackProxy->OnAnimationFinished();
+    }
+
+    void FinishedCallbackStubFuzzTest()
+    {
+        // test
+        uint32_t code = GetData<uint32_t>();
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+
+        auto finishedCallbackStub = std::make_shared<RSWindowAnimationFinishedCallbackStubMock>();
+        int res = finishedCallbackStub->OnRemoteRequest(code, data, reply, option);
+
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationFinishedCallback::GetDescriptor());
+        res = finishedCallbackStub->OnRemoteRequest(code, data, reply, option);
+        res = finishedCallbackStub->OnRemoteRequest(
+            RSIWindowAnimationFinishedCallback::ON_ANIMATION_FINISHED, data, reply, option);
+        res = finishedCallbackStub->OnRemoteRequest(
+            RSIWindowAnimationFinishedCallback::ON_ANIMATION_FINISHED, data, reply, option);
     }
 
     void RSWindowAnimationProxyFuzzTest()
@@ -106,6 +170,382 @@ namespace OHOS {
         rSWindowAnimationProxy->OnWallpaperUpdate(nullptr);
     }
 
+    void RSWindowAnimationStubFuzzTest()
+    {
+        // test
+        uint32_t code = GetData<uint32_t>();
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(code, data, reply, option);
+
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationFinishedCallback::GetDescriptor());
+        res = windowAnimationStub->OnRemoteRequest(code, data, reply, option);
+    }
+
+    void RSWindowAnimationStubStartAppFuzzTest()
+    {
+        // test
+        StartingAppType type = GetData<StartingAppType>();
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_START_APP, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteInt32(type);
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_START_APP, data1, reply, option);
+
+        MessageParcel data2;
+        data2.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data2.WriteInt32(type);
+        data2.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_START_APP, data2, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteInt32(type);
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_START_APP, data3, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubAppTransitionFuzzTest()
+    {
+        // test
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_TRANSITION, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_TRANSITION, data1, reply, option);
+
+        MessageParcel data2;
+        data2.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data2.WriteParcelable(windowAnimationTarget.get());
+        data2.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_TRANSITION, data2, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_TRANSITION, data3, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubAppBackTransitionFuzzTest()
+    {
+        // test
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_BACK_TRANSITION, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_BACK_TRANSITION, data1, reply, option);
+
+        MessageParcel data2;
+        data2.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data2.WriteParcelable(windowAnimationTarget.get());
+        data2.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_BACK_TRANSITION, data2, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_APP_BACK_TRANSITION, data3, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubMinimizeWindowFuzzTest()
+    {
+        // test
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_WINDOW, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_WINDOW, data1, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_WINDOW, data3, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubMinimizeAllWindowFuzzTest()
+    {
+        // test
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data1, reply, option);
+
+        MessageParcel data2;
+        data2.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data2.WriteUint32(GetData<uint32_t>());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data1, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteUint32(1);
+        data3.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data3, reply, option);
+
+        MessageParcel data4;
+        data4.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data4.WriteUint32(1);
+        data4.WriteParcelable(windowAnimationTarget.get());
+        data4.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_MINIMIZE_ALLWINDOW, data4, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubCloseWindowFuzzTest()
+    {
+        // test
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_CLOSE_WINDOW, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_CLOSE_WINDOW, data1, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_CLOSE_WINDOW, data3, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubScreenUnlockFuzzTest()
+    {
+        // test
+        auto callback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_SCREEN_UNLOCK, data, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteRemoteObject(callback->AsObject());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_SCREEN_UNLOCK, data3, reply, option);
+        callback = nullptr;
+    }
+
+    void RSWindowAnimationStubWindowAnimationTargetsUpdateFuzzTest()
+    {
+        // test
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        auto windowAnimationTarget = std::make_shared<RSWindowAnimationTarget>();
+        windowAnimationTarget->bundleName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->abilityName_ = GetStringFromData(STR_LEN);
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = GetData<uint32_t>();
+        windowAnimationTarget->displayId_ = GetData<uint64_t>();
+        windowAnimationTarget->missionId_ = GetData<int32_t>();
+
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteBool(GetData<bool>());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data1, reply, option);
+
+        MessageParcel data2;
+        data2.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data2.WriteBool(GetData<bool>());
+        data2.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data2, reply, option);
+
+        MessageParcel data3;
+        data3.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data3.WriteBool(GetData<bool>());
+        data3.WriteParcelable(windowAnimationTarget.get());
+        data3.WriteUint32(GetData<uint32_t>());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data3, reply, option);
+
+        MessageParcel data4;
+        data4.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data4.WriteBool(GetData<bool>());
+        data4.WriteParcelable(windowAnimationTarget.get());
+        data4.WriteUint32(1);
+        data4.WriteParcelable(windowAnimationTarget.get());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WINDOW_ANIMATION_TARGETS_UPDATE, data4, reply, option);
+    }
+
+    void RSWindowAnimationStubWallpaperUpdateFuzzTest()
+    {
+        // test
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        auto windowAnimationStub = std::make_shared<RSWindowAnimationStubMock>();
+        int res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WALLPAPER_UPDATE, data, reply, option);
+        
+        MessageParcel data1;
+        data1.WriteInterfaceToken(RSIWindowAnimationController::GetDescriptor());
+        data1.WriteUint32(GetData<uint32_t>());
+        res = windowAnimationStub->OnRemoteRequest(
+            RSIWindowAnimationController::ON_WALLPAPER_UPDATE, data1, reply, option);
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -116,11 +556,20 @@ namespace OHOS {
         g_data = data;
         g_size = size;
         g_pos = 0;
-
         FinishedCallbackFuzzTest();
         FinishedCallbackProxyFuzzTest();
+        FinishedCallbackStubFuzzTest();
         RSWindowAnimationProxyFuzzTest();
-
+        RSWindowAnimationStubFuzzTest();
+        RSWindowAnimationStubStartAppFuzzTest();
+        RSWindowAnimationStubAppTransitionFuzzTest();
+        RSWindowAnimationStubAppBackTransitionFuzzTest();
+        RSWindowAnimationStubMinimizeWindowFuzzTest();
+        RSWindowAnimationStubMinimizeAllWindowFuzzTest();
+        RSWindowAnimationStubCloseWindowFuzzTest();
+        RSWindowAnimationStubScreenUnlockFuzzTest();
+        RSWindowAnimationStubWindowAnimationTargetsUpdateFuzzTest();
+        RSWindowAnimationStubWallpaperUpdateFuzzTest();
         return true;
     }
 }

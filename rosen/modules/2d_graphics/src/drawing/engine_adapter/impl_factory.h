@@ -47,6 +47,7 @@
 #include "impl_interface/shader_effect_impl.h"
 #include "impl_interface/surface_impl.h"
 #include "impl_interface/text_blob_builder_impl.h"
+#include "impl_interface/trace_memory_dump_impl.h"
 #include "impl_interface/memory_stream_impl.h"
 
 namespace OHOS {

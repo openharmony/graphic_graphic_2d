@@ -37,6 +37,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest001, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
     OH_Drawing_FontMgrDestroy(mgr);
+    OH_Drawing_FontMgrDestroy(nullptr);
 }
 
 /*
@@ -66,12 +67,14 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest002, TestSize.Level1)
  */
 HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest003, TestSize.Level1)
 {
-    OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
+    OH_Drawing_FontMgr* mgr = OH_Drawing_FontMgrCreate();
     EXPECT_NE(mgr, nullptr);
 
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
+    OH_Drawing_FontMgrCreateFontStyleSet(reinterpret_cast<OH_Drawing_FontMgr*>(1), 0);
     EXPECT_NE(fontStyleSet, nullptr);
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
+    OH_Drawing_FontMgrDestroyFontStyleSet(nullptr);
 
     OH_Drawing_FontMgrDestroy(mgr);
 }
@@ -226,10 +229,16 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest011, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
     OH_Drawing_FontStyleStruct normalStyle;
-    char** styleName = nullptr;
-    normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, styleName);
-    EXPECT_EQ(normalStyle.weight, FONT_WEIGHT_400);
-    OH_Drawing_FontStyleSetFreeStyleName(styleName);
+    char* styleName = nullptr;
+    normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, &styleName);
+    ASSERT_NE(styleName, nullptr);
+    EXPECT_EQ(std::string(styleName), "normal");
+    EXPECT_EQ(normalStyle.weight, 400);
+    OH_Drawing_FontStyleSetFreeStyleName(&styleName);
+
+    normalStyle = OH_Drawing_FontStyleSetGetStyle(fontStyleSet, 0, nullptr);
+    OH_Drawing_FontStyleSetFreeStyleName(nullptr);
+
     OH_Drawing_FontMgrDestroyFontStyleSet(fontStyleSet);
     OH_Drawing_FontMgrDestroy(mgr);
 }
@@ -267,7 +276,7 @@ HWTEST_F(OH_Drawing_FontMgrTest, OH_Drawing_FontMgrTest013, TestSize.Level1)
     OH_Drawing_FontMgr *mgr = OH_Drawing_FontMgrCreate();
     OH_Drawing_FontStyleSet* fontStyleSet = OH_Drawing_FontMgrCreateFontStyleSet(mgr, 0);
     int count = OH_Drawing_FontStyleSetCount(fontStyleSet);
-    EXPECT_TRUE(count > 0);
+    EXPECT_EQ(count, 2);
 
     count = OH_Drawing_FontStyleSetCount(nullptr);
     EXPECT_EQ(count, 0);

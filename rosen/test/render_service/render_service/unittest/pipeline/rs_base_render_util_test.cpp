@@ -156,39 +156,6 @@ HWTEST_F(RSBaseRenderUtilTest, IsBufferValid_002, TestSize.Level2)
 }
 
 /*
- * @tc.name: SetScalingMode_001
- * @tc.desc: Test InitPreScalingMode
- * @tc.type: FUNC
- * @tc.require: issueIAZEU6
- */
-HWTEST_F(RSBaseRenderUtilTest, SetScalingMode_001, TestSize.Level2)
-{
-    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(rsSurfaceRenderNode, nullptr);
-    auto surfaceHandler = rsSurfaceRenderNode->GetRSSurfaceHandler();
-    ASSERT_NE(surfaceHandler, nullptr);
-    const auto& surfaceConsumer = surfaceHandler->GetConsumer();
-    auto producer = surfaceConsumer->GetProducer();
-    psurf = Surface::CreateSurfaceAsProducer(producer);
-    psurf->SetQueueSize(1);
-    psurf->SetScalingMode(ScalingMode::SCALING_MODE_SCALE_CROP);
-    sptr<SurfaceBuffer> buffer;
-    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
-    [[maybe_unused]] GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
-    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
-    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
-    OHOS::sptr<SurfaceBuffer> cbuffer;
-    Rect damage;
-    sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
-    int64_t timestamp = 0;
-    ret = surfaceConsumer->AcquireBuffer(cbuffer, acquireFence, timestamp, damage);
-    ASSERT_EQ(ret, GSERROR_OK);
-    surfaceHandler->SetBuffer(cbuffer, acquireFence, damage, timestamp);
-    RSBaseRenderUtil::SetScalingMode(*rsSurfaceRenderNode);
-    ASSERT_EQ(rsSurfaceRenderNode->GetStagingRenderParams()->GetScalingMode(), ScalingMode::SCALING_MODE_SCALE_CROP);
-}
-
-/*
  * @tc.name: GetFrameBufferRequestConfig_001
  * @tc.desc: Test GetFrameBufferRequestConfig
  * @tc.type: FUNC

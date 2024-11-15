@@ -20,9 +20,9 @@
 
 #include "include/core/SkMatrix.h"
 #include "drawing_painter_impl.h"
+#include "paragraph_builder_impl.h"
 #include "skia_adapter/skia_convert_utils.h"
 #include "text/font_metrics.h"
-#include "paragraph_builder_impl.h"
 #include "text_line_impl.h"
 #include "utils/text_log.h"
 

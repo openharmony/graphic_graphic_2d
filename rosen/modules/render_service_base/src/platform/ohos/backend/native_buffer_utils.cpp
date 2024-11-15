@@ -18,6 +18,7 @@
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
 #include "pipeline/sk_resource_manager.h"
+
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 void DeleteVkImage(void* context)

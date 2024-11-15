@@ -13,14 +13,26 @@
  * limitations under the License.
  */
 
-#include <dlfcn.h>
 #include "touch_screen.h"
+
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
-const std::string TOUCHSCREEN_WRAPPER_PATH = "../../vendor/lib64/chipsetsdk/libhw_touchscreen.default.so";
+constexpr std::string_view TOUCHSCREEN_WRAPPER_PATH = "../../vendor/lib64/chipsetsdk/libhw_touchscreen.default.so";
+
+template<typename Handle>
+void GetHandleBySymbol(void* dlHandle, Handle& handle, const char* symbol)
+{
+    handle = reinterpret_cast<Handle>(dlsym(dlHandle, symbol));
+    if (handle == nullptr) {
+        RS_LOGE("touch screen get handle by %{public}s failed, error: %{public}s",
+            symbol, dlerror());
+    } else {
+        RS_LOGI("touch screen get handle by %{public}s success", symbol);
+    }
+}
 } // namespace
 
 TouchScreen::TouchScreen() {}
@@ -29,23 +41,21 @@ TouchScreen::~TouchScreen()
     if (touchScreenHandle_ != nullptr) {
         dlclose(touchScreenHandle_);
         touchScreenHandle_ = nullptr;
+        setFeatureConfigHandle_ = nullptr;
+        setAftConfigHandle_ = nullptr;
     }
 }
 
 void TouchScreen::InitTouchScreen()
 {
-    touchScreenHandle_ = dlopen(TOUCHSCREEN_WRAPPER_PATH.c_str(), RTLD_NOW);
+    touchScreenHandle_ = dlopen(TOUCHSCREEN_WRAPPER_PATH.data(), RTLD_NOW);
     if (touchScreenHandle_ == nullptr) {
         RS_LOGE("libhw_touchscreen.default.so was not loaded, error: %{public}s", dlerror());
         return;
     }
 
-    tsSetFeatureConfig_ = (TS_SET_FEATURE_CONFIG_)dlsym(touchScreenHandle_, "ts_set_feature_config");
-    if (tsSetFeatureConfig_ == nullptr) {
-        RS_LOGE("touch screen get symbol failed, error: %{public}s", dlerror());
-        return;
-    }
-    RS_LOGI("touch scree wrapper init success");
+    GetHandleBySymbol(touchScreenHandle_, setFeatureConfigHandle_, "ts_set_feature_config");
+    GetHandleBySymbol(touchScreenHandle_, setAftConfigHandle_, "ts_set_aft_config");
 }
-} // namespace MMI
+} // namespace Rosen
 } // namespace OHOS

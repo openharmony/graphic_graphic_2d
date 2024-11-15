@@ -32,6 +32,8 @@ ohos_fuzztest("DrawCmdListFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
 
   include_dirs = [

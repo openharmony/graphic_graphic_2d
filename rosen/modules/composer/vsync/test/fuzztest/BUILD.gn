@@ -18,6 +18,7 @@ group("fuzztest") {
     "vsyncconnection_fuzzer:fuzztest",
     "vsynccontroller_fuzzer:fuzztest",
     "vsyncdistributor_fuzzer:fuzztest",
+    "vsyncgenerator_fuzzer:fuzztest",
     "vsyncreceiver_fuzzer:fuzztest",
     "vsyncsampler_fuzzer:fuzztest",
   ]

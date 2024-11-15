@@ -54,5 +54,19 @@ HWTEST_F(RSLinearGradientBlurShaderFilterTest, GenerateGEVisualEffectTest, TestS
     rsLinearGradientBlurShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
+
+/**
+ * @tc.name: GetLinearGradientBlurRadius003
+ * @tc.desc: Verify function GetLinearGradientBlurRadius
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSLinearGradientBlurShaderFilterTest, GetLinearGradientBlurRadius003, TestSize.Level1)
+{
+    float geoWidth = 0.f;
+    float geoHeight = 0.f;
+    auto rsLinearGradientBlurShaderFilter =
+        std::make_shared<RSLinearGradientBlurShaderFilter>(nullptr, geoWidth, geoHeight);
+    EXPECT_TRUE(rsLinearGradientBlurShaderFilter->GetLinearGradientBlurRadius() == 0.);
+}
 } // namespace Rosen
 } // namespace OHOS

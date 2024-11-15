@@ -26,7 +26,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr size_t DATA_MIN_SIZE = 2;
 constexpr size_t MAX_ARRAY_SIZE = 5000;
 constexpr size_t ALPHATYPE_SIZE = 4;
 constexpr size_t COLORTYPE_SIZE = 10;
@@ -35,9 +34,13 @@ constexpr size_t COLORTYPE_SIZE = 10;
 namespace Drawing {
 bool BitmapFuzzTest001(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     int width = static_cast<int>(data[0]);
     int height = static_cast<int>(data[1]);
@@ -53,9 +56,13 @@ bool BitmapFuzzTest001(const uint8_t* data, size_t size)
 
 bool BitmapFuzzTest002(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     int imageInfoWidth = GetObject<int>();
     int imageInfoHeight = GetObject<int>();
@@ -85,9 +92,13 @@ bool BitmapFuzzTest002(const uint8_t* data, size_t size)
 
 bool BitmapFuzzTest003(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     int imageInfoWidth = GetObject<int>();
     int imageInfoHeight = GetObject<int>();
@@ -115,9 +126,13 @@ bool BitmapFuzzTest003(const uint8_t* data, size_t size)
 
 bool BitmapFuzzTest004(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     bitmap.ComputeByteSize();
     Pixmap pixmap;
@@ -140,9 +155,13 @@ bool BitmapFuzzTest004(const uint8_t* data, size_t size)
 
 bool BitmapFuzzTest005(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     Bitmap dst;
     int srcLeft = GetObject<int>();
@@ -162,9 +181,13 @@ bool BitmapFuzzTest005(const uint8_t* data, size_t size)
 
 bool BitmapFuzzTest006(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     BitmapFormat format;
     bitmap.GetFormat();
@@ -178,7 +201,6 @@ bool BitmapFuzzTest006(const uint8_t* data, size_t size)
     bitmap.SetInfo(imageInfo);
     bitmap.GetImageInfo();
     bitmap.GetPixmap();
-    bitmap.MakeImage();
     bitmap.TryAllocPixels(imageInfo);
     bitmap.Serialize();
     bitmap.Deserialize(nullptr);
@@ -187,9 +209,13 @@ bool BitmapFuzzTest006(const uint8_t* data, size_t size)
 
 bool BitmapFuzzTest007(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return false;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     Bitmap bitmap;
     int imageInfoWidth = GetObject<int>();
     int imageInfoHeight = GetObject<int>();

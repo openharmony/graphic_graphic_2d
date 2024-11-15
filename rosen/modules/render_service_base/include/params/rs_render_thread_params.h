@@ -93,6 +93,26 @@ public:
         isOpDropped_ = opDropped;
     }
 
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    bool IsFirstVisitCrossNodeDisplay() const
+    {
+        return isFirstVisitCrossNodeDisplay_;
+    }
+
+    void SetIsFirstVisitCrossNodeDisplay(bool isFirstVisitCrossNodeDisplay)
+    {
+        isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
+    }
+
     bool GetUIFirstDebugEnabled() const
     {
         return isUIFirstDebugEnable_;
@@ -254,6 +274,16 @@ public:
         return cacheEnabledForRotation_;
     }
 
+    void SetScreenSwitchStatus(bool flag)
+    {
+        isScreenSwitching_ = flag;
+    }
+
+    bool GetScreenSwitchStatus() const
+    {
+        return isScreenSwitching_;
+    }
+
     void SetRequestNextVsyncFlag(bool flag)
     {
         needRequestNextVsyncAnimate_ = flag;
@@ -379,11 +409,6 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
-    bool IsAceDebugBoundaryEnabled() const
-    {
-        return isAceDebugBoundaryEnabled_;
-    }
-
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -394,6 +419,8 @@ private:
     uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
     bool isRegionDebugEnabled_ = false;
     bool isPartialRenderEnabled_ = false;
     bool isDirtyRegionDfxEnabled_ = false;
@@ -411,6 +438,7 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
+    bool isScreenSwitching_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
@@ -433,7 +461,6 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
-    bool isAceDebugBoundaryEnabled_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;

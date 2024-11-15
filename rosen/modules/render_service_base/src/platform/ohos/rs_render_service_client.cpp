@@ -16,8 +16,9 @@
 #include "transaction/rs_render_service_client.h"
 #include "surface_type.h"
 #include "surface_utils.h"
-
+#ifdef RS_ENABLE_GL
 #include "backend/rs_surface_ohos_gl.h"
+#endif
 #include "backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "backend/rs_surface_ohos_vulkan.h"
@@ -56,7 +57,7 @@ void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
     } else {
-        RS_LOGE("RSRenderServiceClient::CommitTransaction failed, renderService is nullptr");
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderServiceClient::CommitTransaction failed, renderService is nullptr");
     }
 }
 
@@ -389,6 +390,16 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     }
 
     return renderService->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
+int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetMirrorScreenVisibleRect(id, mainScreenRect);
 }
 
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
@@ -1101,6 +1112,15 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     return renderService->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
 }
 
+uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->SetScreenActiveRect(id, activeRect);
+}
+
 class CustomOcclusionChangeCallback : public RSOcclusionChangeCallbackStub
 {
 public:
@@ -1419,6 +1439,14 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
     }
 }
 
+void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetScreenSwitchStatus(flag);
+    }
+}
+
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1489,13 +1517,14 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
-    renderService->SetTpFeatureConfig(feature, config);
+    renderService->SetTpFeatureConfig(feature, config, tpFeatureConfigType);
 }
 #endif
 
@@ -1543,21 +1572,21 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
     return renderService->RegisterUIExtensionCallback(userId, cb);
 }
 
+bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        return renderService->SetAncoForceDoDirect(direct);
+    }
+    ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService is null");
+    return false;
+}
+
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         return renderService->SetVirtualScreenStatus(id, screenStatus);
-    }
-    return false;
-}
-
-bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SetAncoForceDoDirect renderService == nullptr!");
-        return renderService->SetAncoForceDoDirect(direct);
     }
     return false;
 }
@@ -1570,14 +1599,6 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
         return;
     }
     renderService->SetFreeMultiWindowStatus(enable);
-}
-
-void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->SetLayerTop(nodeIdStr, isTop);
-    }
 }
 
 class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
@@ -1654,6 +1675,14 @@ void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
     }
     if (callback) {
         callback->OnFinish(uid, surfaceBufferIds);
+    }
+}
+
+void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetLayerTop(nodeIdStr, isTop);
     }
 }
 } // namespace Rosen

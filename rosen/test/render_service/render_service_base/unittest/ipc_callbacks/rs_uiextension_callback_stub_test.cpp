@@ -79,6 +79,8 @@ HWTEST_F(RSUIExtensionCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 
     int res = rsUiExtensionCallbackStub->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE);
+    res = rsUiExtensionCallbackStub->OnRemoteRequest(-1, data, reply, option);
+    EXPECT_TRUE(res == ERR_INVALID_STATE);
 }
 
 } // namespace OHOS::Rosen

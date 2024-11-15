@@ -37,6 +37,7 @@ void ResourceHolderFuzzTest000(const uint8_t* data, size_t size)
     resource.HoldResource(img);
     resource.ReleaseResource();
     resource.IsEmpty();
+    resource.HaveReleaseableResourceCheck();
 }
 } // namespace Drawing
 } // namespace Rosen

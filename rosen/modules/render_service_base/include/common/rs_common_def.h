@@ -202,6 +202,14 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+#ifdef TP_FEATURE_ENABLE
+// the type of TpFeatureConfig
+enum class TpFeatureConfigType : uint8_t {
+    DEFAULT_TP_FEATURE = 0,
+    AFT_TP_FEATURE,
+};
+#endif
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -282,6 +290,7 @@ enum class UiFirstModeType : uint8_t {
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+    XCOM,
 };
 
 enum class SurfaceWindowType : uint8_t {
@@ -436,10 +445,10 @@ enum class AncoHebcStatus : int32_t {
 enum class RSInterfaceErrorCode : uint32_t {
 #undef NO_ERROR
     NO_ERROR = 0,
-    NOT_SELF_CALLING,
     NONSYSTEM_CALLING,
-    UNKNOWN_ERROR,
+    NOT_SELF_CALLING,
     WRITE_PARCEL_ERROR,
+    UNKNOWN_ERROR,
 };
 
 } // namespace Rosen

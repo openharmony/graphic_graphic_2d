@@ -817,6 +817,28 @@ HWTEST_F(RSScreenTest, SetActiveMode_006, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetScreenActiveRect001
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSScreenTest, SetScreenActiveRect001, testing::ext::TestSize.Level1)
+{
+    ScreenId idx = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(idx, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->isVirtual_ = false;
+    GraphicIRect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsScreen->SetScreenActiveRect(activeRect), StatusCode::HDI_ERROR);
+}
+
+/*
  * @tc.name: SetResolution_002
  * @tc.desc: SetResolution Test, IsVirtual() is false
  * @tc.type: FUNC
@@ -1789,4 +1811,119 @@ HWTEST_F(RSScreenTest, GetVirtualScreenStatus_001, testing::ext::TestSize.Level1
     ASSERT_EQ(rsScreen->GetVirtualScreenStatus(), VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
 }
 
+/*
+ * @tc.name: SetSecurityExemptionList_001
+ * @tc.desc: SetSecurityExemptionList Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenTest, SetSecurityExemptionList_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    rsScreen->SetSecurityExemptionList(securityExemptionList);
+    ASSERT_EQ(rsScreen->securityExemptionList_.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(rsScreen->securityExemptionList_[i], securityExemptionList[i]);
+    }
+}
+
+/*
+ * @tc.name: GetSecurityExemptionList_001
+ * @tc.desc: GetSecurityExemptionList Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB1YAT
+ */
+HWTEST_F(RSScreenTest, GetSecurityExemptionList_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    std::vector<uint64_t> securityExemptionList = {1, 2};  // id for test
+    rsScreen->securityExemptionList_ = securityExemptionList;
+    auto securityExemptionListGet = rsScreen->GetSecurityExemptionList();
+    ASSERT_EQ(securityExemptionListGet.size(), securityExemptionList.size());
+    for (auto i = 0; i < securityExemptionList.size(); i++) {
+        ASSERT_EQ(securityExemptionListGet[i], securityExemptionList[i]);
+    }
+}
+
+/*
+ * @tc.name: SetEnableVisibleRect_001
+ * @tc.desc: SetEnableVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetEnableVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->SetEnableVisibleRect(true);
+    ASSERT_EQ(rsScreen->enableVisibleRect_, true);
+}
+
+/*
+ * @tc.name: GetEnableVisibleRect_001
+ * @tc.desc: GetEnableVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, GetEnableVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    bool ret = rsScreen->GetEnableVisibleRect();
+    ASSERT_EQ(ret, false);
+
+    rsScreen->enableVisibleRect_ = true;
+    ret = rsScreen->GetEnableVisibleRect();
+    ASSERT_EQ(ret, true);
+}
+
+/*
+ * @tc.name: SetMainScreenVisibleRect_001
+ * @tc.desc: SetMainScreenVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, SetMainScreenVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    Rect rect = {};
+    rsScreen->SetMainScreenVisibleRect(rect);
+}
+
+/*
+ * @tc.name: GetMainScreenVisibleRect_001
+ * @tc.desc: GetMainScreenVisibleRect Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB2KBH
+ */
+HWTEST_F(RSScreenTest, GetMainScreenVisibleRect_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rectSet = {0, 0, width, height};
+    rsScreen->SetMainScreenVisibleRect(rectSet);
+    auto rectGet = rsScreen->GetMainScreenVisibleRect();
+    ASSERT_EQ(rectSet.x, rectGet.x);
+    ASSERT_EQ(rectSet.y, rectGet.y);
+    ASSERT_EQ(rectSet.w, rectGet.w);
+    ASSERT_EQ(rectSet.h, rectGet.h);
+}
 } // namespace OHOS::Rosen

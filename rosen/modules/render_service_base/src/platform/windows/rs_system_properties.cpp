@@ -77,6 +77,11 @@ bool RSSystemProperties::GetRenderNodePurgeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -127,17 +132,7 @@ bool RSSystemProperties::GetVkQueuePriorityEnable()
     return false;
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -194,6 +189,15 @@ uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
+}
+
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
+{
+}
+
+bool RSSystemProperties::GetScreenSwitchStatus()
+{
+    return false;
 }
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()

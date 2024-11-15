@@ -394,6 +394,26 @@ bool DoSetScreenActiveMode()
     return true;
 }
 
+bool DoSetScreenActiveRect()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    ScreenId id = GetData<uint64_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
+    rsConn_->SetScreenActiveRect(id, activeRect);
+    return true;
+}
+
 bool DoSetRefreshRateMode()
 {
     if (rsConn_ == nullptr) {
@@ -529,6 +549,20 @@ bool DoTakeSurfaceCapture()
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
     rsConn_->TakeSurfaceCapture(nodeId, callback, captureConfig);
+    return true;
+}
+
+bool DoSetHwcNodeBounds()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t nodeId = GetData<uint64_t>();
+    float positionX = GetData<float>();
+    float positionY = GetData<float>();
+    float positionZ = GetData<float>();
+    float positionW = GetData<float>();
+    rsConn_->SetHwcNodeBounds(nodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 
@@ -1100,7 +1134,8 @@ bool DOSetTpFeatureConfig()
     }
     int32_t feature = GetData<int32_t>();
     char config = GetData<char>();
-    rsConn_->SetTpFeatureConfig(feature, &config);
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
+    rsConn_->SetTpFeatureConfig(feature, &config, tpFeatureConfigType);
     return true;
 }
 #endif
@@ -1147,6 +1182,17 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DOSetFreeMultiWindowStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+
+    bool enable = GetData<bool>();
+    rsConn_->SetFreeMultiWindowStatus(enable);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1173,6 +1219,7 @@ void DoFuzzerTest1()
     DoUnRegisterPointerLuminanceChangeCallback();
 #endif
     DoSetScreenActiveMode();
+    DoSetScreenActiveRect();
     DoSetRefreshRateMode();
     DoCreateVSyncConnection();
     DoSetScreenRefreshRate();
@@ -1183,6 +1230,7 @@ void DoFuzzerTest1()
     DoRegisterOcclusionChangeCallback();
     DoShowWatermark();
     DoTakeSurfaceCapture();
+    DoSetHwcNodeBounds();
     DoSetScreenChangeCallback();
     DoSetFocusAppInfo();
     DoSetAncoForceDoDirect();
@@ -1241,6 +1289,7 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DOSetFreeMultiWindowStatus();
 }
 } // namespace Rosen
 } // namespace OHOS

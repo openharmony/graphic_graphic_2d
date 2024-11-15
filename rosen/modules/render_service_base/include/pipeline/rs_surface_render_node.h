@@ -456,7 +456,7 @@ public:
     bool GetBootAnimation() const override;
 
     void SetGlobalPositionEnabled(bool isEnabled);
-    bool GetGlobalPositionEnabled() const;
+    bool GetGlobalPositionEnabled() const override;
 
     void SetSecurityLayer(bool isSecurityLayer);
     void SetLeashPersistentId(uint64_t leashPersistentId);
@@ -1173,7 +1173,7 @@ public:
     void SetIsSubSurfaceNode(bool isSubSurfaceNode);
     bool IsSubSurfaceNode() const;
     const std::map<NodeId, RSSurfaceRenderNode::WeakPtr>& GetChildSubSurfaceNodes() const;
-    void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes);
+    void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes) const;
     std::string SubSurfaceNodesDump() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
@@ -1251,13 +1251,14 @@ public:
     {
         std::vector<RectI>(std::forward<Args>(args)...).swap(intersectedRoundCornerAABBs_);
     }
-    
+
     const std::vector<RectI>& GetIntersectedRoundCornerAABBs() const
     {
         return intersectedRoundCornerAABBs_;
     }
 
-    size_t GetIntersectedRoundCornerAABBsSize() const {
+    size_t GetIntersectedRoundCornerAABBsSize() const
+    {
         return intersectedRoundCornerAABBs_.size();
     }
 
@@ -1303,6 +1304,7 @@ private:
     void InitRenderParams() override;
     void UpdateRenderParams() override;
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
+    std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;
@@ -1310,7 +1312,7 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
-    ScreenId screenId_ = -1;
+    ScreenId screenId_ = INVALID_SCREEN_ID;
 
     float contextAlpha_ = 1.0f;
     std::optional<Drawing::Matrix> contextMatrix_;

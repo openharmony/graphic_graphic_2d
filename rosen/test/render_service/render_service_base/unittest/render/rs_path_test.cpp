@@ -157,4 +157,21 @@ HWTEST_F(RSPathTest, ReverseTest002, TestSize.Level1)
     RSPath rsPath;
     EXPECT_NE(rsPath.Reverse(), nullptr);
 }
+
+/**
+ * @tc.name: SetDrawingPath_001
+ * @tc.desc: Verify function SetDrawingPath
+ * @tc.type:FUNC
+ * @tc.require:issueIB262Y
+ */
+HWTEST_F(RSPathTest, SetDrawingPath_001, TestSize.Level2)
+{
+    Drawing::Path path = CreateDrawingPath();
+    auto rsPath = RSPath::CreateRSPath();
+    EXPECT_NE(rsPath, nullptr);
+
+    rsPath->drPath_ = nullptr;
+    rsPath->SetDrawingPath(path);
+    EXPECT_NE(rsPath->drPath_, nullptr);
+}
 } // namespace OHOS::Rosen

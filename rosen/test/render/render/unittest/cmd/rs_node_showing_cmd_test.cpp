@@ -245,7 +245,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimatUniTest, ProcessUniTest002, Te
     std::shared_ptr<RSBaseRenderNode> renderNodeTest1 = std::make_shared<RSBaseRenderNode>(0);
     EXPECT_NE(renderNodeTest1, nullptr);
     renderNodeTest1->modifiers_[0] = nullptr;
-    context.nodeMap.renderNodeMap_.emplace(0, renderNodeTest1);
+    context.nodeMap.renderNodeMap_[0][0] = renderNodeTest1;
 
     std::shared_ptr<RSBaseRenderNode> renderNodeTest2 = std::make_shared<RSBaseRenderNode>(1);
     EXPECT_NE(renderNodeTest2, nullptr);
@@ -255,7 +255,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimatUniTest, ProcessUniTest002, Te
     EXPECT_NE(modifierTest2, nullptr);
     modifierTest2->property_ = nullptr;
     renderNodeTest2->modifiers_[1] = modifierTest2;
-    context.nodeMap.renderNodeMap_.emplace(1, renderNodeTest2);
+    context.nodeMap.renderNodeMap_[0][1] = renderNodeTest2;
 
     std::shared_ptr<RSBaseRenderNode> renderNodeTest3 = std::make_shared<RSBaseRenderNode>(2);
     EXPECT_NE(renderNodeTest3, nullptr);
@@ -264,7 +264,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimatUniTest, ProcessUniTest002, Te
     auto modifierTest3 = std::make_shared<RSGeometryTransRenderModifier>(propertyTest3);
     EXPECT_NE(modifierTest3, nullptr);
     renderNodeTest3->modifiers_[2] = modifierTest3;
-    context.nodeMap.renderNodeMap_.emplace(2, renderNodeTest3);
+    context.nodeMap.renderNodeMap_[0][2] = renderNodeTest3;
 
     auto renderPropertyTest1 = std::make_shared<RSRenderPropertyBase>();
     EXPECT_NE(renderPropertyTest1, nullptr);
@@ -305,7 +305,7 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimatUniTest, ProcessUniTest003, Te
     std::shared_ptr<RSRenderAnimation> animationTest = std::make_shared<RSRenderAnimation>(0);
     EXPECT_NE(animationTest, nullptr);
     renderNode->animationManager_.animations_.emplace(0, animationTest);
-    context.nodeMap.renderNodeMap_.at(0) = renderNode;
+    context.nodeMap.renderNodeMap_.[0][0] = renderNode;
     animation.Process(context);
 
     animation.nodeId_ = 1;

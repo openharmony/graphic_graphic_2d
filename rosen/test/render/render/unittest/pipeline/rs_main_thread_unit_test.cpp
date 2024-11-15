@@ -954,7 +954,7 @@ HWTEST_F(RsMainThreadTest, SetFocusLeashWindowId01, TestSize.Level1)
     node2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
 
     mainThread->context_ = std::make_shared<RSContext>();
-    mainThread->context_->nodeMap.renderNodeMap_[0] = node1;
+    mainThread->context_->nodeMap.renderNodeMap_[0][0] = node1;
     mainThread->focusNodeId_ = 0;
     mainThread->SetFocusLeashWindowId();
 }
@@ -988,7 +988,9 @@ HWTEST_F(RsMainThreadTest, SetFocusLeashWindowId03, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, node->GetId());
     mainThread->SetFocusLeashWindowId();
@@ -1014,8 +1016,12 @@ HWTEST_F(RsMainThreadTest, SetFocusLeashWindowId04, TestSize.Level2)
     childNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
 
-    mainThread->context_->nodeMap.renderNodeMap_[childNode->GetId()] = childNode;
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[childNodePid][childNodeId] = childNode;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, childNode->GetId());
     mainThread->SetFocusLeashWindowId();
@@ -1041,8 +1047,12 @@ HWTEST_F(RsMainThreadTest, SetFocusLeashWindowId05, TestSize.Level2)
     childNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
 
-    mainThread->context_->nodeMap.renderNodeMap_[childNode->GetId()] = childNode;
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[childNodePid][childNodeId] = childNode;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, childNode->GetId());
     mainThread->SetFocusLeashWindowId();

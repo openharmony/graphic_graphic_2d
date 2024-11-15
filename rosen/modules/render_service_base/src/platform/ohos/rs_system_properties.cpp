@@ -201,6 +201,12 @@ bool RSSystemProperties::GetRenderNodePurgeEnabled()
     return isPurgeable;
 }
 
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    static bool isPurgeable = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
+    return isPurgeable;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");
@@ -281,17 +287,6 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    if (enable) {
-        return (strcmp(enable, "true") == 0);
-    }
-    return false;
-}
-
 bool RSSystemProperties::GetHardwareComposerEnabled()
 {
     static bool hardwareComposerEnabled = system::GetParameter(
@@ -340,16 +335,6 @@ bool RSSystemProperties::GetAFBCEnabled()
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return system::GetParameter(paraName, "0");
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
-{
-    // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
-    // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.directClientComposition.enabled", "1");
-    int changed = 0;
-    const char *status = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(status, 1) != 0;
 }
 
 bool RSSystemProperties::GetHighContrastStatus()
@@ -459,6 +444,16 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return cacheEnabledForRotation_;
+}
+
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
+{
+    isScreenSwitching_ = flag;
+}
+
+bool RSSystemProperties::GetScreenSwitchStatus()
+{
+    return isScreenSwitching_;
 }
 
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)

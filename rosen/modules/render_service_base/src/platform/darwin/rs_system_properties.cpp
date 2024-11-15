@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
@@ -82,6 +83,11 @@ bool RSSystemProperties::GetRenderNodePurgeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -127,17 +133,7 @@ bool RSSystemProperties::GetOcclusionEnabled()
     return {};
 }
 
-bool RSSystemProperties::GetAceDebugBoundaryEnabled()
-{
-    return false;
-}
-
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
-{
-    return {};
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
 {
     return {};
 }
@@ -178,6 +174,15 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
+}
+
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
+{
+}
+
+bool RSSystemProperties::GetScreenSwitchStatus()
+{
+    return false;
 }
 
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)

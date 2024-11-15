@@ -1683,17 +1683,17 @@ HWTEST_F(RSPropertiesPainterTest, GetDistortionEffectDirtyRect, TestSize.Level1)
     properties.SetBounds(bounds);
 
     // the distortionK is nullptr
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
 
     // the distortionK < 0
     properties.SetDistortionK(-0.2f);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_FALSE(localDistortionEffectRect.width_ > static_cast<int>(width));
 
     // the distortionK > 0
     properties.SetDistortionK(0.2f);
-    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties, false);
+    RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect, properties);
     EXPECT_TRUE(localDistortionEffectRect.width_ > static_cast<int>(width));
 }
 } // namespace Rosen

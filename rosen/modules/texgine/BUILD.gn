@@ -133,6 +133,7 @@ ohos_source_set("libtexgine_source") {
         "c_utils:utils",
         "hilog:libhilog",
         "hitrace:hitrace_meter",
+        "init:libbegetutil",
       ]
 
       public_deps +=

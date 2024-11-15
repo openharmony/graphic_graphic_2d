@@ -92,6 +92,20 @@ HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUI002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHwcNodeBoundsTest
+ * @tc.desc: test results of SetHwcNodeBounds
+ * @tc.type: FUNC
+ * @tc.require: issueIB2QCC
+ */
+HWTEST_F(RSInterfacesTest, SetHwcNodeBoundsTest, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    bool res = instance.SetHwcNodeBounds(nodeId, 1.0f, 1.0f, 1.0f, 1.0f);
+    EXPECT_TRUE(res);
+}
+
+/**
  * @tc.name: RegisterTypeface001
  * @tc.desc: test results of RegisterTypeface
  * @tc.type: FUNC
@@ -358,6 +372,22 @@ HWTEST_F(RSInterfacesTest, SetTpFeatureConfig001, TestSize.Level1)
     std::string config = "config";
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.SetTpFeatureConfig(feature, config.c_str());
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: SetTpFeatureConfig002
+ * @tc.desc: test results of SetTpFeatureConfig
+ * @tc.type: FUNC
+ * @tc.require: issueIB39L8
+ */
+HWTEST_F(RSInterfacesTest, SetTpFeatureConfig002, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    int32_t feature = 1;
+    std::string config = "config";
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.SetTpFeatureConfig(feature, config.c_str(), TpFeatureConfigType::AFT_TP_FEATURE);
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 #endif

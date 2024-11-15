@@ -20,7 +20,7 @@
 
 namespace OHOS {
 namespace Rosen {
-// The "0xD001404" is the domain ID for graphic module that allocated by the OS.
+// The "0xD001400" is the domain ID for graphic module that allocated by the OS.
 #undef LOG_DOMAIN
 #define LOG_DOMAIN 0xD001404
 

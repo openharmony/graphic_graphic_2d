@@ -23,6 +23,7 @@ ohos_unittest("2d_graphics_image_test") {
     "$graphic_2d_root/rosen/test/unittest_main/test_main.cpp",
     "image_test.cpp",
     "picture_test.cpp",
+    "trace_memory_dump_test.cpp",
   ]
 
   if (rs_enable_gpu) {

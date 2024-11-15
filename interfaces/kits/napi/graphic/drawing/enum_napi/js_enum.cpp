@@ -254,15 +254,10 @@ napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
         auto &enumClassName = it->first;
         auto &enumItemVec = it->second;
         auto vecSize = enumItemVec.size();
-        std::vector<napi_value> value;
-        value.resize(vecSize);
+        std::vector<napi_value> value(vecSize);
+        std::vector<napi_property_descriptor> property(vecSize);
         for (size_t index = 0; index < vecSize; ++index) {
             napi_create_int32(env, enumItemVec[index].enumInt, &value[index]);
-        }
-
-        std::vector<napi_property_descriptor> property;
-        property.resize(vecSize);
-        for (size_t index = 0; index < vecSize; ++index) {
             property[index] = napi_property_descriptor DECLARE_NAPI_STATIC_PROPERTY(
                 enumItemVec[index].enumName.data(), value[index]);
         }

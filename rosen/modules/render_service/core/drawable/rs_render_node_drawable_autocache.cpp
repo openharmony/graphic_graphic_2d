@@ -84,6 +84,7 @@ void RSRenderNodeDrawable::OpincCalculateAfter(Drawing::Canvas& canvas, bool& is
 bool RSRenderNodeDrawable::PreDrawableCacheState(RSRenderParams& params, bool& isOpincDropNodeExt)
 {
     if (params.OpincGetCacheChangeState()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("OpincGetCacheChangeState Changed %llx", GetId());
         DrawableCacheStateReset(params);
     }
     return isOpincDropNodeExt && (!IsOpincRootNode());

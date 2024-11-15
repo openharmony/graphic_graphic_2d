@@ -14,6 +14,7 @@
  */
 
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "memory/rs_memory_manager.h"
 #include "render/rs_typeface_cache.h"
@@ -35,6 +36,21 @@ void RSTypefaceCacheTest::SetUpTestCase() {}
 void RSTypefaceCacheTest::TearDownTestCase() {}
 void RSTypefaceCacheTest::SetUp() {}
 void RSTypefaceCacheTest::TearDown() {}
+
+class MockRSTypefaceCache : public RSTypefaceCache {
+public:
+    MOCK_METHOD1(GetTypefacePid, pid_t(uint64_t uniqueId));
+};
+
+// 模拟单例类的函数
+class SingletonMockRSTypefaceCache {
+public:
+    static MockRSTypefaceCache& Instance()
+    {
+        static MockRSTypefaceCache instance;
+        return instance;
+    }
+};
 
 /**
  * @tc.name: MemorySnapshotTest001
@@ -278,6 +294,88 @@ HWTEST_F(RSTypefaceCacheTest, HasTypeFaceTest001, TestSize.Level1)
     uint32_t hash = 2;
     bool result = RSTypefaceCache::Instance().HasTypeface(uniqueId, hash);
     EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: AddIfFound_001
+ * @tc.desc: Verify function AddIfFound
+ * @tc.type:FUNC
+ * @tc.require:issueIB262Y
+ */
+HWTEST_F(RSTypefaceCacheTest, AddIfFound_001, TestSize.Level2)
+{
+    uint64_t uniqueId = 1;
+    uint32_t hash = 2;
+
+    EXPECT_CALL(SingletonMockRSTypefaceCache::Instance(), GetTypefacePid(_)).WillRepeatedly(testing::Return(0));
+    EXPECT_FALSE(SingletonMockRSTypefaceCache::Instance().GetTypefacePid(uniqueId));
+
+    SingletonMockRSTypefaceCache::Instance().typefaceHashMap_[hash] =
+        std::tuple<std::shared_ptr<Drawing::Typeface>, uint32_t>(nullptr, 3);
+    EXPECT_TRUE(SingletonMockRSTypefaceCache::Instance().typefaceHashMap_.find(hash) !=
+        SingletonMockRSTypefaceCache::Instance().typefaceHashMap_.end());
+
+    EXPECT_TRUE(SingletonMockRSTypefaceCache::Instance().AddIfFound(uniqueId, hash));
+}
+
+/**
+ * @tc.name: HasTypeface_001
+ * @tc.desc: Verify function HasTypeface
+ * @tc.type:FUNC
+ * @tc.require:issueIB262Y
+ */
+HWTEST_F(RSTypefaceCacheTest, HasTypeface_001, TestSize.Level2)
+{
+    uint64_t uniqueId = 1;
+    uint32_t hash = 0;
+    EXPECT_FALSE(hash);
+    auto &typefaceHashCode = RSTypefaceCache::Instance().typefaceHashCode_;
+    typefaceHashCode.clear();
+    EXPECT_FALSE(typefaceHashCode.find(uniqueId) != typefaceHashCode.end());
+
+    EXPECT_FALSE(RSTypefaceCache::Instance().HasTypeface(uniqueId, hash));
+}
+
+/**
+ * @tc.name: HasTypeface_002
+ * @tc.desc: Verify function HasTypeface
+ * @tc.type:FUNC
+ * @tc.require:issueIB262Y
+ */
+HWTEST_F(RSTypefaceCacheTest, HasTypeface_002, TestSize.Level2)
+{
+    uint64_t uniqueId = 1;
+    uint32_t hash = 2;
+    EXPECT_TRUE(hash);
+
+    RSTypefaceCache::Instance().typefaceHashQueue_[hash] = std::vector<uint64_t>{};
+    EXPECT_TRUE(RSTypefaceCache::Instance().typefaceHashQueue_.find(hash) !=
+        RSTypefaceCache::Instance().typefaceHashQueue_.end());
+    EXPECT_TRUE(RSTypefaceCache::Instance().HasTypeface(uniqueId, hash));
+}
+
+/**
+ * @tc.name: CacheDrawingTypeface_002
+ * @tc.desc: Verify function CacheDrawingTypeface, !(typeface && uniqueId > 0)
+ * @tc.type:FUNC
+ * @tc.require:issueIB262Y
+ */
+HWTEST_F(RSTypefaceCacheTest, CacheDrawingTypeface_002, TestSize.Level2)
+{
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+    uint64_t uniqueId = 1;
+    EXPECT_TRUE(!(typeface && uniqueId > 0));
+    RSTypefaceCache::Instance().typefaceHashCode_.clear(); // key uniqueId not found
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.size(), 0);
+
+    typeface = Drawing::Typeface::MakeDefault();
+    EXPECT_NE(typeface, nullptr);
+    uniqueId = 0;
+    EXPECT_TRUE(!(typeface && uniqueId > 0));
+    RSTypefaceCache::Instance().typefaceHashCode_.clear(); // key uniqueId not found
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().typefaceHashCode_.size(), 0);
 }
 } // namespace Rosen
 } // namespace OHOS

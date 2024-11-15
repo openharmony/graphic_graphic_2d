@@ -55,15 +55,14 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
                 std::unique_lock<std::mutex> lock(condMutex);
                 auto st = std::chrono::steady_clock::now();
                 realtimeFrameCount_ = 0;
-                threadCondVar_.wait_for(lock, NS_FPS_SHOW_INTERVAL_);
+                threadCondVar_.wait_for(lock, NS_FPS_SHOW_INTERVAL);
                 uint32_t realtimeFrameCount = realtimeFrameCount_;
                 auto et = std::chrono::steady_clock::now();
 
-                RS_TRACE_BEGIN("RSRealtimeRefreshRateManager:Cal draw fps");
                 auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(et - st);
-                uint32_t fps = std::round(realtimeFrameCount * static_cast<float>(NS_PER_S_) / diff.count());
+                uint32_t fps = std::round(realtimeFrameCount * static_cast<float>(NS_PER_S) / diff.count());
                 fps = std::max(1u, fps);
-                if (fps <= IDLE_FPS_THRESHOLD_) {
+                if (fps <= IDLE_FPS_THRESHOLD) {
                     fps = 1;
                 }
                 currRealtimeRefreshRate_ = fps;
@@ -75,7 +74,6 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
                     RSMainThread::Instance()->SetDirtyFlag();
                     RSMainThread::Instance()->RequestNextVSync();
                 }
-                RS_TRACE_END();
             }
         });
         RS_LOGD("RSRealtimeRefreshRateManager: enable");
@@ -86,5 +84,5 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
         }
         RS_LOGD("RSRealtimeRefreshRateManager: disable");
     }
-}
-}
+} // namespace Rosen
+} // namespace OHOS

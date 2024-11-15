@@ -22,7 +22,6 @@
 #include <set>
 #include <utility>
 
-#include "benchmarks/file_utils.h"
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
@@ -50,6 +49,7 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
+#include "rs_profiler.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
@@ -120,7 +120,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
 
-    if (width * height > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) {
+    if (height != 0 && width > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE / height) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u",
             width, height);
         return {};
@@ -254,6 +254,12 @@ void RSRenderNode::AddChild(SharedPtr child, int index)
     if (child == nullptr || child->GetId() == GetId()) {
         return;
     }
+    
+    if (RS_PROFILER_PROCESS_ADD_CHILD(this, child, index)) {
+        RS_LOGI("Add child: blocked during replay");
+        return;
+    }
+
     // if child already has a parent, remove it from its previous parent
     if (auto prevParent = child->GetParent().lock()) {
         prevParent->RemoveChild(child, true);
@@ -435,6 +441,25 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
     oldAbsMatrix_ = geoPtr->GetAbsMatrix();
 }
 
+bool RSRenderNode::IsCrossNode() const
+{
+    return isCrossNode_;
+}
+
+void RSRenderNode::IncreaseCrossScreenNum()
+{
+    if (++crossScreenNum_ > 0) {
+        isCrossNode_ = true;
+    }
+}
+
+void RSRenderNode::DecreaseCrossScreenNum()
+{
+    if (--crossScreenNum_ == 0) {
+        isCrossNode_ = false;
+    }
+}
+
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
@@ -442,7 +467,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     if (child == nullptr) {
         return;
     }
-
+    child->IncreaseCrossScreenNum();
     // Set parent-child relationship
     child->SetParent(weak_from_this());
     if (index < 0 || index >= static_cast<int32_t>(children_.size())) {
@@ -467,6 +492,7 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     if (child == nullptr) {
         return;
     }
+    child->DecreaseCrossScreenNum();
     // break parent-child relationship
     auto it = std::find_if(children_.begin(), children_.end(),
         [&](WeakPtr& ptr) -> bool { return ROSEN_EQ<RSRenderNode>(ptr, child); });
@@ -1005,10 +1031,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    if (childHasSharedTransition_) {
-        return true;
-    }
-    if (isAccumulatedClipFlagChanged_) {
+    if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -1328,7 +1351,7 @@ void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
 {
     // update distortion effect's dirty region if it changes
     if (GetRenderProperties().GetDistortionDirty()) {
-        RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect_, GetRenderProperties(), false);
+        RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect_, GetRenderProperties());
         GetMutableRenderProperties().SetDistortionDirty(false);
     }
     selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect_.ConvertTo<float>());
@@ -1421,15 +1444,6 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
         return;
     }
     auto dirtyRect = isSelfDrawingNode_ ? selfDrawingNodeAbsDirtyRect_ : absDrawRect_;
-    auto curNode = ReinterpretCastTo<RSSurfaceRenderNode>();
-    auto parent = GetParent().lock() ? GetParent().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-    if (curNode && curNode->GetGlobalPositionEnabled()) {
-        dirtyRect.left_ -= curNode->GetCurDisplayOffsetX();
-        dirtyRect.top_ -= curNode->GetCurDisplayOffsetY();
-    } else if (parent && parent->GetGlobalPositionEnabled()) {
-        dirtyRect.left_ -= parent->GetCurDisplayOffsetX();
-        dirtyRect.top_ -= parent->GetCurDisplayOffsetY();
-    }
     dirtyRect = dirtyRect.IntersectRect(clipRect);
     oldDirty_ = dirtyRect;
     oldDirtyInSurface_ = oldDirty_.IntersectRect(dirtyManager.GetSurfaceRect());
@@ -1508,10 +1522,14 @@ void RSRenderNode::UpdateDrawRect(
     } else if (parent != nullptr) {
         // case b. use parent matrix
         auto parentMatrix = &(parent->GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
-        auto offset = !IsInstanceOf<RSSurfaceRenderNode>()
+        bool isSurfaceRenderNode = IsInstanceOf<RSSurfaceRenderNode>();
+        auto offset = !isSurfaceRenderNode
                           ? std::make_optional<Drawing::Point>(parent->GetRenderProperties().GetFrameOffsetX(),
                                 parent->GetRenderProperties().GetFrameOffsetY())
                           : std::nullopt;
+        if (isSurfaceRenderNode && GetGlobalPositionEnabled()) {
+            offset = std::make_optional<Drawing::Point>(-GetCurDisplayOffsetX(), -GetCurDisplayOffsetY());
+        }
         accumGeoDirty = properties.UpdateGeometryByParent(parentMatrix, offset) || accumGeoDirty;
     } else {
         // case c. no parent
@@ -2162,7 +2180,7 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     }
 
     // when background changed, skip-frame will enabled if filter region > 400 and blur radius > 25
-    if (IsLargeArea(oldDirty_.GetWidth(), oldDirty_.GetHeight())) {
+    if (IsLargeArea(filterRegion_.GetWidth(), filterRegion_.GetHeight())) {
         filterDrawable->MarkFilterRegionIsLargeArea();
     }
 }
@@ -2831,6 +2849,11 @@ void RSRenderNode::SetBootAnimation(bool isBootAnimation)
 bool RSRenderNode::GetBootAnimation() const
 {
     return isBootAnimation_;
+}
+
+bool RSRenderNode::GetGlobalPositionEnabled() const
+{
+    return false;
 }
 
 bool RSRenderNode::NeedInitCacheSurface()
@@ -3793,7 +3816,7 @@ void RSRenderNode::SetNodeName(const std::string& nodeName)
     auto& uiFrameworkTypeTable = context->GetUiFrameworkTypeTable();
     for (auto uiFwkType : uiFrameworkTypeTable) {
         if (nodeName.rfind(uiFwkType, 0) == 0) {
-            context->UpdateUiFrameworkDirtyNodes(weak_from_this());
+            context->UpdateUIFrameworkDirtyNodes(weak_from_this());
         }
     }
 }
@@ -3916,8 +3939,12 @@ const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
 }
 void RSRenderNode::UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent)
 {
-    uint32_t subSurfaceCnt = GetType() == RSRenderNodeType::SURFACE_NODE ?
-        subSurfaceCnt_ + 1 : subSurfaceCnt_;
+    uint32_t subSurfaceCnt = subSurfaceCnt_;
+    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+        subSurfaceCnt = (surfaceNode && (surfaceNode->IsLeashWindow() || surfaceNode->IsAppWindow())) ?
+            subSurfaceCnt_ + 1 : subSurfaceCnt;
+    }
     if (subSurfaceCnt == 0) {
         return;
     }
@@ -4339,6 +4366,22 @@ void RSRenderNode::MarkUifirstNode(bool isUifirstNode)
     RS_OPTIONAL_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isUifirstNode:%d", GetId(), isUifirstNode);
     isUifirstNode_ = isUifirstNode;
     isUifirstDelay_ = 0;
+}
+
+
+void RSRenderNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
+{
+    RS_TRACE_NAME_FMT("MarkUifirstNode id:%lld, isForceFlag:%d, isUifirstEnable:%d",
+        GetId(), isForceFlag, isUifirstEnable);
+    ROSEN_LOGI("MarkUifirstNode id:%{public}" PRIu64 " isForceFlag:%{public}d, isUifirstEnable:%{public}d",
+        GetId(), isForceFlag, isUifirstEnable);
+    isForceFlag_ = isForceFlag;
+    isUifirstEnable_ = isUifirstEnable;
+}
+
+bool RSRenderNode::GetUifirstNodeForceFlag() const
+{
+    return isForceFlag_;
 }
 
 void RSRenderNode::SetChildrenHasSharedTransition(bool hasSharedTransition)

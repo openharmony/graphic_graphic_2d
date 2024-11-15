@@ -29,7 +29,6 @@
 #include "utils/point.h"
 #include "utils/text_log.h"
 
-
 namespace OHOS::Rosen {
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -190,6 +189,8 @@ napi_value CreateJsValue(napi_env env, const T& value)
     } else if constexpr (std::is_same_v<ValueType, const char*>) {
         (value != nullptr) ? napi_create_string_utf8(env, value, strlen(value), &result) :
             napi_get_undefined(env, &result);
+        return result;
+    } else {
         return result;
     }
 }
@@ -539,9 +540,9 @@ void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)
 
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, Drawing::FontMetrics* metrics);
 
-bool NapiValueTypeIsValid(napi_env env, napi_value argValue);
-
 bool GetTextTabFromJS(napi_env env, napi_value argValue, TextTab& tab);
+
+bool NapiValueTypeIsValid(napi_env env, napi_value argValue);
 
 napi_value GetTypographicBoundsAndConvertToJsValue(napi_env env, float ascent,
     float descent, float leading, float width);

@@ -65,7 +65,16 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateLinearGradi
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_ShaderEffectCreateLinearGradient(startPt, endPt, nullptr, pos, 1, OH_Drawing_TileMode::CLAMP);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
-
+    OH_Drawing_ShaderEffect* effect2 = OH_Drawing_ShaderEffectCreateLinearGradient(startPt,
+        endPt, nullptr, pos, 1, static_cast<OH_Drawing_TileMode>(-1));
+    EXPECT_EQ(effect2, nullptr);
+    OH_Drawing_ShaderEffect* effect3 = OH_Drawing_ShaderEffectCreateLinearGradient(startPt,
+        endPt, nullptr, pos, 1, static_cast<OH_Drawing_TileMode>(99));
+    EXPECT_EQ(effect3, nullptr);
+    OH_Drawing_ShaderEffect* effect4 = OH_Drawing_ShaderEffectCreateLinearGradient(startPt,
+        endPt, colors, nullptr, 1, OH_Drawing_TileMode::CLAMP);
+    EXPECT_NE(effect4, nullptr);
+    OH_Drawing_ShaderEffectDestroy(effect4);
     OH_Drawing_PointDestroy(startPt);
     OH_Drawing_PointDestroy(endPt);
 }
@@ -93,6 +102,15 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateRadialGradi
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, nullptr, gPos, 1, OH_Drawing_TileMode::REPEAT);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, gColors, gPos, 1,
+        static_cast<OH_Drawing_TileMode>(-1)), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateRadialGradient(centerPt, radius, gColors, gPos, 1,
+        static_cast<OH_Drawing_TileMode>(99)), nullptr);
+    OH_Drawing_ShaderEffect* effect2 = OH_Drawing_ShaderEffectCreateRadialGradient(centerPt,
+        radius, gColors, nullptr, 1, OH_Drawing_TileMode::REPEAT);
+    EXPECT_NE(effect2, nullptr);
+    OH_Drawing_ShaderEffectDestroy(effect1);
+    OH_Drawing_ShaderEffectDestroy(effect2);
 }
 
 /*
@@ -113,6 +131,14 @@ HWTEST_F(NativeDrawingShaderEffectTest, OH_Drawing_ShaderEffectCreateImageShader
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_ShaderEffectCreateImageShader(image, CLAMP, CLAMP, nullptr, matrix);
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateImageShader(image, static_cast<OH_Drawing_TileMode>(-1),
+        CLAMP, options, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateImageShader(image, static_cast<OH_Drawing_TileMode>(99),
+        CLAMP, options, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateImageShader(image, CLAMP,
+        static_cast<OH_Drawing_TileMode>(-1), options, matrix), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateImageShader(image, CLAMP,
+        static_cast<OH_Drawing_TileMode>(99), options, matrix), nullptr);
 }
 
 /*
@@ -134,8 +160,20 @@ HWTEST_F(NativeDrawingShaderEffectTest,
     uint32_t colors[POINT_NUM] = {0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
     EXPECT_EQ(OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
         &start, nullptr, colors, pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
-    EXPECT_NE(OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
-        &start, &end, colors, pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
+        nullptr, &end, colors, pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
+        &start, &end, colors, pos, POINT_NUM, static_cast<OH_Drawing_TileMode>(-1), nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
+        &start, &end, colors, pos, POINT_NUM, static_cast<OH_Drawing_TileMode>(99), nullptr), nullptr);
+    OH_Drawing_ShaderEffect* effect1 = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
+        &start, &end, colors, nullptr, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr);
+    EXPECT_NE(effect1, nullptr);
+    OH_Drawing_ShaderEffect* effect2 = OH_Drawing_ShaderEffectCreateLinearGradientWithLocalMatrix(
+        &start, &end, colors, pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr);
+    EXPECT_NE(effect2, nullptr);
+    OH_Drawing_ShaderEffectDestroy(effect1);
+    OH_Drawing_ShaderEffectDestroy(effect2);
 }
 
 /*
@@ -157,8 +195,14 @@ HWTEST_F(NativeDrawingShaderEffectTest,
     uint32_t colors[POINT_NUM] = {0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
     EXPECT_EQ(OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(
         nullptr, radius, colors, pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(
+        &start, radius, colors, pos, POINT_NUM, static_cast<OH_Drawing_TileMode>(-1), nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(
+        &start, radius, colors, pos, POINT_NUM, static_cast<OH_Drawing_TileMode>(99), nullptr), nullptr);
     EXPECT_NE(OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(
         &start, radius, colors, pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_NE(OH_Drawing_ShaderEffectCreateRadialGradientWithLocalMatrix(
+        &start, radius, colors, nullptr, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
 }
 
 /*
@@ -177,10 +221,44 @@ HWTEST_F(NativeDrawingShaderEffectTest, NativeDrawingShaderEffectTest_ShaderEffe
     float startRadius = 5.0f, endRadius = 10.0f; // 5.0f: gradient color radius, 10.0f: gradient color radius
     EXPECT_EQ(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPt, startRadius, nullptr, endRadius, colors,
         pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(nullptr, startRadius, &endPt, endRadius, colors,
+        pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
     EXPECT_EQ(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPt, startRadius, &endPt, endRadius, nullptr,
         pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPt, startRadius, &endPt, endRadius, colors,
+        pos, POINT_NUM, static_cast<OH_Drawing_TileMode>(-1), nullptr), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPt, startRadius, &endPt, endRadius, colors,
+        pos, POINT_NUM, static_cast<OH_Drawing_TileMode>(99), nullptr), nullptr);
     EXPECT_NE(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPt, startRadius, &endPt, endRadius, colors,
         pos, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+    EXPECT_NE(OH_Drawing_ShaderEffectCreateTwoPointConicalGradient(&startPt, startRadius, &endPt, endRadius, colors,
+        nullptr, POINT_NUM, OH_Drawing_TileMode::CLAMP, nullptr), nullptr);
+}
+
+/*
+ * @tc.name: NativeDrawingShaderEffectTest_ShaderEffectCreateSweepGradient001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingShaderEffectTest, NativeDrawingShaderEffectTest_ShaderEffectCreateSweepGradient001,
+    TestSize.Level1)
+{
+    OH_Drawing_Point* startPt = OH_Drawing_PointCreate(0, 0);
+    uint32_t colors[POINT_NUM] = {0xFF00FFFF, 0xFFFF00FF, 0xFFFFFF00};
+    float pos[POINT_NUM] = {0.0f, 0.5f, 1.0f}; // 0.5f: gradient color points, 1.0f: gradient color points
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradient(nullptr, colors, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradient(nullptr, nullptr, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradient(startPt, nullptr, pos, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradient(startPt, colors, pos, POINT_NUM,
+        static_cast<OH_Drawing_TileMode>(-1)), nullptr);
+    EXPECT_EQ(OH_Drawing_ShaderEffectCreateSweepGradient(startPt, colors, pos, POINT_NUM,
+        static_cast<OH_Drawing_TileMode>(99)), nullptr);
+    EXPECT_NE(OH_Drawing_ShaderEffectCreateSweepGradient(startPt, colors, nullptr, POINT_NUM,
+        OH_Drawing_TileMode::CLAMP), nullptr);
 }
 
 /*

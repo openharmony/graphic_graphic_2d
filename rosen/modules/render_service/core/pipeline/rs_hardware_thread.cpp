@@ -206,12 +206,12 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
             startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
         }
-        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %d, now: %lu, vsyncId: %lu, size: %lu",
+        RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %u, now: %" PRIu64 ", " \
+            "vsyncId: %" PRIu64 ", size: %u", currentRate, param.frameTimestamp, param.vsyncId, layers.size());
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
+            "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}u ",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size());
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers rate:%{public}d, " \
-            "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu",
-            currentRate, param.frameTimestamp, param.vsyncId, layers.size());
-        ExecuteSwitchRefreshRate(param.rate);
+        ExecuteSwitchRefreshRate(output, param.rate);
         PerformSetActiveMode(output, param.frameTimestamp, param.constraintRelativeTime);
         AddRefreshRateCount();
         output->SetLayerInfo(layers);
@@ -268,7 +268,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers vsyncId: %{public}" PRIu64 ", " \
             "update delayTime: %{public}" PRId64 ", currCommitTime: %{public}" PRId64 ", " \
             "lastCommitTime: %{public}" PRId64, param.vsyncId, delayTime_, currCommitTime, lastCommitTime_);
-        RS_TRACE_NAME_FMT("update delayTime: %lld, currCommitTime: %lld, lastCommitTime: %lld",
+        RS_TRACE_NAME_FMT("update delayTime: %" PRId64 ", currCommitTime: %" PRId64 ", lastCommitTime: %" PRId64 "",
             delayTime_, currCommitTime, lastCommitTime_);
     }
     if (delayTime_ < 0 || delayTime_ >= MAX_DELAY_TIME) {
@@ -333,12 +333,13 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     if (diffTime > 0 && period > 0) {
         delayTime_ = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
     }
-    RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", " \
-        "actualTimestamp: %" PRId64 ", expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", " \
-        "delayTime: %" PRId64 ", frameOffset: %" PRId64 ", dvsyncOffset: %" PRId64 ", vsyncOffset: %" PRId64 ", "
-        "idealPeriod: %" PRId64 ", period: %" PRId64 "," pipelineOffset, param.actualTimestamp, expectCommitTime, 
-        currTime, diffTime, delayTime_, frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period);
-    RS_LOGD("RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64,
+    RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \
+        "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
+        "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
+        "period: %" PRId64 "",
+        pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
+        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period);
+    RS_LOGD("RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "",
         period, delayTime_);
 }
 
@@ -419,7 +420,7 @@ void RSHardwareThread::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
     vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
 }
 
-void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
+void RSHardwareThread::ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate)
 {
     static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
     if (!refreshRateSwitch) {
@@ -427,10 +428,14 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         return;
     }
 
-    static ScreenId lastScreenId = 12345; // init value diff with any real screen id
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     if (hgmCore.GetFrameRateMgr() == nullptr) {
         RS_LOGD("FrameRateMgr is null");
+        return;
+    }
+    ScreenId id = output->GetScreenId();
+    auto screen = hgmCore.GetScreen(id);
+    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
     auto screenRefreshRateImme = hgmCore.GetScreenRefreshRateImme();
@@ -438,12 +443,12 @@ void RSHardwareThread::ExecuteSwitchRefreshRate(uint32_t refreshRate)
         RS_LOGD("ExecuteSwitchRefreshRate:rate change: %{public}u -> %{public}u", refreshRate, screenRefreshRateImme);
         refreshRate = screenRefreshRateImme;
     }
-    ScreenId id = hgmCore.GetFrameRateMgr()->GetCurScreenId();
-    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastScreenId != id) {
+    ScreenId curScreenId = hgmCore.GetFrameRateMgr()->GetCurScreenId();
+    ScreenId lastCurScreenId = hgmCore.GetFrameRateMgr()->GetLastCurScreenId();
+    if (refreshRate != hgmCore.GetScreenCurrentRefreshRate(id) || lastCurScreenId != curScreenId) {
         RS_LOGD("RSHardwareThread::CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d",
             static_cast<int>(id), refreshRate);
-        int32_t sceneId = (lastScreenId != id) ? SWITCH_SCREEN_SCENE : 0;
-        lastScreenId = id;
+        int32_t sceneId = (lastCurScreenId != curScreenId) ? SWITCH_SCREEN_SCENE : 0;
         int32_t status = hgmCore.SetScreenRefreshRate(id, sceneId, refreshRate);
         if (status < EXEC_SUCCESS) {
             RS_LOGD("RSHardwareThread: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "", refreshRate,
@@ -680,14 +685,12 @@ void RSHardwareThread::AddRefreshRateCount()
         iter->second++;
     }
     RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame();
-    HgmTaskHandleThread::Instance().PostTask([] () {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr == nullptr) {
-            RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
-            return;
-        }
-        frameRateMgr->HandleRsFrame();
-    });
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        RS_LOGE("RSHardwareThread::AddRefreshData fail, frameBufferSurfaceOhos_ is nullptr");
+        return;
+    }
+    frameRateMgr->HandleRsFrame();
 }
 
 void RSHardwareThread::SubScribeSystemAbility()

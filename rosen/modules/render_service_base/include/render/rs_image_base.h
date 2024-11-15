@@ -27,8 +27,8 @@
 #include "transaction/rs_marshalling_helper.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include "surface_buffer.h"
 #include "external_window.h"
+#include "surface_buffer.h"
 #endif
 
 namespace OHOS {
@@ -46,7 +46,8 @@ public:
     RSImageBase() = default;
     virtual ~RSImageBase();
 
-    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions);
+    virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
+        Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);
@@ -81,7 +82,7 @@ protected:
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void ProcessYUVImage(std::shared_ptr<Drawing::GPUContext> gpuContext);
 #if defined(RS_ENABLE_VK)
-    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
+    void BindPixelMapToDrawingImage(Drawing::Canvas& canvas);
     std::shared_ptr<Drawing::Image> MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer* surfaceBuffer);
 #endif
 #endif

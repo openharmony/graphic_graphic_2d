@@ -14,6 +14,7 @@
  */
 
 #include "params/rs_render_params.h"
+
 #include <string>
 
 #include "params/rs_surface_render_params.h"
@@ -428,17 +429,6 @@ void RSRenderParams::SetCanvasDrawingSurfaceChanged(bool changeFlag)
     canvasDrawingNodeSurfaceChanged_ = changeFlag;
 }
 
-RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
-{
-    return surfaceParams_;
-}
-
-void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
-{
-    surfaceParams_.width = width;
-    surfaceParams_.height = height;
-}
-
 const std::shared_ptr<RSFilter>& RSRenderParams::GetForegroundFilterCache() const
 {
     return foregroundFilterCache_;
@@ -451,6 +441,17 @@ void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& f
     }
     foregroundFilterCache_ = foregroundFilterCache;
     needSync_ = true;
+}
+
+RSRenderParams::SurfaceParam RSRenderParams::GetCanvasDrawingSurfaceParams()
+{
+    return surfaceParams_;
+}
+
+void RSRenderParams::SetCanvasDrawingSurfaceParams(int width, int height)
+{
+    surfaceParams_.width = width;
+    surfaceParams_.height = height;
 }
 
 void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
@@ -470,7 +471,6 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->contentEmpty_ = contentEmpty_;
     target->hasSandBox_ = hasSandBox_;
     target->localDrawRect_ = localDrawRect_;
-    target->absDrawRect_ = absDrawRect_;
     target->id_ = id_;
     target->cacheSize_ = cacheSize_;
     target->frameGravity_ = frameGravity_;
@@ -492,9 +492,10 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
-    target->isOpincStateChanged_ = OpincGetCacheChangeState();
+    target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
+    target->absDrawRect_ = absDrawRect_;
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
     needSync_ = false;

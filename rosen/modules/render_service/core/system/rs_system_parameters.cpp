@@ -195,7 +195,7 @@ bool RSSystemParameters::GetTcacheEnabled()
     return flag;
 }
 
-int RSSystemParameters::GetDumpCanvasDrawingNodeEnabled()
+bool RSSystemParameters::GetDumpCanvasDrawingNodeEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("debug.graphic.canvasDrawingEnabled", "0");
     int changed = 0;

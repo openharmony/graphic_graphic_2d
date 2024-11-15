@@ -106,6 +106,16 @@ public:
         return yDpi_;
     }
 
+    bool GetSelfOwnedScreenFlag() const
+    {
+        return isSelfOwnedScreenFlag_.load();
+    }
+
+    void SetSelfOwnedScreenFlag(bool isSelfOwnedScreen)
+    {
+        isSelfOwnedScreenFlag_.store(isSelfOwnedScreen);
+    }
+
     uint32_t GetActiveRefreshRate() const;
     int32_t SetActiveRefreshRate(int32_t sceneId, uint32_t rate);
     int32_t SetRateAndResolution(int32_t sceneId, uint32_t rate, int32_t width, int32_t height);
@@ -166,6 +176,7 @@ private:
     float xDpi_ = 0;
     float yDpi_ = 0;
     int32_t customFrameRateMode_ = -1;
+    std::atomic<bool> isSelfOwnedScreenFlag_{ false };
     std::unordered_set<uint32_t> supportedRefreshRates_;
     std::unordered_set<int32_t> supportedModeIds_;
     std::vector<std::shared_ptr<ScreenProfile>> screenModeInfos_;

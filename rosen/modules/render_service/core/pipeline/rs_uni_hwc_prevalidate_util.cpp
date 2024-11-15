@@ -94,6 +94,13 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
         return false;
     }
     int32_t ret = preValidateFunc_(id, infos, strategy);
+    // clear cldInfo
+    for (auto& info: infos) {
+        if (info.cldInfo != nullptr) {
+            delete info.cldInfo;
+            info.cldInfo = nullptr;
+        }
+    }
     return ret == 0;
 }
 

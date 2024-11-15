@@ -23,15 +23,14 @@ namespace Rosen {
 Filter::Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap) : srcPixelMap_(pixelMap)
 {}
 
-void Filter::Render(bool forceCPU)
+bool Filter::Render(bool forceCPU)
 {
-    Rosen::SKImageChain skImage(srcPixelMap_);
-    for (auto filter : skFilters_) {
-        skImage.SetFilters(filter);
+    if (srcPixelMap_ == nullptr) {
+        return false;
     }
-    skImage.ForceCPU(forceCPU);
-    skImage.Draw();
-    dstPixelMap_ =  skImage.GetPixelMap();
+    Rosen::SKImageChain skImage(srcPixelMap_);
+    DrawError error = skImage.Render(skFilters_, forceCPU, dstPixelMap_);
+    return error == DrawError::ERR_OK;
 }
 
 void Filter::AddNextFilter(sk_sp<SkImageFilter> filter)
@@ -41,13 +40,15 @@ void Filter::AddNextFilter(sk_sp<SkImageFilter> filter)
 
 std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap()
 {
-    Render(false);
+    if (!Render(false)) {
+        return nullptr;
+    }
     return dstPixelMap_;
 }
 
-bool Filter::Blur(float radius)
+bool Filter::Blur(float radius, SkTileMode skTileMode)
 {
-    auto blur = Rosen::SKImageFilterFactory::Blur(radius);
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius, skTileMode);
     if (!blur) {
         return false;
     }

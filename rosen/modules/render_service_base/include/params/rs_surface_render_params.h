@@ -101,6 +101,10 @@ public:
     {
         return alpha_;
     }
+    bool IsCrossNode() const
+    {
+        return isCrossNode_;
+    }
     bool IsSpherizeValid() const
     {
         return isSpherizeValid_;
@@ -373,19 +377,6 @@ public:
     const std::unordered_map<std::string, bool>& GetWatermarksEnabled() const;
     bool IsWatermarkEmpty() const;
 
-    void SetScalingMode(ScalingMode scalingMode) override
-    {
-        if (scalingMode_ == scalingMode) {
-            return;
-        }
-        scalingMode_ = scalingMode;
-        needSync_ = true;
-    }
-    ScalingMode GetScalingMode() const override
-    {
-        return scalingMode_;
-    }
-
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
@@ -525,9 +516,26 @@ public:
         return brightnessRatio_;
     }
 
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
+
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
-
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -539,6 +547,7 @@ private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
 
     float alpha_ = 0;
+    bool isCrossNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -547,6 +556,7 @@ private:
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
@@ -607,7 +617,6 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
-    ScalingMode scalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
@@ -623,6 +632,10 @@ private:
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
     bool needCacheSurface_ = false;
+    
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

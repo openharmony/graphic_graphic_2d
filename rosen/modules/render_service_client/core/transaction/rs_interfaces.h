@@ -70,6 +70,8 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
+
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
@@ -213,6 +215,8 @@ public:
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
@@ -275,6 +279,8 @@ public:
 
     void DisableCacheForRotation();
 
+    void SetScreenSwitching(bool flag);
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
@@ -290,7 +296,8 @@ public:
     void SetVmaCacheStatus(bool flag);
 
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config);
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 

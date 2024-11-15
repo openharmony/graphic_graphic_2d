@@ -57,8 +57,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in sudthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
             SetDrawSkipType(DrawSkipType::PARALLEL_CANVAS_SKIP);
-            RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw do not draw startingwindow"
-                " with parallel canvas, id:%{public}" PRIu64 "", nodeId_);
             return;
         }
     }
@@ -69,8 +67,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if ((UNLIKELY(!uniParam) || uniParam->IsOpDropped()) && GetOpDropped() &&
         QuickReject(canvas, params->GetLocalDrawRect()) && isOpincDraw) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
-        RS_LOGI("RSCanvasRenderNodeDrawable::OnDraw quickReject, and uniParam is nullptr?"
-            " %{public}d, id:%{public}" PRIu64 "", !uniParam, nodeId_);
         return;
     }
 

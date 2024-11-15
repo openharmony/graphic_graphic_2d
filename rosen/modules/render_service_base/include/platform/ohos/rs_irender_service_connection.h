@@ -102,8 +102,10 @@ public:
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
+    virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
+
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
-    
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
@@ -239,6 +241,8 @@ public:
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
 
+    virtual uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect) = 0;
+
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -287,6 +291,8 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
+    virtual void SetScreenSwitchStatus(bool flag) = 0;
+
     virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
@@ -309,15 +315,15 @@ public:
 
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
-    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
-
     virtual bool SetAncoForceDoDirect(bool direct) = 0;
+
+    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
     virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
-    virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
+    virtual void SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif
 
     virtual void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,

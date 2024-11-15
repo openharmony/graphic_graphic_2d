@@ -64,9 +64,9 @@ public:
         SPHERIZE_EFFECT,
         COLORFUL_SHADOW,
         ATTRACTION_EFFECT,
+        MAGNIFIER,
         WATER_RIPPLE,
         COMPOUND_EFFECT,
-        MAGNIFIER,
         FLY_OUT,
         DISTORT,
     };

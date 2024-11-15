@@ -61,6 +61,7 @@ void RSLuminanceControl::CloseLibrary()
     getDisplayNits_ = nullptr;
     getNonlinearRatio_ = nullptr;
     calScaler_ = nullptr;
+    isHdrPictureOn_ = nullptr;
 }
 
 void RSLuminanceControl::Init()
@@ -118,6 +119,11 @@ bool RSLuminanceControl::LoadStatusControl()
     dimmingIncrease_ = reinterpret_cast<DimmingIncreaseFunc>(dlsym(extLibHandle_, "DimmingIncrease"));
     if (dimmingIncrease_ == nullptr) {
         RS_LOGE("LumCtr link IsDimmingOn error!");
+        return false;
+    }
+    isHdrPictureOn_ = reinterpret_cast<IsHdrPictureOnFunc>(dlsym(extLibHandle_, "IsHdrPictureOn"));
+    if (isHdrPictureOn_ == nullptr) {
+        RS_LOGE("LumCtr link IsHdrPictureOn error!");
         return false;
     }
     return true;
@@ -263,6 +269,11 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode
 float RSLuminanceControl::CalScaler(const float& maxContentLightLevel)
 {
     return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel) : HDR_DEFAULT_SCALER;
+}
+
+bool RSLuminanceControl::IsHdrPictureOn()
+{
+    return (initStatus_ && isHdrPictureOn_ != nullptr) ? isHdrPictureOn_() : false;
 }
 } // namespace Rosen
 } // namespace OHOS

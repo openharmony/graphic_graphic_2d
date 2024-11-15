@@ -79,6 +79,66 @@ std::shared_ptr<Drawing::Image> GERenderFuzzTest002(const uint8_t *data, size_t 
     return resImg;
 }
 
+std::shared_ptr<Drawing::Image> GERenderFuzzTest003(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return nullptr;
+    }
+    // initialize
+    GETest::g_data = data;
+    GETest::g_size = size;
+    GETest::g_pos = 0;
+
+    auto geRender = std::make_shared<GERender>();
+    Drawing::Canvas canvas;
+    auto veContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    Drawing::Rect src{0.0, 0.0, 100.0, 100.0};
+    Drawing::Rect dst{0.0, 0.0, 100.0, 100.0};
+    Drawing::SamplingOptions sampling;
+    auto resImg = geRender->ApplyImageEffect(canvas, *veContainer, image, src, dst, sampling);
+    return resImg;
+}
+
+std::shared_ptr<Drawing::Image> GERenderFuzzTest004(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return nullptr;
+    }
+    // initialize
+    GETest::g_data = data;
+    GETest::g_size = size;
+    GETest::g_pos = 0;
+
+    auto geRender = std::make_shared<GERender>();
+    auto veContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
+
+    auto visualEffectGrey = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_GREY);
+    auto visualEffectAIBar = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_AI_BAR);
+    auto visualEffectLinear = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR);
+    auto visualEffectMagnifier = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_MAGNIFIER);
+    auto visualEffectWaterRipple = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_WATER_RIPPLE);
+
+    veContainer->AddToChainedFilter(visualEffectGrey);
+    veContainer->AddToChainedFilter(visualEffectAIBar);
+    veContainer->AddToChainedFilter(visualEffectLinear);
+    veContainer->AddToChainedFilter(visualEffectMagnifier);
+    veContainer->AddToChainedFilter(visualEffectWaterRipple);
+
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    float fLeft = GETest::GetPlainData<float>();
+    float fTop = GETest::GetPlainData<float>();
+    float fWidth = GETest::GetPlainData<float>();
+    float fHeight = GETest::GetPlainData<float>();
+    Drawing::Rect src{fLeft, fTop, fWidth, fHeight};
+    Drawing::Rect dst = GETest::GetPlainData<Drawing::Rect>();
+    Drawing::SamplingOptions sampling;
+
+    auto resImg = geRender->ApplyImageEffect(canvas, *veContainer, image, src, dst, sampling);
+    return resImg;
+}
+
 }  // namespace GraphicsEffectEngine
 }  // namespace OHOS
 
@@ -88,5 +148,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     OHOS::GraphicsEffectEngine::GERenderFuzzTest001(data, size);
     OHOS::GraphicsEffectEngine::GERenderFuzzTest002(data, size);
+    OHOS::GraphicsEffectEngine::GERenderFuzzTest003(data, size);
+    OHOS::GraphicsEffectEngine::GERenderFuzzTest004(data, size);
     return 0;
 }

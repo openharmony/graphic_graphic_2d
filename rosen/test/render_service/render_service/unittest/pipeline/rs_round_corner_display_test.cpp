@@ -1399,13 +1399,57 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);
     rcdManagerInstance.DoProcessRenderTask(id, info);
     RSContext context;
-    context.nodeMap.renderNodeMap_ = {{id, std::make_shared<RSRenderNode>(id)}};
+    pid_t pid = ExtractPid(id);
+    context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id);
     rcdManagerInstance.CheckRenderTargetNode(context);
-    context.nodeMap.renderNodeMap_ = {{id, std::make_shared<RSRenderNode>(id + 1)}};
+    context.nodeMap.renderNodeMap_[pid][id] = std::make_shared<RSRenderNode>(id + 1);
     rcdManagerInstance.CheckRenderTargetNode(context);
     rcdManagerInstance.RemoveRcdResource(id);
     context.nodeMap.renderNodeMap_.clear();
     rcdManagerInstance.topSurfaceNodeMap_.clear();
     rcdManagerInstance.bottomSurfaceNodeMap_.clear();
+}
+
+/*
+ * @tc.name: RSRoundCornerDirtyRegion
+ * @tc.desc: Test RSRoundCornerDirtyRegion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDirtyRegion, TestSize.Level1)
+{
+    auto &rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+    NodeId id = 1;
+    RectI dirtyRect;
+    bool flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
+    EXPECT_TRUE(!flag && dirtyRect.IsEmpty());
+
+    // Add round corner display node
+    rcdInstance.AddRoundCornerDisplay(id);
+    rcdInstance.rcdMap_[id]->rcdDirtyType_ = RoundCornerDirtyType::RCD_DIRTY_ALL;
+    rcdInstance.rcdMap_[id]->hardInfo_.resourceChanged = true;
+    
+    // Handle rcd dirty rect without image resource
+    flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
+    flag &= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
+    EXPECT_TRUE(flag && dirtyRect.IsEmpty());
+
+    // Handle rcd dirty rect with image resource
+    rcdInstance.rcdMap_[id]->curTop_ = std::make_shared<Drawing::Image>();
+    rcdInstance.rcdMap_[id]->curBottom_ = std::make_shared<Drawing::Image>();
+    flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
+    flag &= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
+    EXPECT_TRUE(flag && dirtyRect.IsEmpty());
+
+    // Handle rcd dirty rect with resource prepared and reset dirty
+    rcdInstance.rcdMap_[id]->hardInfo_.resourceChanged = false;
+    flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
+    flag &= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
+    EXPECT_TRUE(flag && dirtyRect.IsEmpty());
+
+    // Handle rcd dirty rect with no dirty
+    flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
+    flag |= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
+    EXPECT_TRUE(!flag && dirtyRect.IsEmpty());
 }
 } // OHOS::Rosen

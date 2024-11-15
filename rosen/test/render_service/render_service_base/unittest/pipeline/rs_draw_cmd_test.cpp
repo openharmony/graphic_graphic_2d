@@ -371,7 +371,8 @@ HWTEST_F(RSDrawCmdTest, Playback006, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
     Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
     Drawing::Canvas canvas;
     Drawing::Rect rect;
@@ -394,7 +395,8 @@ HWTEST_F(RSDrawCmdTest, SetNodeId005, TestSize.Level1)
     Drawing::OpDataHandle objectHandle;
     Drawing::SamplingOptions sampling;
     Drawing::PaintHandle paintHandle;
-    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling, paintHandle);
+    Drawing::DrawPixelMapRectOpItem::ConstructorHandle constructorHandle(objectHandle, sampling,
+        Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT, paintHandle);
     Drawing::DrawPixelMapRectOpItem drawPixelMapRectOpItem(list, &constructorHandle);
     drawPixelMapRectOpItem.SetNodeId(id);
 

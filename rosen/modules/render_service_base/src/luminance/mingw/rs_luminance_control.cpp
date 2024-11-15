@@ -97,5 +97,10 @@ float RSLuminanceControl::CalScaler(const float& maxContentLightLevel)
 {
     return HDR_DEFAULT_SCALER;
 }
+
+bool RSLuminanceControl::IsHdrPictureOn()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

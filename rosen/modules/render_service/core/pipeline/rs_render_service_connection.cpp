@@ -25,7 +25,6 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
-#include "pipeline/rs_pointer_drawing_manager.h"
 
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -34,6 +33,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -430,17 +430,23 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {
-        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id]() {
+        auto observer = [] (const RSRenderFrameRateLinker& linker) {
+            if (auto mainThread = RSMainThread::Instance(); mainThread != nullptr) {
+                mainThread->UpdateFrameRateLinker(linker);
+            }
+        };
+        mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
             if (!connection) {
                 return;
             }
-            auto linker = std::make_shared<RSRenderFrameRateLinker>(id);
+            auto linker = std::make_shared<RSRenderFrameRateLinker>(id, observer);
             auto& context = connection->mainThread_->GetContext();
             auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
             frameRateLinkerMap.RegisterFrameRateLinker(linker);
         }).wait();
         conn->id_ = id;
+        RS_LOGD("CreateVSyncConnection connect id: %{public}" PRIu64, id);
     }
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
@@ -585,6 +591,14 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+}
+
+int32_t RSRenderServiceConnection::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    if (screenManager_ == nullptr) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetMirrorScreenVisibleRect(id, mainScreenRect);
 }
 
 int32_t RSRenderServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
@@ -1025,19 +1039,16 @@ void RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positio
 
     // adapt video scene pointer
     if (screenManager_->GetCurrentVirtualScreenNum() > 0 ||
-        !RSPointerDrawingManager::Instance().GetIsPointerEnableHwc()) {
+        !RSPointerWindowManager::Instance().GetIsPointerEnableHwc()) {
         // when has virtual screen or pointer is enable hwc, we can't skip
-        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(false);
+        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(false);
         RSMainThread::Instance()->RequestNextVSync();
     } else {
-        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(true);
+        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(true);
     }
 
-    // record status here
-    std::lock_guard<std::mutex> lock(RSPointerDrawingManager::Instance().mtx_);
-    RSPointerDrawingManager::Instance().SetBoundHasUpdate(true);
-    RSPointerDrawingManager::Instance().SetBound({positionX, positionY, positionZ, positionW});
-    RSPointerDrawingManager::Instance().SetRsNodeId(rsNodeId);
+    RSPointerWindowManager::Instance().SetHwcNodeBounds(rsNodeId, positionX, positionY,
+        positionZ, positionW);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
@@ -1611,7 +1622,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
     std::future<bool> future = result.get_future();
     RSMainThread* mainThread = mainThread_;
     RSUniRenderThread* renderThread = &renderThread_;
-    auto getPixelMapTask = [id, &pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
+    auto getPixelMapTask = [id, pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
         auto node = mainThread->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
         if (node == nullptr) {
             RS_LOGD("RSRenderServiceConnection::GetPixelmap: cannot find NodeId: [%{public}" PRIu64 "]", id);
@@ -1629,7 +1640,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         if (drawableNode) {
             tid = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->GetTid();
         }
-        auto getDrawablePixelmapTask = [drawableNode, &pixelmap, rect, &result, tid, drawCmdList]() {
+        auto getDrawablePixelmapTask = [drawableNode, pixelmap, rect, &result, tid, drawCmdList]() {
             result.set_value(std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
                 GetPixelmap(pixelmap, rect, tid, drawCmdList));
         };
@@ -1693,6 +1704,21 @@ int32_t RSRenderServiceConnection::SetVirtualScreenRefreshRate(
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
+}
+
+uint32_t RSRenderServiceConnection::SetScreenActiveRect(
+    ScreenId id, const Rect& activeRect)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    GraphicIRect dstActiveRect {
+        .x = activeRect.x,
+        .y = activeRect.y,
+        .w = activeRect.w,
+        .h = activeRect.h,
+    };
+    return screenManager_->SetScreenActiveRect(id, dstActiveRect);
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -1881,12 +1907,10 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, touchStatus, touchCnt]() {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            frameRateMgr->HandleTouchEvent(pid, touchStatus, touchCnt);
-        }
-    });
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+    }
 }
 
 void RSRenderServiceConnection::NotifyDynamicModeEvent(bool enableDynamicModeEvent)
@@ -1989,6 +2013,17 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::SetScreenSwitchStatus(bool flag)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [flag]() {
+        RSSystemProperties::SetScreenSwitchStatus(flag);
+    };
+    mainThread_->PostTask(task);
+}
+
 void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
     RSSystemProperties::SetDefaultDeviceRotationOffset(offset);
@@ -2026,15 +2061,37 @@ void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
-    if (TOUCH_SCREEN->tsSetFeatureConfig_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: touch screen function symbol is nullptr.");
-        return;
-    }
-    if (TOUCH_SCREEN->tsSetFeatureConfig_(feature, config) < 0) {
-        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: tsSetFeatureConfig_ failed.");
-        return;
+    switch (tpFeatureConfigType) {
+        case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
+                return;
+            }
+            if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetFeatureConfig failed");
+                return;
+            }
+            break;
+        }
+        case TpFeatureConfigType::AFT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetAftConfigHandl is nullptr");
+                return;
+            }
+            if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetAftConfig failed");
+                return;
+            }
+            break;
+        }
+        default: {
+            RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: unknown TpFeatureConfigType: %" PRIu8"",
+                static_cast<uint8_t>(tpFeatureConfigType));
+            return;
+        }
     }
 }
 #endif

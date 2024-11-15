@@ -243,7 +243,7 @@ void DrawCmdList::UnmarshallingDrawOps()
         LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
 
-    if (opAllocator_.GetSize() <= offset_) {
+    if (opAllocator_.GetSize() <= offset_ || width_ <= 0 || height_ <= 0) {
         return;
     }
 
@@ -294,9 +294,9 @@ void DrawCmdList::UnmarshallingDrawOps()
     } while (offset != 0);
     lastOpGenSize_ = opAllocator_.GetSize();
 
-    opAllocator_.ClearData();
-    imageAllocator_.ClearData();
-    bitmapAllocator_.ClearData();
+    if ((int)imageAllocator_.GetSize() > 0) {
+        imageAllocator_.ClearData();
+    }
 
     if (performanceCaculateOpType_ != 0) {
         LOGI("Drawing Performance UnmarshallingDrawOps end %{public}lld", PerformanceCaculate::GetUpTime());

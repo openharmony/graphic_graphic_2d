@@ -67,8 +67,8 @@ private:
     static void ResetCommandQueue();
     static void ProcessCommand(const char* data, size_t size);
     static void ProcessBinary(const std::vector<char>& data);
-    static void ProcessIncoming(Socket& socket);
-    static void ProcessOutgoing(Socket& socket);
+    static void Receive(Socket& socket);
+    static void Send(Socket& socket);
     static void SendPath(const std::string& path, PackageID id);
     static void SendPacket(const Packet& packet);
     static void ResetSendQueue();

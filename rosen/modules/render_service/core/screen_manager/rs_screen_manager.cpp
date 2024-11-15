@@ -1156,6 +1156,47 @@ const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionLi
     return virtualScreen->second->GetSecurityExemptionList();
 }
 
+int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
+{
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGD("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto mirrorScreen = screens_.find(id);
+    if (mirrorScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+
+    if (mirrorScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    mirrorScreen->second->SetEnableVisibleRect(true);
+    mirrorScreen->second->SetMainScreenVisibleRect(mainScreenRect);
+    RS_LOGD("RSScreenManager %{public}s: mirror screen(id %{public}" PRIu64 "), "
+        "visible rect[%{public}d, %{public}d, %{public}d, %{public}d].",
+        __func__, id, mainScreenRect.x, mainScreenRect.y, mainScreenRect.w, mainScreenRect.h);
+    return SUCCESS;
+}
+
+Rect RSScreenManager::GetMirrorScreenVisibleRect(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto mirrorScreen = screens_.find(id);
+    if (mirrorScreen == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+
+    if (mirrorScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return {};
+    }
+    return mirrorScreen->second->GetMainScreenVisibleRect();
+}
+
 const std::unordered_set<NodeId> RSScreenManager::GetVirtualScreenBlackList(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -1312,6 +1353,18 @@ void RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
         return;
     }
     screensIt->second->SetActiveMode(modeId);
+}
+
+uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    return screensIt->second->SetScreenActiveRect(activeRect);
 }
 
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1609,6 +1662,8 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
     screen->GetPixelFormat(info.pixelFormat);
     screen->GetScreenHDRFormat(info.hdrFormat);
     info.whiteList = screen->GetWhiteList();
+    info.enableVisibleRect = screen->GetEnableVisibleRect();
+    info.activeRect = screen->GetActiveRect();
     return info;
 }
 

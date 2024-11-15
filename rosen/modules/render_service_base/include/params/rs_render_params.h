@@ -304,11 +304,6 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetScalingMode(ScalingMode scalingMode) {}
-    virtual ScalingMode GetScalingMode() const
-    {
-        return ScalingMode::SCALING_MODE_FREEZE;
-    }
     virtual void SetNeedClient(bool needClient) {}
     virtual bool GetNeedClient() const { return false; }
     virtual bool GetFingerprint() { return false; }

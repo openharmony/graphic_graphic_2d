@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "drawing/draw/core_canvas.h"
+#include "image/gpu_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -100,10 +101,22 @@ public:
         BuildOverDraw(canvas);
     }
     virtual ~OverDrawCanvas() {}
-    virtual DrawingType GetDrawingType() const
+    virtual DrawingType GetDrawingType() const override
     {
         return DrawingType::OVER_DRAW;
     }
+    void SetGrContext(std::shared_ptr<GPUContext> gpuContext)
+    {
+        gpuContext_ = gpuContext;
+    }
+#ifdef RS_ENABLE_GPU
+    std::shared_ptr<GPUContext> GetGPUContext() override
+    {
+        return gpuContext_;
+    }
+#endif
+private:
+    std::shared_ptr<GPUContext> gpuContext_ = nullptr;
 };
 
 class DRAWING_API NoDrawCanvas : public Canvas {

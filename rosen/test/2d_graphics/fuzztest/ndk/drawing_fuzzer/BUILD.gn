@@ -36,10 +36,11 @@ ohos_fuzztest("DrawingFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
-    "--std=c++17",
+    "-std=c++17",
   ]
   sources = [
     "drawing_fuzzer.cpp",
+    "drawing_text_run_fuzz.cpp",
     "drawing_typography_fuzzer.cpp",
   ]
 

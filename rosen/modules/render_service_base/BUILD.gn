@@ -433,10 +433,6 @@ ohos_source_set("render_service_base_src") {
 
   if (current_os == "ohos") {
     defines += [ "IS_OHOS" ]
-    sources += [
-      "src/benchmarks/file_utils.cpp",
-      "src/benchmarks/rs_recording_thread.cpp",
-    ]
   }
 
   include_dirs = [
@@ -606,8 +602,6 @@ ohos_shared_library("librender_service_base") {
   }
 
   sources = [ "src/common/rs_common_hook.cpp" ]
-
-  all_dependent_configs = [ ":render_service_base_all_deps_config" ]
 
   public_configs = [ ":render_service_base_all_deps_config" ]
 

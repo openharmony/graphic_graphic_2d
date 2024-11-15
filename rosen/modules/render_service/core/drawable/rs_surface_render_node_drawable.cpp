@@ -165,7 +165,19 @@ void RSSurfaceRenderNodeDrawable::DrawWatermark(RSPaintFilterCanvas& canvas, con
     }
 }
 
-Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThreadParams& uniParam,
+void RSSurfaceRenderNodeDrawable::MergeSubSurfaceNodesDirtyRegionForMainWindow(
+    RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const
+{
+    for (const auto& drawable : GetDrawableVectorById(surfaceParams.GetAllSubSurfaceNodeIds())) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
+        if (surfaceNodeDrawable && surfaceNodeDrawable->GetSyncDirtyManager()) {
+            Occlusion::Region subSurfaceDirtyRegion(surfaceNodeDrawable->GetSyncDirtyManager()->GetDirtyRegion());
+            surfaceDirtyRegion.OrSelf(subSurfaceDirtyRegion);
+        }
+    }
+}
+
+Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam,
     RSSurfaceRenderParams& surfaceParams, RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const
 {
     Drawing::Region resultRegion;
@@ -184,8 +196,12 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleRegion(RSRenderThre
     if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty()) {
         return resultRegion;
     }
-    // The region is dirty region of this SurfaceNode.
+    // The region is dirty region of this SurfaceNode (including sub-surface node in its subtree).
     Occlusion::Region surfaceNodeDirtyRegion(GetSyncDirtyManager()->GetDirtyRegion());
+    // Dirty region of sub-surface nodes should also be count in parent main surface node, to avoid early skipping.
+    if (surfaceParams.HasSubSurfaceNodes()) {
+        MergeSubSurfaceNodesDirtyRegionForMainWindow(surfaceParams, surfaceNodeDirtyRegion);
+    }
     // The region is the result of global dirty region AND occlusion region.
     Occlusion::Region globalDirtyRegion = GetGlobalDirtyRegion();
     // This include dirty region and occlusion region when surfaceNode is mainWindow.
@@ -369,7 +385,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    Drawing::Region curSurfaceDrawRegion = CalculateVisibleRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
+    Drawing::Region curSurfaceDrawRegion = CalculateVisibleDirtyRegion(*uniParam, *surfaceParams, *this, isUiFirstNode);
 
     if (!isUiFirstNode) {
         MergeDirtyRegionBelowCurSurface(*uniParam, curSurfaceDrawRegion);
@@ -461,6 +477,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
+    // disable filter cache when surface global position is enabled
+    bool isDisableFilterCache = curCanvas_->GetDisableFilterCache();
+    curCanvas_->SetDisableFilterCache(isDisableFilterCache || surfaceParams->GetGlobalPositionEnabled());
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
 
@@ -500,6 +519,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSNodeStats::GetInstance().AddNodeStats(nodeStats);
     }
 
+    curCanvas_->SetDisableFilterCache(isDisableFilterCache);
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
@@ -565,7 +585,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         (RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_);
     if ((surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE ||
-         surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
+        surfaceNodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE) &&
         isHiddenScene && surfaceParams->GetHidePrivacyContent()) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfacenode nodeId:[%{public}" PRIu64
                 "] is not allowed to be captured", nodeId_);
@@ -892,7 +912,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);
-    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+    // Alpha and matrix have been applied in func CaptureSurface
+    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_ && !RSUniRenderThread::GetCaptureParam().isMirror_) {
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
@@ -985,14 +1006,12 @@ void RSSurfaceRenderNodeDrawable::SetAlignedVisibleDirtyRegion(const Occlusion::
     alignedVisibleDirtyRegion_ = alignedRegion;
 }
 
-void RSSurfaceRenderNodeDrawable::SetGlobalDirtyRegion(const RectI& rect)
+void RSSurfaceRenderNodeDrawable::SetGlobalDirtyRegion(Occlusion::Region region)
 {
     if (!GetRenderParams()) {
         return;
     }
     auto visibleRegion = GetRenderParams()->GetVisibleRegion();
-    Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
-    Occlusion::Region region { tmpRect };
     globalDirtyRegion_ = visibleRegion.And(region);
     globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
 }

@@ -367,7 +367,9 @@ HWTEST_F(VulkanLoaderSystemTest, createSwapChain_Test, TestSize.Level1)
         swapchainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         swapchainCI.surface = surface_;
         VkSurfaceCapabilitiesKHR surfCaps;
-        VkResult err = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface_, &surfCaps);
+        VkResult err = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, VK_NULL_HANDLE, &surfCaps);
+        EXPECT_EQ(err, VK_SUCCESS);
+        err = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice_, surface_, &surfCaps);
         EXPECT_EQ(err, VK_SUCCESS);
 
         uint32_t desiredNumberOfSwapchainImages = surfCaps.minImageCount + 1;
@@ -392,11 +394,16 @@ HWTEST_F(VulkanLoaderSystemTest, createSwapChain_Test, TestSize.Level1)
         swapchainCI.imageArrayLayers = 1;
         swapchainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         swapchainCI.queueFamilyIndexCount = 0;
-        swapchainCI.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
         swapchainCI.oldSwapchain = oldSwapchain;
         swapchainCI.clipped = VK_TRUE;
         swapchainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
+        swapchainCI.presentMode = VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR;
+        err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChain_);
+        EXPECT_EQ(err, VK_SUCCESS);
+
+        fpDestroySwapchainKHR(device_, swapChain_, nullptr);
+        swapchainCI.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
         err = fpCreateSwapchainKHR(device_, &swapchainCI, nullptr, &swapChain_);
         EXPECT_EQ(err, VK_SUCCESS);
         EXPECT_NE(swapChain_, VK_NULL_HANDLE);
@@ -445,8 +452,11 @@ HWTEST_F(VulkanLoaderSystemTest, getPhysicalDeviceSurfaceFormatsKHR_Test, TestSi
     if (isSupportedVulkan_) {
         EXPECT_NE(physicalDevice_, nullptr);
         EXPECT_NE(surface_, VK_NULL_HANDLE);
+        VkResult res = fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, VK_NULL_HANDLE, 0, nullptr);
+        EXPECT_NE(res, VK_SUCCESS);
+
         uint32_t formatCount = 0;
-        VkResult res = fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface_, &formatCount, nullptr);
+        res = fpGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice_, surface_, &formatCount, nullptr);
         EXPECT_EQ(res, VK_SUCCESS);
         EXPECT_NE(formatCount, 0);
         std::vector<VkSurfaceFormatKHR> formats(formatCount);
@@ -553,6 +563,9 @@ HWTEST_F(VulkanLoaderSystemTest, getDeviceGroupPresentCapabilitiesKHR_Test, Test
         VkDeviceGroupPresentCapabilitiesKHR deviceGroupPresentCapabilities = {};
         VkResult res = fpGetDeviceGroupPresentCapabilitiesKHR(device_, &deviceGroupPresentCapabilities);
         EXPECT_EQ(res, VK_SUCCESS);
+
+        res = fpGetDeviceGroupPresentCapabilitiesKHR(device_, nullptr);
+        EXPECT_NE(res, VK_SUCCESS);
     }
 }
 }

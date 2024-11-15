@@ -481,6 +481,7 @@ HWTEST_F(RSImageTest, RSImageBase001, TestSize.Level1)
     RectF rect(0, 0, 100, 100);
     imageBase.SetSrcRect(rect);
     imageBase.SetDstRect(rect);
+    imageBase.GetUniqueId();
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     Drawing::Brush brush;

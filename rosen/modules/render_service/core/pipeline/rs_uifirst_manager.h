@@ -64,6 +64,7 @@ public:
     bool CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &node);
     void ForceClearSubthreadRes();
     void ProcessForceUpdateNode();
+    bool ForceUpdateUifirstNodes(RSSurfaceRenderNode& node);
 
     // event process
     void OnProcessEventResponse(DataBaseRs& info);

@@ -272,6 +272,8 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub007
     ASSERT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED)), IPC_STUB_INVALID_DATA_ERR);
     ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS)), ERR_NONE);
+    ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET)), ERR_NONE);
 #ifdef TP_FEATURE_ENABLE
     ASSERT_EQ(OnRemoteRequestTest(
@@ -333,5 +335,17 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub009
 
     int res = connectionStub_->OnRemoteRequest(-1, data, reply, option);
     ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub010
+ * @tc.desc: Test if the code not exists.
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub010, TestSize.Level1)
+{
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS)), ERR_NONE);
 }
 } // namespace OHOS::Rosen

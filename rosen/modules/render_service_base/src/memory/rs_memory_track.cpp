@@ -138,9 +138,20 @@ float MemoryTrack::GetAppMemorySizeInMB()
 void MemoryTrack::DumpMemoryStatistics(DfxString& log,
     std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    DumpMemoryPicStatistics(log, func);
-    DumpMemoryNodeStatistics(log);
+    std::vector<MemoryInfo> memPicRecord;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        for (auto& [addr, info] : memPicRecord_) {
+            memPicRecord.push_back(info);
+        }
+    }
+    // dump without mutex to avoid dead lock
+    // because it may free pixelmap after fetch shard_ptr(use_count = 1) from pixelmap's weak_ptr
+    DumpMemoryPicStatistics(log, func, memPicRecord);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        DumpMemoryNodeStatistics(log);
+    }
 }
 
 void MemoryTrack::DumpMemoryNodeStatistics(DfxString& log)
@@ -191,13 +202,11 @@ const std::string MemoryTrack::PixelMapInfo2String(MemoryInfo info)
     std::string un_map_cnt_str = "-1";
 
 #ifdef ROSEN_OHOS
-    if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
-        auto pixelMap = info.pixelMap.lock();
-        if (pixelMap) {
-            use_cnt_str = std::to_string(pixelMap->GetUseCount());
-            is_un_map_str = std::to_string(pixelMap->IsUnMap());
-            un_map_cnt_str = std::to_string(pixelMap->GetUnMapCount());
-        }
+    auto pixelMap = info.pixelMap.lock();
+    if (pixelMap) {
+        use_cnt_str = std::to_string(pixelMap->GetUseCount());
+        is_un_map_str = std::to_string(pixelMap->IsUnMap());
+        un_map_cnt_str = std::to_string(pixelMap->GetUnMapCount());
     }
 #endif
     return alloc_type_str + "," + use_cnt_str + "," + is_un_map_str + "," + un_map_cnt_str;
@@ -263,7 +272,8 @@ std::string MemoryTrack::GenerateDetail(MemoryInfo info, uint64_t wId, std::stri
 }
 
 void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
-    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func)
+    std::function<std::tuple<uint64_t, std::string, RectI> (uint64_t)> func,
+    const std::vector<MemoryInfo>& memPicRecord)
 {
     log.AppendFormat("RSImageCache:\n");
     log.AppendFormat("%s:\n", GenerateDumpTitle().c_str());
@@ -281,7 +291,7 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
     int totalUnMapCount = 0;
 #endif
     //calculate by byte
-    for (auto& [addr, info] : memPicRecord_) {
+    for (auto& info : memPicRecord) {
         int size = static_cast<int>(info.size / BYTE_CONVERT); // k
         //total of type
         arrTotal[info.type] += size;
@@ -297,18 +307,16 @@ void MemoryTrack::DumpMemoryPicStatistics(DfxString& log,
             totalWithoutDMASize += size;
             countWithoutDMA++;
 #ifdef ROSEN_OHOS
-            if (RSSystemProperties::GetDumpUIPixelmapEnabled()) {
-                auto pixelMap = info.pixelMap.lock();
-                if (pixelMap && pixelMap->IsUnMap()) {
-                    totalUnMapSize += size;
-                    totalUnMapCount++;
-                }
+            auto pixelMap = info.pixelMap.lock();
+            if (pixelMap && pixelMap->IsUnMap()) {
+                totalUnMapSize += size;
+                totalUnMapCount++;
             }
 #endif
         }
 
         auto [windowId, windowName, nodeFrameRect] = func(info.nid);
-        log.AppendFormat("%s \t %p\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str(), addr);
+        log.AppendFormat("%s\n", GenerateDetail(info, windowId, windowName, nodeFrameRect).c_str());
     }
 
     for (uint32_t i = MEM_PIXELMAP; i < MEM_MAX_SIZE; i++) {

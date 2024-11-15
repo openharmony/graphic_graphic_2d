@@ -284,7 +284,9 @@ HWTEST_F(RSCanvasRenderNodeTest, PlaybackInCorrespondThread, TestSize.Level1)
     rsCanvasDrawingRenderNode->PlaybackInCorrespondThread();
 
     auto& ctxNodeMap = context.lock()->GetMutableNodeMap();
-    ctxNodeMap.renderNodeMap_[rsCanvasDrawingRenderNode->GetId()] = rsCanvasDrawingRenderNode;
+    NodeId canvasNodeId = rsCanvasDrawingRenderNode->GetId();
+    pid_t canvasNodePid = ExtractPid(canvasNodeId);
+    ctxNodeMap.renderNodeMap_[canvasNodePid][canvasNodeId] = rsCanvasDrawingRenderNode;
     ctxNode = context.lock()->GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(rsCanvasDrawingRenderNode->GetId());
     EXPECT_TRUE(ctxNode != nullptr);
     int32_t width = 1;
@@ -627,5 +629,1070 @@ HWTEST_F(RSCanvasRenderNodeTest, ClearResourceTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->ClearResource();
     auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
     EXPECT_TRUE(lists.empty());
+}
+
+/**
+ * @tc.name: SetandGetTranslateY005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateY005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetTranslateY(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetTranslate().y_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateZ001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetTranslateZ(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetTranslateZ(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateZ002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetTranslateZ(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetTranslateZ(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateZ003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetTranslateZ(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetTranslateZ(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateZ004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetTranslateZ(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetTranslateZ(), floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateZ005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetTranslateZ(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetTranslateZ(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetClipToBounds001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetClipToBounds001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetClipToBounds(true);
+    EXPECT_EQ(canvasNode->GetStagingProperties().GetClipToBounds(), true);
+}
+
+/**
+ * @tc.name: SetandGetClipToBounds002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetClipToBounds002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetClipToBounds(false);
+    EXPECT_EQ(canvasNode->GetStagingProperties().GetClipToBounds(), false);
+}
+
+/**
+ * @tc.name: SetandGetClipToFrame001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetClipToFrame001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetClipToFrame(true);
+    EXPECT_EQ(canvasNode->GetStagingProperties().GetClipToFrame(), true);
+}
+
+/**
+ * @tc.name: SetandGetClipToFrame002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetClipToFrame002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetClipToFrame(false);
+    EXPECT_EQ(canvasNode->GetStagingProperties().GetClipToFrame(), false);
+}
+
+/**
+ * @tc.name: SetandGetVisible001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetVisible001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetVisible(true);
+    EXPECT_EQ(canvasNode->GetStagingProperties().GetVisible(), true);
+}
+
+/**
+ * @tc.name: SetandGetVisible002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetVisible002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetVisible(false);
+    EXPECT_EQ(canvasNode->GetStagingProperties().GetVisible(), false);
+}
+
+/**
+ * @tc.name: SetandGetBorderStyle001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderStyle001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto borderStyle = static_cast<uint32_t>(BorderStyle::SOLID);
+    canvasNode->SetBorderStyle(static_cast<uint32_t>(borderStyle));
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderStyle() == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetBorderStyle002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderStyle002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto borderStyle = static_cast<uint32_t>(BorderStyle::DASHED);
+    canvasNode->SetBorderStyle(static_cast<uint32_t>(borderStyle));
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderStyle() == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetBorderStyle003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderStyle003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto borderStyle = static_cast<uint32_t>(BorderStyle::DOTTED);
+    canvasNode->SetBorderStyle(static_cast<uint32_t>(borderStyle));
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderStyle() == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetBorderStyle004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderStyle004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto borderStyle = static_cast<uint32_t>(BorderStyle::NONE);
+    canvasNode->SetBorderStyle(static_cast<uint32_t>(borderStyle));
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderStyle() == borderStyle);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::CENTER;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::TOP;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::BOTTOM;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::LEFT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::RIGHT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity006
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity006, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::TOP_LEFT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity007
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity007, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::TOP_RIGHT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity008
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity008, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::BOTTOM_LEFT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity009
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity009, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::BOTTOM_RIGHT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity010
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity010, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::RESIZE;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity011
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity011, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::RESIZE_ASPECT;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: SetandGetFrameGravity012
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetFrameGravity012, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Gravity gravity = Gravity::RESIZE_ASPECT_FILL;
+    canvasNode->SetFrameGravity(gravity);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetFrameGravity() == gravity);
+}
+
+/**
+ * @tc.name: NotifyTransition001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, NotifyTransition001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->NotifyTransition(RSTransitionEffect::Create(), true);
+}
+
+/**
+ * @tc.name: NotifyTransition002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, NotifyTransition002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->NotifyTransition(RSTransitionEffect::Create(), false);
+}
+
+/**
+ * @tc.name: SetandGetForegroundColor001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetForegroundColor001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x034123;
+    canvasNode->SetForegroundColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetForegroundColor002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetForegroundColor002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    canvasNode->SetForegroundColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetForegroundColor003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetForegroundColor003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    canvasNode->SetForegroundColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetBackgroundColor001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBackgroundColor001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x034123;
+    canvasNode->SetBackgroundColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetBackgroundColor002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBackgroundColor002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    canvasNode->SetBackgroundColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetBackgroundColor003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBackgroundColor003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    canvasNode->SetBackgroundColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetBorderColor001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderColor001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x034123;
+    canvasNode->SetBorderColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetBorderColor002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderColor002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    canvasNode->SetBorderColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetBorderColor003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetBorderColor003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    canvasNode->SetBorderColor(colorValue);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBorderColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetRotationVector001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetRotationVector001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Vector4f quaternion(std::numeric_limits<int>::min(), 2.f, 3.f, 4.f);
+    canvasNode->SetRotation(quaternion);
+}
+
+/**
+ * @tc.name: SetandGetTranslateVector001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetTranslateVector001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    Vector2f quaternion(std::numeric_limits<int>::max(), 2.f);
+    canvasNode->SetTranslate(quaternion);
+}
+
+/**
+ * @tc.name: CreateBlurFilter001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateBlurFilter001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
+    canvasNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[1]);
+}
+
+/**
+ * @tc.name: CreateBlurFilter002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateBlurFilter002, TestSize.Level2)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
+    canvasNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[2]);
+}
+
+/**
+ * @tc.name: CreateBlurFilter003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateBlurFilter003, TestSize.Level3)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
+    canvasNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[3]);
+}
+
+/**
+ * @tc.name: CreateBlurFilter004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateBlurFilter004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
+    canvasNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[4]);
+}
+
+/**
+ * @tc.name: CreateBlurFilter005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateBlurFilter005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> backgroundFilter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
+    canvasNode->SetBackgroundFilter(backgroundFilter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetBackgroundBlurRadiusY() == floatData[0]);
+}
+
+/**
+ * @tc.name: CreateNormalFilter001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateNormalFilter001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
+    canvasNode->SetFilter(filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[0]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[1]);
+}
+
+/**
+ * @tc.name: CreateNormalFilter002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateNormalFilter002, TestSize.Level2)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[1], floatData[2]);
+    canvasNode->SetFilter(filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[1]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[2]);
+}
+
+/**
+ * @tc.name: CreateNormalFilter003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateNormalFilter003, TestSize.Level3)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[2], floatData[3]);
+    canvasNode->SetFilter(filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[2]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[3]);
+}
+
+/**
+ * @tc.name: CreateNormalFilter004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateNormalFilter004, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[3], floatData[4]);
+    canvasNode->SetFilter(filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[3]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[4]);
+}
+
+/**
+ * @tc.name: CreateNormalFilter005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateNormalFilter005, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[4], floatData[0]);
+    canvasNode->SetFilter(filter);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusX() == floatData[4]);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetForegroundBlurRadiusY() == floatData[0]);
+}
+
+/**
+ * @tc.name: SetandGetClipBounds001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetandGetClipBounds001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    std::shared_ptr<RSPath> clipPath = RSPath::CreateRSPath();
+    canvasNode->SetClipBounds(clipPath);
+    EXPECT_TRUE(canvasNode->GetStagingProperties().GetClipBounds() == clipPath);
+}
+
+/**
+ * @tc.name: GetId001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetId001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->GetId();
+}
+
+/**
+ * @tc.name: GetStagingProperties001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetStagingProperties001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->GetStagingProperties();
+}
+
+/**
+ * @tc.name: GetMotionPathOption001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetMotionPathOption002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->GetMotionPathOption();
+}
+
+/**
+ * @tc.name: SetBgImage001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetBgImage001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto image = std::make_shared<RSImage>();
+    canvasNode->SetBgImage(image);
+}
+
+/**
+ * @tc.name: SetBackgroundShader001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetBackgroundShader001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto shader = RSShader::CreateRSShader();
+    canvasNode->SetBackgroundShader(shader);
+}
+
+/**
+ * @tc.name: SetCompositingFilter001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetCompositingFilter001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto compositingFilter = RSFilter::CreateBlurFilter(0.0f, 0.0f);
+    canvasNode->SetCompositingFilter(compositingFilter);
+}
+
+/**
+ * @tc.name: SetShadowPath001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetShadowPath001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    auto shadowpath = RSPath::CreateRSPath();
+    canvasNode->SetShadowPath(shadowpath);
+}
+
+/**
+ * @tc.name: GetType001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetType001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    ASSERT_TRUE(canvasNode != nullptr);
+    ASSERT_TRUE(canvasNode->GetType() == RSUINodeType::CANVAS_NODE);
+}
+
+/**
+ * @tc.name: GetType002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetType002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(true);
+    ASSERT_TRUE(canvasNode != nullptr);
+    ASSERT_TRUE(canvasNode->GetType() == RSUINodeType::CANVAS_NODE);
+}
+
+/**
+ * @tc.name: GetType003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetType003, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
+    ASSERT_TRUE(canvasNode != nullptr);
+    ASSERT_TRUE(canvasNode->GetType() == RSUINodeType::CANVAS_NODE);
+}
+
+/**
+ * @tc.name: SetBoundsChangedCallbackTest
+ * @tc.desc: test results of SetBoundsChangedCallback
+ * @tc.type:FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
+    ASSERT_TRUE(canvasNode != nullptr);
+    canvasNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
+    ASSERT_FALSE(canvasNode->recordingUpdated_);
+    canvasNode->SetHDRPresent(true);
+    canvasNode->SetBoundsChangedCallback([](const Rosen::Vector4f& vector4f) {});
+    ASSERT_NE(canvasNode->boundsChangedCallback_, nullptr);
+}
+
+/**
+ * @tc.name: CreateRenderNodeForTextureExportSwitch
+ * @tc.desc: test results of CreateRenderNodeForTextureExportSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->CreateRenderNodeForTextureExportSwitch();
+    ASSERT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawOnNode
+ * @tc.desc: test results of DrawOnNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, DrawOnNode, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    RSModifierType type = RSModifierType::INVALID;
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->DrawOnNode(type, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    canvasNode->DrawOnNode(type, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: GetPaintWidth
+ * @tc.desc: test results of GetPaintWidth
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetPaintWidth, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    float res = canvasNode->GetPaintWidth();
+    EXPECT_FALSE(res == 1.f);
+}
+
+/**
+ * @tc.name: GetPaintHeight
+ * @tc.desc: test results of GetPaintHeight
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, GetPaintHeight, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    float res = canvasNode->GetPaintHeight();
+    EXPECT_FALSE(res == 1.f);
+}
+
+/**
+ * @tc.name: SetFreeze
+ * @tc.desc: test results of SetFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetFreeze, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetFreeze(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged
+ * @tc.desc: test results of OnBoundsSizeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, OnBoundsSizeChanged, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->OnBoundsSizeChanged();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: SetBoundsChangedCallback
+ * @tc.desc: test results of SetBoundsChangedCallback
+ * @tc.type: FUNC
+ * @tc.require: issueI9KDPI
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetBoundsChangedCallback, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->boundsChangedCallback_ = [](const Rosen::Vector4f& bounds) {};
+    canvasNode->SetBoundsChangedCallback(canvasNode->boundsChangedCallback_);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: BeginRecording001
+ * @tc.desc: test results of BeginRecording
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, BeginRecording001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->BeginRecording(200, 300);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->recordingUpdated_ = true;
+    canvasNode->BeginRecording(200, 300);
+    EXPECT_TRUE(!canvasNode->recordingUpdated_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->BeginRecording(200, 300);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: CreateTextureExportRenderNodeInRT001
+ * @tc.desc: test results of CreateRenderNodeForTextureExportSwitch
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, CreateTextureExportRenderNodeInRT001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->CreateRenderNodeForTextureExportSwitch();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: FinishRecording001
+ * @tc.desc: test results of FinishRecording
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, FinishRecording001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    canvasNode->recordingCanvas_->cmdList_ =
+        std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::DEFERRED);
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    canvasNode->recordingCanvas_->cmdList_ =
+        std::make_shared<Drawing::DrawCmdList>(Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    Drawing::Paint paint;
+    auto item = std::make_shared<Drawing::DrawWithPaintOpItem>(paint, 0);
+    canvasNode->recordingCanvas_->cmdList_->drawOpItems_.push_back(item);
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(canvasNode->recordingUpdated_);
+
+    canvasNode->BeginRecording(200, 300);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    canvasNode->recordingCanvas_->cmdList_ = nullptr;
+    canvasNode->FinishRecording();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawOnNode001
+ * @tc.desc: test results of DrawOnNode
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, DrawOnNode001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
+    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->BeginRecording(200, 300);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
+    EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: SetFreeze001
+ * @tc.desc: test results of SetFreeze
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetFreeze001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetFreeze(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    RSSystemProperties::GetUniRenderEnabled();
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    canvasNode->SetFreeze(true);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    canvasNode->SetFreeze(true);
+    ASSERT_TRUE(RSSystemProperties::isUniRenderEnabled_);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: SetHDRPresent001
+ * @tc.desc: test results of SetHDRPresent
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetHDRPresent(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->SetHDRPresent(true);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->SetHDRPresent(false);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->SetHDRPresent(false);
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+}
+
+/**
+ * @tc.name: OnBoundsSizeChanged001
+ * @tc.desc: test results of OnBoundsSizeChanged
+ * @tc.type: FUNC
+ * @tc.require: issueI9R0EY
+ */
+HWTEST_F(RSCanvasRenderNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->OnBoundsSizeChanged();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
+
+    canvasNode->boundsChangedCallback_ = [](const Rosen::Vector4f& bounds) {};
+    canvasNode->OnBoundsSizeChanged();
+    EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 }
 } // namespace OHOS::Rosen

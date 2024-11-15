@@ -33,6 +33,8 @@ ohos_fuzztest("RSAnimationFuzzTest") {
     "-O0",
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
+    "-Dprivate=public",
+    "-Dprotected=public",
   ]
   sources = [
     "$rosen_root/modules/render_service_client/core/animation/rs_implicit_animation_param.cpp",

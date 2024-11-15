@@ -18,6 +18,7 @@
 #include "draw/color.h"
 #include "image/bitmap.h"
 #include "render/rs_hps_blur.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -94,5 +95,28 @@ HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest001, TestSize.Level1)
     EXPECT_EQ(filter.ApplyHpsBlur(canvas_, image, param, alpha, colorFilter), false);
 }
 
+/**
+ * @tc.name: ApplyHpsBlurTest002
+ * @tc.desc: Verify function ApplyHpsBlur
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSHpsBlurTest, ApplyHpsBlurTest002, TestSize.Level1)
+{
+    Drawing::Surface surface;
+    Drawing::Canvas canvas(&surface);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+
+    auto image = std::make_shared<Drawing::Image>();
+    float radius = 10;
+    float saturationForHPS = 1.1;
+    float brightnessForHPS = 1.0;
+    auto param = Drawing::HpsBlurParameter(src_, dst_, radius, saturationForHPS, brightnessForHPS);
+    float alpha = 0.8;
+    Drawing::Brush brush;
+    auto colorFilter = brush.GetFilter().GetColorFilter();
+
+    HpsBlurFilter filter;
+    EXPECT_EQ(filter.ApplyHpsBlur(canvas, image, param, alpha, colorFilter), false);
+}
 } // namespace Rosen
 } // namespace OHOS

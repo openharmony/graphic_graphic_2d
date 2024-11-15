@@ -115,6 +115,16 @@ public:
         isFirstTimeToProcessor_ = false;
     }
 
+    void SetUseCanvasSize(bool useCanvasSize)
+    {
+        useCanvasSize_ = useCanvasSize;
+    }
+
+    bool GetUseCanvasSize() const
+    {
+        return useCanvasSize_;
+    }
+
     ScreenRotation GetOriginScreenRotation() const
     {
         return originScreenRotation_;
@@ -130,6 +140,7 @@ private:
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable);
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
@@ -155,7 +166,7 @@ private:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
-    int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
+    int32_t GetSpecialLayerType(RSDisplayRenderParams& params, bool isSecLayerInVisivleRect = true);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
@@ -164,6 +175,7 @@ private:
     void FindHardCursorNodes(RSDisplayRenderParams& params);
     // For P3-scRGB Control
     bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
+    void RenderOverDraw();
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -187,6 +199,8 @@ private:
     uint64_t virtualSurfaceUniqueId_ = 0;
     bool resetRotate_ = false;
     bool isFirstTimeToProcessor_ = true;
+    // Do not use canvas size when recording HDR screen
+    bool useCanvasSize_ = true;
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;
@@ -203,6 +217,9 @@ private:
 #endif
     int64_t lastRefreshTime_ = 0;
     bool virtualDirtyRefresh_ = false;
+    bool enableVisibleRect_ = false;
+    Drawing::RectI curVisibleRect_;
+    Drawing::RectI lastVisibleRect_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

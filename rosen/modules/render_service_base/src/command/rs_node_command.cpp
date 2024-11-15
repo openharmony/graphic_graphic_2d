@@ -105,6 +105,15 @@ void RSNodeCommandHelper::MarkUifirstNode(RSContext& context, NodeId nodeId, boo
     }
 }
 
+void RSNodeCommandHelper::ForceUifirstNode(RSContext& context, NodeId nodeId, bool isForceFlag,
+    bool isUifirstEnable)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->MarkUifirstNode(isForceFlag, isUifirstEnable);
+    }
+}
+
 void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
 {
     auto& nodeMap = context.GetNodeMap();

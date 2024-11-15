@@ -39,7 +39,10 @@ config("egl_config") {
 }
 
 config("egl_public_config") {
-  include_dirs = [ "include" ]
+  include_dirs = [
+    "include",
+    "src/EGL/include/private/EGL",
+  ]
   if (graphic_2d_feature_use_igraphics_extend_hooks) {
     include_dirs += egl_igraphics_extend_hooks_include_dirs
   }

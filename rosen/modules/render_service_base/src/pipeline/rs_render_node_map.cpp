@@ -37,7 +37,7 @@ using ResidentSurfaceNodeMap = std::unordered_map<NodeId, std::shared_ptr<RSSurf
 RSRenderNodeMap::RSRenderNodeMap()
 {
     // add animation fallback node, NOTE: this is different from RSContext::globalRootRenderNode_
-    renderNodeMap_.emplace(0, new RSRenderNode(0));
+    renderNodeMap_[0][0] = std::make_shared<RSBaseRenderNode>(0);
 }
 
 void RSRenderNodeMap::Initialize(const std::weak_ptr<RSContext>& context)
@@ -111,6 +111,15 @@ uint32_t RSRenderNodeMap::GetVisibleLeashWindowCount() const
         });
 }
 
+uint64_t RSRenderNodeMap::GetSize() const
+{
+    size_t mapSize = 0;
+    for (const auto& [_, subMap] : renderNodeMap_) {
+        mapSize += subMap.size();
+    }
+    return static_cast<uint64_t>(mapSize);
+}
+
 bool RSRenderNodeMap::IsResidentProcessNode(NodeId id) const
 {
     auto nodePid = ExtractPid(id);
@@ -143,10 +152,10 @@ void RSRenderNodeMap::RemoveUIExtensionSurfaceNode(const std::shared_ptr<RSSurfa
 bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
-    if (renderNodeMap_.count(id)) {
+    pid_t pid = ExtractPid(id);
+    if (!(renderNodeMap_[pid].insert({ id, nodePtr })).second) {
         return false;
     }
-    renderNodeMap_.emplace(id, nodePtr);
     nodePtr->OnRegister(context_);
     if (nodePtr->GetType() == RSRenderNodeType::SURFACE_NODE) {
         auto surfaceNode = nodePtr->ReinterpretCastTo<RSSurfaceRenderNode>();
@@ -167,10 +176,10 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
 bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayRenderNode>& nodePtr)
 {
     NodeId id = nodePtr->GetId();
-    if (renderNodeMap_.count(id)) {
+    pid_t pid = ExtractPid(id);
+    if (!(renderNodeMap_[pid].insert({ id, nodePtr })).second) {
         return false;
     }
-    renderNodeMap_.emplace(id, nodePtr);
     displayNodeMap_.emplace(id, nodePtr);
     nodePtr->OnRegister(context_);
     return true;
@@ -178,7 +187,16 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
-    renderNodeMap_.erase(id);
+    pid_t pid = ExtractPid(id);
+    auto iter = renderNodeMap_.find(pid);
+    if (iter != renderNodeMap_.end()) {
+        auto& subMap = iter->second;
+        subMap.erase(id);
+        if (subMap.empty()) {
+            renderNodeMap_.erase(iter);
+        }
+    }
+
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
         RemoveUIExtensionSurfaceNode(it->second);
@@ -193,16 +211,19 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 void RSRenderNodeMap::MoveRenderNodeMap(
     std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap, pid_t pid)
 {
-    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>::iterator iter = renderNodeMap_.begin();
-    for (; iter != renderNodeMap_.end();) {
-        if (ExtractPid(iter->first) != pid) {
-            ++iter;
-            continue;
-        }
+    if (!subRenderNodeMap) {
+        return;
+    }
+    auto iter = renderNodeMap_.find(pid);
+    if (iter != renderNodeMap_.end()) {
+        auto& subMap = iter->second;
         // remove node from tree
-        iter->second->RemoveFromTree(false);
-        subRenderNodeMap->emplace(iter->first, iter->second);
-        iter = renderNodeMap_.erase(iter);
+        for (auto subIter = subMap.begin(); subIter != subMap.end();) {
+            subIter->second->RemoveFromTree(false);
+            subRenderNodeMap->emplace(subIter->first, subIter->second);
+            subIter = subMap.erase(subIter);
+        }
+        renderNodeMap_.erase(iter);
     }
 }
 
@@ -213,25 +234,27 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     bool useBatchRemoving =
         RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled();
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(renderNodeMap_, [pid, useBatchRemoving](const auto& pair) -> bool {
-        if (ExtractPid(pair.first) != pid) {
-            return false;
-        }
-        if (pair.second == nullptr) {
-            return true;
-        }
-        if (useBatchRemoving) {
-            RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(pair.second);
-        } else {
-            if (auto parent = pair.second->GetParent().lock()) {
-                parent->RemoveChildFromFulllist(pair.second->GetId());
+    auto iter = renderNodeMap_.find(pid);
+    if (iter != renderNodeMap_.end()) {
+        auto& subMap = iter->second;
+        for (auto subIter = subMap.begin(); subIter != subMap.end();) {
+            if (subIter->second == nullptr) {
+                subIter = subMap.erase(subIter);
+                continue;
             }
-            pair.second->RemoveFromTree(false);
+            if (useBatchRemoving) {
+                RSRenderNodeGC::Instance().AddToOffTreeNodeBucket(subIter->second);
+            } else if (auto parent = subIter->second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(subIter->second->GetId());
+                subIter->second->RemoveFromTree(false);
+            } else {
+                subIter->second->RemoveFromTree(false);
+            }
+            subIter->second->GetAnimationManager().FilterAnimationByPid(pid);
+            subIter = subMap.erase(subIter);
         }
-        pair.second->GetAnimationManager().FilterAnimationByPid(pid);
-        return true;
-    });
-
+        renderNodeMap_.erase(iter);
+    }
     EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
         if (shouldErase) {
@@ -271,8 +294,10 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
 
 void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
 {
-    for (const auto& [_, node] : renderNodeMap_) {
-        func(node);
+    for (const auto& [_, subMap] : renderNodeMap_) {
+        for (const auto& [_, node] : subMap) {
+            func(node);
+        }
     }
 }
 
@@ -312,20 +337,26 @@ const ResidentSurfaceNodeMap& RSRenderNodeMap::GetResidentSurfaceNodeMap() const
 template<>
 const std::shared_ptr<RSBaseRenderNode> RSRenderNodeMap::GetRenderNode(NodeId id) const
 {
-    auto itr = renderNodeMap_.find(id);
-    if (itr == renderNodeMap_.end()) {
-        return nullptr;
+    pid_t pid = ExtractPid(id);
+    auto iter = renderNodeMap_.find(pid);
+    if (iter != renderNodeMap_.end()) {
+        auto subIter = (iter->second).find(id);
+        if (subIter != (iter->second).end()) {
+            return subIter->second;
+        }
     }
-    return itr->second;
+    return nullptr;
 }
 
 const std::shared_ptr<RSRenderNode> RSRenderNodeMap::GetAnimationFallbackNode() const
 {
-    auto itr = renderNodeMap_.find(0);
-    if (itr == renderNodeMap_.end()) {
-        return nullptr;
+    auto iter = renderNodeMap_.find(0);
+    if (iter != renderNodeMap_.cend()) {
+        if (auto subIter = iter->second.find(0); subIter != iter->second.end()) {
+            return subIter->second;
+        }
     }
-    return itr->second;
+    return nullptr;
 }
 
 void RSRenderNodeMap::AddOffTreeNode(NodeId nodeId)

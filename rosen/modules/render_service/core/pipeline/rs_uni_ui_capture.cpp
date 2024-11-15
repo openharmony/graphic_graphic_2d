@@ -245,9 +245,13 @@ void RSUniUICapture::RSUniUICaptureVisitor::SetCanvas(std::shared_ptr<ExtendReco
     }
     std::shared_ptr<Drawing::GPUContext> sharedContext = nullptr;
     if (isUniRender_) {
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GPU))
         sharedContext = RSOffscreenRenderThread::Instance().GetRenderContext()->GetSharedDrGPUContext();
+#endif
     } else {
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK) || defined(NEW_RENDER_CONTEXT)
         sharedContext = RSMainThread::Instance()->GetRenderEngine()->GetRenderContext()->GetSharedDrGPUContext();
+#endif
     }
     canvas->SetGrRecordingContext(sharedContext);
     canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());

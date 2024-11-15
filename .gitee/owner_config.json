@@ -1,0 +1,18 @@
+{
+    "groups": {
+        "https://gitee.com/graphiccontentdisplay": [
+            "https://gitee.com/xiaojianfeng_jeffery",
+            "https://gitee.com/wang-dehai"
+        ]
+    },
+    "userInfos": {
+        "https://gitee.com/xiaojianfeng_jeffery": {
+            "info": "[内容显示 xiaojianfeng]",
+            "group": "https://gitee.com/graphiccontentdisplay"
+        },
+        "https://gitee.com/wang-dehai": {
+            "info": "[内容显示 wang-dehai]",
+            "group": "https://gitee.com/graphiccontentdisplay"
+        }
+    }
+}

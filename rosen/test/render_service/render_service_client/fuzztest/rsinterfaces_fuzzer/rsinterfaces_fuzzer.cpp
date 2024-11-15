@@ -92,6 +92,16 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     int64_t interval = GetData<int64_t>();
     int32_t rangeSize = GetData<int32_t>();
 #endif
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -101,6 +111,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
 #endif
     rsInterfaces.SetScreenActiveMode(static_cast<ScreenId>(id), modeId);
+    rsInterfaces.SetScreenActiveRect(static_cast<ScreenId>(id), activeRect);
     rsInterfaces.SetScreenPowerStatus(static_cast<ScreenId>(id), static_cast<ScreenPowerStatus>(status));
     rsInterfaces.SetScreenBacklight(static_cast<ScreenId>(id), level);
     rsInterfaces.SetScreenColorGamut(static_cast<ScreenId>(id), modeIdx);
@@ -142,6 +153,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     secExemptionList.emplace_back(id);
     rsInterfaces.SetVirtualScreenSecurityExemptionList(static_cast<ScreenId>(id), secExemptionList);
 
+    Rect rect = {GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()};
+    rsInterfaces.SetMirrorScreenVisibleRect(static_cast<ScreenId>(id), rect);
+
     auto callback1 = std::make_shared<SurfaceCaptureFuture>();
     rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
 
@@ -173,6 +187,8 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
     rsInterfaces.SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
 
+    rsInterfaces.SetHwcNodeBounds(static_cast<NodeId>(id), 1.0f, 1.0f, 1.0f, 1.0f);
+
     rsInterfaces.MarkPowerOffNeedProcessOneFrame();
     rsInterfaces.DisablePowerOffRenderControl(static_cast<ScreenId>(id));
     UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
@@ -203,13 +219,34 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
     // get data
     int32_t tpFeature = GetData<int32_t>();
     std::string tpConfig = GetData<std::string>();
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig);
+    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig.c_str(), tpFeatureConfigType);
     return true;
 }
 #endif
+
+bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enable = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetFreeMultiWindowStatus(enable);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -221,5 +258,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef TP_FEATURE_ENABLE
     OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
     return 0;
 }

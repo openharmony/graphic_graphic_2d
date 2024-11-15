@@ -42,23 +42,31 @@
 namespace OHOS::Rosen::Drawing {
 void NativeDrawingBitmapTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
-    uint32_t width = static_cast<uint32_t>(data[0]);
-    uint32_t height = static_cast<uint32_t>(data[1]);
+    uint32_t width = GetObject<uint32_t>();
+    uint32_t height = GetObject<uint32_t>();
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_BitmapFormat bitmapFormat { COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL };
+    OH_Drawing_BitmapFormat bitmapFormat { GetObject<OH_Drawing_ColorFormat>(), GetObject<OH_Drawing_AlphaFormat>() };
     OH_Drawing_BitmapBuild(bitmap, width, height, &bitmapFormat);
     OH_Drawing_BitmapDestroy(bitmap);
 }
 
 void NativeDrawingBrushTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     uint32_t red = static_cast<uint32_t>(data[0]);
     uint32_t gree = static_cast<uint32_t>(data[1]);
@@ -127,9 +135,13 @@ void NativeDrawingCanvasBrushTest(const uint8_t* data, size_t size)
 
 void NativeDrawingCanvasDrawLineTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float x1 = static_cast<float>(data[0]);
     float y1 = static_cast<float>(data[1]);
@@ -161,7 +173,7 @@ void NativeDrawingCanvasDrawPathTest(const uint8_t* data, size_t size)
 
 void NativeDrawingCanvasClearTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size < sizeof(uint32_t))) {
+    if (data == nullptr) {
         return;
     }
     // initialize
@@ -177,7 +189,7 @@ void NativeDrawingCanvasClearTest(const uint8_t* data, size_t size)
 
 void NativeDrawingColorTest(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size < sizeof(uint32_t))) {
+    if (data == nullptr) {
         return;
     }
     // initialize
@@ -187,7 +199,7 @@ void NativeDrawingColorTest(const uint8_t* data, size_t size)
 
     uint32_t color = GetObject<uint32_t>();
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
-    OH_Drawing_BrushSetAntiAlias(brush, false);
+    OH_Drawing_BrushSetAntiAlias(brush, GetObject<bool>());
     OH_Drawing_BrushIsAntiAlias(brush);
     OH_Drawing_BrushSetColor(brush, color);
     OH_Drawing_BrushGetColor(brush);
@@ -210,9 +222,13 @@ void OHDrawingFontCollectionTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathMoveToTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float x = static_cast<float>(data[0]);
     float y = static_cast<float>(data[1]);
@@ -223,9 +239,13 @@ void NativeDrawingPathMoveToTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathLineToTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float x = static_cast<float>(data[0]);
     float y = static_cast<float>(data[1]);
@@ -236,9 +256,13 @@ void NativeDrawingPathLineToTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathResetTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float x = static_cast<float>(data[0]);
     float y = static_cast<float>(data[1]);
@@ -250,9 +274,13 @@ void NativeDrawingPathResetTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathArcToTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float x1 = static_cast<float>(data[0]);
     float y1 = static_cast<float>(data[1]);
@@ -267,9 +295,13 @@ void NativeDrawingPathArcToTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathQuadToTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float ctrlX = static_cast<float>(data[0]);
     float ctrlY = static_cast<float>(data[1]);
@@ -282,9 +314,13 @@ void NativeDrawingPathQuadToTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathCubicToTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float ctrlX1 = static_cast<float>(data[0]);
     float ctrlY1 = static_cast<float>(data[1]);
@@ -299,9 +335,13 @@ void NativeDrawingPathCubicToTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPathCloseTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     float x = static_cast<float>(data[0]);
     float y = static_cast<float>(data[1]);
@@ -361,9 +401,14 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
 
 void OHDrawTextLineTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     uint32_t width = static_cast<float>(data[1]);
     uint32_t red = static_cast<float>(data[1]);
     uint32_t gree = static_cast<float>(data[1]);
@@ -390,6 +435,7 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
             "World测试文本";
     OH_Drawing_TypographyHandlerAddText(handler, text.c_str());
     OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    OH_Drawing_TypographyLayout(typography, GetObject<double>());
     OH_Drawing_TypographyGetTextLines(nullptr);
     OH_Drawing_Array* linesArray = OH_Drawing_TypographyGetTextLines(typography);
     OHDrawingTextLineArray(linesArray, data, size);
@@ -402,9 +448,13 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
 
 void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     uint32_t red = static_cast<float>(data[1]);
     uint32_t gree = static_cast<float>(data[1]);
@@ -428,6 +478,7 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_TypographyHandlerAddText(createHandler, text.c_str());
     OH_Drawing_TypographyGetTextLines(nullptr);
     OH_Drawing_LineTypography* lineTypography = OH_Drawing_CreateLineTypography(createHandler);
+    OH_Drawing_CreateLineTypography(nullptr);
     if (lineTypography == nullptr) {
         return;
     }
@@ -447,9 +498,13 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
 
 void NativeDrawingPenTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
 
     uint32_t red = static_cast<float>(data[0]);
     uint32_t gree = static_cast<float>(data[0]);
@@ -475,12 +530,14 @@ void NativeDrawingPenTest(const uint8_t* data, size_t size)
 
 void NativeDrawingShadowLayerTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
     g_data = data;
     g_size = size;
     g_pos = 0;
+
     float blurRadius = GetObject<float>();
     float x = GetObject<float>();
     float y = GetObject<float>();
@@ -520,7 +577,7 @@ void NativeDrawingTextStyleDecorationTest(const uint8_t* data, size_t size)
 
 void OHDrawingTextTabTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
     // initialize
@@ -539,9 +596,14 @@ void OHDrawingTextTabTest(const uint8_t* data, size_t size)
 }
 void OHDrawingCreateSharedFontCollectionTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < DATA_MIN_SIZE) {
+    if (data == nullptr) {
         return;
     }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     // initialize
     OH_Drawing_DisableFontCollectionFallback(nullptr);
     OH_Drawing_DestroyFontCollection(nullptr);
@@ -550,6 +612,7 @@ void OHDrawingCreateSharedFontCollectionTest(const uint8_t* data, size_t size)
     OH_Drawing_DisableFontCollectionFallback(fontCollection);
     OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
     OH_Drawing_ClearFontCaches(fontCollection);
+    OH_Drawing_ClearFontCaches(nullptr);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
 } // namespace OHOS::Rosen::Drawing
@@ -576,6 +639,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::NativeDrawingPathCubicToTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPathCloseTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTypographyTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingTextRunTest(data, size);
     OHOS::Rosen::Drawing::OHDrawTextLineTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingLineTypographyTest(data, size);
     OHOS::Rosen::Drawing::NativeDrawingPenTest(data, size);

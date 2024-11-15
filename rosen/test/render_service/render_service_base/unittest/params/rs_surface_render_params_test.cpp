@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "params/rs_surface_render_params.h"
+#include "limit_number.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -308,4 +309,40 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetHardCursorStatusTest, TestSize.Level1)
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.GetHardCursorStatus(), true);
 }
+
+/**
+ * @tc.name: SetLayerTop_001
+ * @tc.desc: Test function SetLayerTop
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_001, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isLayerTop_  = false;
+
+    bool isLayerTop = params.isLayerTop_;
+    params.SetLayerTop(isLayerTop);
+    EXPECT_EQ(params.needSync_, false);
+    EXPECT_EQ(params.isLayerTop_, isLayerTop);
 }
+
+/**
+ * @tc.name: SetLayerTop_002
+ * @tc.desc: Test function SetLayerTop
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(115);
+    params.needSync_ = false;
+    params.isLayerTop_  = false;
+
+    bool isLayerTop = !params.isLayerTop_;
+    params.SetLayerTop(isLayerTop);
+    EXPECT_EQ(params.needSync_, true);
+    EXPECT_EQ(params.isLayerTop_, isLayerTop);
+}
+} // namespace OHOS::Rosen

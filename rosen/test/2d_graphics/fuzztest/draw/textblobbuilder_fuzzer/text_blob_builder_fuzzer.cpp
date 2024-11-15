@@ -38,8 +38,8 @@ bool TextBlobBuilderFuzzTest001(const uint8_t* data, size_t size)
 
     TextBlobBuilder builder;
     Font font;
-    int count = 9;
-    builder.AllocRunPos(font, count, nullptr);
+    Rect rect {GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    builder.AllocRunPos(font, GetObject<int>() % MAX_SIZE, &rect);
     builder.Make();
     return true;
 }
