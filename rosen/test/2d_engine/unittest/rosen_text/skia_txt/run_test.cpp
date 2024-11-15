@@ -176,12 +176,10 @@ HWTEST_F(RunTest, RunTest008, TestSize.Level1)
     uint64_t location = 0;
     uint64_t length = 0;
     runs_[0]->GetStringRange(nullptr, &length);
-    EXPECT_EQ(location, 0);
     EXPECT_EQ(length, 0);
 
     runs_[0]->GetStringRange(&location, nullptr);
     EXPECT_EQ(location, 0);
-    EXPECT_EQ(length, 0);
 
     std::vector<PaintRecord> testVec;
     std::unique_ptr<SPText::Run> runNull = std::make_unique<SPText::RunImpl>(nullptr, testVec);

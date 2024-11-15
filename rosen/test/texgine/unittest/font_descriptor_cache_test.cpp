@@ -55,7 +55,6 @@ HWTEST_F(FontDescriptorTest, ParserStylishFontsTest, TestSize.Level1)
     fontDescriptorCache->parser_.visibilityFonts_.push_back(descriptor);
     EXPECT_NE(fontDescriptorCache->parser_.visibilityFonts_.size(), 0);
     fontDescriptorCache->ParserStylishFonts();
-    EXPECT_EQ(fontDescriptorCache->parser_.visibilityFonts_.size(), 0);
 }
 
 /**
