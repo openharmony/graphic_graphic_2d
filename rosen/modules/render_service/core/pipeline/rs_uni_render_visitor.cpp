@@ -2626,15 +2626,15 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
 
 void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
 {
-    if (RS_PROFILER_SHOULD_BLOCK_HWCNODE()) {
+    if (!curSurfaceNode_ || RS_PROFILER_SHOULD_BLOCK_HWCNODE()) {
         return;
     }
-
-    const auto& hwcNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
     if (hwcNodes.empty()) {
         return;
     }
-    for (auto hwcNodePtr : hwcNodes) {
+    for (auto hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree() || hwcNodePtr->GetCalcRectInPrepare()) {
             continue;
         }
