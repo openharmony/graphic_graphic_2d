@@ -16,6 +16,8 @@
 #include "pipeline/rs_pointer_window_manager.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_uni_render_util.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -46,6 +48,67 @@ void RSPointerWindowManager::UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSS
             isNeedForceCommitByPointer_ = false;
         }
     }
+}
+
+void RSPointerWindowManager::UpdatePointerInfo()
+{
+    int64_t rsNodeId = 0;
+    BoundParam boundTemp = {0.0f, 0.0f, 0.0f, 0.0f};
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        if (!BoundHasUpdateCompareChange(true, false)) {
+            return;
+        }
+        rsNodeId = GetRsNodeId();
+        boundTemp = GetBound();
+    }
+
+    if (rsNodeId <= 0) {
+        return;
+    }
+
+    // prepare
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(rsNodeId);
+    if (node == nullptr) {
+        return;
+    }
+    auto& properties = node->GetMutableRenderProperties();
+    properties.SetBounds({boundTemp.x, boundTemp.y, boundTemp.z, boundTemp.w});
+    node->SetDirty();
+    properties.OnApplyModifiers();
+    node->OnApplyModifiers();
+    node->AddToPendingSyncList();
+
+    // 1.Set TotalMatrix
+    auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+    if (surfaceNode == nullptr) {
+        return;
+    }
+    RSUniRenderUtil::UpdateHwcNodeProperty(surfaceNode);
+
+    // 2.update (layerInfo.matrix = TotalMatrix)
+    if (surfaceNode->GetScreenId() != INVALID_SCREEN_ID) {
+        auto screenManager = CreateOrGetScreenManager();
+        if (!screenManager) {
+            RS_LOGE("RSPointerWindowManager::UpdatePointerInfo screenManager is null!");
+            return;
+        }
+        auto screenInfo = screenManager->QueryScreenInfo(surfaceNode->GetScreenId());
+        auto transform = RSUniRenderUtil::GetLayerTransform(*surfaceNode, screenInfo);
+        surfaceNode->UpdateHwcNodeLayerInfo(transform, isPointerEnableHwc_);
+    }
+}
+
+void RSPointerWindowManager::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+    float positionZ, float positionW)
+{
+    // record status here
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        SetBound({positionX, positionY, positionZ, positionW});
+        SetRsNodeId(rsNodeId);
+    }
+    SetBoundHasUpdate(true);
 }
 
 void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode)

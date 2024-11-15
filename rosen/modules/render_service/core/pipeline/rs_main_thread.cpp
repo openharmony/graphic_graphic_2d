@@ -49,7 +49,6 @@
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
-#include "common/rs_vector4.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "luminance/rs_luminance_control.h"
@@ -68,6 +67,7 @@
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_occlusion_config.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
@@ -84,7 +84,6 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/sk_resource_manager.h"
-#include "pipeline/rs_pointer_drawing_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -1175,7 +1174,7 @@ void RSMainThread::ProcessCommandForUniRender()
         }
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
-    if (!transactionDataEffective->empty()) {
+    if (!transactionDataEffective->empty() || RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
@@ -2047,7 +2046,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
-    bool pointerSkip = !RSPointerDrawingManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
+    bool pointerSkip = !RSPointerWindowManager::Instance().IsPointerCanSkipFrameCompareChange(false, true);
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
         && !isCachedSurfaceUpdated_ && pointerSkip) {
         doDirectComposition_ = isHardwareEnabledBufferUpdated_;
@@ -2081,7 +2080,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
         });
         RSUifirstManager::Instance().ProcessForceUpdateNode();
-        RSPointerDrawingManager::Instance().UpdatePointerInfo();
+        RSPointerWindowManager::Instance().UpdatePointerInfo();
         doDirectComposition_ = false;
         uniVisitor->SetAnimateState(doWindowAnimate_);
         uniVisitor->SetDirtyFlag(isDirty_ || isAccessibilityConfigChanged_ || forceUIFirstChanged_);

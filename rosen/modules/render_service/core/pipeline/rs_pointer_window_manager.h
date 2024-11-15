@@ -32,6 +32,13 @@ public:
 
     void UpdatePointerDirtyToGlobalDirty(std::shared_ptr<RSSurfaceRenderNode>& pointWindow,
         std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
+
+    struct BoundParam {
+        float x;
+        float y;
+        float z;
+        float w;
+    };
     
     bool IsNeedForceCommitByPointer() const
     {
@@ -62,6 +69,74 @@ public:
         hardCursorNodes_ = nullptr;
     }
 
+    bool GetIsPointerEnableHwc() const
+    {
+        return isPointerEnableHwc_.load();
+    }
+
+    void SetIsPointerEnableHwc(bool flag)
+    {
+        isPointerEnableHwc_.store(flag);
+    }
+
+    bool GetIsPointerCanSkipFrame() const
+    {
+        return isPointerCanSkipFrame_.load();
+    }
+
+    void SetIsPointerCanSkipFrame(bool flag)
+    {
+        isPointerCanSkipFrame_.store(flag);
+    }
+
+    bool IsPointerCanSkipFrameCompareChange(bool flag, bool changeFlag)
+    {
+        bool expectChanged = flag;
+        return isPointerCanSkipFrame_.compare_exchange_weak(expectChanged, changeFlag);
+    }
+
+    int64_t GetRsNodeId() const
+    {
+        return rsNodeId_;
+    }
+
+    void SetRsNodeId(int64_t id)
+    {
+        rsNodeId_ = id;
+    }
+
+    bool GetBoundHasUpdate() const
+    {
+        return boundHasUpdate_.load();
+    }
+
+    void SetBoundHasUpdate(bool flag)
+    {
+        boundHasUpdate_.store(flag);
+    }
+
+    bool BoundHasUpdateCompareChange(bool flag, bool changeFlag)
+    {
+        bool expectChanged = flag;
+        return boundHasUpdate_.compare_exchange_weak(expectChanged, changeFlag);
+    }
+
+    BoundParam GetBound() const
+    {
+        return bound_;
+    }
+
+    void SetBound(BoundParam bound)
+    {
+        bound_.x = bound.x;
+        bound_.y = bound.y;
+        bound_.z = bound.z;
+        bound_.w = bound.w;
+    }
+
+    void UpdatePointerInfo();
+    void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+        float positionZ, float positionW);
     void SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode);
     const std::shared_ptr<RSSurfaceRenderNode>& GetHardCursorNode() const;
 
@@ -74,6 +149,12 @@ private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;
     std::shared_ptr<RSSurfaceRenderNode> hardCursorNodes_;
+    std::mutex mtx_;
+    std::atomic<bool> isPointerEnableHwc_ = true;
+    std::atomic<bool> isPointerCanSkipFrame_ = false;
+    std::atomic<bool> boundHasUpdate_ = false;
+    BoundParam bound_;
+    int64_t rsNodeId_ = -1;
 };
 } // namespace Rosen
 } // namespace OHOS

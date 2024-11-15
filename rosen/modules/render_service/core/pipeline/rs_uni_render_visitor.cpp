@@ -36,13 +36,13 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uifirst_manager.h"
-#include "pipeline/rs_pointer_drawing_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -1883,6 +1883,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
 {
     if (!pointWindow->IsHardwareEnabledTopSurface() || !pointWindow->ShouldPaint()) {
         pointWindow->SetHardCursorStatus(false);
+        RSPointerWindowManager::Instance().SetIsPointerEnableHwc(false);
         return;
     }
     std::shared_ptr<RSSurfaceHandler> pointSurfaceHandler = pointWindow->GetMutableRSSurfaceHandler();
@@ -1892,7 +1893,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curDisplayNode_);
         pointWindow->SetHardwareForcedDisabledState(true);
         bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorDisplay();
-        RSPointerDrawingManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
+        RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
         auto transform = RSUniRenderUtil::GetLayerTransform(*pointWindow, screenInfo_);
         pointWindow->SetHardCursorStatus(isHardCursor);
         pointWindow->UpdateHwcNodeLayerInfo(transform, isHardCursor);

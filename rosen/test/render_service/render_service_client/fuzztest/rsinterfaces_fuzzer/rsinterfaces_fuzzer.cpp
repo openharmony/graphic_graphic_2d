@@ -187,6 +187,8 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
     rsInterfaces.SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
 
+    rsInterfaces.SetHwcNodeBounds(static_cast<NodeId>(id), 1.0f, 1.0f, 1.0f, 1.0f);
+
     rsInterfaces.MarkPowerOffNeedProcessOneFrame();
     rsInterfaces.DisablePowerOffRenderControl(static_cast<ScreenId>(id));
     UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};

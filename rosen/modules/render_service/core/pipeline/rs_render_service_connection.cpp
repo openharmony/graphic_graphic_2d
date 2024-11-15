@@ -25,7 +25,6 @@
 #include "rs_main_thread.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
-#include "pipeline/rs_pointer_drawing_manager.h"
 
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
@@ -34,6 +33,7 @@
 #include "include/gpu/GrDirectContext.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
@@ -1034,19 +1034,16 @@ void RSRenderServiceConnection::SetHwcNodeBounds(int64_t rsNodeId, float positio
 
     // adapt video scene pointer
     if (screenManager_->GetCurrentVirtualScreenNum() > 0 ||
-        !RSPointerDrawingManager::Instance().GetIsPointerEnableHwc()) {
+        !RSPointerWindowManager::Instance().GetIsPointerEnableHwc()) {
         // when has virtual screen or pointer is enable hwc, we can't skip
-        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(false);
+        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(false);
         RSMainThread::Instance()->RequestNextVSync();
     } else {
-        RSPointerDrawingManager::Instance().SetIsPointerCanSkipFrame(true);
+        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(true);
     }
 
-    // record status here
-    std::lock_guard<std::mutex> lock(RSPointerDrawingManager::Instance().mtx_);
-    RSPointerDrawingManager::Instance().SetBoundHasUpdate(true);
-    RSPointerDrawingManager::Instance().SetBound({positionX, positionY, positionZ, positionW});
-    RSPointerDrawingManager::Instance().SetRsNodeId(rsNodeId);
+    RSPointerWindowManager::Instance().SetHwcNodeBounds(rsNodeId, positionX, positionY,
+        positionZ, positionW);
 }
 
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
