@@ -57,14 +57,14 @@ std::shared_ptr<Drawing::Image> ScaleAndAddRandomColorFuzzTest(const uint8_t *da
 
     Drawing::Bitmap bmp;
     Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    int width = 100;
-    int height = 30;
-    bmp.Build(width, height, format);
+    int imageWidth = 100;
+    int imageHeight = 30;
+    bmp.Build(imageWidth, imageHeight, format);
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     auto imageBlur = bmp.MakeImage();
 
     Drawing::Bitmap bmp2;
-    bmp2.Build(width, height, format);
+    bmp2.Build(imageWidth, imageHeight, format);
     bmp2.ClearWithColor(Drawing::Color::COLOR_BLUE);
     auto image = bmp2.MakeImage();
 
