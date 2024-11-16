@@ -1085,7 +1085,8 @@ bool RSRenderNode::IsUifirstArkTsCardNode()
 void RSRenderNode::UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation)
 {
     auto foregroundFilterCache = GetRenderProperties().GetForegroundFilterCache();
-    if (!ShouldPaint() || (isScreenRotation && !foregroundFilterCache)) {
+    bool rotateOptimize  = RSSystemProperties::GetCacheOptimizeRotateEnable() ? false : isScreenRotation;
+    if (!ShouldPaint() || (rotateOptimize && !foregroundFilterCache)) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         return;
     }
