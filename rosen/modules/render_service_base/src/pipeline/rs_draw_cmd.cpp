@@ -781,7 +781,7 @@ void DrawSurfaceBufferOpItem::SetIsUniRender(bool isUniRender)
 {
     contextIsUniRender = isUniRender;
 }
- 
+
 void DrawSurfaceBufferOpItem::OnAfterDraw()
 {
     isRendered_ = true;
@@ -804,25 +804,15 @@ void DrawSurfaceBufferOpItem::OnAfterDraw()
             return;
         }
         releaseFence_ = new (std::nothrow) SyncFence(fd);
-        if (releaseFence_ && releaseFence_->IsValid()) {
-            ReleaseBuffer();
-        } else {
+        if (!releaseFence_) {
             releaseFence_ = SyncFence::INVALID_FENCE;
         }
-    }
-#endif
-#ifdef RS_ENABLE_VK
-    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
-        ReleaseBuffer();
     }
 #endif
 }
 
 void DrawSurfaceBufferOpItem::ReleaseBuffer()
 {
-    if (isReleased_) {
-        return;
-    }
     RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release, isNeedTriggerCbDirectly = %d",
         std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str(),
         releaseFence_ && releaseFence_->IsValid());
@@ -835,10 +825,9 @@ void DrawSurfaceBufferOpItem::ReleaseBuffer()
             .isRendered = isRendered_,
             .isNeedTriggerCbDirectly = releaseFence_ && releaseFence_->IsValid(),
         });
-        isReleased_ = true;
     }
 }
- 
+
 void DrawSurfaceBufferOpItem::OnAfterAcquireBuffer()
 {
     if (surfaceBufferAfterAcquireCb && surfaceBufferInfo_.surfaceBuffer_) {

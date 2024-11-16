@@ -259,7 +259,7 @@ struct RSB_EXPORT DrawSurfaceBufferAfterAcquireCbData {
     uint64_t uid;
     pid_t pid;
 };
- 
+
 struct RSB_EXPORT DrawSurfaceBufferOpItemCb {
     std::function<void(const DrawSurfaceBufferFinishCbData&)> OnFinish;
     std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> OnAfterAcquireBuffer;
@@ -304,7 +304,6 @@ private:
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
     sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     bool isRendered_ = false;
-    bool isReleased_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;
