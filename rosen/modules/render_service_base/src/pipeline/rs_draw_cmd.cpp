@@ -79,6 +79,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     rsImage_->SetCompressData(data, imageInfo.uniqueId, imageInfo.width, imageInfo.height);
     rsImage_->SetImageFit(imageInfo.fitNum);
     rsImage_->SetImageRepeat(imageInfo.repeatNum);
+    rsImage_->SetImageRotateDegree(imageInfo.rotateDegree);
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
@@ -99,6 +100,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         rsImage_ = std::make_shared<RSImage>();
         rsImage_->SetPixelMap(pixelMap);
         rsImage_->SetImageFit(imageInfo.fitNum);
+        rsImage_->SetImageRotateDegree(imageInfo.rotateDegree);
         rsImage_->SetImageRepeat(imageInfo.repeatNum);
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);

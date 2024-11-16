@@ -14,8 +14,10 @@
  */
 
 #include "render/rs_image.h"
+#include <type_traits>
 
 #include "common/rs_common_tools.h"
+#include "common/rs_rect.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
@@ -36,6 +38,7 @@ namespace Rosen {
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float CENTER_ALIGNED_FACTOR = 2.f;
+constexpr int32_t DEGREE_NINETY = 90;
 }
 
 RSImage::~RSImage()
@@ -139,7 +142,16 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             canvas.Save();
             canvas.ConcatMatrix(fitMatrix_.value());
         }
-        DrawImageRepeatRect(samplingOptions, canvas);
+        if (rotateDegree_ != 0) {
+            canvas.Save();
+            canvas.Rotate(rotateDegree_);
+            auto axis = CalculateByDegree(rect);
+            canvas.Translate(axis.first, axis.second);
+            DrawImageRepeatRect(samplingOptions, canvas);
+            canvas.Restore();
+        } else {
+            DrawImageRepeatRect(samplingOptions, canvas);
+        }
         if (isFitMatrixValid) {
             canvas.Restore();
         }
@@ -275,8 +287,11 @@ void RSImage::ApplyImageFit()
     }
     const float srcW = srcRect_.width_ / scale_;
     const float srcH = srcRect_.height_ / scale_;
-    const float frameW = frameRect_.width_;
-    const float frameH = frameRect_.height_;
+    float frameW = frameRect_.width_;
+    float frameH = frameRect_.height_;
+    if (rotateDegree_ == DEGREE_NINETY || rotateDegree_ == -DEGREE_NINETY) {
+        std::swap(frameW, frameH);
+    }
     float dstW = frameW;
     float dstH = frameH;
     if (srcH == 0) {
@@ -300,6 +315,22 @@ void RSImage::ApplyImageFit()
     dstRect_ = ApplyImageFitSwitch(imageParameter, imageFit_, tempRectF);
 }
 
+void RSImage::SetImageRotateDegree(int32_t degree)
+{
+    rotateDegree_ = degree;
+}
+
+std::pair<float, float> RSImage::CalculateByDegree(const Drawing::Rect& rect)
+{
+    if (rotateDegree_ == DEGREE_NINETY) {
+        return { 0, -rect.GetWidth() };
+    } else if (rotateDegree_ == -DEGREE_NINETY) {
+        return { -rect.GetHeight(), 0 };
+    } else {
+        return { -rect.GetWidth(), -rect.GetHeight() };
+    }
+}
+
 ImageFit RSImage::GetImageFit()
 {
     return imageFit_;
@@ -316,6 +347,7 @@ Drawing::AdaptiveImageInfo RSImage::GetAdaptiveImageInfoWithCustomizedFrameRect(
         .width = 0,
         .height = 0,
         .dynamicRangeMode = dynamicRangeMode_,
+        .rotateDegree = rotateDegree_,
         .frameRect = frameRect,
         .fitMatrix = fitMatrix_.has_value() ? fitMatrix_.value() : Drawing::Matrix()
     };
@@ -352,7 +384,11 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
     if (!HasRadius()) {
         return;
     }
-    auto rect = (imageRepeat_ == ImageRepeat::NO_REPEAT) ? dstRect_.IntersectRect(frameRect_) : frameRect_;
+    auto dstRect = dstRect_;
+    if (rotateDegree_ == DEGREE_NINETY || rotateDegree_ == -DEGREE_NINETY) {
+        dstRect = RectF(dstRect_.GetLeft(), dstRect_.GetTop(), dstRect_.GetHeight(), dstRect_.GetWidth());
+    }
+    auto rect = (imageRepeat_ == ImageRepeat::NO_REPEAT) ? dstRect.IntersectRect(frameRect_) : frameRect_;
     Drawing::RoundRect rrect(RSPropertiesPainter::Rect2DrawingRect(rect), radius_);
     canvas.ClipRoundRect(rrect, Drawing::ClipOp::INTERSECT, true);
 }
@@ -635,6 +671,7 @@ bool RSImage::Marshalling(Parcel& parcel) const
                    RSMarshallingHelper::Marshalling(parcel, radius_) &&
                    RSMarshallingHelper::Marshalling(parcel, scale_) &&
                    RSMarshallingHelper::Marshalling(parcel, dynamicRangeMode_) &&
+                   RSMarshallingHelper::Marshalling(parcel, rotateDegree_) &&
                    parcel.WriteBool(fitMatrix_.has_value()) &&
                    fitMatrix_.has_value() ? RSMarshallingHelper::Marshalling(parcel, fitMatrix_.value()) : true;
     return success;
@@ -668,8 +705,9 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     bool hasFitMatrix;
     Drawing::Matrix fitMatrix;
     uint32_t dynamicRangeMode = 0;
+    int32_t degree = 0;
     if (!UnmarshalImageProperties(parcel, fitNum, repeatNum, radius, scale,
-        hasFitMatrix, fitMatrix, dynamicRangeMode)) {
+        hasFitMatrix, fitMatrix, dynamicRangeMode, degree)) {
         return nullptr;
     }
     RSImage* rsImage = new RSImage();
@@ -683,6 +721,7 @@ RSImage* RSImage::Unmarshalling(Parcel& parcel)
     rsImage->SetScale(scale);
     rsImage->SetDynamicRangeMode(dynamicRangeMode);
     rsImage->SetNodeId(nodeId);
+    rsImage->SetImageRotateDegree(degree);
     if (hasFitMatrix && !fitMatrix.IsIdentity()) {
         rsImage->SetFitMatrix(fitMatrix);
     }
@@ -706,7 +745,7 @@ bool RSImage::UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& 
 
 bool RSImage::UnmarshalImageProperties(
     Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale,
-    bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode)
+    bool& hasFitMatrix, Drawing::Matrix& fitMatrix, uint32_t& dynamicRangeMode, int32_t& degree)
 {
     if (!RSMarshallingHelper::Unmarshalling(parcel, fitNum)) {
         RS_LOGE("RSImage::Unmarshalling fitNum fail");
@@ -734,6 +773,11 @@ bool RSImage::UnmarshalImageProperties(
 
     if (!RSMarshallingHelper::Unmarshalling(parcel, dynamicRangeMode)) {
         RS_LOGE("RSImage::Unmarshalling dynamicRangeMode fail");
+        return false;
+    }
+
+    if (!RSMarshallingHelper::Unmarshalling(parcel, degree)) {
+        RS_LOGE("RSImage::Unmarshalling rotateDegree fail");
         return false;
     }
 
