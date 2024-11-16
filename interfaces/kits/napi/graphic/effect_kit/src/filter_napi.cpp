@@ -305,19 +305,20 @@ std::shared_ptr<Media::PixelMap>  FilterNapi::GetSrcPixelMap()
 
 napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
 {
-    const size_t requireArgc = NUM_1;
-    size_t realArgc = NUM_1;
+    size_t argc = NUM_1;
     napi_value argv[NUM_1];
     napi_value _this;
     napi_status status;
-    EFFECT_JS_ARGS(env, info, status, realArgc, argv, _this);
-    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         EFFECT_LOG_E("FilterNapi GetPixelMap parsing input fail"));
 
     bool forceCPU = false;
-    EFFECT_NAPI_CHECK_RET_D(EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_boolean &&
-        napi_get_value_bool(env, argv[NUM_0], &forceCPU) == napi_ok, nullptr,
-        EFFECT_LOG_E("FilterNapi GetPixelMap parsing forceCPU fail"));
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_boolean) {
+        if (napi_get_value_bool(env, argv[NUM_0], &forceCPU) != napi_ok) {
+            EFFECT_LOG_I("FilterNapi parsing forceCPU fail");
+        }
+    }
     FilterNapi* thisFilter = nullptr;
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr, nullptr,
