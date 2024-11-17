@@ -35,6 +35,7 @@ config("color_space_object_convertor_public_config") {
 
 if (current_os == "ohos") {
   ohos_shared_library("color_space_object_convertor") {
+    branch_protector_ret = "pac_ret"
     public_configs = [ ":color_space_object_convertor_public_config" ]
     sources = [
       "color_space_object_convertor/color_space_object_convertor.cpp",
