@@ -37,7 +37,7 @@ public:
     void AddKeyframes(const std::vector<std::tuple<float, std::shared_ptr<RSRenderPropertyBase>,
         std::shared_ptr<RSInterpolator>>>& keyframes);
 
-    void AddKeyframe(int64_t startDuration, int64_t endDuration, const std::shared_ptr<RSRenderPropertyBase>& value,
+    void AddKeyframe(int startDuration, int endDuration, const std::shared_ptr<RSRenderPropertyBase>& value,
         const std::shared_ptr<RSInterpolator>& interpolator);
     void SetDurationKeyframe(bool isDuration);
     bool Marshalling(Parcel& parcel) const override;

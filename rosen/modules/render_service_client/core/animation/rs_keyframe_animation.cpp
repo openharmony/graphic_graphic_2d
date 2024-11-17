@@ -54,7 +54,7 @@ void RSKeyframeAnimation::AddKeyFrames(
     keyframes_ = keyframes;
 }
 
-void RSKeyframeAnimation::AddKeyFrame(int64_t startDuration, int64_t endDuration,
+void RSKeyframeAnimation::AddKeyFrame(int startDuration, int endDuration,
     const std::shared_ptr<RSPropertyBase>& value, const RSAnimationTimingCurve& timingCurve)
 {
     if (startDuration > endDuration) {
