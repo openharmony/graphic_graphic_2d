@@ -272,21 +272,6 @@ HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
 }
 
 /**
- * @tc.name: WaitUtilUniRenderFinished
- * @tc.desc: Test RSMainThreadTest.WaitUtilUniRenderFinished
- * @tc.type: FUNC
- * @tc.require: issueI60QXK
- */
-HWTEST_F(RSMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->NotifyUniRenderFinish();
-    mainThread->WaitUtilUniRenderFinished();
-    ASSERT_EQ(mainThread->uniRenderFinished_, true);
-}
-
-/**
  * @tc.name: ProcessCommandForDividedRender001
  * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender
  * @tc.type: FUNC

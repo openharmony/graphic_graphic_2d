@@ -182,9 +182,6 @@ public:
     void ClearSurfaceOcclusionChangeCallback(pid_t pid);
     bool SurfaceOcclusionCallBackIfOnTreeStateChanged();
 
-    void WaitUtilUniRenderFinished();
-    void NotifyUniRenderFinish();
-
     bool WaitHardwareThreadTaskExecute();
     void NotifyHardwareThreadCanExecuteTask();
 
@@ -560,8 +557,6 @@ private:
 #endif
 
     mutable std::mutex uniRenderMutex_;
-    bool uniRenderFinished_ = false;
-    std::condition_variable uniRenderCond_;
 
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
