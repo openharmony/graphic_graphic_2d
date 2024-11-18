@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-zpz
+
 #include "transaction/rs_render_service_client.h"
 #include "surface_type.h"
 #include "surface_utils.h"
@@ -1506,6 +1506,15 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
     }
     return renderService->GetHwcDisabledReasonInfo();
 }
+
+int64_t RSRenderServiceClient::GetHdrOnDuration()
+｛
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr)｛
+        return RENDER_SERVICE_NULL;
+    ｝
+    return renderService->GetHdrOnDuration();
+｝
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 {
