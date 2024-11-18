@@ -105,6 +105,8 @@ public:
     virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
     virtual int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) = 0;
     virtual void SetBlackList(const std::unordered_set<uint64_t>& blackList) = 0;
+    virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
+    virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
     virtual const std::unordered_set<uint64_t>& GetBlackList() const = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
@@ -186,6 +188,8 @@ public:
     int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
     const std::unordered_set<uint64_t>& GetWhiteList() const override;
     void SetBlackList(const std::unordered_set<uint64_t>& blackListSet) override;
+    void AddBlackList(const std::vector<uint64_t>& blackList) override;
+    void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
     void SetCastScreenEnableSkipWindow(bool enable) override;
     const std::unordered_set<uint64_t>& GetBlackList() const override;
     bool GetCastScreenEnableSkipWindow() override;
