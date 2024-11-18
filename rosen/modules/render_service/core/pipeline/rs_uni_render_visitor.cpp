@@ -122,7 +122,6 @@ bool IsFirstFrameReadyToDraw(const RSSurfaceRenderNode& node)
 std::string VisibleDataToString(const VisibleData& val)
 {
     std::stringstream ss;
-    ss << "VisibleData[name, nodeId, visibleLevel]:";
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& v : val) {
         auto surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(v.first);
@@ -1067,8 +1066,7 @@ void RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS()
     }
     if (allDstCurVisVec_ != allLastVisVec_) {
         RSMainThread::Instance()->SurfaceOcclusionChangeCallback(allDstCurVisVec_);
-        RS_LOGI("RSUniRenderVisitor::SurfaceOcclusionCallbackToWMS %{public}s",
-            VisibleDataToString(allDstCurVisVec_).c_str());
+        RS_LOGI("OcclusionInfo %{public}s", VisibleDataToString(allDstCurVisVec_).c_str());
         allLastVisVec_ = std::move(allDstCurVisVec_);
     }
 }

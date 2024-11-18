@@ -26,23 +26,6 @@ const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 const uint32_t usleepTime = 1000;
-} // namespace
-
-class SurfaceCaptureFuture : public SurfaceCaptureCallback {
-    public:
-         SurfaceCaptureFuture() = default;
-        ~SurfaceCaptureFuture() {};
-        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
-        {
-            pixelMap_ = pixelmap;
-        }
-        std::shared_ptr<Media::PixelMap> GetPixelMap()
-        {
-            return pixelMap_;
-        }
-    private:
-        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
-};
 
 /*
  * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
@@ -63,6 +46,36 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
+
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+} // namespace
+
+class SurfaceCaptureFuture : public SurfaceCaptureCallback {
+    public:
+         SurfaceCaptureFuture() = default;
+        ~SurfaceCaptureFuture() {};
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+        {
+            pixelMap_ = pixelmap;
+        }
+        std::shared_ptr<Media::PixelMap> GetPixelMap()
+        {
+            return pixelMap_;
+        }
+    private:
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+};
 
 bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 {
