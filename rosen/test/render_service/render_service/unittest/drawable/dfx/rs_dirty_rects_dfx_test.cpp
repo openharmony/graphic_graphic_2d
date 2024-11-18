@@ -162,7 +162,9 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawCurrentRefreshRate, TestSize.Level1)
     ASSERT_NE(rsDirtyRectsDfx_, nullptr);
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
-    RSRealtimeRefreshRateManager::Instance().currRealtimeRefreshRate_ = 200; // 200: value greater than currRefreshRate
+    
+    auto& rSRealtimeRefreshRateManager = RSRealtimeRefreshRateManager::Instance();
+    rSRealtimeRefreshRateManager.currRealtimeRefreshRateMap_[0] = 200; // 200: value greater than currRefreshRate
 
     auto paramPtr = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
 
