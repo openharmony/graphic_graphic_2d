@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-zpz
+
 #include "pipeline/rs_uni_render_visitor.h"
 #include <memory>
 #include "rs_trace.h"
@@ -399,6 +399,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     ScreenId screenId = stagingDisplayParams->GetScreenId();
     RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface_);
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
+    rsHdrCollection_->HandleHdrState(isHdrOn);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
     RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
     RS_LOGD("RSUniRenderVisitor::HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
@@ -1882,7 +1883,11 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             continue;
         }
         if (hasUniRenderHdrSurface_) {
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by render hdr surface",
+                node->GetName().c_str(), node->GetId());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node->GetId(),
+                HwcDisabledReasons::DISABLED_BY_RENDER_HDR_SURFACE, node->GetName());
         }
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
         hwcNodePtr->SetCalcRectInPrepare(false);
