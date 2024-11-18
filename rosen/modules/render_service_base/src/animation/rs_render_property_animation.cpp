@@ -146,6 +146,10 @@ const std::shared_ptr<RSRenderPropertyBase>& RSRenderPropertyAnimation::GetLastV
 
 void RSRenderPropertyAnimation::SetAnimationValue(const std::shared_ptr<RSRenderPropertyBase>& value)
 {
+    if (value == nullptr) {
+        ROSEN_LOGD("RSRenderPropertyAnimation::SetAnimationValue, input is null!");
+        return;
+    }
     std::shared_ptr<RSRenderPropertyBase> animationValue;
     if (GetAdditive() && (property_ != nullptr)) {
         animationValue = property_->Clone() + (value - lastValue_);
@@ -160,6 +164,10 @@ void RSRenderPropertyAnimation::SetAnimationValue(const std::shared_ptr<RSRender
 const std::shared_ptr<RSRenderPropertyBase> RSRenderPropertyAnimation::GetAnimationValue(
     const std::shared_ptr<RSRenderPropertyBase>& value)
 {
+    if (value == nullptr) {
+        ROSEN_LOGD("RSRenderPropertyAnimation::GetAnimationValue, input is null!");
+        return value;
+    }
     std::shared_ptr<RSRenderPropertyBase> animationValue;
     if (GetAdditive()) {
         animationValue = GetPropertyValue() + (value - lastValue_);

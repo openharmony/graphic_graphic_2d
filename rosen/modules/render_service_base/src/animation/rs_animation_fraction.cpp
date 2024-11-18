@@ -89,13 +89,13 @@ bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t 
 {
     float animationScale = GetAnimationScale();
     if (direction_ == ForwardDirection::NORMAL) {
-        if (animationScale == 0.0) {
+        if (ROSEN_EQ(animationScale, 0.0f)) {
             runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
         } else {
             runningTime_ += static_cast<int64_t>(deltaTime * speed_ / animationScale);
         }
     } else {
-        if (animationScale == 0.0) {
+        if (ROSEN_EQ(animationScale, 0.0f)) {
             runningTime_ -= static_cast<int64_t>(deltaTime * MAX_SPEED);
         } else {
             runningTime_ -= static_cast<int64_t>(deltaTime * speed_ / animationScale);
@@ -180,7 +180,7 @@ bool RSAnimationFraction::IsFinished() const
         if (repeatCount_ == INFINITE) {
             return false;
         }
-        int64_t totalDuration = (duration_ * repeatCount_ + startDelay_) * MS_TO_NS;
+        int64_t totalDuration = (static_cast<int64_t>(duration_) * repeatCount_ + startDelay_) * MS_TO_NS;
         return runningTime_ >= totalDuration;
     } else {
         return runningTime_ <= 0;
