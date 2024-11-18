@@ -615,6 +615,24 @@ void OHDrawingCreateSharedFontCollectionTest(const uint8_t* data, size_t size)
     OH_Drawing_ClearFontCaches(nullptr);
     OH_Drawing_DestroyFontCollection(fontCollection);
 }
+
+void OHDrawingCreateFontCollectionGlobalInstanceTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // initialize
+    OH_Drawing_FontCollection* fontCollection = OH_Drawing_GetFontCollectionGlobalInstance();
+    OH_Drawing_DisableFontCollectionFallback(fontCollection);
+    OH_Drawing_DisableFontCollectionSystemFont(fontCollection);
+    OH_Drawing_ClearFontCaches(fontCollection);
+    OH_Drawing_ClearFontCaches(nullptr);
+}
 } // namespace OHOS::Rosen::Drawing
 
 /* Fuzzer entry point */
