@@ -68,6 +68,9 @@ void RSUifirstManagerTest::TearDownTestCase()
     uifirstManager_.pendingPostNodes_.clear();
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingResetNodes_.clear();
+
+    mainThread->context_->globalRootRenderNode_->renderDrawable_ = nullptr;
+    mainThread->context_->globalRootRenderNode_ = nullptr;
 }
 void RSUifirstManagerTest::SetUp() {}
 
@@ -1372,16 +1375,16 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 {
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
     NodeId nodeId = 1;
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
+    nodeId = 2;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    adapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
     surfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
@@ -1394,6 +1397,7 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
+    uifirstManager_.subthreadProcessingNode_.clear();
 }
 
 /**
