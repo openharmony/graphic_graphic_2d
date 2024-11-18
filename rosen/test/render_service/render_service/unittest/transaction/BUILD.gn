@@ -22,6 +22,7 @@ group("unittest") {
 
   deps = [
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
+    ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
     ":RSRenderServiceConnectionStubTest",
     ":RSRenderServiceStubTest",
   ]
@@ -54,12 +55,22 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   }
 }
 
+## Build RSIRenderServiceIpcInterfaceCodeAccessVerifierTest
+ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_irender_service_ipc_interface_code_access_verifier_test.cpp" ]
+  deps = [ ":rs_test_common" ]
+}
+
 ## Build RSRenderServiceConnectionStubTest
 ohos_unittest("RSRenderServiceConnectionStubTest") {
   module_out_path = module_output_path
-  sources = [ "rs_render_service_connection_stub_test.cpp" ]
+  sources = [
+    "../pipeline/mock/mock_hdi_device.cpp",
+    "rs_render_service_connection_stub_test.cpp",
+  ]
   deps = [ ":rs_test_common" ]
-  external_deps = []
+  external_deps = [ "googletest:gmock_main" ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
@@ -99,6 +110,7 @@ config("rs_test_common_public_config") {
     "$memmgr_root/services/memmgrservice/include/memory_level_manager",
     "//foundation/barrierfree/accessibility/interfaces/innerkits/acfwk/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include/platform/ohos/",
+    "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",
   ]
 
   cflags = [

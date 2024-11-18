@@ -407,4 +407,33 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor->ProcessSurfaceRenderNodeWithUni(node);
 }
+
+/**
+ * @tc.name: ProcessSurfaceRenderNodeWithoutUniTest
+ * @tc.desc: Test ProcessSurfaceRenderNodeWithoutUni
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithoutUniTest, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = 0.0;
+    captureConfig.scaleY = 0.0;
+
+    RSUniUICapture rsUniUICapture(nodeId, captureConfig);
+    std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
+        std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
+    ASSERT_NE(rsUniUICaptureVisitor, nullptr);
+    std::weak_ptr<RSContext> context;
+    RSSurfaceRenderNode node(nodeId, context);
+    rsUniUICaptureVisitor->ProcessSurfaceViewWithoutUni(node);
+    ASSERT_EQ(rsUniUICaptureVisitor->canvas_, nullptr);
+
+    std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
+    rsUniUICaptureVisitor->ProcessSurfaceViewWithoutUni(node);
+    ASSERT_NE(rsUniUICaptureVisitor->canvas_, nullptr);
+}
 } // namespace OHOS::Rosen
