@@ -246,7 +246,7 @@ bool BootCompileProgress::WaitBundleScanIfNeeded()
 }
 bool BootCompileProgress::WaitBmsStartIfNeeded()
 {
-    if (!needBundleScan_) {
+    if (!needOtaCompile_) {
         return true;
     }
     if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT) != 0) {
