@@ -946,7 +946,7 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
     EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
     EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
 
-    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_WINDOW_NODE;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     curSurfaceParent->subSurfaceCnt_ = cnt;
     preSurfaceParent->subSurfaceCnt_ = cnt;
     surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
