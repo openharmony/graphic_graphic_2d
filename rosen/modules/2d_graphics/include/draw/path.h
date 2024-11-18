@@ -517,12 +517,15 @@ private:
 
 inline void Path::Dump(std::string& out) const
 {
-    auto bounds = impl_->GetBounds();
-    out += "[length:" + std::to_string(impl_->GetLength(false));
-    out += " Bounds";
-    bounds.Dump(out);
-    out += " valid:" + std::string(impl_->IsValid() ? "true" : "false");
-    out += "]";
+    out += '[';
+    if (impl_ != nullptr) {
+        auto bounds = impl_->GetBounds();
+        out += "length:" + std::to_string(impl_->GetLength(false));
+        out += " Bounds";
+        bounds.Dump(out);
+        out += " valid:" + std::string(impl_->IsValid() ? "true" : "false");
+    }
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

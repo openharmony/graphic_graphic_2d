@@ -19,12 +19,12 @@
 #include "include/core/SkFontTypes.h"
 #include "include/core/SkPath.h"
 #include "include/utils/SkTextUtils.h"
-#include "src/core/SkFontPriv.h"
 
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_typeface.h"
 #include "skia_path.h"
 #include "skia_typeface.h"
+#include "src/core/SkFontPriv.h"
 #include "text/font.h"
 #include "utils/log.h"
 

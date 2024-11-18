@@ -18,9 +18,8 @@
 #include <functional>
 #include <set>
 
-#include "trace_memory_dump.h"
-
 #include "impl_interface/gpu_context_impl.h"
+#include "trace_memory_dump.h"
 #include "utils/data.h"
 #include "utils/drawing_macros.h"
 
