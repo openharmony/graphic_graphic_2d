@@ -960,9 +960,17 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
 bool RSPaintFilterCanvasBase::IsClipRect()
 {
     bool result = false;
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            result = result || (*iter)->IsClipRect();
+        }
+    }
+#else
     if (canvas_ != nullptr) {
         result = canvas_->IsClipRect();
     }
+#endif
     return result;
 }
 
