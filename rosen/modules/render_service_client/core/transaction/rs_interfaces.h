@@ -293,6 +293,8 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
+    int64_t GetHdrOnDuration() const;
+
     void SetVmaCacheStatus(bool flag);
 
 #ifdef TP_FEATURE_ENABLE
