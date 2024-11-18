@@ -2773,6 +2773,11 @@ void RSNode::ClearChildren()
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
 }
 
+void RSNode::SetExportTypeChangedCallback(ExportTypeChangedCallback callback)
+{
+    exportTypeChangedCallback_ = callback;
+}
+
 void RSNode::SetTextureExport(bool isTextureExportNode)
 {
     if (isTextureExportNode == isTextureExportNode_) {
@@ -2781,6 +2786,9 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     isTextureExportNode_ = isTextureExportNode;
     if (!IsUniRenderEnabled()) {
         return;
+    }
+    if (exportTypeChangedCallback_) {
+        exportTypeChangedCallback_(isTextureExportNode);
     }
     if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
         (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {

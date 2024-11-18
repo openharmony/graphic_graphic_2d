@@ -1605,9 +1605,14 @@ class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
 public:
     explicit SurfaceBufferCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
     ~SurfaceBufferCallbackDirector() noexcept override = default;
-    void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override
+    void OnFinish(const FinishCallbackRet& ret) override
     {
-        client_->TriggerSurfaceBufferCallback(uid, surfaceBufferIds);
+        client_->TriggerOnFinish(ret);
+    }
+ 
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override
+    {
+        client_->TriggerOnAfterAcquireBuffer(ret);
     }
 
 private:
@@ -1663,18 +1668,32 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
     return true;
 }
 
-void RSRenderServiceClient::TriggerSurfaceBufferCallback(uint64_t uid,
-    const std::vector<uint32_t>& surfaceBufferIds) const
+void RSRenderServiceClient::TriggerOnFinish(const FinishCallbackRet& ret) const
+ 
 {
     std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
     {
         std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
-        if (auto iter = surfaceBufferCallbacks_.find(uid); iter != std::cend(surfaceBufferCallbacks_)) {
+        if (auto iter = surfaceBufferCallbacks_.find(ret.uid); iter != std::cend(surfaceBufferCallbacks_)) {
             callback = iter->second;
         }
     }
     if (callback) {
-        callback->OnFinish(uid, surfaceBufferIds);
+        callback->OnFinish(ret);
+    }
+}
+
+void RSRenderServiceClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const
+{
+    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
+    {
+        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
+        if (auto iter = surfaceBufferCallbacks_.find(ret.uid); iter != std::cend(surfaceBufferCallbacks_)) {
+            callback = iter->second;
+        }
+    }
+    if (callback) {
+        callback->OnAfterAcquireBuffer(ret);
     }
 }
 

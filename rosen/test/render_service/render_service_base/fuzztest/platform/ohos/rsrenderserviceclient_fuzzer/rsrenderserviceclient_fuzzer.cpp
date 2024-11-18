@@ -1642,7 +1642,12 @@ bool DoTriggerSurfaceBufferCallback(const uint8_t* data, size_t size)
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     uint64_t uid = GetData<uint64_t>();
     std::vector<uint32_t> surfaceBufferIds;
-    client->TriggerSurfaceBufferCallback(uid, surfaceBufferIds);
+    std::vector<uint8_t> isRenderedFlags;
+    client->TriggerOnFinish({
+        .uid = uid,
+        .surfaceBufferIds = surfaceBufferIds,
+        .isRenderedFlags = isRenderedFlags,
+    });
     return true;
 }
 

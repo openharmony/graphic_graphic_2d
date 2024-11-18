@@ -87,10 +87,12 @@ public:
         }
         mSurfaceMap.clear();
     }
+    int DupReservedFlushFd();
 private:
     struct NativeWindow* mNativeWindow = nullptr;
     int mWidth = -1;
     int mHeight = -1;
+    int mReservedFlushFd = -1;
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
