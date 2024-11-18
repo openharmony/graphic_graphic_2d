@@ -37,6 +37,7 @@
 #include "animation/rs_spring_model.h"
 #include "animation/rs_steps_interpolator.h"
 #include "animation/rs_value_estimator.h"
+#include "pipeline/rs_render_node.h"
 #include "pipeline/rs_context.h"
 #include "render/rs_path.h"
 
@@ -658,6 +659,88 @@ namespace OHOS {
         springAnimation->InheritSpringAnimation(animation);
     }
 
+    void RSRenderAnimation1FuzzerTest()
+    {
+        // get data
+        AnimationId animationId = GetData<AnimationId>();
+        NodeId nodeId = GetData<NodeId>();
+        bool bForceDetach = GetData<bool>();
+        float fraction = GetData<float>();
+        auto fillMode = GetData<FillMode>();
+        auto time = GetData<int64_t>();
+        auto animation = std::make_shared<RSRenderAnimation>(animationId);
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+        std::string nodeName = GetStringFromData(STR_LEN);
+        renderNode->SetNodeName(nodeName);
+        std::string outString;
+        Parcel parcel;
+        // test
+        animation->Attach(renderNode.get());
+        animation->DumpAnimation(outString);
+        animation->DumpAnimationInfo(outString);
+        animation->ParseParam(parcel);
+        animation->IsStarted();
+        animation->IsRunning();
+        animation->IsPaused();
+        animation->IsFinished();
+        animation->GetPropertyId();
+        animation->GetTargetName();
+        animation->Detach(bForceDetach);
+        animation->Attach(renderNode.get());
+        animation->GetTarget();
+        animation->SetFractionInner(fraction);
+        animation->SetFillMode(fillMode);
+        animation->ProcessFillModeOnStart(fraction);
+        animation->ProcessFillModeOnFinish(fraction);
+        animation->ProcessOnRepeatFinish();
+        animation->SetStartTime(time);
+        animation->GetAnimateVelocity();
+    }
+
+    void RSRenderAnimation2FuzzerTest()
+    {
+        // get data
+        AnimationId animationId = GetData<AnimationId>();
+        auto pos = GetData<RSInteractiveAnimationPosition>();
+        float fraction = GetData<float>();
+        bool isReversed = GetData<bool>();
+        auto time = GetData<int64_t>();
+        auto animation1 = std::make_shared<RSRenderAnimation>(animationId);
+
+        // status error
+        animation1->Finish();
+        animation1->FinishOnPosition(pos);
+        animation1->FinishOnCurrentPosition();
+        animation1->Pause();
+        animation1->Resume();
+        animation1->SetFraction(fraction);
+        animation1->SetReversedAndContinue();
+        animation1->SetReversed(isReversed);
+        animation1->Animate(time);
+
+        // status normal
+        animation1->Start();
+        animation1->Pause();
+        animation1->SetFraction(fraction);
+        animation1->SetReversed(isReversed);
+        animation1->SetReversedAndContinue();
+        animation1->Animate(time);
+        animation1->SetStartTime(time);
+        animation1->Animate(time);
+        animation1->animationFraction_.SetLastFrameTime(time);
+        animation1->Animate(time);
+        animation1->FinishOnPosition(pos);
+        animation1->Start();
+
+        auto animation2 = std::make_shared<RSRenderAnimation>(animationId);
+        animation2->Start();
+        animation2->Finish();
+
+        auto animation3 = std::make_shared<RSRenderAnimation>(animationId);
+        animation3->Start();
+        animation3->FinishOnCurrentPosition();
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -688,6 +771,8 @@ namespace OHOS {
         RSRenderTransitionFuzzerTest();
         RSRenderTransitionEffectFuzzerTest();
         RSRenderSpringAnimationFuzzerTest();
+        RSRenderAnimation1FuzzerTest();
+        RSRenderAnimation2FuzzerTest();
         return true;
     }
 }
