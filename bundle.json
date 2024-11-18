@@ -290,7 +290,6 @@
                 "ui/rs_node.h",
                 "ui/rs_proxy_node.h",
                 "ui/rs_base_node.h",
-                "ui/rs_ui_share_context.h",
                 "ui/rs_ui_director.h",
                 "ui/rs_surface_extractor.h",
                 "ui/rs_surface_node.h",
