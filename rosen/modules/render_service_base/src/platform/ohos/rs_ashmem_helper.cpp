@@ -210,7 +210,6 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
             int32_t val = ashmemParcel->ReadFileDescriptor();
             if (val < 0) {
                 ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor failed, fd:%{public}d", val);
-                continue;
             }
             flat->handle = static_cast<uint32_t>(val);
         }
