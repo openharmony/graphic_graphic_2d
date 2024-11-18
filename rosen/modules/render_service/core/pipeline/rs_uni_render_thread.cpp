@@ -365,6 +365,10 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
             auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
                                    useReleaseFence = surfaceParams->GetLastFrameHardwareEnabled(),
                                    acquireFence = acquireFence_]() mutable {
+                if (consumer == nullptr) {
+                    RS_LOGE("ReleaseSelfDrawingNodeBuffer failed consumer nullptr");
+                    return;
+                }
                 auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
                     RSHardwareThread::Instance().releaseFence_ : acquireFence);
                 if (ret != OHOS::SURFACE_ERROR_OK) {
