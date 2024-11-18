@@ -35,7 +35,6 @@ void RSUniRenderListener::OnBufferAvailable()
     }
     RS_LOGD("RSUniRenderListener::OnBufferAvailable node id:%{public}" PRIu64, surfaceHandler->GetNodeId());
     surfaceHandler->IncreaseAvailableBuffer();
-    RSMainThread::Instance()->NotifyUniRenderFinish();
 }
 }
 }
