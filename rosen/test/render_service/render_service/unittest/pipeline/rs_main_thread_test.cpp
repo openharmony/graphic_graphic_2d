@@ -22,6 +22,7 @@
 #include "limit_number.h"
 #include "rs_test_util.h"
 
+#include "memory/rs_memory_track.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_root_render_node.h"
@@ -4005,5 +4006,22 @@ HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
     mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
+}
+
+/**
+ * @tc.name: RenderServiceAllNodeDump01
+ * @tc.desc: RenderServiceAllNodeDump Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB57QP
+ */
+HWTEST_F(RSMainThreadTest, RenderServiceAllNodeDump01, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id, info);
+    DfxString log;
+    mainThread->RenderServiceAllNodeDump(log);
 }
 } // namespace OHOS::Rosen
