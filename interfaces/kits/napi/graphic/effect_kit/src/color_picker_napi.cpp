@@ -465,7 +465,7 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("ColorPickerNapi GetMainColor parsing input fail"));
     
     std::unique_ptr<ColorPickerAsyncContext> asyncContext = std::make_unique<ColorPickerAsyncContext>();
-    EFFECT_NAPI_CHECK_RET_D(asyncContext == nullptr, nullptr,
+    EFFECT_NAPI_CHECK_RET_D(asyncContext != nullptr, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetMainColor asyncContext is nullptr"));
 
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&asyncContext->nConstructor));
