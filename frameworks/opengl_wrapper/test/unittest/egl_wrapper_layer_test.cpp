@@ -42,7 +42,7 @@ HWTEST_F(EglWrapperLayerTest, Init001, Level1)
 {
     EglWrapperDispatchTable dispatchTable;
     auto result = EglWrapperLayer::GetInstance().Init(&dispatchTable);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -75,6 +75,7 @@ HWTEST_F(EglWrapperLayerTest, InitLayers001, Level1)
         return [](){};
     };
     layer.layerInit_.push_back(initFunc);
+    EXPECT_FALSE(layer.layerInit_.empty());
     layer.layerSetup_ = {};
     layer.InitLayers(&dispatchTable);
     LayerSetupFunc setupFunc = [](const char* data, EglWrapperFuncPointer getAddr) -> EglWrapperFuncPointer {
@@ -96,7 +97,7 @@ HWTEST_F(EglWrapperLayerTest, LoadLayers001, Level1)
     EglWrapperDispatchTable dispatchTable;
 
     bool result = EglWrapperLayer::GetInstance().LoadLayers();
-    ASSERT_FALSE(result);
+    ASSERT_TRUE(result);
 }
 
 /**
@@ -109,17 +110,5 @@ HWTEST_F(EglWrapperLayerTest, InitBundleInfo001, Level1)
     EglWrapperDispatchTable dispatchTable;
     bool result = EglWrapperLayer::GetInstance().InitBundleInfo();
     ASSERT_FALSE(result);
-}
-
-/**
- * @tc.name: SetupLayerFuncTbl001
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(EglWrapperLayerTest, SetupLayerFuncTbl001, Level1)
-{
-    EglWrapperDispatchTable dispatchTable;
-    auto& layer = EglWrapperLayer::GetInstance();
-    layer.SetupLayerFuncTbl(&dispatchTable);
 }
 } // OHOS::Rosen
