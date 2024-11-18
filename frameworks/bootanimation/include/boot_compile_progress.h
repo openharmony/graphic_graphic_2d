@@ -30,7 +30,7 @@
 namespace OHOS {
 class BootCompileProgress {
 public:
-    void Init(const BootAnimationConfig& config);
+    void Init(const BootAnimationConfig& config, bool needOtaCompile, bool needBundleScan);
 
 private:
     void OnVsync();
@@ -40,6 +40,11 @@ private:
     bool CreateCanvasNode();
     bool RegisterVsyncCallback();
     Rosen::Drawing::Brush DrawProgressPoint(int32_t idx, int32_t frameNum);
+    bool WaitParamsIfNeeded();
+    bool WaitBundleScanIfNeeded();
+    bool CheckParams();
+    bool CheckBundleScanParam();
+    bool CheckBmsStartParam();
 
     int32_t windowWidth_ = 0;
     int32_t windowHeight_ = 0;
@@ -53,7 +58,7 @@ private:
     Rosen::ScreenId screenId_;
     std::string displayInfo_ = "";
 
-    bool isBmsCompileDone_ = false;
+    //bool isBmsCompileDone_ = false;
     volatile bool isUpdateOptEnd_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
@@ -63,6 +68,10 @@ private:
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> compileHandler_;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> compileRunner_;
     std::shared_ptr<Rosen::RSInterpolator> sharpCurve_;
+
+    bool needOtaCompile_ = false;
+    bool needBundleScan_ = false;
+    std::set<std::string> paramNeeded_;
 };
 } // namespace OHOS
 
