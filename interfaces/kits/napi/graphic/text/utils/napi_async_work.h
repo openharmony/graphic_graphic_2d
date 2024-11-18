@@ -31,9 +31,6 @@ namespace OHOS::Rosen {
 /* check condition related to argc/argv, return and logging. */
 #define NAPI_CHECK_ARGS(context, condition, specifyStatus, code, retValue, fmt, ...) \
     do { \
-        if (context == nullptr) {                                                    \
-            retValue;                                                    \
-        }                                                    \
         if (!(condition)) { \
             (context)->status = specifyStatus; \
             (context)->errCode = static_cast<int32_t>(code); \
@@ -51,9 +48,6 @@ namespace OHOS::Rosen {
 
 #define NAPI_CHECK_STATUS_RETURN_VOID(context, message, code)                        \
     do {                                                               \
-        if (context == nullptr) {                                                    \
-            return;                                                    \
-        }                                                    \
         if ((context)->status != napi_ok) {                               \
             (context)->errMessage = std::string(message);                      \
             (context)->errCode = code;                      \
