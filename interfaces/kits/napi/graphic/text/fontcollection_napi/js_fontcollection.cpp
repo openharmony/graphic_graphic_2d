@@ -18,7 +18,6 @@
 
 #include "ability.h"
 #include "napi_async_work.h"
-#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 namespace {
