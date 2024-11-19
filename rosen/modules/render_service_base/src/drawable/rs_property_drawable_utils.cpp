@@ -1339,7 +1339,7 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, radius, radius);
-        std::shared_ptr<RSDrawingFilter> filter = nullptr;
+    std::shared_ptr<RSDrawingFilter> filter = nullptr;
     if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
