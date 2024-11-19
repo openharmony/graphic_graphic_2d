@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-zpz
+
 #include <cstdint>
 #include <functional>
 #include "rs_interfaces.h"
@@ -751,6 +751,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
 {
     const auto& hwcDisabledReasonInfo = renderServiceClient_->GetHwcDisabledReasonInfo();
     return hwcDisabledReasonInfo;
+}
+
+int64_t RSInterfaces::GetHdrOnDuration() const
+{
+    return renderServiceClient_->GetHdrOnDuration();
 }
 
 void RSInterfaces::SetVmaCacheStatus(bool flag)
