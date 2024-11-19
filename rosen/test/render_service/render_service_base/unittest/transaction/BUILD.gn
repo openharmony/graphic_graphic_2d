@@ -15,7 +15,7 @@ import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_base/transaction"
+module_output_path = "graphic_2d/rosen_engine/render_service_base/transaction"
 
 ##############################  RSRenderServiceBaseTransactionTest  ##################################
 ohos_unittest("RSRenderServiceBaseTransactionTest") {

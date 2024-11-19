@@ -15,13 +15,11 @@
 
 #include "js_font.h"
 
-#include "src/utils/SkUTF.h"
-
-#include "native_value.h"
-
 #include "js_drawing_utils.h"
 #include "js_typeface.h"
+#include "native_value.h"
 #include "path_napi/js_path.h"
+#include "src/utils/SkUTF.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {

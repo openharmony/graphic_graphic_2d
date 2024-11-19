@@ -203,11 +203,11 @@ bool FontFuzzTest006(const uint8_t* data, size_t size)
         text[i] = GetObject<char>();
     }
     text[count - 1] = '\0';
-    uint16_t* glyphs = new uint16_t[count];
-    for (size_t i = 0; i < count; i++) {
+    uint16_t* glyphs = new uint16_t[count - 1];
+    for (size_t i = 0; i < count - 1; i++) {
         glyphs[i] = GetObject<uint16_t>();
     }
-    font.TextToGlyphs(text, count, TextEncoding::UTF8, glyphs, count);
+    font.TextToGlyphs(text, count - 1, TextEncoding::UTF8, glyphs, count);
     font.UnicharToGlyph(count);
     if (text != nullptr) {
         delete [] text;
@@ -237,7 +237,7 @@ bool FontFuzzTest007(const uint8_t* data, size_t size)
         text[i] = GetObject<char>();
     }
     text[count - 1] = '\0';
-    font.CountText(text, count, TextEncoding::UTF8);
+    font.CountText(text, count - 1, TextEncoding::UTF8);
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -267,7 +267,7 @@ bool FontFuzzTest008(const uint8_t* data, size_t size)
     text[count - 1] = '\0';
     uint32_t textEncoding = GetObject<uint32_t>();
     RectF rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
-    font.MeasureText(text, count, static_cast<TextEncoding>(textEncoding % TEXTENCODING_SIZE), &rect);
+    font.MeasureText(text, count - 1, static_cast<TextEncoding>(textEncoding % TEXTENCODING_SIZE), &rect);
     if (text != nullptr) {
         delete [] text;
         text = nullptr;
@@ -316,7 +316,7 @@ bool FontFuzzTest010(const uint8_t* data, size_t size)
     Path* path = new Path();
     float x = GetObject<float>();
     float y = GetObject<float>();
-    font.GetTextPath(text, count, TextEncoding::UTF8, x, y, path);
+    font.GetTextPath(text, count - 1, TextEncoding::UTF8, x, y, path);
     delete path;
     if (text != nullptr) {
         delete [] text;

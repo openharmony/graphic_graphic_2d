@@ -35,6 +35,8 @@ constexpr uint32_t LAYER_COMPOSITION_CAPACITY = 12;
 
 constexpr uint32_t DEFAULT_SKIP_FRAME_INTERVAL = 1;
 
+constexpr uint32_t INVALID_EXPECTED_REFRESH_RATE = UINT32_MAX;
+
 constexpr int32_t SCREEN_ROTATION_NUM = 4;
 
 constexpr int32_t RS_ROTATION_0 = 0;
@@ -186,6 +188,7 @@ typedef enum : uint32_t {
     WRITE_PARCEL_ERR,
     HDI_ERROR,
     SCREEN_MANAGER_NULL,
+    BLACKLIST_IS_EMPTY,
 } StatusCode;
 
 typedef enum {
@@ -274,6 +277,11 @@ inline int32_t ScreenRotationMapping(ScreenRotation screenCorrection)
     return screenCorrection == ScreenRotation::INVALID_SCREEN_ROTATION ?
         RS_ROTATION_0 : static_cast<int32_t>(screenCorrection) * RS_ROTATION_90;
 }
+
+typedef enum {
+    SKIP_FRAME_BY_INTERVAL,
+    SKIP_FRAME_BY_REFRESH_RATE,
+} SkipFrameStrategy;
 } // namespace Rosen
 } // namespace OHOS
 

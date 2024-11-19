@@ -92,7 +92,6 @@ public:
 
     void SetSubThreadConfig(uint32_t threadIndex)
     {
-        isSubThread_ = true;
         isHardwareForcedDisabled_ = true;
         threadIndex_ = threadIndex;
     }
@@ -126,8 +125,10 @@ public:
     {
         return newColorSpace_;
     }
-
-    void SetAppWindowNum(uint32_t num);
+    uint32_t GetLayerNum() const
+    {
+        return layerNum_;
+    }
 
     void SetScreenInfo(ScreenInfo screenInfo)
     {
@@ -186,6 +187,7 @@ private:
     bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange();
+    bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
     bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
@@ -237,6 +239,7 @@ private:
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
+    void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
     void PrepareForUIFirstNode(RSSurfaceRenderNode& node);
@@ -272,6 +275,8 @@ private:
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
     void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
+    void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node);
+    void UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
@@ -309,11 +314,7 @@ private:
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
-    uint32_t appWindowNum_ = 0;
-    bool isSurfaceRotationChanged_ = false;
     bool isCompleteRenderEnabled_ = false;
-    bool isCanvasNodeSkipDfxEnabled_ = false;
-    bool isSkipCanvasNodeOutOfScreen_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     bool doAnimate_ = false;
     bool isDirty_ = false;
@@ -334,6 +335,7 @@ private:
     std::map<ScreenId, bool> displayHasProtectedSurface_;
     std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
+    std::map<ScreenId, bool> hasFingerprint_;
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
     // record nodes which has transparent clean filter
     std::unordered_map<NodeId, std::vector<std::pair<NodeId, RectI>>> transparentCleanFilter_;
@@ -368,7 +370,6 @@ private:
     bool filterInGlobal_ = true;
     // opinc feature
     bool autoCacheEnable_ = false;
-    bool hasFingerprint_ = false;
     bool isHardwareForcedDisabled_ = false; // indicates if hardware composer is totally disabled
     // to record and pass container node dirty to leash node.
     bool curContainerDirty_ = false;
@@ -380,8 +381,6 @@ private:
     VisibleData dstCurVisVec_;
     std::vector<RectI> globalSurfaceBounds_;
     bool hasUniRenderHdrSurface_ = false;
-    bool isSubThread_ = false;
-    float localZOrder_ = 0.0f; // local zOrder for surfaceView under same app window node
     // record container nodes which need filter
     FilterRectISet containerFilter_;
     // record nodes in surface which has filter may influence globalDirty
@@ -391,6 +390,8 @@ private:
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
     GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    bool hasDisplayHdrOn_ = false;
+    bool hasVisitCrossNode_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
     bool isTargetDirtyRegionDfxEnabled_ = false;
     bool isOpaqueRegionDfxEnabled_ = false;
@@ -407,7 +408,6 @@ private:
     std::vector<std::string> dfxTargetSurfaceNames_;
 
     std::stack<std::shared_ptr<RSDirtyRegionManager>> surfaceDirtyManager_;
-    std::stack<std::shared_ptr<RSSurfaceRenderNode>> surfaceNode_;
     int32_t offsetX_ { 0 };
     int32_t offsetY_ { 0 };
     bool isTargetUIFirstDfxEnabled_ = false;
@@ -416,17 +416,12 @@ private:
     SurfaceRegionDebugType surfaceRegionDebugType_;
     GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
-    // vector of all app window nodes with surfaceView, sorted by zOrder
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> appWindowNodesInZOrder_;
-    // vector of hardwareEnabled nodes above displayNodeSurface like pointer window
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledTopNodes_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
     // vector of last frame mainwindow surface visible info
     static inline VisibleData allLastVisVec_;
     std::mutex occlusionMutex_;
     static void ProcessUnpairedSharedTransitionNode();
-    std::vector<RectI> globalFilterRects_;
     NodeId FindInstanceChildOfDisplay(std::shared_ptr<RSRenderNode> node);
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
     // use for hardware compose disabled reason collection
@@ -437,6 +432,7 @@ private:
     // anco RSSurfaceNode process
     bool ancoHasGpu_ = false;
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
+    uint32_t layerNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

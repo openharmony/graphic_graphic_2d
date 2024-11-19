@@ -103,7 +103,7 @@ private:
     uint32_t RGB2GRAY(uint32_t color) const;
     bool IsEquals(double val1, double val2) const;
     HSV RGB2HSV(uint32_t rgb) const;
-    void AdjustHSVToDefinedIterval(HSV& hsv) const;
+    void AdjustHSVToDefinedInterval(HSV& hsv) const;
     uint32_t HSVtoRGB(HSV hsv) const;
     uint32_t CalcGrayVariance() const;
     double CalcContrastRatioWithWhite() const;

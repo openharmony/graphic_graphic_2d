@@ -68,6 +68,9 @@ void RSUifirstManagerTest::TearDownTestCase()
     uifirstManager_.pendingPostNodes_.clear();
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingResetNodes_.clear();
+
+    mainThread->context_->globalRootRenderNode_->renderDrawable_ = nullptr;
+    mainThread->context_->globalRootRenderNode_ = nullptr;
 }
 void RSUifirstManagerTest::SetUp() {}
 
@@ -1372,16 +1375,16 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
 {
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
     NodeId nodeId = 1;
-    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
+    nodeId = 2;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
-    adapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(0);
     surfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
@@ -1394,35 +1397,69 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
+    uifirstManager_.subthreadProcessingNode_.clear();
 }
 
 /**
- * @tc.name: GetUiFirstMode
- * @tc.desc: Test GetUiFirstMode
+ * @tc.name: GetUiFirstMode001
+ * @tc.desc: Test GetUiFirstMode for phone
  * @tc.type: FUNC
- * @tc.require: issueIANPC2
+ * @tc.require: issueIB31K8
  */
-HWTEST_F(RSUifirstManagerTest, GetUiFirstMode, TestSize.Level1)
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode001, TestSize.Level1)
 {
+    auto type = uifirstManager_.GetUiFirstMode();
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PHONE) {
-        auto type = uifirstManager_.GetUiFirstMode();
         EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
     }
+}
 
+/**
+ * @tc.name: GetUiFirstMode002
+ * @tc.desc: Test GetUiFirstMode for pc
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode002, TestSize.Level1)
+{
+    auto type = uifirstManager_.GetUiFirstMode();
     if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) {
-        auto type = uifirstManager_.GetUiFirstMode();
         EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
     }
+}
 
-    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::TABLET) {
-        uifirstManager_.SetFreeMultiWindowStatus(false);
-        auto type = uifirstManager_.GetUiFirstMode();
-        EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
-
-        uifirstManager_.SetFreeMultiWindowStatus(true);
-        type = uifirstManager_.GetUiFirstMode();
-        EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
+/**
+ * @tc.name: GetUiFirstMode003
+ * @tc.desc: Test GetUiFirstMode for tablet while free multi-window off
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode003, TestSize.Level1)
+{
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+        return;
     }
+
+    uifirstManager_.SetFreeMultiWindowStatus(false);
+    auto type = uifirstManager_.GetUiFirstMode();
+    EXPECT_EQ(type, UiFirstModeType::SINGLE_WINDOW_MODE);
+}
+
+/**
+ * @tc.name: GetUiFirstMode004
+ * @tc.desc: Test GetUiFirstMode for tablet while free multi-window on
+ * @tc.type: FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSUifirstManagerTest, GetUiFirstMode004, TestSize.Level1)
+{
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::TABLET) {
+        return;
+    }
+
+    uifirstManager_.SetFreeMultiWindowStatus(true);
+    auto type = uifirstManager_.GetUiFirstMode();
+    EXPECT_EQ(type, UiFirstModeType::MULTI_WINDOW_MODE);
 }
 
 /**

@@ -134,7 +134,6 @@ template("render_service_client_source_set") {
       "core/ui/rs_texture_export.cpp",
       "core/ui/rs_ui_director.cpp",
       "core/ui/rs_ui_display_soloist.cpp",
-      "core/ui/rs_ui_share_context.cpp",
     ]
 
     if (is_cross_platform) {

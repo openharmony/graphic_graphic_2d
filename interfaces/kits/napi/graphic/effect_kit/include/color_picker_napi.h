@@ -51,7 +51,7 @@ private:
     static bool ProcessCallbackAndCoordinates(napi_env env, napi_value* argValue, size_t argCount,
         napi_value& result, std::unique_ptr<ColorPickerAsyncContext>& asyncContext);
     static napi_value CreateColorPicker(napi_env env, napi_callback_info info);
-    static void CreateColorPickerFromPixelmapComplete(napi_env env, napi_status status, void* data);
+    static void CreateColorPickerFromPixelMapComplete(napi_env env, napi_status status, void* data);
     static napi_value GetScaledPixelMap(napi_env env, napi_callback_info info);
     static napi_value GetMainColor(napi_env env, napi_callback_info info);
     static napi_value GetMainColorSync(napi_env env, napi_callback_info info);

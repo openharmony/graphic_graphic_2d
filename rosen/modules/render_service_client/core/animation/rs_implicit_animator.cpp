@@ -324,7 +324,12 @@ void RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation()
         return;
     }
     [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] = durationKeyframeParams_.top();
-    totalDuration += currentDuration;
+    if (totalDuration > INT32_MAX - currentDuration) {
+        ROSEN_LOGD("RSImplicitAnimator::EndImplicitDurationKeyFrameAnimation, totalDuration overflow!");
+        totalDuration = INT32_MAX;
+    } else {
+        totalDuration += currentDuration;
+    }
     currentDuration = 0;
     PopImplicitParam();
 }

@@ -191,6 +191,15 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
+{
+}
+
+bool RSSystemProperties::GetScreenSwitchStatus()
+{
+    return false;
+}
+
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};
@@ -239,6 +248,11 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()

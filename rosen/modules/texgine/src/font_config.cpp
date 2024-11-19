@@ -139,7 +139,9 @@ int FontConfig::ParseConfig(const char* fname)
         LOGSO_FUNC_LINE(ERROR) << "check config file failed";
         return FAILED;
     }
-    return ParseFont(root);
+    int result = ParseFont(root);
+    cJSON_Delete(root);
+    return result;
 }
 
 void FontConfig::Dump() const

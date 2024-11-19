@@ -141,31 +141,23 @@ public:
     void SetScale(Vector2f scale);
     void SetScaleX(float sx);
     void SetScaleY(float sy);
-    void SetScaleZ(float sz);
     Vector2f GetScale() const;
     float GetScaleX() const;
     float GetScaleY() const;
-    float GetScaleZ() const;
 
-    void SetSkew(Vector3f skew);
+    void SetSkew(Vector2f skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
-    void SetSkewZ(float skewZ);
-    Vector3f GetSkew() const;
+    Vector2f GetSkew() const;
     float GetSkewX() const;
     float GetSkewY() const;
-    float GetSkewZ() const;
 
-    void SetPersp(Vector4f persp);
+    void SetPersp(Vector2f persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
-    void SetPerspZ(float perspZ);
-    void SetPerspW(float perspW);
-    Vector4f GetPersp() const;
+    Vector2f GetPersp() const;
     float GetPerspX() const;
     float GetPerspY() const;
-    float GetPerspZ() const;
-    float GetPerspW() const;
 
     void SetAlpha(float alpha);
     float GetAlpha() const;

@@ -715,17 +715,17 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetChildrenNeedFilterRectsWithoutCacheValid
 }
 
 /**
- * @tc.name: SetHwcChildrenDisabledStateByUifirst
- * @tc.desc: test results of SetHwcChildrenDisabledStateByUifirst
+ * @tc.name: SetHwcChildrenDisabledState
+ * @tc.desc: test results of SetHwcChildrenDisabledState
  * @tc.type: FUNC
  * @tc.require: issueIA4VTS
  */
-HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledStateByUifirst, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledState, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     node->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     std::shared_ptr<RSSurfaceRenderNode> rssNode = nullptr;
     std::weak_ptr<RSSurfaceRenderNode> rssNode1 = rssNode;
     std::weak_ptr<RSSurfaceRenderNode> rssNode2 = std::make_shared<RSSurfaceRenderNode>(0);
@@ -735,7 +735,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledStateByUifirst, TestS
     node->childHardwareEnabledNodes_.emplace_back(rssNode1);
     node->childHardwareEnabledNodes_.emplace_back(rssNode2);
     node->childHardwareEnabledNodes_.emplace_back(rssNode3);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     std::shared_ptr<RSRenderNode> rsrNode1 = std::make_shared<RSRenderNode>(0);
     std::shared_ptr<RSRenderNode> rsrNode2 = std::make_shared<RSSurfaceRenderNode>(id + 2);
@@ -743,7 +743,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, SetHwcChildrenDisabledStateByUifirst, TestS
     children.push_back(rsrNode1);
     children.push_back(rsrNode2);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     ASSERT_FALSE(node->childHardwareEnabledNodes_.empty());
 }
 

@@ -159,8 +159,10 @@ void RSScreen::PhysicalScreenInit() noexcept
         width_ = phyWidth_;
         height_ = phyHeight_;
     }
-    if (hdiScreen_->GetScreenPowerStatus(powerStatus_) < 0) {
-        powerStatus_ = static_cast<GraphicDispPowerStatus>(INVALID_POWER_STATUS);
+    if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
+        powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
+    } else {
+        powerStatus_ = static_cast<ScreenPowerStatus>(status);
     }
     if (capability_.type == GraphicInterfaceType::GRAPHIC_DISP_INTF_MIPI) {
         screenType_ = RSScreenType::BUILT_IN_TYPE_SCREEN;
@@ -253,6 +255,11 @@ uint32_t RSScreen::PhyHeight() const
     return phyHeight_;
 }
 
+RectI RSScreen::GetActiveRect() const
+{
+    return activeRect_;
+}
+
 bool RSScreen::IsEnable() const
 {
     if (id_ == INVALID_SCREEN_ID) {
@@ -305,6 +312,26 @@ void RSScreen::SetActiveMode(uint32_t modeId)
                 "TARGETRATE", activeMode->freshRate, "WIDTH", phyWidth_, "HEIGHT", phyHeight_);
             modeInfo = activeMode.value();
         }
+    }
+}
+
+uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
+{
+    if (IsVirtual()) {
+        RS_LOGW("RSScreen %{public}s failed: virtual screen not support", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    if (hdiScreen_ == nullptr) {
+        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr",  __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    
+    if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed",  __func__);
+        return StatusCode::HDI_ERROR;
+    } else {
+        activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+        return StatusCode::SUCCESS;
     }
 }
 
@@ -367,8 +394,11 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
     RS_LOGI("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
+        powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
         return;
     }
+
+    powerStatus_ = static_cast<ScreenPowerStatus>(powerStatus);
 
     if ((powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON ||
         powerStatus == GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON_ADVANCED) &&
@@ -420,7 +450,7 @@ const GraphicDisplayCapability& RSScreen::GetCapability() const
     return capability_;
 }
 
-uint32_t RSScreen::GetPowerStatus() const
+uint32_t RSScreen::GetPowerStatus()
 {
     if (IsVirtual()) {
         RS_LOGW("RSScreen %{public}s: virtual screen not support GetPowerStatus.", __func__);
@@ -431,10 +461,19 @@ uint32_t RSScreen::GetPowerStatus() const
         return INVALID_POWER_STATUS;
     }
 
-    GraphicDispPowerStatus status;
+    if (powerStatus_ != ScreenPowerStatus::INVALID_POWER_STATUS) {
+        return static_cast<uint32_t>(powerStatus_);
+    }
+
+    auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (hdiScreen_->GetScreenPowerStatus(status) < 0) {
+        powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
+        RS_LOGE("RSScreen %{public}s GetScreenPowerStatus failed",  __func__);
         return INVALID_POWER_STATUS;
     }
+    powerStatus_ = static_cast<ScreenPowerStatus>(status);
+    RS_LOGW("RSScreen %{public}s cached powerStatus is INVALID_POWER_STATUS and GetScreenPowerStatus %{public}d",
+        __func__, static_cast<uint32_t>(status));
     return static_cast<uint32_t>(status);
 }
 
@@ -582,8 +621,9 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "mirrorId=";
         dumpString += (mirrorId_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(mirrorId_);
         dumpString += ", ";
-        AppendFormat(dumpString, ", render size: %dx%d, isvirtual=true, skipFrameInterval_:%d\n",
-            width_, height_, skipFrameInterval_);
+        AppendFormat(dumpString, ", render size: %dx%d, isvirtual=true, skipFrameInterval_:%d"
+            ", expectedRefreshRate_:%d, skipFrameStrategy_:%d\n",
+            width_, height_, skipFrameInterval_, expectedRefreshRate_, skipFrameStrategy_);
     } else {
         dumpString += "screen[" + std::to_string(screenIndex) + "]: ";
         dumpString += "id=";
@@ -595,8 +635,9 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += ", ";
         ScreenTypeDump(dumpString);
         AppendFormat(dumpString,
-            ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false, skipFrameInterval_:%d\n",
-            width_, height_, phyWidth_, phyHeight_, skipFrameInterval_);
+            ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false, skipFrameInterval_:%d"
+            ", expectedRefreshRate_:%d, skipFrameStrategy_:%d\n",
+            width_, height_, phyWidth_, phyHeight_, skipFrameInterval_, expectedRefreshRate_, skipFrameStrategy_);
         dumpString += "\n";
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
@@ -857,12 +898,34 @@ const RSScreenType& RSScreen::GetScreenType() const
 
 void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     skipFrameInterval_ = skipFrameInterval;
+    skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
+}
+
+void RSScreen::SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    expectedRefreshRate_ = expectedRefreshRate;
+    skipFrameStrategy_ = SKIP_FRAME_BY_REFRESH_RATE;
 }
 
 uint32_t RSScreen::GetScreenSkipFrameInterval() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return skipFrameInterval_;
+}
+
+uint32_t RSScreen::GetScreenExpectedRefreshRate() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return expectedRefreshRate_;
+}
+
+SkipFrameStrategy RSScreen::GetScreenSkipFrameStrategy() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return skipFrameStrategy_;
 }
 
 void RSScreen::SetScreenVsyncEnabled(bool enabled) const
@@ -1041,6 +1104,20 @@ const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
 void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
     blackList_ = blackList;
+}
+
+void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
+{
+    for (auto& list : blackList) {
+        blackList_.emplace(list);
+    }
+}
+
+void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
+{
+    for (auto& list : blackList) {
+        blackList_.erase(list);
+    }
 }
 
 void RSScreen::SetCastScreenEnableSkipWindow(bool enable)

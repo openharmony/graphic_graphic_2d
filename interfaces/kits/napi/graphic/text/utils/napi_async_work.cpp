@@ -181,9 +181,8 @@ void NapiAsyncWork::GenerateOutput(sptr<ContextBase> contextBase)
         stat = napi_call_function(contextBase->env, nullptr, callback, RESULT_ALL, result, &callbackResult);
         TEXT_CHECK(stat == napi_ok, TEXT_LOGE("Failed to call callback function, stat:%d", static_cast<int>(stat)));
     }
-    int count = contextBase->GetSptrRefCount();
-    for (int i = 0; i < count - 1; ++i) {
-        contextBase->DecStrongRef(nullptr);
-    }
+    contextBase->execute = nullptr;
+    contextBase->complete = nullptr;
+    contextBase->DecStrongRef(nullptr);
 }
 }

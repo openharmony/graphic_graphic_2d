@@ -82,9 +82,11 @@ HWTEST_F(HyperGraphicManagerTest, Instance2, Function | SmallTest | Level4)
 {
     PART("CaseDescription") {
         STEP("1. call GetInstance twice") {
+            auto defaultRateMode = "0";
             auto newRateMode = "1";
             RSSystemProperties::SetHgmRefreshRateModesEnabled(newRateMode);
             auto &instance1 = HgmCore::Instance();
+            RSSystemProperties::SetHgmRefreshRateModesEnabled(defaultRateMode);
             auto &instance2 = HgmCore::Instance();
             STEP_ASSERT_EQ(&instance1, &instance2);
         }

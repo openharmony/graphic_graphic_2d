@@ -38,9 +38,12 @@ constexpr int32_t INVALID_FD = -1;
 void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
 {
     HitracePerfScoped perfTrace(ScopedDebugTrace::isEnabled(), HITRACE_TAG_GRAPHIC_AGP, "OnReadablePerfCount");
-    if (fileDescriptor < 0) {
-        VLOGE("OnReadable Invalid fileDescriptor:%{public}d", fileDescriptor);
-        return;
+    {
+        std::lock_guard<std::mutex> locker(cbMutex_);
+        if (fileDescriptor < 0 || (readableCallback_ != nullptr && !readableCallback_(fileDescriptor))) {
+            VLOGE("OnReadable Invalid fileDescriptor:%{public}d", fileDescriptor);
+            return;
+        }
     }
     // 3 is array size.
     int64_t data[3];
@@ -160,6 +163,12 @@ void VSyncCallBackListener::RegisterFdShutDownCallback(FdShutDownCallback cb)
     fdShutDownCallback_ = cb;
 }
 
+void VSyncCallBackListener::RegisterReadableCallback(ReadableCallback cb)
+{
+    std::lock_guard<std::mutex> locker(cbMutex_);
+    readableCallback_ = cb;
+}
+
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     const sptr<IRemoteObject>& token,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler>& looper,
@@ -215,6 +224,14 @@ VsyncError VSyncReceiver::Init()
         }
         RemoveAndCloseFdLocked();
     });
+    listener_->RegisterReadableCallback([this](int32_t fileDescriptor) -> bool {
+        std::lock_guard<std::mutex> locker(initMutex_);
+        if (fileDescriptor != fd_) {
+            VLOGE("OnReadable Invalid fileDescriptor:%{public}d, fd_:%{public}d", fileDescriptor, fd_);
+            return false;
+        }
+        return true;
+    });
 
     looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
     init_ = true;
@@ -239,6 +256,7 @@ void VSyncReceiver::ThreadCreateNotify()
 VSyncReceiver::~VSyncReceiver()
 {
     listener_->RegisterFdShutDownCallback(nullptr);
+    listener_->RegisterReadableCallback(nullptr);
     std::lock_guard<std::mutex> locker(initMutex_);
     RemoveAndCloseFdLocked();
     DestroyLocked();

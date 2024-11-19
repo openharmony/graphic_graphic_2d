@@ -115,11 +115,21 @@ public:
         isFirstTimeToProcessor_ = false;
     }
 
+    void SetUseCanvasSize(bool useCanvasSize)
+    {
+        useCanvasSize_ = useCanvasSize;
+    }
+
+    bool GetUseCanvasSize() const
+    {
+        return useCanvasSize_;
+    }
+
     ScreenRotation GetOriginScreenRotation() const
     {
         return originScreenRotation_;
     }
-    bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval);
+    bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -166,6 +176,8 @@ private:
     // For P3-scRGB Control
     bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
     void RenderOverDraw();
+    bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
+    bool SkipFrameByRefreshRate(uint32_t refreshRate);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
@@ -189,6 +201,8 @@ private:
     uint64_t virtualSurfaceUniqueId_ = 0;
     bool resetRotate_ = false;
     bool isFirstTimeToProcessor_ = true;
+    // Do not use canvas size when recording HDR screen
+    bool useCanvasSize_ = true;
     ScreenRotation originScreenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
     // dirty manager
     std::shared_ptr<RSDirtyRegionManager> syncDirtyManager_ = nullptr;

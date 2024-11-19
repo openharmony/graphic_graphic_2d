@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -602,8 +601,8 @@ OH_Drawing_TextBox* OH_Drawing_TypographyGetRectsForRange(OH_Drawing_Typography*
     }
     auto originalRectHeightStyle = ConvertToOriginalText<TextRectHeightStyle>(&heightStyle);
     auto originalRectWidthStyle = ConvertToOriginalText<TextRectWidthStyle>(&widthStyle);
-    *originalVector = ConvertToOriginalText<Typography>(typography)->GetTextRectsByBoundary(start, end,
-        *originalRectHeightStyle, *originalRectWidthStyle);
+    *originalVector = ConvertToOriginalText<Typography>(typography)
+                          ->GetTextRectsByBoundary(start, end, *originalRectHeightStyle, *originalRectWidthStyle);
     return (OH_Drawing_TextBox*)originalVector;
 }
 
@@ -1892,7 +1891,7 @@ void OH_Drawing_TextStyleDestroyFontFeatures(OH_Drawing_FontFeature* fontFeature
         if ((fontFeature + i)->tag == nullptr) {
             continue;
         }
-        delete[](fontFeature + i)->tag;
+        delete[] (fontFeature + i)->tag;
         (fontFeature + i)->tag = nullptr;
     }
     delete[] fontFeature;
@@ -2387,7 +2386,7 @@ static void ResetString(char** ptr)
     if (!ptr || !(*ptr)) {
         return;
     }
-    delete[](*ptr);
+    delete[] (*ptr);
     (*ptr) = nullptr;
 }
 
@@ -2401,7 +2400,7 @@ static void ResetDrawingAliasInfoSet(OH_Drawing_FontAliasInfo** aliasInfoArray, 
         ResetString(&((*aliasInfoArray)[i].familyName));
     }
 
-    delete[](*aliasInfoArray);
+    delete[] (*aliasInfoArray);
     (*aliasInfoArray) = nullptr;
     aliasInfoSize = 0;
 }
@@ -2437,7 +2436,7 @@ static void ResetDrawingAdjustInfo(OH_Drawing_FontAdjustInfo** adjustInfoArray, 
     if (adjustInfoArray == nullptr || *adjustInfoArray == nullptr) {
         return;
     }
-    delete[](*adjustInfoArray);
+    delete[] (*adjustInfoArray);
     (*adjustInfoArray) = nullptr;
     adjustInfoSize = 0;
 }
@@ -2491,7 +2490,7 @@ static void ResetDrawingFontGenericInfoSet(
         ResetDrawingFontGenericInfo((*fontGenericInfoArray)[i]);
     }
 
-    delete[](*fontGenericInfoArray);
+    delete[] (*fontGenericInfoArray);
     (*fontGenericInfoArray) = nullptr;
     fontGenericInfoSize = 0;
 }
@@ -2537,7 +2536,7 @@ static void ResetDrawingFallbackInfoSet(OH_Drawing_FontFallbackInfo** fallbackIn
     for (size_t i = 0; i < fallbackInfoSize; i++) {
         ResetDrawingFallbackInfo((*fallbackInfoArray)[i]);
     }
-    delete[](*fallbackInfoArray);
+    delete[] (*fallbackInfoArray);
     (*fallbackInfoArray) = nullptr;
     fallbackInfoSize = 0;
 }
@@ -2585,7 +2584,7 @@ static void ResetDrawingFallbackGroupSet(OH_Drawing_FontFallbackGroup** fallback
     for (size_t i = 0; i < fallbackGroupSize; i++) {
         ResetDrawingFallbackGroup((*fallbackGroupArray)[i]);
     }
-    delete[](*fallbackGroupArray);
+    delete[] (*fallbackGroupArray);
     (*fallbackGroupArray) = nullptr;
     fallbackGroupSize = 0;
 }
@@ -2633,10 +2632,10 @@ static void ResetStringArray(char*** ptr, size_t& charArraySize)
         if (!((*ptr)[i])) {
             continue;
         }
-        delete[]((*ptr)[i]);
+        delete[] ((*ptr)[i]);
         ((*ptr)[i]) = nullptr;
     }
-    delete[](*ptr);
+    delete[] (*ptr);
     (*ptr) = nullptr;
     charArraySize = 0;
 }

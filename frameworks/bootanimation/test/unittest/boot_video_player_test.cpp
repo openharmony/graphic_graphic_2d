@@ -108,6 +108,7 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_003, TestSize.Level1)
     player3->mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
     BootAnimationUtils::SetBootAnimationSoundEnabled(false);
     player3->SetVideoSound();
+    EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), false);
 
     PlayerParams params4;
     params4.soundEnabled = true;
@@ -116,6 +117,7 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_003, TestSize.Level1)
     player4->mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
     BootAnimationUtils::SetBootAnimationSoundEnabled(true);
     player4->SetVideoSound();
+    EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), true);
 }
 
 /**

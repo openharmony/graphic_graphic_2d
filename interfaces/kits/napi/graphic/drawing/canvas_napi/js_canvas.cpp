@@ -525,7 +525,8 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     JsPath* jsPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
 
-    Point3 offset, lightPos;
+    Point3 offset;
+    Point3 lightPos;
     if (!ConvertFromJsPoint3d(env, argv[ARGC_ONE], offset) || !ConvertFromJsPoint3d(env, argv[ARGC_TWO], lightPos)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_ONE] or argv[ARGC_TWO] is invalid.");
         return nullptr;
@@ -533,22 +534,12 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
 
     double lightRadius = 0.0f;
     GET_DOUBLE_PARAM(ARGC_THREE, lightRadius);
-    int32_t ambientColor[ARGC_FOUR] = {0}, spotColor[ARGC_FOUR] = {0};
-
-    napi_valuetype argvFourType, argvFiveType;
-    napi_typeof(env, argv[ARGC_FOUR], &argvFourType);
-    napi_typeof(env, argv[ARGC_FIVE], &argvFiveType);
-
-    if (argvFourType == napi_number && argvFiveType == napi_number) {
-        if (!ConvertFromJsColorWithNumber(env, argv[ARGC_FOUR], ambientColor, ARGC_FOUR, ARGC_FOUR) ||
-            !ConvertFromJsColorWithNumber(env, argv[ARGC_FIVE], spotColor, ARGC_FOUR, ARGC_FIVE)) {
-            return nullptr;
-        }
-    } else {
-        if (!ConvertFromJsColor(env, argv[ARGC_FOUR], ambientColor, ARGC_FOUR) ||
-            !ConvertFromJsColor(env, argv[ARGC_FIVE], spotColor, ARGC_FOUR)) {
-            return nullptr;
-        }
+    int32_t ambientColor[ARGC_FOUR] = {0};
+    int32_t spotColor[ARGC_FOUR] = {0};
+    if (!ConvertFromJsColor(env, argv[ARGC_FOUR], ambientColor, ARGC_FOUR) ||
+        !ConvertFromJsColor(env, argv[ARGC_FIVE], spotColor, ARGC_FOUR)) {
+        ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_FOUR] or argv[ARGC_FIVE] is invalid.");
+        return nullptr;
     }
 
     int32_t shadowFlag = 0;

@@ -46,8 +46,12 @@ public:
 
 private:
     FontDescriptorMgr();
+    std::string GetSystemLocale();
+    void CheckLocale();
+
     FontDescriptorCache descCache_;
     std::mutex parserMtx_;
+    std::string locale_;
 };
 } // namespace OHOS::Rosen
 #define FontDescriptorMgrInstance OHOS::Rosen::FontDescriptorMgr::GetInstance()

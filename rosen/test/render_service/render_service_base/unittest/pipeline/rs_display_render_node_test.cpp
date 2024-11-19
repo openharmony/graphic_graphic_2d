@@ -565,7 +565,7 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes003, TestSize
 
 /**
  * @tc.name: HandleCurMainAndLeashSurfaceNodes004
- * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window and on the tree
  * @tc.type:FUNC
  * @tc.require: issueIANDBE
  */
@@ -575,10 +575,28 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes004, TestSize
     ASSERT_NE(displayNode, nullptr);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     ASSERT_NE(surfaceNode, nullptr);
-    
+    surfaceNode->isOnTheTree_ = true;
     displayNode->RecordMainAndLeashSurfaces(surfaceNode);
     displayNode->HandleCurMainAndLeashSurfaceNodes();
     ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 1);
+}
+
+/**
+ * @tc.name: HandleCurMainAndLeashSurfaceNodes005
+ * @tc.desc: test HandleCurMainAndLeashSurfaceNodes while the node isn't leash window and not on the tree
+ * @tc.type:FUNC
+ * @tc.require: issueIANDBE
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize.Level2)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->isOnTheTree_ = false;
+    displayNode->RecordMainAndLeashSurfaces(surfaceNode);
+    displayNode->HandleCurMainAndLeashSurfaceNodes();
+    ASSERT_EQ(displayNode->GetSurfaceCountForMultiLayersPerf(), 0);
 }
 
 /**
@@ -637,6 +655,40 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
     ASSERT_NE(displayNode, nullptr);
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
+}
+
+/**
+ * @tc.name: AddSecurityVisibleLayer001
+ * @tc.desc: test results of AddSecurityVisibleLayer
+ * @tc.type:FUNC
+ * @tc.require: issuesIB3N3D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, AddSecurityVisibleLayer001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;
+    displayNode->AddSecurityVisibleLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 1);
+}
+
+/**
+ * @tc.name: ClearSecurityVisibleLayerList001
+ * @tc.desc: test results of ClearSecurityVisibleLayerList
+ * @tc.type:FUNC
+ * @tc.require: issuesIB3N3D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, ClearSecurityVisibleLayerList001, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(displayNode, nullptr);
+    NodeId id = 1;  // test value for surface node id
+    displayNode->AddSecurityVisibleLayer(id);
+    id = 2;  // test value for surface node id
+    displayNode->AddSecurityVisibleLayer(id);
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 2);
+    displayNode->ClearSecurityVisibleLayerList();
+    EXPECT_EQ(displayNode->GetSecurityVisibleLayerList().size(), 0);
 }
 
 /**

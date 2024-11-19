@@ -57,8 +57,7 @@ void FontDescriptorCache::ClearFontFileCache()
 
 void FontDescriptorCache::ParserSystemFonts()
 {
-    icu::Locale locale = icu::Locale::getDefault();
-    for (auto& item : parser_.GetSystemFonts(std::string(locale.getName()))) {
+    for (auto& item : parser_.GetSystemFonts(locale_)) {
         FontDescriptorScatter(item);
     }
     Dump();
@@ -66,74 +65,12 @@ void FontDescriptorCache::ParserSystemFonts()
 
 void FontDescriptorCache::ParserStylishFonts()
 {
-    icu::Locale locale = icu::Locale::getDefault();
-    std::vector<TextEngine::FontParser::FontDescriptor> descriptors =
-        parser_.GetVisibilityFonts(std::string(locale.getName()));
+    std::vector<TextEngine::FontParser::FontDescriptor> descriptors = parser_.GetVisibilityFonts(locale_);
     for (const auto& descriptor : descriptors) {
         FontDescSharedPtr descriptorPtr = std::make_shared<TextEngine::FontParser::FontDescriptor>(descriptor);
         descriptorPtr->weight = WeightAlignment(descriptorPtr->weight);
         stylishFullNameMap_[descriptorPtr->fullName].emplace(descriptorPtr);
     }
-}
-
-void FontDescriptorCache::ParserInstallFonts()
-{
-    installPathMap_.clear();
-    std::vector<std::string> fontPathList;
-    std::string fontPath = INSTALL_FONT_CONFIG_FILE;
-
-    if (!ParseInstalledConfigFile(fontPath, fontPathList)) {
-        TEXT_LOGE("Failed to parse the installed fonts");
-        return;
-    }
-
-    for (const auto& path : fontPathList) {
-        if (!ProcessInstalledFontPath(path)) {
-            TEXT_LOGE("Failed to process font path, path: %{public}s", path.c_str());
-        }
-    }
-}
-
-bool FontDescriptorCache::ParseInstalledConfigFile(const std::string& fontPath, std::vector<std::string>& fontPathList)
-{
-    std::shared_ptr<Drawing::FontMgr> fontMgr = Drawing::FontMgr::CreateDynamicFontMgr();
-    std::ifstream configFile(fontPath);
-    if (!configFile.is_open()) {
-        return false;
-    }
-    configFile.close();
-    return (fontMgr->ParseInstallFontConfig(fontPath, fontPathList) == Drawing::FontCheckCode::SUCCESSED);
-}
-
-bool FontDescriptorCache::ProcessInstalledFontPath(const std::string& path)
-{
-    std::shared_ptr<Drawing::FontMgr> fontMgr = Drawing::FontMgr::CreateDefaultFontMgr();
-    if (access(path.c_str(), F_OK) != 0) {
-        TEXT_LOGE("Path does not exist");
-        return false;
-    }
-    int fd = open(path.c_str(), O_RDONLY);
-    if (fd == -1) {
-        return false;
-    }
-    std::vector<Drawing::FontByteArray> fullNameVec;
-    int ret = fontMgr->GetFontFullName(fd, fullNameVec);
-    close(fd);
-    if (ret != Drawing::FontCheckCode::SUCCESSED || fullNameVec.empty()) {
-        return false;
-    }
-    std::vector<std::string> fullNameStringVec;
-    for (const auto& fullName : fullNameVec) {
-        std::string fullNameString;
-        if (Drawing::ConvertToString(fullName.strData.get(), fullName.strLen, fullNameString)) {
-            fullNameStringVec.push_back(fullNameString);
-        } else {
-            fullNameStringVec.clear();
-            return false;
-        }
-    }
-    installPathMap_[path] = fullNameStringVec;
-    return true;
 }
 
 void FontDescriptorCache::FontDescriptorScatter(FontDescSharedPtr desc)
@@ -170,13 +107,28 @@ void FontDescriptorCache::FontDescriptorScatter(FontDescSharedPtr desc)
     }
 }
 
+bool FontDescriptorCache::ParserInstallFontsPathList(std::vector<std::string>& fontPathList)
+{
+    std::shared_ptr<Drawing::FontMgr> fontMgr = Drawing::FontMgr::CreateDynamicFontMgr();
+    if (fontMgr == nullptr) {
+        return false;
+    }
+    int ret = fontMgr->ParseInstallFontConfig(INSTALL_FONT_CONFIG_FILE, fontPathList);
+    return ret == Drawing::FontCheckCode::SUCCESSED;
+}
+
 std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
 {
-    ParserInstallFonts();
     std::unordered_set<std::string> fullNameList;
-    for (const auto& pathAndFonts : installPathMap_) {
-        for (const auto& fullName : pathAndFonts.second) {
-            fullNameList.emplace(fullName);
+    std::vector<std::string> fontPathList;
+    if (!ParserInstallFontsPathList(fontPathList)) {
+        TEXT_LOGE("Parser install fonts path list failed");
+        return fullNameList;
+    }
+    for (const auto& path : fontPathList) {
+        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path, locale_);
+        for (const auto& item : descriptors) {
+            fullNameList.emplace(item->fullName);
         }
     }
     return fullNameList;
@@ -218,8 +170,8 @@ bool FontDescriptorCache::ProcessSystemFontType(const int32_t& systemFontType, i
     return true;
 }
 
-void FontDescriptorCache::GetSystemFontFullNamesByType(const int32_t& systemFontType,
-    std::unordered_set<std::string>& fontList)
+void FontDescriptorCache::GetSystemFontFullNamesByType(
+    const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
     if (systemFontType < 0) {
         TEXT_LOGE("SystemFontType is an invalid value");
@@ -249,23 +201,14 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(const int32_t& systemFont
 
 bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result)
 {
-    ParserInstallFonts();
-    std::string path;
-    for (const auto& pathAndFonts : installPathMap_) {
-        for (const auto& font : pathAndFonts.second) {
-            if (font == fullName) {
-                path = pathAndFonts.first;
-                break;
-            }
-        }
-        if (!path.empty()) {
-            break;
-        }
+    std::vector<std::string> fontPathList;
+    if (!ParserInstallFontsPathList(fontPathList)) {
+        TEXT_LOGE("Parser install fonts path list failed");
+        return false;
     }
-    std::vector<FontDescSharedPtr> descriptors;
-    icu::Locale locale = icu::Locale::getDefault();
-    if (parser_.ParserFontDescriptorFromPath(path, fullName, descriptors, std::string(locale.getName()))) {
-        for (auto& item : descriptors) {
+    for (const auto& path : fontPathList) {
+        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path, locale_);
+        for (const auto& item : descriptors) {
             if (item->fullName == fullName) {
                 item->weight = WeightAlignment(item->weight);
                 result = item;
@@ -273,7 +216,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
             }
         }
     }
-    TEXT_LOGE_LIMIT3_MIN("Failed to parser fontDescriptor from path, path: %{public}s", path.c_str());
+    TEXT_LOGE_LIMIT3_MIN("Parser installed fontDescriptor by name failed, fullName: %{public}s", fullName.c_str());
     return false;
 }
 
@@ -285,17 +228,17 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         result = nullptr;
         return;
     }
-    if (systemFontType < 0) {
-        TEXT_LOGE("SystemFontType is an invalid value");
-        result = nullptr;
-        return;
-    }
-
     int32_t fontType = 0;
     if (!ProcessSystemFontType(systemFontType, fontType)) {
         result = nullptr;
         return;
     }
+    if (systemFontType < 0) {
+        TEXT_LOGE("SystemFontType is an invalid value");
+        result = nullptr;
+        return;
+    }
+    
     auto tryFindFontDescriptor = [&fullName, &result](const std::unordered_map<std::string,
         std::set<FontDescSharedPtr>>& map) -> bool {
         auto it = map.find(fullName);
@@ -499,7 +442,7 @@ bool FontDescriptorCache::IsDefault(FontDescSharedPtr desc)
 void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result)
 {
     if (desc == nullptr) {
-        TEXT_LOGE("desc is nullptr");
+        TEXT_LOGE("Desc is nullptr");
         return;
     }
 
@@ -549,7 +492,7 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
         return weight;
     }
 
-    static const std::vector<int> weightRange = {
+    static const std::vector<int> weightType = {
         Drawing::FontStyle::THIN_WEIGHT,
         Drawing::FontStyle::EXTRA_LIGHT_WEIGHT,
         Drawing::FontStyle::LIGHT_WEIGHT,
@@ -562,7 +505,7 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
         Drawing::FontStyle::EXTRA_BLACK_WEIGHT
     };
     // Obtain weight ranges for non-whole hundred values
-    auto it = std::lower_bound(weightRange.begin(), weightRange.end(), weight);
+    auto it = std::lower_bound(weightType.begin(), weightType.end(), weight);
     std::vector<int> targetRange = { *(it - 1), *it };
     
     /**

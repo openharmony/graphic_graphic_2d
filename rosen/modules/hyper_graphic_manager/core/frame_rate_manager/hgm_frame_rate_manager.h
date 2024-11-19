@@ -103,12 +103,13 @@ struct VoteInfo {
 
     std::string ToSimpleString() const
     {
-        std::stringstream str;
-        str << "VOTER:" << voterName << ";";
-        str << "FPS:" << max << ";";
-        str << "EXT:" << extInfo << ";";
-        str << "PID:" << pid;
-        return str.str();
+        char buf[STRING_BUFFER_MAX_SIZE] = {0};
+        int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "VOTER:%s; FPS:%u; EXT:%s; PID:%d.",
+            voterName.c_str(), max, extInfo.c_str(), pid);
+        if (len <= 0) {
+            HGM_LOGE("failed to execute snprintf.");
+        }
+        return buf;
     }
 
     bool operator==(const VoteInfo& other) const
@@ -136,17 +137,23 @@ public:
 
     void CleanVote(pid_t pid);
     int32_t GetCurRefreshRateMode() const { return curRefreshRateMode_; };
+    uint32_t GetCurrRefreshRate() { return currRefreshRate_; }
     ScreenId GetCurScreenId() const { return curScreenId_.load(); };
     ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); };
+    void SetLastCurScreenId(ScreenId screenId)
+    {
+        lastCurScreenId_.store(screenId);
+    }
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    // called by RSHardwareThread
     void HandleRsFrame();
     void SetShowRefreshRateEnabled(bool enable);
     bool IsLtpo() const { return isLtpo_; };
     bool IsAdaptive() const { return isAdaptive_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-        const FrameRateLinkerMap& appFrameRateLinkers, bool idleTimerExpired, const DvsyncInfo& dvsyncInfo);
+        const FrameRateLinkerMap& appFrameRateLinkers);
 
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
     void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
@@ -157,13 +164,13 @@ public:
     void Init(sptr<VSyncController> rsController,
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     void InitTouchManager();
-    // called by RSMainTHread
+    // called by RSMainThread
     void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
-    void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
-        pid_t pid, UIFWKType uiFwkType);
+    // only called by RSMainThread
+    void UpdateSurfaceTime(const std::string& surfaceName, pid_t pid, UIFWKType uiFwkType);
     void SetSchedulerPreferredFps(uint32_t schedulePreferredFps)
     {
         if (schedulePreferredFps_ != schedulePreferredFps) {
@@ -177,15 +184,16 @@ public:
         isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
     }
 
+    // only called by RSMainThread
+    void UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
+
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
-    static std::unordered_map<std::string, pid_t> GetUiFrameworkDirtyNodes(
-        std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes);
 private:
     void Reset();
     void UpdateAppSupportedState();
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
 
-    void ProcessLtpoVote(const FrameRateRange& finalRange, bool idleTimerExpired);
+    void ProcessLtpoVote(const FrameRateRange& finalRange);
     void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAceAnimatorStatus);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
@@ -201,6 +209,7 @@ private:
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
+    void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
 
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
@@ -209,8 +218,9 @@ private:
     // merge [VOTER_LTPO, VOTER_IDLE)
     bool MergeLtpo2IdleVote(
         std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& mergedVoteRange);
-    bool ProcessRefreshRateVote(
-        std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo, VoteRange& voteRange);
+    void CheckAncoVoter(const std::string& voter, VoteInfo& curVoteInfo);
+    bool ProcessRefreshRateVote(std::vector<std::string>::iterator& voterIter, VoteInfo& resultVoteInfo,
+        VoteRange& voteRange, bool &voterGamesEffective);
     VoteInfo ProcessRefreshRateVote();
     void UpdateVoteRule();
     void ReportHiSysEvent(const VoteInfo& frameRateVoteInfo);
@@ -222,7 +232,7 @@ private:
     void InitRsIdleTimer();
     void InitPowerTouchManager();
 
-    uint32_t currRefreshRate_ = 0;
+    std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
 
     // concurrency protection >>>
@@ -262,16 +272,21 @@ private:
     int32_t idleFps_ = OLED_60_HZ;
     int32_t minIdleFps_ = OLED_60_HZ;
     // rsIdleTimer_ skip rsFrame(see in SetShowRefreshRateEnabled), default value is 1 while ShowRefreshRate disabled
-    int32_t skipFrame_ = 1;
-    int32_t curSkipCount_ = 0xFF;
+    std::atomic<int32_t> skipFrame_ = 1;
+    std::atomic<int32_t> curSkipCount_ = 0xFF;
     std::unique_ptr<HgmSimpleTimer> rsIdleTimer_ = nullptr;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
     HgmTouchManager touchManager_;
+    std::atomic<bool> voterTouchEffective_ = false;
+    std::atomic<bool> voterGamesEffective_ = false;
     // For the power consumption module, only monitor touch up 3s and 600ms without flashing frames
     HgmTouchManager powerTouchManager_;
     std::atomic<bool> startCheck_ = false;
     HgmIdleDetector idleDetector_;
+    // only called by RSMainThread
+    // exp. <"AceAnimato", pid, FROM_SURFACE>
+    std::vector<std::tuple<std::string, pid_t, UIFWKType>> surfaceData_;
     bool needHighRefresh_ = false;
     int32_t lastTouchUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
@@ -281,7 +296,7 @@ private:
     // Does current game require Adaptive Sync
     bool isGameSupportAS_ = false;
 
-    uint64_t timestamp_ = 0;
+    std::atomic<uint64_t> timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
     FrameRateLinkerMap appFrameRateLinkers_;
 };

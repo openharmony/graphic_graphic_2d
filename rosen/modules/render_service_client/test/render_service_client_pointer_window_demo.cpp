@@ -123,7 +123,6 @@ bool InitSurface()
     RSSurfaceNodeType surfaceNodeType = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
     std::cout << "RSSurfaceNode::Create" <<std::endl;
     surfaceNode = RSSurfaceNode::Create(surfaceNodeConfig, surfaceNodeType);
-
     if (!surfaceNode) {
         return false;
     }
@@ -204,7 +203,6 @@ int main()
 
     std::cout << "rs pointer window demo stage MoveTo" << std::endl;
     while (isRemote) {
-    // while (true) {
         // MoveTo
         MoveTo(surfaceNode, 0, 0);
         RSTransaction::FlushImplicitTransaction();

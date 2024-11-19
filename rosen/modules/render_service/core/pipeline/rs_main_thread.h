@@ -44,7 +44,6 @@
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_draw_frame.h"
-#include "pipeline/rs_graphic_config.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_vsync_rate_reduce_manager.h"
 #include "platform/common/rs_event_manager.h"
@@ -210,7 +209,6 @@ public:
 
     void SetDirtyFlag(bool isDirty = true);
     bool GetDirtyFlag();
-    void SetNoNeedToPostTask(bool noNeedToPostTask);
     void SetAccessibilityConfigChanged();
     void SetScreenPowerOnChanged(bool val);
     bool GetScreenPowerOnChanged() const;
@@ -263,7 +261,6 @@ public:
     DeviceType GetDeviceType() const;
     bool IsSingleDisplay();
     bool HasMirrorDisplay() const;
-    bool GetNoNeedToPostTask();
     uint64_t GetFocusNodeId() const;
     uint64_t GetFocusLeashWindowId() const;
     bool GetClearMemDeeply() const
@@ -308,11 +305,6 @@ public:
     const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& GetSelfDrawingNodes() const;
     void ClearSelfDrawingNodes();
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const;
-
-    bool IsOnVsync() const
-    {
-        return isOnVsync_.load();
-    }
 
     bool GetDiscardJankFrames() const
     {
@@ -368,8 +360,6 @@ public:
 
     void SetAncoForceDoDirect(bool direct);
 
-    bool IsBlurSwitchOpen() const;
-
     bool IsSystemAnimatedScenesListEmpty() const
     {
         return systemAnimatedScenesList_.empty();
@@ -390,6 +380,11 @@ public:
     bool HasWiredMirrorDisplay()
     {
         return hasWiredMirrorDisplay_;
+    }
+
+    void UpdateFrameRateLinker(const RSRenderFrameRateLinker& linker)
+    {
+        postHgmTaskFlag_ = true;
     }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -507,7 +502,6 @@ private:
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
-    void ConfigureRenderService();
 
     void CheckBlurEffectCountStatistics(std::shared_ptr<RSBaseRenderNode> rootNode);
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
@@ -589,7 +583,6 @@ private:
     VisibleData lastVisVec_;
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
-    bool qosPidCal_ = false;
 
     std::atomic<bool> isDirty_ = false;
     std::atomic<bool> screenPowerOnChanged_ = false;
@@ -605,7 +598,6 @@ private:
     uint64_t lastFocusNodeId_ = 0;
     uint32_t appWindowNum_ = 0;
     std::atomic<uint32_t> requestNextVsyncNum_ = 0;
-    bool lastFrameHasFilter_ = false;
     bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
     bool isFoldScreenDevice_ = false;
@@ -613,10 +605,7 @@ private:
 
     mutable bool hasWiredMirrorDisplay_ = false;
 
-    std::atomic_bool noNeedToPostTask_ = false;
-
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
-    std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
 #if defined(ACCESSIBILITY_ENABLE)
@@ -656,6 +645,7 @@ private:
     bool hasProtectedLayer_ = false;
 
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
+    bool postHgmTaskFlag_ = false;
     pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
@@ -670,8 +660,6 @@ private:
     bool isUiFirstOn_ = false;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
-    bool noBundle_ = false;
-    std::string currentBundleName_ = "";
     bool forceUpdateUniRenderFlag_ = false;
     bool idleTimerExpiredFlag_ = false;
     // for ui first
@@ -736,7 +724,6 @@ private:
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
     // for statistic of jank frames
-    std::atomic_bool isOnVsync_ = false;
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     ScreenId displayNodeScreenId_ = 0;
@@ -745,9 +732,6 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
-
-    // graphic config
-    bool isBlurSwitchOpen_ = true;
 
     bool isForceRefresh_ = false;
 };

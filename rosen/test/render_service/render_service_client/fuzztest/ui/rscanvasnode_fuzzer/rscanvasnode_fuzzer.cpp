@@ -113,7 +113,7 @@ bool DoCreateTextureExportRenderNodeInRT(const uint8_t* data, size_t size)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(isRenderServiceNode, isTextureExportNode);
-    canvasNode->CreateRenderNode();
+    canvasNode->CreateRenderNodeForTextureExportSwitch();
     return true;
 }
 

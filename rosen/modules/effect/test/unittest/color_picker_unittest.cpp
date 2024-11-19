@@ -571,32 +571,32 @@ HWTEST_F(ColorPickerUnittest, GetTopProportionColors, TestSize.Level1)
 }
 
 /**
- * @tc.name: AdjustHSVToDefinedIterval
- * @tc.desc: check hsv to defined iterval.
+ * @tc.name: AdjustHSVToDefinedInterval
+ * @tc.desc: check hsv to defined interval.
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(ColorPickerUnittest, AdjustHSVToDefinedIterval, TestSize.Level1)
+HWTEST_F(ColorPickerUnittest, AdjustHSVToDefinedInterval, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedIterval start";
+    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedInterval start";
 
     std::shared_ptr<ColorPicker> pColorPicker = CreateColorPicker();
     ASSERT_NE(pColorPicker, nullptr);
 
     HSV gHsv {361, 101, 101}; // 361,101,101 invalid hsv
-    pColorPicker->AdjustHSVToDefinedIterval(gHsv);
+    pColorPicker->AdjustHSVToDefinedInterval(gHsv);
     EXPECT_EQ(gHsv.h, 360); // 360 is valid hue
     EXPECT_EQ(gHsv.s, 100); // 100 is valid saturation
     EXPECT_EQ(gHsv.v, 100); // 100 is valid value
 
     HSV lHsv {-1, -1, -1}; // -1, -1, -1 invalid hsv
-    pColorPicker->AdjustHSVToDefinedIterval(lHsv);
+    pColorPicker->AdjustHSVToDefinedInterval(lHsv);
     EXPECT_EQ(lHsv.h, 0); // 0 is valid hue
     EXPECT_EQ(lHsv.s, 0); // 0 is valid saturation
     EXPECT_EQ(lHsv.v, 0); // 0 is valid value
 
-    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedIterval end";
+    GTEST_LOG_(INFO) << "ColorPickerUnittest AdjustHSVToDefinedInterval end";
 }
 } // namespace Rosen
 } // namespace OHOS

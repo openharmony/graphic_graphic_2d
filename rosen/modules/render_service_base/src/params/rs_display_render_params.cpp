@@ -81,6 +81,20 @@ bool RSDisplayRenderParams::IsRotationChanged() const
     return isRotationChanged_;
 }
 
+void RSDisplayRenderParams::SetFingerprint(bool hasFingerprint)
+{
+    if (hasFingerprint_ == hasFingerprint) {
+        return;
+    }
+    hasFingerprint_ = hasFingerprint;
+    needSync_ = true;
+}
+
+bool RSDisplayRenderParams::GetFingerprint()
+{
+    return hasFingerprint_;
+}
+
 void RSDisplayRenderParams::SetHDRPresent(bool hasHdrPresent)
 {
     if (hasHdrPresent_ == hasHdrPresent) {
@@ -173,6 +187,9 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->displayHasProtectedSurface_ = displayHasProtectedSurface_;
     targetDisplayParams->displaySpecailSurfaceChanged_ = displaySpecailSurfaceChanged_;
     targetDisplayParams->hasCaptureWindow_ = hasCaptureWindow_;
+    targetDisplayParams->hasChildCrossNode_ = hasChildCrossNode_;
+    targetDisplayParams->isMirrorScreen_ = isMirrorScreen_;
+    targetDisplayParams->isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay_;
     targetDisplayParams->offsetX_ = offsetX_;
     targetDisplayParams->offsetY_ = offsetY_;
     targetDisplayParams->nodeRotation_ = nodeRotation_;
@@ -190,6 +207,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetDisplayParams->needOffscreen_ = needOffscreen_;
     targetDisplayParams->isRotationChanged_ = isRotationChanged_;
+    targetDisplayParams->hasFingerprint_ = hasFingerprint_;
     targetDisplayParams->newColorSpace_ = newColorSpace_;
     targetDisplayParams->newPixelFormat_ = newPixelFormat_;
     targetDisplayParams->hasHdrPresent_ = hasHdrPresent_;

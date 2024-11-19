@@ -16,10 +16,10 @@
 #ifndef RS_COMMON_HOOK_H
 #define RS_COMMON_HOOK_H
 
+#include <atomic>
 #include <functional>
 #include <string>
 #include <unordered_map>
-#include <atomic>
 
 #include "animation/rs_frame_rate_range.h"
 
@@ -40,8 +40,8 @@ public:
     bool GetHardwareEnabledByBackgroundAlphaFlag() const;
     void SetComponentPowerFpsFunc(std::function<void(FrameRateRange& range)> func);
     void GetComponentPowerFps(FrameRateRange& range);
-    bool GetHardwareEnabledBySolidColorLayerFlag() const;
-    void SetHardwareEnabledBySolidColorLayerFlag(bool hardwareEnabledBySolidColorLayerFlag);
+    bool GetIsWhiteListForSolidColorLayerFlag() const;
+    void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
 
 private:
     std::function<void(const std::string&)> startNewAniamtionFunc_ = nullptr;
@@ -51,7 +51,7 @@ private:
     // use in updating hwcnode hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
-    std::atomic<bool> hardwareEnabledBySolidColorLayerFlag_{false};
+    std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
     std::function<void(FrameRateRange& range)> componentPowerFpsFunc_ = nullptr;
 };
 } // namespace OHOS::Rosen

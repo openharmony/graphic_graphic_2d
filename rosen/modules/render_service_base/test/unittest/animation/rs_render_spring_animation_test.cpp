@@ -782,6 +782,32 @@ HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetSpringStatus004
+ * @tc.desc: Verify the GetSpringStatus
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderSpringAnimationTest, GetSpringStatus004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto renderSpringAnimation =
+        std::make_shared<RSRenderSpringAnimation>(ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    float response = 1.0f;
+    float dampingRatio = 1.0f;
+    float blendDuration = 1.0f;
+    renderSpringAnimation->SetSpringParameters(response, dampingRatio, blendDuration);
+    EXPECT_TRUE(renderSpringAnimation != nullptr);
+
+    renderSpringAnimation->animationFraction_.SetAnimationScale(0.0f);
+    renderSpringAnimation->prevMappedTime_ = 1.0f;
+    auto [startValue, endValue, velocity] = renderSpringAnimation->GetSpringStatus();
+    EXPECT_TRUE(startValue == renderSpringAnimation->startValue_);
+    EXPECT_TRUE(endValue == renderSpringAnimation->endValue_);
+    EXPECT_TRUE(velocity == renderSpringAnimation->initialVelocity_);
+}
+
+/**
  * @tc.name: InheritSpringStatus001
  * @tc.desc: Verify the InheritSpringStatus
  * @tc.type:FUNC

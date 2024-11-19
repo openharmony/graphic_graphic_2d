@@ -533,12 +533,15 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetTransformMode");
     ret = SetLayerVisibleRegion();
     CheckRet(ret, "SetLayerVisibleRegion");
-    ret = SetLayerDirtyRegion();
-    CheckRet(ret, "SetLayerDirtyRegion");
+    // The crop needs to be set in the first order
     ret = SetLayerCrop();
     CheckRet(ret, "SetLayerCrop");
+    // The data space contained in the layerbuffer needs to be set in the second order
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");
+    // The dirty region needs to be set in the third order
+    ret = SetLayerDirtyRegion();
+    CheckRet(ret, "SetLayerDirtyRegion");
     ret = SetLayerCompositionType();
     CheckRet(ret, "SetLayerCompositionType");
     ret = SetLayerBlendType();
@@ -787,7 +790,7 @@ int32_t HdiLayer::SetPerFrameParameters()
 
 int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetDisplayNit() == prevLayerInfo_->GetDisplayNit()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -800,7 +803,7 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 
 int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetBrightnessRatio() == prevLayerInfo_->GetBrightnessRatio()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -813,7 +816,7 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerSourceTuning() == prevLayerInfo_->GetLayerSourceTuning()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }

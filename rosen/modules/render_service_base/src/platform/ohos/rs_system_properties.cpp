@@ -446,6 +446,16 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
+{
+    isScreenSwitching_ = flag;
+}
+
+bool RSSystemProperties::GetScreenSwitchStatus()
+{
+    return isScreenSwitching_;
+}
+
 void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
     defaultDeviceRotationOffset_ = offset;
@@ -701,6 +711,12 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
     static bool proxyNodeDebugEnabled = system::GetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0") != "0";
     return proxyNodeDebugEnabled;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    static bool debugEnable = system::GetBoolParameter("const.cache.optimize.rotate.enable", false);
+    return debugEnable;
 }
 
 bool RSSystemProperties::GetUIFirstEnabled()

@@ -45,7 +45,7 @@ xmlNodePtr XMLReader::FindNode(const xmlNodePtr& src, const std::string& index)
     xmlNodePtr startPtr = src->children;
     while (startPtr != nullptr) {
         auto name = startPtr->name;
-        if (xmlStrEqual(name, BAD_CAST(index.c_str())) == 1) {
+        if (name != nullptr && xmlStrEqual(name, BAD_CAST(index.c_str())) == 1) {
             return startPtr;
         }
         startPtr = startPtr->next;

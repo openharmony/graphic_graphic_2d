@@ -50,6 +50,7 @@ namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+using ExportTypeChangedCallback = std::function<void(bool)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -231,24 +232,18 @@ public:
     void SetScale(const Vector2f& scale);
     void SetScaleX(float scaleX);
     void SetScaleY(float scaleY);
-    void SetScaleZ(const float& scaleZ);
 
     void SetSkew(float skew);
     void SetSkew(float skewX, float skewY);
-    void SetSkew(float skewX, float skewY, float skewZ);
-    void SetSkew(const Vector3f& skew);
+    void SetSkew(const Vector2f& skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
-    void SetSkewZ(float skewZ);
 
     void SetPersp(float persp);
     void SetPersp(float perspX, float perspY);
-    void SetPersp(float perspX, float perspY, float perspZ, float perspW);
-    void SetPersp(const Vector4f& persp);
+    void SetPersp(const Vector2f& persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
-    void SetPerspZ(float perspZ);
-    void SetPerspW(float perspW);
 
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
@@ -405,9 +400,10 @@ public:
 
     // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
-
-    // Mark uifirst node
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -469,6 +465,7 @@ public:
     {
         return animations_.size();
     }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
 
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
@@ -508,10 +505,11 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
 
     // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
-    bool hasCreateRenderRenderInRT_ = false;
-    bool hasCreateRenderRenderInRS_ = false;
+    bool hasCreateRenderNodeInRT_ = false;
+    bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
 
@@ -545,7 +543,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
-    virtual void CreateRenderNode() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -600,6 +598,8 @@ private:
     bool isSuggestOpincNode_ = false;
 
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

@@ -73,6 +73,18 @@ public:
     {
         return nodeRotation_;
     }
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+    bool IsFirstVisitCrossNodeDisplay() const
+    {
+        return isFirstVisitCrossNodeDisplay_;
+    }
+    bool HasChildCrossNode() const
+    {
+        return hasChildCrossNode_;
+    }
     const std::map<ScreenId, bool>& GetDisplayHasSecSurface() const
     {
         return displayHasSecSurface_;
@@ -123,6 +135,9 @@ public:
 
     void SetRotationChanged(bool changed) override;
     bool IsRotationChanged() const override;
+
+    void SetFingerprint(bool hasFingerprint) override;
+    bool GetFingerprint() override;
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
@@ -187,9 +202,13 @@ private:
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
+    bool hasChildCrossNode_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
+    bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
     float zOrder_ = 0.0f;

@@ -42,6 +42,8 @@ public:
         return instance;
     }
 
+    void SetProfilerEnabled(bool val);
+
     Drawing::Canvas* TryInstantCapture(float width, float height);
     void EndInstantCapture();
     // Used for .skp capturing of DrawingCanvasNode's local canvas
@@ -53,8 +55,8 @@ public:
 
     // to check if .rdc is recorded and send the filename to client
     static bool PullAndSendRdc();
-    static std::pair<uint32_t, uint32_t> GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight);
-    static bool IsRecordingEnabled();
+    std::pair<uint32_t, uint32_t> GetDirtyRect(uint32_t displayWidth, uint32_t displayHeight);
+    bool IsRecordingEnabled();
 
 private:
     RSCaptureRecorder();
@@ -89,6 +91,8 @@ private:
     bool isPageActive_ = false;
     bool isMskpActive_ = false;
     uint64_t drawingCanvasNodeId_ = 0;
+
+    bool profilerEnabled_ = false;
 };
 
 } // namespace OHOS::Rosen

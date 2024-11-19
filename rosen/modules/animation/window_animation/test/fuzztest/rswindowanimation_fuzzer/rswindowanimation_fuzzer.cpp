@@ -72,6 +72,60 @@ namespace OHOS {
         return str;
     }
 
+    class MockIRemoteObject : public IRemoteObject {
+    public:
+        MockIRemoteObject() : IRemoteObject {u"MockIRemoteObject"}
+        {
+        }
+
+        ~MockIRemoteObject()
+        {
+        }
+
+        int32_t GetObjectRefCount()
+        {
+            return 0;
+        }
+
+        int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+        {
+            return sendRequestResult_;
+        }
+
+        bool IsProxyObject() const
+        {
+            return true;
+        }
+
+        bool CheckObjectLegality() const
+        {
+            return true;
+        }
+
+        bool AddDeathRecipient(const sptr<DeathRecipient> &recipient)
+        {
+            return true;
+        }
+
+        bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
+        {
+            return true;
+        }
+
+        sptr<IRemoteBroker> AsInterface()
+        {
+            return nullptr;
+        }
+
+        int Dump(int fd, const std::vector<std::u16string> &args)
+        {
+            return 0;
+        }
+
+        int sendRequestResult_ = 0;
+        int count_ = 0;
+    };
+
     class RSWindowAnimationFinishedCallbackStubMock : public RSWindowAnimationFinishedCallbackStub {
     public:
         RSWindowAnimationFinishedCallbackStubMock() = default;
@@ -143,14 +197,13 @@ namespace OHOS {
 
         MessageParcel data1;
         data1.WriteInterfaceToken(RSIWindowAnimationFinishedCallback::GetDescriptor());
-        res = finishedCallbackStub->OnRemoteRequest(code, data, reply, option);
+        res = finishedCallbackStub->OnRemoteRequest(code, data1, reply, option);
         res = finishedCallbackStub->OnRemoteRequest(
-            RSIWindowAnimationFinishedCallback::ON_ANIMATION_FINISHED, data, reply, option);
-        res = finishedCallbackStub->OnRemoteRequest(
-            RSIWindowAnimationFinishedCallback::ON_ANIMATION_FINISHED, data, reply, option);
+            RSIWindowAnimationFinishedCallback::ON_ANIMATION_FINISHED, data1, reply, option);
+        res = finishedCallbackStub->OnRemoteRequest(-1, data1, reply, option);
     }
 
-    void RSWindowAnimationProxyFuzzTest()
+    void RSWindowAnimationProxy1FuzzTest()
     {
         // get data
         StartingAppType type = GetData<StartingAppType>();
@@ -168,6 +221,44 @@ namespace OHOS {
         std::vector<sptr<RSWindowAnimationTarget>> floatingWindowTargets;
         rSWindowAnimationProxy->OnWindowAnimationTargetsUpdate(nullptr, floatingWindowTargets);
         rSWindowAnimationProxy->OnWallpaperUpdate(nullptr);
+    }
+
+    void RSWindowAnimationProxy2FuzzTest()
+    {
+        // get data
+        StartingAppType type = GetData<StartingAppType>();
+        std::string bundleName = GetStringFromData(STR_LEN);
+        std::string abilityName = GetStringFromData(STR_LEN);
+        uint32_t windowId = GetData<uint32_t>();
+        uint64_t displayId = GetData<uint64_t>();
+        int32_t missionId = GetData<int32_t>();
+        RSSurfaceNodeConfig config;
+        auto animationSurfaceNode = RSSurfaceNode::Create(config, true);
+        sptr<RSWindowAnimationTarget> windowAnimationTarget = new RSWindowAnimationTarget();
+        windowAnimationTarget->bundleName_ = bundleName;
+        windowAnimationTarget->abilityName_ = abilityName;
+        windowAnimationTarget->windowBounds_ = RRect();
+        windowAnimationTarget->surfaceNode_ = animationSurfaceNode;
+        windowAnimationTarget->windowId_ = windowId;
+        windowAnimationTarget->displayId_ = displayId;
+        windowAnimationTarget->missionId_ = missionId;
+        sptr<RSWindowAnimationFinishedCallback> finishedCallback = new RSWindowAnimationFinishedCallback(nullptr);
+
+        // test
+        sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+        sptr<RSWindowAnimationProxy> rSWindowAnimationProxy = new RSWindowAnimationProxy(remoteMocker);
+        rSWindowAnimationProxy->OnStartApp(type, windowAnimationTarget, finishedCallback);
+        rSWindowAnimationProxy->OnAppTransition(windowAnimationTarget, windowAnimationTarget, finishedCallback);
+        rSWindowAnimationProxy->OnAppBackTransition(windowAnimationTarget, windowAnimationTarget, finishedCallback);
+        rSWindowAnimationProxy->OnMinimizeWindow(windowAnimationTarget, finishedCallback);
+        std::vector<sptr<RSWindowAnimationTarget>> minimizingWindowsTarget;
+        minimizingWindowsTarget.push_back(windowAnimationTarget);
+        rSWindowAnimationProxy->OnMinimizeAllWindow(minimizingWindowsTarget, finishedCallback);
+        rSWindowAnimationProxy->OnCloseWindow(windowAnimationTarget, finishedCallback);
+        rSWindowAnimationProxy->OnScreenUnlock(finishedCallback);
+        rSWindowAnimationProxy->OnWindowAnimationTargetsUpdate(windowAnimationTarget, minimizingWindowsTarget);
+        rSWindowAnimationProxy->OnWallpaperUpdate(windowAnimationTarget);
+        finishedCallback = nullptr;
     }
 
     void RSWindowAnimationStubFuzzTest()
@@ -559,7 +650,8 @@ namespace OHOS {
         FinishedCallbackFuzzTest();
         FinishedCallbackProxyFuzzTest();
         FinishedCallbackStubFuzzTest();
-        RSWindowAnimationProxyFuzzTest();
+        RSWindowAnimationProxy1FuzzTest();
+        RSWindowAnimationProxy2FuzzTest();
         RSWindowAnimationStubFuzzTest();
         RSWindowAnimationStubStartAppFuzzTest();
         RSWindowAnimationStubAppTransitionFuzzTest();

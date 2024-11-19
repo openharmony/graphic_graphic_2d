@@ -15,6 +15,7 @@
 
 #include "rs_render_service_connection_stub.h"
 #include <memory>
+#include <mutex>
 #include "ivsync_connection.h"
 #ifdef RES_SCHED_ENABLE
 #include "res_sched_client.h"
@@ -57,6 +58,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
@@ -113,6 +116,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_TYPE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
@@ -141,6 +145,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
@@ -314,9 +319,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
 
     pid_t callingPid = GetCallingPid();
     auto tid = gettid();
-    if (tids_.find(tid) == tids_.end()) {
-        SetQos();
-        tids_.insert(tid);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (tids_.find(tid) == tids_.end()) {
+            SetQos();
+            tids_.insert(tid);
+        }
     }
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
         std::cend(descriptorCheckList)) {
@@ -521,6 +529,34 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<NodeId> blackListVector;
             data.ReadUInt64Vector(&blackListVector);
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST): {
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
+            std::vector<NodeId> blackListVector;
+            if (!data.ReadUInt64Vector(&blackListVector)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t status = AddVirtualScreenBlackList(id, blackListVector);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST): {
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
+            std::vector<NodeId> blackListVector;
+            if (!data.ReadUInt64Vector(&blackListVector)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t status = RemoveVirtualScreenBlackList(id, blackListVector);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }
@@ -1461,6 +1497,24 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT): {
+            ScreenId id = data.ReadUint64();
+            auto x = data.ReadInt32();
+            auto y = data.ReadInt32();
+            auto w = data.ReadInt32();
+            auto h = data.ReadInt32();
+            Rect activeRect {
+                .x = x,
+                .y = y,
+                .w = w,
+                .h = h
+            };
+            uint32_t result = SetScreenActiveRect(id, activeRect);
+            if (!reply.WriteUint32(result)) {
+                return ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -1643,12 +1697,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 }
                 break;
             }
-#ifndef RS_ENABLE_UNI_RENDER
-            if (callingPid == 0) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-#endif
             if (ExtractPid(id) != callingPid) {
                 RS_LOGW("The SetHidePrivacyContent isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1658,8 +1706,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             auto needHidePrivacyContent = data.ReadBool();
-            SetHidePrivacyContent(id, needHidePrivacyContent);
-            reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR));
+            if (!reply.WriteUint32(SetHidePrivacyContent(id, needHidePrivacyContent))) {
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
@@ -1758,6 +1807,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetCacheEnabledForRotation(isEnabled);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS) : {
+            bool flag = false;
+            if (!data.ReadBool(flag)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            SetScreenSwitchStatus(flag);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET) : {
             uint32_t offset = data.ReadUint32();
             SetDefaultDeviceRotationOffset(offset);
@@ -1828,7 +1886,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG) : {
             int32_t feature = data.ReadInt32();
             auto config = data.ReadCString();
-            SetTpFeatureConfig(feature, config);
+            auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(data.ReadUint8());
+            SetTpFeatureConfig(feature, config, tpFeatureConfigType);
             break;
         }
 #endif

@@ -19,9 +19,24 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
-#define EFFECT_IS_OK(x) ((x) == napi_ok)
-#define EFFECT_NOT_NULL(p) ((p) != nullptr)
-#define EFFECT_IS_READY(x, p) (EFFECT_IS_OK(x) && EFFECT_NOT_NULL(p))
+#define EFFECT_NAPI_CHECK_RET(x, res) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        return (res); \
+    } \
+} while (0)
+
+#define EFFECT_NAPI_CHECK_RET_VOID_D(x, msg) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        msg; \
+        return; \
+    } \
+} while (0)
 
 #define EFFECT_NAPI_CHECK_RET_D(x, res, msg) \
 do \
@@ -29,6 +44,18 @@ do \
     if (!(x)) \
     { \
         msg; \
+        return (res); \
+    } \
+} while (0)
+
+#define EFFECT_NAPI_CHECK_RET_DELETE_POINTER(x, res, pointer, msg) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        msg; \
+        delete pointer; \
+        pointer = nullptr; \
         return (res); \
     } \
 } while (0)
@@ -46,15 +73,6 @@ do \
     } \
 } while (0)
 
-#define EFFECT_NAPI_CHECK_RET(x, res) \
-do \
-{ \
-    if (!(x)) \
-    { \
-        return (res); \
-    } \
-} while (0)
-
 #define EFFECT_JS_ARGS(env, info, status, argc, argv, thisVar) \
 do \
 { \
@@ -67,7 +85,7 @@ do \
     status = napi_get_cb_info(env, info, nullptr, nullptr, &(thisVar), nullptr); \
 } while (0)
 
-#define EFFECT_CREATE_CREATE_ASYNC_WORK_WITH_QOS(env, status, workName, exec, complete, aContext, work, qos) \
+#define EFFECT_CREATE_ASYNC_WORK_WITH_QOS(env, status, workName, exec, complete, aContext, work, qos) \
 do \
 { \
     napi_value _resource = nullptr; \

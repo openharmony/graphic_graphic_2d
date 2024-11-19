@@ -120,6 +120,20 @@ HWTEST_F(RSClientTest, TakeSurfaceCapture01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHwcNodeBounds_Test
+ * @tc.desc: Test Set HwcNode Bounds
+ * @tc.type:FUNC
+ * @tc.require: IB2O0L
+ */
+HWTEST_F(RSClientTest, SetHwcNodeBounds_Test, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->SetHwcNodeBounds(TEST_ID, 1.0f, 1.0f,
+        1.0f, 1.0f);
+    ASSERT_EQ(ret, true);
+}
+
+/**
  * @tc.name: RegisterBufferAvailableListener Test a notfound id True
  * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
  * @tc.type:FUNC
@@ -489,6 +503,26 @@ HWTEST_F(RSClientTest, SetScreenActiveMode001, TestSize.Level1)
     rsClient->SetScreenActiveMode(screenId, 0);
     auto modeInfo = rsClient->GetScreenActiveMode(screenId);
     EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
+}
+
+/**
+ * @tc.name: SetScreenActiveRect Test
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSClientTest, SetScreenActiveRect001, Function | SmallTest | Level2)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsClient->SetScreenActiveRect(screenId, activeRect), StatusCode::HDI_ERROR);
 }
 
 /**

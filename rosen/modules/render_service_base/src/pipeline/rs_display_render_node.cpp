@@ -202,7 +202,6 @@ void RSDisplayRenderNode::OnSync()
     displayParams->SetZoomed(curZoomState_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
-    HandleCurMainAndLeashSurfaceNodes();
 }
 
 void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
@@ -210,7 +209,7 @@ void RSDisplayRenderNode::HandleCurMainAndLeashSurfaceNodes()
     surfaceCountForMultiLayersPerf_ = 0;
     for (const auto& surface : curMainAndLeashSurfaceNodes_) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surface);
-        if (!surfaceNode || surfaceNode->IsLeashWindow()) {
+        if (!surfaceNode || surfaceNode->IsLeashWindow() || !surfaceNode->IsOnTheTree()) {
             continue;
         }
         surfaceCountForMultiLayersPerf_++;
@@ -258,6 +257,9 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRen
     displayParams->screenId_ = GetScreenId();
     displayParams->screenRotation_ = GetScreenRotation();
     displayParams->compositeType_ = GetCompositeType();
+    displayParams->hasChildCrossNode_ = HasChildCrossNode();
+    displayParams->isMirrorScreen_ = IsMirrorScreen();
+    displayParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
     displayParams->isSecurityDisplay_ = GetSecurityDisplay();
     displayParams->screenInfo_ = std::move(screenRenderParams.screenInfo);
     displayParams->displayHasSecSurface_ = std::move(screenRenderParams.displayHasSecSurface);
@@ -399,6 +401,23 @@ void RSDisplayRenderNode::SetMainAndLeashSurfaceDirty(bool isDirty)
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
+}
+
+void RSDisplayRenderNode::SetFingerprint(bool hasFingerprint)
+{
+    if (hasFingerprint_ == hasFingerprint) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetFingerprint(hasFingerprint);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    hasFingerprint_ = hasFingerprint;
 }
 
 void RSDisplayRenderNode::SetHDRPresent(bool hdrPresent)

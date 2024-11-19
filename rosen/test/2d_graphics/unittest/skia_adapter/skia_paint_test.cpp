@@ -57,7 +57,7 @@ HWTEST_F(SkiaPaintTest, AsBlendMode001, TestSize.Level1)
 {
     Brush brush;
     SkiaPaint skiaPaint;
-    skiaPaint.AsBlendMode(brush);
+    EXPECT_TRUE(skiaPaint.AsBlendMode(brush));
 }
 
 /**

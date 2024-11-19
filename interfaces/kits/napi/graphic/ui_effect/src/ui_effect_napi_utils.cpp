@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 
-napi_valuetype UIEffectNapiUtils::getType(napi_env env, napi_value root)
+napi_valuetype UIEffectNapiUtils::GetType(napi_env env, napi_value root)
 {
     napi_valuetype res = napi_undefined;
     napi_typeof(env, root, &res);

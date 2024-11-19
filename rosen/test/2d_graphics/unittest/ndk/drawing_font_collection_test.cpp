@@ -34,8 +34,10 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
 {
     OH_Drawing_FontCollection* fontCollection = OH_Drawing_CreateFontCollection();
     OH_Drawing_FontCollection* fontCollection2 = OH_Drawing_CreateSharedFontCollection();
+    OH_Drawing_FontCollection* fontCollection3 = OH_Drawing_GetFontCollectionGlobalInstance();
     EXPECT_NE(fontCollection, nullptr);
     EXPECT_NE(fontCollection2, nullptr);
+    EXPECT_NE(fontCollection3, nullptr);
     OH_Drawing_DisableFontCollectionFallback(fontCollection);
     OH_Drawing_DisableFontCollectionFallback(nullptr);
     OH_Drawing_DisableFontCollectionSystemFont(fontCollection);

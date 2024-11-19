@@ -113,6 +113,36 @@ public:
         return offsetX_;
     }
 
+    bool HasChildCrossNode() const
+    {
+        return hasChildCrossNode_;
+    }
+
+    void SetHasChildCrossNode(bool hasChildCrossNode)
+    {
+        hasChildCrossNode_ = hasChildCrossNode;
+    }
+
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    void SetIsFirstVisitCrossNodeDisplay(bool isFirstVisitCrossNodeDisplay)
+    {
+        isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
+    }
+
+    bool IsFirstVisitCrossNodeDisplay() const
+    {
+        return isFirstVisitCrossNodeDisplay_;
+    }
+
     int32_t GetDisplayOffsetY() const
     {
         return offsetY_;
@@ -123,10 +153,7 @@ public:
         return hasFingerprint_;
     }
 
-    void SetFingerprint(bool hasFingerprint)
-    {
-        hasFingerprint_ = hasFingerprint;
-    }
+    void SetFingerprint(bool hasFingerprint);
 
     void SetScreenRotation(const ScreenRotation& screenRotation)
     {
@@ -226,6 +253,21 @@ public:
     bool GetSecurityExemption() const
     {
         return isSecurityExemption_;
+    }
+
+    void AddSecurityVisibleLayer(NodeId id)
+    {
+        securityVisibleLayerList_.emplace_back(id);
+    }
+
+    void ClearSecurityVisibleLayerList()
+    {
+        securityVisibleLayerList_.clear();
+    }
+
+    const std::vector<NodeId>& GetSecurityVisibleLayerList()
+    {
+        return securityVisibleLayerList_;
     }
 
     void SetHasSecLayerInVisibleRect(bool hasSecLayer) {
@@ -436,13 +478,14 @@ public:
     }
 
     bool IsZoomStateChange() const;
+    void HandleCurMainAndLeashSurfaceNodes();
+
 protected:
     void OnSync() override;
 private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
-    void HandleCurMainAndLeashSurfaceNodes();
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
@@ -453,6 +496,9 @@ private:
     int32_t offsetY_ = 0;
     uint32_t rogWidth_ = 0;
     uint32_t rogHeight_ = 0;
+    bool hasChildCrossNode_ = false;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
@@ -472,8 +518,12 @@ private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
 
-    std::vector<NodeId> securityLayerList_;
+    // Use in virtual screen security exemption
+    std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
     bool isSecurityExemption_ = false;
+
+    // Use in mirror screen visible rect projection
+    std::vector<NodeId> securityVisibleLayerList_;  // surface node id
     bool hasSecLayerInVisibleRect_ = false;
     bool hasSecLayerInVisibleRectChanged_ = false;
 

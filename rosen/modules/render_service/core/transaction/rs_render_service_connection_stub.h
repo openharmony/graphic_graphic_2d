@@ -46,6 +46,7 @@ private:
     void SetQos();
     RSRenderServiceSecurityUtils securityUtils_;
     std::unordered_set<int> tids_;
+    std::mutex mutex_;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -29,7 +29,6 @@ namespace Rosen {
 namespace {
     static PolicyConfigData::ScreenSetting defaultScreenSetting;
     static PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
-    static int32_t curThreadId = -1;
     const std::string NULL_STRATEGY_CONFIG_NAME = "null";
 }
 
@@ -67,6 +66,9 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
         configCallbackManager->SyncHgmConfigChangeCallback(foregroundPidAppMap_);
     }
 
+    if (!pkgs_.empty()) {
+        touchInfo_.pkgName = std::get<0>(AnalyzePkgParam(pkgs_.front()));
+    }
     CalcVote();
 
     return EXEC_SUCCESS;
@@ -100,13 +102,7 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
 void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
-    if (auto newTid = gettid(); curThreadId != newTid) {
-        // -1 means default curThreadId
-        if (curThreadId != -1) {
-            HGM_LOGE("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId, newTid);
-        }
-        curThreadId = newTid;
-    }
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     voteRes_ = { HGM_ERROR, {
         .min = OLED_NULL_HZ, .max = OLED_120_HZ, .dynamicMode = DynamicModeType::TOUCH_ENABLED,
         .idleFps = OLED_60_HZ, .isFactor = false, .drawMin = OLED_NULL_HZ,
@@ -157,12 +153,15 @@ void HgmMultiAppStrategy::RegisterStrategyChangeCallback(const StrategyChangeCal
     strategyChangeCallbacks_.emplace_back(callback);
 }
 
-bool HgmMultiAppStrategy::CheckPidValid(pid_t pid)
+bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 {
     auto configData = HgmCore::Instance().GetPolicyConfigData();
     if (configData != nullptr && !configData->safeVoteEnabled) {
         // disable safe vote
         return true;
+    }
+    if (onlyCheckForegroundApp) {
+        return foregroundPidAppMap_.find(pid) != foregroundPidAppMap_.end();
     }
     return !backgroundPid_.Existed(pid);
 }
@@ -448,7 +447,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
-    rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(false);
+    rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
     if (videoConfigFromHgm.empty() || solidLayerConfigFromHgm.empty() || pkgs.size() > 1) {
@@ -463,9 +462,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
-        // solidLayerConfigFromHgm 1 means enable hardware by solid color layer
-        } else if (solidLayerConfigFromHgm[pkgNameForCheck] == "1") {
-            rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(true);
+        }
+        // 1 means enable dss by solid color layer
+        if (auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
+            iter != solidLayerConfigFromHgm.end() && iter->second == "1") {
+            rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
         }
     }
 }

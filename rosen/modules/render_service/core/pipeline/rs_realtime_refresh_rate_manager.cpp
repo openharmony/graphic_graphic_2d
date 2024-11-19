@@ -38,51 +38,57 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enable)
         return;
     }
     enableState_ = enable;
-    auto &hgmCore = HgmCore::Instance();
-    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
         return;
     }
     frameRateMgr->SetShowRefreshRateEnabled(enableState_);
-
-    if (enableState_) {
-        updateFpsThread_ = std::thread([this, &hgmCore, frameRateMgr]() {
-            uint32_t lastRefreshRate = 0;
-            uint32_t lastRealtimeRefreshRate = 0;
-            currRealtimeRefreshRate_ = 1;
-            std::mutex condMutex;
-            while (enableState_) {
-                std::unique_lock<std::mutex> lock(condMutex);
-                auto st = std::chrono::steady_clock::now();
-                realtimeFrameCount_ = 0;
-                threadCondVar_.wait_for(lock, NS_FPS_SHOW_INTERVAL);
-                uint32_t realtimeFrameCount = realtimeFrameCount_;
-                auto et = std::chrono::steady_clock::now();
-
-                auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(et - st);
-                uint32_t fps = std::round(realtimeFrameCount * static_cast<float>(NS_PER_S) / diff.count());
-                fps = std::max(1u, fps);
-                if (fps <= IDLE_FPS_THRESHOLD) {
-                    fps = 1;
-                }
-                currRealtimeRefreshRate_ = fps;
-                auto refreshRate = hgmCore.GetScreenCurrentRefreshRate(frameRateMgr->GetCurScreenId());
-                // draw
-                if (lastRealtimeRefreshRate != currRealtimeRefreshRate_ || lastRefreshRate != refreshRate) {
-                    lastRefreshRate = refreshRate;
-                    lastRealtimeRefreshRate = currRealtimeRefreshRate_;
-                    RSMainThread::Instance()->SetDirtyFlag();
-                    RSMainThread::Instance()->RequestNextVSync();
-                }
-            }
-        });
-        RS_LOGD("RSRealtimeRefreshRateManager: enable");
-    } else {
-        threadCondVar_.notify_all();
-        if (updateFpsThread_.joinable()) {
-            updateFpsThread_.join();
-        }
-        RS_LOGD("RSRealtimeRefreshRateManager: disable");
+    if (!enableState_) {
+        HgmTaskHandleThread::Instance().RemoveEvent(EVENT_ID);
+        std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
+        currRealtimeRefreshRateMap_.clear();
+        realtimeFrameCountMap_.clear();
+        return;
     }
-} // namespace Rosen
-} // namespace OHOS
+    startTime_ = std::chrono::steady_clock::now();
+    showRefreshRateTask_ = [this, frameRateMgr] () {
+        std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
+        auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now() - startTime_);
+        for (auto [screenId, frameCount]: realtimeFrameCountMap_) {
+            uint32_t fps = std::round(frameCount * static_cast<float>(NS_PER_S) / diff.count());
+            fps = fps <= IDLE_FPS_THRESHOLD ? 1u : fps;
+            if (auto iter = currRealtimeRefreshRateMap_.find(screenId);
+                iter == currRealtimeRefreshRateMap_.end() || iter->second != fps) {
+                currRealtimeRefreshRateMap_[screenId] = fps;
+                isRealtimeRefreshRateChange_ = true;
+            }
+        }
+        auto refreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(frameRateMgr->GetCurScreenId());
+        if (isRealtimeRefreshRateChange_|| lastRefreshRate_ != refreshRate) {
+            lastRefreshRate_ = refreshRate;
+            isRealtimeRefreshRateChange_ = false;
+            RSMainThread::Instance()->SetDirtyFlag();
+            RSMainThread::Instance()->RequestNextVSync();
+        }
+        startTime_ = std::chrono::steady_clock::now();
+        realtimeFrameCountMap_.clear();
+        HgmTaskHandleThread::Instance().PostEvent(
+            EVENT_ID, showRefreshRateTask_, EVENT_INTERVAL);
+    };
+    HgmTaskHandleThread::Instance().PostEvent(EVENT_ID, showRefreshRateTask_, EVENT_INTERVAL);
+}
+
+uint32_t RSRealtimeRefreshRateManager::GetRealtimeRefreshRate(const ScreenId screenId)
+{
+    std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
+    if (auto iter = currRealtimeRefreshRateMap_.find(screenId); iter != currRealtimeRefreshRateMap_.end()) {
+        uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+        if (iter->second > currentRefreshRate) {
+            return currentRefreshRate;
+        }
+        return iter->second;
+    }
+    return DEFAULT_REALTIME_REFRESH_RATE;
+}
+} // namespace OHOS::Rosen

@@ -198,14 +198,14 @@ uint32_t RSColorExtract::CalcGrayMsd() const
         return 0;
     }
     uint32_t *colorVal = colorVal_.get();
-    long long int graySum = 0;
-    long long int grayVar = 0;
+    unsigned long long int graySum = 0;
+    unsigned long long int grayVar = 0;
     for (uint32_t i = 0; i < colorValLen_; i++) {
         graySum += Rgb2Gray(colorVal[i]);
     }
     uint32_t grayAve = graySum / colorValLen_;
     for (uint32_t i = 0; i < colorValLen_; i++) {
-        grayVar += pow(static_cast<long long int>(Rgb2Gray(colorVal[i])) - grayAve, 2); // 2 is square
+        grayVar += pow(static_cast<unsigned long long int>(Rgb2Gray(colorVal[i])) - grayAve, 2); // 2 is square
     }
     grayVar /= colorValLen_;
     return static_cast<uint32_t>(grayVar);

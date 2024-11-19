@@ -78,7 +78,8 @@ void BitmapFuzzTest001(const uint8_t* data, size_t size)
     int32_t height = GetObject<int32_t>() % MAX_ARRAY_SIZE;
   
     OH_Drawing_Bitmap* bitmap = OH_Drawing_BitmapCreate();
-    OH_Drawing_Image_Info imageInfo = {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_UNPREMUL};
+    OH_Drawing_Image_Info imageInfo = {width, height,
+        GetObject<OH_Drawing_ColorFormat>(), GetObject<OH_Drawing_AlphaFormat>()};
        
     OH_Drawing_BitmapGetImageInfo(nullptr, nullptr);
     OH_Drawing_BitmapGetImageInfo(bitmap, &imageInfo);

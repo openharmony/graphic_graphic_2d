@@ -18,10 +18,3 @@ ohos_prebuilt_etc("ohos.para.dac") {
   part_name = "graphic_2d"
   module_install_dir = "etc/param"
 }
-
-ohos_prebuilt_etc("graphic_config") {
-  source = "graphic_config.xml"
-  relative_install_dir = "graphic"
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}

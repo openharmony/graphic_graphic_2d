@@ -457,6 +457,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
+    targetSurfaceParams->isCrossNode_ = isCrossNode_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
     targetSurfaceParams->absDrawRect_ = absDrawRect_;
@@ -519,6 +520,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
     targetSurfaceParams->watermarkHandles_ = watermarkHandles_;
     targetSurfaceParams->needCacheSurface_ = needCacheSurface_;
+    targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
+    targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
+    targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
     RSRenderParams::OnSync(target);
 }
 
@@ -544,7 +548,7 @@ bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curS
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
-    if (IsLeashWindow()) {
+    if (IsLeashWindow() && !IsCrossNode()) {
         return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;

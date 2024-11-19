@@ -26,6 +26,7 @@
 #include "param/sys_param.h"
 #include "common/rs_optional_trace.h"
 #include "rs_trace.h"
+#include <mutex>
 
 namespace OHOS {
 namespace Rosen {
@@ -1045,6 +1046,70 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
     return SUCCESS;
 }
 
+int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGI("RSScreenManager %{public}s: Cast screen blacklists", __func__);
+        for (auto& list : blackList) {
+            castScreenBlackLists_.emplace(list);
+        }
+        return SUCCESS;
+    }
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end() || virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    RS_LOGI("RSScreenManager %{public}s: Record screen blacklists for id %{public}" PRIu64 ".", __func__, id);
+    virtualScreen->second->AddBlackList(blackList);
+
+    ScreenId mainId = GetDefaultScreenId();
+    if (mainId != id) {
+        auto mainScreen = screens_.find(mainId);
+        if (mainScreen == screens_.end() || mainScreen->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, mainId);
+            return SCREEN_NOT_FOUND;
+        }
+        mainScreen->second->AddBlackList(blackList);
+    }
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGI("RSScreenManager %{public}s: Cast screen blacklists", __func__);
+        for (auto& list : blackList) {
+            auto it = castScreenBlackLists_.find(list);
+            if (it == castScreenBlackLists_.end()) {
+                continue;
+            }
+            castScreenBlackLists_.erase(it);
+        }
+        return SUCCESS;
+    }
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end() || virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    RS_LOGI("RSScreenManager %{public}s: Record screen blacklists for id %{public}" PRIu64 ".", __func__, id);
+    virtualScreen->second->RemoveBlackList(blackList);
+
+    ScreenId mainId = GetDefaultScreenId();
+    if (mainId != id) {
+        auto mainScreen = screens_.find(mainId);
+        if (mainScreen == screens_.end() || mainScreen->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, mainId);
+            return SCREEN_NOT_FOUND;
+        }
+        mainScreen->second->RemoveBlackList(blackList);
+    }
+    return SUCCESS;
+}
+
 int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<uint64_t>& securityExemptionList)
@@ -1289,6 +1354,18 @@ void RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
         return;
     }
     screensIt->second->SetActiveMode(modeId);
+}
+
+uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    return screensIt->second->SetScreenActiveRect(activeRect);
 }
 
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1583,10 +1660,13 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
         info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
     }
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
+    info.expectedRefreshRate = screen->GetScreenExpectedRefreshRate();
+    info.skipFrameStrategy = screen->GetScreenSkipFrameStrategy();
     screen->GetPixelFormat(info.pixelFormat);
     screen->GetScreenHDRFormat(info.hdrFormat);
     info.whiteList = screen->GetWhiteList();
     info.enableVisibleRect = screen->GetEnableVisibleRect();
+    info.activeRect = screen->GetActiveRect();
     return info;
 }
 
@@ -1933,10 +2013,9 @@ int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRe
     while (MAX_VIRTUAL_SCREEN_REFRESH_RATE % maxRefreshRate != 0) { // maxRefreshRate is greater than 0
         maxRefreshRate--;
     }
-    uint32_t skipFrameInterval = MAX_VIRTUAL_SCREEN_REFRESH_RATE / maxRefreshRate;
-    screensIt->second->SetScreenSkipFrameInterval(skipFrameInterval);
-    RS_LOGI("RSScreenManager %{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
-        __func__, id, skipFrameInterval);
+    screensIt->second->SetScreenExpectedRefreshRate(maxRefreshRate);
+    RS_LOGI("RSScreenManager %{public}s: screen(id %" PRIu64 "), maxRefreshRate(%d).",
+        __func__, id, maxRefreshRate);
     actualRefreshRate = maxRefreshRate;
     return StatusCode::SUCCESS;
 }

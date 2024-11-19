@@ -303,6 +303,10 @@ void BlobCache::WriteToDisk()
         }
     }
     size_t filesize = GetCacheSize();
+    if (filesize == 0) {
+        close(fd);
+        return;
+    }
     size_t headsize = sizeof(CacheHeader);
     size_t bufsize = filesize + CACHE_HEAD;
     uint8_t *buf = new uint8_t[bufsize];

@@ -17,6 +17,7 @@
 #define RS_DRAW_WINDOW_CACHE_H
 
 #include "image/image.h"
+#include "params/rs_render_thread_params.h"
 #include "params/rs_surface_render_params.h"
 
 namespace OHOS {
@@ -52,7 +53,7 @@ public:
      * @return true if success, otherwise false
     */
     bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
-        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
+        RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam);
 private:
     bool HasCache() const;
     void ClearCache();

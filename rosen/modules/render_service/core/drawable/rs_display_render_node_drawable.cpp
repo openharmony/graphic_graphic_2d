@@ -27,6 +27,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "hgm_core.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -58,6 +59,8 @@
 #include "drawable/dfx/rs_skp_capture_dfx.h"
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "utils/performanceCaculate.h"
+// cpu boost
+#include "c/ffrt_cpu_boost.h"
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -76,7 +79,7 @@ std::string RectVectorToString(std::vector<RectI>& regionRects)
     return results;
 }
 
-Drawing::Region GetFlippedRegion(std::vector<RectI>& rects, ScreenInfo& screenInfo)
+Drawing::Region GetFlippedRegion(const std::vector<RectI>& rects, ScreenInfo& screenInfo)
 {
     Drawing::Region region;
 
@@ -151,7 +154,9 @@ static std::vector<RectI> MergeDirtyHistory(RSDisplayRenderNodeDrawable& display
                 allDirtyRegion.GetRegionInfo().c_str(), bound.GetRectInfo().c_str());
         }
     }
-    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables, dirtyManager->GetDirtyRegion());
+    Occlusion::Region globalDirtyRegion{ Occlusion::Rect{ dirtyManager->GetDirtyRegion() } };
+    RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(curAllSurfaceDrawables,
+        dirtyRegion.Or(globalDirtyRegion));
 
     // DFX START
     rsDirtyRectsDfx.SetDirtyRegion(dirtyRegion);
@@ -350,6 +355,9 @@ void RSDisplayRenderNodeDrawable::RenderOverDraw()
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
+    if (params.HasChildCrossNode() && !params.IsMirrorScreen()) {
+        return false;
+    }
     if (GetSyncDirtyManager()->IsCurrentFrameDirty() ||
         (params.GetMainAndLeashSurfaceDirty() || RSUifirstManager::Instance().HasDoneNode()) ||
         RSMainThread::Instance()->GetDirtyFlag()) {
@@ -541,7 +549,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // dfx
     RSRenderNodeDrawable::InitDfxForCacheInfo();
-
+    // set for cache and draw cross node in extended screen model
+    uniParam->SetIsMirrorScreen(params->IsMirrorScreen());
+    uniParam->SetIsFirstVisitCrossNodeDisplay(params->IsFirstVisitCrossNodeDisplay());
     // check rotation for point light
     constexpr int ROTATION_NUM = 4;
     auto screenRotation = GetRenderParams()->GetScreenRotation();
@@ -567,13 +577,13 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
-    RSScreenModeInfo modeInfo = {};
-    screenManager->GetDefaultScreenActiveMode(modeInfo);
-    uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
+    ScreenId activeScreenId = HgmCore::Instance().GetActiveScreenId();
+    uint32_t activeScreenRefreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(activeScreenId);
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
-    if (SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
+    if (SkipFrame(activeScreenRefreshRate, curScreenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
-        RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(paramScreenId));
+        RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
+            curScreenInfo.skipFrameStrategy, curScreenInfo.skipFrameInterval, curScreenInfo.expectedRefreshRate);
         screenManager->ForceRefreshOneFrameIfNoRNV();
         return;
     }
@@ -668,11 +678,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         params->SetBrightnessRatio(hdrBrightnessRatio);
         hdrBrightnessRatio = 1.0f;
     }
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR content in UniRender:%{public}d, BrightnessRatio:%{public}f",
+    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDRDraw isHdrOn: %{public}d, BrightnessRatio: %{public}f",
         isHdrOn, hdrBrightnessRatio);
 
     if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor) &&
-        RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::INITIAL) {
+        RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::INITIAL &&
+        (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC || paramScreenId == 0)) {
         SetDrawSkipType(DrawSkipType::DISPLAY_NODE_SKIP);
         RSMainThread::Instance()->SetFrameIsRender(false);
         SetDisplayNodeSkipFlag(*uniParam, true);
@@ -682,10 +693,6 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
 
     CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
-    RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDR isHdrOn: %{public}d", isHdrOn);
-    if (isHdrOn) {
-        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
-    }
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);
@@ -771,7 +778,11 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
 
             curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
+            // cpu boost feature start
+            ffrt_cpu_boost_start(CPUBOOST_START_POINT + 1);
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
+            // cpu boost feature end
+            ffrt_cpu_boost_end(CPUBOOST_START_POINT + 1);
             DrawCurtainScreen();
             if (needOffscreen) {
                 if (canvasBackup_ != nullptr) {
@@ -793,6 +804,18 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             // watermark and color filter should be applied after offscreen render.
             DrawWatermarkIfNeed(*params, *curCanvas_);
             SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
+            auto dirtyManager = GetSyncDirtyManager();
+            if (!dirtyManager->GetDirtyRegion().IsInsideOf(dirtyManager->GetSurfaceRect())) {
+                RS_TRACE_NAME_FMT("global dirty region:[%s] is not inside of surface rect:[%s], \
+                    clear extra area to black",
+                    dirtyManager->GetDirtyRegion().ToString().c_str(),
+                    dirtyManager->GetSurfaceRect().ToString().c_str());
+                curCanvas_->Save();
+                curCanvas_->ClipRegion(GetFlippedRegion({dirtyManager->GetSurfaceRect()}, screenInfo),
+                    Drawing::ClipOp::DIFFERENCE);
+                curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
+                curCanvas_->Restore();
+            }
         }
         rsDirtyRectsDfx.OnDraw(*curCanvas_);
         if ((RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
@@ -875,7 +898,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
 
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
-        specialLayerType_ == HAS_SPECIAL_LAYER) {
+        specialLayerType_ == HAS_SPECIAL_LAYER && (!enableVisibleRect_ || params.HasSecLayerInVisibleRect())) {
         DrawMirror(params, virtualProcesser,
             &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
@@ -1010,6 +1033,9 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     curCanvas_->ConcatMatrix(mirroredParams->GetMatrix());
+    // Recording HDR screen cannot use canvas size
+    SetUseCanvasSize(false);
+    PrepareOffscreenRender(*mirroredDrawable);
 
     // set mirror screen capture param
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
@@ -1022,6 +1048,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     (mirroredDrawable.get()->*drawFunc)(*curCanvas_);
     uniParam.SetOpDropped(isOpDropped);
     RSUniRenderThread::ResetCaptureParam();
+    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::CubicResampler::Mitchell()));
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
@@ -1681,7 +1708,7 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     if (!params->GetNeedOffscreen() || !useFixedOffscreenSurfaceSize_ || offscreenSurface_ == nullptr) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d]", offscreenWidth, offscreenHeight);
         bool isScRGBEnable = EnablescRGBForP3AndUiFirst(params->GetNewColorSpace());
-        if (!params->GetNeedOffscreen() && (params->GetHDRPresent() || isScRGBEnable)) {
+        if (!params->GetNeedOffscreen() && (params->GetHDRPresent() || isScRGBEnable) && GetUseCanvasSize()) {
             offscreenWidth = curCanvas_->GetWidth();
             offscreenHeight = curCanvas_->GetHeight();
         }
@@ -1784,7 +1811,7 @@ bool RSDisplayRenderNodeDrawable::CreateSurface(sptr<IBufferConsumerListener> li
 }
 #endif
 
-bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval)
+bool RSDisplayRenderNodeDrawable::SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval)
 {
     if (refreshRate == 0 || skipFrameInterval <= 1) {
         return false;
@@ -1819,4 +1846,43 @@ bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, uint32_t skipF
     return needSkip;
 }
 
+bool RSDisplayRenderNodeDrawable::SkipFrameByRefreshRate(uint32_t refreshRate)
+{
+    if (refreshRate == 0) {
+        return false;
+    }
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    int64_t minFrameInterval = 1000000000LL / refreshRate;
+    if (minFrameInterval == 0) {
+        return false;
+    }
+    // lastRefreshTime_ is next frame expected refresh time for virtual display
+    if (lastRefreshTime_ <= 0) {
+        lastRefreshTime_ = currentTime + minFrameInterval;
+        return false;
+    }
+    if (currentTime < (lastRefreshTime_ - MAX_JITTER_NS)) {
+        return true;
+    }
+    int64_t intervalNums = (currentTime - lastRefreshTime_ + MAX_JITTER_NS) / minFrameInterval;
+    lastRefreshTime_ += (intervalNums + 1) * minFrameInterval;
+    return false;
+}
+
+bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo)
+{
+    bool needSkip = false;
+    switch (screenInfo.skipFrameStrategy) {
+        case SKIP_FRAME_BY_INTERVAL:
+            needSkip = SkipFrameByInterval(refreshRate, screenInfo.skipFrameInterval);
+            break;
+        case SKIP_FRAME_BY_REFRESH_RATE:
+            needSkip = SkipFrameByRefreshRate(screenInfo.expectedRefreshRate);
+            break;
+        default:
+            break;
+    }
+    return needSkip;
+}
 } // namespace OHOS::Rosen::DrawableV2

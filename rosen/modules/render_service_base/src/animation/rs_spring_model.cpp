@@ -53,6 +53,9 @@ void RSSpringModel<std::shared_ptr<RSRenderPropertyBase>>::CalculateSpringParame
 
     // calculate internal parameters
     double naturalAngularVelocity = 2 * FLOAT_PI / response_;
+    if (ROSEN_EQ(naturalAngularVelocity, 0.0, DOUBLE_NEAR_ZERO_THRESHOLD)) {
+        naturalAngularVelocity = DOUBLE_NEAR_ZERO_THRESHOLD;
+    }
     if (dampingRatio_ < 1) { // Under-damped Systems
         dampedAngularVelocity_ = naturalAngularVelocity * sqrt(1.0f - dampingRatio_ * dampingRatio_);
         coeffDecay_ = -dampingRatio_ * naturalAngularVelocity;

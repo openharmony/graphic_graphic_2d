@@ -930,6 +930,7 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
 
     const auto cnt = 9;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     auto curSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     auto preSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
     curSurfaceParent->subSurfaceCnt_ = cnt;
@@ -937,6 +938,20 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
     surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
     EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
     EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    curSurfaceParent->subSurfaceCnt_ = cnt;
+    preSurfaceParent->subSurfaceCnt_ = cnt;
+    surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
+    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
+    EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    curSurfaceParent->subSurfaceCnt_ = cnt;
+    preSurfaceParent->subSurfaceCnt_ = cnt;
+    surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
+    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt);
+    EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt);
 }
 
 /**
@@ -2619,6 +2634,23 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
     RSRenderNode node(id, context);
     node.ProcessTransitionAfterChildren(*canvas_);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: IsCrossNodeTest
+ * @tc.desc: test IsCrossNodeTest
+ * @tc.type: FUNC
+ * @tc.require: issueB2YOV
+ */
+HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->IncreaseCrossScreenNum();
+    ASSERT_TRUE(renderNode->isCrossNode_);
+
+    renderNode->DecreaseCrossScreenNum();
+    ASSERT_FALSE(renderNode->isCrossNode_);
 }
 
 /**

@@ -57,7 +57,7 @@ void RSRenderInterpolatingSpringAnimation::SetSpringParameters(
     float response, float dampingRatio, float normalizedInitialVelocity, float minimumAmplitudeRatio)
 {
     response_ = response;
-    dampingRatio_ = dampingRatio;
+    dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
     normalizedInitialVelocity_ = normalizedInitialVelocity;
     minimumAmplitudeRatio_ = minimumAmplitudeRatio;
 }

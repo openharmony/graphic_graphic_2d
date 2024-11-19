@@ -89,6 +89,8 @@ public:
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
+    virtual bool GetGlobalPositionEnabled() const;
+
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
@@ -563,6 +565,9 @@ public:
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
 
+    // mark cross node in physical extended screen model
+    bool IsCrossNode() const;
+
     // mark stable node
     void OpincSetInAppStateStart(bool& unchangeMarkInApp);
     void OpincSetInAppStateEnd(bool& unchangeMarkInApp);
@@ -621,7 +626,6 @@ public:
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
-    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
@@ -724,8 +728,11 @@ public:
         return context_;
     }
 
-    // arkui mark uifirst
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -866,6 +873,8 @@ protected:
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
     ModifierDirtyTypes dirtyTypes_;
@@ -878,6 +887,9 @@ protected:
     bool childHasSharedTransition_ = false;
     bool flagIntersectWithDRM_ = false;
 private:
+    // mark cross node in physical extended screen model
+    bool isCrossNode_ = false;
+    int32_t crossScreenNum_ = 0;
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
@@ -1098,6 +1110,9 @@ private:
     void UpdateDisplayList();
     void UpdateShadowRect();
 
+    void IncreaseCrossScreenNum();
+    void DecreaseCrossScreenNum();
+
     void OnRegister(const std::weak_ptr<RSContext>& context);
     // purge resource
     inline void SetPurgeStatus(bool flag);
@@ -1107,7 +1122,7 @@ private:
     friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
-    friend class RSPointerDrawingManager;
+    friend class RSPointerWindowManager;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;

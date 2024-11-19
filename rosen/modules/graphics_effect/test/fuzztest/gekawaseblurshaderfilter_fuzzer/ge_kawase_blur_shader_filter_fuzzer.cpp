@@ -16,6 +16,7 @@
 
 #include "ge_kawase_blur_shader_filter_fuzzer.h"
 #include "ge_kawase_blur_shader_filter.h"
+#include "ge_system_properties.h"
 #include "get_object.h"
 
 namespace OHOS {
@@ -31,20 +32,25 @@ std::shared_ptr<Drawing::Image> ProcessImageFuzzTest(const uint8_t *data, size_t
     GETest::g_size = size;
     GETest::g_pos = 0;
 
-    float fLeft = GETest::GetPlainData<float>();
-    float fTop = GETest::GetPlainData<float>();
-    float fWidth = GETest::GetPlainData<float>();
-    float fHeight = GETest::GetPlainData<float>();
-    Drawing::Rect src{fLeft, fTop, fWidth, fHeight};
+    Drawing::Rect src = GETest::GetPlainData<Drawing::Rect>();
     Drawing::Rect dst = GETest::GetPlainData<Drawing::Rect>();
 
     Drawing::GEKawaseBlurShaderFilterParams params = {5};
-    std::unique_ptr<GEKawaseBlurShaderFilter> kawaseBlurShaderFilter =
+    std::unique_ptr<GEKawaseBlurShaderFilter> shaderFilter =
         std::make_unique<GEKawaseBlurShaderFilter>(params);
 
     Drawing::Canvas canvas;
-    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
-    auto res = kawaseBlurShaderFilter->ProcessImage(canvas, image, src, dst);
+    std::shared_ptr<Drawing::Image> image { nullptr };
+    shaderFilter->ProcessImage(canvas, image, src, dst);
+    shaderFilter->InitSimpleFilter();
+    GESystemProperties::GetBoolSystemProperty("persist.sys.graphic.supports_af", false);
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(50, 50, format); // 50, 50  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    image = bmp.MakeImage();
+    auto res = shaderFilter->ProcessImage(canvas, image, src, dst);
     return res;
 }
 
@@ -63,9 +69,65 @@ int GetRadiusFuzzTest(const uint8_t *data, size_t size)
     Drawing::GEKawaseBlurShaderFilterParams params = {radius};
     std::unique_ptr<GEKawaseBlurShaderFilter> kawaseBlurShaderFilter =
         std::make_unique<GEKawaseBlurShaderFilter>(params);
-
+    kawaseBlurShaderFilter->GetDescription();
     int res = kawaseBlurShaderFilter->GetRadius();
     return res;
+}
+
+std::shared_ptr<Drawing::Image> ScaleAndAddRandomColorFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return nullptr;
+    }
+    // initialize
+    GETest::g_data = data;
+    GETest::g_size = size;
+    GETest::g_pos = 0;
+
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 };
+    auto shaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Canvas canvas;
+
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(50, 50, format); // 50, 50  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    auto image = bmp.MakeImage();
+
+    bmp.Build(100, 30, format); // 100, 30  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    auto imageBlur = bmp.MakeImage();
+
+    Drawing::Rect src = GETest::GetPlainData<Drawing::Rect>();
+    Drawing::Rect dst = GETest::GetPlainData<Drawing::Rect>();
+    auto width = std::max(static_cast<int>(std::ceil(dst.GetWidth())), imageBlur->GetWidth());
+    auto height = std::max(static_cast<int>(std::ceil(dst.GetHeight())), imageBlur->GetHeight());
+
+    auto res = shaderFilter->ScaleAndAddRandomColor(canvas, image, imageBlur, src, dst, width, height);
+    return res;
+}
+
+void OutputOriginalImageFuzzTest(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return;
+    }
+    // initialize
+    GETest::g_data = data;
+    GETest::g_size = size;
+    GETest::g_pos = 0;
+
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 };
+    auto shaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Canvas canvas;
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(50, 50, format); // 50, 50  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    auto image = bmp.MakeImage();
+    Drawing::Rect src = GETest::GetPlainData<Drawing::Rect>();
+    Drawing::Rect dst = GETest::GetPlainData<Drawing::Rect>();
+    shaderFilter->OutputOriginalImage(canvas, image, src, dst);
 }
 
 } // namespace Rosen
@@ -77,5 +139,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::ProcessImageFuzzTest(data, size);
     OHOS::Rosen::GetRadiusFuzzTest(data, size);
+    OHOS::Rosen::ScaleAndAddRandomColorFuzzTest(data, size);
+    OHOS::Rosen::OutputOriginalImageFuzzTest(data, size);
     return 0;
 }
