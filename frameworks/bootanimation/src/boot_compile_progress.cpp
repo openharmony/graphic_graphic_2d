@@ -319,7 +319,6 @@ void BootCompileProgress::UpdateCompileProgress()
 {
     (void)CheckParams();
     if (paramNeeded_.size() > 0) {
-        //isBmsCompileDone_ = system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END;
         int64_t now =
             std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
             .count();
