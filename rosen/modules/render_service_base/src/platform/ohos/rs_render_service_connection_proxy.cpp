@@ -3178,9 +3178,9 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         return hwcDisabledReasonInfos;
     }
     int32_t size = reply.ReadInt32();
-    size_t readableSize = reply.GetReadableBytes();
+    size_t readableSize = reply.GetReadableBytes() / HWC_DISABLED_REASON_INFO_MIN_SIZE;
     size_t len = static_cast<size_t>(size);
-    if (len * HWC_DISABLED_REASON_INFO_MIN_BYTE > readableSize || len > hwcDisabledReasonInfos.max_size()) {
+    if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
         RS_LOGE("RSRenderServiceConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
             " readableSize:%{public}zu", len, readableSize);
         return hwcDisabledReasonInfos;
