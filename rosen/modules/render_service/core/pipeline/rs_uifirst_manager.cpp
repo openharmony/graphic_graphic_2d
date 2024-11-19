@@ -1160,9 +1160,6 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
         RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
         return false;
     }
-    if (RSLuminanceControl::Get().IsHdrOn(curDisplayNode->GetScreenId())) {
-        return false;
-    }
     bool flag = ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) &&
         (node.GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) &&
         RSUifirstManager::Instance().NodeIsInCardWhiteList(node) &&
