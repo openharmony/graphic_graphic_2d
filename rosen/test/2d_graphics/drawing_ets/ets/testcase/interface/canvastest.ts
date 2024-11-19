@@ -33,26 +33,6 @@ function printResults(canvas: drawing.Canvas, isPassed: Boolean) {
   canvas.drawTextBlob(blob, 10, 50);
 }
 
-export class CanvasClear extends TestBase {
-
-  public constructor(){
-    super();
-  }
-
-  public OnTestFunction(canvas: drawing.Canvas): void {
-
-    canvas.clear({ alpha: 255, red: 255, green: 0, blue: 0 });
-
-    canvas.clear(0xffff0000);
-  }
-
-  public OnTestPerformance(canvas: drawing.Canvas) {
-    for (let i = 0; i < this.testCount_; i++) {
-      canvas.clear(0xffff0000);
-    }
-  }
-  
-}
 
 export class CanvasDrawRect extends TestBase {
 
