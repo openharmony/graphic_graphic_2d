@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-zpz
+
 #include <gtest/gtest.h>
 
 #include <if_system_ability_manager.h>
@@ -1019,6 +1019,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.
     HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(id,
         HwcDisabledReasons::DISABLED_BY_SRC_PIXEL, nodeName);
     ASSERT_EQ(proxy->GetHwcDisabledReasonInfo().size(), 0);
+}
+
+/**
+ * @tc.name: GetHdrOnDuration Test
+ * @tc.desc: GetHdrOnDuration Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    EXPECT_GE(proxy->GetHdrOnDuration(), 0);
 }
 
 /**
