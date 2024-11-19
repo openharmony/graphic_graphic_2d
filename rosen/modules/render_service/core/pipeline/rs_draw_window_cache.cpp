@@ -103,7 +103,8 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     RS_TRACE_NAME_FMT("DealWithCachedWindow node[%lld] %s",
         surfaceDrawable->GetId(), surfaceDrawable->GetName().c_str());
     RSAutoCanvasRestore acr(&canvas);
-    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+    //Alpha and matrix have been applied in func CaptureSurface
+    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_ && !RSUniRenderThread::GetCaptureParam().isMirror_) {
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
