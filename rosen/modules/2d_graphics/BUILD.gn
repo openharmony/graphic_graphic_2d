@@ -381,6 +381,7 @@ foreach(item, ace_platforms) {
 if (!is_arkui_x) {
   ## Build 2d_graphics.so
   ohos_shared_library("2d_graphics") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       cfi_cross_dso = true
