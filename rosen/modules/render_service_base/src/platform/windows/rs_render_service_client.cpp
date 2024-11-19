@@ -607,7 +607,7 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
     return {};
 }
 
-int64_t RSRenderServiceClient::GetHdrOnDuration() const
+int64_t RSRenderServiceClient::GetHdrOnDuration()
 {
     return 0;
 }
