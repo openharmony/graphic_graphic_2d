@@ -3202,7 +3202,7 @@ int64_t RSRenderServiceConnectionProxy::GetHdrOnDuration()
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageParcel option;
+    MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return RS_CONNECTION_ERROR;
     }
