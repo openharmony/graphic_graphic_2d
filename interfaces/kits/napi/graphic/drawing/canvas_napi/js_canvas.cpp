@@ -760,26 +760,13 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_FIVE);
 
     if (argc == ARGC_ONE || argc == ARGC_TWO) {
-        bool isJsColor = false;
-        ColorQuad color;
-        napi_has_named_property(env, argv[ARGC_ZERO], JSPROPERTY[0], &isJsColor);
-        if (isJsColor) {
-            int32_t argb[ARGC_FOUR] = {0};
-            if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
-                ROSEN_LOGE("JsCanvas::OnDrawColor Argv[0] is invalid");
-                return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-                    "Parameter verification failed. The range of color channels must be [0, 255].");
-            }
-            color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
-        } else {
-            uint32_t hexNumber = 0;
-            GET_UINT32_PARAM(ARGC_ZERO, hexNumber);
-            uint32_t alpha = (hexNumber >> 24) & 0xFF;
-            uint32_t red = (hexNumber >> 16) & 0xFF;
-            uint32_t green = (hexNumber >> 8) & 0xFF;
-            uint32_t blue = hexNumber & 0xFF;
-            color = Color::ColorQuadSetARGB(alpha, red, green, blue);
+        int32_t argb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+            ROSEN_LOGE("JsCanvas::OnDrawColor Argv[0] is invalid");
+            return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Parameter verification failed. The range of color channels must be [0, 255].");
         }
+        auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
         if (argc == ARGC_ONE) {
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
             m_canvas->DrawColor(color);
