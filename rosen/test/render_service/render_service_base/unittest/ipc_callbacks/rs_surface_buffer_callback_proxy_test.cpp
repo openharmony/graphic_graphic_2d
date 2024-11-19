@@ -54,7 +54,7 @@ HWTEST_F(RSSurfaceBufferCallbackProxyTest, OnFinish001, TestSize.Level1)
         .surfaceBufferIds = { 1 },
         .isRenderedFlags = { 1 },
         .isUniRender = true,
-        .releaseFences = { nullptr },
+        .releaseFences = { SyncFence::INVALID_FENCE },
     });
     ASSERT_EQ(remoteMocker->receivedCode_, static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH));
 }
@@ -77,7 +77,7 @@ HWTEST_F(RSSurfaceBufferCallbackProxyTest, OnFinish002, TestSize.Level1)
         .surfaceBufferIds = { 1 },
         .isRenderedFlags = { true },
         .isUniRender = true,
-        .releaseFences = { nullptr },
+        .releaseFences = { SyncFence::INVALID_FENCE },
     });
     ASSERT_EQ(remoteMocker->receivedCode_, static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH));
 }
