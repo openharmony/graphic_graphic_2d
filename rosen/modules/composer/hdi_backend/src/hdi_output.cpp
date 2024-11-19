@@ -204,6 +204,12 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
         return GRAPHIC_DISPLAY_FAILURE;
     }
 
+    if (layerInfo->GetSurface() == nullptr && layerInfo->GetCompositionType() !=
+        GRAPHIC_COMPOSITION_SOLID_COLOR) {
+        HLOGE("CreateLayerLocked failed because the surface is null");
+        return GRAPHIC_DISPLAY_FAILURE;
+    }
+
     layer->UpdateLayerInfo(layerInfo);
     uint32_t layerId = layer->GetLayerId();
 
@@ -424,7 +430,7 @@ bool HdiOutput::CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo)
     char sep = ';';
     std::unordered_set<std::string> vmLayers;
     SplitString(vmArsrWhiteList_, vmLayers, sep);
-    if (vmLayers.count(layerInfo->GetSurface()->GetName()) > 0) {
+    if (layerInfo->GetSurface() != nullptr && vmLayers.count(layerInfo->GetSurface()->GetName()) > 0) {
         return true;
     }
     return false;
