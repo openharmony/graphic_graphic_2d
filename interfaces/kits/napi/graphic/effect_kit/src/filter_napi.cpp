@@ -451,13 +451,14 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi Blur parsing input fail"));
 
     float radius = 0.0f;
-    EFFECT_NAPI_CHECK_RET_D(EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_number,
-        nullptr, EFFECT_LOG_E("FilterNapi Blur radius is not napi_number"));
-    double scale = -1.0f;
-    EFFECT_NAPI_CHECK_RET_D(napi_get_value_double(env, argv[NUM_0], &scale) == napi_ok && scale >= 0,
-        nullptr, EFFECT_LOG_E("FilterNapi Blur parsing radius fail"));
-    radius = static_cast<float>(scale);
-    
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_number) {
+        double scale = -1.0f;
+        if (napi_get_value_double(env, argv[0], &scale) == napi_ok) {
+            if (scale >= 0) {
+                radius = static_cast<float>(scale);
+            }
+        }
+    }
     SkTileMode tileMode = SkTileMode::kDecal;
     if (argc == NUM_1) {
         EFFECT_LOG_D("FilterNapi parsing input with default skTileMode.");
@@ -489,12 +490,14 @@ napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("FilterNapi Brightness parsing input fail"));
 
     float fBright = 0.0f;
-    EFFECT_NAPI_CHECK_RET_D(EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_number,
-        nullptr, EFFECT_LOG_E("FilterNapi Brightness brightness is not napi_number"));
-    double dBright = -1.0f;
-    EFFECT_NAPI_CHECK_RET_D(napi_get_value_double(env, argv[NUM_0], &dBright) == napi_ok
-        && dBright >= 0 && dBright <= 1, nullptr, EFFECT_LOG_E("FilterNapi Brightness parsing brightness fail"));
-    fBright = static_cast<float>(dBright);
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_number) {
+        double dBright = -1.0f;
+        if (napi_get_value_double(env, argv[NUM_0], &dBright) == napi_ok) {
+            if (dBright >= 0 && dBright <= 1) {
+                fBright = static_cast<float>(dBright);
+            }
+        }
+    }
 
     FilterNapi* thisFilter = nullptr;
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&thisFilter));
