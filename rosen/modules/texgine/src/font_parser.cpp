@@ -463,12 +463,12 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
     FontParser::FontDescriptor fontDescriptor;
     fontDescriptor.requestedLid = languageId;
     fontDescriptor.path = path;
-    
+
     fontDescriptor.requestedFullname = fontName;
     auto fontStyle = typeface->GetFontStyle();
     fontDescriptor.weight = fontStyle.GetWeight();
     fontDescriptor.width = fontStyle.GetWidth();
-    
+
     if (ParseTable(typeface, fontDescriptor) !=  SUCCESSED) {
         LOGSO_FUNC_LINE(ERROR) << "parse table failed";
         return nullptr;

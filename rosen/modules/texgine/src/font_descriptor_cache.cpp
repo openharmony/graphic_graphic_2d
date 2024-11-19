@@ -228,12 +228,6 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         result = nullptr;
         return;
     }
-    if (systemFontType < 0) {
-        TEXT_LOGE("SystemFontType is an invalid value");
-        result = nullptr;
-        return;
-    }
-
     int32_t fontType = 0;
     if (!ProcessSystemFontType(systemFontType, fontType)) {
         result = nullptr;
@@ -244,6 +238,7 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         result = nullptr;
         return;
     }
+    
     auto tryFindFontDescriptor = [&fullName, &result](const std::unordered_map<std::string,
         std::set<FontDescSharedPtr>>& map) -> bool {
         auto it = map.find(fullName);
