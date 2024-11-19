@@ -509,10 +509,8 @@ bool CallJsFunc(napi_env env, napi_value callback, int32_t index, double leftOff
 
 napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info info)
 {
-    if (textLine_ == nullptr) {
-        TEXT_LOGE("TextLine is nullptr");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    TEXT_ERROR_CHECK(textLine_ != nullptr,
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params"), "TextLine is nullptr");
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE];
