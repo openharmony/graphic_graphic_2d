@@ -331,8 +331,6 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump all info\n")
         .append("client                         ")
         .append("|dump client ui node trees\n")
-        .append("client-server                  ")
-        .append("|dump client and server info\n")
         .append("dumpMem                        ")
         .append("|dump Cache\n")
         .append("trimMem cpu/gpu/shader         ")
@@ -607,14 +605,9 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
     std::u16string arg20(u"client");
-    std::u16string arg21(u"client-server");
 #ifdef RS_ENABLE_VK
     std::u16string arg22(u"vktextureLimit");
 #endif
-    if (argSets.count(arg21)) {
-        argSets.insert(arg9);
-        argSets.insert(arg20);
-    }
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -699,7 +692,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
     }
-    if (argSets.count(arg20)) {
+    if (argSets.count(arg9) || argSets.count(arg20)) {
         auto taskId = GenerateTaskId();
         mainThread_->ScheduleTask(
             [this, taskId]() {
