@@ -527,12 +527,15 @@ int32_t HdiLayer::SetHdiLayerInfo()
     CheckRet(ret, "SetTransformMode");
     ret = SetLayerVisibleRegion();
     CheckRet(ret, "SetLayerVisibleRegion");
-    ret = SetLayerDirtyRegion();
-    CheckRet(ret, "SetLayerDirtyRegion");
+    // The crop needs to be set in the first order
     ret = SetLayerCrop();
     CheckRet(ret, "SetLayerCrop");
+    // The data space contained in the layerbuffer needs to be set in the second order
     ret = SetLayerBuffer();
     CheckRet(ret, "SetLayerBuffer");
+    // The dirty region needs to be set in the third order
+    ret = SetLayerDirtyRegion();
+    CheckRet(ret, "SetLayerDirtyRegion");
     ret = SetLayerCompositionType();
     CheckRet(ret, "SetLayerCompositionType");
     ret = SetLayerBlendType();
