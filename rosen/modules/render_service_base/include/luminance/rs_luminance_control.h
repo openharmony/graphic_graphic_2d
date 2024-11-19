@@ -27,6 +27,7 @@ namespace Rosen {
 enum HDR_TYPE : int32_t {
     PHOTO,
     VIDEO,
+    AIHDR_VIDEO,
     MAX = 255,
 };
 

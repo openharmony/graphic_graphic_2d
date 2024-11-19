@@ -4009,6 +4009,35 @@ HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CheckIsAihdrSurface
+ * @tc.desc: Test CheckIsAihdrSurface
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+HWTEST_F(RSMainThreadTest, CheckIsAihdrSurface, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->context_->activeNodesInRoot_.clear();
+    // valid nodeid
+    NodeId id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    ASSERT_NE(node, nullptr);
+    const auto& surfaceBuffer = node->GetRSSurfaceHandler()->GetBuffer();
+    if (surfaceBuffer == nullptr) {
+        return;
+    }
+    uint32_t hdrType = HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR;
+    std::vector<uint8_t> metadataType;
+    metadataType.resize(sizeof(hdrType));
+    memcpy_s(metadataType.data(), metadataType.size(), &hdrType, sizeof(hdrType));
+    surfaceBuffer->SetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE,
+        metadataType);
+    ASSERT_EQ(mainThread->CheckIsAihdrSurface(*node), true);
+}
+#endif
+
+/**
  * @tc.name: RenderServiceAllNodeDump01
  * @tc.desc: RenderServiceAllNodeDump Test
  * @tc.type: FUNC

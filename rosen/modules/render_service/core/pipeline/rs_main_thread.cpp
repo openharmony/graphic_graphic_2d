@@ -38,6 +38,7 @@
 #include "rs_frame_report.h"
 #include "rs_profiler.h"
 #include "rs_trace.h"
+#include "v2_1/cm_color_space.h"
 #include "scene_board_judgement.h"
 #include "vsync_iconnection_token.h"
 #include "xcollie/watchdog.h"
@@ -355,6 +356,26 @@ static inline void WaitUntilUploadTextureTaskFinished(bool isUniRender)
     return;
 #endif
 #endif
+}
+
+bool RSMainThread::CheckIsAihdrSurface(const RSSurfaceRenderNode& surfaceNode)
+{
+    if (!surfaceNode.IsOnTheTree()) {
+        return false;
+    }
+    const auto& surfaceBuffer = surfaceNode.GetRSSurfaceHandler()->GetBuffer();
+    if (surfaceBuffer == nullptr) {
+        return false;
+    }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    std::vector<uint8_t> metadataType{};
+    if (surfaceBuffer->GetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType) ==
+        GSERROR_OK && metadataType.size() > 0 &&
+        metadataType[0] == HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR) {
+        return true;
+    }
+#endif
+    return false;
 }
 
 bool RSMainThread::CheckIsHdrSurface(const RSSurfaceRenderNode& surfaceNode)
@@ -1338,12 +1359,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
     bool hasHdrVideo = false;
+    int hdrType = HDR_TYPE::VIDEO;
     if (!isUniRender_) {
         dividedRenderbufferTimestamps_.clear();
     }
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
-        [this, &needRequestNextVsync, &hasHdrVideo](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        [this, &needRequestNextVsync, &hasHdrVideo, &hdrType](
+            const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
         }
@@ -1437,6 +1460,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         if (!hasHdrVideo) {
             hasHdrVideo = CheckIsHdrSurface(*surfaceNode);
+            hdrType = CheckIsAihdrSurface(*surfaceNode) ? HDR_TYPE::AIHDR_VIDEO : hdrType;
         }
         if ((*surfaceNode).GetRSSurfaceHandler() == nullptr) {
             RS_LOGE("surfaceNode.GetRSSurfaceHandler is NULL");
@@ -1453,7 +1477,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             surfaceNode->SetContentDirty(); // HDR content is dirty on Dimming status.
         }
     });
-    RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, HDR_TYPE::VIDEO);
+    RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, hdrType);
     if (needRequestNextVsync) {
         RequestNextVSync();
     }

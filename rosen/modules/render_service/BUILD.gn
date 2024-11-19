@@ -300,6 +300,7 @@ ohos_shared_library("librender_service") {
     "cJSON:cjson",
     "c_utils:utils",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+    "drivers_interface_display:libdisplay_commontype_proxy_2.1",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
     "graphic_surface:frame_report",
