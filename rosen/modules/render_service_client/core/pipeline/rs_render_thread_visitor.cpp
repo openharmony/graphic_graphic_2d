@@ -30,6 +30,7 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_render_thread_util.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -805,10 +806,21 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         property.GetBoundsWidth(), property.GetBoundsHeight()};
     Drawing::Matrix transfromMatrix = CacRotationFromTransformType(transform, bounds);
     FlipMatrix(transform, transfromMatrix, bounds);
+    ScalingMode scalingMode = surfaceBuffer->GetSurfaceBufferScalingMode();
+    Drawing::Rect srcRect { 0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight() };
+    Drawing::Rect dstRect { 0, 0, bounds.width_, bounds.height_ };
+    Drawing::Rect boundsRect = { bounds.left_, bounds.top_, bounds.width_, bounds.height_ };
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        RSRenderThreadUtil::SrcRectScaleDown(srcRect, boundsRect);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        RSRenderThreadUtil::SrcRectScaleFit(srcRect, dstRect, boundsRect);
+    }
     canvas_->ConcatMatrix(transfromMatrix);
     auto recordingCanvas =
         std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
-    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, 0, 0, bounds.width_, bounds.height_);
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(
+        surfaceBuffer, dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight());
+    rsSurfaceBufferInfo.srcRect_ = srcRect;
     recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     drawCmdList->Playback(*canvas_);

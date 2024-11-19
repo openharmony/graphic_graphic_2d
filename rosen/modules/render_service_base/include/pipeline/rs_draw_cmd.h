@@ -43,15 +43,13 @@ namespace Rosen {
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr, Drawing::Rect srcRect = {})
+        : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect), dstRect_(Drawing::Rect { offSetX, offSetY, width, height }),
           pid_(pid), uid_(uid), acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
-    int offSetX_ = 0;
-    int offSetY_ = 0;
-    int width_ = 0;
-    int height_ = 0;
+    Drawing::Rect srcRect_;
+    Drawing::Rect dstRect_;
     pid_t pid_ = {};
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
@@ -268,11 +266,12 @@ struct RSB_EXPORT DrawSurfaceBufferOpItemCb {
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
+        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
+            uint64_t uid, Drawing::Rect srcRect, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
-            paintHandle(paintHandle) {}
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, srcRect),
+              paintHandle(paintHandle)
+        {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;

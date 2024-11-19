@@ -729,12 +729,13 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
     DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
-DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
-    DrawSurfaceBufferOpItem::ConstructorHandle* handle)
+DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
+    const DrawCmdList& cmdList, DrawSurfaceBufferOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
-      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
-                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_,
-                         handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
+      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.dstRect_.GetLeft(),
+          handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
+          handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
+          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.srcRect_)
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
@@ -761,11 +762,10 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     std::shared_ptr<SurfaceBufferEntry> surfaceBufferEntry =
         std::make_shared<SurfaceBufferEntry>(surfaceBufferInfo_.surfaceBuffer_, surfaceBufferInfo_.acquireFence_);
-    cmdList.AddOp<ConstructorHandle>(
-        CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
-        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_,
-        surfaceBufferInfo_.pid_, surfaceBufferInfo_.uid_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
+        surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
+        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
+        surfaceBufferInfo_.uid_, surfaceBufferInfo_.srcRect_, paintHandle);
 }
 
 namespace {
@@ -950,11 +950,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImageRect(*image, Rect{
-        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
-        surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
-        Drawing::SamplingOptions());
+    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, surfaceBufferInfo_.dstRect_, Drawing::SamplingOptions());
 #endif
 }
 
@@ -976,11 +972,11 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
 
     GrBackendTexture backendTexture(
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, GrMipMapped::kNo, textureInfo);
+        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), GrMipMapped::kNo, textureInfo);
 
     Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(surfaceBufferInfo_.width_);
-    externalTextureInfo.SetHeight(surfaceBufferInfo_.height_);
+    externalTextureInfo.SetWidth(surfaceBufferInfo_.dstRect_.GetWidth());
+    externalTextureInfo.SetHeight(surfaceBufferInfo_.dstRect_.GetHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
@@ -1001,7 +997,8 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImage(*newImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+    canvas->DrawImage(*newImage, surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
+        Drawing::SamplingOptions());
 #endif // RS_ENABLE_GL
 }
 
@@ -1052,10 +1049,10 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
 
 void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
 {
-    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.width_);
-    out += " height:" + std::to_string(surfaceBufferInfo_.height_);
-    out += " offSetX:" + std::to_string(surfaceBufferInfo_.offSetX_);
-    out += " offSetY:" + std::to_string(surfaceBufferInfo_.offSetY_);
+    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.dstRect_.GetWidth());
+    out += " height:" + std::to_string(surfaceBufferInfo_.dstRect_.GetHeight());
+    out += " offSetX:" + std::to_string(surfaceBufferInfo_.dstRect_.GetLeft());
+    out += " offSetY:" + std::to_string(surfaceBufferInfo_.dstRect_.GetTop());
     out += "]";
 #ifdef RS_ENABLE_GL
     out += " texId:" + std::to_string(texId_);
