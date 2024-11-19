@@ -105,21 +105,6 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
     return true;
 }
 
-bool ConvertFromJsColorWithNumber(napi_env env, napi_value jsValue, int32_t* argb, size_t size)
-{
-    uint32_t tempColorValue = 0;
-    if (napi_get_value_uint32(env, jsValue, &tempColorValue) != napi_ok) {
-        return false;
-    }
-    int alphaShift = 24;  // Alpha shift
-    int channelShift = 8; // Each color channel is 8 bits
-    for (size_t idx = 0; idx < size; idx++) {
-        int32_t* curChannel = argb + idx;
-        *curChannel=(tempColorValue>>(alphaShift - idx * channelShift)) & 0xFF;
-    }
-    return true;
-}
-
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size)
 {
     napi_value tempValue = nullptr;
