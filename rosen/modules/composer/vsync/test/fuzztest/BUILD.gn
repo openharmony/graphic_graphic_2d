@@ -15,6 +15,7 @@ group("fuzztest") {
   testonly = true
 
   deps = [
+    "vsynccallbacklistener_fuzzer:fuzztest",
     "vsyncconnection_fuzzer:fuzztest",
     "vsynccontroller_fuzzer:fuzztest",
     "vsyncdistributor_fuzzer:fuzztest",

@@ -93,7 +93,7 @@ namespace OHOS {
         vsyncReceiver->listener_->OnShutdown(fileDescriptor);
         vsyncReceiver->listener_->CalculateExpectedEndLocked(now);
         vsyncReceiver->listener_->SetFdClosedFlagLocked(fdClosed);
-        vsyncReceiver->listener_->RegisterFdShutDownCallback([](int32_t fd) {});
+        vsyncReceiver->listener_->RegisterFdShutDownCallback(nullptr);
         return true;
     }
 }
