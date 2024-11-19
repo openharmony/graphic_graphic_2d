@@ -131,24 +131,12 @@ bool BootCompileProgress::CreateCanvasNode()
 
 bool BootCompileProgress::RegisterVsyncCallback()
 {
-    /*
-    if (system::GetParameter(BMS_COMPILE_STATUS, "-1") == BMS_COMPILE_STATUS_END) {
-        LOGI("bms compile is already done.");
-        compileRunner_->Stop();
-        return false;
-    }
-
-    if (!WaitBmsStartIfNeeded()) {
-        compileRunner_->Stop();
-        return false;
-    }
-     */
-    if(CheckParams()){
+    if (CheckParams()) {
         LOGI("all param status are COMPLETED");
         compileRunner_->Stop();
         return false;
     }
-    if(!WaitParamsIfNeeded()){
+    if (!WaitParamsIfNeeded()) {
         LOGI("no param is ready, progress bar stop");
         compileRunner_->Stop();
         return false;
@@ -206,7 +194,7 @@ bool BootCompileProgress::CheckBundleScanParam()
     if (!needBundleScan_) {
         return true;
     }
-    if (system::GetParameter(BUNDLE_SCAN_PARAM_NAME, "-1") == "1"){
+    if (system::GetParameter(BUNDLE_SCAN_PARAM_NAME, "-1") == "1") {
         paramNeeded_.erase(BUNDLE_SCAN_PARAM_NAME);
         return true;
     }

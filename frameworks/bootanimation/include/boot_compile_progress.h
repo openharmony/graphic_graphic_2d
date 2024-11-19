@@ -58,7 +58,6 @@ private:
     Rosen::ScreenId screenId_;
     std::string displayInfo_ = "";
 
-    //bool isBmsCompileDone_ = false;
     volatile bool isUpdateOptEnd_ = false;
 
     std::shared_ptr<Rosen::RSSurfaceNode> rsSurfaceNode_;
