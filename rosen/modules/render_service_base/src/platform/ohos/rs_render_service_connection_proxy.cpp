@@ -3199,23 +3199,23 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
 }
 
 int64_t RSRenderServiceConnectionProxy::GetHdrOnDuration()
-｛
+{
     MessageParcel data;
     MessageParcel reply;
     MessageParcel option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) ｛
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return RS_CONNECTION_ERROR;
-    ｝
+    }
     option.SetFlags(MessageOption::TF_SYNC);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HDR_ON_DURATION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) ｛
+    if (err != NO_ERROR) {
         return RS_CONNECTION_ERROR;
-    ｝
+    }
     int64_t result = reply.ReadInt64();
     return result;
-｝
+}
 
 void RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)
 {
