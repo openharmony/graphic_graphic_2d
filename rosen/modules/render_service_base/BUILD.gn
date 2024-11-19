@@ -300,8 +300,8 @@ ohos_source_set("render_service_base_src") {
     #info_collection
     "src/info_collection/rs_gpu_dirty_region_collection.cpp",
     "src/info_collection/rs_hardware_compose_disabled_reason_collection.cpp",
-    "src/info_collection/rs_layer_compose_collection.cpp",
     "src/info_collection/rs_hdr_collection.cpp",
+    "src/info_collection/rs_layer_compose_collection.cpp",
   ]
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
