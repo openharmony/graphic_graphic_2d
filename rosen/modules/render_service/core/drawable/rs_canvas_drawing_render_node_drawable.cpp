@@ -194,7 +194,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
     Flush(rect.GetWidth(), rect.GetHeight(), ctx, nodeId_,
         *static_cast<RSPaintFilterCanvas*>(&canvas)); // getimage
     if (image_ == nullptr) {
-        RS_LOGD_LIMIT(__func__, __line__, "Failed to draw gpu image!");
+        RS_LOGD("Failed to draw gpu image!");
         return;
     }
 
