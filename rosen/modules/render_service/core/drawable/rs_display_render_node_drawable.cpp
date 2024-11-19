@@ -681,9 +681,10 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw HDRDraw isHdrOn: %{public}d, BrightnessRatio: %{public}f",
         isHdrOn, hdrBrightnessRatio);
 
-    if (uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor) &&
+    // checkDisplayNodeSkip need to be judged at the end
+    if ((RSMainThread::Instance()->GetDeviceType() != DeviceType::PC || paramScreenId == 0) &&
         RSAncoManager::Instance()->GetAncoHebcStatus() == AncoHebcStatus::INITIAL &&
-        (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC || paramScreenId == 0)) {
+        uniParam->IsOpDropped() && CheckDisplayNodeSkip(*params, processor)) {
         SetDrawSkipType(DrawSkipType::DISPLAY_NODE_SKIP);
         RSMainThread::Instance()->SetFrameIsRender(false);
         SetDisplayNodeSkipFlag(*uniParam, true);
