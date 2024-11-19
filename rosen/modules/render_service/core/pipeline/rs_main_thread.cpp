@@ -1901,11 +1901,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     });
 }
 
-bool RSMainThread::GetParallelCompositionEnabled()
-{
-    return doParallelComposition_;
-}
-
 void RSMainThread::SetFrameIsRender(bool isRender)
 {
     if (rsVSyncDistributor_ != nullptr) {
