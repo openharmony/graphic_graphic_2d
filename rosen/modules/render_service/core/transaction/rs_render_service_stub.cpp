@@ -65,7 +65,9 @@ int RSRenderServiceStub::OnRemoteRequest(
 
             auto token = iface_cast<RSIConnectionToken>(remoteObj);
             auto newConn = CreateConnection(token);
-            reply.WriteRemoteObject(newConn->AsObject());
+            if (newConn != nullptr) {
+                reply.WriteRemoteObject(newConn->AsObject());
+            }
             break;
         }
         default: {

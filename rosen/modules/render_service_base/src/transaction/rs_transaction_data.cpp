@@ -129,7 +129,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                 success = false;
             }
         }
-        if (!success) {
+        if (!success && command != nullptr) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
             return false;
         }
