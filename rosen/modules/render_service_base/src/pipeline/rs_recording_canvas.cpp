@@ -120,10 +120,16 @@ void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& su
     }
     std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry = std::make_shared<Drawing::SurfaceBufferEntry>(
         surfaceBufferInfo.surfaceBuffer_, surfaceBufferInfo.acquireFence_);
+    Drawing::Rect srcRect = surfaceBufferInfo.srcRect_;
+    if ((srcRect.GetWidth() <= 0 || srcRect.GetHeight() <= 0) && surfaceBufferInfo.surfaceBuffer_) {
+        srcRect = Drawing::Rect { 0, 0, surfaceBufferInfo.surfaceBuffer_->GetWidth(),
+            surfaceBufferInfo.surfaceBuffer_->GetHeight() };
+    }
     AddDrawOpImmediate<Drawing::DrawSurfaceBufferOpItem::ConstructorHandle>(
         Drawing::CmdListHelper::AddSurfaceBufferEntryToCmdList(*cmdList_, surfaceBufferEntry),
-        surfaceBufferInfo.offSetX_, surfaceBufferInfo.offSetY_,
-        surfaceBufferInfo.width_, surfaceBufferInfo.height_, surfaceBufferInfo.pid_, surfaceBufferInfo.uid_);
+        surfaceBufferInfo.dstRect_.GetLeft(), surfaceBufferInfo.dstRect_.GetTop(),
+        surfaceBufferInfo.dstRect_.GetWidth(), surfaceBufferInfo.dstRect_.GetHeight(), surfaceBufferInfo.pid_,
+        surfaceBufferInfo.uid_, srcRect);
 }
 #endif
 
