@@ -1178,6 +1178,17 @@ HWTEST_F(RSPropertiesPainterTest, DrawLightUpEffect001, TestSize.Level1)
     EXPECT_TRUE(properties.clipPath_ != nullptr);
 }
 
+/**
+ * @tc.name: MakeLightUpEffectBlender001
+ * @tc.desc: test results of MakeLightUpEffectBlender
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesPainterTest, MakeLightUpEffectBlender001, TestSize.Level1)
+{
+    auto blender = RSPropertiesPainter::MakeLightUpEffectBlender(1.0f);
+    EXPECT_NE(blender, nullptr);
+}
 
 /**
  * @tc.name: DynamicBrightnessBlenderTest001
