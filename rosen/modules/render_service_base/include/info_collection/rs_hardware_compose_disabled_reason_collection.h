@@ -23,7 +23,7 @@
 
 namespace OHOS {
 namespace Rosen {
-static const size_t HWC_DISABLED_REASON_INFO_MIN_BYTE = 14 * sizeof(int32_t);
+static const size_t HWC_DISABLED_REASON_INFO_MIN_SIZE = 14 * sizeof(int32_t);
 
 enum HwcDisabledReasons {
     DISABLED_BY_FLITER_RECT = 0,
