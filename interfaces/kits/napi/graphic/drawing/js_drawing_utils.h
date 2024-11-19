@@ -357,7 +357,7 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
 
-bool ConvertFromJsColorWithNumber(napi_env env, napi_value jsValue, int32_t* argb, size_t size, size_t argc);
+bool ConvertFromJsColorWithNumber(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 
