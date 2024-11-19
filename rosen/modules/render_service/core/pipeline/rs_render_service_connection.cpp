@@ -2056,15 +2056,15 @@ HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
 }
 
 int64_t RSRenderServiceConnection::GetHdrOnDuration()
-｛
+{
     auto rsHdrCollection = RsHdrCollection::GetInstance();
-    if (rsHdrCollection == nullptr) ｛
+    if (rsHdrCollection == nullptr) {
         return -1;
-    ｝
+    }
     int64_t duration = rsHdrCollection->GetHdrOnDuration();
     rsHdrCollection->ResetHdrOnDuration();
     return duration;
-｝
+}
 
 void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 {
