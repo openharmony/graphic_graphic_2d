@@ -326,8 +326,14 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = true;
     renderInterpolatingSpringAnimation->SetZeroThreshold(-0.5f);
+    EXPECT_FALSE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = false;
     renderInterpolatingSpringAnimation->SetZeroThreshold(0.5f);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
 }
 
 /**
