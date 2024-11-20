@@ -79,6 +79,7 @@ bool g_useSharedMem = true;
 std::thread::id g_tid = std::thread::id();
 constexpr size_t LARGE_MALLOC = 200000000;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+constexpr
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
