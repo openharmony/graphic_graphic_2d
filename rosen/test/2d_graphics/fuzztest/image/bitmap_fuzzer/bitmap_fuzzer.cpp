@@ -42,8 +42,8 @@ bool BitmapFuzzTest001(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int width = static_cast<int>(data[0]);
-    int height = static_cast<int>(data[1]);
+    int width = GetObject<int>();
+    int height = GetObject<int>();
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bitmap.Build(width, height, bitmapFormat);
     if (bitmap.GetWidth() != width || bitmap.GetHeight() != height || bitmap.GetPixels() == nullptr) {
