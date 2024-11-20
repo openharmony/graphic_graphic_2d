@@ -13,25 +13,17 @@
  * limitations under the License.
  */
 
-#ifndef DRAWING_CANVAS_H
-#define DRAWING_CANVAS_H
-#include "draw/canvas.h"
-#include "drawing_error_code.h"
-#include "utils/rect.h"
-#include "utils/sampling_options.h"
+#ifndef DRAWING_FONT_H
+#define DRAWING_FONT_H
+#include "rosen_text/font_collection.h"
+#include "text/font.h"
+#include "text/font_mgr.h"
 
-namespace OHOS {
-namespace Media {
-class PixelMap;
-}
-}
-
-class DrawingCanvasUtils {
+class DrawingFontUtils {
 public:
-    static void DrawPixelMapRect(OHOS::Rosen::Drawing::Canvas* canvas, std::shared_ptr<OHOS::Media::PixelMap> pixelMap,
-        const OHOS::Rosen::Drawing::Rect* src, const OHOS::Rosen::Drawing::Rect* dst,
-        const OHOS::Rosen::Drawing::SamplingOptions* sampling);
+    static std::shared_ptr<OHOS::Rosen::Drawing::Typeface> GetZhCnTypeface();
+    static std::shared_ptr<OHOS::Rosen::Drawing::Font> GetThemeFont(const OHOS::Rosen::Drawing::Font* font);
+private:
+    static std::shared_ptr<OHOS::Rosen::Drawing::Typeface> zhCnTypeface_;
 };
-
-extern OH_Drawing_ErrorCode g_drawingErrorCode;
-#endif // DRAWING_CANVAS_H
+#endif // DRAWING_FONT_H

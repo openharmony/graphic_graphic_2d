@@ -18,6 +18,7 @@
 #include "src/utils/SkUTF.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_font_utils.h"
 #include "drawing_helper.h"
 #include "image_pixel_map_mdk.h"
 #include "native_pixel_map.h"
@@ -105,9 +106,9 @@ static const SamplingOptions& CastToSamplingOptions(const OH_Drawing_SamplingOpt
     return reinterpret_cast<const SamplingOptions&>(cSamplingOptions);
 }
 
-static const Font& CastToFont(const OH_Drawing_Font& cFont)
+static const Font* CastToFont(const OH_Drawing_Font* cFont)
 {
-    return reinterpret_cast<const Font&>(cFont);
+    return reinterpret_cast<const Font*>(cFont);
 }
 
 OH_Drawing_Canvas* OH_Drawing_CanvasCreate()
@@ -523,7 +524,12 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawSingleCharacter(OH_Drawing_Canvas* cCa
     }
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);
-    canvas->DrawSingleCharacter(unicode, CastToFont(*cFont), x, y);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    canvas->DrawSingleCharacter(unicode, *font, x, y);
     return OH_DRAWING_SUCCESS;
 }
 

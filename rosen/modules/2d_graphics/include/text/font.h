@@ -268,6 +268,18 @@ public:
      */
     void GetTextPath(const void* text, size_t byteLength, TextEncoding encoding, float x, float y, Path* path) const;
 
+    /**
+     * @brief             Sets whether to follow the theme font first.
+     * @param followed    Indicates whether to follow the theme font first.
+     */
+    void SetThemeFontFollowed(bool followed);
+
+    /**
+     * @brief          Gets whether to follow the theme font first.
+     * @return         True if follow the theme font first.
+     */
+    bool IsThemeFontFollowed() const;
+
     template<typename T>
     T* GetImpl() const
     {
@@ -275,6 +287,7 @@ public:
     }
 
 private:
+    bool themeFontFollowed_ = false; // Only effective for ndk interface and ArkTS interface.
     std::shared_ptr<FontImpl> fontImpl_;
 };
 } // namespace Drawing

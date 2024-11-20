@@ -237,6 +237,16 @@ void Font::GetTextPath(const void* text, size_t byteLength, TextEncoding encodin
 {
     fontImpl_->GetTextPath(text, byteLength, encoding, x, y, path);
 }
+
+void Font::SetThemeFontFollowed(bool followed)
+{
+    themeFontFollowed_ = followed;
+}
+
+bool Font::IsThemeFontFollowed() const
+{
+    return themeFontFollowed_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
