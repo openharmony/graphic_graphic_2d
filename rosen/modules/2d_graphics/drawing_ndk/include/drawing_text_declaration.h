@@ -131,6 +131,14 @@ typedef struct OH_Drawing_FontParser OH_Drawing_FontParser;
 typedef struct OH_Drawing_TextShadow OH_Drawing_TextShadow;
 
 /**
+ * @brief Defines an <b>OH_Drawing_TextTab</b>, which is used to create an <b>OH_Drawing_TextTab</b> object.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_TextTab OH_Drawing_TextTab;
+
+/**
  * @brief Defines an <b>OH_Drawing_TextLine</b>, which is used to manage text line.
  *
  * @since 14
@@ -139,20 +147,12 @@ typedef struct OH_Drawing_TextShadow OH_Drawing_TextShadow;
 typedef struct OH_Drawing_TextLine OH_Drawing_TextLine;
 
 /**
- * @brief Defines an <b>OH_Drawing_Run</b>, which is used to manage run.
+ * @brief Defines an <b>OH_Drawing_Run</b>, which is used to mange run.
  *
  * @since 14
  * @version 1.0
  */
 typedef struct OH_Drawing_Run OH_Drawing_Run;
-
-/**
- * @brief Defines an <b>OH_Drawing_TextTab</b>, which is used to create an <b>OH_Drawing_TextTab</b> object.
- *
- * @since 14
- * @version 1.0
- */
-typedef struct OH_Drawing_TextTab OH_Drawing_TextTab;
 
 #ifdef __cplusplus
 }

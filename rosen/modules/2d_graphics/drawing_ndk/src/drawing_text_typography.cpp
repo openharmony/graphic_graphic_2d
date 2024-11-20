@@ -290,10 +290,6 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
             rosenDecoration = TextDecoration::LINE_THROUGH;
             break;
         }
-        case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
-            rosenDecoration = static_cast<TextDecoration>(TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-            break;
-        }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }
@@ -1921,10 +1917,12 @@ double OH_Drawing_TextStyleGetBaselineShift(OH_Drawing_TextStyle* style)
 uint32_t OH_Drawing_TextStyleGetColor(OH_Drawing_TextStyle* style)
 {
     if (style == nullptr) {
+        // 0xFFFFFFFF is default color.
         return 0xFFFFFFFF;
     }
     TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
     if (textStyle == nullptr) {
+        // 0xFFFFFFFF is default color.
         return 0xFFFFFFFF;
     }
     return textStyle->color.CastToColorQuad();
@@ -3407,20 +3405,6 @@ void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const cha
     }
 }
 
-size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
-{
-    if (drawingArray == nullptr) {
-        return 0;
-    }
-
-    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
-    if (array == nullptr) {
-        return 0;
-    }
-
-    return array->num;
-}
-
 OH_Drawing_TextTab* OH_Drawing_CreateTextTab(OH_Drawing_TextAlign alignment, float location)
 {
     TextAlign textAlign;
@@ -3473,4 +3457,18 @@ float OH_Drawing_GetTextTabLocation(OH_Drawing_TextTab* tab)
         return 0.0;
     }
     return ConvertToOriginalText<TextTab>(tab)->location;
+}
+
+size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
+{
+    if (drawingArray == nullptr) {
+        return 0;
+    }
+
+    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
+    if (array == nullptr) {
+        return 0;
+    }
+
+    return array->num;
 }
