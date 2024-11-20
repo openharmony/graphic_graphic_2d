@@ -45,9 +45,9 @@ std::shared_ptr<OHOS::Media::PixelMap> Filter::GetPixelMap()
     return dstPixelMap_;
 }
 
-bool Filter::Blur(float radius, SkTileMode skTileMode)
+bool Filter::Blur(float radius)
 {
-    auto blur = Rosen::SKImageFilterFactory::Blur(radius, skTileMode);
+    auto blur = Rosen::SKImageFilterFactory::Blur(radius);
     if (!blur) {
         return false;
     }
