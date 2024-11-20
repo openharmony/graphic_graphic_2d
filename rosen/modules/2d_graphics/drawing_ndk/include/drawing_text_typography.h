@@ -42,7 +42,7 @@
 #include <cstdint>
 #else
 #include <stddef.h>
-#include "stdint.h"
+#include <stdint.h>
 #endif
 #include "drawing_canvas.h"
 #include "drawing_color.h"
@@ -2741,17 +2741,6 @@ void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_
     double blurRadius);
 
 /**
- * @brief Get DrawingArray size.
- *
- * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
- * @param drawingArray Indicates the pointer to the array object <b>OH_Drawing_Array</b>.
- * @return Size of array.
- * @since 14
- * @version 1.0
- */
-size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray);
-
-/**
  * @brief Creates an <b>OH_Drawing_TextTab</b> object.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -2811,6 +2800,17 @@ float OH_Drawing_GetTextTabLocation(OH_Drawing_TextTab*);
  * @version 1.0
  */
 void OH_Drawing_SetTypographyTextTab(OH_Drawing_TypographyStyle*, OH_Drawing_TextTab* TextTab);
+
+/**
+ * @brief Get DrawingArray size.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param drawingArray Indicates the pointer to the array object <b>OH_Drawing_Array</b>.
+ * @return Size of array.
+ * @since 14
+ * @version 1.0
+ */
+size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray);
 
 #ifdef __cplusplus
 }

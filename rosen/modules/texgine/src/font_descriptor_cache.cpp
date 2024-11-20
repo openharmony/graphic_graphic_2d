@@ -238,7 +238,7 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         result = nullptr;
         return;
     }
-    
+
     auto tryFindFontDescriptor = [&fullName, &result](const std::unordered_map<std::string,
         std::set<FontDescSharedPtr>>& map) -> bool {
         auto it = map.find(fullName);

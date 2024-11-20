@@ -21,7 +21,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-const std ::string CLASS_NAME = "TextLine";
+const std::string CLASS_NAME = "TextLine";
 }
 thread_local napi_ref JsTextLine::constructor_ = nullptr;
 
@@ -510,7 +510,7 @@ bool CallJsFunc(napi_env env, napi_value callback, int32_t index, double leftOff
 napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info info)
 {
     TEXT_ERROR_CHECK(textLine_ != nullptr,
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params"), "TextLine is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params."), "TextLine is nullptr");
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE];
