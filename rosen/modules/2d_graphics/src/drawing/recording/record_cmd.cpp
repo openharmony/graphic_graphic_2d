@@ -26,8 +26,8 @@ RecordCmd::RecordCmd(const std::shared_ptr<DrawCmdList>& cmdList, const Rect& bo
 
 void RecordCmd::Playback(Canvas* canvas)
 {
-    if (drawCmdList_ == nullptr) {
-        LOGE("RecordCmd::Playback failed, drawCmdList_ is nullptr");
+    if (drawCmdList_ == nullptr || canvas == nullptr) {
+        LOGE("RecordCmd::Playback failed, drawCmdList_ or canvas is nullptr");
         return;
     }
     drawCmdList_->Playback(*canvas);
