@@ -165,10 +165,10 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
     NodeId id = 1;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
-    auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
+    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap;
     pid_t pid = 1;
     rsRenderNodeMap.MoveRenderNodeMap(subRenderNodeMap, pid);
-    rsRenderNodeMap.renderNodeMap_[pid][id] = node;
+    rsRenderNodeMap.renderNodeMap_.emplace(id, node);
     rsRenderNodeMap.MoveRenderNodeMap(subRenderNodeMap, pid);
     EXPECT_TRUE(true);
 }
@@ -182,12 +182,11 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid, TestSize.Level1)
 {
     NodeId id = 0;
-    pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.FilterNodeByPid(1);
 
-    rsRenderNodeMap.renderNodeMap_[pid][id] = node;
+    rsRenderNodeMap.renderNodeMap_.emplace(id, node);
     rsRenderNodeMap.FilterNodeByPid(1);
     RSDisplayNodeConfig config;
     auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config);
@@ -240,13 +239,12 @@ HWTEST_F(RSRenderNodeMapTest, GetAndClearPurgeableNodeIds, TestSize.Level1)
 HWTEST_F(RSRenderNodeMapTest, GetAnimationFallbackNode, TestSize.Level1)
 {
     NodeId id = 0;
-    pid_t pid = ExtractPid(id);
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.renderNodeMap_.clear();
     rsRenderNodeMap.GetAnimationFallbackNode();
 
-    rsRenderNodeMap.renderNodeMap_[pid][id] = node;
+    rsRenderNodeMap.renderNodeMap_.emplace(id, node);
     EXPECT_NE(rsRenderNodeMap.GetAnimationFallbackNode(), nullptr);
 }
 
