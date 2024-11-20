@@ -27,6 +27,7 @@ public:
     void PostTask(const std::function<void()>& task, int64_t delayTime = 0);
     bool PostSyncTask(const std::function<void()>& task);
     void PostEvent(std::string eventId, const std::function<void()>& task, int64_t delayTime = 0);
+    void DetectMultiThreadingCalls();
     void RemoveEvent(std::string eventId);
 
 private:
@@ -39,6 +40,7 @@ private:
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    int32_t curThreadId_ = -1;
 };
 }
 #endif // HGM_TASK_HANDLE_THREAD_H
