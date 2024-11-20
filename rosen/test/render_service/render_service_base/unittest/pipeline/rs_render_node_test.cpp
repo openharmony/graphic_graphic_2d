@@ -2747,5 +2747,22 @@ HWTEST_F(RSRenderNodeTest, SetAccumulatedClipFlagTest, TestSize.Level1)
     ASSERT_TRUE(nodeTest->SetAccumulatedClipFlag(true));
     ASSERT_FALSE(nodeTest->SetAccumulatedClipFlag(false));
 }
+
+/**
+ * @tc.name: GetIsFullChildrenListValid
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->isFullChildrenListValid_ = true;
+    ASSERT_TRUE(renderNode->GetIsFullChildrenListValid());
+    renderNode->isFullChildrenListValid_ = false;
+    ASSERT_FALSE(renderNode->GetIsFullChildrenListValid());
+}
+
 } // namespace Rosen
 } // namespace OHOS

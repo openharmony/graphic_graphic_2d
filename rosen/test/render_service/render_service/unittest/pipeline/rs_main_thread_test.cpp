@@ -4047,4 +4047,80 @@ HWTEST_F(RSMainThreadTest, RenderServiceAllNodeDump01, TestSize.Level1)
     DfxString log;
     mainThread->RenderServiceAllNodeDump(log);
 }
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync001
+ * @tc.desc: test IsOcclusionNodesNeedSync001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->isFullChildrenListValid_ = false;
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_TRUE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+}
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync002
+ * @tc.desc: test IsOcclusionNodesNeedSync002
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_TRUE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+}
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync003
+ * @tc.desc: test IsOcclusionNodesNeedSync003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    ASSERT_FALSE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+}
+
+/**
+ * @tc.name: IsOcclusionNodesNeedSync004
+ * @tc.desc: test IsOcclusionNodesNeedSync004
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync004, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_FALSE(mainThread->IsOcclusionNodesNeedSync(nodeId, false));
+}
+
 } // namespace OHOS::Rosen
