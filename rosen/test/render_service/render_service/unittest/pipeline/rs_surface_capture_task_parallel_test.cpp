@@ -251,5 +251,31 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Run004, TestSize.Level2)
     task.displayNodeDrawable_ = nullptr;
     ASSERT_EQ(false, task.Run(nullptr, false));
 }
+
+/*
+ * @tc.name: CheckModifiers
+ * @tc.desc: Test CheckModifiers
+ * @tc.type: FUNC
+ * @tc.require:
+*/
+HWTEST_F(RSSurfaceCaptureTaskParallelTest, CheckModifiers, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+    NodeId nodeId = 1;
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(node);
+    ASSERT_TRUE(mainThread->IsOcclusionNodesNeedSync(nodeId, true));
+    mainThread->GetContext().AddPendingSyncNode(node);
+    RSSurfaceCaptureConfig captureConfig;
+    RSSurfaceCaptureTaskParallel task(nodeId, captureConfig);
+    captureConfig.useCurWindow = true;
+    task.CheckModifiers(nodeId, captureConfig.useCurWindow);
+}
+
 }
 }
