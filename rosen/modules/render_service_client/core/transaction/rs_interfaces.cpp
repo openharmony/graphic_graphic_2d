@@ -251,6 +251,11 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
                     typeface->GetUniqueID());
             uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
             RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+        } else {
+            if (typeface != nullptr) {
+                RS_LOGD("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
+                    typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+            }
         }
         return result;
     }
