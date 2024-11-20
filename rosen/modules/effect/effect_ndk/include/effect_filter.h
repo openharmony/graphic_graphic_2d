@@ -77,20 +77,6 @@ EffectErrorCode OH_Filter_Release(OH_Filter* filter);
 EffectErrorCode OH_Filter_Blur(OH_Filter* filter, float radius);
 
 /**
- * @brief Creates a blur effect and then add to the filter.
- *
- * @syscap SystemCapability.Multimedia.Image.Core
- * @param filter The OH_Filter pointer will be operated.
- * @param radius The radius of the blur effect.
- * @param tileMode The tileMode of the blur effect.
- * @return BlurWithTileMode result code.
- *        {@link EFFECT_SUCCESS} if the operation is successful.
- *        {@link EFFECT_BAD_PARAMETER} if parameter is invalid.
- * @since 14
- */
-EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, EffectTileMode tileMode);
-
-/**
  * @brief Creates a brighten effect and then add to the filter.
  *
  * @syscap SystemCapability.Multimedia.Image.Core

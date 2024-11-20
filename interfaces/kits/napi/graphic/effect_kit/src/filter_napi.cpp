@@ -34,12 +34,6 @@ namespace {
     constexpr uint32_t NUM_0 = 0;
     constexpr uint32_t NUM_1 = 1;
     constexpr uint32_t NUM_2 = 2;
-    const std::map<std::string, SkTileMode> STRING_TO_JS_MAP = {
-        { "CLAMP", SkTileMode::kClamp },
-        { "REPEAT", SkTileMode::kRepeat },
-        { "MIRROR", SkTileMode::kMirror },
-        { "DECAL", SkTileMode::kDecal },
-    };
 }
 
 namespace OHOS {
@@ -155,25 +149,6 @@ void FilterNapi::Destructor(napi_env env,
 
 thread_local napi_ref FilterNapi::sConstructor_ = nullptr;
 
-napi_value TileModeInit(napi_env env)
-{
-    EFFECT_NAPI_CHECK_RET_D(env != nullptr, nullptr, EFFECT_LOG_E("FilterNapi TileModeInit env is nullptr"));
-    napi_value object = nullptr;
-    napi_status status = napi_create_object(env, &object);
-    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi TileModeInit fail to get object"));
-
-    for (auto& [tileModeName, tileMode] : STRING_TO_JS_MAP) {
-        napi_value value = nullptr;
-        status = napi_create_int32(env, static_cast<int32_t>(tileMode), &value);
-        EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
-            EFFECT_LOG_E("FilterNapi TileModeInit fail to create int32"));
-        status = napi_set_named_property(env, object, tileModeName.c_str(), value);
-        EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
-            EFFECT_LOG_E("FilterNapi TileModeInit fail to set tileModeName"));
-    }
-    return object;
-}
-
 napi_value FilterNapi::Init(napi_env env, napi_value exports)
 {
     napi_status status;
@@ -228,9 +203,6 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         EFFECT_LOG_I("FilterNapi Init napi_set_named_property fail");
         return nullptr;
     }
-    auto tileModeFormat = TileModeInit(env);
-    status = napi_set_named_property(env, exports, "TileMode", tileModeFormat);
-    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi Init set TileMode fail"));
     return exports;
 }
 napi_value FilterNapi::CreateEffect(napi_env env, napi_callback_info info)

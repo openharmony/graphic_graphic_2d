@@ -63,15 +63,6 @@ EffectErrorCode OH_Filter_Blur(OH_Filter* filter, float radius)
     return EFFECT_SUCCESS;
 }
 
-EffectErrorCode OH_Filter_BlurWithTileMode(OH_Filter* filter, float radius, EffectTileMode tileMode)
-{
-    SkTileMode skTileMode = static_cast<SkTileMode>(tileMode);
-    if (!filter || !(CastToFilter(filter)->Blur(radius, skTileMode))) {
-        return EFFECT_BAD_PARAMETER;
-    }
-    return EFFECT_SUCCESS;
-}
-
 EffectErrorCode OH_Filter_Brighten(OH_Filter* filter, float brightness)
 {
     if (!filter || !(CastToFilter(filter)->Brightness(brightness))) {
