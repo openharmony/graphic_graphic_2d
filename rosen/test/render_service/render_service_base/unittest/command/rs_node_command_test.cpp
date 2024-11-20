@@ -158,7 +158,6 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
-    pid_t pid = ExtractPid(nodeId);
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     EXPECT_EQ(1, nodeId);
 
@@ -169,7 +168,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
     EXPECT_NE(renderNode, nullptr);
 
     renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
-    context.nodeMap.renderNodeMap_[pid][nodeId] = renderNode;
+    context.nodeMap.renderNodeMap_.at(nodeId) = renderNode;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     EXPECT_EQ(0, nodeId);
 }
