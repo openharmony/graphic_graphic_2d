@@ -69,6 +69,8 @@ constexpr int32_t NO_SPECIAL_LAYER = 0;
 constexpr int32_t HAS_SPECIAL_LAYER = 1;
 constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being deleted
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
+constexpr const float HALF = 2.0;
+static std::once_flag g_initTranslateForWallpaperFlag;
 
 std::string RectVectorToString(std::vector<RectI>& regionRects)
 {
@@ -193,6 +195,28 @@ static std::vector<RectI> MergeDirtyHistoryInVirtual(RSDisplayRenderNodeDrawable
     }
 
     return rects;
+}
+
+void RSDisplayRenderNodeDrawable::InitTranslateForWallpaper()
+{
+    if (!RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+        return;
+    }
+    std::call_once(g_initTranslateForWallpaperFlag, [this]() {
+        auto params = static_cast<RSDisplayRenderParams*>(renderParams_.get());
+        if (UNLIKELY(!params)) {
+            return;
+        }
+        auto framesize = params->GetFrameRect();
+        int32_t offscreenWidth = static_cast<int32_t>(framesize.GetWidth());
+        int32_t offscreenHeight = static_cast<int32_t>(framesize.GetHeight());
+        int32_t screenWidth = params->GetScreenInfo().width;
+        int32_t screenHeight = params->GetScreenInfo().height;
+        auto maxRenderSize = std::ceil(std::sqrt(screenWidth * screenWidth + screenHeight * screenHeight));
+        auto translateX = std::round((maxRenderSize - offscreenWidth) / HALF);
+        auto translateY = std::round((maxRenderSize - screenHeight) / HALF);
+        RSUniRenderThread::Instance().SetWallpaperTranslate(translateX, translateY);
+    });
 }
 
 std::unique_ptr<RSRenderFrame> RSDisplayRenderNodeDrawable::RequestFrame(
@@ -549,6 +573,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // dfx
     RSRenderNodeDrawable::InitDfxForCacheInfo();
+    // init translate for wallpaper
+    InitTranslateForWallpaper();
     // set for cache and draw cross node in extended screen model
     uniParam->SetIsMirrorScreen(params->IsMirrorScreen());
     uniParam->SetIsFirstVisitCrossNodeDisplay(params->IsFirstVisitCrossNodeDisplay());
@@ -1686,10 +1712,23 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     if (useFixedSize && (RSSystemProperties::IsFoldScreenFlag() || RSSystemProperties::IsTabletType())
         && params->IsRotationChanged()) {
         useFixedOffscreenSurfaceSize_ = true;
-        int32_t maxRenderSize =
-            static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
+        int32_t maxRenderSize;
+        if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+            int32_t screenWidth = params->GetScreenInfo().width;
+            int32_t screenHeight = params->GetScreenInfo().height;
+            maxRenderSize = std::ceil(std::sqrt(screenWidth * screenWidth + screenHeight * screenHeight));
+            offscreenTranslateX_ = std::round((maxRenderSize - offscreenWidth) / HALF);
+            offscreenTranslateY_ = std::round((maxRenderSize - offscreenHeight) / HALF);
+            RSUniRenderThread::Instance().SetWallpaperTranslate(offscreenTranslateX_, offscreenTranslateY_);
+        } else {
+            maxRenderSize =
+                static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
+        }
         offscreenWidth = maxRenderSize;
         offscreenHeight = maxRenderSize;
+    } else {
+        offscreenTranslateX_ = 0;
+        offscreenTranslateY_ = 0;
     }
     if (params->IsRotationChanged()) {
         if (RSUniRenderThread::Instance().GetVmaOptimizeFlag()) {
@@ -1736,6 +1775,11 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
     }
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface_.get());
 
+    if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+        offscreenCanvas->ResetMatrix();
+        offscreenCanvas->Translate(offscreenTranslateX_, offscreenTranslateY_);
+    }
+
     // copy HDR properties into offscreen canvas
     offscreenCanvas->CopyHDRConfiguration(*curCanvas_);
     // copy current canvas properties into offscreen canvas
@@ -1768,7 +1812,12 @@ void RSDisplayRenderNodeDrawable::FinishOffscreenRender(const Drawing::SamplingO
     }
     paint.SetAntiAlias(true);
     canvasBackup_->AttachBrush(paint);
-    canvasBackup_->DrawImage(*image, 0, 0, sampling);
+    if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+        canvasBackup_->DrawImage(*image, -offscreenTranslateX_, -offscreenTranslateY_, sampling);
+        canvasBackup_->Translate(offscreenTranslateX_, offscreenTranslateY_);
+    } else {
+        canvasBackup_->DrawImage(*image, 0, 0, sampling);
+    }
     canvasBackup_->DetachBrush();
     // restore current canvas and cleanup
     if (!useFixedOffscreenSurfaceSize_) {
