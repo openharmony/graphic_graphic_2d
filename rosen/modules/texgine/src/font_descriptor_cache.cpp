@@ -162,7 +162,7 @@ bool FontDescriptorCache::ProcessSystemFontType(const int32_t& systemFontType, i
         return false;
     }
     fontType = systemFontType;
-    if (systemFontType & TextEngine::FontParser::SystemFontType::ALL) {
+    if (static_cast<uint32_t>(systemFontType) & TextEngine::FontParser::SystemFontType::ALL) {
         fontType = TextEngine::FontParser::SystemFontType::GENERIC |
             TextEngine::FontParser::SystemFontType::STYLISH |
             TextEngine::FontParser::SystemFontType::INSTALLED;
@@ -183,17 +183,17 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
         return;
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::GENERIC) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::GENERIC) {
         auto fullNameList = GetGenericFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::STYLISH) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::STYLISH) {
         auto fullNameList = GetStylishFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::INSTALLED) {
         auto fullNameList = GetInstallFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
