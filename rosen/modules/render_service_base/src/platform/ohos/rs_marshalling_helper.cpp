@@ -1529,7 +1529,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
     }
     auto opItemSize = val->GetOpItemSize();
     if (opItemSize > MAX_OPITEMSIZE) {
-        ROSEN_LOGE("OpItemSize is too large, OpItemSize is %{public}lu", opItemSize);
+        ROSEN_LOGE("OpItemSize is too large, OpItemSize is %{public}PRlu64", opItemSize);
         return false;
     }
     auto cmdListData = val->GetData();
