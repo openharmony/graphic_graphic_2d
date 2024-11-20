@@ -38,7 +38,7 @@ public:
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
     std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback() const;
-    void SetPolicy(std::function<void(std::function<void()>)> runPolicy);
+    void SetRunPolicy(std::function<void(std::function<void()>)> runPolicy);
 
     static RSSurfaceBufferCallbackManager& Instance();
 private:

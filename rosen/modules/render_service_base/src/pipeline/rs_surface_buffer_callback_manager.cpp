@@ -25,7 +25,7 @@ RSSurfaceBufferCallbackManager& RSSurfaceBufferCallbackManager::Instance()
     return surfaceBufferCallbackMgr;
 }
 
-void RSSurfaceBufferCallbackManager::SetPolicy(std::function<void(std::function<void()>)> runPolicy)
+void RSSurfaceBufferCallbackManager::SetRunPolicy(std::function<void(std::function<void()>)> runPolicy)
 {
     runPolicy_ = runPolicy;
 }
