@@ -482,7 +482,9 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
+    rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
+    std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
     if (videoConfigFromHgm.empty() || pkgs.size() > 1) {
         return;
     }
@@ -495,6 +497,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
+        }
+        // 1 means enable dss by solid color layer
+        if (auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
+            iter != solidLayerConfigFromHgm.end() && iter->second == "1") {
+            rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
         }
     }
 }

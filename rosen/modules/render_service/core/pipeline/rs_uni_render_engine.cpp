@@ -68,9 +68,16 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
             continue;
         }
+        GraphicLayerColor layerBlackColor = {
+            .r = 0,
+            .g = 0,
+            .b = 0,
+            .a = 0
+        };
         auto layerSurface = layer->GetSurface();
         if (layerSurface != nullptr) {
             if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {

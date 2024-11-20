@@ -160,7 +160,8 @@ public:
     bool virtualDisplaySwitch_;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
-    std::unordered_map<std::string, std::string> sourceTuningConfig_;;
+    std::unordered_map<std::string, std::string> sourceTuningConfig_;
+    std::unordered_map<std::string, std::string> solidLayerConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
     bool videoFrameRateVoteSwitch_ = false;

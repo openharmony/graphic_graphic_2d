@@ -277,6 +277,7 @@ enum class MultiThreadCacheType : uint8_t {
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+    XCOM,
 };
 
 enum class SurfaceWindowType : uint8_t {
