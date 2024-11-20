@@ -79,6 +79,7 @@ bool g_useSharedMem = true;
 std::thread::id g_tid = std::thread::id();
 constexpr size_t LARGE_MALLOC = 200000000;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+constexpr size_t MAX_OPITEMSIZE = 170000;
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
@@ -1525,6 +1526,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 {
     if (!val) {
         return parcel.WriteInt32(-1);
+    }
+    auto opItemSize = val->GetOpItemSize();
+    if (opItemSize > MAX_OPITEMSIZE) {
+        ROSEN_LOGE("OpItemSize is too large, OpItemSize is %{public}u", opItemSize);
+        return false;
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);
