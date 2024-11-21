@@ -46,8 +46,9 @@ struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
         pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr, Drawing::Rect srcRect = {})
-        : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect), dstRect_(Drawing::Rect { offSetX, offSetY, width, height }),
-          pid_(pid), uid_(uid), acquireFence_(acquireFence)
+        : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
+          dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
+          acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     Drawing::Rect srcRect_;
