@@ -194,6 +194,11 @@ void RSRenderPathAnimation::OnAnimate(float fraction)
         return;
     }
 
+    if (GetOriginValue() == nullptr) {
+        ROSEN_LOGE("Failed to animate motion path, originValue is null!");
+        return;
+    }
+
     Vector2f position;
     float tangent = 0.0;
     GetPosTanValue(fraction, position, tangent);

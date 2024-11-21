@@ -78,11 +78,14 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
     auto node = nodeMap.GetRenderNode<RSRenderNode>(targetId_);
     if (!node || !property_) {
         success_ = false;
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, "
+            "node [%{public}" PRIu64 "] or property is null!", targetId_);
         return;
     }
     auto modifier = node->GetModifier(property_->GetId());
     if (!modifier) {
         success_ = false;
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, modifier is null!");
         return;
     }
     property_ = modifier->GetProperty();
@@ -150,6 +153,8 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         auto& [property, animations] = value;
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
+            ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::Process, "
+                "node [%{public}" PRIu64 "] is null!", nodeId);
             continue;
         }
         auto modifier = node->GetModifier(propertyId);
@@ -214,10 +219,12 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId_);
     if (node == nullptr) {
+        ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, node is null!");
         return;
     }
     auto animation = node->GetAnimationManager().GetAnimation(animationId_);
     if (animation == nullptr) {
+        ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, animation is null!");
         return;
     }
     success_ = true;
