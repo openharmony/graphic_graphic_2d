@@ -147,7 +147,7 @@ typedef struct OH_Drawing_TextTab OH_Drawing_TextTab;
 typedef struct OH_Drawing_TextLine OH_Drawing_TextLine;
 
 /**
- * @brief Defines an <b>OH_Drawing_Run</b>, which is used to mange run.
+ * @brief Defines an <b>OH_Drawing_Run</b>, which is used to manage run.
  *
  * @since 14
  * @version 1.0
