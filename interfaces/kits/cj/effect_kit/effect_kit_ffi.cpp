@@ -27,6 +27,8 @@ using namespace OHOS::FFI;
 using namespace OHOS::Media;
 using namespace OHOS::Rosen;
 
+const int64_t EFFECTKIT_ERROR = -1;
+
 void BuildCJColor(ColorManager::Color color, CJColor& cjColor)
 {
     cjColor.r = static_cast<int>(color.r * 255.0f);
@@ -41,7 +43,7 @@ int64_t FfiEffectKitCreateEffect(int64_t sourceId, uint32_t* errorCode)
     auto instance = FFIData::GetData<PixelMapImpl>(sourceId);
     if (!instance) {
         EFFECT_LOG_E("[PixelMap] instance not exist %{public}" PRId64, sourceId);
-        return -1;
+        return EFFECTKIT_ERROR;
     }
     return CJFilter::CreateEffect(instance, *errorCode);
 }
@@ -108,7 +110,13 @@ void FfiEffectKitSetColorMatrix(int64_t id, CArrFloat cjColorMatrix, uint32_t* e
 int64_t FfiEffectKitGetEffectPixelMap()
 {
     std::shared_ptr<OHOS::Media::PixelMap> map = CJFilter::GetEffectPixelMap();
+    if (map == nullptr) {
+        return EFFECTKIT_ERROR;
+    }
     auto native = FFIData::Create<PixelMapImpl>(map);
+    if (!native) {
+        return EFFECTKIT_ERROR;
+    }
     return native->GetID();
 }
 
@@ -118,7 +126,7 @@ int64_t FfiEffectKitCreateColorPicker(int64_t sourceId, uint32_t* errorCode)
     if (!instance) {
         EFFECT_LOG_E("[PixelMap] instance not exist %{public}" PRId64, sourceId);
         *errorCode = static_cast<int32_t>(Rosen::ERR_INVALID_PARAM);
-        return -1;
+        return EFFECTKIT_ERROR;
     }
     return CJColorPicker::CreateColorPicker(instance, *errorCode);
 }
@@ -129,7 +137,7 @@ int64_t FfiEffectKitCreateColorPickerRegion(int64_t sourceId, CArrDouble region,
     if (!instance) {
         EFFECT_LOG_E("[PixelMap] instance not exist %{public}" PRId64, sourceId);
         *errorCode = static_cast<int32_t>(Rosen::ERR_INVALID_PARAM);
-        return -1;
+        return EFFECTKIT_ERROR;
     }
     std::vector<double> cRegion;
     for (int i = 0; i < region.size; i++) {

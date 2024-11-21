@@ -30,11 +30,16 @@ namespace CJEffectKit {
 using namespace OHOS::Rosen;
 using namespace OHOS::Media;
 
+const int64_t EFFECTKIT_ERROR = -1;
+
 int64_t CJFilter::CreateEffect(Media::PixelMapImpl* source, uint32_t& errorCode)
 {
     std::shared_ptr<Media::PixelMap> pixmap = source->GetRealPixelMap();
     FilterCommon::CreateEffect(pixmap, errorCode);
     auto native = FFIData::Create<CJFilter>();
+    if (native == nullptr) {
+        return EFFECTKIT_ERROR;
+    }
     return native->GetID();
 }
 
