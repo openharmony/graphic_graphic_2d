@@ -1350,10 +1350,7 @@ void RSRenderServiceConnection::RegisterBufferAvailableListener(
             }
             return false;
     };
-    if (!registerBufferAvailableListener()) {
-        RS_LOGD("RegisterBufferAvailableListener: node not found, post task to retry");
-        mainThread_->PostTask(registerBufferAvailableListener);
-    }
+    mainThread_->PostTask(registerBufferAvailableListener);
 }
 
 int32_t RSRenderServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
