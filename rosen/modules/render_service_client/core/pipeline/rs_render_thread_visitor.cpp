@@ -813,7 +813,8 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
     ScalingMode scalingMode = surfaceBuffer->GetSurfaceBufferScalingMode();
     Drawing::Rect srcRect { 0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight() };
     Drawing::Rect dstRect { 0, 0, bounds.width_, bounds.height_ };
-    Drawing::Rect boundsRect = { bounds.left_, bounds.top_, bounds.width_, bounds.height_ };
+    Drawing::Rect boundsRect = { bounds.left_, bounds.top_, bounds.left_ + bounds.width_,
+        bounds.top_ + bounds.height_ };
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSRenderThreadUtil::SrcRectScaleDown(srcRect, boundsRect);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
