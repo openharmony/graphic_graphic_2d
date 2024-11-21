@@ -83,7 +83,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     RSSystemProperties::GetUniPartialRenderEnabled();
     RSSystemProperties::GetOcclusionEnabled();
     RSSystemProperties::GetRSEventProperty(paraName);
-    RSSystemProperties::GetDirectClientCompEnableStatus();
     RSSystemProperties::GetHighContrastStatus();
     RSSystemProperties::GetCorrectionMode();
     RSSystemProperties::GetDumpSurfaceType();
