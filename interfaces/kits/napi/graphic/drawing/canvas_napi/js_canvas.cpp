@@ -20,7 +20,6 @@
 #include "src/utils/SkUTF.h"
 
 #ifdef ROSEN_OHOS
-#include "image_utils.h"
 #include "pixel_map_napi.h"
 #endif
 #include "native_value.h"
@@ -114,8 +113,6 @@ struct PixelMapReleaseContext {
 
     ~PixelMapReleaseContext()
     {
-        if (pixelMap_ != nullptr)
-            pixelMap_->MarkDirty();
         pixelMap_ = nullptr;
     }
 
@@ -493,8 +490,9 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
 
     JS_CALL_DRAWING_FUNC(m_canvas->Clear(color));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -552,8 +550,9 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     m_canvas->DrawShadow(*jsPath->GetPath(), offset, lightPos, lightRadius, ambientColorPara, spotColorPara,
         static_cast<ShadowFlags>(shadowFlag));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -588,8 +587,9 @@ napi_value JsCanvas::OnDrawArc(napi_env env, napi_callback_info info)
 
     JS_CALL_DRAWING_FUNC(m_canvas->DrawArc(drawingRect, startAngle, sweepAngle));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -637,8 +637,9 @@ napi_value JsCanvas::OnDrawRect(napi_env env, napi_callback_info info)
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawRect(drawingRect);
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -671,8 +672,9 @@ napi_value JsCanvas::OnDrawCircle(napi_env env, napi_callback_info info)
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawCircle(centerPt, radius);
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -744,8 +746,9 @@ napi_value JsCanvas::OnDrawImage(napi_env env, napi_callback_info info)
         m_canvas->DrawImage(*image, px, py, *samplingOptions.get());
     }
 
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -809,8 +812,9 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
     }
 
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -839,8 +843,9 @@ napi_value JsCanvas::OnDrawOval(napi_env env, napi_callback_info info)
 
     JS_CALL_DRAWING_FUNC(m_canvas->DrawOval(drawingRect));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -870,8 +875,9 @@ napi_value JsCanvas::OnDrawPoint(napi_env env, napi_callback_info info)
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawPoint(Point(px, py));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -911,13 +917,11 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
     size_t argc = ARGC_TWO;
     napi_value argv[ARGC_TWO] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_TWO);
-
     napi_value array = argv[ARGC_ZERO];
     uint32_t size = 0;
     if (napi_get_array_length(env, array, &size) != napi_ok || (size == 0)) {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect src array size.");
     }
-
     if (argc == ARGC_ONE) {
         Point* points = new(std::nothrow) Point[size];
         if (points == nullptr) {
@@ -930,8 +934,9 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
         }
         JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(PointMode::POINTS_POINTMODE, size, points));
 #ifdef ROSEN_OHOS
-        if (mPixelMap_ != nullptr)
+        if (mPixelMap_ != nullptr) {
             mPixelMap_->MarkDirty();
+        }
 #endif
         delete [] points;
         return nullptr;
@@ -939,7 +944,6 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
 
     int32_t pointMode = 0;
     GET_ENUM_PARAM(ARGC_ONE, pointMode, 0, static_cast<int32_t>(PointMode::POLYGON_POINTMODE));
-
     Point* points = new(std::nothrow) Point[size];
     if (points == nullptr) {
         return nullptr;
@@ -951,8 +955,9 @@ napi_value JsCanvas::OnDrawPoints(napi_env env, napi_callback_info info)
     }
     JS_CALL_DRAWING_FUNC(m_canvas->DrawPoints(static_cast<PointMode>(pointMode), size, points));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     delete [] points;
     return nullptr;
@@ -986,8 +991,9 @@ napi_value JsCanvas::OnDrawPath(napi_env env, napi_callback_info info)
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawPath(*jsPath->GetPath());
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1021,8 +1027,9 @@ napi_value JsCanvas::OnDrawLine(napi_env env, napi_callback_info info)
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawLine(Point(startPx, startPy), Point(endPx, endPy));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1054,8 +1061,9 @@ napi_value JsCanvas::OnDrawText(napi_env env, napi_callback_info info)
     DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
     m_canvas->DrawTextBlob(jsTextBlob->GetTextBlob().get(), x, y);
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1112,8 +1120,9 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
     }
     m_canvas->DrawSingleCharacter(unicode, *font, x, y);
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1200,8 +1209,9 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
 
     if (colorsSize == 0) {
         DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, nullptr, m_canvas);
-        if (mPixelMap_ != nullptr)
+        if (mPixelMap_ != nullptr) {
             mPixelMap_->MarkDirty();
+        }
         delete []vertices;
         return nullptr;
     }
@@ -1228,8 +1238,9 @@ napi_value JsCanvas::OnDrawPixelMapMesh(napi_env env, napi_callback_info info)
     uint32_t* colorsMesh = colors + colorOffset;
 
     DrawingPixelMapMesh(pixelMap, column, row, verticesMesh, colorsMesh, m_canvas);
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
     delete []vertices;
     delete []colors;
     return nullptr;
@@ -1261,8 +1272,9 @@ napi_value JsCanvas::OnDrawRegion(napi_env env, napi_callback_info info)
     }
     JS_CALL_DRAWING_FUNC(m_canvas->DrawRegion(*jsRegion->GetRegion()));
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1292,8 +1304,9 @@ napi_value JsCanvas::OnDrawBackground(napi_env env, napi_callback_info info)
 
     m_canvas->DrawBackground(*jsBrush->GetBrush());
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1319,8 +1332,9 @@ napi_value JsCanvas::OnDrawRoundRect(napi_env env, napi_callback_info info)
 
     m_canvas->DrawRoundRect(jsRoundRect->GetRoundRect());
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -1349,8 +1363,9 @@ napi_value JsCanvas::OnDrawNestedRoundRect(napi_env env, napi_callback_info info
 
     m_canvas->DrawNestedRoundRect(jsOuter->GetRoundRect(), jsInner->GetRoundRect());
 #ifdef ROSEN_OHOS
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -2103,8 +2118,9 @@ napi_value JsCanvas::OnDrawImageRect(napi_env env, napi_callback_info info)
         }
         m_canvas->DrawImageRect(*image, dstRect, *samplingOptions.get());
     }
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
 #endif
     return nullptr;
 }
@@ -2219,8 +2235,9 @@ napi_value JsCanvas::OnDrawImageRectWithSrc(napi_env env, napi_callback_info inf
     Drawing::Rect dstRect = Drawing::Rect(ltrb[ARGC_ZERO], ltrb[ARGC_ONE], ltrb[ARGC_TWO], ltrb[ARGC_THREE]);
 
     napi_value result = OnDrawingImageRectWithSrc(env, argv, argc, *m_canvas, pixel, srcRect, dstRect);
-    if (mPixelMap_ != nullptr)
+    if (mPixelMap_ != nullptr) {
         mPixelMap_->MarkDirty();
+    }
     return result;
 #else
     return nullptr;
