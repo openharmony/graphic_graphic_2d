@@ -1061,7 +1061,7 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
-    NodeId displayNodeId_;
+    NodeId displayNodeId_ = INVALID_NODEID;
     // for blur effct count
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     void UpdateBlurEffectCounter(int deltaCount);
