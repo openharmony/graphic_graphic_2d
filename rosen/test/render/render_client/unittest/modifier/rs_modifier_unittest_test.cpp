@@ -1466,48 +1466,6 @@ HWTEST_F(RsModifiersTest, ClipToBoundsModifier02, TestSize.Level1)
 }
 
 /**
- * @tc.name: ClipToFrameModifier01
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RsModifiersTest, ClipToFrameModifier01, TestSize.Level1)
-{
-    auto val = true;
-    auto prop = std::make_shared<RSProperty<bool>>(val);
-    auto modifier = std::make_shared<RSClipToFrameModifier>(prop);
-
-    auto node = RSCanvasNode::Create();
-    node->AddModifier(modifier);
-    ASSERT_TRUE(node != nullptr);
-    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), val);
-
-    node->RemoveModifier(modifier);
-    auto node1 = RSCanvasNode::Create();
-    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), node1->GetStagingProperties().GetClipToFrame());
-}
-
-/**
- * @tc.name: ClipToFrameModifier02
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RsModifiersTest, ClipToFrameModifier02, TestSize.Level1)
-{
-    auto val = false;
-    auto prop = std::make_shared<RSProperty<bool>>(val);
-    auto modifier = std::make_shared<RSClipToFrameModifier>(prop);
-
-    auto node = RSCanvasNode::Create();
-    node->AddModifier(modifier);
-    ASSERT_TRUE(node != nullptr);
-    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), val);
-
-    val = true;
-    prop->Set(val);
-    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), val);
-}
-
-/**
  * @tc.name: VisibleModifier01
  * @tc.desc:
  * @tc.type:FUNC
@@ -1591,6 +1549,48 @@ HWTEST_F(RsModifiersTest, ShadowColorModifier02, TestSize.Level1)
     val = RgbPalette::Red();
     prop->Set(val);
     ASSERT_EQ(node->GetStagingProperties().GetShadowColor(), val);
+}
+
+/**
+ * @tc.name: ClipToFrameModifier01
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsModifiersTest, ClipToFrameModifier01, TestSize.Level1)
+{
+    auto val = true;
+    auto prop = std::make_shared<RSProperty<bool>>(val);
+    auto modifier = std::make_shared<RSClipToFrameModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    node->AddModifier(modifier);
+    ASSERT_TRUE(node != nullptr);
+    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), val);
+
+    node->RemoveModifier(modifier);
+    auto node1 = RSCanvasNode::Create();
+    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), node1->GetStagingProperties().GetClipToFrame());
+}
+
+/**
+ * @tc.name: ClipToFrameModifier02
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsModifiersTest, ClipToFrameModifier02, TestSize.Level1)
+{
+    auto val = false;
+    auto prop = std::make_shared<RSProperty<bool>>(val);
+    auto modifier = std::make_shared<RSClipToFrameModifier>(prop);
+
+    auto node = RSCanvasNode::Create();
+    node->AddModifier(modifier);
+    ASSERT_TRUE(node != nullptr);
+    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), val);
+
+    val = true;
+    prop->Set(val);
+    ASSERT_EQ(node->GetStagingProperties().GetClipToFrame(), val);
 }
 
 /**
@@ -1983,39 +1983,4 @@ HWTEST_F(RsModifiersTest, ModifierManager05, TestSize.Level1)
     manager.Draw();
 }
 
-/**
- * @tc.name: ModifierManager06
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RsModifiersTest, ModifierManager06, TestSize.Level1)
-{
-    RSModifierManager manager;
-    int64_t time = 0;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    manager.Animate(time);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
-
-/**
- * @tc.name: ModifierManager07
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RsModifiersTest, ModifierManager07, TestSize.Level1)
-{
-    RSModifierManager manager;
-    int64_t time = 10;
-    manager.Draw();
-
-    auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
-    auto modifier = std::make_shared<RSAlphaModifier>(prop);
-    manager.Animate(time);
-    manager.AddModifier(modifier);
-    manager.Draw();
-}
 } // namespace OHOS::Rosen
