@@ -825,6 +825,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         }
         return;
     }
+    if (surfaceParams.GetIsProtectedLayer()) {
+        RS_LOGD("protected layer cannot draw in non-protected context.");
+        return;
+    }
     if (surfaceParams.IsInFixedRotation()) {
         DrawBufferForRotationFixed(canvas, surfaceParams);
         return;

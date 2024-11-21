@@ -276,7 +276,8 @@ public:
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         if (isProtectedLayer_ && IsOnTheTree()) {
-            return false;
+            constexpr float DRM_MIN_ALPHA = 0.1f;
+            return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
         return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
