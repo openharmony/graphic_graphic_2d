@@ -17,6 +17,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
@@ -121,6 +122,13 @@ void RSExtendImageObject::SetPaint(Drawing::Paint paint)
     }
 }
 
+void RSExtendImageObject::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
@@ -192,7 +200,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            if (GetRsImageCache(canvas, pixelMap,
+                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -228,6 +237,34 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
+}
+#endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+{
+    if (pixelMap == nullptr) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Image> imageCache = nullptr;
+    if (!pixelMap->IsEditable()) {
+        imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
+            rsImage_->GetUniqueId(), gettid());
+    }
+    if (imageCache) {
+        this->image_ = imageCache;
+    } else {
+        bool ret = MakeFromTextureForVK(
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace);
+        if (ret && image_ && !pixelMap->IsEditable()) {
+            SKResourceManager::Instance().HoldResource(image_);
+            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
+                rsImage_->GetUniqueId(), image_, gettid());
+        }
+        return ret;
+    }
+    return true;
 }
 #endif
 
@@ -409,10 +446,10 @@ RSExtendImageBaseObj::RSExtendImageBaseObj(const std::shared_ptr<Media::PixelMap
 }
 
 void RSExtendImageBaseObj::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
-    const Drawing::SamplingOptions& sampling)
+    const Drawing::SamplingOptions& sampling, Drawing::SrcRectConstraint constraint)
 {
     if (rsImage_) {
-        rsImage_->DrawImage(canvas, sampling);
+        rsImage_->DrawImage(canvas, sampling, constraint);
     }
 }
 
@@ -420,6 +457,13 @@ void RSExtendImageBaseObj::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageBaseObj::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
     }
 }
 
@@ -567,14 +611,15 @@ UNMARSHALLING_REGISTER(DrawPixelMapRect, DrawOpItem::PIXELMAP_RECT_OPITEM,
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(
     const DrawCmdList& cmdList, DrawPixelMapRectOpItem::ConstructorHandle* handle)
-    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_RECT_OPITEM), sampling_(handle->sampling),
+      constraint_(handle->constraint)
 {
     objectHandle_ = CmdListHelper::GetImageBaseObjFromCmdList(cmdList, handle->objectHandle);
 }
 
 DrawPixelMapRectOpItem::DrawPixelMapRectOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap, const Rect& src,
-    const Rect& dst, const SamplingOptions& sampling, const Paint& paint)
-    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling)
+    const Rect& dst, const SamplingOptions& sampling, SrcRectConstraint constraint, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_RECT_OPITEM), sampling_(sampling), constraint_(constraint)
 {
     objectHandle_ = std::make_shared<RSExtendImageBaseObj>(pixelMap, src, dst);
 }
@@ -590,7 +635,7 @@ void DrawPixelMapRectOpItem::Marshalling(DrawCmdList& cmdList)
     PaintHandle paintHandle;
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     auto objectHandle = CmdListHelper::AddImageBaseObjToCmdList(cmdList, objectHandle_);
-    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, sampling_, constraint_, paintHandle);
 }
 
 void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
@@ -600,7 +645,7 @@ void DrawPixelMapRectOpItem::Playback(Canvas* canvas, const Rect* rect)
         return;
     }
     canvas->AttachPaint(paint_);
-    objectHandle_->Playback(*canvas, *rect, sampling_);
+    objectHandle_->Playback(*canvas, *rect, sampling_, constraint_);
 }
 
 void DrawPixelMapRectOpItem::SetNodeId(NodeId id)

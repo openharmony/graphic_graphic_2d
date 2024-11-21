@@ -227,7 +227,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-    const RectI& globalDirtyRegion)
+    const Occlusion::Region& globalDirtyRegion)
 {
     // Set Surface Global Dirty Region
     for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
@@ -1164,15 +1164,13 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
         if (RSUniRenderJudgement::IsUniRender()) {
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

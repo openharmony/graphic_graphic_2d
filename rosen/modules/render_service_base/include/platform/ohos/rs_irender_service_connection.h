@@ -93,6 +93,10 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
+    virtual int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    
+    virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 

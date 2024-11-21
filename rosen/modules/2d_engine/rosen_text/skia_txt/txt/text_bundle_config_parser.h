@@ -28,7 +28,7 @@ public:
     static bool IsAdapterTextHeightEnabled();
 private:
 #ifdef OHOS_TEXT_ENABLE
-    static bool IsMetaDataExistInEntryModule(const std::string& metaData);
+    static bool IsMetaDataExistInModule(const std::string& metaData);
     static sptr<AppExecFwk::IBundleMgr> GetSystemAbilityManager();
 #endif
 };

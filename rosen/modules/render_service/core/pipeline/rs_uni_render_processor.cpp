@@ -43,7 +43,7 @@ RSUniRenderProcessor::RSUniRenderProcessor()
 {
 }
 
-RSUniRenderProcessor::~RSUniRenderProcessor()
+RSUniRenderProcessor::~RSUniRenderProcessor() noexcept
 {
 }
 

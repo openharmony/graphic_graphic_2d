@@ -93,7 +93,7 @@ const std::function<void()> RSOffscreenRenderThread::GetCaptureTask(NodeId nodeI
 }
 
 #ifdef ROSEN_OHOS
-const std::shared_ptr<RenderContext>& RSOffscreenRenderThread::GetRenderContext()
+const std::shared_ptr<RenderContext> RSOffscreenRenderThread::GetRenderContext()
 {
     if (!renderContext_) {
         return nullptr;

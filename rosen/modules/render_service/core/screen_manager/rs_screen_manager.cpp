@@ -988,6 +988,70 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
     return SUCCESS;
 }
 
+int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGI("RSScreenManager %{public}s: Cast screen blacklists", __func__);
+        for (auto& list : blackList) {
+            castScreenBlackLists_.emplace(list);
+        }
+        return SUCCESS;
+    }
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end() || virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    RS_LOGI("RSScreenManager %{public}s: Record screen blacklists for id %{public}" PRIu64 ".", __func__, id);
+    virtualScreen->second->AddBlackList(blackList);
+
+    ScreenId mainId = GetDefaultScreenId();
+    if (mainId != id) {
+        auto mainScreen = screens_.find(mainId);
+        if (mainScreen == screens_.end() || mainScreen->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, mainId);
+            return SCREEN_NOT_FOUND;
+        }
+        mainScreen->second->AddBlackList(blackList);
+    }
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGI("RSScreenManager %{public}s: Cast screen blacklists", __func__);
+        for (auto& list : blackList) {
+            auto it = castScreenBlackLists_.find(list);
+            if (it == castScreenBlackLists_.end()) {
+                continue;
+            }
+            castScreenBlackLists_.erase(it);
+        }
+        return SUCCESS;
+    }
+    auto virtualScreen = screens_.find(id);
+    if (virtualScreen == screens_.end() || virtualScreen->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    RS_LOGI("RSScreenManager %{public}s: Record screen blacklists for id %{public}" PRIu64 ".", __func__, id);
+    virtualScreen->second->RemoveBlackList(blackList);
+
+    ScreenId mainId = GetDefaultScreenId();
+    if (mainId != id) {
+        auto mainScreen = screens_.find(mainId);
+        if (mainScreen == screens_.end() || mainScreen->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, mainId);
+            return SCREEN_NOT_FOUND;
+        }
+        mainScreen->second->RemoveBlackList(blackList);
+    }
+    return SUCCESS;
+}
+
 int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<uint64_t>& securityExemptionList)
@@ -1370,32 +1434,39 @@ int32_t RSScreenManager::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32
 
 int32_t RSScreenManager::GetScreenBacklight(ScreenId id) const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     return GetScreenBacklightLocked(id);
 }
 
 int32_t RSScreenManager::GetScreenBacklightLocked(ScreenId id) const
 {
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return INVALID_BACKLIGHT_VALUE;
+    std::shared_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(id);
+        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+            return INVALID_BACKLIGHT_VALUE;
+        }
+        screen = screensIt->second;
     }
-
-    int32_t level = screensIt->second->GetScreenBacklight();
+    int32_t level = screen->GetScreenBacklight();
     return level;
 }
 
 void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    auto screensIt = screens_.find(id);
-    if (screensIt == screens_.end() || screensIt->second == nullptr) {
-        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
-        return;
+    std::shared_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto screensIt = screens_.find(id);
+        if (screensIt == screens_.end() || screensIt->second == nullptr) {
+            RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+            return;
+        }
+        screenBacklight_[id] = level;
+        screen = screensIt->second;
     }
-    screenBacklight_[id] = level;
-    screensIt->second->SetScreenBacklight(level);
+    screen->SetScreenBacklight(level);
 }
 
 ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const

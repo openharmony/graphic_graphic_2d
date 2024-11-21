@@ -820,7 +820,7 @@ protected:
     bool isChildSupportUifirst_ = true;
     bool childHasSharedTransition_ = false;
     bool lastFrameSynced_ = true;
-    bool clipAbsDrawRectChange_ = false;
+    bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isUifirstNode_ = true;
     int isUifirstDelay_ = 0;
@@ -848,7 +848,7 @@ private:
     WeakPtr parent_;
     void SetParent(WeakPtr parent);
     void ResetParent();
-    void UpdateClipAbsDrawRectChangeState(const RectI& clipRect);
+    void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
     bool IsUifirstArkTsCardNode();
     virtual void OnResetParent() {}
 
@@ -1053,6 +1053,9 @@ private:
     const std::shared_ptr<RSRenderContent> renderContent_ = std::make_shared<RSRenderContent>();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
+    // purge resource
+    inline void SetPurgeStatus(bool flag);
+    inline void SyncPurgeFunc();
 
     // Test pipeline
     bool addedToPendingSyncList_ = false;
@@ -1078,6 +1081,7 @@ private:
 
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
+    const bool isPurgeable_;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
@@ -1109,6 +1113,7 @@ struct SharedTransitionParam {
     }
     void InternalUnregisterSelf();
     RSB_EXPORT std::string Dump() const;
+    RSB_EXPORT void ResetRelation();
 
     std::weak_ptr<RSRenderNode> inNode_;
     std::weak_ptr<RSRenderNode> outNode_;

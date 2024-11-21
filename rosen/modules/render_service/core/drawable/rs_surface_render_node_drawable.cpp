@@ -537,9 +537,6 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
-        return;
-    }
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (UNLIKELY(!uniParam)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture uniParam is nullptr");
@@ -710,6 +707,14 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     surfaceParams.SetHardwareEnabled(hwcEnable);
 
+    // cannot useNodeMatchOptimize if leash window is on draw
+    auto cacheState = GetCacheSurfaceProcessedStatus();
+    auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, useNodeMatchOptimize)) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
+        return;
+    }
+
     bool isSelfDrawingSurface = surfaceParams.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
         !surfaceParams.IsSpherizeValid();
     if (isSelfDrawingSurface) {
@@ -859,8 +864,10 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
+    auto cacheState = GetCacheSurfaceProcessedStatus();
     if ((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
-        GetCacheSurfaceProcessedStatus() != CacheProcessStatus::DOING) ||
+        // WAITING may change to DOING in subThread at any time
+        cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING) ||
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) {
         return false;
     }
@@ -869,7 +876,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);
-    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+    // Alpha and matrix have been applied in func CaptureSurface
+    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_ && !RSUniRenderThread::GetCaptureParam().isMirror_) {
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
@@ -952,14 +960,12 @@ void RSSurfaceRenderNodeDrawable::SetAlignedVisibleDirtyRegion(const Occlusion::
     alignedVisibleDirtyRegion_ = alignedRegion;
 }
 
-void RSSurfaceRenderNodeDrawable::SetGlobalDirtyRegion(const RectI& rect)
+void RSSurfaceRenderNodeDrawable::SetGlobalDirtyRegion(Occlusion::Region region)
 {
     if (!GetRenderParams()) {
         return;
     }
     auto visibleRegion = GetRenderParams()->GetVisibleRegion();
-    Occlusion::Rect tmpRect { rect.left_, rect.top_, rect.GetRight(), rect.GetBottom() };
-    Occlusion::Region region { tmpRect };
     globalDirtyRegion_ = visibleRegion.And(region);
     globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
 }

@@ -633,14 +633,6 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         pendingPostCardNodes_.find(node->GetId()) != pendingPostCardNodes_.end()) {
         node->SetUifirstSyncFlag(true);
     }
-    // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
-    auto uifirstRootNode = node->GetUifirstRootNodeId() != INVALID_NODEID ?
-        node->GetUifirstRootNode() : node->GetFirstLevelNode();
-    if (!uifirstRootNode) {
-        RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
-            node->GetFirstLevelNodeId(), node->GetId());
-        return false;
-    }
 
     auto ret = CollectSkipSyncNodeWithDrawableState(node);
     if (ret != SkipSyncState::STATE_NEED_CHECK) {
@@ -1473,12 +1465,20 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     if (rootId == INVALID_NODEID) {
         /* uifirst will not draw with no firstlevel node, and there's no need to check and wait for uifirst onDraw */
-        RS_LOGW("node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
+        RS_LOGW("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
         return true;
     }
 
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
-    if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+    if (!uifirstRootNodeDrawable) {
+        // drawable may release when node off tree
+        // uifirst will not draw with null uifirstRootNodeDrawable
+        RS_LOGW("uifirstnode %{public}" PRIu64 " uifirstroot %{public}" PRIu64 " nullptr", params.GetId(), rootId);
+        return true;
+    }
+
+    if (UNLIKELY(uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE)) {
+        RS_LOGE("uifirst invalid uifirstrootNodeId %{public}" PRIu64, rootId);
         return false;
     }
     auto uifirstRootSurfaceNodeDrawable =

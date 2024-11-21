@@ -461,7 +461,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
     properties.geoDirty_ = true;
     node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
     node.isSelfDrawingNode_ = true;
-    node.clipAbsDrawRectChange_ = true;
+    node.srcOrClipedAbsDrawRectChangeFlag_ = true;
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;
     ASSERT_EQ(node.UpdateDrawRectAndDirtyRegion(*rsDirtyManager, false, clipRect, matrix), true);
@@ -1206,7 +1206,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
 
     RSDirtyRegionManager dirtyManagerTest3;
     RectI clipRectTest3 = RectI { 0, 0, 1, 1 };
-    nodeTest->clipAbsDrawRectChange_ = true;
+    nodeTest->srcOrClipedAbsDrawRectChangeFlag_ = true;
     nodeTest->hasChildrenOutOfRect_ = false;
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
     nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;

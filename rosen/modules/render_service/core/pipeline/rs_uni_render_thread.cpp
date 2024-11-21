@@ -656,7 +656,7 @@ bool RSUniRenderThread::IsColorFilterModeOn() const
     }
     ColorFilterMode colorFilterMode = uniRenderEngine_->GetColorFilterMode();
     if (colorFilterMode == ColorFilterMode::INVERT_COLOR_DISABLE_MODE ||
-        colorFilterMode == ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
+        colorFilterMode >= ColorFilterMode::DALTONIZATION_NORMAL_MODE) {
         return false;
     }
     return true;
@@ -801,10 +801,22 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
         }
+        if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
+            auto purgeDrawables =
+                DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableVectorById(nodesNeedToBeClearMemory_);
+            for (auto& drawable : purgeDrawables) {
+                drawable->Purge();
+            }
+        }
+        nodesNeedToBeClearMemory_.clear();
         if (!isDefaultClean) {
             this->clearMemoryFinished_ = true;
         } else {
             this->isDefaultCleanTaskFinished_ = true;
+            if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
+                RS_TRACE_NAME_FMT("Purge unlocked resources when clear memory");
+                grContext->PurgeUnlockedResources(false);
+            }
         }
         RSUifirstManager::Instance().TryReleaseTextureForIdleThread();
         this->clearMemDeeply_ = false;
@@ -818,14 +830,27 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
     }
 }
 
-void RSUniRenderThread::ResetClearMemoryTask()
+void RSUniRenderThread::ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition)
 {
+    for (auto [nodeId, purgeFlag] : ids) {
+        if (purgeFlag) {
+            nodesNeedToBeClearMemory_.insert(nodeId);
+        } else {
+            nodesNeedToBeClearMemory_.erase(nodeId);
+        }
+    }
     if (!GetClearMemoryFinished()) {
         RemoveTask(CLEAR_GPU_CACHE);
-        ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        if (!isDoDirectComposition) {
+            ClearMemoryCache(clearMoment_, clearMemDeeply_);
+        }
     }
-    RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
-    DefaultClearMemoryCache();
+    if (!isDefaultCleanTaskFinished_) {
+        RemoveTask(DEFAULT_CLEAR_GPU_CACHE);
+        if (!isDoDirectComposition) {
+            DefaultClearMemoryCache();
+        }
+    }
 }
 
 void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)

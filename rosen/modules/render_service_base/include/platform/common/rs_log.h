@@ -209,4 +209,20 @@ private:
 
 #define DEBUG_PREVALIDATE RS_LOG_ENABLE(FLAG_DEBUG_PREVALIDATE)
 
+#define RS_LOGE_LIMIT(func, line, format, ...)                                                                   \
+{                                                                                                                \
+    static constexpr uint64_t LOG_PRINT_INTERVAL_IN_SECOND = 20;                                                 \
+    static std::atomic isFirstTime##func##line = true;                                                           \
+    static std::atomic<uint64_t> prePrintTime##func##line = std::chrono::duration_cast<std::chrono::seconds>(    \
+        std::chrono::system_clock::now().time_since_epoch()).count();                                            \
+    uint64_t currTime = std::chrono::duration_cast<std::chrono::seconds>(                                        \
+        std::chrono::system_clock::now().time_since_epoch()).count();                                            \
+    if ((currTime - prePrintTime##func##line >= LOG_PRINT_INTERVAL_IN_SECOND) || isFirstTime##func##line) {      \
+        prePrintTime##func##line = std::chrono::duration_cast<std::chrono::seconds>(                             \
+            std::chrono::system_clock::now().time_since_epoch()).count();                                        \
+        isFirstTime##func##line = false;                                                                         \
+        RS_LOGE(format, ##__VA_ARGS__);                                                                          \
+    }                                                                                                            \
+}                                                                                                                \
+
 #endif // RENDER_SERVICE_BASE_CORE_COMMON_RS_LOG_H

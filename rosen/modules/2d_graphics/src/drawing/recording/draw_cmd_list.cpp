@@ -59,6 +59,9 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMo
 
 DrawCmdList::~DrawCmdList()
 {
+    if (drawOpItems_.size() == 0) {
+        UnmarshallingDrawOps();
+    }
     ClearOp();
 }
 
@@ -238,7 +241,7 @@ void DrawCmdList::UnmarshallingDrawOps()
         LOGI("Drawing Performance UnmarshallingDrawOps begin %{public}lld", PerformanceCaculate::GetUpTime());
     }
 
-    if (opAllocator_.GetSize() <= offset_) {
+    if (opAllocator_.GetSize() <= offset_ || width_ <= 0 || height_ <= 0) {
         return;
     }
 
@@ -580,6 +583,21 @@ size_t DrawCmdList::CountTextBlobNum()
         } while (offset != 0 && offset < maxOffset);
     }
     return textBlobCnt;
+}
+
+void DrawCmdList::Purge()
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    for (auto op : drawOpItems_) {
+        if (!op) {
+            continue;
+        }
+        auto type = op->GetType();
+        if (type == DrawOpItem::PIXELMAP_RECT_OPITEM ||
+            type == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM) {
+            op->Purge();
+        }
+    }
 }
 } // namespace Drawing
 } // namespace Rosen

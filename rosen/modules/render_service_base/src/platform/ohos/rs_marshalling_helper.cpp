@@ -14,6 +14,7 @@
  */
 
 #include "transaction/rs_marshalling_helper.h"
+#include "image_type.h"
 #include "rs_profiler.h"
 
 #include <cstddef>
@@ -78,6 +79,7 @@ bool g_useSharedMem = true;
 std::thread::id g_tid = std::thread::id();
 constexpr size_t LARGE_MALLOC = 200000000;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+constexpr size_t MAX_OPITEMSIZE = 170000;
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
@@ -1434,7 +1436,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
+#ifdef ROSEN_OHOS
+    MemoryTrack::Instance().RemovePictureRecord(context);
+#else
     MemoryTrack::Instance().RemovePictureRecord(addr);
+#endif
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::PixelMap>& val)
@@ -1459,9 +1465,14 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         return false;
     }
     MemoryInfo info = {
-        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType()
+        val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), val
     };
+
+#ifdef ROSEN_OHOS
+    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+#else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
+#endif
     val->SetFreePixelMapProc(CustomFreePixelMap);
     return true;
 }
@@ -1484,6 +1495,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Rect
     }
     return parcel.WriteInt32(1) && val->Marshalling(parcel);
 }
+
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RectT<float>>& val)
 {
     if (parcel.ReadInt32() == -1) {
@@ -1514,6 +1526,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 {
     if (!val) {
         return parcel.WriteInt32(-1);
+    }
+    auto opItemSize = val->GetOpItemSize();
+    if (opItemSize > MAX_OPITEMSIZE) {
+        ROSEN_LOGE("OpItemSize is too large, OpItemSize is %{public}zu", opItemSize);
+        return false;
     }
     auto cmdListData = val->GetData();
     bool ret = parcel.WriteInt32(cmdListData.second);

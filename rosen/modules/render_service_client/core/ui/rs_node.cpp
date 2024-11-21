@@ -95,7 +95,7 @@ bool IsPathAnimatableModifier(const RSModifierType& type)
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
     : isRenderServiceNode_(isRenderServiceNode), isTextureExportNode_(isTextureExportNode),
-    id_(id), stagingPropertiesExtractor_(this), showingPropertiesFreezer_(id)
+    id_(id), stagingPropertiesExtractor_(id), showingPropertiesFreezer_(id)
 {
     InitUniRenderEnabled();
     if (g_isUniRenderEnabled && isTextureExportNode) {
@@ -107,6 +107,8 @@ RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode)
             }
         });
     }
+    hasCreateRenderNodeInRT_ = isTextureExportNode;
+    hasCreateRenderNodeInRS_ = !hasCreateRenderNodeInRT_;
     UpdateImplicitAnimator();
 }
 
@@ -133,6 +135,11 @@ RSNode::~RSNode()
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeDestroy>(id_);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
+    if ((IsRenderServiceNode() && hasCreateRenderNodeInRT_) ||
+        (!IsRenderServiceNode() && hasCreateRenderNodeInRS_)) {
+        command = std::make_unique<RSBaseNodeDestroy>(id_);
+        transactionProxy->AddCommand(command, !IsRenderServiceNode());
+    }
 }
 
 void RSNode::OpenImplicitAnimation(const RSAnimationTimingProtocol& timingProtocol,
@@ -2718,10 +2725,13 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
         return;
     }
     isTextureExportNode_ = isTextureExportNode;
-    if (!isTextureExportNode_) {
+    if (!IsUniRenderEnabled()) {
         return;
     }
-    CreateTextureExportRenderNodeInRT();
+    if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
+        (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {
+        CreateRenderNodeForTextureExportSwitch();
+    }
     DoFlushModifier();
 }
 

@@ -15,7 +15,13 @@
 
 #include "rs_render_service_connection_stub.h"
 #include <memory>
+#include <mutex>
 #include "ivsync_connection.h"
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_type.h"
+#include <sched.h>
+#endif
 #include "securec.h"
 #include "sys_binder.h"
 
@@ -39,6 +45,10 @@ constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = INT_MAX;
 constexpr size_t MAX_DATA_SIZE = INT_MAX;
+#ifdef RES_SCHED_ENABLE
+const uint32_t RS_IPC_QOS_LEVEL = 7;
+constexpr const char* RS_BUNDLE_NAME = "render_service";
+#endif
 static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID),
@@ -48,6 +58,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
@@ -258,11 +270,41 @@ bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWin
 }
 }
 
+void RSRenderServiceConnectionStub::SetQos()
+{
+#ifdef RES_SCHED_ENABLE
+    std::string strBundleName = RS_BUNDLE_NAME;
+    std::string strPid = std::to_string(getpid());
+    std::string strTid = std::to_string(gettid());
+    std::string strQos = std::to_string(RS_IPC_QOS_LEVEL);
+    std::unordered_map<std::string, std::string> mapPayload;
+    mapPayload["pid"] = strPid;
+    mapPayload[strTid] = strQos;
+    mapPayload["bundleName"] = strBundleName;
+    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
+        OHOS::ResourceSchedule::ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
+    struct sched_param param = {0};
+    param.sched_priority = 1;
+    if (sched_setscheduler(0, SCHED_FIFO, &param) != 0) {
+        RS_LOGE("RSRenderServiceConnectionStub Couldn't set SCHED_FIFO.");
+    } else {
+        RS_LOGI("RSRenderServiceConnectionStub set SCHED_FIFO succeed.");
+    }
+#endif
+}
+
 int RSRenderServiceConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
-
+    auto tid = gettid();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (tids_.find(tid) == tids_.end()) {
+            SetQos();
+            tids_.insert(tid);
+        }
+    }
     pid_t callingPid = GetCallingPid();
     if (std::find(std::cbegin(descriptorCheckList), std::cend(descriptorCheckList), code) !=
         std::cend(descriptorCheckList)) {
@@ -469,6 +511,34 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<NodeId> blackListVector;
             data.ReadUInt64Vector(&blackListVector);
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST): {
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
+            std::vector<NodeId> blackListVector;
+            if (!data.ReadUInt64Vector(&blackListVector)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t status = AddVirtualScreenBlackList(id, blackListVector);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST): {
+            // read the parcel data.
+            ScreenId id = data.ReadUint64();
+            std::vector<NodeId> blackListVector;
+            if (!data.ReadUInt64Vector(&blackListVector)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            int32_t status = RemoveVirtualScreenBlackList(id, blackListVector);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
             }

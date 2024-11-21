@@ -119,6 +119,8 @@ public:
     static void SetTypefaceQueryCallBack(
         std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc);
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
+
+    virtual void Purge() {}
 };
 
 class DRAWING_API UnmarshallingHelper {

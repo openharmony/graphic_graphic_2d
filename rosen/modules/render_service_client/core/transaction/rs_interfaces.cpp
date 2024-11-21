@@ -21,6 +21,7 @@
 
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_divided_ui_capture.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
@@ -84,6 +85,16 @@ ScreenId RSInterfaces::CreateVirtualScreen(
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    return renderServiceClient_->AddVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackListVector);
 }
 
 int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
@@ -240,6 +251,11 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
                     typeface->GetUniqueID());
             uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
             RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+        } else {
+            if (typeface != nullptr) {
+                RS_LOGD("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
+                    typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+            }
         }
         return result;
     }
@@ -687,11 +703,19 @@ bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
         return false;
     }
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
+        new (std::nothrow) RSDefaultSurfaceBufferCallback (
+            [callback](uint64_t uid, const std::vector<uint32_t>& bufferIds) {
+                callback->OnFinish(uid, bufferIds);
+            }
+        )
+    );
     return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
 bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
     return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 

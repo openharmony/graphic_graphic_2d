@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,34 +13,27 @@
  * limitations under the License.
  */
 
-#include "utils/resource_holder.h"
-
-#include "impl_factory.h"
+#include "rs_surface_buffer_callback_stub.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
-namespace Drawing {
-ResourceHolder::ResourceHolder() : impl_(ImplFactory::CreateResourceHolderImpl()) {}
-
-void ResourceHolder::HoldResource(const std::shared_ptr<Drawing::Image>& img)
+RSDefaultSurfaceBufferCallback::RSDefaultSurfaceBufferCallback(
+    std::function<void(uint64_t, const std::vector<uint32_t>&)> callback) : callback_(callback)
 {
-    impl_->HoldResource(img);
 }
 
-void ResourceHolder::ReleaseResource()
+void RSDefaultSurfaceBufferCallback::OnFinish(
+    uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds)
 {
-    impl_->ReleaseResource();
+    if (callback_) {
+        std::invoke(callback_, uid, surfaceBufferIds);
+    }
 }
 
-bool ResourceHolder::IsEmpty() const
+sptr<IRemoteObject> RSDefaultSurfaceBufferCallback::AsObject()
 {
-    return impl_->IsEmpty();
+    return nullptr;
 }
-
-bool ResourceHolder::HaveReleaseableResourceCheck() const
-{
-    return impl_->HaveReleaseableResourceCheck();
-}
-} // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

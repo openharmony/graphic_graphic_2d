@@ -69,7 +69,7 @@ private:
     friend class RSPropertyAnimation;
     friend class RSNodeMap;
     void OnBoundsSizeChanged() const override;
-    void CreateTextureExportRenderNodeInRT() override;
+    void CreateRenderNodeForTextureExportSwitch() override;
 };
 } // namespace Rosen
 } // namespace OHOS
