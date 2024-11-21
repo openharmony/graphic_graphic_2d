@@ -758,8 +758,7 @@ void RSComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer)
 {
     ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& buffer = layer->GetBuffer();
-    const auto& surface = layer->GetSurface();
-    if (buffer == nullptr || surface == nullptr) {
+    if (buffer == nullptr) {
         return;
     }
 

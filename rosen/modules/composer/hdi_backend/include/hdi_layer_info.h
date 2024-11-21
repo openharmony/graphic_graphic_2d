@@ -21,7 +21,6 @@
 #include <surface.h>
 #include <sync_fence.h>
 #include "graphic_error.h"
-#include "hdi_log.h"
 #include "hdi_display_type.h"
 
 namespace OHOS {
@@ -565,7 +564,6 @@ public:
             case LayerMask::LAYER_MASK_HBM_SYNC:
                 break;
             default:
-                HLOGE("Invalid argument [mask:%{public}d]", static_cast<int32_t>(mask));
                 return ROSEN_ERROR_INVALID_ARGUMENTS;
         }
 
