@@ -275,20 +275,13 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             return;
         }
 
-        auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
-        if (surfaceParams.width == 0 || surfaceParams.height == 0) {
-            RS_LOGE("PostPlaybackInCorrespondThread Area Error NodeId[%{public}" PRIu64 "],"
-                "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
-            SetNeedDraw(false);
-            return;
-        }
-
         if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
             ResetSurface();
             RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", GetId());
             renderParams_->SetCanvasDrawingSurfaceChanged(false);
         }
 
+        auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
         if (!surface_ || !canvas_) {
             if (!ResetSurfaceforPlayback(surfaceParams.width, surfaceParams.height)) {
                 RS_LOGE("PostPlaybackInCorrespondThread Reset Surface Error NodeId[%{public}" PRIu64
@@ -680,7 +673,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 }
 
 #ifdef RS_ENABLE_VK
-bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVk(int width, int height)
+bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
         backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
@@ -723,7 +716,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
-        if (!ReleaseSurfaceVk(width, height)) {
+        if (!ReleaseSurfaceVK(width, height)) {
             return false;
         }
         auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
@@ -857,7 +850,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
 
     bool isNewCreate = false;
 #if defined(RS_ENABLE_VK)
-    if (!ReleaseSurfaceVk(width, height)) {
+    if (!ReleaseSurfaceVK(width, height)) {
         return false;
     }
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();

@@ -75,7 +75,7 @@ private:
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
     bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
 #ifdef RS_ENABLE_VK
-    bool ReleaseSurfaceVk(int width, int height);
+    bool ReleaseSurfaceVK(int width, int height);
 #endif
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);

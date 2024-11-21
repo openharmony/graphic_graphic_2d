@@ -213,7 +213,12 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     // if canvas drawing node never on tree, should not update, it will lost renderParams->localDrawRect_
 #ifdef RS_ENABLE_GPU
     if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
-        RSUniRenderJudgement::IsUniRender()) {
+        !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
+        return;
+    }
+#else
+    if (IsWaitSync() || IsOnTheTree() || isNeverOnTree_ || !stagingRenderParams_ ||
+        !RSUniRenderJudgement::IsUniRender() || GetIsTextureExportNode()) {
         return;
     }
 #endif

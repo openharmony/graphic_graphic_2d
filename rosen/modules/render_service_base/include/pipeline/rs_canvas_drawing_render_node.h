@@ -80,7 +80,7 @@ private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
     void ApplyDrawCmdModifier(RSModifierContext& context, RSModifierType type);
-        void CheckDrawCmdListSize(RSModifierType type);
+    void CheckDrawCmdListSize(RSModifierType type);
     bool ResetSurface(int width, int height, RSPaintFilterCanvas& canvas);
     bool GetSizeFromDrawCmdModifiers(int& width, int& height);
     bool IsNeedResetSurface() const;
