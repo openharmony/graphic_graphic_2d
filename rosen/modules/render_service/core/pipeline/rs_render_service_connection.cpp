@@ -1327,6 +1327,7 @@ void RSRenderServiceConnection::RegisterBufferClearListener(
             }
             return false;
     };
+
     if (!registerBufferClearListener()) {
         mainThread_->PostTask(registerBufferClearListener);
     }
