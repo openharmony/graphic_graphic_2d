@@ -30,8 +30,8 @@ class RSC_EXPORT RSSyncTransactionController {
 public:
     static RSSyncTransactionController* GetInstance();
 
-    void OpenSyncTransaction();
-    void CloseSyncTransaction();
+    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
+    void CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
 
     std::shared_ptr<RSTransaction> GetRSTransaction();
 
