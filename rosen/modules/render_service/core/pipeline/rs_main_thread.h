@@ -347,6 +347,16 @@ public:
         return needRequestNextVsyncAnimate_;
     }
 
+    bool GetNextDVsyncDrawBehindWindowFlag() const
+    {
+        return needRequestNextVsyncDrawBehindWindow_;
+    }
+
+    void SetNextDVsyncDrawBehindWindowFlag(bool flag)
+    {
+        needRequestNextVsyncDrawBehindWindow_ = flag;
+    }
+
     bool IsFirstFrameOfPartialRender() const
     {
         return isFirstFrameOfPartialRender_;
@@ -698,6 +708,8 @@ private:
 
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
+
+    bool needRequestNextVsyncDrawBehindWindow_ = false;
 
     bool forceUIFirstChanged_ = false;
 
