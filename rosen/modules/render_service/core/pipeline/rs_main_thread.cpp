@@ -1479,7 +1479,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
 #ifdef RS_ENABLE_VK
         if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) && RSSystemProperties::GetDrmEnabled() &&
-            deviceType_ != DeviceType::PC && (surfaceHandler->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
+            (surfaceHandler->GetBufferUsage() & BUFFER_USAGE_PROTECTED)) {
             if (!surfaceNode->GetProtectedLayer()) {
                 surfaceNode->SetProtectedLayer(true);
             }
@@ -4202,16 +4202,11 @@ void RSMainThread::UpdateUIFirstSwitch()
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
-    if (RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) {
-        if (hasProtectedLayer_) {
-            isUiFirstOn_ = false;
-        } else {
-            isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
-        }
-        RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
-        return;
+    if (hasProtectedLayer_) {
+        isUiFirstOn_ = false;
+    } else {
+        isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
     }
-    isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
     RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 #endif
 }
