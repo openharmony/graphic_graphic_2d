@@ -832,14 +832,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             DrawWatermarkIfNeed(*params, *curCanvas_);
             SwitchColorFilter(*curCanvas_, hdrBrightnessRatio);
             auto dirtyManager = GetSyncDirtyManager();
-            if (!dirtyManager->GetDirtyRegion().IsInsideOf(dirtyManager->GetSurfaceRect())) {
-                RS_TRACE_NAME_FMT("global dirty region:[%s] is not inside of surface rect:[%s], \
-                    clear extra area to black",
-                    dirtyManager->GetDirtyRegion().ToString().c_str(),
-                    dirtyManager->GetSurfaceRect().ToString().c_str());
+            const auto& activeRect = dirtyManager->GetActiveSurfaceRect();
+            if (!activeRect.IsEmpty() && (!dirtyManager->GetDirtyRegion().IsInsideOf(activeRect) ||
+                !uniParam->IsPartialRenderEnabled() || uniParam->IsRegionDebugEnabled())) {
+                RS_TRACE_NAME_FMT("global dirty region:[%s] is not inside of active surface rect:[%s], "
+                    "clear extra area to black", dirtyManager->GetDirtyRegion().ToString().c_str(),
+                    activeRect.ToString().c_str());
                 curCanvas_->Save();
-                curCanvas_->ClipRegion(GetFlippedRegion({dirtyManager->GetSurfaceRect()}, screenInfo),
-                    Drawing::ClipOp::DIFFERENCE);
+                auto activeRegion = RSUniRenderUtil::ScreenIntersectDirtyRects(
+                    Occlusion::Region(activeRect), screenInfo);
+                curCanvas_->ClipRegion(GetFlippedRegion(activeRegion, screenInfo), Drawing::ClipOp::DIFFERENCE);
                 curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
                 curCanvas_->Restore();
             }
@@ -892,7 +894,12 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     HardCursorCreateLayer(processor);
-    SetDirtyRects(damageRegionrects);
+    if (screenInfo.activeRect.IsEmpty() ||
+        screenInfo.activeRect == RectI(0, 0, screenInfo.width, screenInfo.height)) {
+        SetDirtyRects(damageRegionrects);
+    } else {
+        SetDirtyRects({GetSyncDirtyManager()->GetRectFlipWithinSurface(screenInfo.activeRect)});
+    }
     processor->ProcessDisplaySurfaceForRenderThread(*this);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     processor->PostProcess();

@@ -63,8 +63,8 @@ std::string GetData()
 
 class SurfaceCaptureFuture : public SurfaceCaptureCallback {
     public:
-         SurfaceCaptureFuture() = default;
-        ~SurfaceCaptureFuture() {};
+        SurfaceCaptureFuture() = default;
+        ~SurfaceCaptureFuture() {}
         void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
         {
             pixelMap_ = pixelmap;
