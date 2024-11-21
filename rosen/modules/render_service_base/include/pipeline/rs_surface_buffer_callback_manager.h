@@ -32,6 +32,11 @@ class RSISurfaceBufferCallback;
 
 class RSB_EXPORT RSSurfaceBufferCallbackManager {
 public:
+    struct VSyncFuncs {
+        std::function<void()> requestNextVsync;
+        std::function<bool()> isRequestedNextVSync;
+    };
+
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback);
     void UnregisterSurfaceBufferCallback(pid_t pid);
@@ -39,6 +44,7 @@ public:
 
     std::function<void(pid_t, uint64_t, uint32_t)> GetSurfaceBufferOpItemCallback() const;
     void SetRunPolicy(std::function<void(std::function<void()>)> runPolicy);
+    void SetVSyncFuncs(VSyncFuncs vSyncFuncs);
 
     static RSSurfaceBufferCallbackManager& Instance();
 private:
@@ -57,6 +63,8 @@ private:
     void OnSurfaceBufferOpItemDestruct(pid_t pid, uint64_t uid, uint32_t surfaceBufferId);
     void RunSurfaceBufferCallback();
 
+    void RequestNextVSync();
+
     std::map<std::pair<pid_t, uint64_t>, sptr<RSISurfaceBufferCallback>>
         surfaceBufferCallbacks_;
     std::map<std::pair<pid_t, uint64_t>, std::vector<uint32_t>> stagingSurfaceBufferIds_;
@@ -65,8 +73,9 @@ private:
     std::function<void(std::function<void()>)> runPolicy_ = [](auto task) {
         std::invoke(task);
     };
+    VSyncFuncs vSyncFuncs_;
 
-    friend class RSDrawFrame;
+    friend class RSMainThread;
     friend class RSRenderThread;
 };
 } // namespace Rosen
