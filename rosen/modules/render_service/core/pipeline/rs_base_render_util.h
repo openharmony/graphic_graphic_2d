@@ -94,6 +94,7 @@ struct BufferDrawParam {
     float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
     bool isHdrRedraw = false;
 #endif
+    bool preRotation = false;
 };
 
 using WriteToPngParam = struct {

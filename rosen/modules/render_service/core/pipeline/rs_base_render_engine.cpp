@@ -615,7 +615,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
-    
+
     if (!SetColorSpaceConverterDisplayParameter(params, parameter)) {
         RS_OPTIONAL_TRACE_END();
         return;
@@ -651,6 +651,12 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
+    std::shared_ptr<Drawing::AutoCanvasRestore> acr = nullptr;
+    if (params.preRotation) {
+        acr = std::make_shared<Drawing::AutoCanvasRestore>(canvas, true);
+        canvas.ResetMatrix();
+    }
+
     auto image = std::make_shared<Drawing::Image>();
     if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
         RS_LOGE("RSBaseRenderEngine::DrawImage invalid buffer!");
@@ -739,13 +745,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
-    
+
     if (!ConvertDrawingColorSpaceToSpaceInfo(drawingColorSpace, parameter.outputColorSpace.colorSpaceInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
- 
+
     if (parameter.inputColorSpace.colorSpaceInfo.primaries == parameter.outputColorSpace.colorSpaceInfo.primaries
         && parameter.inputColorSpace.colorSpaceInfo.transfunc == parameter.outputColorSpace.colorSpaceInfo.transfunc) {
         RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
