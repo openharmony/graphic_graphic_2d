@@ -279,6 +279,8 @@ public:
 
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
+    virtual void DropFrameByPid(const std::vector<int32_t> pidList) = 0;
+
     virtual std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() = 0;
 
     virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;

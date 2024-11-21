@@ -59,7 +59,7 @@ class RSTransactionData;
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
 constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
-constexpr uint32_t CONSUME_DIRECTLY = 0;
+constexpr uint64_t CONSUME_DIRECTLY = 0;
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
@@ -137,7 +137,8 @@ public:
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);

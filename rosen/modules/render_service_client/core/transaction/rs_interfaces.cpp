@@ -686,6 +686,15 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
+void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    if (pidList.empty()) {
+        return;
+    }
+    RS_TRACE_NAME("DropFrameByPid");
+    renderServiceClient_->DropFrameByPid(pidList);
+}
+
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);

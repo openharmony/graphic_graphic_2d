@@ -1387,6 +1387,7 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(true);
 }
 
@@ -1398,7 +1399,32 @@ HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus002, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: DropFrameByPid001
+ * @tc.desc: Test DropFrameByPid interface
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid001, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({0});
+}
+
+/*
+ * @tc.name: DropFrameByPid002
+ * @tc.desc: Test DropFrameByPid interface while pidList empty
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({});
 }
 
 /*

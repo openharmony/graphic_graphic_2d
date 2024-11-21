@@ -943,7 +943,8 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+    uint64_t presentWhen, bool dropFrameByPidEnable)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -952,13 +953,27 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
     if (consumer == nullptr) {
         return false;
     }
+
+    // check presentWhen conversion validation range
+    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
-    uint64_t acquireTimeStamp = acqiureWithPTSEnable ? presentWhen : CONSUME_DIRECTLY;
+    uint64_t acquireTimeStamp = presentWhen;
+    if (!presentWhenValid || !acqiureWithPTSEnable) {
+        acquireTimeStamp = CONSUME_DIRECTLY;
+        RS_LOGD("RSBaseRenderUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
+            "[acqiureWithPTSEnable:%{public}d, presentWhenValid:%{public}d]", acqiureWithPTSEnable, presentWhenValid);
+    }
+
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
-        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+        int32_t ret;
+        if (acqiureWithPTSEnable && dropFrameByPidEnable) {
+            ret = consumer->AcquireBuffer(returnValue, INT64_MAX, true);
+        } else {
+            ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+        }
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
