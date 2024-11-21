@@ -32,6 +32,8 @@ namespace {
 // the smaller the minimumAmplitudeRatio_, the closer it is to the endpoint at the end of the animation,
 // and the longer the animation duration.
 constexpr float DEFAULT_AMPLITUDE_RATIO = 0.00025f;
+constexpr float DEFAULT_RESPONSE = 0.55f;
+constexpr float DEFAULT_DAMPING_RATIO = 0.825f;
 } // namespace
 
 class RSC_EXPORT RSAnimationTimingCurve final {

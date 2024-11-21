@@ -83,10 +83,9 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateSpringCurve(
     float velocity, float mass, float stiffness, float damping)
 {
     if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
-        constexpr float response = 0.55f;
-        constexpr float dampingRatio = 0.825f;
         ROSEN_LOGE("RSAnimationTimingCurve::CreateSpringCurve, invalid parameters.");
-        return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(response, dampingRatio, velocity));
+        return RSAnimationTimingCurve(std::make_shared<RSSpringInterpolator>(
+            DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, velocity));
     }
     float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
@@ -97,11 +96,10 @@ RSAnimationTimingCurve RSAnimationTimingCurve::CreateInterpolatingSpring(
     float mass, float stiffness, float damping, float velocity, float minimumAmplitudeRatio)
 {
     if (stiffness <= 0.0f || mass * stiffness <= 0.0f) {
-        constexpr float response = 0.55f;
-        constexpr float dampingRatio = 0.825f;
         ROSEN_LOGE("RSAnimationTimingCurve::CreateInterpolatingSpring, invalid parameters.");
         return RSAnimationTimingCurve(
-            response, dampingRatio, velocity, CurveType::INTERPOLATING_SPRING, minimumAmplitudeRatio);
+            DEFAULT_RESPONSE, DEFAULT_DAMPING_RATIO, velocity,
+            CurveType::INTERPOLATING_SPRING, minimumAmplitudeRatio);
     }
     float response = 2 * PI * sqrt(mass / stiffness);
     float dampingRatio = (damping / (2 * sqrt(mass * stiffness)));
