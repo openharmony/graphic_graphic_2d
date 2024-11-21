@@ -159,7 +159,7 @@ RSRenderThread::RSRenderThread()
         .requestNextVsync = []() {
             RSRenderThread::Instance().RequestNextVSync();
         },
-        .isRequestedNextVSync = []() {
+        .isRequestedNextVSync = [this]() {
 #ifdef __OHOS__
             if (receiver_ != nullptr) {
                 return receiver_->IsRequestedNextVSync();
