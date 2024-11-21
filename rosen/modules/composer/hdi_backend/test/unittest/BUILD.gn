@@ -89,7 +89,10 @@ ohos_unittest("hdioutput_unit_test") {
     "mock_hdi_device.cpp",
   ]
 
-  deps = [ ":hdibackend_test_common" ]
+  deps = [
+    ":hdibackend_test_common",
+    "../../../vsync:libvsync",
+  ]
 }
 
 ## UnitTest hdioutput_unit_test }}}

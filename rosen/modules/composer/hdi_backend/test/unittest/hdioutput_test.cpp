@@ -528,11 +528,11 @@ HWTEST_F(HdiOutputTest, GetBufferCacheSize001, Function | MediumTest | Level1)
 HWTEST_F(HdiOutputTest, StartVSyncSampler001, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
-    hdiOutput->SetVsyncSamplerEnabled(false);
+    CreateVSyncSampler()->SetVsyncSamplerEnabled(false);
     int32_t res = hdiOutput->StartVSyncSampler(true);
     EXPECT_EQ(res, GRAPHIC_DISPLAY_FAILURE);
 
-    hdiOutput->SetVsyncSamplerEnabled(true);
+    CreateVSyncSampler()->SetVsyncSamplerEnabled(true);
     hdiOutput->sampler_ = nullptr;
     res = hdiOutput->StartVSyncSampler(false);
     EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);

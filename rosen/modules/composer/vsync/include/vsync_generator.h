@@ -80,6 +80,7 @@ public:
     virtual void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) = 0;
     virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
     virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
+    virtual int64_t GetVSyncOffset() = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -122,6 +123,7 @@ public:
     void SetRSDistributor(sptr<VSyncDistributor> &rsVSyncDistributor) override;
     void SetFrameRateChangingStatus(bool frameRateChanging) override;
     void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) override;
+    int64_t GetVSyncOffset() override;
 
 private:
     friend class OHOS::Rosen::VSyncGenerator;
@@ -207,6 +209,7 @@ private:
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
     uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
+    int64_t vsyncOffset_ = 0;
 };
 } // impl
 } // namespace Rosen
