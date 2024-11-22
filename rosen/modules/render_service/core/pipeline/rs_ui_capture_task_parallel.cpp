@@ -133,8 +133,7 @@ bool RSUiCaptureTaskParallel::CreateResources()
     float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
     int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
     int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
-    if (static_cast<int64_t>(width) * static_cast<int64_t>(height) >
-        static_cast<int64_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE)) {
+    if (width > 0 && static_cast<int32_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) / width < height) {
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: image is too large, width:%{public}d, height::%{public}d",
             width, height);
         return false;
