@@ -561,10 +561,6 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     if (!visitor) {
         return;
     }
-    if (NeedUpdateDrawableBehindWindow()) {
-        AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
-        SetDirty(true);
-    }
     ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
 

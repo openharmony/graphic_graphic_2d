@@ -2089,6 +2089,10 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else if (!pendingUiCaptureTasks_.empty()) {
             RS_LOGD("RSMainThread::Render pendingUiCaptureTasks_ not empty");
+        } else if (needRequestNextVsyncDrawBehindWindow_) {
+            RS_LOGD("RSMainThread::UniRender NeedRequestNextVsyncDrawBehindWindow");
+            RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::UniRender NeedRequestNextVsyncDrawBehindWindow");
+            needRequestNextVsyncDrawBehindWindow_ = false;
         } else {
             needDrawFrame_ = false;
             RS_LOGD("RSMainThread::Render nothing to update");
