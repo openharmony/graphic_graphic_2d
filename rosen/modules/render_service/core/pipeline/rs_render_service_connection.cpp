@@ -423,14 +423,23 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
     return pSurface;
 }
 
-
 sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const std::string& name,
                                                                         const sptr<VSyncIConnectionToken>& token,
                                                                         uint64_t id,
-                                                                        NodeId windowNodeId)
+                                                                        NodeId windowNodeId,
+                                                                        bool fromXcomponent)
 {
     if (!mainThread_) {
         return nullptr;
+    }
+    if (fromXcomponent) {
+        auto& node = RSMainThread::Instance()->GetContext().GetNodeMap()
+                    .GetRenderNode<RSRenderNode>(windowNodeId);
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceConnection::CreateVSyncConnection:node is nullptr");
+            return nullptr;
+        }
+        windowNodeId = node->GetInstanceRootNodeId();
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
     if (ExtractPid(id) == remotePid_) {

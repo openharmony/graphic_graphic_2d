@@ -71,7 +71,8 @@ private:
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                  const sptr<VSyncIConnectionToken>& token,
                                                  uint64_t id,
-                                                 NodeId windowNodeId = 0) override;
+                                                 NodeId windowNodeId = 0,
+                                                 bool fromXcomponent = false) override;
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 

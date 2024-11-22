@@ -132,7 +132,8 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
         uint64_t id = 0,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
