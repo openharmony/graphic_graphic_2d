@@ -54,7 +54,7 @@ std::shared_ptr<RSTransaction> RSSyncTransactionController::GetRSTransaction()
     return rsTransaction_;
 }
 
-void RSSyncTransactionController::OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
+void RSSyncTransactionController::OpenSyncTransaction()
 {
     if (!RSSystemProperties::GetSyncTransactionEnabled()) {
         return;
@@ -69,11 +69,11 @@ void RSSyncTransactionController::OpenSyncTransaction(std::shared_ptr<AppExecFwk
     }
     ROSEN_LOGD("RS sync transaction controller OpenSyncTransaction");
     if (rsTransaction_) {
-        rsTransaction_->OpenSyncTransaction(handler);
+        rsTransaction_->OpenSyncTransaction();
     }
 }
 
-void RSSyncTransactionController::CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler)
+void RSSyncTransactionController::CloseSyncTransaction()
 {
     if (!needCloseSync_) {
         return;
@@ -81,7 +81,7 @@ void RSSyncTransactionController::CloseSyncTransaction(std::shared_ptr<AppExecFw
 
     ROSEN_LOGD("RS sync transaction controller CloseSyncTransaction");
     if (rsTransaction_) {
-        rsTransaction_->CloseSyncTransaction(handler);
+        rsTransaction_->CloseSyncTransaction();
     }
     {
         std::unique_lock<std::mutex> lock(mutex_);

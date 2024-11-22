@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_TRANSACTION_H
 
-#include <event_handler.h>
 #include <message_parcel.h>
 #include <mutex>
 #include <parcel.h>
@@ -41,8 +40,8 @@ public:
     bool Marshalling(Parcel& parcel) const override;
 
     static void FlushImplicitTransaction();
-    void OpenSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
-    void CloseSyncTransaction(std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr);
+    void OpenSyncTransaction();
+    void CloseSyncTransaction();
 
     void Begin();
     void Commit();
