@@ -90,8 +90,10 @@ uint32_t CalculateRefreshRate(int64_t period)
     } rateSections[] = {
         {30000000, 35000000, 30}, // 30000000ns, 35000000ns
         {15000000, 18000000, 60}, // 15000000ns, 18000000ns
+        {13000000, 15000000, 72}, // 13000000ns, 15000000ns
         {10000000, 12000000, 90}, // 10000000ns, 12000000ns
-        {7500000, 9000000, 120}}; // 7500000ns, 9000000ns
+        {7500000, 9000000, 120}, // 7500000ns, 9000000ns
+        {6000000, 7500000, 144}}; // 6000000ns, 7500000ns
     for (const auto& rateSection : rateSections) {
         if (period > rateSection.min && period < rateSection.max) {
             return rateSection.refreshRate;
@@ -828,6 +830,12 @@ void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenc
         startRefresh_, pendingPeriod_);
 }
 
+int64_t VSyncGenerator::GetVSyncOffset()
+{
+    std::lock_guard<std::mutex> locker(mutex_);
+    return vsyncOffset_;
+}
+
 VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInterval, int64_t referenceTime)
 {
     if (hardwareVsyncInterval < 0 || referenceTime < 0) {
@@ -855,6 +863,11 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         bool needNotify = true;
         uint32_t periodRefreshRate = CalculateRefreshRate(period_);
         uint32_t pendingPeriodRefreshRate = CalculateRefreshRate(pendingPeriod_);
+        if (pendingPeriodRefreshRate != 0) {
+            int32_t periodPulseNum = vsyncMaxRefreshRate_ / pendingPeriodRefreshRate;
+            vsyncOffset_ = (referenceTimeOffsetPulseNum_ % periodPulseNum) * pulse_;
+            RS_TRACE_NAME_FMT("vsyncOffset_:%ld", vsyncOffset_);
+        }
         // 120hz, 90hz, 60hz
         if (((periodRefreshRate == 120) || (periodRefreshRate == 90)) && (pendingPeriodRefreshRate == 60)) {
             needNotify = false;

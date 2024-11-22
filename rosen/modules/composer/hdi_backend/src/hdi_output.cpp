@@ -516,7 +516,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = enableVsyncSample_.load() && sampler_->AddPresentFenceTime(timestamp);
+        startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
         bool presentTimeUpdated = false;
         LayerPtr uniRenderLayer = nullptr;
@@ -550,14 +550,18 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 
 void HdiOutput::SetVsyncSamplerEnabled(bool enabled)
 {
-    RS_TRACE_NAME_FMT("HdiOutput::SetVsyncSamplerEnabled, enableVsyncSample_:%d", enabled);
-    HLOGI("Change enableVsyncSample_, value is %{public}d", enabled);
-    enableVsyncSample_.store(enabled);
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
+    }
+    sampler_->SetVsyncSamplerEnabled(enabled);
 }
 
 bool HdiOutput::GetVsyncSamplerEnabled()
 {
-    return enableVsyncSample_.load();
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
+    }
+    return sampler_->GetVsyncSamplerEnabled();
 }
 
 int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
@@ -688,23 +692,14 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
 
 int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
-    ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
-    if (!enableVsyncSample_.load()) {
-        ScopedBytrace func("disabled vsyncSample");
-        return GRAPHIC_DISPLAY_FAILURE;
-    }
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
-    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-    if (!forceReSample && alreadyStartSample) {
-        HLOGD("Already Start Sample.");
+    if (sampler_->StartSample(forceReSample) == VSYNC_ERROR_OK) {
         return GRAPHIC_DISPLAY_SUCCESS;
+    } else {
+        return GRAPHIC_DISPLAY_FAILURE;
     }
-    HLOGD("Enable Screen Vsync");
-    sampler_->SetScreenVsyncEnabledInRSMainThread(true);
-    sampler_->BeginSample();
-    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 void HdiOutput::SetPendingMode(int64_t period, int64_t timestamp)
