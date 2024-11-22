@@ -78,7 +78,7 @@ std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
 }
 
-#define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)        \
+#define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const TYPE& val) \
     {                                                                      \
         return parcel.Write##TYPENAME(val);                                \
@@ -2049,7 +2049,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     return true;
 }
 
-#define MARSHALLING_AND_UNMARSHALLING(TYPE)                                            \
+#define MARSHALLING_AND_UNMARSHALLING(TYPE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TYPE>& val) \
     {                                                                                       \
         return parcel.WriteParcelable(val.get());                                           \
@@ -2063,7 +2063,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderTransition)
 MARSHALLING_AND_UNMARSHALLING(RSRenderTransitionEffect)
 #undef MARSHALLING_AND_UNMARSHALLING
 
-#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                        \
+#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                 \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE>& val) \
     {                                                                                           \
         if (val == nullptr) {                                                                   \
@@ -2095,7 +2095,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRender
     return val != nullptr;
 }
 
-#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                     \
+#define MARSHALLING_AND_UNMARSHALLING(TEMPLATE)                                                                       \
     template<typename T>                                                                                              \
     bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<TEMPLATE<T>>& val)                    \
     {                                                                                                                 \
