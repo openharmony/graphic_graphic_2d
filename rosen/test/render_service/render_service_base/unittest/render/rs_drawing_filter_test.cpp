@@ -357,4 +357,22 @@ HWTEST_F(RSDrawingFilterTest, PreProcess001, TestSize.Level1)
     drawingFilter.PreProcess(image);
     EXPECT_TRUE(image != nullptr);
 }
+
+/**
+ * @tc.name: GetFilterTypeString
+ * @tc.desc: test GetFilterTypeString
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, GetFilterTypeString, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSShaderFilter>();
+    filterPtr->type_ = RSShaderFilter::KAWASE;
+    std::vector<std::shared_ptr<RSShaderFilter>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, shaderFilters, hash);
+    EXPECT_TRUE(drawingFilter.GetFilterTypeString() != "");
+}
+
 } // namespace OHOS::Rosen
