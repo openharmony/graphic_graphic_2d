@@ -1217,7 +1217,7 @@ void RSMainThread::ProcessCommandForUniRender()
         if (canvasDrawingNode == nullptr) {
             return;
         }
-        if (canvasDrawingNode->IsNeedProcess() && !canvasDrawingNode->IsOnTheTree()) {
+        if (canvasDrawingNode->IsNeedProcess()) {
             auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasDrawingNode);
             if (!drawableNode) {
                 RS_LOGE("RSMainThread::ProcessCommandForUniRender GetCanvasDrawable Failed NodeId[%{public}" PRIu64 "]",

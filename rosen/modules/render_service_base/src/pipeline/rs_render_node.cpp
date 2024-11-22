@@ -4335,7 +4335,9 @@ void RSRenderNode::OnSync()
     foregroundFilterInteractWithDirty_ = false;
 
     // Reset Sync Flag
-    renderDrawable_->SetNeedDraw(true);
+    if (waitSync_) {
+        renderDrawable_->SetNeedDraw(true);
+    }
     waitSync_ = false;
 
     lastFrameSynced_ = !isLeashWindowPartialSkip;

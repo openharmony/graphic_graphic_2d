@@ -27,6 +27,7 @@
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
 #if defined(ACCESSIBILITY_ENABLE)
@@ -781,6 +782,13 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
     mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(std::move(data));
     // empty data
     mainThread->effectiveTransactionDataIndexMap_[0].second.emplace_back(nullptr);
+
+    NodeId nodeId =1;
+    std::weak_ptr<RSContext> context = {};
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, context);
+    auto drawableNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
+    drawableNode->SetNeedDraw(true);
+    mainThread->context_->nodeMap.RegisterRenderNode(rsCanvasDrawingRenderNode);
     mainThread->ProcessCommandForUniRender();
 }
 
@@ -4062,6 +4070,19 @@ HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
     mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
     ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
+}
+
+/**
+ * @tc.name: TraverseCanvasDrawingNodesNotOnTree
+ * @tc.desc: test TraverseCanvasDrawingNodesNotOnTree
+ * @tc.type: FUNC
+ * @tc.require: issueIB56EL
+ */
+HWTEST_F(RSMainThreadTest, TraverseCanvasDrawingNodesNotOnTree, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->TraverseCanvasDrawingNodesNotOnTree();
 }
 
 /**

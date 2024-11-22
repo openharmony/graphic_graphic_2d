@@ -17,6 +17,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_common_def.h"
+#include "common/rs_optional_trace.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_canvas_drawing_render_params.h"
 #include "pipeline/rs_main_thread.h"
@@ -228,6 +229,9 @@ void RSCanvasDrawingRenderNodeDrawable::Purge()
         isPurgeMatrix_ = true;
         curThreadInfo_.second(std::move(surface_));
         surface_ = nullptr;
+        recordingCanvas_ = nullptr;
+        image_ = nullptr;
+        canvas_ = nullptr;
     }
 #endif
     RSRenderNodeDrawableAdapter::Purge();
@@ -252,30 +256,35 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 {
     auto canvasDrawingPtr = shared_from_this();
     pid_t threadId = threadId_;
+    RS_OPTIONAL_TRACE_NAME_FMT("post playback task node[%llu]", GetId());
     auto task = [this, canvasDrawingPtr, threadId]() {
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
         // default in unirenderthread
-        if (!renderParams_ || renderParams_->GetCanvasDrawingSurfaceChanged()) {
+        if (!IsNeedDraw()) {
+            return;
+        }
+
+        if (!renderParams_) {
+            RS_LOGE("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] renderParams null", GetId());
             return;
         }
 
         if (threadId != threadId_) {
-            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::PostPlayback ThreadId Error NodeId[%{public}" PRIu64 "],"
+            RS_LOGE("PostPlaybackInCorrespondThread ThreadId Error NodeId[%{public}" PRIu64 "],"
                 "threadId[%{public}d], threadId_[%{public}d]", GetId(), threadId, threadId_.load());
             return;
         }
 
-        auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
-        if (surfaceParams.width == 0 || surfaceParams.height == 0) {
-            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::PostPlayback Area Error NodeId[%{public}" PRIu64 "],"
-                "width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
-            SetNeedDraw(false);
-            return;
+        if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
+            ResetSurface();
+            RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", GetId());
+            renderParams_->SetCanvasDrawingSurfaceChanged(false);
         }
 
+        auto surfaceParams = renderParams_->GetCanvasDrawingSurfaceParams();
         if (!surface_ || !canvas_) {
             if (!ResetSurfaceforPlayback(surfaceParams.width, surfaceParams.height)) {
-                RS_LOGE("RSCanvasDrawingRenderNodeDrawable::PostPlayback Reset Surface Error NodeId[%{public}" PRIu64
+                RS_LOGE("PostPlaybackInCorrespondThread Reset Surface Error NodeId[%{public}" PRIu64
                     "], width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
                 return;
             }
@@ -288,6 +297,8 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             };
             SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%llu]", GetId());
+        RS_LOGI("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", GetId());
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);
         SetNeedDraw(false);
@@ -465,8 +476,9 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
 
 void RSCanvasDrawingRenderNodeDrawable::ResetSurface()
 {
+    RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurface NodeId[%{public}" PRIu64 "] ResetSurface", GetId());
     if (surface_ && surface_->GetImageInfo().GetWidth() > EDGE_WIDTH_LIMIT) {
-        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "", nodeId_);
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurface id:%{public}" PRIu64 "]", nodeId_);
     }
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -660,6 +672,36 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 #endif
 }
 
+#ifdef RS_ENABLE_VK
+bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
+{
+    if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
+        backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
+        if (!backendTexture_.IsValid()) {
+            if ((RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) &&
+                (vulkanCleanupHelper_ && isPurge_)) {
+                vulkanCleanupHelper_->UnRef();
+                isPurge_ = false;
+            }
+            surface_ = nullptr;
+            recordingCanvas_ = nullptr;
+            image_ = nullptr;
+            canvas_ = nullptr;
+            backendTexture_ = {};
+            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+                vulkanCleanupHelper_ = nullptr;
+            }
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK size too big [%{public}d, %{public}d] failed",
+                width, height);
+            return false;
+        }
+    }
+    return true;
+}
+#endif
+
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas)
 {
     Drawing::ImageInfo info =
@@ -674,30 +716,8 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
-        if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
-            backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
-            if (!backendTexture_.IsValid()) {
-                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                    if (vulkanCleanupHelper_ && isPurge_) {
-                        vulkanCleanupHelper_->UnRef();
-                        isPurge_ = false;
-                    }
-                }
-                surface_ = nullptr;
-                recordingCanvas_ = nullptr;
-                image_ = nullptr;
-                canvas_ = nullptr;
-                backendTexture_ = {};
-                if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                    RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                    vulkanCleanupHelper_ = nullptr;
-                }
-                RS_LOGE(
-                    "RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK size too big [%{public}d, %{public}d] failed",
-                    width, height);
-                return false;
-            }
+        if (!ReleaseSurfaceVK(width, height)) {
+            return false;
         }
         auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
         if (vulkanCleanupHelper_ == nullptr) {
@@ -798,12 +818,12 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContext(std::shared_ptr<Drawin
     return true;
 }
 
-#if defined(RS_ENABLE_GL)
 bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
     int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext)
 {
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     surface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, info);
     if (!surface_) {
         isGpuSurface_ = false;
@@ -816,41 +836,22 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetGL(
         canvas_ = std::make_unique<RSPaintFilterCanvas>(recordingCanvas_.get());
         return true;
     }
+#else
+    surface_ = Drawing::Surface::MakeRaster(info);
+#endif
     return true;
 }
-#endif
 
-#if defined(RS_ENABLE_VK)
-bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
+bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
     int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext)
 {
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
     bool isNewCreate = false;
-    if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
-        backendTexture_ = RSUniRenderUtil::MakeBackendTexture(width, height);
-        if (!backendTexture_.IsValid()) {
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                if (vulkanCleanupHelper_ && isPurge_) {
-                    vulkanCleanupHelper_->UnRef();
-                    isPurge_ = false;
-                }
-            }
-            surface_ = nullptr;
-            recordingCanvas_ = nullptr;
-            image_ = nullptr;
-            canvas_ = nullptr;
-            backendTexture_ = {};
-            if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
-                RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-                vulkanCleanupHelper_ = nullptr;
-            }
-            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::VK backendTexture invalid, nodeId[%{public}" PRIu64 "]",
-                GetId());
-            return false;
-        }
+#if defined(RS_ENABLE_VK)
+    if (!ReleaseSurfaceVK(width, height)) {
+        return false;
     }
     auto vkTextureInfo = backendTexture_.GetTextureInfo().GetVKTextureInfo();
     if (vulkanCleanupHelper_ == nullptr) {
@@ -874,14 +875,17 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVk(
         return true;
     }
     return true;
-}
+#else
+    surface_ = Drawing::Surface::MakeRaster(info);
 #endif
+    return true;
+}
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int height)
 {
     Drawing::ImageInfo info =
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-
+    RS_LOGI("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback NodeId[%{public}" PRIu64 "]", GetId());
     std::shared_ptr<Drawing::GPUContext> gpuContext;
     if (canvas_ == nullptr) {
         if (!GetCurrentContext(gpuContext)) {
@@ -897,25 +901,23 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int h
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
-#if defined(RS_ENABLE_GL)
-        if (!GpuContextResetGL(width, height, gpuContext)) {
-            return false;
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+            if (!GpuContextResetGL(width, height, gpuContext)) {
+                return false;
+            }
+            if (canvas_) {
+                return true;
+            }
         }
-        if (canvas_) {
-            return true;
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+            if (!GpuContextResetVK(width, height, gpuContext)) {
+                return false;
+            }
+            if (canvas_) {
+                return true;
+            }
         }
-#else
-#if defined(RS_ENABLE_VK)
-        if (!GpuContextResetVk(width, height, gpuContext)) {
-            return false;
-        }
-        if (canvas_) {
-            return true;
-        }
-#else
-        surface_ = Drawing::Surface::MakeRaster(info);
-#endif
-#endif
     }
 
     if (!surface_) {

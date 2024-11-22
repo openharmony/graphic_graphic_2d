@@ -72,11 +72,10 @@ private:
     void DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     bool ResetSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
-#if defined(RS_ENABLE_GL)
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
-#endif
-#if defined(RS_ENABLE_VK)
-    bool GpuContextResetVk(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+    bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+#ifdef RS_ENABLE_VK
+    bool ReleaseSurfaceVK(int width, int height);
 #endif
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
