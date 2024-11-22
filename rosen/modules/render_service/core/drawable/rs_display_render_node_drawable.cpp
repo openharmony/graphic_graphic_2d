@@ -720,6 +720,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSMainThread::Instance()->SetFrameIsRender(true);
 
     CheckAndUpdateFilterCacheOcclusion(*params, curScreenInfo);
+    if (isHdrOn) {
+        params->SetNewPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    }
     RSUniRenderThread::Instance().WaitUntilDisplayNodeBufferReleased(*this);
     // displayNodeSp to get  rsSurface witch only used in renderThread
     auto renderFrame = RequestFrame(*params, processor);

@@ -319,52 +319,13 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
     newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
 }
 
-void RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node)
-{
-    if (!node.IsOnTheTree()) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is not on the tree",
-            node.GetName().c_str());
-        return;
-    }
-    if (!node.IsHardwareForcedDisabled()) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
-            node.GetName().c_str());
-        return;
-    }
-    if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) did not have buffer.",
-            node.GetName().c_str());
-        return;
-    }
-    auto bufferPixelFormat = node.GetRSSurfaceHandler()->GetBuffer()->GetFormat();
-    if (RSMainThread::CheckIsHdrSurface(node)) {
-        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode HDRService pixelformat is set to 1010102");
-    }
-}
-
-void RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node)
-{
-    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
-    for (const auto& selfDrawingNode : selfDrawingNodes) {
-        if (newPixelFormat_ == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc newPixelFormat is already 1010102.");
-            return;
-        }
-        auto ancestorNode = selfDrawingNode->GetAncestorDisplayNode().lock();
-        if (!selfDrawingNode || !ancestorNode) {
-            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc selfDrawingNode or ancestorNode is nullptr");
-            continue;
-        }
-        auto ancestor = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (ancestor != nullptr && node.GetId() == ancestor->GetId()) {
-            CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode);
-        }
-    }
-}
-
 void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
 {
+    if (node.GetHDRPresent()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64 "",
+            node.GetId());
+        hasUniRenderHdrSurface_ = true;
+    }
     if (hasFingerprint_[currentVisitDisplay_]) {
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat hasFingerprint is true.");
         return;
@@ -375,11 +336,9 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for fingerprint.");
         return;
     }
-    if (node.GetHDRPresent()) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64 "",
-            node.GetId());
-        hasUniRenderHdrSurface_ = true;
+    if (RSMainThread::CheckIsHdrSurface(node) && !IsHardwareComposerEnabled()) {
         newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat pixelformat is set to 1010102 for 10bit buffer");
     }
 }
 
@@ -417,7 +376,6 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
         }
     }
     stagingDisplayParams->SetNewPixelFormat(newPixelFormat_);
-    newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
 }
 
 void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node)
@@ -748,7 +706,6 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curDisplayNode_->UpdateScreenRenderParams(screenRenderParams);
     curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
     UpdateColorSpaceAfterHwcCalc(node);
-    UpdatePixelFormatAfterHwcCalc(node);
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
