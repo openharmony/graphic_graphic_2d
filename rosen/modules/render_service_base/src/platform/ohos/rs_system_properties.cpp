@@ -197,7 +197,7 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "0") != "0";
     return isPurgeable;
 }
 
