@@ -98,4 +98,14 @@ bool BootAnimationStrategy::CheckNeedOtaCompile() const
     }
     return false;
 }
+
+bool BootAnimationStrategy::CheckNeedBundleScan() const
+{
+    LOGI("CheckNeedBundleScan");
+    if (system::GetParameter("bms.scanning_apps.status", "-1") == "1") {
+        LOGI("bundle scan is already done.");
+        return false;
+    }
+    return true;
+}
 } // namespace OHOS
