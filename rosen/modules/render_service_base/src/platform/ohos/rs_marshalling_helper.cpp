@@ -1116,12 +1116,9 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const RenderParticleColorP
                    Marshalling(parcel, val.distribution_) && Marshalling(parcel, val.updator_);
     if (val.updator_ == ParticleUpdator::RANDOM) {
         success &= Marshalling(parcel, val.redRandom_.start_) && Marshalling(parcel, val.redRandom_.end_);
-        success =
-            success && Marshalling(parcel, val.greenRandom_.start_) && Marshalling(parcel, val.greenRandom_.end_);
-        success =
-            success && Marshalling(parcel, val.blueRandom_.start_) && Marshalling(parcel, val.blueRandom_.end_);
-        success =
-            success && Marshalling(parcel, val.alphaRandom_.start_) && Marshalling(parcel, val.alphaRandom_.end_);
+        success &= Marshalling(parcel, val.greenRandom_.start_) && Marshalling(parcel, val.greenRandom_.end_);
+        success &= Marshalling(parcel, val.blueRandom_.start_) && Marshalling(parcel, val.blueRandom_.end_);
+        success &= Marshalling(parcel, val.alphaRandom_.start_) && Marshalling(parcel, val.alphaRandom_.end_);
     } else if (val.updator_ == ParticleUpdator::CURVE) {
         success &= parcel.WriteUint32(static_cast<uint32_t>(val.valChangeOverLife_.size()));
         for (size_t i = 0; i < val.valChangeOverLife_.size(); i++) {

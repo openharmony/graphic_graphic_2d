@@ -195,8 +195,8 @@ void RSUIDirector::Destroy(bool isTextureExport)
         root_ = 0;
     }
     GoBackground(isTextureExport);
-    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
-    g_uiTaskRunners.erase(this);
+    std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
+    uiTaskRunners.erase(this);
 }
 
 void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
@@ -330,9 +330,9 @@ bool RSUIDirector::HasUIRunningAnimation()
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId)
 {
-    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
     instanceId_ = instanceId;
-    g_uiTaskRunners[this] = uiTaskRunner;
+    uiTaskRunners[this] = uiTaskRunner;
     if (!isHgmConfigChangeCallbackReg_) {
         RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
         isHgmConfigChangeCallbackReg_ = true;
@@ -478,8 +478,8 @@ void RSUIDirector::PostTask(const std::function<void()>& task, int32_t instanceI
 
 void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t delay, int32_t instanceId)
 {
-    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
-    for (const auto &[director, taskRunner] : g_uiTaskRunners) {
+    std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
+    for (const auto &[director, taskRunner] : uiTaskRunners) {
         if (director->instanceId_ != instanceId) {
             continue;
         }
@@ -490,7 +490,7 @@ void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t del
     if (instanceId != INSTANCE_ID_UNDEFINED) {
         ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found", instanceId);
     }
-    for (const auto &[_, taskRunner] : g_uiTaskRunners) {
+    for (const auto &[_, taskRunner] : uiTaskRunners) {
         ROSEN_LOGD("RSUIDirector::PostTask success");
         taskRunner(task, delay);
         return;
