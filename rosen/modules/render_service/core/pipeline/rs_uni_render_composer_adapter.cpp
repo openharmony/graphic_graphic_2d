@@ -1126,13 +1126,6 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
 // private func, guarantee the layer is valid
 void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer) const
 {
-    const auto& buffer = layer->GetBuffer();
-    const auto& surface = layer->GetSurface();
-    if (buffer == nullptr || surface == nullptr) {
-        RS_LOGE("buffer or surface is nullptr");
-        return;
-    }
-
     GraphicIRect srcRect = layer->GetCropRect();
     GraphicIRect dstRect = layer->GetLayerSize();
 
@@ -1242,9 +1235,8 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(
     LayerRotate(layer, surfaceDrawable);
     LayerCrop(layer);
     const auto& buffer = layer->GetBuffer();
-    const auto& surface = layer->GetSurface();
-    if (buffer == nullptr || surface == nullptr) {
-        RS_LOGE("buffer or surface is nullptr");
+    if (buffer == nullptr) {
+        RS_LOGE("buffer is nullptr");
         return layer;
     }
 
@@ -1296,8 +1288,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& 
     LayerCrop(layer);
     layer->SetNodeId(node.GetId());
     const auto& buffer = layer->GetBuffer();
-    const auto& surface = layer->GetSurface();
-    if (buffer == nullptr || surface == nullptr) {
+    if (buffer == nullptr) {
         RS_LOGE("buffer or surface is nullptr");
         return layer;
     }
