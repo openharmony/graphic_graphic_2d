@@ -62,6 +62,10 @@ std::shared_ptr<Drawing::Image> GERenderFuzzTest002(const uint8_t *data, size_t 
         return nullptr;
     }
     // initialize
+    GETest::g_data = data;
+    GETest::g_size = size;
+    GETest::g_pos = 0;
+    
     auto geRender = std::make_shared<GERender>();
     Drawing::Canvas canvas;
     auto visualEffect = std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_KAWASE_BLUR);

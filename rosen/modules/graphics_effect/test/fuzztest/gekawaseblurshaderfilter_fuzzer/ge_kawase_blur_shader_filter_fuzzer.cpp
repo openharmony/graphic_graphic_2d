@@ -100,8 +100,8 @@ std::shared_ptr<Drawing::Image> ScaleAndAddRandomColorFuzzTest(const uint8_t *da
 
     Drawing::Rect src = GETest::GetPlainData<Drawing::Rect>();
     Drawing::Rect dst = GETest::GetPlainData<Drawing::Rect>();
-    auto width = std::max(static_cast<int>(std::ceil(dst.GetWidth())), imageBlur->GetWidth());
-    auto height = std::max(static_cast<int>(std::ceil(dst.GetHeight())), imageBlur->GetHeight());
+    int width = GETest::GetPlainData<uint32_t>();
+    int height = GETest::GetPlainData<uint32_t>();
 
     auto res = shaderFilter->ScaleAndAddRandomColor(canvas, image, imageBlur, src, dst, width, height);
     return res;
