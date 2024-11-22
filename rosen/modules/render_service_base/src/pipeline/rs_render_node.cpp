@@ -4270,6 +4270,14 @@ void RSRenderNode::OnSync()
     if (renderDrawable_ == nullptr) {
         return;
     }
+    // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
+    DrawableV2::RSRenderNodeSingleDrawableLocker
+        singleLocker(uifirstSkipPartialSync_ ? nullptr : renderDrawable_.get());
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        RS_LOGE("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     if (drawCmdListNeedSync_) {
         std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();

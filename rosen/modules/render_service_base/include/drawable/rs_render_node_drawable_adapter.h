@@ -99,7 +99,8 @@ enum class DrawSkipType : uint8_t {
     RENDER_SKIP_IF_SCREEN_OFF = 25,
     HARD_CURSOR_ENAbLED = 26,
     CHECK_MATCH_AND_WAIT_NOTIFY_FAIL = 27,
-    DEAL_WITH_CACHED_WINDOW = 28
+    DEAL_WITH_CACHED_WINDOW = 28,
+    MULTI_ACCESS = 29,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -224,6 +225,17 @@ public:
         return drawSkipType_;
     }
 
+    inline bool DrawableTryLockForDraw()
+    {
+        bool expected = false;
+        return isOnDraw_.compare_exchange_strong(expected, true);
+    }
+
+    inline void DrawableResetLock()
+    {
+        isOnDraw_.store(false);
+    }
+
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -305,6 +317,7 @@ private:
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
+    std::atomic<bool> isOnDraw_ = false;
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
@@ -315,6 +328,28 @@ private:
     friend class OHOS::Rosen::RSDrawWindowCache;
 };
 
+// RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.
+class RSB_EXPORT RSRenderNodeSingleDrawableLocker {
+public:
+    RSRenderNodeSingleDrawableLocker() = delete;
+    inline RSRenderNodeSingleDrawableLocker(RSRenderNodeDrawableAdapter* drawable)
+        : drawable_(drawable), locked_(LIKELY(drawable != nullptr) && drawable->DrawableTryLockForDraw())
+    {}
+    inline ~RSRenderNodeSingleDrawableLocker()
+    {
+        if (LIKELY(locked_)) {
+            drawable_->DrawableResetLock();
+        }
+    }
+    inline bool IsLocked() const
+    {
+        return locked_;
+    }
+
+private:
+    RSRenderNodeDrawableAdapter* drawable_;
+    const bool locked_;
+};
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H
