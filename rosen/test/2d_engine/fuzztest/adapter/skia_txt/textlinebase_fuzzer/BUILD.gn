@@ -24,7 +24,6 @@ ohos_fuzztest("TextLineBaseFuzzTest") {
   fuzz_config_file = "$graphic_2d_root/rosen/test/2d_engine/fuzztest/adapter/skia_txt/textlinebase_fuzzer"
 
   include_dirs = [
-    "//third_party/googletest/googletest/include",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_test",
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/skia_txt",
@@ -36,7 +35,6 @@ ohos_fuzztest("TextLineBaseFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/test/2d_graphics/fuzztest",
     "$graphic_2d_root/rosen/test/2d_engine/fuzztest/adapter/skia_txt/textlinebase_fuzzer",
-    "//third_party/skia",
   ]
 
   sources = [ "text_line_base_fuzzer.cpp" ]
@@ -59,10 +57,12 @@ ohos_fuzztest("TextLineBaseFuzzTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$rosen_root/modules/2d_engine/rosen_text/skia_txt:skia_libtxt_$platform",
-    "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+  ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
