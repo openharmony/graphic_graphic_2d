@@ -29,7 +29,9 @@ void OHDrawingConvert1(const uint8_t* data, size_t size)
     if (data == nullptr) {
         return;
     }
-
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection = OHOS::Rosen::FontCollection::Create();
     std::shared_ptr<OHOS::Rosen::AdapterTxt::FontCollection> adapterFontCollection =
         AdapterTxt::Convert(fontCollection);
@@ -58,10 +60,13 @@ void OHDrawingConvert1(const uint8_t* data, size_t size)
 
 void OHDrawingConvert2(const uint8_t* data, size_t size)
 {
-    uint32_t red = static_cast<float>(data[0]);
-    uint32_t gree = static_cast<float>(data[1]);
-    uint32_t blue = static_cast<float>(data[0]);
-    uint32_t alpha = static_cast<float>(data[1]);
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t gree = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t alpha = GetObject<uint32_t>();
     TextStyle textStyle;
     textStyle.symbol.SetVisualMode(VisualMode(GetObject<int>() % DATA_MAX_ENUM_SIZE2));
     textStyle.fontFeatures.SetFeature("tag", GetObject<int>());
