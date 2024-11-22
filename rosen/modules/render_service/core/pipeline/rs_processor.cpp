@@ -37,30 +37,6 @@ using namespace FRAME_TRACE;
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr uint32_t PERF_LEVEL_0 = 0;
-constexpr uint32_t PERF_LEVEL_1 = 1;
-constexpr uint32_t PERF_LEVEL_2 = 2;
-constexpr int32_t PERF_LEVEL_1_REQUESTED_CODE = 10013;
-constexpr int32_t PERF_LEVEL_2_REQUESTED_CODE = 10014;
-constexpr int32_t PERF_LEVEL_3_REQUESTED_CODE = 10015;
-constexpr int64_t PERF_TIME_OUT = 950;
-constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
-constexpr uint32_t PERF_LAYER_START_NUM = 12;
-#ifdef FRAME_AWARE_TRACE
-constexpr uint32_t FRAME_TRACE_LAYER_NUM_1 = 11;
-constexpr uint32_t FRAME_TRACE_LAYER_NUM_2 = 13;
-constexpr int32_t FRAME_TRACE_PERF_REQUESTED_CODE = 10024;
-#endif
-
-void PerfRequest(int32_t perfRequestCode, bool onOffTag)
-{
-#ifdef SOC_PERF_ENABLE
-    OHOS::SOCPERF::SocPerfClient::GetInstance().PerfRequestEx(perfRequestCode, onOffTag, "");
-    RS_LOGD("RSProcessor::soc perf info [%{public}d %{public}d]", perfRequestCode, onOffTag);
-#endif
-}
-}
 
 bool RSProcessor::InitForRenderThread(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable, ScreenId mirroredId,
     std::shared_ptr<RSBaseRenderEngine> renderEngine)
