@@ -32,7 +32,7 @@ enum class TileMode {
 
 class DRAWING_API ShaderEffect {
 public:
-    enum class ShaderEffectType {
+    enum class ShaderEffectType : int32_t {
         NO_TYPE,
         COLOR_SHADER,
         BLEND,
