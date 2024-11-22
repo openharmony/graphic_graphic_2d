@@ -390,7 +390,7 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
         if (instanceId == INSTANCE_ID_UNDEFINED) {
             instanceId = RSNodeMap::Instance().GetInstanceIdForReleasedNode(realId);
         }
-        m[instanceId].push_back(cmd);
+        m[instanceId].push_back(std::move(cmd));
     }
     auto msgId = ++messageId;
     RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
