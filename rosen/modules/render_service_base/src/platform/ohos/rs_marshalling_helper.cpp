@@ -1707,6 +1707,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val = nullptr;
         return false;
     }
+    if (replacedOpListSize > Drawing::MAX_OPITEMSIZE) {
+        val = nullptr;
+        return false;
+    }
     std::vector<std::pair<size_t, size_t>> replacedOpList;
     for (uint32_t i = 0; i < replacedOpListSize; ++i) {
         auto regionPos = parcel.ReadUint32();
