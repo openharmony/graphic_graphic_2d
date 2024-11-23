@@ -4132,6 +4132,50 @@ HWTEST_F(RSMainThreadTest, RenderServiceAllNodeDump01, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConnectChipsetVsyncSer
+ * @tc.desc: test ConnectChipsetVsyncSer
+ * @tc.type: FUNC
+ * @tc.require:issuesIB6292
+ */
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+HWTEST_F(RSMainThreadTest, ConnectChipsetVsyncSer, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->initVsyncServiceFlag_ = false;
+    mainThread->ConnectChipsetVsyncSer();
+    ASSERT_EQ(mainThread->initVsyncServiceFlag_, false);
+    mainThread->initVsyncServiceFlag_ = true;
+    mainThread->ConnectChipsetVsyncSer();
+    ASSERT_EQ(mainThread->initVsyncServiceFlag_, true);
+}
+#endif
+
+/**
+ * @tc.name: SetVsyncInfo
+ * @tc.desc: test SetVsyncInfo
+ * @tc.type: FUNC
+ * @tc.require:issuesIB6292
+ */
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+HWTEST_F(RSMainThreadTest, SetVsyncInfo, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto receiver = mainThread->receiver_;
+    if (mainThread->rsVSyncDistributor_ == nullptr) {
+        auto vsyncGenerator = CreateVSyncGenerator();
+        auto vsyncController = new VSyncController(vsyncGenerator, 0);
+        mainThread->rsVSyncDistributor_ = new VSyncDistributor(vsyncController, "rs");
+    }
+    sptr<VSyncConnection> conn = new VSyncConnection(mainThread->rsVSyncDistributor_, "rs");
+    mainThread->receiver_ = std::make_shared<VSyncReceiver>(conn);
+    mainThread->SetVsyncInfo(0);
+    mainThread->receiver_ = receiver;
+}
+#endif
+
+/**
  * @tc.name: IsOcclusionNodesNeedSync001
  * @tc.desc: test IsOcclusionNodesNeedSync001
  * @tc.type: FUNC
