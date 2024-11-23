@@ -1225,7 +1225,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
     }
 
     if (isRefresh_) {
-        ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderThread", GetId());
+        ROSEN_LOGD("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderThread", GetId());
         RSRTRefreshCallback::Instance().ExecuteRefresh();
     }
     if (isTextureExportNode) {
@@ -1235,7 +1235,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
     {
         std::lock_guard<std::mutex> lock(mutexRT_);
         if (callbackFromRT_) {
-            ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderService",
+            ROSEN_LOGD("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderService",
                 GetId());
             callbackFromRT_->OnBufferAvailable();
         }
