@@ -1814,6 +1814,9 @@ int32_t RSRenderServiceConnection::SetScreenSkipFrameInterval(ScreenId id, uint3
         return StatusCode::SCREEN_NOT_FOUND;
 #endif
     } else {
+        if (!mainThread_) {
+            return StatusCode::INVALID_ARGUMENTS;
+        }
         return mainThread_->ScheduleTask(
             [=]() { return screenManager_->SetScreenSkipFrameInterval(id, skipFrameInterval); }).get();
     }

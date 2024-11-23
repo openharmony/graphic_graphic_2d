@@ -1233,6 +1233,117 @@ bool DoSetVirtualScreenBlackList()
     return true;
 }
 
+bool DoSetScreenSkipFrameInterval()
+{
+    uint64_t id = GetData<uint64_t>();
+    uint32_t interval = GetData<uint32_t>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteUint32(interval)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL);
+    auto newPid = getpid();
+    sptr<RSScreenManager> screenManager = nullptr;
+    if (GetData<bool>()) {
+        screenManager = CreateOrGetScreenManager();
+    }
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token->AsObject(), nullptr);
+    if (connectionStub == nullptr) {
+        return false;
+    }
+    connectionStub->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoSetVirtualScreenSecurityExemptionList()
+{
+    uint64_t id = GetData<uint64_t>();
+    uint64_t nodeId = GetData<uint64_t>();
+    std::vector<uint64_t> secExemptionListVector;
+    secExemptionListVector.push_back(nodeId);
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteUInt64Vector(secExemptionListVector)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST);
+    auto newPid = getpid();
+    sptr<RSScreenManager> screenManager = nullptr;
+    if (GetData<bool>()) {
+        screenManager = CreateOrGetScreenManager();
+    }
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token->AsObject(), nullptr);
+    if (connectionStub == nullptr) {
+        return false;
+    }
+    connectionStub->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoSetVirtualScreenVisibleRect()
+{
+    uint64_t id = GetData<uint64_t>();
+    Rect rect = {
+        .x = GetData<int32_t>(),
+        .y = GetData<int32_t>(),
+        .w = GetData<int32_t>(),
+        .h = GetData<int32_t>()
+    };
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteInt32(rect.x) || !dataP.WriteInt32(rect.y) ||
+        !dataP.WriteInt32(rect.w) || !dataP.WriteInt32(rect.h)) {
+        return false;
+    }
+    
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT);
+    auto newPid = getpid();
+    sptr<RSScreenManager> screenManager = nullptr;
+    if (GetData<bool>()) {
+        screenManager = CreateOrGetScreenManager();
+    }
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token->AsObject(), nullptr);
+    if (connectionStub == nullptr) {
+        return false;
+    }
+    connectionStub->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoSetCastScreenEnableSkipWindow()
 {
     uint64_t id = GetData<uint64_t>();
@@ -1451,6 +1562,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetVirtualScreenResolution();
     OHOS::Rosen::DoSetVirtualScreenStatus();
     OHOS::Rosen::DoSetVirtualScreenBlackList();
+    OHOS::Rosen::DoSetScreenSkipFrameInterval();
+    OHOS::Rosen::DoSetVirtualScreenSecurityExemptionList();
+    OHOS::Rosen::DoSetVirtualScreenVisibleRect();
     OHOS::Rosen::DoSetCastScreenEnableSkipWindow();
     OHOS::Rosen::DoSetScreenCorrection();
     OHOS::Rosen::DoSetVirtualMirrorScreenCanvasRotation();
