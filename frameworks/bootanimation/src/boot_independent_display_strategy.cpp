@@ -41,7 +41,9 @@ void BootIndependentDisplayStrategy::Display(int32_t duration, std::vector<BootA
     }
 
     for (const auto& op : operators_) {
-        op->GetThread().join();
+        if (op->GetThread().joinable()) {
+            op->GetThread().join();
+        }
     }
 
     bool needOtaCompile = CheckNeedOtaCompile();
