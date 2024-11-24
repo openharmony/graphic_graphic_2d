@@ -265,8 +265,14 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     drawCmdList_[index](&canvas, &rect);
 }
 
-void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        RS_LOGE("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     if (uifirstDrawCmdList_.empty()) {
         return;
     }
