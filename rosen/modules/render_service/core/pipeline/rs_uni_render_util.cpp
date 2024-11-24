@@ -483,7 +483,6 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     params.buffer = buffer;
     params.acquireFence = useRenderParams ? nodeParams->GetAcquireFence() : surfaceHandler->GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-
     auto consumer = useRenderParams ? surfaceDrawable->GetConsumerOnDraw() : surfaceHandler->GetConsumer();
     if (consumer == nullptr) {
         return params;
@@ -532,8 +531,16 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     }
     params.buffer = buffer;
     params.acquireFence = nodeParams->GetAcquireFence();
-    params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
-
+    params.hasCropMetadata = MetadataHelper::GetCropRectMetadata(buffer, params.metaRegion) == GSERROR_OK;
+    if (UNLIKELY(params.hasCropMetadata)) {
+        RS_LOGD("RSUniRenderUtil::GetCropRectMetadata success, "
+            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
+            params.metaRegion.left, params.metaRegion.top, params.metaRegion.width, params.metaRegion.height);
+        params.srcRect = Drawing::Rect(params.metaRegion.left, params.metaRegion.top,
+            params.metaRegion.left + params.metaRegion.width, params.metaRegion.top + params.metaRegion.height);
+    } else {
+        params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    }
     auto consumer = surfaceDrawable.GetConsumerOnDraw();
     if (consumer == nullptr) {
         return params;

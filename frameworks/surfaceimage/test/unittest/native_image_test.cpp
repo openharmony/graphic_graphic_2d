@@ -683,6 +683,69 @@ HWTEST_F(NativeImageTest, OHNativeImageGetTransformMatrix004, Function | MediumT
 }
 
 /*
+ * Function: OH_NativeImage_GetBufferMatrix
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. test with different transform types and crop regions
+ *                  2. verify matrix calculation with crop
+ * @tc.require: issueI5KG61
+ */
+HWTEST_F(NativeImageTest, OHNativeImageGetBufferMatrix001, Function | MediumTest | Level1)
+{
+    if (image == nullptr) {
+        image = OH_NativeImage_Create(textureId, GL_TEXTURE_2D);
+        ASSERT_NE(image, nullptr);
+    }
+    if (nativeWindow == nullptr) {
+        nativeWindow = OH_NativeImage_AcquireNativeWindow(image);
+        ASSERT_NE(nativeWindow, nullptr);
+    }
+
+    // Setup frame available listener
+    OH_OnFrameAvailableListener listener;
+    listener.context = this;
+    listener.onFrameAvailable = NativeImageTest::OnFrameAvailable;
+    int32_t ret = OH_NativeImage_SetOnFrameAvailableListener(image, listener);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // Setup buffer and region
+    NativeWindowBuffer* buffer = nullptr;
+    int fenceFd = -1;
+    struct Region *region = new Region();
+    struct Region::Rect *rect = new Region::Rect();
+    rect->x = 0x100;  // Crop offset x
+    rect->y = 0x100;  // Crop offset y
+    rect->w = 0x100;  // Crop width
+    rect->h = 0x100;  // Crop height
+    region->rects = rect;
+
+    // Test different transform types with crop
+    for (int32_t i = 0; i < sizeof(testType) / sizeof(int32_t); i++) {
+        // Set transform
+        ret = NativeWindowHandleOpt(nativeWindow, SET_TRANSFORM, testType[i]);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        // Request and flush buffer with crop region
+        ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &buffer, &fenceFd);
+        ASSERT_EQ(ret, GSERROR_OK);
+        ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow, buffer, -1, *region);
+        ASSERT_EQ(ret, GSERROR_OK);
+
+        // Update surface to apply transform and crop
+        ret = OH_NativeImage_UpdateSurfaceImage(image);
+        ASSERT_EQ(ret, SURFACE_ERROR_OK);
+
+        // Get and verify buffer matrix
+        float matrix[16];
+        ret = OH_NativeImage_GetBufferMatrix(image, matrix);
+        ASSERT_EQ(ret, GSERROR_OK);
+    }
+
+    delete region;
+}
+
+/*
 * Function: OH_NativeImage_GetTransformMatrix
 * Type: Function
 * Rank: Important(1)

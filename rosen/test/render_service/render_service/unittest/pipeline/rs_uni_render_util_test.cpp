@@ -27,6 +27,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
+#include "mock/mock_meta_data_helper.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2056,6 +2057,76 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam009, TestSize.Level2)
     ASSERT_EQ(cpuParam.acquireFence, nocpuParam.acquireFence);
     ASSERT_EQ(cpuParam.srcRect, nocpuParam.srcRect);
 }
+
+/*
+ * @tc.name: CreateBufferDrawParam010
+ * @tc.desc: Test CreateBufferDrawParam with crop metadata handling
+ * @tc.type: FUNC
+ * @tc.require: issueIAKDJI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam010, TestSize.Level2)
+{
+    // Basic setup
+    RSUniRenderUtil rsUniRenderUtil;
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    auto rsDisplayRenderNode = std::make_shared<RSDisplayRenderNode>(id++, config);
+    ASSERT_NE(rsDisplayRenderNode, nullptr);
+    auto node = std::make_shared<RSRenderNode>(id++);
+    auto rsDisplayRenderNodeDrawable = std::make_shared<DrawableV2::RSDisplayRenderNodeDrawable>(node);
+    rsDisplayRenderNodeDrawable->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(node->id_);
+    rsDisplayRenderNode->renderDrawable_ = rsDisplayRenderNodeDrawable;
+
+    // Create surface node with buffer
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto buffer = surfaceNode->surfaceHandler_->GetBuffer();
+    ASSERT_NE(buffer, nullptr);
+    buffer->SetSurfaceBufferWidth(1920);
+    buffer->SetSurfaceBufferHeight(1080);
+    rsDisplayRenderNodeDrawable->surfaceHandler_->buffer_.buffer = buffer;
+
+    // Test case: Verify crop metadata handling and final dstRect
+    {
+        auto mockHelper = Mock::MockMetadataHelper::GetInstance();
+        ASSERT_NE(mockHelper, nullptr);
+
+        HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion cropRegion = {
+            .left = 100,
+            .top = 200,
+            .width = 800,
+            .height = 600
+        };
+
+        EXPECT_CALL(*mockHelper, GetCropRectMetadata(_, _))
+            .WillRepeatedly(DoAll(
+                SetArgReferee<1>(cropRegion),
+                Return(GSERROR_OK)
+            ));
+        HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion testRegion;
+        auto param = rsUniRenderUtil.CreateBufferDrawParam(*rsDisplayRenderNode, false);
+        param.hasCropMetadata = mockHelper->GetCropRectMetadata(buffer, testRegion) == GSERROR_OK;
+        ASSERT_EQ(testRegion.left, cropRegion.left);
+        ASSERT_TRUE(param.hasCropMetadata);
+        if (param.hasCropMetadata) {
+            param.srcRect = Drawing::Rect(testRegion.left, testRegion.top,
+                testRegion.left + testRegion.width, testRegion.top + testRegion.height);
+            param.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+        }
+
+        // Verify crop metadata and srcRect
+        ASSERT_EQ(param.srcRect.GetLeft(), cropRegion.left);
+        ASSERT_EQ(param.srcRect.GetTop(), cropRegion.top);
+        ASSERT_EQ(param.srcRect.GetWidth(), cropRegion.width);
+        ASSERT_EQ(param.srcRect.GetHeight(), cropRegion.height);
+
+        // Verify final dstRect after all internal processing
+        ASSERT_EQ(param.dstRect.GetLeft(), 0);
+        ASSERT_EQ(param.dstRect.GetTop(), 0);
+        ASSERT_EQ(param.dstRect.GetWidth(), buffer->GetSurfaceBufferWidth());
+        ASSERT_EQ(param.dstRect.GetHeight(), buffer->GetSurfaceBufferHeight());
+    }
+}
+
 /*
  * @tc.name: FlushDmaSurfaceBuffer001
  * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is nullptr

@@ -34,9 +34,7 @@
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
-#ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
-#endif
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()
@@ -319,6 +317,16 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
     sptr<SurfaceBuffer> buffer)
 {
     auto adaptedSrcRect = layerInfo.srcRect;
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
+    if (MetadataHelper::GetCropRectMetadata(buffer, metaRegion) == GSERROR_OK) {
+        RS_LOGD("RSUniRenderProcessor::GetCropRectMetadata success,"
+            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
+            metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+        adaptedSrcRect.x = metaRegion.left;
+        adaptedSrcRect.y = metaRegion.top;
+        adaptedSrcRect.w = metaRegion.width;
+        adaptedSrcRect.h = metaRegion.height;
+    }
     // Because the buffer is mirrored in the horiziontal/vertical directions,
     // srcRect need to be adjusted.
     switch (layerInfo.transformType) {

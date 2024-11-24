@@ -1266,7 +1266,12 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
-    params.dstRect = params.srcRect;
+    if (UNLIKELY(params.hasCropMetadata)) {
+        params.dstRect = Drawing::Rect(0, 0,
+            params.buffer->GetSurfaceBufferWidth(), params.buffer->GetSurfaceBufferHeight());
+    } else {
+        params.dstRect = params.srcRect;
+    }
 }
 #endif
 void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawParam& params)
