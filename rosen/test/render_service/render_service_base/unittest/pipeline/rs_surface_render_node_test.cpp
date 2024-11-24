@@ -2264,5 +2264,25 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetNeedCacheSurface, TestSize.Level1)
     surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
 }
+
+/**
+ * @tc.name: IsCurFrameSwitchToPaint
+ * @tc.desc: test if node switch from not paint to paint
+ * @tc.type: FUNC
+ * @tc.require: issueIB6GWC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsCurFrameSwitchToPaint, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(node, nullptr);
+
+    node->shouldPaint_ = true;
+    node->lastFrameShouldPaint_ = true;
+    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
+    node->shouldPaint_ = false;
+    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
+    node->shouldPaint_ = true;
+    ASSERT_TRUE(node->IsCurFrameSwitchToPaint());
+}
 } // namespace Rosen
 } // namespace OHOS

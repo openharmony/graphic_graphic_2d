@@ -2319,7 +2319,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic()
     dirtyContentNodeNum_ = 0;
     dirtyGeoNodeNum_ = 0;
     dirtynodeNum_ = 0;
-    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform();
+    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() && !IsCurFrameSwitchToPaint();
 }
 
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
@@ -2328,7 +2328,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
     dirtyContentNodeNum_ = 0;
     dirtyGeoNodeNum_ = 0;
     dirtynodeNum_ = activeNodeIds.size();
-    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst();
+    surfaceCacheContentStatic_ = (IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst()) &&
+        !IsCurFrameSwitchToPaint();
     if (dirtynodeNum_ == 0) {
         RS_LOGD("Clear surface %{public}" PRIu64 " dirtynodes surfaceCacheContentStatic_:%{public}d",
             GetId(), surfaceCacheContentStatic_);
@@ -3144,6 +3145,14 @@ void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
 void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
 {
     childrenBlurBehindWindow_.erase(id);
+}
+
+bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
+{
+    bool shouldPaint = ShouldPaint();
+    bool changed = shouldPaint && !lastFrameShouldPaint_;
+    lastFrameShouldPaint_ = shouldPaint;
+    return changed;
 }
 } // namespace Rosen
 } // namespace OHOS

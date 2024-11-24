@@ -1306,6 +1306,8 @@ private:
     void UpdateRenderParams() override;
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
+    bool IsCurFrameSwitchToPaint();
+
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;
@@ -1538,6 +1540,7 @@ private:
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
     bool hasSharedTransitionNode_ = false;
     size_t lastFrameChildrenCnt_ = 0;
+    bool lastFrameShouldPaint_ = true;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 
