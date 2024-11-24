@@ -1546,6 +1546,14 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     }
 }
 
+void RSRenderServiceClient::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->DropFrameByPid(pidList);
+    }
+}
+
 class CustomUIExtensionCallback : public RSUIExtensionCallbackStub
 {
 public:

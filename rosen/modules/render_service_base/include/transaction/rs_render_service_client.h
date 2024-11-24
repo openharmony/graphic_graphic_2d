@@ -376,6 +376,9 @@ public:
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+    
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
     void SetFreeMultiWindowStatus(bool enable);

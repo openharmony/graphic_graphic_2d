@@ -397,6 +397,58 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: AddPidNeedDropFrame
+ * @tc.desc: Test AddPidNeedDropFrame
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+}
+
+/**
+ * @tc.name: ClearNeedDropframePidList
+ * @tc.desc: Test ClearNeedDropframePidList
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
+}
+
+/**
+ * @tc.name: IsNeedDropFrameByPid
+ * @tc.desc: Test IsNeedDropFrameByPid
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(ExtractPid(surfaceNode->GetId())));
+}
+
+/**
  * @tc.name: ProcessSyncRSTransactionData001
  * @tc.desc: Test ProcessSyncRSTransactionData when TransactionData do not need sync
  * @tc.type: FUNC

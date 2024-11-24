@@ -302,6 +302,33 @@ bool DoShowWatermark(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoDropFrameByPid()
+{
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    }
+
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteInt32Vector(pidList)) {
+        return false;
+    }
+    
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -1534,6 +1561,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetBitmap(data, size);
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
+    OHOS::Rosen::DoDropFrameByPid();
     OHOS::Rosen::DoSetScreenPowerStatus(data, size);
     OHOS::Rosen::DoSetHwcNodeBounds(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);

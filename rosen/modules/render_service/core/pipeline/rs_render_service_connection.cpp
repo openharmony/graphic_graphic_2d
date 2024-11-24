@@ -2274,6 +2274,23 @@ void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreen
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    if (!mainThread_) {
+        return;
+    }
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), pidList]() {
+            // don't use 'this' directly
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->AddPidNeedDropFrame(pidList);
+        }
+    );
+}
+
 int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback)
 {
     std::lock_guard<std::mutex> lock(mutex_);

@@ -316,6 +316,8 @@ private:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
+    void DropFrameByPid(const std::vector<int32_t> pidList) override;
+
     bool SetAncoForceDoDirect(bool direct) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;

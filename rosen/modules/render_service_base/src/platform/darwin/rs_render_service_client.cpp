@@ -626,6 +626,10 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
 }
 
+void RSRenderServiceClient::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+}
+
 int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
     return {};

@@ -260,6 +260,30 @@ bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
     rsInterfaces.SetFreeMultiWindowStatus(enable);
     return true;
 }
+
+bool DoDropFrameByPid(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    };
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.DropFrameByPid(pidList);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -272,5 +296,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
 #endif
     OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
+    OHOS::Rosen::DoDropFrameByPid(data, size);
     return 0;
 }
