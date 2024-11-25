@@ -79,10 +79,10 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             .a = 0
         };
         auto layerSurface = layer->GetSurface();
-        if (layerSurface != nullptr) {
+        if (layerSurface == nullptr) {
             const auto& layerColor = layer->GetLayerColor();
-            if (layerColor.a != layerBlackColor.a || layerColor.r != layerColor.r ||
-            layerColor.g != layerBlackColor.g || layerColor.b != layerColor.b) {
+            if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
+                layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
                 Drawing::AutoCanvasRestore acr(canvas, true);
                 const auto& dstRect = layer->GetLayerSize();
                 auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r, layerColor.g, layerColor.b);
