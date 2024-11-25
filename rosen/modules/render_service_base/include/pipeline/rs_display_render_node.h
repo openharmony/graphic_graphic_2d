@@ -370,6 +370,9 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
+    GraphicPixelFormat GetPixelFormat() const;
+
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
         return dirtySurfaceNodeMap_;
@@ -511,6 +514,7 @@ private:
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
+    GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;

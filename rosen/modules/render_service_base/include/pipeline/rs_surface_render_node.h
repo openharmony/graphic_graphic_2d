@@ -1090,9 +1090,9 @@ public:
     }
     bool GetNodeIsSingleFrameComposer() const override;
 
-    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorDisplayNode(const ScreenId screenId, const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
+        ancestorDisplayNodeMap_[screenId] = ancestorDisplayNode;
     }
 
     void SetUifirstNodeEnableParam(MultiThreadCacheType b);
@@ -1111,9 +1111,9 @@ public:
         return uifirstStartTime_;
     }
 
-    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    const std::unordered_map<ScreenId, RSBaseRenderNode::WeakPtr>& GetAncestorDisplayNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorDisplayNodeMap_;
     }
     bool QuerySubAssignable(bool isRotation);
     bool QueryIfAllHwcChildrenForceDisabledByFilter();
@@ -1537,7 +1537,7 @@ private:
     bool isTargetUIFirstDfxEnabled_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
-    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+    std::unordered_map<ScreenId, RSBaseRenderNode::WeakPtr> ancestorDisplayNodeMap_;
     bool hasSharedTransitionNode_ = false;
     size_t lastFrameChildrenCnt_ = 0;
     bool lastFrameShouldPaint_ = true;

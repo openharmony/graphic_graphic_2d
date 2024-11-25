@@ -814,17 +814,22 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams)
 {
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    auto ancestorDrawable = surfaceParams.GetAncestorDisplayDrawable().lock();
-    if (!ancestorDrawable) {
-        RS_LOGE("ancestorDrawable return nullptr");
+    auto ancestorDrawableMap = surfaceParams.GetAncestorDisplayDrawable();
+    if (ancestorDrawableMap.empty()) {
+        RS_LOGE("ancestorDrawableMap return empty");
         return targetColorGamut;
     }
-    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(ancestorDrawable);
+    auto mainAncestorDrawable = ancestorDrawableMap.begin()->second.lock();
+    if (!mainAncestorDrawable) {
+        RS_LOGE("main ancestor drawable return nullptr");
+        return targetColorGamut;
+    }
+    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(mainAncestorDrawable);
     if (!ancestorDisplayDrawable) {
         RS_LOGE("ancestorDisplayDrawable return nullptr");
         return targetColorGamut;
     }
-    auto& ancestorParam = ancestorDrawable->GetRenderParams();
+    auto& ancestorParam = ancestorDisplayDrawable->GetRenderParams();
     if (!ancestorParam) {
         RS_LOGE("ancestorParam return nullptr");
         return targetColorGamut;

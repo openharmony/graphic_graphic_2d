@@ -2874,7 +2874,6 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();
     surfaceParams->isAppWindow_ = IsAppWindow();
-    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
     surfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
@@ -2901,6 +2900,9 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->hasSubSurfaceNodes_ = HasSubSurfaceNodes();
     surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->SetNeedSync(true);
+    for (auto iter = ancestorDisplayNodeMap_.begin(); iter != ancestorDisplayNodeMap_.end(); ++iter) {
+        surfaceParams->SetAncestorDisplayNode(iter->first, iter->second);
+    }
 
     RSRenderNode::UpdateRenderParams();
 #endif
@@ -2928,7 +2930,9 @@ void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
         RS_LOGE("RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams surfaceParams is null");
         return;
     }
-    surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
+    for (auto iter = ancestorDisplayNodeMap_.begin(); iter != ancestorDisplayNodeMap_.end(); ++iter) {
+        surfaceParams->SetAncestorDisplayNode(iter->first, iter->second);
+    }
     surfaceParams->SetNeedSync(true);
 #endif
 }

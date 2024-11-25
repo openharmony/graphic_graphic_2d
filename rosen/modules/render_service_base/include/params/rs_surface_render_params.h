@@ -81,20 +81,21 @@ public:
     {
         return selfDrawingType_;
     }
-    void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorDisplayNode(const ScreenId screenId, const RSRenderNode::WeakPtr& ancestorDisplayNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
+        ancestorDisplayNodeMap_[screenId] = ancestorDisplayNode;
         auto node = ancestorDisplayNode.lock();
-        ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
+        ancestorDisplayDrawableMap_[screenId] = node ? node->GetRenderDrawable() : nullptr;
     }
 
-    RSRenderNode::WeakPtr GetAncestorDisplayNode() const
+    const std::unordered_map<ScreenId, RSRenderNode::WeakPtr>& GetAncestorDisplayNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorDisplayNodeMap_;
     }
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorDisplayDrawable() const
+    const std::unordered_map<ScreenId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>&
+        GetAncestorDisplayDrawable() const
     {
-        return ancestorDisplayDrawable_;
+        return ancestorDisplayDrawableMap_;
     }
 
     float GetAlpha() const
@@ -543,8 +544,8 @@ private:
     bool isAppWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
-    RSRenderNode::WeakPtr ancestorDisplayNode_;
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtr> ancestorDisplayNodeMap_;
+    std::unordered_map<ScreenId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> ancestorDisplayDrawableMap_;
 
     float alpha_ = 0;
     bool isCrossNode_ = false;

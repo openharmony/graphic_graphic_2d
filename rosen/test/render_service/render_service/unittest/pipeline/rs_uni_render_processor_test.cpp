@@ -555,7 +555,8 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
         static_cast<DrawableV2::RSDisplayRenderNodeDrawable*>(
         DrawableV2::RSDisplayRenderNodeDrawable::OnGenerate(node)));
     ASSERT_NE(displayDrawable, nullptr);
-    params.ancestorDisplayDrawable_ = displayDrawable;
+    params.ancestorDisplayDrawableMap_.insert(
+        std::make_pair<ScreenId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>(0, displayDrawable));
     displayDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
     ASSERT_NE(displayDrawable->GetRenderParams(), nullptr);
     ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
