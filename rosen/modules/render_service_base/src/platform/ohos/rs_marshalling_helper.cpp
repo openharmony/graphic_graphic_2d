@@ -867,7 +867,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     uint32_t size = parcel.ReadUint32();
     bool success = true;
     std::vector<std::shared_ptr<EmitterUpdater>> emitterUpdaters;
-    if (size > PARTICLE_UPPER_LIMIT) {
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
     }
     for (size_t i = 0; i < size; i++) {
@@ -951,7 +951,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Particle
     }
     uint32_t size = parcel.ReadUint32();
     bool success = true;
-    if (size > PARTICLE_UPPER_LIMIT) {
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
     }
     std::shared_ptr<ParticleNoiseFields> noiseFields = std::make_shared<ParticleNoiseFields>();
@@ -1255,7 +1255,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::vector<std::shared_
     uint32_t size = parcel.ReadUint32();
     bool success = true;
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams;
-    if (size > PARTICLE_UPPER_LIMIT) {
+    if (size > PARTICLE_EMMITER_UPPER_LIMIT) {
         return false;
     }
     for (size_t i = 0; i < size; i++) {
