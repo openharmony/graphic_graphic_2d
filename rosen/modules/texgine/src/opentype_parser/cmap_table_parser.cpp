@@ -28,10 +28,10 @@ const struct CmapTables* CmapTableParser::Parse(const char* data, int32_t size)
 void CmapTableParser::Dump() const
 {
     auto cmapTable = reinterpret_cast<const struct CmapTables*>(data_);
-    TEXT_LOGI("cmapTable size: %{public}d", size_);
+    TEXT_LOGI("CmapTable size: %{public}d", size_);
     for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
         const auto& record = cmapTable->encodingRecords[i];
-        TEXT_LOGI("platformID: %{public}d, encodingID: %{public}d", record.platformID.Get(), record.encodingID.Get());
+        TEXT_LOGI("PlatformID: %{public}d, encodingID: %{public}d", record.platformID.Get(), record.encodingID.Get());
     }
 }
 } // namespace TextEngine
