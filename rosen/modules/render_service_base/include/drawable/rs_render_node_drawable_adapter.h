@@ -245,7 +245,7 @@ protected:
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
