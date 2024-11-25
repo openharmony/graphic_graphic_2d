@@ -229,6 +229,9 @@ void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, const R
     buffer_ = buffer;
     damageRect_ = damageRect;
     needSync_ = true;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
@@ -246,6 +249,9 @@ void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
     preBuffer_ = preBuffer;
     needSync_ = true;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
