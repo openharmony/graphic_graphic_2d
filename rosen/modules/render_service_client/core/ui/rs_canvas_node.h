@@ -61,7 +61,6 @@ protected:
 private:
     ExtendRecordingCanvas* recordingCanvas_ = nullptr;
     bool recordingUpdated_ = false;
-    bool hdrPresent_ = false;
     mutable std::mutex mutex_;
 
     friend class RSUIDirector;

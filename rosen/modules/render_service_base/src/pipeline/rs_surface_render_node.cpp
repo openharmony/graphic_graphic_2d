@@ -1124,23 +1124,33 @@ bool RSSurfaceRenderNode::GetForceUIFirst() const
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 {
     hasHdrPresent_ = hasHdrPresent;
-    if (IsAppWindow()) {
-        return;
-    }
-    RS_LOGD("RSSurfaceRenderNode::SetHDRPresent HDRClient id: %{public}" PRIu64, GetId());
-    auto parentInstance = GetInstanceRootNode();
-    if (!parentInstance) {
-        RS_LOGD("RSSurfaceRenderNode::SetHDRPresent get parent instance root node info failed.");
-        return;
-    }
-    if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-        parentSurface->SetHDRPresent(hasHdrPresent);
-    }
 }
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
 {
-    return hasHdrPresent_;
+    if (hdrNum_ > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+void RSSurfaceRenderNode::IncreaseHDRNum()
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    hdrNum_++;
+    RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
+}
+
+void RSSurfaceRenderNode::ReduceHDRNum()
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    if (hdrNum_ == 0) {
+        ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+        return;
+    }
+    hdrNum_--;
+    RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
