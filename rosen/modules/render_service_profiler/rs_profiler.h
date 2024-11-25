@@ -374,7 +374,7 @@ private:
     static void ProcessCommands();
     // Deprecated: Use SendMessage instead
     static void Respond(const std::string& message);
-    static void SendMessage(const char* format, ...);
+    static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
     static void Reset(const ArgList& args);
