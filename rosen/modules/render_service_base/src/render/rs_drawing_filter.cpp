@@ -170,7 +170,7 @@ std::string RSDrawingFilter::GetDetailedDescription()
     return filterString;
 }
 
-std::string RSDrawingFilter::GetFilterTypeString()
+std::string RSDrawingFilter::GetFilterTypeString() const
 {
     auto iter = FILTER_TYPE_MAP.find(RSFilter::type_);
     std::string filterString;
