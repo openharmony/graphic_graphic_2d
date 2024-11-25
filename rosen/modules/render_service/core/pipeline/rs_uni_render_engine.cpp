@@ -89,7 +89,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
                 Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
                     static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
                     static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
-                canvas.clipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+                canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
                 canvas.DrawColor(color);
             }
             continue;
