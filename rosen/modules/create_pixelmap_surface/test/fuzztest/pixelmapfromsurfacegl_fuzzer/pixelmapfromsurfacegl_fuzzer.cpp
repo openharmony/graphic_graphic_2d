@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pixelmapfromsurface_fuzzer.h"
+#include "pixelmapfromsurfacegl_fuzzer.h"
 
 #include <securec.h>
 
@@ -128,6 +128,7 @@ namespace OHOS {
             return false;
         }
         RSBackgroundThread::Instance().InitRenderContext(renderContext.get());
+        usleep(8000); // wait 8000 us for InitRenderContext finish
 
         OHOS::Media::Rect rect1 = {
             .left = GetData<uint32_t>() % width,

@@ -14,5 +14,8 @@
 group("fuzztest") {
   testonly = true
 
-  deps = [ "pixelmapfromsurface_fuzzer:fuzztest" ]
+  deps = [
+    "pixelmapfromsurface_fuzzer:fuzztest",
+    "pixelmapfromsurfacegl_fuzzer:fuzztest",
+  ]
 }
