@@ -778,15 +778,10 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
 {
-    std::stringstream ss;
-    std::string pidStr;
-    std::copy(pidList.begin(), pidList.end(), std::ostream_iterator<int>(ss, " "));
-    pidStr = ss.str();
-
-    RS_TRACE_NAME_FMT("DropFrameByPid [%s]", pidStr.c_str());
     if (pidList.empty()) {
         return;
     }
+    RS_TRACE_NAME("DropFrameByPid");
     renderServiceClient_->DropFrameByPid(pidList);
 }
 
