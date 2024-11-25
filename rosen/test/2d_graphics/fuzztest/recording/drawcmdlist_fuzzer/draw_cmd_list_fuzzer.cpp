@@ -48,12 +48,11 @@ void DrawCmdListFuzzTest000(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(obj);
-    cmdListData.second = length - 1;
+    cmdListData.second = length;
     bool isCopy = GetObject<bool>();
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->GetType();
     drawCmdList->ClearOp();
     drawCmdList->GetOpItemSize();
@@ -95,12 +94,11 @@ void DrawCmdListFuzzTest001(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(obj);
-    cmdListData.second = length - 1;
+    cmdListData.second = length;
     bool isCopy = GetObject<bool>();
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Canvas canvas(width, height);
     Rect rect(l, t, r, b);
     drawCmdList->Playback(canvas);
@@ -113,7 +111,7 @@ void DrawCmdListFuzzTest001(const uint8_t* data, size_t size)
     drawCmdList->SetReplacedOpList(replacedOpList);
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
-    std::string out(obj);
+    std::string out;
     drawCmdList->Dump(out);
     if (obj != nullptr) {
         delete [] obj;
@@ -140,12 +138,11 @@ void DrawCmdListFuzzTest002(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(obj);
-    cmdListData.second = length - 1;
+    cmdListData.second = length;
     bool isCopy = GetObject<bool>();
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Canvas canvas(width, height);
     Rect rect(l, t, r, b);
     Brush brush;
@@ -160,7 +157,7 @@ void DrawCmdListFuzzTest002(const uint8_t* data, size_t size)
     drawCmdList->SetReplacedOpList(replacedOpList);
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
-    std::string out(obj);
+    std::string out;
     drawCmdList->Dump(out);
     drawCmdList->Purge();
     if (obj != nullptr) {
@@ -186,9 +183,11 @@ void DrawCmdListFuzzTest003(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
-
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->SetIsCache(true);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
     Rect rect(l, t, r, b);
@@ -204,13 +203,12 @@ void DrawCmdListFuzzTest003(const uint8_t* data, size_t size)
     drawCmdList->UpdateNodeIdToPicture(nodeId);
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
-    std::string out(obj);
+    std::string out;
     drawCmdList->Dump(out);
     if (obj != nullptr) {
         delete [] obj;
         obj = nullptr;
     }
-    delete drawCmdList;
 }
 
 void DrawCmdListFuzzTest004(const uint8_t* data, size_t size)
@@ -220,15 +218,19 @@ void DrawCmdListFuzzTest004(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    scalar l = GetObject<scalar>();
-    scalar t = GetObject<scalar>();
-    scalar r = GetObject<scalar>();
-    scalar b = GetObject<scalar>();
-
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* obj = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        obj[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->SetIsCache(true);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
-    Rect rect(l, t, r, b);
+    Rect rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
     drawCmdList->Playback(*recordingCanvas, &rect);
     drawCmdList->GenerateCache(recordingCanvas.get(), &rect);
     drawCmdList->SetIsCache(false);
@@ -254,8 +256,10 @@ void DrawCmdListFuzzTest004(const uint8_t* data, size_t size)
     drawCmdList->UnmarshallingDrawOps();
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
-
-    delete drawCmdList;
+    if (obj != nullptr) {
+        delete [] obj;
+        obj = nullptr;
+    }
 }
 
 void DrawCmdListFuzzTest005(const uint8_t* data, size_t size)
@@ -269,8 +273,16 @@ void DrawCmdListFuzzTest005(const uint8_t* data, size_t size)
     scalar t = GetObject<scalar>();
     scalar r = GetObject<scalar>();
     scalar b = GetObject<scalar>();
-
-    auto drawCmdList = new DrawCmdList(DrawCmdList::UnmarshalMode::DEFERRED);
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* obj = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        obj[i] = GetObject<char>();
+    }
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(obj);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->SetIsCache(true);
     drawCmdList->SetCachedHighContrast(true);
     auto recordingCanvas = std::make_shared<RecordingCanvas>(10, 10); // 10: width, height
@@ -285,7 +297,10 @@ void DrawCmdListFuzzTest005(const uint8_t* data, size_t size)
     drawCmdList->GenerateCache(recordingCanvas.get(), &rect);
     drawCmdList->ClearOp();
     drawCmdList->ClearCache();
-    delete drawCmdList;
+    if (obj != nullptr) {
+        delete [] obj;
+        obj = nullptr;
+    }
 }
 
 void DrawCmdListFuzzTest006(const uint8_t* data, size_t size)
@@ -308,12 +323,11 @@ void DrawCmdListFuzzTest006(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         obj[i] = GetObject<char>();
     }
-    obj[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(obj);
-    cmdListData.second = length - 1;
+    cmdListData.second = length;
     bool isCopy = GetObject<bool>();
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->MarshallingDrawOps();
     drawCmdList->CaculatePerformanceOpType();
     drawCmdList->ClearCache();

@@ -26,9 +26,10 @@
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/image_native/pixel_map.h"
+#include "recording/mask_cmd_list.h"
+#include "recording/record_cmd.h"
 #include "render/rs_shader.h"
 #include "render/rs_filter.h"
-#include "recording/mask_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "transaction/rs_transaction_data.h"
 
@@ -186,7 +187,7 @@ bool DoMarshallingHelper002(const uint8_t* data, size_t size)
 
     Parcel parcel;
     auto dataVal = std::make_shared<Data>();
-    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetData<char>();
@@ -218,14 +219,15 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     g_pos = 0;
 
     Parcel parcel;
-    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetData<char>();
     }
+    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length;
+    cmdListData.second = length - 1;
     bool isCopy = GetData<bool>();
     static std::shared_ptr<MaskCmdList> maskCmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
     RSMarshallingHelper::Marshalling(parcel, maskCmdList);
@@ -235,9 +237,7 @@ bool DoMarshallingHelper003(const uint8_t* data, size_t size)
     auto imageData = std::make_shared<Data>();
     imageData->BuildUninitialized(MATH_TEN);
     maskCmdList->AddImageData(imageData->GetData(), imageData->GetSize());
-    size_t arrSize = GetData<size_t>() % MATH_TEN;
-    dataText[length - 1] = '\0';
-    maskCmdList->AddBitmapData(dataText, arrSize);
+    maskCmdList->AddBitmapData(dataText, length - 1);
     RSMarshallingHelper::Marshalling(parcel2, maskCmdList);
     RSMarshallingHelper::Unmarshalling(parcel2, maskCmdList);
     if (dataText != nullptr) {
@@ -260,8 +260,8 @@ bool DoMarshallingHelper004(const uint8_t* data, size_t size)
 
     MessageParcel parcel;
     Bitmap bitmap;
-    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
-    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t width = GetData<int32_t>() % MATH_TEN + 1;
+    int32_t height = GetData<int32_t>() % MATH_TEN + 1;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
@@ -309,8 +309,8 @@ bool DoMarshallingHelper006(const uint8_t* data, size_t size)
     MessageParcel parcel;
     void* imagePixelPtr = nullptr;
     Bitmap bitmap;
-    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
-    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t width = GetData<int32_t>() % MATH_TEN + 1;
+    int32_t height = GetData<int32_t>() % MATH_TEN + 1;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
@@ -339,8 +339,8 @@ bool DoMarshallingHelper007(const uint8_t* data, size_t size)
 
     MessageParcel parcel;
     Bitmap bitmap;
-    int width = GetData<int>() % MAX_ARRAY_SIZE;
-    int height = GetData<int>() % MAX_ARRAY_SIZE;
+    int width = GetData<int>() % MATH_TEN + 1;
+    int height = GetData<int>() % MATH_TEN + 1;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
@@ -370,8 +370,8 @@ bool DoMarshallingHelper008(const uint8_t* data, size_t size)
     MessageParcel parcel;
     void* imagePixelPtr = nullptr;
     Bitmap bitmap;
-    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
-    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t width = GetData<int32_t>() % MATH_TEN + 1;
+    int32_t height = GetData<int32_t>() % MATH_TEN + 1;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
@@ -450,7 +450,7 @@ bool DoMarshallingHelper011(const uint8_t* data, size_t size)
     g_pos = 0;
 
     Parcel parcel;
-    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetData<char>();
@@ -483,8 +483,8 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     MessageParcel parcel;
     Bitmap bitmap;
     auto image = std::make_shared<Image>();
-    int32_t width = GetData<int32_t>() % MAX_ARRAY_SIZE;
-    int32_t height = GetData<int32_t>() % MAX_ARRAY_SIZE;
+    int32_t width = GetData<int32_t>() % MATH_TEN + 1;
+    int32_t height = GetData<int32_t>() % MATH_TEN + 1;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool ret = bitmap.Build(width, height, bitmapFormat);
     if (!ret) {
@@ -496,7 +496,7 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     }
 
     auto dataVal = std::make_shared<Data>();
-    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetData<char>();
@@ -578,23 +578,17 @@ bool DoMarshallingHelper014(const uint8_t* data, size_t size)
     g_pos = 0;
 
     Parcel parcel;
-    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 2;
+    size_t length = GetData<size_t>() % MAX_ARRAY_SIZE + 1;
     char* dataText = new char[length];
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetData<char>();
     }
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length - 1;
+    cmdListData.second = length;
     bool isCopy = GetData<bool>();
     static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     drawCmdList->SetReplacedOpList({{GetData<size_t>(), GetData<size_t>()}});
-    auto imageData = std::make_shared<Data>();
-    imageData->BuildUninitialized(MATH_TEN);
-    drawCmdList->AddImageData(imageData->GetData(), imageData->GetSize());
-    size_t arrSize = GetData<size_t>() % MATH_TEN;
-    dataText[length - 1] = '\0';
-    drawCmdList->AddBitmapData(dataText, arrSize);
     RSMarshallingHelper::Marshalling(parcel, drawCmdList);
     RSMarshallingHelper::Unmarshalling(parcel, drawCmdList);
     if (dataText != nullptr) {

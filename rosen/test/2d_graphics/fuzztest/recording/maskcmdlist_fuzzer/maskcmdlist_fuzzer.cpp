@@ -50,17 +50,14 @@ bool MaskCmdListFuzzTest001(const uint8_t* data, size_t size)
     Brush brush = Brush(color);
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
-    if (dataText == nullptr) {
-        return false;
-    }
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
-    CmdListData cmdListData;
-    cmdListData.first = dataText;
+    std::pair<const void*, size_t> cmdListData;
+    cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<CmdList> cmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
     MaskPlayer maskPlayer = MaskPlayer(pathPtr, brush, *cmdList);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -82,15 +79,11 @@ bool MaskCmdListFuzzTest002(const uint8_t* data, size_t size)
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
-    if (dataText == nullptr) {
-        return false;
-    }
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     CmdListData cmdListData;
-    cmdListData.first = dataText;
+    cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
     bool isCopy = GetObject<bool>();
     static std::shared_ptr<MaskCmdList> maskCmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
@@ -123,15 +116,11 @@ bool MaskCmdListFuzzTest003(const uint8_t* data, size_t size)
 
     size_t length = GetObject<size_t>() % MAX_SIZE + 1;
     char* dataText = new char[length];
-    if (dataText == nullptr) {
-        return false;
-    }
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     CmdListData cmdListData;
-    cmdListData.first = dataText;
+    cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
     bool isCopy = GetObject<bool>();
     static std::shared_ptr<MaskCmdList> maskCmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
@@ -191,11 +180,11 @@ bool MaskCmdListFuzzTest004(const uint8_t* data, size_t size)
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    dataText[length - 1] = '\0';
-    std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<CmdList> cmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
     MaskPlayer maskPlayer = MaskPlayer(pathPtr, brush, *cmdList);
     size_t leftOpAllocatorSize = GetObject<size_t>();
-    MaskBrushOpItem::Playback(maskPlayer, &maskBrushOpItem, leftOpAllocatorSize);
+    MaskBrushOpItem::Playback(maskPlayer, nullptr, leftOpAllocatorSize);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -232,11 +221,11 @@ bool MaskCmdListFuzzTest005(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    std::shared_ptr<CmdList> cmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<CmdList> cmdList = MaskCmdList::CreateFromData(cmdListData, isCopy);
     MaskPlayer maskPlayer = MaskPlayer(pathPtr, brush, *cmdList);
     size_t leftOpAllocatorSize = GetObject<size_t>();
     MaskPenOpItem::Playback(maskPlayer, &maskPenOpItem, leftOpAllocatorSize);
@@ -272,7 +261,6 @@ bool MaskCmdListFuzzTest006(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
@@ -311,7 +299,6 @@ bool MaskCmdListFuzzTest007(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
@@ -352,7 +339,6 @@ bool MaskCmdListFuzzTest008(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
@@ -389,7 +375,6 @@ bool MaskCmdListFuzzTest009(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
@@ -468,7 +453,6 @@ bool MaskCmdListFuzzTest010(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
