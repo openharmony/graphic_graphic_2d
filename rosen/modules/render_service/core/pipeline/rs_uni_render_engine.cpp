@@ -80,12 +80,21 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         };
         auto layerSurface = layer->GetSurface();
         if (layerSurface != nullptr) {
-            if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
-                rcdLayersEnableMap[layerSurface->GetName()] = true;
-                continue;
+            const auto& layerColor = layer->GetLayerColor();
+            if (layerColor.a != layerBlackColor.a || layerColor.r != layerColor.r ||
+            layerColor.g != layerBlackColor.g || layerColor.b != layerColor.b) {
+                Drawing::AutoCanvasRestore acr(canvas, true);
+                const auto& dstRect = layer->GetLayerSize();
+                auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r, layerColor.g, layerColor.b);
+                Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+                    static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
+                    static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
+                canvas.clipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+                canvas.DrawColor(color);
             }
-        } else {
-            RS_LOGE("RSUniRenderEngine::DrawLayers layerSurface is nullptr");
+            continue;
+        } else if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
+            rcdLayersEnableMap[layerSurface->GetName()] = true;
             continue;
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
