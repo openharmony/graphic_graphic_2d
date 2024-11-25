@@ -141,6 +141,7 @@ public:
     int64_t GetVsyncCount();
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
     VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
+    void SetHasNativeBuffer();
 
 private:
 
@@ -180,6 +181,8 @@ private:
     void CheckNeedDisableDvsync(int64_t now, int64_t period);
     void OnVSyncTrigger(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
+    void OnVSyncTriggerPostEvent(int64_t now, uint32_t generatorRefreshRate,
+        std::vector<sptr<VSyncConnection>>& conns, int64_t period, int64_t vsyncCount);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
