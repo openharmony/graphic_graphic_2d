@@ -48,6 +48,11 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
         return nullptr;
     }
 
+    bool isReadRemoteObj = reply.ReadBool();
+    if (!isReadRemoteObj) {
+        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): ReadBool failed, connection is nullptr.");
+        return nullptr;
+    }
     auto remoteObj = reply.ReadRemoteObject();
     if (remoteObj == nullptr || !remoteObj->IsProxyObject()) {
         ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");
