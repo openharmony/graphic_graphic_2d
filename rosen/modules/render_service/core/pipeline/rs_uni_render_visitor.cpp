@@ -2177,7 +2177,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
     } else if (RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() &&
         stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
         node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
-            stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+        stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
     } else if (!RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() &&
         stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
         node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
