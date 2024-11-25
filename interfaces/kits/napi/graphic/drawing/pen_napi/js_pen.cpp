@@ -42,7 +42,6 @@ napi_value JsPen::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("getCapStyle", GetCapStyle),
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("getColor", GetColor),
-        DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
         DECLARE_NAPI_FUNCTION("setColorFilter", SetColorFilter),
         DECLARE_NAPI_FUNCTION("getColorFilter", GetColorFilter),
         DECLARE_NAPI_FUNCTION("setImageFilter", SetImageFilter),
@@ -723,23 +722,6 @@ napi_value JsPen::GetColor(napi_env env, napi_callback_info info)
 
     Color color = pen->GetColor();
     return GetColorAndConvertToJsValue(env, color);
-}
-
-napi_value JsPen::GetHexColor(napi_env env, napi_callback_info info)
-{
-    JsPen* jsPen = CheckParamsAndGetThis<JsPen>(env, info);
-    if (jsPen == nullptr) {
-        ROSEN_LOGE("JsPen::GetHexColor jsPen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-    Pen* pen = jsPen->GetPen();
-    if (pen == nullptr) {
-        ROSEN_LOGE("JsPen::GetHexColor pen is nullptr");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-
-    Color color = pen->GetColor();
-    return GetHexColorAndConvertToJsValue(env, color);
 }
 
 Pen* JsPen::GetPen()

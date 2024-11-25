@@ -34,7 +34,6 @@ import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanva
   PerformanceCanvasPoint} from '../testcase/interface/performancetest';
 import { RoundRectSetCornerTest, RoundRectGetCornerTest, RoundRectOffsetTest } from '../testcase/interface/roundrecttest';
 import { PenGetFillPath } from '../testcase/interface/pentest'
-import { PenBrushGetHexColor } from '../testcase/interface/gethexcolortest'
 import { ColorFilterCreateMatrix } from '../testcase/interface/colorfiltertests';
 import { PerformanceBrushSetColor,PerformanceBrushGetColor,PerformanceBrushSetAntiAlias,PerformanceBrushSetAlpha,PerformanceBrushGetAlpha,
   PerformanceBrushSetColorFilter, PerformanceBrushSetMaskFilter, PerformanceBrushSetImageFilter, PerformanceBrushSetShadowLayer,
@@ -136,7 +135,6 @@ export class CaseFactory {
       ['textblob_unique_id', () => { return new MakeUniqueId(); }],
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pengetfillpath', () => { return new PenGetFillPath(); }],
-      ['penbrushgethexcolor', ()=> { return new PenBrushGetHexColor(); }],
       ['matrix_maprect', () => { return new MatrixMapRect(); }],
       ['matrixmappoints', () => { return new MatrixMapPoints(); }],
       ['colorfilter_creatematrix', () => { return new ColorFilterCreateMatrix(); }],
@@ -178,7 +176,6 @@ export class CaseFactory {
       ['textblob_createfrom_postext', () => { return new MakeFromPosText(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时271ms
       ['textblob_unique_id', () => { return new MakeUniqueId(); }],
       ['performance_pengetfillpath', () => { return new PenGetFillPath(); }],
-      ['penbrushgethexcolor', () => { return new PenBrushGetHexColor(); }],
       ['font_isfakeboldtext', () => { return new FontIsEmbolden(StyleType.DRAW_STYLE_COMPLEX); }],
       ['font_gettextskewx', () => { return new FontGetSkewX(StyleType.DRAW_STYLE_COMPLEX); }],
       ['font_getscalex', () => { return new FontGetScaleX(StyleType.DRAW_STYLE_COMPLEX); }],
