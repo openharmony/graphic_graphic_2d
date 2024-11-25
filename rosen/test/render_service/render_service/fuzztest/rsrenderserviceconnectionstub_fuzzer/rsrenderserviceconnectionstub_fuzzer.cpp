@@ -1280,13 +1280,9 @@ bool DoSetScreenSkipFrameInterval()
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SKIP_FRAME_INTERVAL);
     auto newPid = getpid();
-    sptr<RSScreenManager> screenManager = nullptr;
-    if (GetData<bool>()) {
-        screenManager = CreateOrGetScreenManager();
-    }
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSRenderServiceConnectionStub> connectionStub =
-        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token->AsObject(), nullptr);
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token->AsObject(), nullptr);
     if (connectionStub == nullptr) {
         return false;
     }
@@ -1354,7 +1350,7 @@ bool DoSetVirtualScreenVisibleRect()
         !dataP.WriteInt32(rect.w) || !dataP.WriteInt32(rect.h)) {
         return false;
     }
-    
+
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT);
     auto newPid = getpid();
     sptr<RSScreenManager> screenManager = nullptr;
