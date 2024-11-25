@@ -24,6 +24,9 @@
 #include <unistd.h>
 #include <unordered_map>
 
+#include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "iremote_object.h"
@@ -540,6 +543,21 @@ bool DoShowWatermark()
     if (rsConn_ == nullptr) {
         return false;
     }
+    const char *perms[1];
+    perms[0] = "ohos.permission.UPDATE_CONFIGURATION";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "DoShowWatermark",
+        .aplStr = "system_core",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     bool isShow = GetData<bool>();
     std::shared_ptr<Media::PixelMap> pixelMap1;
     rsConn_->ShowWatermark(pixelMap1, isShow);
