@@ -23,12 +23,34 @@
 #define UIEFFECT_NOT_NULL(p) ((p) != nullptr)
 #define UIEFFECT_IS_READY(x, p) (UIEFFECT_IS_OK(x) && UIEFFECT_NOT_NULL(p))
 
+#define UIEFFECT_NAPI_CHECK_RET_VOID_D(x, msg) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        msg; \
+        return; \
+    } \
+} while (0)
+
 #define UIEFFECT_NAPI_CHECK_RET_D(x, res, msg) \
 do \
 { \
     if (!(x)) \
     { \
         msg; \
+        return (res); \
+    } \
+} while (0)
+
+#define UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(x, res, pointer, msg) \
+do \
+{ \
+    if (!(x)) \
+    { \
+        msg; \
+        delete pointer; \
+        pointer = nullptr; \
         return (res); \
     } \
 } while (0)
