@@ -350,8 +350,7 @@ bool RSSystemProperties::GetHighContrastStatus()
 bool RSSystemProperties::GetDrmEnabled()
 {
     // The switch only works on PC, will remove the restriction in the future.
-    if (system::GetParameter("const.product.devicetype", "pc") != "pc" &&
-        system::GetParameter("const.product.devicetype", "pc") != "2in1") {
+    if (!IsPcType()) {
         return true;
     }
     static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.enabled", "0");

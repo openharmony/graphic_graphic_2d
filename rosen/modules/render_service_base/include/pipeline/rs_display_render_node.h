@@ -372,6 +372,8 @@ public:
 
     void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
     GraphicPixelFormat GetPixelFormat() const;
+    void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetColorSpace() const;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
@@ -515,6 +517,7 @@ private:
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
     GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;

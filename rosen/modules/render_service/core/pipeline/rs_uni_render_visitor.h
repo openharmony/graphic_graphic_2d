@@ -180,7 +180,6 @@ private:
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
     bool CheckScreenPowerChange() const;
-    bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
     bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
@@ -270,6 +269,8 @@ private:
     void CheckColorSpace(RSSurfaceRenderNode& node);
     void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace);
     void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
+    void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicPixelFormat& pixelFormat);
+    void UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);

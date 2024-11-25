@@ -1668,6 +1668,7 @@ void RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSDisplayRenderParams& par
     }
     auto image = RSUniRenderThread::Instance().GetWatermarkImg();
     if (image == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed image is null");
         return;
     }
     if (auto screenManager = CreateOrGetScreenManager()) {

@@ -196,10 +196,10 @@ public:
     }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
     void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
         Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
 #endif
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {

@@ -488,6 +488,28 @@ GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
     return pixelFormat_;
 }
 
+void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
+{
+    if (colorSpace_ == colorSpace) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetNewColorSpace(colorSpace);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    colorSpace_ = colorSpace;
+}
+
+GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const
+{
+    return colorSpace_;
+}
+
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
 {
     int32_t currentScbPid = GetCurrentScbPid();
