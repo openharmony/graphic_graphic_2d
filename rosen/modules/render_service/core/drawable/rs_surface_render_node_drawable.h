@@ -347,6 +347,7 @@ private:
 
     RSDrawWindowCache drawWindowCache_;
     friend class OHOS::Rosen::RSDrawWindowCache;
+    bool vmaCacheOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
