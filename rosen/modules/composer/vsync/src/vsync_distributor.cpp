@@ -701,7 +701,7 @@ void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period,
 #if defined(RS_ENABLE_DVSYNC)
     bool needDVSyncTrigger = true;
     if (dvsync_->IsFeatureEnabled()) {
-        std::unique_ptr<std::mutex> locker(mutex_);
+        std::unique_lock<std::mutex> locker(mutex_);
         dvsync_->ChangeState(now);
         needDVSyncTrigger = dvsync_->NeedDVSyncTrigger();
     }
