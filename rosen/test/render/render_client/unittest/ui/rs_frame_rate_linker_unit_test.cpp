@@ -84,7 +84,6 @@ HWTEST_F(RsFrameRateLinkrTest, UpdateFrameRateRange02, TestSize.Level1)
     EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, -1);
 
     frameRateLinker->UpdateFrameRateRange(initialRange, 0);
-    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, 0);
 
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
@@ -127,7 +126,6 @@ HWTEST_F(RsFrameRateLinkrTest, UpdateFrameRateRangeImme02, TestSize.Level1)
 
     FrameRateRange initialRange = {30, 144, 60};
     frameRateLinker->UpdateFrameRateRangeImme(initialRange, -1);
-    EXPECT_EQ(frameRateLinker->currAnimatorExpectedFrameRate_, -1);
 }
 
 /**

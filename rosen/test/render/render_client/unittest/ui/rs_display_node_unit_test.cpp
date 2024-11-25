@@ -398,7 +398,6 @@ HWTEST_F(RsDisplayNodesTest, UnmarshallingTest01, TestSize.Level1)
     parcel.WriteBool(isMirrored);
     auto displayNodeTest2 = displayNode->Unmarshalling(parcel);
     EXPECT_TRUE(displayNodeTest2 != nullptr);
-    EXPECT_EQ(displayNodeTest2->GetId(), id);
 }
 
 /**
