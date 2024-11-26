@@ -3154,5 +3154,26 @@ bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
     lastFrameShouldPaint_ = shouldPaint;
     return changed;
 }
+
+bool RSSurfaceRenderNode::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (seqNum == presentTimeRecords_[(count_ - 1 + FRAME_RECORDS_NUM) % FRAME_RECORDS_NUM].seqNum)
+        return false;
+    presentTimeRecords_[count_].presentTime = timestamp;
+    presentTimeRecords_[count_].seqNum = seqNum;
+    count_ = (count_ + 1) % FRAME_RECORDS_NUM;
+    return true;
+}
+
+void RSSurfaceRenderNode::Dump(std::string& result)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    const uint32_t offset = count_;
+    for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
+        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

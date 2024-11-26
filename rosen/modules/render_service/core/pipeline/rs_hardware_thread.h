@@ -80,6 +80,7 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
     void AddRefreshRateCount(const OutputPtr& output);
+    void RecordTimestamp(const std::vector<LayerInfoPtr>& layers);
     int64_t GetCurTimeCount();
     bool IsInAdaptiveMode(const OutputPtr &output);
 
