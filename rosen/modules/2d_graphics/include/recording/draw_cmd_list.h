@@ -131,7 +131,7 @@ public:
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
-    void UnmarshallingDrawOps();
+    void UnmarshallingDrawOps(uint32_t* opItemCount = nullptr);
 
     /**
      * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay

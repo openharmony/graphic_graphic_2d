@@ -54,7 +54,10 @@ bool MaskCmdList::Playback(MaskPlayer &player) const
                 LOGD("MaskCmdList::Playback failed!");
                 break;
             }
-
+            
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
             LOGE("MaskCmdList::Playback failed, opItem is nullptr");
