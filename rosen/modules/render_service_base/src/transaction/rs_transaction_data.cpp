@@ -18,6 +18,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_profiler.h"
@@ -318,6 +319,15 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
             continue;
+        }
+        auto commandType = command->GetType();
+        if (commandType == DISPLAY_NODE) {
+            bool isTokenTypeValid = true;
+            bool isNonSystemAppCalling = false;
+            RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+            if (!isNonSystemAppCalling) {
+                continue;
+            }
         }
         conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);
