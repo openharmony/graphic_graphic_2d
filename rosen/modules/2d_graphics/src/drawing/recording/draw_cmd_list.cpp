@@ -59,7 +59,7 @@ DrawCmdList::DrawCmdList(int32_t width, int32_t height, DrawCmdList::UnmarshalMo
 
 DrawCmdList::~DrawCmdList()
 {
-    if (drawOpItems_.size() == 0) {
+    if (drawOpItems_.size() == 0 && isNeedUnmarshalOnDestruct_) {
         UnmarshallingDrawOps();
     }
     ClearOp();
@@ -660,6 +660,11 @@ void DrawCmdList::Purge()
             op->Purge();
         }
     }
+}
+
+void DrawCmdList::SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct)
+{
+    isNeedUnmarshalOnDestruct_ = isNeedUnmarshalOnDestruct;
 }
 
 } // namespace Drawing
