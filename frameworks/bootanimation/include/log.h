@@ -30,7 +30,7 @@ namespace OHOS {
 #endif
 
 #undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001400
+#define LOG_DOMAIN 0xD00140B
 
 #undef LOG_TAG
 #define LOG_TAG "BootAnimation"
