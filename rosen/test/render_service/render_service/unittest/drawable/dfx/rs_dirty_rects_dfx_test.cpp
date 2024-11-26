@@ -361,7 +361,7 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawHwcRegionForDFXTest, TestSize.Level1)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
     ASSERT_NE(surfaceParams, nullptr);
     surfaceParams->SetHardwareEnabled(true);
-    params->hardwareEnabledTypeDrawables_.emplace_back(drawable);
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(0, drawable));
 
     std::shared_ptr<RSSurfaceRenderNode> renderNodeHardwareDisabled = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(renderNodeHardwareDisabled, nullptr);
@@ -371,15 +371,15 @@ HWTEST_F(RSDirtyRectsDFXTest, DrawHwcRegionForDFXTest, TestSize.Level1)
         static_cast<RSSurfaceRenderParams*>(drawableHardwareDisabled->GetRenderParams().get());
     ASSERT_NE(surfaceParamsHardwareDisabled, nullptr);
     surfaceParamsHardwareDisabled->SetHardwareEnabled(false);
-    params->hardwareEnabledTypeDrawables_.emplace_back(drawableHardwareDisabled);
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(1, drawableHardwareDisabled));
 
-    params->hardwareEnabledTypeDrawables_.emplace_back(nullptr);
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(1, nullptr));
 
     std::shared_ptr<RSSurfaceRenderNode> renderNodeParamsNull = std::make_shared<RSSurfaceRenderNode>(2);
     ASSERT_NE(renderNodeParamsNull, nullptr);
     auto drawableParamsNull = RSSurfaceRenderNodeDrawable::OnGenerate(renderNodeParamsNull);
     drawableParamsNull->renderParams_ = nullptr;
-    params->hardwareEnabledTypeDrawables_.emplace_back(drawableParamsNull);
+    params->hardwareEnabledTypeDrawables_.emplace_back(std::make_pair(2, drawableParamsNull));
 
     RSUniRenderThread::Instance().Sync(move(params));
     ASSERT_NE(canvas_, nullptr);
