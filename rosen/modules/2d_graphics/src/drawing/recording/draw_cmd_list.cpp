@@ -232,11 +232,14 @@ void DrawCmdList::CaculatePerformanceOpType()
         } else {
             opTypeCountMap[type] = 1;   // 记录出现的第1次
         }
+        if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+            break;
+        }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && count <= MAX_OPITEMSIZE);
 }
 
-void DrawCmdList::UnmarshallingDrawOps()
+void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
 {
     if (PerformanceCaculate::GetDrawingTestRecordingEnabled()) {
         CaculatePerformanceOpType();
@@ -257,6 +260,9 @@ void DrawCmdList::UnmarshallingDrawOps()
     uint32_t count = 0;
     do {
         count++;
+        if (opItemCount && ++(*opItemCount) > MAX_OPITEMSIZE) {
+            break;
+        }
         void* itemPtr = opAllocator_.OffsetToAddr(offset, sizeof(OpItem));
         auto* curOpItemPtr = static_cast<OpItem*>(itemPtr);
         if (curOpItemPtr == nullptr) {
@@ -266,6 +272,9 @@ void DrawCmdList::UnmarshallingDrawOps()
         uint32_t type = curOpItemPtr->GetType();
         auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset);
         if (!op) {
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
             continue;
         }
@@ -289,6 +298,9 @@ void DrawCmdList::UnmarshallingDrawOps()
             opReplaceIndex++;
         } else {
             drawOpItems_.emplace_back(op);
+        }
+        if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+            break;
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
         if (!replacedOpListForBuffer_.empty() && offset >= replacedOpListForBuffer_[0].second) {
@@ -476,6 +488,9 @@ void DrawCmdList::GenerateCacheByBuffer(Canvas* canvas, const Rect* rect)
                 break;
             }
         }
+        if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+            break;
+        }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && offset < maxOffset && count <= MAX_OPITEMSIZE);
     isCached_ = true;
@@ -561,6 +576,9 @@ void DrawCmdList::PlaybackByBuffer(Canvas& canvas, const Rect* rect)
             if (auto op = player.Unmarshalling(type, itemPtr, opAllocator_.GetSize() - offset)) {
                 drawOpItems_.emplace_back(op);
             }
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } while (offset != 0 && count <= MAX_OPITEMSIZE);
         lastOpGenSize_ = opAllocator_.GetSize();
@@ -591,6 +609,9 @@ size_t DrawCmdList::CountTextBlobNum()
             if (type == DrawOpItem::TEXT_BLOB_OPITEM) {
                 textBlobCnt++;
             }
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } while (offset != 0 && offset < maxOffset && count <= MAX_OPITEMSIZE);
     }
@@ -618,6 +639,9 @@ void DrawCmdList::PatchTypefaceIds()
             if (handle->globalUniqueId) {
                 handle->globalUniqueId |= replayMask;
             }
+        }
+        if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+            break;
         }
         offset = curOpItemPtr->GetNextOpItemOffset();
     } while (offset != 0 && offset < maxOffset && count <= MAX_OPITEMSIZE);

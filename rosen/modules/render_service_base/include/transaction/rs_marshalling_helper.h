@@ -204,7 +204,10 @@ public:
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::DrawCmdList>& val,
         bool isRecordCmd = false);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::DrawCmdList>& val,
-        bool isRecordCmd = false);
+        uint32_t* opItemCount = nullptr);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::RecordCmd>& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::RecordCmd>& val,
+        uint32_t* opItemCount = nullptr);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
@@ -256,7 +259,6 @@ public:
     DECLARE_FUNCTION_OVERLOAD(RenderParticleColorParaType)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ParticleRenderParams>)
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
-    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::RecordCmd>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseObj>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
