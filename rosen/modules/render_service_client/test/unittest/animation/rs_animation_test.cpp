@@ -678,7 +678,7 @@ HWTEST_F(RSAnimationTest, Pause, TestSize.Level1)
         animation->target_.reset();
         animation->Pause();
         std::weak_ptr<RSNode> rsNode = animation->GetTarget();
-        EXPECT_EQ(nullptr, rsNode.lock());
+        EXPECT_FALSE(rsNode.lock() != nullptr);
     }
     GTEST_LOG_(INFO) << "RSAnimationTest Pause end";
 }
@@ -955,7 +955,7 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
         animation->state_ = RSAnimation::AnimationState::RUNNING;
         animation->Finish();
         std::weak_ptr<RSNode> rsNode = animation->GetTarget();
-        EXPECT_EQ(nullptr, rsNode.lock());
+        EXPECT_FALSE(rsNode.lock() != nullptr);
     }
     GTEST_LOG_(INFO) << "RSAnimationTest Finish end";
 }
