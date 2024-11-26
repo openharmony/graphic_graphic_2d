@@ -678,26 +678,31 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     auto isSnapshotSkipLayer =
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && surfaceParams.GetIsSnapshotSkipLayer();
-    if (UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) ||
-        surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) {
+    if ((surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
+        !RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+        return;
+    }
+
+    auto isSecurityLayer = surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption();
+    if ((UNLIKELY(isSecurityLayer)|| surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
+        RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
         RS_TRACE_NAME("CaptureSurface with security or skip layer");
-        if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-            Drawing::Brush rectBrush;
-            rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
-            canvas.AttachBrush(rectBrush);
-            canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
-                surfaceParams.GetBounds().GetHeight()));
-            canvas.DetachBrush();
-        }
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+            surfaceParams.GetBounds().GetHeight()));
+        canvas.DetachBrush();
         return;
     }
 
-    if (surfaceParams.GetIsProtectedLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with protected layer.",
+    if (surfaceParams.GetIsProtectedLayer() || (RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
+        !RSUniRenderThread::GetCaptureParam().isSingleSurface_ && UNLIKELY(isSecurityLayer))) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]\
+            name:[%{public}s]) with protected layer or isSingleSurface with security layer.",
             surfaceParams.GetId(), name_.c_str());
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
