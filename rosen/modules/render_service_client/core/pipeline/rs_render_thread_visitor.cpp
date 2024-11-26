@@ -31,6 +31,7 @@
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -407,6 +408,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessRootRenderNode quick skip");
         return;
     }
+    if (node.GetIsTextureExportNode()) {
+        activeSubtreeRootId_ = node.GetId();
+    }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
 #ifdef NEW_RENDER_CONTEXT
@@ -590,6 +594,17 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     rsSurface->FlushFrame(uiTimestamp_);
 #else
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+#endif
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        auto fenceFd = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->DupReservedFlushFd();
+        auto rootId = GetActiveSubtreeRootId();
+        if (rootId != INVALID_NODEID) {
+            RSSurfaceBufferCallbackManager::Instance().SetReleaseFenceForVulkan(fenceFd, rootId);
+            RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferSubCallbackForVulkan(rootId);
+        }
+        ::close(fenceFd);
+    }
 #endif
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
@@ -1079,6 +1094,11 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
 
     // clip hole
     ClipHoleForSurfaceNode(node);
+}
+
+NodeId RSRenderThreadVisitor::GetActiveSubtreeRootId()
+{
+    return activeSubtreeRootId_;
 }
 } // namespace Rosen
 } // namespace OHOS

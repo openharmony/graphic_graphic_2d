@@ -24,6 +24,8 @@
 #include "GLES2/gl2ext.h"
 #endif
 
+#include "common/rs_common_def.h"
+
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
 #include "render/rs_image.h"
@@ -245,6 +247,26 @@ private:
 };
 
 #ifdef ROSEN_OHOS
+struct RSB_EXPORT DrawSurfaceBufferFinishCbData {
+    uint64_t uid;
+    pid_t pid;
+    uint32_t surfaceBufferId;
+    NodeId rootNodeId = INVALID_NODEID;
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    bool isRendered = false;
+    bool isNeedTriggerCbDirectly = false;
+};
+ 
+struct RSB_EXPORT DrawSurfaceBufferAfterAcquireCbData {
+    uint64_t uid;
+    pid_t pid;
+};
+
+struct RSB_EXPORT DrawSurfaceBufferOpItemCb {
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> OnFinish;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> OnAfterAcquireBuffer;
+};
+
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
@@ -267,9 +289,14 @@ public:
     static std::shared_ptr<DrawOpItem> Unmarshalling(const DrawCmdList& cmdList, void* handle);
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
-    RSB_EXPORT static void RegisterSurfaceBufferCallback(std::function<void(pid_t, uint64_t, uint32_t)> callback);
+    RSB_EXPORT static void RegisterSurfaceBufferCallback(DrawSurfaceBufferOpItemCb callbacks);
+    RSB_EXPORT static void RegisterGetRootNodeIdFuncForRT(std::function<NodeId()> func);
+    RSB_EXPORT static void SetIsUniRender(bool isUniRender);
 private:
     void OnDestruct();
+    void OnAfterAcquireBuffer();
+    void OnAfterDraw();
+    void ReleaseBuffer();
     void Clear();
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
@@ -277,6 +304,9 @@ private:
     bool CreateEglTextureId();
     Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    NodeId rootNodeId_ = INVALID_NODEID;
+    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+    bool isRendered_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

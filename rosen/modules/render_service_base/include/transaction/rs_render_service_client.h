@@ -106,7 +106,8 @@ class SurfaceBufferCallback {
 public:
     SurfaceBufferCallback() = default;
     virtual ~SurfaceBufferCallback() noexcept = default;
-    virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
+    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
+    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
 };
 
 class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
@@ -363,7 +364,9 @@ public:
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
-    void TriggerSurfaceBufferCallback(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) const;
+    void TriggerOnFinish(const FinishCallbackRet& ret) const;
+    void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
+
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
