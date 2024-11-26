@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-//11
+
 #include <gtest/gtest.h>
 #include <test_header.h>
 
