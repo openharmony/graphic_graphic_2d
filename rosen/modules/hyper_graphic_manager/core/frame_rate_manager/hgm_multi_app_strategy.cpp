@@ -104,6 +104,7 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
 void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     static std::mutex calcVoteMutex;
     std::unique_lock<std::mutex> lock(calcVoteMutex);
     voteRes_ = { HGM_ERROR, {
