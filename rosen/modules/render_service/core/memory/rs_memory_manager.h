@@ -52,7 +52,8 @@ public:
     static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
     static void SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuContext, bool enabled);
-    static void SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled);
+    static void SetGpuMemoryAsyncReclaimerSwitch(
+        Drawing::GPUContext* gpuContext, bool enabled, const std::function<void()>& setThreadPriority);
     static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
     static void SuppressGpuCacheBelowCertainRatio(
         Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
