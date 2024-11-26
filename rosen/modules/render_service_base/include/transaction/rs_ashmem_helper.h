@@ -50,6 +50,7 @@ class RSB_EXPORT RSAshmemHelper {
 public:
     static std::shared_ptr<MessageParcel> CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel);
     static std::shared_ptr<MessageParcel> ParseFromAshmemParcel(MessageParcel* ashmemParcel);
+    static std::shared_ptr<MessageParcel> CopyParcel(MessageParcel& old);
 
     static void CopyFileDescriptor(
         MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel);
