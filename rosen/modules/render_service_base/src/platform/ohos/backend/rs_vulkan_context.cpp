@@ -76,17 +76,11 @@ void RsVulkanInterface::Init(bool isProtected)
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected);
     std::unique_lock<std::mutex> lock(vkMutex_);
+    CreateSkiaBackendContext(&backendContext_, false, isProtected);
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
     if (RSSystemProperties::GetVkQueuePriorityEnable()) {
-        if (!isProtected) {
-            CreateSkiaBackendContext(&backendContext_, false, isProtected);
-        }
         CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
-    } else {
-        CreateSkiaBackendContext(&backendContext_, false, isProtected);
     }
-#else
-    CreateSkiaBackendContext(&backendContext_, false, isProtected);
 #endif
 }
 
@@ -564,14 +558,9 @@ RsVulkanContext::RsVulkanContext()
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
     isProtected_ = true;
     rsProtectedVulkanInterface.Init(isProtected_);
-#ifdef RS_ENABLE_VKQUEUE_PRIORITY
-    // Init protectedDrawingContext_ bind to hbackendContext
-    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
-        RSSystemProperties::GetVkQueuePriorityEnable(), isProtected_);
-#else
+    // DRM needs to adapt vkQueue in the future.
     protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
         false, isProtected_);
-#endif
     isProtected_ = false;
 }
 
