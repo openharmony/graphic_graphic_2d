@@ -304,7 +304,7 @@ sptr<IVSyncConnection> RSRenderServiceConnectionProxy::CreateVSyncConnection(con
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
-    if (!Remote()){
+    if (!Remote()) {
         return nullptr;
     }
     int32_t err = SendRequest(code, data, reply, option);
@@ -2638,7 +2638,7 @@ bool RSRenderServiceConnectionProxy::SetWatermark(const std::string& name, std::
     if (!data.WriteString(name)) {
         return false;
     }
-    if (!watermark){
+    if (!watermark) {
         return false;
     }
     if (!data.WriteParcelable(watermark.get())) {
@@ -3509,10 +3509,11 @@ void RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr, b
     }
 }
 
-int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data,
+    MessageParcel &reply, MessageOption &option)
 {
     if (!Remote()) {
-        return NULLPTR_ERROR;
+        return RSInterfaceErrorCode::NULLPTR_ERROR;
     }
     return Remote()->SendRequest(code, data, reply, option);
 }
