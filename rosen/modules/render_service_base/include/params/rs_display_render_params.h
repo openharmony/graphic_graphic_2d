@@ -97,6 +97,10 @@ public:
     {
         return hardwareEnabledTopDrawables_;
     }
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const override
     {
@@ -165,6 +169,7 @@ private:
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMirrorScreen_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;

@@ -133,6 +133,16 @@ public:
         return screenRotation_;
     }
 
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -434,6 +444,7 @@ private:
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
+    bool isMirrorScreen_ = false;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
     uint64_t screenId_ = 0;

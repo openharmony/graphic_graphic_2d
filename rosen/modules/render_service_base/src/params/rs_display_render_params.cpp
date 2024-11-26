@@ -181,6 +181,7 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->isSecurityExemption_ = isSecurityExemption_;
     targetDisplayParams->mirroredId_ = mirroredId_;
     targetDisplayParams->compositeType_ = compositeType_;
+    targetDisplayParams->isMirrorScreen_ = isMirrorScreen_;
     targetDisplayParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
     targetDisplayParams->mirrorSourceId_ = mirrorSourceId_;
     targetDisplayParams->screenInfo_ = std::move(screenInfo_);

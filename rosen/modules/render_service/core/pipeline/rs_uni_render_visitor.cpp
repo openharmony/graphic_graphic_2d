@@ -1939,6 +1939,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
 
     // 5. check compositeType
     auto mirrorNode = node.GetMirrorSource().lock();
+    node.SetIsMirrorScreen(mirrorNode != nullptr);
     switch (screenInfo_.state) {
         case ScreenState::SOFTWARE_OUTPUT_ENABLE:
             node.SetCompositeType(mirrorNode ?
