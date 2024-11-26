@@ -217,6 +217,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         output->SetLayerInfo(layers);
         if (output->IsDeviceValid()) {
             hdiBackend_->Repaint(output);
+            RecordTimestamp(layers);
         }
         output->ReleaseLayers(releaseFence_);
         RSBaseRenderUtil::DecAcquiredBufferCount();
@@ -276,6 +277,26 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
     PostDelayTask(task, delayTime_);
+}
+
+void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
+{
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    for (auto& layer : layers) {
+        if (layer->GetUniRenderFlag() ||
+            layer->GetSurface()->GetName().find("RCDBottomSurfaceNode") != std::string::npos ||
+            layer->GetSurface()->GetName().find("RCDTopSurfaceNode") != std::string::npos) {
+                continue;
+            }
+            uint64_t id = layer->GetNodeId();
+            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+            const auto& surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
+            if (surfaceNode == nullptr) {
+                continue;
+            }
+            surfaceNode->RecordPresentTime(currentTime, layer->GetBuffer()->GetSeqNum());
+    }
 }
 
 bool RSHardwareThread::IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param,

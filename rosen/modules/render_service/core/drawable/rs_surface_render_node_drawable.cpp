@@ -919,6 +919,17 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
 {
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto& surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(surfaceParams.GetId());
+    if (surfaceRenderNode == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer surfaceRenderNode is nullptr");
+    } else if (params.buffer == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
+    } else {
+        surfaceRenderNode->RecordPresentTime(currentTime, params.buffer->GetSeqNum());
+    }
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&

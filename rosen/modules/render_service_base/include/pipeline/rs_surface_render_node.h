@@ -51,6 +51,13 @@ namespace Rosen {
 class RSCommand;
 class RSDirtyRegionManager;
 class RSSurfaceHandler;
+
+struct FPSStat {
+    uint64_t presentTime;
+    uint32_t seqNum;
+};
+
+
 class RSB_EXPORT RSSurfaceRenderNode : public RSRenderNode {
 public:
     using WeakPtr = std::weak_ptr<RSSurfaceRenderNode>;
@@ -1277,6 +1284,8 @@ public:
     bool NeedDrawBehindWindow() const override;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
+    bool RecordPresentTime(uint64_t timestamp, uint32_t seqNum);
+    void Dump(std::string& result);
 protected:
     void OnSync() override;
 
@@ -1579,6 +1588,11 @@ private:
     bool subThreadAssignable_ = false;
     bool oldHasChildrenBlurBehindWindow_ = false;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
+
+    // Record the drawing timestamp, which is used to collect statistics on the transmission and display frame rate.
+    static constexpr int FRAME_RECORDS_NUM = 288;
+    std::array<FPSStat, FRAME_RECORDS_NUM> presentTimeRecords_ {};
+    uint32_t count_ = 0;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
