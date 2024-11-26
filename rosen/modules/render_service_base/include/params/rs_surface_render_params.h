@@ -486,6 +486,14 @@ public:
         return brightnessRatio_;
     }
 
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -569,6 +577,10 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
+
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

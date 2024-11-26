@@ -1157,7 +1157,7 @@ public:
     void SetIsSubSurfaceNode(bool isSubSurfaceNode);
     bool IsSubSurfaceNode() const;
     const std::map<NodeId, RSSurfaceRenderNode::WeakPtr>& GetChildSubSurfaceNodes() const;
-    void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes);
+    void GetAllSubSurfaceNodes(std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes) const;
     std::string SubSurfaceNodesDump() const;
 
     void SetIsNodeToBeCaptured(bool isNodeToBeCaptured);
@@ -1270,6 +1270,7 @@ private:
     void InitRenderParams() override;
     void UpdateRenderParams() override;
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
+    std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;

@@ -474,6 +474,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->sdrNit_ = sdrNit_;
     targetSurfaceParams->displayNit_ = displayNit_;
     targetSurfaceParams->brightnessRatio_ = brightnessRatio_;
+    targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
+    targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
     RSRenderParams::OnSync(target);
 }
 
