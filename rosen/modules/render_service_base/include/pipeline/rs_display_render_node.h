@@ -370,6 +370,8 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
+    GraphicPixelFormat GetPixelFormat() const;
     void SetColorSpace(const GraphicColorGamut& newColorSpace);
     GraphicColorGamut GetColorSpace() const;
 
@@ -514,6 +516,7 @@ private:
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
+    GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;

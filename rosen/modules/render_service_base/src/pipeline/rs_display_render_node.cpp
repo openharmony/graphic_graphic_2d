@@ -466,8 +466,33 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
 #endif
 }
 
+void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
+{
+    if (pixelFormat_ == pixelFormat) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (!displayParams) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetNewPixelFormat(pixelFormat);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    pixelFormat_ = pixelFormat;
+}
+
+GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
+{
+    return pixelFormat_;
+}
+
 void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
 {
+    if (colorSpace_ == colorSpace) {
+        return;
+    }
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
     if (displayParams == nullptr) {
         RS_LOGE("%{public}s displayParams is nullptr", __func__);

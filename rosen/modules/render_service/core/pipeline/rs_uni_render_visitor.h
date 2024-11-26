@@ -120,11 +120,7 @@ public:
     {
         return isRegionDebugEnabled_;
     }
-    // Use in vulkan parallel rendering
-    GraphicColorGamut GetColorGamut() const
-    {
-        return newColorSpace_;
-    }
+    
     uint32_t GetLayerNum() const
     {
         return layerNum_;
@@ -270,8 +266,10 @@ private:
     void ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
-    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
+    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace);
     void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
+    void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicPixelFormat& pixelFormat);
+    void UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
@@ -384,7 +382,6 @@ private:
     OcclusionRectISet curSurfaceNoBelowDirtyFilter_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
-    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     bool hasDisplayHdrOn_ = false;
     bool hasVisitCrossNode_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
@@ -409,7 +406,6 @@ private:
     std::vector<std::string> dfxUIFirstSurfaceNames_;
     PartialRenderType partialRenderType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
-    GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;

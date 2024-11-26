@@ -258,14 +258,11 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
 void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRenderNode& surfaceNode, bool isHdrSurface)
 {
     std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-    auto displayLock = surfaceNode.GetAncestorDisplayNode().lock();
-    if (displayLock != nullptr) {
-        ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
-    }
-    if (ancestor == nullptr) {
+    auto ancestorDisplayNodeMap = surfaceNode.GetAncestorDisplayNode();
+    if (ancestorDisplayNodeMap.empty()) {
         return;
     }
-    auto screenId = ancestor->GetScreenId();
+    auto screenId = ancestorDisplayNodeMap.begin()->first;
 
     if (!isHdrSurface) {
         surfaceNode.SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));

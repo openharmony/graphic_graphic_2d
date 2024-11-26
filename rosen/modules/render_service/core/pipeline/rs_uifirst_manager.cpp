@@ -336,14 +336,22 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-    if (!surfaceParams || !surfaceParams->GetAncestorDisplayNode().lock()) {
+    if (!surfaceParams) {
         return;
     }
-    auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
+    auto ancestorDisplayNodeMap = surfaceParams->GetAncestorDisplayNode();
+    if (ancestorDisplayNodeMap.empty()) {
+        return;
+    }
+    auto ancestor = ancestorDisplayNodeMap.begin()->second.lock();
     if (!ancestor) {
         return;
     }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
+    auto ancestorDisplayNode = ancestor->ReinterpretCastTo<RSDisplayRenderNode>();
+    if (!ancestorDisplayNode) {
+        return;
+    }
+    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestorDisplayNode->GetRenderParams().get());
     if (!displayParams) {
         return;
     }
@@ -1152,16 +1160,6 @@ bool RSUifirstManager::CheckIfAppWindowHasAnimation(RSSurfaceRenderNode& node)
 
 bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation) // maybe canvas node ?
 {
-    auto baseNode = node.GetAncestorDisplayNode().lock();
-    if (!baseNode) {
-        RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
-        return false;
-    }
-    auto curDisplayNode = baseNode->ReinterpretCastTo<RSDisplayRenderNode>();
-    if (curDisplayNode == nullptr) {
-        RS_LOGE("surfaceNode GetAncestorDisplayNode().lock() return nullptr");
-        return false;
-    }
     bool flag = ((RSUifirstManager::Instance().GetUiFirstMode() == UiFirstModeType::SINGLE_WINDOW_MODE) &&
         (node.GetSurfaceNodeType() == RSSurfaceNodeType::ABILITY_COMPONENT_NODE) &&
         RSUifirstManager::Instance().NodeIsInCardWhiteList(node) &&

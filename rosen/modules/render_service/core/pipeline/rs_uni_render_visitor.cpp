@@ -249,13 +249,17 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
 {
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     if (node.IsAppWindow() && node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
-        newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        if (!curDisplayNode_) {
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace curDisplayNode_ is nullptr");
+            return;
+        }
+        curDisplayNode_->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
         RS_LOGD("RSUniRenderVisitor::CheckColorSpace: node(%{public}s) set new colorgamut %{public}d",
-            node.GetName().c_str(), newColorSpace_);
+            node.GetName().c_str(), static_cast<int>(GRAPHIC_COLOR_GAMUT_DISPLAY_P3));
     }
 }
 
-void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node)
+void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace)
 {
     if (!node.IsOnTheTree()) {
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) is not on the tree",
@@ -270,27 +274,44 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     node.UpdateColorSpaceWithMetadata();
     if (node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
-        newColorSpace_ = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        newColorSpace = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         RS_LOGD("RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode node(%{public}s) set new colorgamut %{public}d",
-            node.GetName().c_str(), newColorSpace_);
+            node.GetName().c_str(), newColorSpace);
     }
 }
 
 void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node)
 {
+    auto colorSpace = node.GetColorSpace();
+    if (colorSpace == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+        RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: newColorSpace is already DISPLAY_P3.");
+        return;
+    }
     const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     for (const auto& selfDrawingNode : selfDrawingNodes) {
-        if (newColorSpace_ == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: newColorSpace is already DISPLAY_P3.");
-            return;
-        }
-        if (!selfDrawingNode || !selfDrawingNode->GetAncestorDisplayNode().lock()) {
-            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc selfDrawingNode or ancestorNode is nullptr");
+        if (!selfDrawingNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc selfDrawingNode is nullptr");
             continue;
         }
-        auto ancestor = selfDrawingNode->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
-        if (ancestor != nullptr && node.GetId() == ancestor->GetId()) {
-            CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode);
+        auto ancestorDisplayNodeMap = selfDrawingNode->GetAncestorDisplayNode();
+        if (ancestorDisplayNodeMap.empty()) {
+            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: ancestorDisplayNodeMap is empty.");
+            return;
+        }
+        for (auto iter = ancestorDisplayNodeMap.begin(); iter != ancestorDisplayNodeMap.end(); iter++) {
+            auto ancestorNode = iter->second.lock();
+            if (!ancestorNode) {
+                continue;
+            }
+            auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
+            if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
+                CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
+            }
+            if (colorSpace == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+                RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: newColorSpace is already DISPLAY_P3.");
+                node.SetColorSpace(colorSpace);
+                return;
+            }
         }
     }
 }
@@ -309,33 +330,85 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             RS_LOGD("RSUniRenderVisitor::HandleColorGamuts get screen color gamut failed.");
             return;
         }
-        newColorSpace_ = static_cast<GraphicColorGamut>(screenColorGamut);
+        node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
     }
+}
 
-    node.SetColorSpace(newColorSpace_);
-    newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
+void RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicPixelFormat& pixelFormat)
+{
+    if (!node.IsOnTheTree()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is not on the tree",
+            node.GetName().c_str());
+        return;
+    }
+    if (!node.IsHardwareForcedDisabled()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
+            node.GetName().c_str());
+        return;
+    }
+    if (!node.GetRSSurfaceHandler() || !node.GetRSSurfaceHandler()->GetBuffer()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) did not have buffer.",
+            node.GetName().c_str());
+        return;
+    }
+    if (RSMainThread::CheckIsHdrSurface(node)) {
+        pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode HDRService pixelformat is set to 1010102");
+    }
+}
+
+void RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node)
+{
+    auto pixelFormat = node.GetPixelFormat();
+    if (pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+        RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc newPixelFormat is already 1010102.");
+        return;
+    }
+    const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+    for (const auto& selfDrawingNode : selfDrawingNodes) {
+        if (!selfDrawingNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc selfDrawingNode is nullptr");
+            continue;
+        }
+        auto ancestorDisplayNodeMap = selfDrawingNode->GetAncestorDisplayNode();
+        if (ancestorDisplayNodeMap.empty()) {
+            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc ancestorDisplayNodeMap is empty");
+            continue;
+        }
+        for (auto iter = ancestorDisplayNodeMap.begin(); iter != ancestorDisplayNodeMap.end(); iter++) {
+            auto ancestorNode = iter->second.lock();
+            if (!ancestorNode) {
+                continue;
+            }
+            auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
+            if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
+                CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+            }
+            if (pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+                RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc newPixelFormat is already 1010102.");
+                node.SetPixelFormat(pixelFormat);
+                return;
+            }
+        }
+    }
 }
 
 void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
 {
-    if (node.GetHDRPresent()) {
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64 "",
-            node.GetId());
-        hasUniRenderHdrSurface_ = true;
-    }
     if (hasFingerprint_[currentVisitDisplay_]) {
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat hasFingerprint is true.");
         return;
     }
     if (node.GetFingerprint()) {
         hasFingerprint_[currentVisitDisplay_] = true;
-        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat newPixelFormat_ is set 1010102 for fingerprint.");
+        curDisplayNode_->SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat pixelFormate is set 1010102 for fingerprint.");
         return;
     }
-    if (RSMainThread::CheckIsHdrSurface(node) && !IsHardwareComposerEnabled()) {
-        newPixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_1010102;
-        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat pixelformat is set to 1010102 for 10bit buffer");
+    if (node.GetHDRPresent()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64 "",
+            node.GetId());
+        hasUniRenderHdrSurface_ = true;
     }
 }
 
@@ -344,12 +417,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     if (!RSSystemProperties::GetHDRImageEnable()) {
         hasUniRenderHdrSurface_ = false;
     }
-    auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
-    if (!stagingDisplayParams) {
-        RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get StagingRenderParams failed.");
-        return;
-    }
-    ScreenId screenId = stagingDisplayParams->GetScreenId();
+    ScreenId screenId = node.GetScreenId();
     RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface_);
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
@@ -368,11 +436,12 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     }
 
     if (screenType == VIRTUAL_TYPE_SCREEN) {
-        if (screenManager->GetPixelFormat(node.GetScreenId(), newPixelFormat_) != SUCCESS) {
+        auto pixelFormat = node.GetPixelFormat();
+        if (screenManager->GetPixelFormat(node.GetScreenId(), pixelFormat) != SUCCESS) {
             RS_LOGD("RSUniRenderVisitor::HandlePixelFormat get screen color gamut failed.");
         }
+        node.SetPixelFormat(pixelFormat);
     }
-    stagingDisplayParams->SetNewPixelFormat(newPixelFormat_);
 }
 
 void RSUniRenderVisitor::ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node)
@@ -702,6 +771,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     curDisplayNode_->UpdateScreenRenderParams(screenRenderParams);
     curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
     UpdateColorSpaceAfterHwcCalc(node);
+    UpdatePixelFormatAfterHwcCalc(node);
     HandleColorGamuts(node, screenManager_);
     HandlePixelFormat(node, screenManager_);
     if (UNLIKELY(!SharedTransitionParam::unpairedShareTransitions_.empty())) {
@@ -1255,6 +1325,8 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
         RS_LOGE("RSUniRenderVisitor::InitDisplayInfo dirtyMgr or node ptr is nullptr");
         return false;
     }
+    curDisplayNode_->SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+    curDisplayNode_->SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_8888);
     curDisplayDirtyManager_->Clear();
     transparentCleanFilter_.clear();
     transparentDirtyFilter_.clear();
@@ -1348,7 +1420,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         }
     }
     // 2. update surface info and CheckIfOcclusionReusable
-    node.SetAncestorDisplayNode(curDisplayNode_); // set for boot animation
+    node.SetAncestorDisplayNode(curDisplayNode_->GetScreenId(), curDisplayNode_); // set for boot animation
     node.UpdateAncestorDisplayNodeInRenderParams();
     node.CleanDstRectChanged();
     // [planning] check node isDirty can be optimized.
