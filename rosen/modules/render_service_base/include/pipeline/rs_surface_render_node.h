@@ -1286,6 +1286,7 @@ public:
     void RemoveChildBlurBehindWindow(NodeId id) override;
     bool RecordPresentTime(uint64_t timestamp, uint32_t seqNum);
     void Dump(std::string& result);
+    void ClearDump(std::string& result);
 protected:
     void OnSync() override;
 

@@ -354,83 +354,115 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|flush rs jank stats hisysevent\n");
 }
 
-void RSRenderService::DumpSelfDrawingFps(std::unordered_set<std::u16string>& argSets,
-    std::string& dumpString, const std::u16string& arg) const
-{
-    auto iter = argSets.find(arg);
-    if (iter == argSets.end()) {
-        RS_LOGE("RSRenderService::DumpSelfDrawingFps parameter fps doesn't exist");
-        return ;
-    }
-    argSets.erase(iter);
-    if (argSets.empty()) {
-        RS_LOGE("RSRenderService::DumpSelfDrawingFps layer name doesn't exist");
-        return ;
-    }
-    std::string renderNodeArg("");
-    renderNodeArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&renderNodeArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode == nullptr) {
-            return ;
-        }
-        if (surfaceNode->GetName() != renderNodeArg || !surfaceNode->IsOnTheTree()) {
-            return ;
-        }
-        surfaceNode->Dump(dumpString);
-    });
-}
-
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
-    if (iter != argSets.end()) {
-        std::string layerArg;
-        argSets.erase(iter);
-        if (!argSets.empty()) {
-            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
-#endif
-        } else {
-            mainThread_->ScheduleTask(
-                [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
-        }
+    if (iter == argSets.end()) {
+        return ;
     }
+    std::string layerArg;
+    argSets.erase(iter);
+    if (!argSets.empty()) {
+        RS_LOGE("RSRenderService::FPSDUMPProcess layer name is not specified");
+        return ;
+    }
+    layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    std::unordered_set<std::string> layersName{"DisplayNode", "composer", "UniRender"};
+    if (layersName.find(layerArg) != layersName.end()) {
+        DumpFps(dumpString, layerArg);
+    } else {
+        DumpSurfaceNodeFps(dumpString, layerArg);
+    }
+}
+
+void RSRenderService::DumpFps(std::string& dumpString, std::string& layerArg) const
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
+    }
+}
+
+void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& layerArg) const
+{
+    dumpString += "\n-- The recently fps records info of screens:\n";
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode == nullptr) {
+            return ;
+        }
+        if (surfaceNode->GetName() != layerArg || !surfaceNode->IsOnTheTree()) {
+            return ;
+        }
+        dumpString += "\n surface [" + layerArg + "]:\n";
+        surfaceNode->Dump(dumpString);
+    });
 }
 
 void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
-    if (iter != argSets.end()) {
-        std::string layerArg;
-        argSets.erase(iter);
-        if (!argSets.empty()) {
-            layerArg = std::wstring_convert<
-            std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString, &layerArg]() {
-                    return screenManager_->ClearFpsDump(dumpString, layerArg);
-                }).wait();
-#endif
-        } else {
-            mainThread_->ScheduleTask(
-                [this, &dumpString, &layerArg]() {
-                    return screenManager_->ClearFpsDump(dumpString, layerArg);
-                }).wait();
-        }
+    if (iter == argSets.end()) {
+        return ;
+    }
+    std::string layerArg;
+    argSets.erase(iter);
+    if (argSets.empty()) {
+        RS_LOGE("RSRenderService::FPSDUMPClearProcess layer name is not specified");
+        return ;
+    }
+    std::unordered_set<std::string> layersName{"DisplayNode", "composer"};
+    layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    if (layersName.find(layerArg) != layersName.end()) {
+        ClearFps(dumpString, layerArg);
+    } else {
+        ClearSurfaceNodeFps(dumpString, layerArg);
     }
 }
+
+void RSRenderService::ClearFps(std::string& dumpString, std::string& layerArg) const
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &layerArg]() {
+                return screenManager_->ClearFpsDump(dumpString, layerArg);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &layerArg]() {
+                return screenManager_->ClearFpsDump(dumpString, layerArg);
+            }).wait();
+    }
+}
+
+void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& layerArg) const
+{
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode == nullptr) {
+            return ;
+        }
+        if (surfaceNode->GetName() != layerArg || !surfaceNode->IsOnTheTree()) {
+            return ;
+        }
+        dumpString += "\n The fps info of surface [" + layerArg + "] is cleared.\n";
+        surfaceNode->ClearDump(dumpString);
+    });
+}
+
+
 
 void RSRenderService::DumpRSEvenParam(std::string& dumpString) const
 {
@@ -652,7 +684,6 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
 #ifdef RS_ENABLE_VK
     std::u16string arg22(u"vktextureLimit");
 #endif
-    std::u16string arg23(u"fpsSelfDrawing");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -710,7 +741,6 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     }
     FPSDUMPProcess(argSets, dumpString, arg3);
     FPSDUMPClearProcess(argSets, dumpString, arg13);
-    DumpSelfDrawingFps(argSets, dumpString, arg23);
     WindowHitchsDump(argSets, dumpString, arg17);
     if (auto iter = argSets.find(arg18) != argSets.end()) {
         argSets.erase(arg18);

@@ -57,13 +57,15 @@ private:
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
-    void DumpSelfDrawingFps(std::unordered_set<std::u16string>& argSets,
-        std::string& dumpString, const std::u16string& arg) const;
     void DumpNode(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
     void FPSDUMPProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
+    void DumpFps(std::string& dumpString, std::string& layerArg) const;
+    void DumpSurfaceNodeFps(std::string& dumpString, std::string& layerArg) const;
     void FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
         std::string& dumpString, const std::u16string& arg) const;
+    void ClearFps(std::string& dumpString, std::string& layerArg) const;
+    void ClearSurfaceNodeFps(std::string& dumpString, std::string& layerArg) const;
 
     sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     void RemoveConnection(sptr<IRemoteObject> token);

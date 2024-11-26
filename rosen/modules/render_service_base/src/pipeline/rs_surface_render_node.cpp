@@ -3160,6 +3160,7 @@ bool RSSurfaceRenderNode::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
     std::unique_lock<std::mutex> lock(mutex_);
     if (seqNum == presentTimeRecords_[(count_ - 1 + FRAME_RECORDS_NUM) % FRAME_RECORDS_NUM].seqNum)
         return false;
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNode::RecordPresentTime timestamp:%llu", timestamp);
     presentTimeRecords_[count_].presentTime = timestamp;
     presentTimeRecords_[count_].seqNum = seqNum;
     count_ = (count_ + 1) % FRAME_RECORDS_NUM;
@@ -3174,6 +3175,13 @@ void RSSurfaceRenderNode::Dump(std::string& result)
         uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
         result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
     }
+}
+
+void RSSurfaceRenderNode::ClearDump(std::string& result)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    FPSStat defaultFPSStat = {0, 0};
+    presentTimeRecords_.fill(defaultFPSStat);
 }
 } // namespace Rosen
 } // namespace OHOS
