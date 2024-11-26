@@ -871,7 +871,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     config.format = isPhysical ? pixelFormat : screenInfo.pixelFormat;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     if (isProtected) {
-        config.usage |= BUFFER_USAGE_PROTECTED;
+        config.usage |= BUFFER_USAGE_PROTECTED | BUFFER_USAGE_DRM_REDRAW; // for redraw frameBuffer mem reservation
     }
     config.timeout = 0;
     return config;
