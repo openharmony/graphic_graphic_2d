@@ -402,6 +402,13 @@ public:
     virtual void SetFillStyle(PathFillType fillstyle);
 
     /**
+     * @brief Gets PathFillType, the rule used to fill Path.
+     *
+     * @return current PathFillType setting
+     */
+    PathFillType GetFillStyle() const;
+
+    /**
      * @brief Interpolates between Path with Point array of equal size.
      *
      * @param ending Point array averaged with this Point array
