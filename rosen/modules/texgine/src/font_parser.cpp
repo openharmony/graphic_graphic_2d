@@ -183,7 +183,7 @@ int FontParser::ParseCmapTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
-        TEXT_LOGE("Get table data failed size: %{public}u, ret: %{public}u", size, retTableData);
+        TEXT_LOGE("Failed to get table data size: %{public}zu, ret: %{public}zu", size, retTableData);
         return FAILED;
     }
     hb_blob_t* hblob = nullptr;
@@ -214,7 +214,7 @@ int FontParser::ParseNameTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
-        TEXT_LOGE("Get table data failed size: %{public}u, ret: %{public}u", size, retTableData);
+        TEXT_LOGE("Failed to get table data size: %{public}zu, ret: %{public}zu", size, retTableData);
         return FAILED;
     }
     hb_blob_t* hblob = nullptr;
@@ -250,7 +250,7 @@ int FontParser::ParsePostTable(std::shared_ptr<Drawing::Typeface> typeface, Font
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface->GetTableData(tag, 0, size, tableData.get());
     if (size != retTableData) {
-        TEXT_LOGE("Get table data failed size: %{public}u, ret: %{public}u", size, retTableData);
+        TEXT_LOGE("Failed to get table data size: %{public}zu, ret: %{public}zu", size, retTableData);
         return FAILED;
     }
     hb_blob_t* hblob = nullptr;
