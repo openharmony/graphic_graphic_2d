@@ -327,7 +327,6 @@ HWTEST_F(RSBaseRenderUtilUnitTest, SetColorFilterModeToPaint_001, TestSize.Level
     RSBaseRenderUtil::SetColorFilterModeToPaint(colorFilterMode, paint);
     filter = paint.GetFilter();
     ASSERT_EQ(filter.GetColorFilter(), nullptr);
-
 }
 
 /*
