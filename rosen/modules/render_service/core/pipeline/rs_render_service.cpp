@@ -370,7 +370,7 @@ void RSRenderService::DumpSelfDrawingFps(std::unordered_set<std::u16string>& arg
     std::string renderNodeArg;
     renderNodeArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
     const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+    nodeMap.TraverseSurfaceNodes([&renderNodeArg](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
         if (surfaceNode == nullptr) {
             return ;
         }
