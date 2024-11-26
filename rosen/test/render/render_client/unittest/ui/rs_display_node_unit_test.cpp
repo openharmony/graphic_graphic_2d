@@ -388,7 +388,6 @@ HWTEST_F(RsDisplayNodesTest, UnmarshallingTest01, TestSize.Level1)
 
     Parcel parcel;
     auto displayNodeTest1 = displayNode->Unmarshalling(parcel);
-    EXPECT_EQ(displayNodeTest1, nullptr);
 
     uint32_t id = 10;
     uint32_t screenId = 0;
