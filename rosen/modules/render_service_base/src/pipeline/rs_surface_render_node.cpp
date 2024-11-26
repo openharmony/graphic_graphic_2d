@@ -1831,11 +1831,13 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
 {
 #ifdef RS_ENABLE_GPU
-    auto contentStatic = false;
-    if (IsLeashWindow() || IsAbilityComponent()) {
-        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty() && !HasRemovedChild();
+    auto contentStatic = !IsSubTreeDirty() && !IsAccessibilityConfigChanged();
+    if (IsLeashWindow()) {
+        contentStatic = contentStatic && !HasRemovedChild();
+    } else if (IsAbilityComponent()) {
+        contentStatic = contentStatic && !IsContentDirty();
     } else {
-        contentStatic = surfaceCacheContentStatic_;
+        contentStatic = surfaceCacheContentStatic_ && !IsAccessibilityConfigChanged();
     }
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
@@ -1844,9 +1846,10 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
-        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] forceUpdate:[%d]",
-        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: [%d] name:[%s] "
+        "Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] removedChild:[%d] accessibilityChanged:[%d]",
+        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), HasRemovedChild(),
+        IsAccessibilityConfigChanged());
 #endif
 }
 
@@ -2328,8 +2331,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
     dirtyContentNodeNum_ = 0;
     dirtyGeoNodeNum_ = 0;
     dirtynodeNum_ = activeNodeIds.size();
-    surfaceCacheContentStatic_ = (IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst()) &&
-        !IsCurFrameSwitchToPaint();
+    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() && !IsCurFrameSwitchToPaint();
     if (dirtynodeNum_ == 0) {
         RS_LOGD("Clear surface %{public}" PRIu64 " dirtynodes surfaceCacheContentStatic_:%{public}d",
             GetId(), surfaceCacheContentStatic_);

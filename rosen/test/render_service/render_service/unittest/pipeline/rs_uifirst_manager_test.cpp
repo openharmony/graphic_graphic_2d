@@ -64,7 +64,6 @@ void RSUifirstManagerTest::TearDownTestCase()
     renderNodeMap.uiExtensionSurfaceNodes_.clear();
 
     uifirstManager_.subthreadProcessDoneNode_.clear();
-    uifirstManager_.markForceUpdateByUifirst_.clear();
     uifirstManager_.pendingPostNodes_.clear();
     uifirstManager_.pendingPostCardNodes_.clear();
     uifirstManager_.pendingResetNodes_.clear();
@@ -258,7 +257,7 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate003, TestSize.Level1)
 HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode001, TestSize.Level1)
 {
     ASSERT_NE(mainThread_, nullptr);
-    uifirstManager_.pendingForceUpdateNode_.push_back(INVALID_NODEID);
+    uifirstManager_.pendingForceUpdateCardNode_.push_back(INVALID_NODEID);
     uifirstManager_.ProcessForceUpdateNode();
 }
 
@@ -278,7 +277,7 @@ HWTEST_F(RSUifirstManagerTest, ProcessForceUpdateNode002, TestSize.Level1)
     parentNode->AddChild(childNode);
     parentNode->GenerateFullChildrenList();
     mainThread_->context_->nodeMap.RegisterRenderNode(parentNode);
-    uifirstManager_.pendingForceUpdateNode_.push_back(parentNode->GetId());
+    uifirstManager_.pendingForceUpdateCardNode_.push_back(parentNode->GetId());
     uifirstManager_.ProcessForceUpdateNode();
 }
 
@@ -1491,5 +1490,33 @@ HWTEST_F(RSUifirstManagerTest, UpdateUifirstNodes002, TestSize.Level1)
     surfaceNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONFOCUS_WINDOW;
     uifirstManager_.UpdateUifirstNodes(*surfaceNode, true);
     EXPECT_TRUE(param->GetUifirstNodeEnableParam() == MultiThreadCacheType::NONFOCUS_WINDOW);
+}
+
+/**
+ * @tc.name: AddPendingForceUpdateCardNode
+ * @tc.desc: Test AddPendingForceUpdateCardNode
+ * @tc.type: FUNC
+ * @tc.require: issueIB7405
+ */
+HWTEST_F(RSUifirstManagerTest, AddPendingForceUpdateCardNode, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    uifirstManager_.mainThread_ = nullptr;
+    uifirstManager_.AddPendingForceUpdateCardNode(0);
+
+    uifirstManager_.mainThread_ = mainThread_;
+    NodeId nodeId = surfaceNode->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[pid][nodeId] = surfaceNode;
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    uifirstManager_.AddPendingForceUpdateCardNode(nodeId);
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateCardNode_.size(), 0);
+
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::ARKTS_CARD);
+    uifirstManager_.AddPendingForceUpdateCardNode(nodeId);
+    ASSERT_EQ(uifirstManager_.pendingForceUpdateCardNode_.size(), 1);
 }
 }

@@ -54,6 +54,7 @@ public:
         MultiThreadCacheType cacheType);
     void AddPendingResetNode(NodeId id, std::shared_ptr<RSSurfaceRenderNode>& node);
     void AddReuseNode(NodeId id);
+    void AddPendingForceUpdateCardNode(NodeId id);
 
     CacheProcessStatus GetNodeStatus(NodeId id);
     // judge if surfacenode satisfies async subthread rendering condtions for Uifirst
@@ -210,8 +211,7 @@ private:
     bool IsVMSurfaceName(std::string surfaceName);
 
     // only use in mainThread & RT onsync
-    std::vector<NodeId> pendingForceUpdateNode_;
-    std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
+    std::vector<NodeId> pendingForceUpdateCardNode_;
     bool rotationChanged_ = false;
 
     std::map<NodeId, CacheProcessStatus> uifirstCacheState_;
