@@ -396,8 +396,6 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
         auto manager = filterNapiManager.find(ctx->filterNapi);
         if (manager == filterNapiManager.end()) {
             ctx->status = ERROR;
-            napi_create_string_utf8(env, "FilterNapi filterNapi not found in manager",
-                NAPI_AUTO_LENGTH, &(ctx->errorMsg));
             return;
         }
         managerFlag = (*manager).second.load();
@@ -407,8 +405,6 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
         std::lock_guard<std::mutex> lock2(getPixelMapAsyncExecuteMutex_);
         if (ctx->filterNapi->Render(ctx->forceCPU) != DrawError::ERR_OK) {
             ctx->status = ERROR;
-            napi_create_string_utf8(
-                env, "FilterNapi Render Error", NAPI_AUTO_LENGTH, &(ctx->errorMsg));
             return;
         }
         ctx->dstPixelMap_ = ctx->filterNapi->GetDstPixelMap();
