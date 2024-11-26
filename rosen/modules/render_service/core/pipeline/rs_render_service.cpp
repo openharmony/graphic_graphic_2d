@@ -381,6 +381,33 @@ void RSRenderService::DumpSelfDrawingFps(std::unordered_set<std::u16string>& arg
     });
 }
 
+void RSRenderService::DumpSelfDrawingFps(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::u16string& arg) const
+{
+    auto iter = argSets.find(arg);
+    if (iter == argSets.end()) {
+        RS_LOGE("RSRenderService::DumpSelfDrawingFps parameter fps doesn't exist");
+        return ;
+    }
+    argSets.erase(iter);
+    if (argSets.empty()) {
+        RS_LOGE("RSRenderService::DumpSelfDrawingFps layer name doesn't exist");
+        return ;
+    }
+    std::string renderNodeArg;
+    renderNodeArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode == nullptr) {
+            return ;
+        }
+        if (surfaceNode->GetName() != renderNodeArg || !surfaceNode->IsOnTheTree()) {
+            return ;
+        }
+        surfaceNode->Dump(dumpString);
+    });
+}
+
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
