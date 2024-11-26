@@ -33,17 +33,17 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 class RSUIDirectorTest : public testing::Test {
 public:
-    static constexpr int g_normalInt_1 = 123;
-    static constexpr int g_normalInt_2 = 34342;
-    static constexpr int g_normalInt_3 = 3245;
-    static constexpr int g_ExtremeInt_1 = 1;
-    static constexpr int g_ExtremeInt_2 = -1;
-    static constexpr int g_ExtremeInt_3 = 0;
+    static constexpr int gNormalInt1 = 123;
+    static constexpr int gNormalInt2 = 34342;
+    static constexpr int gNormalInt3 = 3245;
+    static constexpr int gExtremeInt1 = 1;
+    static constexpr int gExtremeInt2 = -1;
+    static constexpr int gExtremeInt3 = 0;
 
     static constexpr uint64_t NOMAL_U_INT64_1 = 123;
     static constexpr uint64_t NOMAL_U_INT64_2 = 34342;
     static constexpr uint64_t NOMAL_U_INT64_3 = 3245;
-    static constexpr uint64_t VSYNC_PERIOD = 11718750;
+    static constexpr uint64_t vsyncPeriod = 11718750;
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -302,7 +302,7 @@ HWTEST_F(RSUIDirectorTest, FlushAnimation, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
-    bool hasRunningAnimation = director->FlushAnimation(NOMAL_U_INT64_2, VSYNC_PERIOD);
+    bool hasRunningAnimation = director->FlushAnimation(NOMAL_U_INT64_2, vsyncPeriod);
     director->PostFrameRateTask([](){return;});
     ASSERT_EQ(hasRunningAnimation, false);
 }
