@@ -2661,11 +2661,6 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
         if (dirtyManager && dirtyManager->IsCurrentFrameDirty()) {
             hasMainAndLeashSurfaceDirty = true;
         }
-        if (surfaceNode->IsMainWindowType() && IfSkipInCalcGlobalDirty(*surfaceNode)) {
-            RS_LOGD("RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty surface:%{public}s "
-                "which is occluded don't need to process global dirty", surfaceNode->GetName().c_str());
-            return;
-        }
         // 2. check surface node dirtyrect need merge into displayDirtyManager
         CheckMergeSurfaceDirtysForDisplay(surfaceNode);
         // 3. check merge transparent filter when it intersects with pre-dirty
@@ -2847,6 +2842,11 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparent(RSSurfaceRenderNode
     // surfaceNode is transparent
     const auto& dirtyRect = surfaceNode.GetDirtyManager()->GetCurrentFrameDirtyRegion();
     auto oldDirtyInSurface = surfaceNode.GetOldDirtyInSurface();
+    Occlusion::Region visibleRegion = hasMirrorDisplay_ ?
+        surfaceNode.GetVisibleRegionInVirtual() : surfaceNode.GetVisibleRegion();
+    if (surfaceNode.IsMainWindowType() && !visibleRegion.IsIntersectWith(dirtyRect)) {
+        return;
+    }
     if (surfaceNode.IsTransparent()) {
         RectI transparentDirtyRect = oldDirtyInSurface.IntersectRect(dirtyRect);
         if (!transparentDirtyRect.IsEmpty()) {
@@ -2994,12 +2994,6 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRen
             }
         }
     }
-}
-
-bool RSUniRenderVisitor::IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const
-{
-    return hasMirrorDisplay_ ?
-        surfaceNode.GetVisibleRegionInVirtual().IsEmpty() : surfaceNode.GetVisibleRegion().IsEmpty();
 }
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
