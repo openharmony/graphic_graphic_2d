@@ -410,12 +410,10 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& [displayNodeId, drawable] : hardwareDrawables) {
-        if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
+        if (UNLIKELY(!drawable || !drawable->GetRenderParams()) || displayNodeId != params.GetId()) {
             continue;
         }
-        if (displayNodeId != params.GetId()){
-            continue;
-        }
+        
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
             auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
             processor->CreateLayerForRenderThread(*surfaceDrawable);
@@ -890,7 +888,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             continue;
         }
         auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(drawable);
-        if (!surfaceDrawable || displayNodeId != params->GetId()){
+        if (!surfaceDrawable || displayNodeId != params->GetId()) {
             continue;
         }
         if (drawable->GetRenderParams()->GetHardwareEnabled()) {
