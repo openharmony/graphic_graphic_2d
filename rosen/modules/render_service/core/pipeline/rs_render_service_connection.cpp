@@ -1925,6 +1925,24 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (!mainThread_ || dstPid == 0) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [pid = remotePid_, dstPid, callback, weakThis = wptr<RSRenderServiceConnection>(this)]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            return;
+        }
+        connection->mainThread_->GetContext().GetMutableFrameRateLinkerMap()
+            .RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid, dstPid, callback);
+    };
+    mainThread_->PostTask(task);
+    return StatusCode::SUCCESS;
+}
+
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     if (!mainThread_) {

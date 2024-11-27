@@ -504,6 +504,12 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
+    uint32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    return {};
+}
+
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }

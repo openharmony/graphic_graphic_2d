@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_frame_rate_linker.h"
 
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
 
@@ -76,6 +77,14 @@ RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
 
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
+    if (expectedRange_.preferred_ != range.preferred_) {
+        for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
+            if (cb) {
+                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), range.preferred_);
+            }
+        }
+    }
+
     if (expectedRange_ != range) {
         expectedRange_ = range;
         Notify();
@@ -122,5 +131,18 @@ void RSRenderFrameRateLinker::Notify()
         observer_(*this);
     }
 }
+
+void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (callback == nullptr) {
+        expectedFpsChangeCallbacks_.erase(listener);
+        return;
+    }
+
+    // if this listener has registered a callback before, replace it.
+    expectedFpsChangeCallbacks_[listener] = callback;
+}
+
 } // namespace Rosen
 } // namespace OHOS

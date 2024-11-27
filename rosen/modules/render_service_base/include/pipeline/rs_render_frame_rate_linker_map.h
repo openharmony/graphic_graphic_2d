@@ -35,6 +35,9 @@ public:
     {
         return frameRateLinkerMap_;
     }
+
+    bool RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
+        uint32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
 private:
     explicit RSRenderFrameRateLinkerMap();
     ~RSRenderFrameRateLinkerMap() = default;
