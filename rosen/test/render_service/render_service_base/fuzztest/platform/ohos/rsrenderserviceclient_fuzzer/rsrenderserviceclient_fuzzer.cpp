@@ -439,6 +439,42 @@ bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoAddVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    client->AddVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoRemoveVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    client->RemoveVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
 bool DoDropFrameByPid(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -1927,6 +1963,48 @@ bool DoSetVirtualScreenBlackList002(const uint8_t *data, size_t size)
 
     std::vector<NodeId> securityExemptionList;
     client->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    return true;
+}
+
+bool DoAddVirtualScreenBlackList002(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    NodeId nodeId = GetData<ScreenId>();
+    blackListVector.push_back(nodeId);
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+    client->AddVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoRemoveVirtualScreenBlackList002(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    NodeId nodeId = GetData<ScreenId>();
+    blackListVector.push_back(nodeId);
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+    client->RemoveVirtualScreenBlackList(id, blackListVector);
     return true;
 }
 
