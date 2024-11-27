@@ -405,6 +405,7 @@ HWTEST_F(RsRenderThreadTest, HighContrastSettingsAndChanges01, TestSize.Level1)
     EXPECT_TRUE(RSRenderThread::Instance().IsHighContrastEnabled());
     EXPECT_TRUE(RSRenderThread::Instance().IsHighContrastChanged());
 
+    RSRenderThread::Instance().SetHighContrast(false);
     RSRenderThread::Instance().ResetHighContrastChanged();
     EXPECT_FALSE(RSRenderThread::Instance().IsHighContrastChanged());
 }
