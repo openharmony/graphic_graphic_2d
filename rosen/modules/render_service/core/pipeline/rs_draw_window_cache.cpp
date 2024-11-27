@@ -153,9 +153,43 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     surfaceDrawable->DrawForeground(canvas, boundSize);
     // draw watermark
     surfaceDrawable->DrawWatermark(canvas, surfaceParams);
+    if (surfaceParams.IsCrossNode() &&
+        uniParam.GetCrossNodeOffscreenDebugEnabled() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
+        // rgba: Alpha 128, red 255, green 128, blue 128
+        Drawing::Color color(255, 128, 128, 128);
+        DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParam, color);
+    }
     return true;
 }
 #endif
+
+void RSDrawWindowCache::DrawCrossNodeOffscreenDFX(RSPaintFilterCanvas &canvas,
+    RSSurfaceRenderParams &surfaceParams, RSRenderThreadParams &uniParams, const Drawing::Color& color)
+{
+    std::string info = "IsCrossNode: " + std::to_string(surfaceParams.IsCrossNode());
+    info += " IsFirstVisitCrossNodeDisplay: " + std::to_string(uniParams.IsFirstVisitCrossNodeDisplay());
+    info += " IsMirrorScreen: " + std::to_string(uniParams.IsMirrorScreen());
+
+    Drawing::Font font;
+    // 30.f:Scalar of font size
+    font.SetSize(50.f);
+    std::shared_ptr<Drawing::TextBlob> textBlob =
+        Drawing::TextBlob::MakeFromString(info.c_str(), font);
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color::COLOR_RED);
+    canvas.AttachBrush(brush);
+    // 100.f: Scalar x of drawing TextBlob; 200.f: Scalar y of drawing TextBlob
+    canvas.DrawTextBlob(textBlob.get(), 100.f, 200.f);
+    canvas.DetachBrush();
+
+    auto sizeDebug = surfaceParams.GetCacheSize();
+    Drawing::Brush rectBrush;
+    rectBrush.SetColor(color);
+    canvas.AttachBrush(rectBrush);
+    canvas.DrawRect(Drawing::Rect(0, 0, sizeDebug.x_, sizeDebug.y_));
+    canvas.DetachBrush();
+}
+
 void RSDrawWindowCache::ClearCache()
 {
     image_ = nullptr;

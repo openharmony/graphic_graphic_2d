@@ -120,6 +120,11 @@ public:
         isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
     }
 
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffscreenDebugEnabled() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+
     bool GetUIFirstDebugEnabled() const
     {
         return isUIFirstDebugEnable_;
@@ -458,6 +463,7 @@ private:
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
     bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;

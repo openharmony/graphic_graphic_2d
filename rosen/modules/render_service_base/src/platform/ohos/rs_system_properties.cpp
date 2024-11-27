@@ -729,6 +729,14 @@ bool RSSystemProperties::GetCacheOptimizeRotateEnable()
     return debugEnable;
 }
 
+CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffscreenDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.crossnode.offscreen.render.enabled", "1");
+    int chanded = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &chanded);
+    return static_cast<CrossNodeOffScreenRenderDebugType>(ConvertToInt(type, 1));
+}
+
 bool RSSystemProperties::GetUIFirstEnabled()
 {
 #ifdef ROSEN_EMULATOR

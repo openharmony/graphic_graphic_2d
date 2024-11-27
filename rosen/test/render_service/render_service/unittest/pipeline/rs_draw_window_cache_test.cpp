@@ -142,4 +142,24 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
     ASSERT_TRUE(drawWindowCache.HasCache());
 }
 
+/**
+ * @tc.name: DrawCrossNodeOffscreenDFX
+ * @tc.desc: Test DrawCrossNodeOffscreenDFX
+ * @tc.type: FUNC
+ * @tc.require: issueIB6QW7
+ */
+HWTEST_F(RSDrawWindowCacheTest, DrawCrossNodeOffscreenDFX, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceRenderParams surfaceParams(1);
+    surfaceParams.isCrossNode_ = true;
+    ASSERT_TRUE(surfaceParams.IsCrossNode());
+    RSRenderThreadParams uniParams;
+    uniParams.isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE_DFX;
+    // rgba: Alpha 128, green 128, blue 128
+    Drawing::Color color(0, 128, 128, 128);
+    drawWindowCache.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
+}
 }

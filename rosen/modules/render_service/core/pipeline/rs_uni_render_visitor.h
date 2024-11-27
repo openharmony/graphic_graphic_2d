@@ -396,6 +396,7 @@ private:
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;
     bool needRequestNextVsync_ = true;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     DirtyRegionDebugType dirtyRegionDebugType_;
     std::vector<std::string> dfxTargetSurfaceNames_;
 

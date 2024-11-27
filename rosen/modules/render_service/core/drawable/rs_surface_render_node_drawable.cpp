@@ -102,7 +102,8 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         return true;
     }
     if (uniParams.IsFirstVisitCrossNodeDisplay() &&
-        !RSUniRenderThread::IsInCaptureProcess() && !uniParams.HasDisplayHdrOn()) {
+        !RSUniRenderThread::IsInCaptureProcess() && !uniParams.HasDisplayHdrOn() &&
+        uniParams.GetCrossNodeOffscreenDebugEnabled() != CrossNodeOffScreenRenderDebugType::DISABLED) {
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
     }
@@ -137,6 +138,12 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     if (CheckDrawAndCacheWindowContent(surfaceParams, uniParams)) {
         // 3/4 Draw content and children of this node by the main canvas, and cache
         drawWindowCache_.DrawAndCacheWindowContent(this, canvas, bounds);
+        if (surfaceParams.IsCrossNode() &&
+            uniParams.GetCrossNodeOffscreenDebugEnabled() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
+            // rgba: Alpha 128, green 128, blue 128
+            Drawing::Color color(0, 128, 128, 128);
+            drawWindowCache_.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
+        }
     } else {
         // 3. Draw content of this node by the main canvas.
         DrawContent(canvas, bounds);

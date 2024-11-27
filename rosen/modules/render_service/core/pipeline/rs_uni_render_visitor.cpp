@@ -154,6 +154,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     }
 #endif
     isUIFirstDebugEnable_ = RSSystemProperties::GetUIFirstDebugEnabled();
+    isCrossNodeOffscreenOn_ = RSSystemProperties::GetCrossNodeOffscreenDebugEnabled();
 }
 
 void RSUniRenderVisitor::PartialRenderOptionInit()
@@ -960,7 +961,7 @@ bool RSUniRenderVisitor::CheckSkipCrossNode(RSSurfaceRenderNode& node)
         return false;
     }
     curDisplayNode_->SetHasChildCrossNode(true);
-    if (hasVisitCrossNode_) {
+    if (hasVisitCrossNode_ && isCrossNodeOffscreenOn_ != CrossNodeOffScreenRenderDebugType::DISABLED) {
         RS_OPTIONAL_TRACE_NAME_FMT("%s cross node[%s] skip", __func__, node.GetName().c_str());
         return true;
     }
@@ -3100,6 +3101,7 @@ void RSUniRenderVisitor::SetUniRenderThreadParam(std::unique_ptr<RSRenderThreadP
     renderThreadParams->isTargetDirtyRegionDfxEnabled_ = isTargetDirtyRegionDfxEnabled_;
     renderThreadParams->dirtyRegionDebugType_ = dirtyRegionDebugType_;
     renderThreadParams->isOpDropped_ = isOpDropped_;
+    renderThreadParams->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     renderThreadParams->isUIFirstDebugEnable_ = isUIFirstDebugEnable_;
     renderThreadParams->dfxTargetSurfaceNames_ = std::move(dfxTargetSurfaceNames_);
     renderThreadParams->isVirtualDirtyEnabled_ = isVirtualDirtyEnabled_;
