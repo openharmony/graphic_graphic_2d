@@ -129,9 +129,9 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             continue;
         }
         if (layerInfo->GetSurface() == nullptr) {
-            int32_t ret = CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
-            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-                HLOGE("HdiOutput::SetLayerInfo failed %{public}zu.", surfaceIdMap_.size());
+            if (layerInfo->GetCompositionType() ==
+                GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+                CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
             }
             continue;
         }
