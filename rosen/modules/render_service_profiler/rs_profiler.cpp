@@ -1901,6 +1901,18 @@ void RSProfiler::PlaybackStart(const ArgList& args)
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
             }
         }
+        if (g_playbackFile.IsOpen()) {
+            const double deltaTime = Now() - g_playbackStartTime;
+            if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime)) {
+                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+            }
+            g_playbackFile.Close();
+        }
+        g_playbackStartTime = 0.0;
+        g_playbackPid = 0;
+        TimePauseClear();
+        g_playbackShouldBeTerminated = false;
+        Respond("Playback thread terminated");
     });
     thread.detach();
 
@@ -1985,15 +1997,8 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
         }
     }
 
-    if (g_playbackShouldBeTerminated || g_playbackFile.RSDataEOF()) {
-        if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime)) {
-            SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
-        }
-        g_playbackStartTime = 0.0;
-        g_playbackFile.Close();
-        g_playbackPid = 0;
-        TimePauseClear();
-        g_playbackShouldBeTerminated = false;
+    if (g_playbackFile.RSDataEOF()) {
+        g_playbackShouldBeTerminated = true;
     }
     return readTime;
 }
