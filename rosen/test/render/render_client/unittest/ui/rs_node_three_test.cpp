@@ -744,4 +744,680 @@ HWTEST_F(RSNodeOneTest, SetModifier01, TestSize.Level1)
     node->RemoveModifier(modifier);
 }
 
+class RSC_EXPORT MockRSNode : public RSNode {
+public:
+    MockRSNode() : RSNode(false) {}
+    virtual ~MockRSNode() = default;
+    std::vector<PropertyId> GetModifierIds() const {
+        return RSNode::GetModifierIds();
+    }
+};
+
+/**
+ * @tc.name: SetModifier02
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, SetModifier02, TestSize.Level1)
+{
+    auto node = RSCanvasNode::Create();
+    node->SetMotionPathOption(std::make_shared<RSMotionPathOption>(""));
+    {
+        auto value = Vector4f(10.f);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+        auto modifier = std::make_shared<RSBoundsModifier>(prop);
+        node->AddModifier(modifier);
+        ASSERT_TRUE(node != nullptr);
+        ASSERT_EQ(node->GetStagingProperties().GetBounds(), value);
+        node->RemoveModifier(modifier);
+    }
+    {
+        auto value = Vector4f(10.f);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+        auto modifier = std::make_shared<RSFrameModifier>(prop);
+        node->AddModifier(modifier);
+        ASSERT_TRUE(node != nullptr);
+        ASSERT_EQ(node->GetStagingProperties().GetFrame(), value);
+        node->RemoveModifier(modifier);
+    }
+    {
+        auto value = Vector2f(20.f, 30.f);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+        auto modifier = std::make_shared<RSTranslateModifier>(prop);
+        node->AddModifier(modifier);
+        ASSERT_TRUE(node != nullptr);
+        ASSERT_EQ(node->GetStagingProperties().GetTranslate(), value);
+        node->RemoveModifier(modifier);
+    }
+    {
+        auto value = Vector2f(2.f, 2.f);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+        auto modifier = std::make_shared<RSScaleModifier>(prop);
+        node->AddModifier(modifier);
+        ASSERT_TRUE(node != nullptr);
+        ASSERT_EQ(node->GetStagingProperties().GetScale(), value);
+        node->RemoveModifier(modifier);
+    }
+    {
+        auto value = Vector2f(2.f, 2.f);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+        auto modifier = std::make_shared<RSSkewModifier>(prop);
+        node->AddModifier(modifier);
+        ASSERT_TRUE(node != nullptr);
+        ASSERT_EQ(node->GetStagingProperties().GetSkew(), value);
+        node->RemoveModifier(modifier);
+    }
+    {
+        auto value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+        auto modifier = std::make_shared<RSPerspModifier>(prop);
+        node->AddModifier(modifier);
+        ASSERT_TRUE(node != nullptr);
+        ASSERT_EQ(node->GetStagingProperties().GetPersp(), value);
+        node->RemoveModifier(modifier);
+    }
+
+    auto node1 = std::make_shared<MockRSNode>();
+    node1->DumpNode(0);
+    auto animation = std::make_shared<RSTransition>(RSTransitionEffect::OPACITY, true);
+    animation->SetDuration(10);
+    animation->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
+    animation->SetFinishCallback([]() {});
+    node1->AddAnimation(animation);
+    node1->DumpNode(0);
+    ASSERT_TRUE(node1->GetModifierIds().size() == 0);
+    auto value = Vector2f(2.f, 2.f);
+    auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
+    auto modifier = std::make_shared<RSScaleModifier>(prop);
+    node1->AddModifier(modifier);
+    node1->children_.push_back(1);
+    node1->DumpNode(0);
+    ASSERT_TRUE(node1->GetModifierIds().size() == 1);
+}
+
+/**
+ * @tc.name: OpenImplicitAnimationTest01
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, OpenImplicitAnimationTest01, TestSize.Level1)
+{
+    std::function<void()> finishCallback = nullptr;
+    RSAnimationTimingProtocol timingProtocal;
+    RSAnimationTimingCurve timingCurve;
+    RSNode::OpenImplicitAnimation(timingProtocal, timingCurve, finishCallback);
+    EXPECT_TRUE(finishCallback == nullptr);
+
+    finishCallback = []() {};
+    RSNode::OpenImplicitAnimation(timingProtocal, timingCurve, finishCallback);
+    EXPECT_TRUE(finishCallback != nullptr);
+}
+/**
+ * @tc.name: CloseImplicitAnimationTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, CloseImplicitAnimationTest, TestSize.Level1)
+{
+    RSNode::CloseImplicitAnimation();
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, RSNode::CloseImplicitAnimation());
+}
+
+/**
+ * @tc.name: AnimateTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, AnimateTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = nullptr;
+    std::function<void()> finishCallback = nullptr;
+    std::function<void()> repeatCallback = nullptr;
+    auto animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, animate);
+
+    propertyCallback = []() {};
+    animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    EXPECT_TRUE(propertyCallback != nullptr);
+
+    finishCallback = []() {};
+    animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    EXPECT_TRUE(finishCallback != nullptr);
+
+    repeatCallback = []() {};
+    animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback, repeatCallback);
+    EXPECT_TRUE(repeatCallback != nullptr);
+}
+/**
+ * @tc.name: AnimateWithCurrentOptionsTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, AnimateWithCurrentOptionsTest, TestSize.Level1)
+{
+    PropertyCallback propertyCallback = nullptr;
+    std::function<void()> finishCallback = nullptr;
+    bool timingSensitive = true;
+    auto animateWithCurrentOptions =
+        RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, animateWithCurrentOptions);
+
+    propertyCallback = []() {};
+    animateWithCurrentOptions = RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+    EXPECT_TRUE(propertyCallback != nullptr);
+
+    finishCallback = []() {};
+    animateWithCurrentOptions = RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+    EXPECT_TRUE(finishCallback != nullptr);
+}
+/**
+ * @tc.name: AnimateWithCurrentCallbackTest
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
+{
+    RSAnimationTimingProtocol timingProtocol;
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = nullptr;
+    auto Callback = RSNode::AnimateWithCurrentCallback(timingProtocol, timingCurve, propertyCallback);
+    std::vector<std::shared_ptr<RSAnimation>> vec;
+    EXPECT_EQ(vec, Callback);
+
+    propertyCallback = []() {};
+    Callback = RSNode::AnimateWithCurrentCallback(timingProtocol, timingCurve, propertyCallback);
+    EXPECT_TRUE(propertyCallback != nullptr);
+}
+
+/**
+ * @tc.name: SetColorBlendMode
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, SetColorBlendMode, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
+    rsnode->SetColorBlendMode(blendModeType);
+    blendModeType = RSColorBlendMode::DST_IN;
+    rsnode->SetColorBlendMode(blendModeType);
+    blendModeType = RSColorBlendMode::SRC_IN;
+    rsnode->SetColorBlendMode(blendModeType);
+}
+
+/**
+ * @tc.name: SetTextureExport
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, SetTextureExport, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    rsnode->SetTextureExport(true);
+    ASSERT_TRUE(rsnode->IsTextureExportNode());
+
+    rsnode->SetTextureExport(false);
+    ASSERT_EQ(rsnode->IsTextureExportNode(), false);
+
+    rsnode->isTextureExportNode_ = true;
+    rsnode->SetTextureExport(false);
+    EXPECT_TRUE(rsnode->children_.empty());
+}
+
+/**
+ * @tc.name: SyncTextureExport
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, SyncTextureExport, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    rsnode->SyncTextureExport(false);
+
+    rsnode->SyncTextureExport(true);
+    EXPECT_TRUE(rsnode->children_.empty());
+
+    rsnode->children_.push_back(0);
+    rsnode->children_.push_back(1);
+    rsnode->SyncTextureExport(true);
+    EXPECT_TRUE(!rsnode->children_.empty());
+
+    rsnode->isTextureExportNode_ = true;
+    rsnode->SyncTextureExport(false);
+    EXPECT_TRUE(!rsnode->children_.empty());
+}
+
+/**
+ * @tc.name: CalcExpectedFrameRate
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSNodeOneTest, CalcExpectedFrameRate, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    auto canvasNode = RSCanvasNode::Create();
+    rsnode->AddChild(canvasNode, -1);
+    auto scene = "test_scene";
+    float speed = 0;
+    ASSERT_EQ(rsnode->CalcExpectedFrameRate(scene, speed), 0);
+}
+
+/**
+ * @tc.name: RemoveChildByNodeIdTest Test
+ * @tc.desc: test results of RemoveChildByNodeId
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeOneTest, RemoveChildByNodeIdTest, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    NodeId childId = 1;
+    rsnode->RemoveChildByNodeId(childId);
+    auto nodePtr = RSCanvasNode::Create();
+    nodePtr->SetParent(2);
+    RSNodeMap::MutableInstance().nodeMap_.emplace(nodePtr->GetId(), nodePtr);
+    rsnode->RemoveChildByNodeId(nodePtr->GetId());
+    auto list = rsnode->children_;
+    ASSERT_EQ(std::find(list.begin(), list.end(), nodePtr->GetId()), list.end());
+}
+
+/**
+ * @tc.name: RemoveChild
+ * @tc.desc: test results of RemoveChild
+ * @tc.type: FUNC
+ * @tc.require: issueI9RLG7
+ */
+HWTEST_F(RSNodeOneTest, RemoveChild, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::shared_ptr<RSNode> child = nullptr;
+    rsnode->RemoveChild(child);
+    EXPECT_TRUE(child == nullptr);
+
+    child = std::make_shared<RSNode>(0);
+    child->parent_ = 2;
+    rsnode->RemoveChild(child);
+    EXPECT_TRUE(child != nullptr);
+
+    child->parent_ = rsnode->id_;
+    rsnode->RemoveChild(child);
+    EXPECT_TRUE(child->parent_ != rsnode->id_);
+
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsnode->RemoveChild(child);
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: RemoveChildByNodeId01
+ * @tc.desc: test results of RemoveChildByNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueI9RLG7
+ */
+HWTEST_F(RSNodeOneTest, RemoveChildByNodeId01, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    NodeId childId = 0;
+    rsnode->RemoveChildByNodeId(childId);
+    EXPECT_TRUE(!childId);
+
+    rsnode->RemoveChildByNodeId(1);
+    EXPECT_TRUE(!childId);
+}
+
+/**
+ * @tc.name: DrawOnNode Test
+ * @tc.desc: DrawOnNode and SetFreeze
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeOneTest, DrawOnNode, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    rsnode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
+    ASSERT_FALSE(rsnode->recordingUpdated_);
+    rsnode->SetFreeze(true);
+    rsnode->InitUniRenderEnabled();
+    rsnode->SetFreeze(true);
+    ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
+}
+
+/**
+ * @tc.name: MarkDrivenRender Test
+ * @tc.desc: MarkDrivenRender and MarkDrivenRenderItemIndex and MarkDrivenRenderFramePaintState and MarkContentChanged
+ * @tc.type: FUNC
+ * @tc.require:issueI9MWJR
+ */
+HWTEST_F(RSNodeOneTest, MarkDrivenRender, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    rsnode->MarkDrivenRender(true);
+    rsnode->MarkDrivenRenderItemIndex(1);
+    rsnode->MarkDrivenRenderFramePaintState(true);
+    rsnode->MarkContentChanged(true);
+    ASSERT_FALSE(rsnode->isNodeGroup_);
+}
+
+/**
+ * @tc.name: SetFrameNodeInfo
+ * @tc.desc: test results of SetFrameNodeInfo
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, SetFrameNodeInfo, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::string tag = "tag"; // for test
+    rsnode->SetFrameNodeInfo(0, tag);
+    EXPECT_EQ(rsnode->frameNodeId_, 0);
+}
+
+/**
+ * @tc.name: GetFrameNodeId
+ * @tc.desc: test results of GetFrameNodeId
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, GetFrameNodeId, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::string tag = "tag"; // for test
+    rsnode->SetFrameNodeInfo(0, tag);
+    int32_t id = rsnode->GetFrameNodeId();
+    EXPECT_EQ(id, 0);
+}
+
+/**
+ * @tc.name: GetFrameNodeTag
+ * @tc.desc: test results of GetFrameNodeTag
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, GetFrameNodeTag, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::string tag = "tag"; // for test
+    rsnode->SetFrameNodeInfo(0, tag);
+    std::string strResult = rsnode->GetFrameNodeTag();
+    const char* cTag = tag.c_str();
+    const char* cResult = strResult.c_str();
+    int result = strcmp(cTag, cResult);
+    EXPECT_EQ(result == 0, true);
+}
+
+/**
+ * @tc.name: AddKeyFrame
+ * @tc.desc: test results of AddKeyFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, AddKeyFrame, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsnode->AddKeyFrame(1.f, timingCurve, propertyCallback);
+    rsnode->AddKeyFrame(1.f, propertyCallback);
+}
+
+/**
+ * @tc.name: AddDurationKeyFrame
+ * @tc.desc: test results of AddDurationKeyFrame
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, AddDurationKeyFrame, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    RSAnimationTimingCurve timingCurve;
+    PropertyCallback propertyCallback = []() {};
+    rsnode->AddDurationKeyFrame(1, timingCurve, propertyCallback);
+}
+
+/**
+ * @tc.name: IsImplicitAnimationOpen
+ * @tc.desc: test results of IsImplicitAnimationOpen
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, IsImplicitAnimationOpen, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    bool res = rsnode->IsImplicitAnimationOpen();
+    EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: ExecuteWithoutAnimation
+ * @tc.desc: test results of ExecuteWithoutAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, ExecuteWithoutAnimation, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    PropertyCallback callback = nullptr;
+    std::shared_ptr<RSImplicitAnimator> implicitAnimator = nullptr;
+    rsnode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    EXPECT_EQ(callback, nullptr);
+
+    callback = []() {};
+    rsnode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    EXPECT_EQ(implicitAnimator, nullptr);
+
+    implicitAnimator = std::make_shared<RSImplicitAnimator>();
+    rsnode->ExecuteWithoutAnimation(callback, implicitAnimator);
+    EXPECT_NE(implicitAnimator, nullptr);
+}
+
+/**
+ * @tc.name: FallbackAnimationsToRoot
+ * @tc.desc: test results of FallbackAnimationsToRoot
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, FallbackAnimationsToRoot, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
+    target = nullptr;
+    rsnode->FallbackAnimationsToRoot();
+    EXPECT_EQ(rsnode->motionPathOption_, nullptr);
+
+    bool isRenderServiceNode = true;
+    target = std::make_shared<RSNode>(isRenderServiceNode);
+    AnimationId id = 1;
+    std::shared_ptr<RSAnimation> animation = nullptr;
+    rsnode->FallbackAnimationsToRoot();
+    EXPECT_NE(RSNodeMap::Instance().animationFallbackNode_, nullptr);
+
+    animation = std::make_shared<RSAnimation>();
+    animation->repeatCount_ = 1;
+    rsnode->animations_.insert({ id, animation });
+    rsnode->FallbackAnimationsToRoot();
+    EXPECT_TRUE(animation->repeatCount_);
+
+    rsnode->animations_.clear();
+    animation->repeatCount_ = -1;
+    rsnode->animations_.insert({ id, animation });
+    rsnode->FallbackAnimationsToRoot();
+    EXPECT_TRUE(animation->repeatCount_ == -1);
+}
+
+/**
+ * @tc.name: AddAnimationInner
+ * @tc.desc: test results of AddAnimationInner
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, AddAnimationInner, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>();
+    rsnode->AddAnimationInner(animation);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: RemoveAnimationInner
+ * @tc.desc: test results of RemoveAnimationInner
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, RemoveAnimationInner, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    auto animation = std::make_shared<RSAnimation>();
+    rsnode->AddAnimationInner(animation);
+    rsnode->RemoveAnimationInner(animation);
+    EXPECT_NE(animation, nullptr);
+
+    PropertyId id = animation->GetPropertyId();
+    uint32_t num = 2;
+    rsnode->animatingPropertyNum_.insert({ id, num });
+    rsnode->RemoveAnimationInner(animation);
+    EXPECT_NE(animation, nullptr);
+
+    rsnode->animatingPropertyNum_.clear();
+    num = 1;
+    rsnode->animatingPropertyNum_.insert({ id, num });
+    rsnode->RemoveAnimationInner(animation);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: FinishAnimationByProperty
+ * @tc.desc: test results of FinishAnimationByProperty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, FinishAnimationByProperty, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    PropertyId id = 0; // for test
+    auto animation = std::make_shared<RSAnimation>();
+    rsnode->AddAnimationInner(animation);
+    rsnode->FinishAnimationByProperty(id);
+    EXPECT_NE(animation, nullptr);
+
+    id = animation->GetPropertyId();
+    rsnode->animations_.insert({ id, animation });
+    rsnode->FinishAnimationByProperty(id);
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: CancelAnimationByProperty
+ * @tc.desc: test results of CancelAnimationByProperty
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, CancelAnimationByProperty, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    PropertyId id = 0; // for test
+    rsnode->animatingPropertyNum_.insert({ id, 1 });
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsnode->CancelAnimationByProperty(id, true);
+    EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
+
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+    rsnode->CancelAnimationByProperty(id, true);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: GetShowingProperties
+ * @tc.desc: test results of GetShowingProperties
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, GetShowingProperties, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    rsnode->GetShowingProperties();
+}
+
+/**
+ * @tc.name: AddAnimation
+ * @tc.desc: test results of AddAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, AddAnimation, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::shared_ptr<RSAnimation> animation = nullptr;
+    rsnode->AddAnimation(animation);
+    EXPECT_EQ(animation, nullptr);
+
+    animation = std::make_shared<RSAnimation>();
+    rsnode->AddAnimation(animation);
+    EXPECT_TRUE(animation != nullptr);
+
+    rsnode->id_ = 0;
+    rsnode->AddAnimation(animation);
+    EXPECT_TRUE(animation != nullptr);
+
+    animation->duration_ = 0;
+    rsnode->AddAnimation(animation);
+    EXPECT_TRUE(!animation->duration_);
+
+    rsnode->id_ = 1;
+    rsnode->AddAnimation(animation);
+    EXPECT_TRUE(rsnode->id_ = 1);
+
+    AnimationId id = animation->GetId();
+    rsnode->animations_.insert({ id, animation });
+    rsnode->AddAnimation(animation);
+    EXPECT_TRUE(!rsnode->animations_.empty());
+}
+
+/**
+ * @tc.name: RemoveAllAnimations
+ * @tc.desc: test results of RemoveAllAnimations
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, RemoveAllAnimations, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    AnimationId id = 1;
+    auto animation = std::make_shared<RSAnimation>();
+    rsnode->animations_.insert({ id, animation });
+    rsnode->RemoveAllAnimations();
+    EXPECT_NE(animation, nullptr);
+}
+
+/**
+ * @tc.name: RemoveAnimation
+ * @tc.desc: test results of RemoveAnimation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeOneTest, RemoveAnimation, TestSize.Level1)
+{
+    auto rsnode = RSCanvasNode::Create();
+    std::shared_ptr<RSAnimation> animation = nullptr;
+    rsnode->RemoveAnimation(animation);
+    EXPECT_EQ(animation, nullptr);
+
+    animation = std::make_shared<RSAnimation>();
+    rsnode->RemoveAnimation(animation);
+    EXPECT_NE(animation, nullptr);
+
+    AnimationId id = animation->GetId();
+    rsnode->animations_.insert({ id, animation });
+    rsnode->RemoveAnimation(animation);
+    EXPECT_NE(animation, nullptr);
+}
+
 } // namespace OHOS::Rosen
