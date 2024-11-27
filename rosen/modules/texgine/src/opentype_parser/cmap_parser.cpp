@@ -117,7 +117,7 @@ int CmapParser::Parse(const char *data, int32_t size)
         if (subtable.format.Get() == FORMAT4) {
             auto offset = record.subtableOffset.Get();
             if (ret = ParseFormat4(subtable, size - offset); ret) {
-                TEXT_LOGW("ParseFormat4 failed with %{public}d", ret);
+                TEXT_LOGW("Failed to parseFormat4 with %{public}d", ret);
             } else {
                 ret = 0;
             }
@@ -126,7 +126,7 @@ int CmapParser::Parse(const char *data, int32_t size)
         if (subtable.format.Get() == FORMAT12) {
             auto offset = record.subtableOffset.Get();
             if (ret = ParseFormat12(subtable, size - offset); ret) {
-                TEXT_LOGW("ParseFormat12 failed with %{public}d", ret);
+                TEXT_LOGW("Failed to parseFormat12 with %{public}d", ret);
             } else {
                 ret = 0;
             }

@@ -107,7 +107,7 @@ int FontConfig::ParseFont(const cJSON* root)
     const char* tag = "font";
     cJSON* filters = cJSON_GetObjectItem(root, tag);
     if (filters == nullptr) {
-        TEXT_LOGE("Parse font failed");
+        TEXT_LOGE("Failed to parse font");
         return FAILED;
     }
     int size = cJSON_GetArraySize(filters);
@@ -136,7 +136,7 @@ int FontConfig::ParseConfig(const char* fname)
     rootPath_.assign(rootPath.substr(0, idx) + "/");
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
-        TEXT_LOGE("Check config file failed");
+        TEXT_LOGE("Failed to check config file");
         return FAILED;
     }
     int result = ParseFont(root);
@@ -167,7 +167,7 @@ int FontConfigJson::ParseFile(const char* fname)
     fontPtr = std::make_shared<FontConfigJsonInfo>();
     int err = ParseConfigList(fname);
     if (err != 0) {
-        TEXT_LOGE("ParseFile ParseConfigList failed");
+        TEXT_LOGE("Failed to ParseFile ParseConfigList");
         return err;
     }
     return SUCCESSED;
@@ -183,7 +183,7 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
     fontFileMap = std::make_shared<FontFileMap>();
     int err = ParseConfigListPath(fname);
     if (err != 0) {
-        TEXT_LOGE("ParseFontFileMap ParseConfigList failed");
+        TEXT_LOGE("Failed to ParseFontFileMap ParseConfigList");
         return err;
     }
     return SUCCESSED;
@@ -207,7 +207,7 @@ void FontConfigJson::AnalyseFontDir(const cJSON* root)
 int FontConfigJson::ParseDir(const cJSON* root)
 {
     if (root == nullptr) {
-        TEXT_LOGE("Parse dir failed");
+        TEXT_LOGE("Failed to parse dir");
         return FAILED;
     }
     const char* key = "fontdir";
@@ -226,7 +226,7 @@ int FontConfigJson::ParseConfigList(const char* fname)
     }
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
-        TEXT_LOGE("ParseConfigList CheckConfigFile failed");
+        TEXT_LOGE("Failed to ParseConfigList CheckConfigFile");
         return FAILED;
     }
     // "generic", "fallback" - font attribute
@@ -257,7 +257,7 @@ int FontConfigJson::ParseConfigListPath(const char* fname)
     }
     cJSON* root = CheckConfigFile(fname);
     if (root == nullptr) {
-        TEXT_LOGE("ParseConfigListPath CheckConfigFile failed");
+        TEXT_LOGE("Failed to ParseConfigListPath CheckConfigFile");
         return FAILED;
     }
     ParseFontMap(root, "font_file_map");
@@ -268,7 +268,7 @@ int FontConfigJson::ParseConfigListPath(const char* fname)
 int FontConfigJson::ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo)
 {
     if (arr == nullptr) {
-        TEXT_LOGE("Parse adjust arr failed");
+        TEXT_LOGE("Failed to parse adjust arr");
         return FAILED;
     }
     int size = cJSON_GetArraySize(arr);
@@ -285,7 +285,7 @@ int FontConfigJson::ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInf
 int FontConfigJson::ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo)
 {
     if (arr == nullptr) {
-        TEXT_LOGE("ParseAliasArr failed");
+        TEXT_LOGE("Failed to parseAliasArr");
         return FAILED;
     }
     int size = cJSON_GetArraySize(arr);
@@ -307,7 +307,7 @@ int FontConfigJson::ParseGeneric(const cJSON* root, const char* key)
     }
     cJSON* filters = cJSON_GetObjectItem(root, key);
     if (filters == nullptr || !cJSON_IsArray(filters)) {
-        TEXT_LOGE("ParseGeneric failed");
+        TEXT_LOGE("Failed to parseGeneric");
         return FAILED;
     }
     int size = cJSON_GetArraySize(filters);
