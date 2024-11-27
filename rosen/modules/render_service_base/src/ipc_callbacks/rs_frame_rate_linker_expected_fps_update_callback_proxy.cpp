@@ -44,7 +44,7 @@ void RSFrameRateLinkerExpectedFpsUpdateCallbackProxy::OnFrameRateLinkerExpectedF
     data.WriteInt32(expectedFps);
     uint32_t code = static_cast<uint32_t>(
         RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE);
-    
+
     auto remote = Remote();
     if (remote == nullptr) {
         ROSEN_LOGE("remote is null!");

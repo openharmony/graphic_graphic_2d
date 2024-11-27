@@ -16,7 +16,7 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE_CALLBACK_STUB_H
 #define ROSEN_RENDER_SERVICE_BASE_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE_CALLBACK_STUB_H
 
-#include "iremote_stub.h"
+#include <iremote_stub.h>
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "common/rs_macros.h"
 

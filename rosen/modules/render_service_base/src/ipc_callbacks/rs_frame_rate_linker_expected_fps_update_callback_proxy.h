@@ -28,7 +28,7 @@ public:
     explicit RSFrameRateLinkerExpectedFpsUpdateCallbackProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSFrameRateLinkerExpectedFpsUpdateCallbackProxy() noexcept = default;
 
-    void OnFrameRateLinkerExpectedFpsUpdate(pid_t pid, int32_t expectedFps) override;
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override;
 
 private:
     static inline BrokerDelegator<RSFrameRateLinkerExpectedFpsUpdateCallbackProxy> delegator_;
