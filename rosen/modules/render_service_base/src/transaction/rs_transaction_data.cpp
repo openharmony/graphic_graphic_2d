@@ -314,12 +314,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
-        bool isNotSystemCallingForDisplayNode = false;
-        if (command->GetType() == RSCommandType::DISPLAY_NODE) {
-            bool isTokenTypeValid = true;
-            RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNotSystemCallingForDisplayNode);
-        }
-        if (!isNotSystemCallingForDisplayNode) {
+        if (command->GetType() != RSCommandType::DISPLAY_NODE) {
             if (callingPid == commandPid) {
                 continue;
             }
