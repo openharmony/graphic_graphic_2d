@@ -189,9 +189,11 @@ void RSComposerAdapter::DumpLayersToFile(const std::vector<LayerInfoPtr>& layers
             continue;
         }
         struct timeval now;
-        gettimeofday(&now, nullptr);
-        constexpr int secToUsec = 1000 * 1000;
-        int64_t nowVal = static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+        int64_t nowVal = 0;
+        if (gettimeofday(&now, nullptr) == 0) {
+            constexpr int secToUsec = 1000 * 1000;
+            nowVal = static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+        }
 
         std::stringstream ss;
         ss << "/data/layer_" << layerInfo->GetSurface()->GetName()  << "_" << nowVal << "_" << buffer->GetWidth()

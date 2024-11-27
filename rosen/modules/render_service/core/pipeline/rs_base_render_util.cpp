@@ -51,10 +51,11 @@ const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 inline int64_t GenerateCurrentTimeStamp()
 {
     struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int64_t secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
-    return nowVal;
+    if (gettimeofday(&now, nullptr) == 0) {
+        constexpr int64_t secToUsec = 1000 * 1000;
+        return static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    }
+    return 0;
 }
 }
 namespace Detail {
