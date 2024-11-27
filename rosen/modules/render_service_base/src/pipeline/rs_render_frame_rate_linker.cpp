@@ -78,7 +78,7 @@ RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
     if (expectedRange_.preferred_ != range.preferred_) {
-        for (auto& [_, cb] : changeCallbacks_) {
+        for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
             if (cb) {
                 cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), range.preferred_);
             }
@@ -136,12 +136,12 @@ void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
     if (callback == nullptr) {
-        changeCallbacks_.erase(listener);
+        expectedFpsChangeCallbacks_.erase(listener);
         return;
     }
 
     // if this listener has registered a callback before, replace it.
-    changeCallbacks_[listener] = callback;
+    expectedFpsChangeCallbacks_[listener] = callback;
 }
 
 } // namespace Rosen
