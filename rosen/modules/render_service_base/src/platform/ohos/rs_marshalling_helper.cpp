@@ -76,6 +76,11 @@ bool g_useSharedMem = true;
 std::thread::id g_tid = std::thread::id();
 std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
+// when buffer size >1GB in ashmem parcel, discard it to avoid OOM
+constexpr uint32_t ASHMEM_PARCEL_BUFFER_SIZE_UPPER_BOUND = 1024 * 1024 * 1024;
+// when ipc copys >100MB from ashmem at a single time, lock it to avoid OOM
+constexpr size_t COPY_FROM_ASHMEM_LOCK_THRESHOLD = 100 * 1024 * 1024;
+std::mutex g_copyFromAshmemMutex;
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
@@ -2258,6 +2263,12 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, boo
         return parcel.ReadUnpadBuffer(size);
     }
     // read from ashmem
+    if (bufferSize > ASHMEM_PARCEL_BUFFER_SIZE_UPPER_BOUND) {
+        isMalloc = false;
+        ROSEN_LOGE(
+            "RSMarshallingHelper::ReadFromParcel bufferSize %{public}" PRIu32 " oversteps upper bound", bufferSize);
+        return nullptr;
+    }
     return RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
 }
 
@@ -2292,6 +2303,10 @@ const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, boo
         return nullptr;
     }
     isMalloc = true;
+    if (size > COPY_FROM_ASHMEM_LOCK_THRESHOLD) {
+        std::lock_guard<std::mutex> lock(g_copyFromAshmemMutex);
+        return ashmemAllocator->CopyFromAshmem(size);
+    }
     return ashmemAllocator->CopyFromAshmem(size);
 }
 
