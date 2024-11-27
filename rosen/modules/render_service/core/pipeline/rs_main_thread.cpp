@@ -550,6 +550,14 @@ void RSMainThread::Init()
     RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
         RSHardwareThread::Instance().PostTask(task);
     });
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSMainThread::Instance()->RequestNextVSync();
+        },
+        .isRequestedNextVSync = []() {
+            return RSMainThread::Instance()->IsRequestedNextVSync();
+        },
+    });
 
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -1250,7 +1258,7 @@ void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData
             subSyncTransactionCounts_.erase(parentPid);
         }
     }
-    ROSEN_LOGD("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
+    ROSEN_LOGI("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
                " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
         rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
         rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
@@ -1284,7 +1292,7 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     ProcessSyncTransactionCount(rsTransactionData);
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
     if (subSyncTransactionCounts_.empty()) {
-        ROSEN_LOGD("SyncTransaction sucess");
+        ROSEN_LOGI("SyncTransaction success");
         ProcessAllSyncTransactionData();
     }
 }
@@ -1358,7 +1366,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
             if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                RSBaseRenderUtil::SetScalingMode(*surfaceNode);
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,
@@ -2153,6 +2160,7 @@ void RSMainThread::Render()
         CheckSystemSceneStatus();
         PerfForBlurIfNeeded();
     }
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     UpdateLuminance();
 }
 

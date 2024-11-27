@@ -1757,7 +1757,8 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node)
     if (isDrawingCacheEnabled_) {
         node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
     }
-    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_);
+    node.OpincQuickMarkStableNode(unchangeMarkInApp_, unchangeMarkEnable_,
+        RSMainThread::Instance()->IsAccessibilityConfigChanged());
 
     RectI prepareClipRect = prepareClipRect_;
     bool hasAccumulatedClip = hasAccumulatedClip_;
@@ -3361,6 +3362,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
         UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
         hwcNodePtr->SetTotalMatrix(matrix);
+        hwcNodePtr->SetOldDirtyInSurface(geoPtr->MapRect(hwcNodePtr->GetSelfDrawRect(), matrix));
     }
 }
 
@@ -3527,7 +3529,7 @@ inline static void ResetSubSurfaceNodesCalState(
 
 void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode)
 {
-    if (!curSurfaceNode_) {
+    if (!curSurfaceNode_ || !curSurfaceDirtyManager_) {
         return;
     }
     auto rootGeo = rootNode.GetRenderProperties().GetBoundsGeometry();
@@ -3557,7 +3559,14 @@ void RSUniRenderVisitor::UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRender
         if (subSurfaceNodePtr->IsLeashOrMainWindow()) {
             curMainAndLeashWindowNodesIds_.push(subSurfaceNodePtr->GetId());
             curDisplayNode_->RecordMainAndLeashSurfaces(subSurfaceNodePtr);
+            curDisplayNode_->UpdateSurfaceNodePos(
+                subSurfaceNodePtr->GetId(), subSurfaceNodePtr->GetOldDirtyInSurface());
+            if (auto subSurfaceDirtyManager = subSurfaceNodePtr->GetDirtyManager()) {
+                subSurfaceDirtyManager->MergeDirtyRect(subSurfaceNodePtr->GetOldDirtyInSurface().IntersectRect(
+                    curSurfaceDirtyManager_->GetCurrentFrameDirtyRegion()));
+            }
             CollectOcclusionInfoForWMS(*subSurfaceNodePtr);
+            subSurfaceNodePtr->UpdateRenderParams();
         }
     }
     ResetSubSurfaceNodesCalState(allSubSurfaceNodes);

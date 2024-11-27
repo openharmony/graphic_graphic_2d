@@ -355,18 +355,6 @@ public:
     void SetLayerTop(bool isTop);
     bool IsLayerTop() const;
 
-    void SetScalingMode(ScalingMode scalingMode) override
-    {
-        if (scalingMode_ == scalingMode) {
-            return;
-        }
-        scalingMode_ = scalingMode;
-        needSync_ = true;
-    }
-    ScalingMode GetScalingMode() const override
-    {
-        return scalingMode_;
-    }
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -498,6 +486,15 @@ public:
         return brightnessRatio_;
     }
 
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
+    
     bool GetIsHwcEnabledBySolidLayer()
     {
         return isHwcEnabledBySolidLayer_;
@@ -507,7 +504,6 @@ public:
     {
         isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
     }
-
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -579,7 +575,6 @@ private:
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
     bool isLayerTop_ = false;
-    ScalingMode scalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
@@ -593,6 +588,10 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
+
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;
