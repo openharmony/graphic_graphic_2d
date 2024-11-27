@@ -310,6 +310,8 @@ private:
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
 
+    int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
     bool SetAncoForceDoDirect(bool direct) override;
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;

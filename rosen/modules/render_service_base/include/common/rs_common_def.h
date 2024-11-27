@@ -450,6 +450,7 @@ enum class RSInterfaceErrorCode : uint32_t {
     NOT_SELF_CALLING,
     WRITE_PARCEL_ERROR,
     UNKNOWN_ERROR,
+    NULLPTR_ERROR,
 };
 
 } // namespace Rosen
