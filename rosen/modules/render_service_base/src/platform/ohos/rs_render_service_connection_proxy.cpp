@@ -3513,7 +3513,7 @@ int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel
     MessageParcel &reply, MessageOption &option)
 {
     if (!Remote()) {
-        return RSInterfaceErrorCode::NULLPTR_ERROR;
+        return static_cast<int32_t>RSInterfaceErrorCode::NULLPTR_ERROR;
     }
     return Remote()->SendRequest(code, data, reply, option);
 }
