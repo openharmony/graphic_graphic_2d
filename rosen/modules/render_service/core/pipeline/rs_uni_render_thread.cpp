@@ -61,6 +61,10 @@
 #include "socperf_client.h"
 #endif
 
+#include <sched.h>
+#include "res_sched_client.h"
+#include "res_type.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -157,10 +161,17 @@ void RSUniRenderThread::InitGrContext()
     if (!grContext) {
         return;
     }
-    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
-        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled());
     MemoryManager::SetGpuCacheSuppressWindowSwitch(
         grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
+    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled(), []() {
+            const uint32_t RS_IPC_QOS_LEVEL = 7;
+            std::unordered_map<std::string, std::string> mapPayload = { { "bundleName", "render_service" },
+                { "pid", std::to_string(getpid()) }, { std::to_string(gettid()), std::to_string(RS_IPC_QOS_LEVEL) } };
+            using namespace OHOS::ResourceSchedule;
+            auto& schedClient = ResSchedClient::GetInstance();
+            schedClient.ReportData(ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
+        });
 }
 
 void RSUniRenderThread::Inittcache()

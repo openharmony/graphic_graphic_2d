@@ -201,14 +201,15 @@ void MemoryManager::SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuCont
 #endif
 }
 
-void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled)
+void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+    Drawing::GPUContext* gpuContext, bool enabled, const std::function<void()>& setThreadPriority)
 {
 #if defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr");
         return;
     }
-    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 #endif
 }
 
