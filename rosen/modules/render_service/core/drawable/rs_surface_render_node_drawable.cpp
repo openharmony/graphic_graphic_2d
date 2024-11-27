@@ -44,6 +44,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "static_factory.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
@@ -67,6 +68,9 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
+    if (name_.find("SCBScreenLock") != std::string::npos) {
+        vmaCacheOff_ = true;
+    }
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
 #ifndef ROSEN_CROSS_PLATFORM
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
@@ -304,6 +308,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (vmaCacheOff_) {
+        Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
+    }
+
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         SetDrawSkipType(DrawSkipType::CANVAS_NULL);
@@ -537,6 +545,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
         return;
+    }
+
+    if (vmaCacheOff_) {
+        Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
     }
 
     // HidePrivacyContent is only for UICapture or NoneSystemCalling-WindowCapture
