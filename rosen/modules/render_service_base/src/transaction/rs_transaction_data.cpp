@@ -320,8 +320,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
             continue;
         }
-        auto commandType = command->GetType();
-        if (commandType == DISPLAY_NODE) {
+        if (command->GetType() == RSCommandType::DISPLAY_NODE) {
             bool isTokenTypeValid = true;
             bool isNonSystemAppCalling = false;
             RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
