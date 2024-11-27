@@ -38,10 +38,6 @@ public:
     void GetFontDescSharedPtrByFullName(const std::string& fullName,
         const int32_t& systemFontType, FontDescSharedPtr& result);
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
-    void SetLocale(const std::string& locale)
-    {
-        locale_ = locale;
-    }
 
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
@@ -83,7 +79,6 @@ private:
     std::set<FontDescSharedPtr> monoSpaceCache_;
     std::set<FontDescSharedPtr> symbolicCache_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> stylishFullNameMap_;
-    std::string locale_;
 };
 } // namespace OHOS::Rosen
 
