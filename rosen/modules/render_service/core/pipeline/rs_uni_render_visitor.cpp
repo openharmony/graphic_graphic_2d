@@ -1598,7 +1598,7 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node)
     RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
-    RSUniRenderUtil::DealWithScalingMode(node);
+    RSUniRenderUtil::DealWithScalingMode(node, screenInfo_);
     node.SetCalcRectInPrepare(true);
 }
 
