@@ -55,6 +55,7 @@
 namespace OHOS {
 namespace Rosen {
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
+uint32_t RSUIDirector::index_ = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 
@@ -452,6 +453,8 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
+    out.append("transactionFlags:[ ").append(std::to_string(pid).append(", ")
+        .append(std::to_string(index_)).append("]\r"));
     if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);
