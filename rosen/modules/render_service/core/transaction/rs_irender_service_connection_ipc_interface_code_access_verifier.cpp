@@ -243,6 +243,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_CURRENT_REFRESH_RATE");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_LIGHT_FACTOR_STATUS): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_LIGHT_FACTOR_STATUS");
             break;

@@ -68,5 +68,14 @@ bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallbac
     return success;
 }
 
+void RSRenderFrameRateLinkerMap::UnRegisterExpectedFpsUpdateCallbackByListener(pid_t listenerPid)
+{
+    for (auto& [_, linker] : frameRateLinkerMap_) {
+        if (linker != nullptr) {
+            linker->RegisterExpectedFpsUpdateCallback(listenerPid, nullptr);
+        }
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
