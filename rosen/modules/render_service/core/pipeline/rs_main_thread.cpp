@@ -4237,5 +4237,10 @@ void RSMainThread::SetHardwareTaskNum(uint32_t num)
 {
     rsVSyncDistributor_->SetHardwareTaskNum(num);
 }
+
+uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
+{
+    return rsVSyncDistributor_->GetRealTimeOffsetOfDvsync(time);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1514,6 +1514,21 @@ HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRealTimeOffsetOfDvsync
+ * @tc.desc: test GetRealTimeOffsetOfDvsync
+ * @tc.type: FUNC
+ * @tc.require: issueIAXG6P
+ */
+HWTEST_F(RSMainThreadTest, GetRealTimeOffsetOfDvsync, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    int64_t time = 1000;
+    uint64_t offset = mainThread->GetRealTimeOffsetOfDvsync(time);
+    ASSERT_EQ(offset, 0);
+}
+
+/**
  * @tc.name: Render
  * @tc.desc: Render test
  * @tc.type: FUNC
