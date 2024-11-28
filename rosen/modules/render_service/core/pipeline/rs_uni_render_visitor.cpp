@@ -2023,8 +2023,8 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     });
     curDisplayNode_->SetMainAndLeashSurfaceDirty(hasMainAndLeashSurfaceDirty);
     CheckMergeDebugRectforRefreshRate(curMainAndLeashSurfaces);
-    CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     CheckMergeDisplayDirtyByRoundCornerDisplay();
+    CheckMergeGlobalFilterForDisplay(accumulatedDirtyRegion);
     ResetDisplayDirtyRegion();
     if (curDisplayDirtyManager_) {
         curDisplayDirtyManager_->ClipDirtyRectWithinSurface();
@@ -3239,10 +3239,20 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay() const
         RectI dirtyRectTop, dirtyRectBottom;
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curDisplayNode_->GetId(), dirtyRectTop, RoundCornerDisplayManager::RCDLayerType::TOP)) {
+            RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge topRcdNode dirty "
+                    "%{public}s, global dirty %{public}s, add rect %{public}s",
+                std::to_string(curDisplayNode_->GetScreenId()).c_str(),
+                curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
+                dirtyRectTop.ToString().c_str());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectTop);
         }
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(
             curDisplayNode_->GetId(), dirtyRectBottom, RoundCornerDisplayManager::RCDLayerType::BOTTOM)) {
+            RS_LOGD("RSUniRenderVisitor::CheckMergeDisplayDirtyByRoundCornerDisplay global merge bottomRcdNode dirty "
+                    "%{public}s, global dirty %{public}s, add rect %{public}s",
+                std::to_string(curDisplayNode_->GetScreenId()).c_str(),
+                curDisplayDirtyManager_->GetCurrentFrameDirtyRegion().ToString().c_str(),
+                dirtyRectBottom.ToString().c_str());
             curDisplayNode_->GetDirtyManager()->MergeDirtyRect(dirtyRectBottom);
         }
     }

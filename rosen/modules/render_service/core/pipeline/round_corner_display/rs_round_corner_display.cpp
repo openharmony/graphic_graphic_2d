@@ -222,7 +222,7 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
     }
     auto rog = lcdModel_->GetRog(width, height);
     if (rog == nullptr) {
-        RS_LOGI("[%{public}s] Can't find resolution (%{public}u x %{public}u) in config file \n",
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] Can't find resolution (%{public}u x %{public}u) in config file \n",
             __func__, width, height);
         return false;
     }
@@ -244,16 +244,31 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
     return true;
 }
 
+bool RoundCornerDisplay::CheckResolutionChanged(uint32_t width, uint32_t height)
+{
+    if (width == lastRcvDisplayWidth_ && height == lastRcvDisplayHeight_) {
+        lastRcvDisplayWidth_ = width;
+        lastRcvDisplayHeight_ = height;
+        return false;
+    }
+    lastRcvDisplayWidth_ = width;
+    lastRcvDisplayHeight_ = height;
+    return true;
+}
+
 void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
 {
     std::unique_lock<std::shared_mutex> lock(resourceMut_);
+    if (CheckResolutionChanged(width, height)) {
+        RS_LOGI("[%{public}s] displayWidth_ updated from %{public}u -> %{public}u,"
+            "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
+            displayWidth_, width, displayHeight_, height);
+        PrintRCDInfo();
+    }
     if (width == displayWidth_ && height == displayHeight_) {
         RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] DisplayParameter do not change \n", __func__);
         return;
     }
-    RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] displayWidth_ updated from %{public}u -> %{public}u,"
-        "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
-        displayWidth_, width, displayHeight_, height);
     if (LoadImgsbyResolution(width, height)) {
         rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
             static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_ALL) | static_cast<uint8_t>(rcdDirtyType_));
@@ -277,6 +292,7 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
     }
     RS_LOGI("[%{public}s] notchStatus change from %{public}d to %{public}d \n", __func__,
         notchStatus_, status);
+    PrintRCDInfo();
     notchStatus_ = status;
     rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP) | static_cast<uint8_t>(rcdDirtyType_));
@@ -391,7 +407,7 @@ void RoundCornerDisplay::RcdChooseRSResource()
 void RoundCornerDisplay::RcdChooseHardwareResource()
 {
     if (rog_ == nullptr) {
-        RS_LOGE("[%{public}s] No rog info \n", __func__);
+        RS_LOGE_IF(DEBUG_PIPELINE, "[%{public}s] No rog info \n", __func__);
         return;
     }
     auto portrait = rog_->GetPortrait(std::string(rs_rcd::NODE_PORTRAIT));
@@ -470,6 +486,38 @@ void RoundCornerDisplay::DrawTopRoundCorner(RSPaintFilterCanvas* canvas)
 void RoundCornerDisplay::DrawBottomRoundCorner(RSPaintFilterCanvas* canvas)
 {
     DrawOneRoundCorner(canvas, BOTTOM_SURFACE);
+}
+
+void RoundCornerDisplay::PrintRCDInfo()
+{
+    RS_LOGI("[%{public}s] begin \n", __func__);
+    if (lcdModel_ != nullptr) {
+        RS_LOGI("[%{public}s] Selected model: %{public}s, supported: top->%{public}d, bottom->%{public}d,"
+            "hardware->%{public}d rogListSize %{public}d\n", __func__, lcdModel_->name.c_str(),
+            static_cast<int>(supportTopSurface_), static_cast<int>(supportBottomSurface_),
+            static_cast<int>(supportHardware_),
+            static_cast<int>(lcdModel_->rogs.size()));
+    }
+    if (rog_ != nullptr) {
+        RS_LOGI("[%{public}s] rog info : \n", __func__);
+        rs_rcd::RCDConfig::PrintParseRog(rog_);
+    }
+    RS_LOGI("[%{public}s] render target displayNode Id %{public}" PRIu64 " \n", __func__,
+        renderTargetId_);
+    RS_LOGI("[%{public}s] current State Info w, h, notch: %{public}u , %{public}u , %{public}d \n", __func__,
+        displayWidth_, displayHeight_, notchStatus_);
+
+    RS_LOGI("[%{public}s] current hardware Info rcdchangeTag, rcdPreparingTag : %{public}d , %{public}d \n", __func__,
+        hardInfo_.resourceChanged, hardInfo_.resourcePreparing);
+    if (hardInfo_.topLayer != nullptr) {
+        RS_LOGW("[%{public}s] current hardware Info toplayer w h : %{public}u , %{public}u\n", __func__,
+            hardInfo_.topLayer->layerWidth, hardInfo_.topLayer->layerHeight);
+    }
+    if (hardInfo_.bottomLayer != nullptr) {
+        RS_LOGW("[%{public}s] current hardware Info bottomlayer w h : %{public}u , %{public}u\n", __func__,
+            hardInfo_.bottomLayer->layerWidth, hardInfo_.bottomLayer->layerHeight);
+    }
+    RS_LOGI("[%{public}s] end \n", __func__);
 }
 } // namespace Rosen
 } // namespace OHOS

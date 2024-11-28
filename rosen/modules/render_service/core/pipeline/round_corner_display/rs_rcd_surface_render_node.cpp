@@ -212,8 +212,8 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
         return false;
     }
     if (!FillHardwareResource(cldLayerInfo, layerBitmap.GetHeight(), layerBitmap.GetWidth())) {
-            RS_LOGE("RSRcdSurfaceRenderNode:: copy hardware resource to buffer failed");
-            return false;
+        RS_LOGE("RSRcdSurfaceRenderNode:: copy hardware resource to buffer failed");
+        return false;
     }
     return true;
 }

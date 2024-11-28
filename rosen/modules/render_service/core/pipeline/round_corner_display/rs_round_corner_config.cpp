@@ -418,21 +418,21 @@ ROGSetting* LCDModel::GetRog(const int w, const int h) const
 
 void RCDConfig::PrintLayer(const std::string& name, const rs_rcd::RoundCornerLayer& layer)
 {
-    RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s->Filename: %{public}s, Offset: %{public}d, %{public}d \n",
+    RS_LOGI("%{public}s->Filename: %{public}s, Offset: %{public}d, %{public}d \n",
         name.c_str(), layer.fileName.c_str(), layer.offsetX, layer.offsetY);
-    RS_LOGD_IF(DEBUG_PIPELINE, "BinFilename: %{public}s, BufferSize: %{public}d, cldSize:%{public}d, %{public}d \n",
+    RS_LOGI("BinFilename: %{public}s, BufferSize: %{public}d, cldSize:%{public}d, %{public}d \n",
         layer.binFileName.c_str(), layer.bufferSize, layer.cldWidth, layer.cldHeight);
 }
 
 void RCDConfig::PrintParseRog(rs_rcd::ROGSetting* rog)
 {
     if (rog == nullptr) {
-        RS_LOGE("no model input \n");
+        RS_LOGW("no rog input \n");
         return;
     }
     for (auto kv : rog->portraitMap) {
         auto port = kv.second;
-        RS_LOGD_IF(DEBUG_PIPELINE, "rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height,
+        RS_LOGI("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height,
             kv.first.c_str());
         PrintLayer(std::string("layerUp  "), port.layerUp);
         PrintLayer(std::string("layerDown"), port.layerDown);
@@ -440,7 +440,7 @@ void RCDConfig::PrintParseRog(rs_rcd::ROGSetting* rog)
     }
     for (auto kv : rog->landscapeMap) {
         auto port = kv.second;
-        RS_LOGD_IF(DEBUG_PIPELINE, "rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height,
+        RS_LOGI("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height,
             kv.first.c_str());
         PrintLayer(std::string("layerUp  "), port.layerUp);
     }
