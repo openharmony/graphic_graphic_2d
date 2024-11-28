@@ -547,6 +547,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (needOffscreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
+        canvasBackup_->Clear(Drawing::Color::COLOR_BLACK);
         if (surfaceParams->HasSandBox()) {
             canvasBackup_->SetMatrix(surfaceParams->GetParentSurfaceMatrix());
             canvasBackup_->ConcatMatrix(surfaceParams->GetMatrix());
