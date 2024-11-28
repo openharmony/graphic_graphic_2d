@@ -2265,6 +2265,8 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, boo
     // read from ashmem
     if (bufferSize > ASHMEM_PARCEL_BUFFER_SIZE_UPPER_BOUND) {
         isMalloc = false;
+        RS_TRACE_NAME_FMT(
+            "RSMarshallingHelper::ReadFromParcel bufferSize %" PRIu32 " oversteps upper bound", bufferSize);
         ROSEN_LOGE(
             "RSMarshallingHelper::ReadFromParcel bufferSize %{public}" PRIu32 " oversteps upper bound", bufferSize);
         return nullptr;
@@ -2305,6 +2307,9 @@ const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, boo
     isMalloc = true;
     if (size > COPY_FROM_ASHMEM_LOCK_THRESHOLD) {
         std::lock_guard<std::mutex> lock(g_copyFromAshmemMutex);
+        RS_TRACE_NAME_FMT("RSMarshallingHelper::ReadFromAshmem lock CopyFromAshmem: fd=%d, size=%zu", fd, size);
+        ROSEN_LOGW(
+            "RSMarshallingHelper::ReadFromAshmem lock CopyFromAshmem: fd=%{public}d, size=%{public}zu", fd, size);
         return ashmemAllocator->CopyFromAshmem(size);
     }
     return ashmemAllocator->CopyFromAshmem(size);
