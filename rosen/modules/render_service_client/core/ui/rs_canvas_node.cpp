@@ -59,6 +59,9 @@ ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas_->SetIsCustomTypeface(isCustomTypeface_);
+    if (auto recording = recordingCanvas_->GetDrawCmdList()) {
+        recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
+    }
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -129,6 +132,9 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         return;
     }
     auto recording = recordingCanvas->GetDrawCmdList();
+    if (recording) {
+        recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
+    }
     if (recording && recording->IsEmpty()) {
         return;
     }

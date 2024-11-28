@@ -193,6 +193,8 @@ public:
     void Dump(std::string& out);
 
     void Purge();
+
+    void SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct);
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -215,6 +217,7 @@ private:
     bool isCached_ = false;
     bool cachedHighContrast_ = false;
     uint32_t performanceCaculateOpType_ = 0;
+    bool isNeedUnmarshalOnDestruct_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;
