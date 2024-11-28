@@ -526,9 +526,11 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
             (weight == Drawing::FontStyle::MEDIUM_WEIGHT && item == Drawing::FontStyle::NORMAL_WEIGHT)) {
             weightDiff = static_cast<uint32_t>(SPECIAL_WEIGHT_DIFF);
         } else if (weight <= Drawing::FontStyle::NORMAL_WEIGHT) {
-            weightDiff = (item <= weight) ? static_cast<uint32_t>(weight - item) : static_cast<uint32_t>(item - weight + kWeightDiffThreshold);
+            weightDiff = (item <= weight) ? static_cast<uint32_t>(weight - item) :
+                static_cast<uint32_t>(item - weight + kWeightDiffThreshold);
         } else if (weight > Drawing::FontStyle::NORMAL_WEIGHT) {
-            weightDiff = (item >= weight) ? static_cast<uint32_t>(item - weight) : static_cast<uint32_t>(weight - item + kWeightDiffThreshold);
+            weightDiff = (item >= weight) ? static_cast<uint32_t>(item - weight) :
+                static_cast<uint32_t>(weight - item + kWeightDiffThreshold);
         }
 
         // Retain the font weight with the smallest difference
