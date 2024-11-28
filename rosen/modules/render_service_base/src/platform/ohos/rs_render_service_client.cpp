@@ -51,7 +51,7 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::client_ = nullptr;
 std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
 {
     static std::once_flag once_flag;
-    std::call_once(once_flag, []() { client_ = std::make_shared<RSRenderServiceClient>(); })
+    std::call_once(once_flag, []() { client_ = std::make_shared<RSRenderServiceClient>(); });
     return client_;
 }
 
