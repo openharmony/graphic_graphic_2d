@@ -333,7 +333,7 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
 {
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    for (const auto& drawable : hardwareDrawables) {
+    for (const auto& [_, drawable] : hardwareDrawables) {
         if (!drawable || !drawable->GetRenderParams()) {
             continue;
         }

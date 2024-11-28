@@ -116,7 +116,7 @@ void RSDirtyRectsDfx::DrawHwcRegionForDFX(RSPaintFilterCanvas& canvas) const
     if (++updateCnt == UINT32_MAX) {
         updateCnt = 0;
     }
-    for (const auto& drawable : hardwareDrawables) {
+    for (const auto& [_, drawable] : hardwareDrawables) {
         if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
             continue;
         }

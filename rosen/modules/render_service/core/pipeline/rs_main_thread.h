@@ -404,6 +404,8 @@ public:
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
+    using DrawablesVec = std::vector<std::pair<NodeId,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     RSMainThread();
     ~RSMainThread() noexcept;
@@ -640,9 +642,8 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
-#ifdef RS_ENABLE_GPU
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
-#endif
+    DrawablesVec hardwareEnabledDrwawables_;
+
     // for client node tree dump
     struct NodeTreeDumpTask {
         size_t count = 0;
