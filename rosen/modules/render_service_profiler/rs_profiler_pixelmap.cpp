@@ -401,15 +401,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
     }
 
     if (!profilerEnabled) {
-        Media::PixelMap* pixelMap = PixelMap::Unmarshalling(parcel);
-        if (pixelMap == nullptr) {
-            HRPE("UnmarshalPixelMap: Unmarshalling failed");
-            return nullptr;
-        }
-        if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
-            pixelMap->CloseFd();
-        }
-        return pixelMap;
+        return PixelMap::Unmarshalling(parcel);
     }
 
     const uint64_t id = parcel.ReadUint64();

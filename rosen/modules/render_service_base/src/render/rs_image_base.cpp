@@ -213,7 +213,11 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
     if (pixelMap_) {
 #ifndef ROSEN_ARKUI_X
 #ifdef ROSEN_OHOS
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
+    } else {
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetFd(), nodeId, ExtractPid(nodeId));
+    }
 #else
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
 #endif
