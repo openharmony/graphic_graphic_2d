@@ -3333,7 +3333,7 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
         type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
-        if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
+        if (context && context->GetNodeMap().IsResidentProcessNode(GetId()) && !RSSystemProperties::IsPcType()) {
             nodeGroupType_ |= type;
             SetDirty();
 #ifdef RS_ENABLE_GPU
