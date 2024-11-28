@@ -41,12 +41,12 @@ void RSPropertyDrawableUtilsTest::SetUp() {}
 void RSPropertyDrawableUtilsTest::TearDown() {}
 
 /**
- * @tc.name: GetRRectForDrawingBorderTest002
+ * @tc.name: GetRRectForDrawingBorderTest
  * @tc.desc: GetRRectForDrawingBorder test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetRRectForDrawingBorderTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GetRRectForDrawingBorderTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -64,12 +64,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetRRectForDrawingBorderTest002, testing::
 }
 
 /**
- * @tc.name: GetDarkColorTest004
+ * @tc.name: GetDarkColorTest
  * @tc.desc: GetDarkColor test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetDarkColorTest004, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GetDarkColorTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -78,12 +78,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetDarkColorTest004, testing::ext::TestSiz
 }
 
 /**
- * @tc.name: RRect2DrawingRRectAndCreateShadowPathTest001
+ * @tc.name: RRect2DrawingRRectAndCreateShadowPathTest
  * @tc.desc: RRect2DrawingRRect and CreateShadowPath test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, RRect2DrawingRRectAndCreateShadowPathTest001, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, RRect2DrawingRRectAndCreateShadowPathTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -101,12 +101,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RRect2DrawingRRectAndCreateShadowPathTest0
 }
 
 /**
- * @tc.name: DrawColorFilterTest009
+ * @tc.name: DrawColorFilterTest
  * @tc.desc: DrawColorFilter test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest009, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -127,12 +127,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawColorFilterTest009, testing::ext::Test
 }
 
 /**
- * @tc.name: DrawLightUpEffectTest010
+ * @tc.name: DrawLightUpEffectTest
  * @tc.desc: DrawLightUpEffect and DrawDynamicDim test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
@@ -164,12 +164,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawLightUpEffectTest010, testing::ext::Te
 }
 
 /**
- * @tc.name: DrawShadowAndCeilMatrixTransTest005
+ * @tc.name: DrawShadowAndCeilMatrixTransTest
  * @tc.desc: DrawShadow and CeilMatrixTrans test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -183,12 +183,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowAndCeilMatrixTransTest005, testi
 }
 
 /**
- * @tc.name: DrawAndBeginForegroundFilterTest006
+ * @tc.name: DrawAndBeginForegroundFilterTest
  * @tc.desc: DrawFilter and BeginForegroundFilter test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest, testing::ext::TestSize.Level1)
 {
     // first: DrawFilter test
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
@@ -248,12 +248,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawAndBeginForegroundFilterTest006, testi
 }
 
 /**
- * @tc.name: BDrawForegroundFilterTest007
+ * @tc.name: BDrawForegroundFilterTest
  * @tc.desc: DrawForegroundFilter test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, BDrawForegroundFilterTest007, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, BDrawForegroundFilterTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -270,12 +270,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, BDrawForegroundFilterTest007, testing::ext
 }
 
 /**
- * @tc.name: RSPropertyDrawableUtilsTest008
+ * @tc.name: RSPropertyDrawableUtilsTest
  * @tc.desc: GetAndResetBlurCnt and DrawBackgroundEffect test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -307,24 +307,24 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSPropertyDrawableUtilsTest008, testing::e
 }
 
 /**
- * @tc.name: MakeLightUpEffectBlender001
+ * @tc.name: MakeLightUpEffectBlender
  * @tc.desc: test results of MakeLightUpEffectBlender
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, MakeLightUpEffectBlender001, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, MakeLightUpEffectBlender, testing::ext::TestSize.Level1)
 {
     auto blender = RSPropertyDrawableUtils::MakeLightUpEffectBlender(1.0f);
     EXPECT_NE(blender, nullptr);
 }
 
 /**
- * @tc.name: DrawBinarizationTest012
+ * @tc.name: DrawBinarizationTest
  * @tc.desc: DrawBinarization test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawBinarizationTest012, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawBinarizationTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -345,12 +345,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBinarizationTest012, testing::ext::Tes
 }
 
 /**
- * @tc.name: DrawPixelStretchTest013
+ * @tc.name: DrawPixelStretchTest
  * @tc.desc: DrawPixelStretch test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -371,12 +371,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawPixelStretchTest013, testing::ext::Tes
 }
 
 /**
- * @tc.name: TransformativeShaderTest011
+ * @tc.name: TransformativeShaderTest
  * @tc.desc: MakeDynamicDimShader MakeBinarizationShader MakeDynamicBrightnessBlender MakeDynamicBrightnessBuilder test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
@@ -399,12 +399,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, TransformativeShaderTest011, testing::ext:
 }
 
 /**
- * @tc.name: DrawShadowTestAndDrawUseEffectTest014
+ * @tc.name: DrawShadowTestAndDrawUseEffectTest
  * @tc.desc: DrawShadow and DrawUseEffect test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest014, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
@@ -436,12 +436,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowTestAndDrawUseEffectTest014, tes
 }
 
 /**
- * @tc.name: IsDangerousBlendModeAndEndBlenderTest016
+ * @tc.name: IsDangerousBlendModeAndEndBlenderTest
  * @tc.desc: IsDangerousBlendMode and EndBlender test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, IsDangerousBlendModeAndEndBlenderTest016, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, IsDangerousBlendModeAndEndBlenderTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
@@ -455,12 +455,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, IsDangerousBlendModeAndEndBlenderTest016, 
 }
 
 /**
- * @tc.name: GetColorForShadowSynTest017
+ * @tc.name: GetColorForShadowSynTest
  * @tc.desc: GetColorForShadowSyn and GpuScaleImage test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest017, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -485,12 +485,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest017, testing::ext:
 }
 
 /**
- * @tc.name: GetInvertedBackgroundColorTest015
+ * @tc.name: GetInvertedBackgroundColorTest
  * @tc.desc: BeginBlender and GetInvertBackgroundColor test
  * @tc.type: FUNC
- * @tc.require:issueI9SCBR
+ * @tc.require:issueIB7R0A
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest015, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest1, nullptr);
@@ -523,12 +523,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest015, testing
 }
 
 /**
- * @tc.name: GetShadowRegionImageTest018
+ * @tc.name: GetShadowRegionImageTest
  * @tc.desc: GetShadowRegionImage test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -549,12 +549,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest018, testing::ext:
 }
 
 /**
- * @tc.name: DrawShadowMaskFilterTest019
+ * @tc.name: DrawShadowMaskFilterTest
  * @tc.desc: DrawShadowMaskFilter test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -567,12 +567,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawShadowMaskFilterTest019, testing::ext:
 }
 
 /**
- * @tc.name: RSFilterSetPixelStretchTest021
+ * @tc.name: RSFilterSetPixelStretchTest
  * @tc.desc: RSFilterSetPixelStretch test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -607,12 +607,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterSetPixelStretchTest021, testing::e
 }
 
 /**
- * @tc.name: RSFilterRemovePixelStretchTest022
+ * @tc.name: RSFilterRemovePixelStretchTest
  * @tc.desc: RSFilterRemovePixelStretch test
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -632,12 +632,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, RSFilterRemovePixelStretchTest022, testing
 }
 
 /**
- * @tc.name: GetGravityMatrixTest020
+ * @tc.name: GetGravityMatrixTest
  * @tc.desc: GetGravityMatrix test
  * @tc.type: FUNC
  * @tc.require:issueIA5Y41
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GetGravityMatrixTest020, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GetGravityMatrixTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -686,12 +686,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetGravityMatrixTest020, testing::ext::Tes
 }
 
 /**
- * @tc.name: DrawBackgroundEffectTest002
+ * @tc.name: DrawBackgroundEffectTest
  * @tc.desc: DrawBackgroundEffectTest behindWindow branch
  * @tc.type: FUNC
  * @tc.require: issueIB0UQV
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtils = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtils, nullptr);
@@ -723,12 +723,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawBackgroundEffectTest002, testing::ext:
 }
 
 /**
- * @tc.name: GenerateBehindWindowFilterTest001
+ * @tc.name: GenerateBehindWindowFilterTest
  * @tc.desc: GenerateBehindWindowFilterTest
  * @tc.type: FUNC
  * @tc.require: issueIB0UQV
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest001, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     ASSERT_NE(rsPropertyDrawableUtilsTest1, nullptr);
@@ -742,12 +742,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GenerateBehindWindowFilterTest001, testing
 
 
 /**
- * @tc.name: DrawUseEffectTest002
+ * @tc.name: DrawUseEffectTest
  * @tc.desc: DrawUseEffectTest behindWindow branch
  * @tc.type: FUNC
  * @tc.require: issueIB0UQV
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, DrawUseEffectTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, DrawUseEffectTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest = std::make_shared<RSPropertyDrawableUtils>();
     EXPECT_NE(rsPropertyDrawableUtilsTest, nullptr);
@@ -771,12 +771,12 @@ HWTEST_F(RSPropertyDrawableUtilsTest, DrawUseEffectTest002, testing::ext::TestSi
 }
 
 /**
- * @tc.name: GenerateMaterialColorFilterTest001
+ * @tc.name: GenerateMaterialColorFilterTest
  * @tc.desc: GenerateMaterialColorFilterTest
  * @tc.type: FUNC
  * @tc.require: issueIB0UQV
  */
-HWTEST_F(RSPropertyDrawableUtilsTest, GenerateMaterialColorFilterTest001, testing::ext::TestSize.Level1)
+HWTEST_F(RSPropertyDrawableUtilsTest, GenerateMaterialColorFilterTest, testing::ext::TestSize.Level1)
 {
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest1 = std::make_shared<RSPropertyDrawableUtils>();
     ASSERT_NE(rsPropertyDrawableUtilsTest1, nullptr);
