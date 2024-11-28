@@ -131,7 +131,7 @@ public:
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
-    void UnmarshallingDrawOps();
+    void UnmarshallingDrawOps(uint32_t* opItemCount = nullptr);
 
     /**
      * @brief   Draw cmd is empty or not.
