@@ -715,13 +715,14 @@ int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velo
     if (ROSEN_EQ(velocity, 0.f)) {
         return 0;
     }
+    const auto curScreenStrategyId = curScreenStrategyId_;
     const std::string settingMode = std::to_string(curRefreshRateMode_);
-    if (configData->screenConfigs_.find(curScreenStrategyId_) == configData->screenConfigs_.end() ||
-        configData->screenConfigs_[curScreenStrategyId_].find(settingMode) ==
-        configData->screenConfigs_[curScreenStrategyId_].end()) {
+    if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end() ||
+        configData->screenConfigs_[curScreenStrategyId].find(settingMode) ==
+        configData->screenConfigs_[curScreenStrategyId].end()) {
         return 0;
     }
-    auto& screenSetting = configData->screenConfigs_[curScreenStrategyId_][settingMode];
+    auto& screenSetting = configData->screenConfigs_[curScreenStrategyId][settingMode];
     auto matchFunc = [velocity](const auto& pair) {
         return velocity >= pair.second.min && (velocity < pair.second.max || pair.second.max == -1);
     };
