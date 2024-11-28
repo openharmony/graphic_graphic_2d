@@ -199,6 +199,11 @@ template("render_service_client_source_set") {
         defines += [ "WINDOWS_PLATFORM" ]
       }
     }
+
+    if (is_arkui_x) {
+      defines += [ "ARKUI_X_ENABLE" ]
+    }
+
     if (rosen_is_ohos) {
       deps += [
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
