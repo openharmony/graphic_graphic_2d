@@ -281,6 +281,12 @@ void SkiaPath::SetFillStyle(PathFillType fillstyle)
     isChanged_ = true;
 }
 
+PathFillType SkiaPath::GetFillStyle() const
+{
+    PathFillType fillType = static_cast<PathFillType>(path_.getFillType());
+    return fillType;
+}
+
 bool SkiaPath::Interpolate(const Path& ending, scalar weight, Path& out)
 {
     bool isSuccess = false;

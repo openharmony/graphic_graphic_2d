@@ -24,7 +24,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-class RSHDRManagerTest : public testing::Test {
+class RsHdrManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -32,17 +32,17 @@ public:
     void TearDown() override;
 };
 
-void RSHDRManagerTest::SetUpTestCase() {}
-void RSHDRManagerTest::TearDownTestCase() {}
-void RSHDRManagerTest::SetUp() {}
-void RSHDRManagerTest::TearDown() {}
+void RsHdrManagerTest::SetUpTestCase() {}
+void RsHdrManagerTest::TearDownTestCase() {}
+void RsHdrManagerTest::SetUp() {}
+void RsHdrManagerTest::TearDown() {}
 
 /**
- * @tc.name: IncreaseHDRNum001
+ * @tc.name: IncreaseHDRNum01
  * @tc.desc: test hdr num++
  * @tc.type:FUNC
  */
-HWTEST_F(RSHDRManagerTest, IncreaseHDRNum001, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, IncreaseHDRNum01, TestSize.Level1)
 {
     RSHDRManager::Instance().ResetHDRNum();
     ASSERT_TRUE(RSHDRManager::Instance().getHDRNum() == 0);
@@ -52,11 +52,11 @@ HWTEST_F(RSHDRManagerTest, IncreaseHDRNum001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IncreaseHDRNum002
+ * @tc.name: IncreaseHDRNum02
  * @tc.desc: test hdr num++ twice
  * @tc.type:FUNC
  */
-HWTEST_F(RSHDRManagerTest, IncreaseHDRNum002, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, IncreaseHDRNum02, TestSize.Level1)
 {
     RSHDRManager::Instance().ResetHDRNum();
     ASSERT_TRUE(RSHDRManager::Instance().getHDRNum() == 0);
@@ -67,11 +67,11 @@ HWTEST_F(RSHDRManagerTest, IncreaseHDRNum002, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReduceHDRNum001
+ * @tc.name: ReduceHDRNum01
  * @tc.desc: test hdr num--
  * @tc.type:FUNC
  */
-HWTEST_F(RSHDRManagerTest, ReduceHDRNum001, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, ReduceHDRNum01, TestSize.Level1)
 {
     RSHDRManager::Instance().ResetHDRNum();
     ASSERT_TRUE(RSHDRManager::Instance().getHDRNum() == 0);
@@ -84,11 +84,11 @@ HWTEST_F(RSHDRManagerTest, ReduceHDRNum001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReduceHDRNum002
+ * @tc.name: ReduceHDRNum02
  * @tc.desc: test hdr num-- twice
  * @tc.type:FUNC
  */
-HWTEST_F(RSHDRManagerTest, ReduceHDRNum002, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, ReduceHDRNum02, TestSize.Level1)
 {
     RSHDRManager::Instance().ResetHDRNum();
     ASSERT_TRUE(RSHDRManager::Instance().getHDRNum() == 0);
@@ -101,12 +101,12 @@ HWTEST_F(RSHDRManagerTest, ReduceHDRNum002, TestSize.Level1)
 }
 
 /**
- * @tc.name: IncreaseHDRNum003
+ * @tc.name: IncreaseHDRNum03
  * @tc.desc: test results of IncreaseHDRNum
  * @tc.type: FUNC
  * @tc.require: issueI9UX8W
  */
-HWTEST_F(RSHDRManagerTest, IncreaseHDRNum003, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, IncreaseHDRNum03, TestSize.Level1)
 {
     RSHDRManager& manager = RSHDRManager::Instance();
     manager.hdrNum_ = 1;
@@ -129,12 +129,12 @@ HWTEST_F(RSHDRManagerTest, IncreaseHDRNum003, TestSize.Level1)
 }
 
 /**
- * @tc.name: ReduceHDRNum003
+ * @tc.name: ReduceHDRNum03
  * @tc.desc: test results of ReduceHDRNum
  * @tc.type: FUNC
  * @tc.require: issueI9UX8W
  */
-HWTEST_F(RSHDRManagerTest, ReduceHDRNum003, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, ReduceHDRNum03, TestSize.Level1)
 {
     RSHDRManager& manager = RSHDRManager::Instance();
     manager.hdrNum_ = 0;
@@ -161,12 +161,12 @@ HWTEST_F(RSHDRManagerTest, ReduceHDRNum003, TestSize.Level1)
 }
 
 /**
- * @tc.name: RegisterSetHDRPresent001
+ * @tc.name: RegisterSetHDRPresent01
  * @tc.desc: test results of RegisterSetHDRPresent
  * @tc.type: FUNC
  * @tc.require: issueI9UX8W
  */
-HWTEST_F(RSHDRManagerTest, RegisterSetHDRPresent001, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, RegisterSetHDRPresent01, TestSize.Level1)
 {
     RSHDRManager& manager = RSHDRManager::Instance();
     HDRFunc func = [](bool flag, NodeId id) {};
@@ -187,12 +187,12 @@ HWTEST_F(RSHDRManagerTest, RegisterSetHDRPresent001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UnRegisterSetHDRPresent001
+ * @tc.name: UnRegisterSetHDRPresent01
  * @tc.desc: test results of UnRegisterSetHDRPresent
  * @tc.type: FUNC
  * @tc.require: issueI9UX8W
  */
-HWTEST_F(RSHDRManagerTest, UnRegisterSetHDRPresent001, TestSize.Level1)
+HWTEST_F(RsHdrManagerTest, UnRegisterSetHDRPresent01, TestSize.Level1)
 {
     RSHDRManager& manager = RSHDRManager::Instance();
     manager.UnRegisterSetHDRPresent(INVALID_NODEID);

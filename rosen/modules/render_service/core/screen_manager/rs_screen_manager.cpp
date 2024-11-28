@@ -362,7 +362,6 @@ void RSScreenManager::OnRefresh(ScreenId id, void *data)
 {
     RSScreenManager *screenManager = nullptr;
     if (data != nullptr) {
-        RS_LOGI("RSScreenManager %{public}s: data is not nullptr.", __func__);
         screenManager = static_cast<RSScreenManager *>(data);
     } else {
         RS_LOGI("RSScreenManager %{public}s: data is nullptr.", __func__);

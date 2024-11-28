@@ -602,8 +602,8 @@ HWTEST_F(GpuContextTest, SetGpuMemoryAsyncReclaimerSwitchTest001, TestSize.Level
 {
     std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
     ASSERT_TRUE(gpuContext != nullptr);
-    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(true);
-    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(false);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(true, nullptr);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(false, nullptr);
 }
 
 /**

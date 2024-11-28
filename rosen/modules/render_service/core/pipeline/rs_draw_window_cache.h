@@ -56,6 +56,9 @@ public:
     bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam);
 #endif
+
+    void DrawCrossNodeOffscreenDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams, const Drawing::Color& color);
 private:
     bool HasCache() const;
     void ClearCache();

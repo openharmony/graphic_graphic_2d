@@ -162,6 +162,7 @@ void SymbolNodeBuild::MergeDrawingPath(RSPath& multPath, const RSRenderGroup& gr
             Drawing::Path outPath;
             auto isOk = outPath.Op(pathTemp, maskPath, Drawing::PathOp::DIFFERENCE);
             pathTemp = isOk ? outPath : pathTemp;
+            multPath.SetFillStyle(pathTemp.GetFillStyle());
         }
         multPath.AddPath(pathTemp);
     }

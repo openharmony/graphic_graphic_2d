@@ -84,6 +84,7 @@ public:
 
     virtual Rect GetBounds() const = 0;
     virtual void SetFillStyle(PathFillType fillstyle) = 0;
+    virtual PathFillType GetFillStyle() const = 0;
 
     virtual bool Interpolate(const Path& ending, scalar weight, Path& out) = 0;
     virtual void Transform(const Matrix& matrix) = 0;

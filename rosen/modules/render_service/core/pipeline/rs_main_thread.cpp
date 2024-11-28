@@ -3839,7 +3839,7 @@ void RSMainThread::PerfForBlurIfNeeded()
     // if blurCnt < preBlurCnt 10 times continuously, than change perf code.
     bool cntIsMatch = blurCnt > preBlurCnt || cnt > 10;
     if (cntIsMatch && preBlurCnt != 0) {
-        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded Perf close, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded Perf close, preBlurCnt[%d] blurCnt[%d]", preBlurCnt, blurCnt);
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(preBlurCnt), false);
         preBlurCnt = blurCnt == 0 ? 0 : preBlurCnt;
     }
@@ -3847,7 +3847,7 @@ void RSMainThread::PerfForBlurIfNeeded()
         return;
     }
     if (timestamp_ - prePerfTimestamp > PERF_PERIOD_BLUR || cntIsMatch) {
-        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded PerfRequest, preBlurCnt[%d] blurCnt[%ld]", preBlurCnt, blurCnt);
+        RS_OPTIONAL_TRACE_NAME_FMT("PerfForBlurIfNeeded PerfRequest, preBlurCnt[%d] blurCnt[%d]", preBlurCnt, blurCnt);
         PerfRequest(BLUR_CNT_TO_BLUR_CODE.at(blurCnt), true);
         prePerfTimestamp = timestamp_;
         preBlurCnt = blurCnt;

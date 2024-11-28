@@ -787,6 +787,7 @@ public:
         curDisplayOffsetY_ = offsetY;
     }
 
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {

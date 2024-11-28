@@ -122,7 +122,7 @@ public:
 
     void SetGpuCacheSuppressWindowSwitch(bool enabled) override;
 
-    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) override;
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority) override;
 
     void FlushGpuMemoryInWaitQueue() override;
     

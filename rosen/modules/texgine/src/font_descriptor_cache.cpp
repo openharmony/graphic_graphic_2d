@@ -122,7 +122,7 @@ std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
     std::unordered_set<std::string> fullNameList;
     std::vector<std::string> fontPathList;
     if (!ParserInstallFontsPathList(fontPathList)) {
-        TEXT_LOGE("Parser install fonts path list failed");
+        TEXT_LOGE("Failed to parser install fonts path list");
         return fullNameList;
     }
     for (const auto& path : fontPathList) {
@@ -203,7 +203,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
 {
     std::vector<std::string> fontPathList;
     if (!ParserInstallFontsPathList(fontPathList)) {
-        TEXT_LOGE("Parser install fonts path list failed");
+        TEXT_LOGE("Failed to parser install fonts path list");
         return false;
     }
     for (const auto& path : fontPathList) {
@@ -216,7 +216,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
             }
         }
     }
-    TEXT_LOGE_LIMIT3_MIN("Parser installed fontDescriptor by name failed, fullName: %{public}s", fullName.c_str());
+    TEXT_LOGE_LIMIT3_MIN("Failed to parser installed fontDescriptor by name, fullName: %{public}s", fullName.c_str());
     return false;
 }
 
@@ -507,7 +507,7 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
     // Obtain weight ranges for non-whole hundred values
     auto it = std::lower_bound(weightType.begin(), weightType.end(), weight);
     std::vector<int> targetRange = { *(it - 1), *it };
-    
+
     /**
      * When the font weight is less than NORMAL_WEIGHT, round down as much as possible;
      * when the font weight exceeds NORMAL_WEIGHT, round up where possible. For example, when weight is 360,

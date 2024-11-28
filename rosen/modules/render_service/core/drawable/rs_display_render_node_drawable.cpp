@@ -1249,6 +1249,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
         auto screenInfo = mirrorParams->GetScreenInfo();
         uniParam->SetScreenInfo(screenInfo);
         Drawing::Rect rect(0, 0, screenInfo.width, screenInfo.height);
+        RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
         curCanvas_->ClipRect(rect, Drawing::ClipOp::INTERSECT, false);
         curCanvas_->ConcatMatrix(mirrorParams->GetMatrix());
         RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
@@ -1256,6 +1257,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
         DrawCurtainScreen();
         DrawWatermarkIfNeed(*mirrorParams, *curCanvas_);
         SwitchColorFilter(*curCanvas_, 1.f); // 1.f: wired screen not use hdr, use default value 1.f
+        RSUniRenderThread::ResetCaptureParam();
     }
     uniParam->SetOpDropped(isOpDropped);
 }
@@ -1407,8 +1409,15 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     Drawing::AutoCanvasRestore acr(canvas, true);
 
+    bool noBuffer = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
+        GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr;
+    if (noBuffer) {
+        RS_LOGW("RSDisplayRenderNodeDrawable::OnCapture: buffer is null!");
+    }
+
     specialLayerType_ = GetSpecialLayerType(*params);
-    if (specialLayerType_ != NO_SPECIAL_LAYER || UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
+    if (specialLayerType_ != NO_SPECIAL_LAYER || UNLIKELY(noBuffer) ||
+        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
         RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
             process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->GetId());
@@ -1438,11 +1447,6 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
     }
 
     FindHardwareEnabledNodes(params);
-
-    if (GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: buffer is null!");
-        return;
-    }
 
     uint32_t hwcNodesNum = static_cast<uint32_t>(params.GetHardwareEnabledDrawables().size());
     uint32_t hwcTopNodesNum = static_cast<uint32_t>(params.GetHardwareEnabledTopDrawables().size());
@@ -1474,8 +1478,9 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
 
 void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canvas)
 {
-    if (!renderParams_) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes params is null!");
+    bool noBuffer = (GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr);
+    if (!renderParams_ || noBuffer) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes params or buffer is null!");
         return;
     }
 

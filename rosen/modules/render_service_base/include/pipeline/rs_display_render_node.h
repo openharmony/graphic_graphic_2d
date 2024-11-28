@@ -76,6 +76,8 @@ public:
         if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
             releaseScreenDmaBufferTask_(screenId_);
         }
+        RS_LOGW("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
+            "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
         screenId_ = screenId;
     }
 

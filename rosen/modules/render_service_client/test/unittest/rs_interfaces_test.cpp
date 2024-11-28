@@ -1392,6 +1392,22 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
 }
 
 /*
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    FrameRateLinkerExpectedFpsUpdateCallback cb = [&](uint32_t pid, int32_t fps){};
+    int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
+    ASSERT_EQ(ret, 0);
+    ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, nullptr);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterSurfaceOcclusionChangeCallback001
  * @tc.desc: RegisterOcclusionChangeCallback interface test.
  * @tc.type: FUNC

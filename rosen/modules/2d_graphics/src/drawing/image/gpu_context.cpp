@@ -213,9 +213,9 @@ void GPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
     impl_->SetGpuCacheSuppressWindowSwitch(enabled);
 }
 
-void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+void GPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
 {
-    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+    impl_->SetGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 }
 
 void GPUContext::FlushGpuMemoryInWaitQueue()
