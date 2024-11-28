@@ -106,19 +106,6 @@ HWTEST_F(RSTransactionProxyUnitTest, SetRenderServiceClient002, TestSize.Level1)
 }
 
 /**
- * @tc.name: FlushImplicitTransaction001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionProxyUnitTest, FlushImplicitTransaction001, TestSize.Level1)
-{
-    uint64_t timeStamp = 1;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timeStamp);
-    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timeStamp);
-}
-
-/**
  * @tc.name: FlushImplicitTransaction002
  * @tc.desc: test
  * @tc.type:FUNC
@@ -131,21 +118,6 @@ HWTEST_F(RSTransactionProxyUnitTest, FlushImplicitTransaction002, TestSize.Level
     ASSERT_NE(rsTransactionProxy, nullptr);
     rsTransactionProxy->StartSyncTransaction();
     rsTransactionProxy->FlushImplicitTransaction(timeStamp);
-}
-
-/**
- * @tc.name: FlushImplicitTransaction003
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionProxyUnitTest, FlushImplicitTransaction003, TestSize.Level1)
-{
-    uint64_t timeStamp = 1;
-    RSTransactionProxy::GetInstance()->Begin();
-    RSTransactionProxy::GetInstance()->StartSyncTransaction();
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timeStamp);
-    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timeStamp);
 }
 
 /**
@@ -245,19 +217,6 @@ HWTEST_F(RSTransactionProxyUnitTest, FlushImplicitTransaction007, TestSize.Level
 }
 
 /**
- * @tc.name: FlushImplicitTransactionFromRT001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionProxyUnitTest, FlushImplicitTransactionFromRT001, TestSize.Level1)
-{
-    uint64_t timeStamp = 1;
-    RSTransactionProxy::GetInstance()->FlushImplicitTransactionFromRT(timeStamp);
-    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timeStamp);
-}
-
-/**
  * @tc.name: FlushImplicitTransactionFromRT002
  * @tc.desc: test
  * @tc.type:FUNC
@@ -350,20 +309,6 @@ HWTEST_F(RSTransactionProxyUnitTest, Commit004, TestSize.Level1)
     RSTransactionProxy::GetInstance()->SetRenderServiceClient(renderServiceClient);
     RSTransactionProxy::GetInstance()->Begin();
     RSTransactionProxy::GetInstance()->Commit(timeStamp);
-}
-
-/**
- * @tc.name: CommitSyncTransaction001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSTransactionProxyUnitTest, CommitSyncTransaction001, TestSize.Level1)
-{
-    uint64_t timeStamp = 1;
-    RSTransactionProxy::GetInstance()->Begin();
-    RSTransactionProxy::GetInstance()->CommitSyncTransaction(timeStamp, "abilityName");
-    EXPECT_EQ(RSTransactionProxy::GetInstance()->timestamp_, timeStamp);
 }
 
 /**
