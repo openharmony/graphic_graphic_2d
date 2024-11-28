@@ -1582,6 +1582,31 @@ bool DoCreatePixelMapFromSurface(const uint8_t* data, size_t size)
     rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
+
+bool DoNotifyTouchEvent()
+{
+    uint32_t touchStatus = GetData<uint32_t>();
+    uint32_t touchCnt = GetData<uint32_t>();
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteUint32(touchStatus)) {
+        return false;
+    }
+    if (!dataP.WriteUint32(touchCnt)) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -1637,5 +1662,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetCacheEnabledForRotation();
     OHOS::Rosen::DoSetVirtualScreenUsingStatus();
     OHOS::Rosen::DoCreatePixelMapFromSurface(data, size);
+    OHOS::Rosen::DoNotifyTouchEvent();
     return 0;
 }
