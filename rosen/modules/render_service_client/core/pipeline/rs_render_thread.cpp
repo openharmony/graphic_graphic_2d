@@ -180,14 +180,6 @@ RSRenderThread::RSRenderThread()
             return false;
         },
     });
-    RSSurfaceBufferCallbackManager::Instance().SetRenderContextFuncs({
-        .getRootNodeIdForRT = [this]() {
-            if (visitor_) {
-                return visitor_->GetActiveSubtreeRootId();
-            }
-            return INVALID_NODEID;
-        }
-    });
 }
 
 RSRenderThread::~RSRenderThread()
