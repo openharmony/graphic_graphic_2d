@@ -927,7 +927,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest040, TestSize.Level
         size_t fontNum;
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_NE(list, nullptr);
-        const char* name = "OS Sans Digit";
+        const char* name = list[0];
         EXPECT_NE(OH_Drawing_FontParserGetFontByName(parser, name), nullptr);
         OH_Drawing_DestroySystemFontList(list, fontNum);
     }
@@ -2380,7 +2380,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest102, TestSize.Level
         char** list = OH_Drawing_FontParserGetSystemFontList(parser, &fontNum);
         EXPECT_NE(list, nullptr);
         EXPECT_EQ(OH_Drawing_FontParserGetSystemFontList(nullptr, &fontNum), nullptr);
-        const char* name = "HarmonyOS Sans Digit";
+        const char* name = list[0] ;
         EXPECT_NE(OH_Drawing_FontParserGetFontByName(parser, name), nullptr);
         EXPECT_EQ(OH_Drawing_FontParserGetFontByName(nullptr, name), nullptr);
         OH_Drawing_DestroySystemFontList(list, fontNum);

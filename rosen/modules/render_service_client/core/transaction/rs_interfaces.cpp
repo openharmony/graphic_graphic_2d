@@ -507,9 +507,10 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     const std::string& name,
     uint64_t id,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
-    NodeId windowNodeId)
+    NodeId windowNodeId,
+    bool fromXcomponent)
 {
-    return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId);
+    return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId, fromXcomponent);
 }
 
 std::shared_ptr<Media::PixelMap> RSInterfaces::CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect)
@@ -621,6 +622,21 @@ int32_t RSInterfaces::RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateU
 int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
 {
     return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
+}
+
+int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+    const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback callback == nullptr.");
+        return INVALID_ARGUMENTS;
+    }
+    return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+}
+
+int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid)
+{
+    return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
 }
 
 void RSInterfaces::SetAppWindowNum(uint32_t num)
@@ -780,6 +796,15 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
+void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    if (pidList.empty()) {
+        return;
+    }
+    RS_TRACE_NAME("DropFrameByPid");
+    renderServiceClient_->DropFrameByPid(pidList);
+}
+
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
@@ -808,11 +833,14 @@ bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         return false;
     }
     RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
-        new (std::nothrow) RSDefaultSurfaceBufferCallback (
-            [callback](uint64_t uid, const std::vector<uint32_t>& bufferIds) {
-                callback->OnFinish(uid, bufferIds);
-            }
-        )
+        new (std::nothrow) RSDefaultSurfaceBufferCallback ({
+            .OnFinish = [callback](const FinishCallbackRet& ret) {
+                callback->OnFinish(ret);
+            },
+            .OnAfterAcquireBuffer = [callback](const AfterAcquireBufferRet& ret) {
+                callback->OnAfterAcquireBuffer(ret);
+            },
+        })
     );
     return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }

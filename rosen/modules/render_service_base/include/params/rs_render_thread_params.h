@@ -19,9 +19,11 @@
 #include <memory>
 #include <vector>
 #include "common/rs_occlusion_region.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
 struct CaptureParam {
@@ -50,6 +52,9 @@ struct HardCursorInfo {
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
+    using DrawablesVec = std::vector<std::pair<NodeId,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
 
@@ -118,6 +123,11 @@ public:
         isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
     }
 
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffscreenDebugEnabled() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+
     bool GetUIFirstDebugEnabled() const
     {
         return isUIFirstDebugEnable_;
@@ -178,7 +188,7 @@ public:
         return selfDrawables_;
     }
 
-    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
+    const DrawablesVec& GetHardwareEnabledTypeDrawables() const
     {
         return hardwareEnabledTypeDrawables_;
     }
@@ -414,6 +424,25 @@ public:
         return isDrawingCacheDfxEnabled_;
     }
 
+    const ScreenInfo& GetScreenInfo() const
+    {
+        return screenInfo_;
+    }
+
+    void SetScreenInfo(const ScreenInfo& info)
+    {
+        screenInfo_ = info;
+    }
+
+    RSDisplayRenderNode::CompositeType GetCompositeType() const
+    {
+        return compositeType_;
+    }
+
+    void SetCompositeType(RSDisplayRenderNode::CompositeType type)
+    {
+        compositeType_ = type;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -437,6 +466,7 @@ private:
     bool isAllSurfaceVisibleDebugEnabled_ = false;
     bool isOpDropped_ = false;
     bool isOcclusionEnabled_ = false;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     bool isUIFirstDebugEnable_ = false;
     bool isUIFirstCurrentFrameCanSkipFirstWait_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
@@ -447,7 +477,7 @@ private:
     bool isScreenSwitching_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    DrawablesVec hardwareEnabledTypeDrawables_;
     HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
@@ -467,12 +497,14 @@ private:
     bool isUniRenderAndOnVsync_ = false;
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
+    RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
     bool isSecurityExemption_ = false;
+    ScreenInfo screenInfo_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

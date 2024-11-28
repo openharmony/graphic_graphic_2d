@@ -45,23 +45,30 @@ public:
     static void ClearChildren(RSContext& context, NodeId nodeId);
 };
 
-ADD_COMMAND(RSBaseNodeDestroy, ARG(BASE_NODE, BASE_NODE_DESTROY, BaseNodeCommandHelper::Destroy, NodeId))
-ADD_COMMAND(
-    RSBaseNodeAddChild, ARG(BASE_NODE, BASE_NODE_ADD_CHILD, BaseNodeCommandHelper::AddChild, NodeId, NodeId, int32_t))
+ADD_COMMAND(RSBaseNodeDestroy,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_DESTROY,
+        BaseNodeCommandHelper::Destroy, NodeId))
+ADD_COMMAND(RSBaseNodeAddChild,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_ADD_CHILD,
+        BaseNodeCommandHelper::AddChild, NodeId, NodeId, int32_t))
 ADD_COMMAND(RSBaseNodeMoveChild,
-    ARG(BASE_NODE, BASE_NODE_MOVE_CHILD, BaseNodeCommandHelper::MoveChild, NodeId, NodeId, int32_t))
-ADD_COMMAND(
-    RSBaseNodeRemoveChild, ARG(BASE_NODE, BASE_NODE_REMOVE_CHILD, BaseNodeCommandHelper::RemoveChild, NodeId, NodeId))
-ADD_COMMAND(
-    RSBaseNodeAddCrossParentChild, ARG(BASE_NODE, BASE_NODE_ADD_CROSS_PARENT_CHILD,
-    BaseNodeCommandHelper::AddCrossParentChild, NodeId, NodeId, int32_t))
-ADD_COMMAND(
-    RSBaseNodeRemoveCrossParentChild, ARG(BASE_NODE, BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
-    BaseNodeCommandHelper::RemoveCrossParentChild, NodeId, NodeId, NodeId))
-ADD_COMMAND(
-    RSBaseNodeRemoveFromTree, ARG(BASE_NODE, BASE_NODE_REMOVE_FROM_TREE, BaseNodeCommandHelper::RemoveFromTree, NodeId))
-ADD_COMMAND(
-    RSBaseNodeClearChild, ARG(BASE_NODE, BASE_NODE_CLEAR_CHILDREN, BaseNodeCommandHelper::ClearChildren, NodeId))
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_MOVE_CHILD,
+        BaseNodeCommandHelper::MoveChild, NodeId, NodeId, int32_t))
+ADD_COMMAND(RSBaseNodeRemoveChild,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_REMOVE_CHILD,
+        BaseNodeCommandHelper::RemoveChild, NodeId, NodeId))
+ADD_COMMAND(RSBaseNodeAddCrossParentChild,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_ADD_CROSS_PARENT_CHILD,
+        BaseNodeCommandHelper::AddCrossParentChild, NodeId, NodeId, int32_t))
+ADD_COMMAND(RSBaseNodeRemoveCrossParentChild,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
+        BaseNodeCommandHelper::RemoveCrossParentChild, NodeId, NodeId, NodeId))
+ADD_COMMAND(RSBaseNodeRemoveFromTree,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_REMOVE_FROM_TREE,
+        BaseNodeCommandHelper::RemoveFromTree, NodeId))
+ADD_COMMAND(RSBaseNodeClearChild,
+    ARG(NO_INTERCEPTION, BASE_NODE, BASE_NODE_CLEAR_CHILDREN,
+        BaseNodeCommandHelper::ClearChildren, NodeId))
 } // namespace Rosen
 } // namespace OHOS
 

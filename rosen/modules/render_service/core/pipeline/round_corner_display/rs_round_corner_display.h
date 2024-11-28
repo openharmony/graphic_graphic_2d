@@ -161,9 +161,13 @@ private:
     Drawing::Bitmap bitmapTopLadsOrit_;
     Drawing::Bitmap bitmapTopHidden_;
     Drawing::Bitmap bitmapBottomPortrait_;
-    // display resolution
+    // current display resolution
     uint32_t displayWidth_ = 0;
     uint32_t displayHeight_ = 0;
+
+    // last time rcv display resolution and notchState
+    uint32_t lastRcvDisplayWidth_ = 0;
+    uint32_t lastRcvDisplayHeight_ = 0;
 
     // status of the notch
     int notchStatus_ = WINDOW_NOTCH_DEFAULT;
@@ -222,6 +226,11 @@ private:
     void RcdChooseRSResource();
 
     void RcdChooseHardwareResource();
+
+    void PrintRCDInfo();
+
+    // Check if the input resolution changes
+    bool CheckResolutionChanged(uint32_t width, uint32_t height);
 };
 } // namespace Rosen
 } // namespace OHOS

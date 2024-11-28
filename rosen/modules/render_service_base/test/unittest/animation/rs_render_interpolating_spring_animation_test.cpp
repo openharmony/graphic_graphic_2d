@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -77,7 +77,6 @@ void RSRenderInterpolatingSpringAnimationTest::TearDown() {}
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest Marshalling001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
     auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
@@ -91,7 +90,130 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling001, TestSize.Leve
     renderInterpolatingSpringAnimation->Marshalling(parcel);
     renderInterpolatingSpringAnimation->Start();
     EXPECT_TRUE(renderInterpolatingSpringAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest Marshalling001 end";
+}
+
+/**
+ * @tc.name: Marshalling002
+ * @tc.desc: Verify the Marshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+
+    Parcel parcel;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: Marshalling003
+ * @tc.desc: Verify the Marshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::INVALID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+
+    Parcel parcel;
+    renderInterpolatingSpringAnimation->isAdditive_ = true;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: Marshalling004
+ * @tc.desc: Verify the Marshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::INVALID);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+
+    Parcel parcel;
+    renderInterpolatingSpringAnimation->isAdditive_ = false;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: Marshalling005
+ * @tc.desc: Verify the Marshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling005, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::INVALID);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+
+    Parcel parcel;
+    renderInterpolatingSpringAnimation->isAdditive_ = true;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: Marshalling006
+ * @tc.desc: Verify the Marshalling
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling006, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::INVALID);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+
+    Parcel parcel;
+    renderInterpolatingSpringAnimation->isAdditive_ = true;
+    auto result = renderInterpolatingSpringAnimation->Marshalling(parcel);
+    EXPECT_FALSE(result);
 }
 
 /**
@@ -101,7 +223,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Marshalling001, TestSize.Leve
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest Unmarshalling001 start";
 
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
@@ -121,7 +242,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Le
     renderInterpolatingSpringAnimation->Marshalling(parcel);
     renderAnimation = RSRenderInterpolatingSpringAnimation::Unmarshalling(parcel);
     EXPECT_TRUE(renderAnimation != nullptr);
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest Unmarshalling001 end";
 }
 
 /**
@@ -131,7 +251,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, Unmarshalling001, TestSize.Le
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetFraction001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest SetFraction001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -167,7 +286,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetFraction001, TestSize.Leve
 
     auto velocity = renderInterpolatingSpringAnimation->CalculateVelocity(0.0);
     EXPECT_TRUE(velocity == nullptr);
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest SetFraction001 end";
 }
 
 /**
@@ -177,7 +295,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetFraction001, TestSize.Leve
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnInitialize001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest OnInitialize001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -191,7 +308,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnInitialize001, TestSize.Lev
     renderInterpolatingSpringAnimation->OnInitialize(100);
     renderInterpolatingSpringAnimation->Start();
     EXPECT_TRUE(renderInterpolatingSpringAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest OnInitialize001 end";
 }
 
 /**
@@ -201,7 +317,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnInitialize001, TestSize.Lev
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest SetZeroThreshold001 start";
     auto property =
         std::make_shared<RSRenderAnimatableProperty<float>>(0.0f, PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 =
@@ -211,9 +326,14 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize
 
     auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
         ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = true;
     renderInterpolatingSpringAnimation->SetZeroThreshold(-0.5f);
+    EXPECT_FALSE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = false;
     renderInterpolatingSpringAnimation->SetZeroThreshold(0.5f);
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest SetZeroThreshold001 end";
+    EXPECT_TRUE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
 }
 
 /**
@@ -223,7 +343,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, SetZeroThreshold001, TestSize
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest UpdateFractionAfterContinue001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -239,7 +358,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue00
     renderInterpolatingSpringAnimation->OnSetFraction(0.0f);
     renderInterpolatingSpringAnimation->UpdateFractionAfterContinue();
     renderInterpolatingSpringAnimation->OnAnimate(1.0f);
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest UpdateFractionAfterContinue001 end";
 }
 
 /**
@@ -249,7 +367,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue00
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue002, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest UpdateFractionAfterContinue002 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -271,7 +388,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue00
     renderInterpolatingSpringAnimation->OnAnimate(0.5f);
     renderInterpolatingSpringAnimation->Start();
     EXPECT_TRUE(renderInterpolatingSpringAnimation->IsRunning());
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest UpdateFractionAfterContinue002 end";
 }
 
 /**
@@ -281,7 +397,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, UpdateFractionAfterContinue00
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -298,7 +413,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction001, Tes
     EXPECT_NE(renderInterpolatingSpringAnimation->CalculateTimeFraction(0.0f), 1.0f);
     EXPECT_NE(renderInterpolatingSpringAnimation->CalculateTimeFraction(0.5f), 1.0f);
     EXPECT_NE(renderInterpolatingSpringAnimation->CalculateTimeFraction(1.0f), 1.0f);
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction001 end";
 }
 
 /**
@@ -308,7 +422,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction001, Tes
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction002, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction002 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -323,7 +436,29 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction002, Tes
     renderInterpolatingSpringAnimation->SetDuration(0);
     float fraction = renderInterpolatingSpringAnimation->CalculateTimeFraction(1.0f);
     EXPECT_EQ(fraction, 0.0f);
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateTimeFraction002 end";
+}
+
+/**
+ * @tc.name: CalculateTimeFraction003
+ * @tc.desc: Verify the CalculateTimeFraction
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimationMock>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+
+    renderInterpolatingSpringAnimation->SetDuration(1);
+    float fraction = renderInterpolatingSpringAnimation->CalculateTimeFraction(1000.0f);
+    EXPECT_EQ(fraction, 0.0f);
 }
 
 /**
@@ -333,7 +468,6 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateTimeFraction002, Tes
  */
 HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateVelocity001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateVelocity001 start";
     auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
         PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
     auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
@@ -351,7 +485,155 @@ HWTEST_F(RSRenderInterpolatingSpringAnimationTest, CalculateVelocity001, TestSiz
     auto velocity = renderInterpolatingSpringAnimation->CalculateVelocity(0.0);
     EXPECT_TRUE(velocity != nullptr);
     renderInterpolatingSpringAnimation->CallLogicallyFinishCallback();
-    GTEST_LOG_(INFO) << "RSRenderInterpolatingSpringAnimationTest CalculateVelocity001 end";
+}
+
+/**
+ * @tc.name: DumpAnimationInfo001
+ * @tc.desc: Test case for property is not null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, DumpAnimationInfo001, TestSize.Level1)
+{
+    RSRenderInterpolatingSpringAnimation animation;
+    auto property = std::make_shared<RSRenderPropertyBase>();
+    animation.property_ = property;
+    std::string out;
+    animation.DumpAnimationInfo(out);
+    EXPECT_EQ(out, "Type:RSRenderInterpolatingSpringAnimation, ModifierType: 0, StartValue: , EndValue: ");
+}
+
+/**
+ * @tc.name: DumpAnimationInfo002
+ * @tc.desc: Test case for property is null
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, DumpAnimationInfo002, TestSize.Level1)
+{
+    RSRenderInterpolatingSpringAnimation animation;
+    animation.property_ = nullptr;
+    std::string out;
+    animation.DumpAnimationInfo(out);
+    EXPECT_EQ(out, "Type:RSRenderInterpolatingSpringAnimation, ModifierType: INVALID, StartValue: , EndValue: ");
+}
+
+/**
+ * @tc.name: OnAnimate001
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+    renderInterpolatingSpringAnimation->AttachRenderProperty(property);
+    renderInterpolatingSpringAnimation->OnSetFraction(0.0f);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    renderInterpolatingSpringAnimation->valueEstimator_ = nullptr;
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderInterpolatingSpringAnimation->animationFraction_.repeatCount_ = 1;
+    renderInterpolatingSpringAnimation->animationFraction_.currentRepeatCount_ = 0;
+    renderInterpolatingSpringAnimation->OnAnimate(0.1f);
+
+    EXPECT_TRUE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
+}
+
+/**
+ * @tc.name: OnAnimate002
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate002, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+    renderInterpolatingSpringAnimation->AttachRenderProperty(property);
+    renderInterpolatingSpringAnimation->OnSetFraction(0.0f);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    renderInterpolatingSpringAnimation->InitValueEstimator();
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderInterpolatingSpringAnimation->animationFraction_.repeatCount_ = 1;
+    renderInterpolatingSpringAnimation->animationFraction_.currentRepeatCount_ = 0;
+    renderInterpolatingSpringAnimation->OnAnimate(1.0f);
+
+    EXPECT_TRUE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
+}
+
+/**
+ * @tc.name: OnAnimate003
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate003, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+    renderInterpolatingSpringAnimation->AttachRenderProperty(property);
+    renderInterpolatingSpringAnimation->OnSetFraction(0.0f);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    renderInterpolatingSpringAnimation->InitValueEstimator();
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderInterpolatingSpringAnimation->animationFraction_.repeatCount_ = 1;
+    renderInterpolatingSpringAnimation->animationFraction_.currentRepeatCount_ = 1;
+    renderInterpolatingSpringAnimation->OnAnimate(0.1f);
+
+    EXPECT_TRUE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
+}
+
+/**
+ * @tc.name: OnAnimate004
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderInterpolatingSpringAnimationTest, OnAnimate004, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f,
+        PROPERTY_ID, RSRenderPropertyType::PROPERTY_FLOAT);
+
+    auto renderInterpolatingSpringAnimation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+        ANIMATION_ID, PROPERTY_ID, property, property1, property2);
+    EXPECT_TRUE(renderInterpolatingSpringAnimation != nullptr);
+    renderInterpolatingSpringAnimation->AttachRenderProperty(property);
+    renderInterpolatingSpringAnimation->OnSetFraction(0.0f);
+    renderInterpolatingSpringAnimation->SetSpringParameters(1.0f, 1.0f, 1000);
+    renderInterpolatingSpringAnimation->InitValueEstimator();
+
+    renderInterpolatingSpringAnimation->needLogicallyFinishCallback_ = true;
+    renderInterpolatingSpringAnimation->animationFraction_.repeatCount_ = 1;
+    renderInterpolatingSpringAnimation->animationFraction_.currentRepeatCount_ = 0;
+    renderInterpolatingSpringAnimation->OnAnimate(0.1f);
+
+    EXPECT_FALSE(renderInterpolatingSpringAnimation->needLogicallyFinishCallback_);
 }
 } // namespace Rosen
 } // namespace OHOS

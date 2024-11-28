@@ -49,7 +49,13 @@ HWTEST_F(RSSurfaceBufferCallbackProxyTest, OnFinish001, TestSize.Level1)
     ASSERT_TRUE(remoteMocker != nullptr);
     auto rsSurfaceBufferCallbackProxy = std::make_shared<RSSurfaceBufferCallbackProxy>(remoteMocker);
     ASSERT_TRUE(rsSurfaceBufferCallbackProxy != nullptr);
-    rsSurfaceBufferCallbackProxy->OnFinish(0, { 1, 2, 3 });
+    rsSurfaceBufferCallbackProxy->OnFinish({
+        .uid = 0,
+        .surfaceBufferIds = { 1 },
+        .isRenderedFlags = { 1 },
+        .isUniRender = true,
+        .releaseFences = { SyncFence::INVALID_FENCE },
+    });
     ASSERT_EQ(remoteMocker->receivedCode_, static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH));
 }
 
@@ -66,7 +72,13 @@ HWTEST_F(RSSurfaceBufferCallbackProxyTest, OnFinish002, TestSize.Level1)
     remoteMocker->sendRequestResult_ = 1;
     auto rsSurfaceBufferCallbackProxy = std::make_shared<RSSurfaceBufferCallbackProxy>(remoteMocker);
     ASSERT_TRUE(rsSurfaceBufferCallbackProxy != nullptr);
-    rsSurfaceBufferCallbackProxy->OnFinish(0, { 1, 2, 3 });
+    rsSurfaceBufferCallbackProxy->OnFinish({
+        .uid = 0,
+        .surfaceBufferIds = { 1 },
+        .isRenderedFlags = { true },
+        .isUniRender = true,
+        .releaseFences = { SyncFence::INVALID_FENCE },
+    });
     ASSERT_EQ(remoteMocker->receivedCode_, static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH));
 }
 } // namespace Rosen

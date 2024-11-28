@@ -294,8 +294,10 @@ std::shared_ptr<Drawing::Image> RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage
             YUVPixelFormatToSubSampling(imageInfo.pixelFormat),
             YUVPixelFormatToYUVColorSpace(imageInfo.pixelFormat),
             YUVPixelFormatToYUVDataType(imageInfo.pixelFormat));
+#ifdef RS_ENABLE_GPU
         return Drawing::Image::MakeFromYUVAPixmaps(*gpuContext, info,
             const_cast<void *>(reinterpret_cast<const void*>(pixelMap->GetPixels())));
+#endif
     }
     return nullptr;
 }

@@ -36,7 +36,7 @@ struct ImageCacheSeq {
     EGLSyncKHR eglSync_;
 };
 
-static constexpr int64_t TRANSFORM_MATRIX_ELE_COUNT = 16;
+static constexpr uint32_t TRANSFORM_MATRIX_ELE_COUNT = 16;
 typedef void (*OnBufferAvailableListener)(void *context);
 
 class SurfaceImage : public ConsumerSurface {
@@ -71,6 +71,7 @@ public:
 
     SurfaceError GetTransformMatrix(float matrix[16]);
     SurfaceError GetTransformMatrixV2(float matrix[16]);
+    SurfaceError GetBufferMatrix(float matrix[16]);
     SurfaceError SetOnBufferAvailableListener(void *context, OnBufferAvailableListener listener);
     SurfaceError UnsetOnBufferAvailableListener();
     OnBufferAvailableListener listener_ = nullptr;
@@ -106,10 +107,10 @@ private:
     uint32_t currentSurfaceImage_ = UINT_MAX;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int64_t currentTimeStamp_;
-    Rect currentCrop_ = {};
     GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
+    float currentBufferMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     uint64_t uniqueId_ = 0;
 };
 

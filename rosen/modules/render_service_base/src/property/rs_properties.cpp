@@ -4283,7 +4283,8 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
-                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_;
+                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
+                  mask_;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4430,11 +4431,13 @@ bool RSProperties::GetHaveEffectRegion() const
 
 void RSProperties::SetHaveEffectRegion(bool haveEffectRegion)
 {
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     // clear cache if new region is null or outside current region
     if (auto& manager = GetFilterCacheManager(false);
         manager && manager->IsCacheValid() && haveEffectRegion == false) {
         manager->UpdateCacheStateWithFilterRegion();
     }
+#endif
     haveEffectRegion_ = haveEffectRegion;
 }
 } // namespace Rosen

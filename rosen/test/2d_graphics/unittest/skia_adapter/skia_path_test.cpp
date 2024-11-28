@@ -84,6 +84,24 @@ HWTEST_F(SkiaPathTest, SkiaPath001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkiaPathTestGetFillStyle001
+ * @tc.desc: Test SkiaPath's GetFillStyle
+ * @tc.type: FUNC
+ * @tc.require: IB742Z
+ */
+HWTEST_F(SkiaPathTest, SkiaPathTestGetFillStyle001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    skiaPath.MoveTo(0, 0);
+    skiaPath.LineTo(100, 100); // 100: x, y
+    skiaPath.LineTo(100, 0); // 100: x
+    skiaPath.SetFillStyle(PathFillType::WINDING);
+    EXPECT_TRUE(skiaPath.GetFillStyle() == PathFillType::WINDING);
+    skiaPath.SetFillStyle(PathFillType::INVERSE_WINDING);
+    EXPECT_TRUE(skiaPath.GetFillStyle() == PathFillType::INVERSE_WINDING);
+}
+
+/**
  * @tc.name: RArcTo001
  * @tc.desc: Test RArcTo
  * @tc.type: FUNC

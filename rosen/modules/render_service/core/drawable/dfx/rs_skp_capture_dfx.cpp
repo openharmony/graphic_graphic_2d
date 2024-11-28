@@ -49,11 +49,13 @@ void RSSkpCaptureDfx::TryCapture() const
 
 void RSSkpCaptureDfx::EndCapture() const
 {
+#ifdef RS_ENABLE_GPU
     auto renderContext = RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext();
     if (!renderContext) {
         RS_LOGE("EndCapture renderContext is nullptr");
         return;
     }
+#endif
 #ifdef RS_PROFILER_ENABLED
     RSCaptureRecorder::GetInstance().EndInstantCapture();
 #endif

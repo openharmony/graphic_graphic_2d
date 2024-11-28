@@ -173,6 +173,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY, // ENV_FOREGROUND_COLOR_STRATEGY
     RSDrawableSlot::INVALID,                       // GEOMETRYTRANS
     RSDrawableSlot::CUSTOM_CLIP_TO_FRAME,          // CUSTOM_CLIP_TO_FRAME,
+    RSDrawableSlot::INVALID,                       // HDR_BRIGHTNESS
     RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_RADIUS
     RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_SATURATION
     RSDrawableSlot::BACKGROUND_FILTER,             // BEHIND_WINDOW_FILTER_BRIGHTNESS

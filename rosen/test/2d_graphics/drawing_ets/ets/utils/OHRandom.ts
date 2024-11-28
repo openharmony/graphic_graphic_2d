@@ -16,19 +16,25 @@
 import common2D from '@ohos.graphics.common2D';
 import drawing from '@ohos.graphics.drawing';
 import ArrayList from '@ohos.util.ArrayList';
+
 const TAG = '[OHRandom]';
 const KKMUL = 30345;
 const KjMUL = 18000;
 const KADD = 1013904223;
-export const W = 640;
-export const H = 480;
-export const N = 300;
-const OFFSET = 1.0 / 3;
-export class OHRandom {
-  private fk:number = 0;
-  private fj:number = 0;
 
-  public constructor(seed ?: number ) {
+export const W = 640;
+
+export const H = 480;
+
+export const N = 300;
+
+const OFFSET = 1.0 / 3;
+
+export class OHRandom {
+  private fk: number = 0;
+  private fj: number = 0;
+
+  public constructor(seed ?: number) {
     console.log(TAG, 'create TestBase seed is:' + seed);
     if (seed !== undefined) {
       this.init(seed);
@@ -38,7 +44,7 @@ export class OHRandom {
     console.log(TAG, 'create TestBase');
   }
 
-  public init(seed : number) {
+  public init(seed: number) {
     this.fk = KKMUL * seed + KADD;
     if (this.fk === 0) {
       this.fk = KKMUL * this.fk + KADD;
@@ -49,7 +55,7 @@ export class OHRandom {
     }
   }
 
-  public SetXYWH(canvasRect: common2D.Rect, x: number, y:number, width: number, height: number) {
+  public SetXYWH(canvasRect: common2D.Rect, x: number, y: number, width: number, height: number) {
     canvasRect.left = x;
     canvasRect.top = y;
     canvasRect.right = x + width;
@@ -69,20 +75,30 @@ export class OHRandom {
     return (((this.fk << 16) | (this.fk >> 16)) + this.fj);
   }
 
-  public setColorAndRect(paintColors : ArrayList<common2D.Color>, canvasRects : ArrayList<common2D.Rect>,
-                         shiftValue: number) {
+  public setColorAndRect(paintColors: ArrayList<common2D.Color>, canvasRects: ArrayList<common2D.Rect>,
+    shiftValue: number) {
     for (let i = 0; i < N; i++) {
-      let canvasRect: common2D.Rect = {left: 0, top: 0, right: 0, bottom: 0};
-      let paintColor: common2D.Color = {alpha : 0, red: 0, green : 0, blue : 0};
+      let canvasRect: common2D.Rect = {
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0
+      };
+      let paintColor: common2D.Color = {
+        alpha: 0,
+        red: 0,
+        green: 0,
+        blue: 0
+      };
       let x: number = this.nextU() % W;
       let y: number = this.nextU() % H;
       let w: number = this.nextU() % W;
       let h: number = this.nextU() % H;
       w >>= shiftValue;
       h >>= shiftValue;
-      x -= w/2;
-      y -= h/2;
-      this.SetXYWH(canvasRect, x, y, w,h);
+      x -= w / 2;
+      y -= h / 2;
+      this.SetXYWH(canvasRect, x, y, w, h);
       this.offset(canvasRect, OFFSET, OFFSET);
       canvasRects.add(canvasRect);
       paintColor.alpha = this.nextU() | 0xFF;
@@ -114,11 +130,16 @@ export class OHRandom {
   }
 
   public nextULessThan(count: number) {
-    return this.nextRangeU(0, count -1)
+    return this.nextRangeU(0, count - 1)
   }
 
   public nextRangeF(min: number, max: number): number {
     return this.nextUScalar1() * (max - min) + min;
   }
 
+  static GetRandomNum(Min, Max): number {
+    var Range = Max - Min;
+    var Rand = Math.random();
+    return (Min + Math.round(Rand * Range));
+  }
 }

@@ -362,7 +362,6 @@ void RSScreenManager::OnRefresh(ScreenId id, void *data)
 {
     RSScreenManager *screenManager = nullptr;
     if (data != nullptr) {
-        RS_LOGI("RSScreenManager %{public}s: data is not nullptr.", __func__);
         screenManager = static_cast<RSScreenManager *>(data);
     } else {
         RS_LOGI("RSScreenManager %{public}s: data is nullptr.", __func__);
@@ -411,7 +410,9 @@ void RSScreenManager::OnHwcDeadEvent()
             if (screen->IsVirtual()) {
                 continue;
             } else {
+#ifdef RS_ENABLE_GPU
                 RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
+#endif
             }
         }
     }
@@ -422,6 +423,7 @@ void RSScreenManager::OnHwcDeadEvent()
 
 void RSScreenManager::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data)
 {
+    CreateVSyncSampler()->StartSample(true);
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
         RS_LOGE("RSScreenManager %{public}s: Failed to find RSScreenManager instance.", __func__);
@@ -438,9 +440,11 @@ void RSScreenManager::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
         RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, screenId);
         return;
     }
+#ifdef RS_ENABLE_GPU
     RSHardwareThread::Instance().PostTask([screenId, ns]() {
         RSHardwareThread::Instance().OnScreenVBlankIdleCallback(screenId, ns);
     });
+#endif
 }
 
 void RSScreenManager::CleanAndReinit()
@@ -472,6 +476,7 @@ void RSScreenManager::CleanAndReinit()
             }
         });
     } else {
+#ifdef RS_ENABLE_GPU
         RSHardwareThread::Instance().PostTask([screenManager, this]() {
             RS_LOGW("RSScreenManager %{public}s: clean and reinit in hardware thread.", __func__);
             screenManager->OnHwcDeadEvent();
@@ -486,6 +491,7 @@ void RSScreenManager::CleanAndReinit()
                 return;
             }
         });
+#endif
     }
 }
 
@@ -737,6 +743,7 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId
         RS_LOGE("RegSetScreenVsyncEnabledCallbackForHardwareThread failed, vsyncSampler is null");
         return;
     }
+#ifdef RS_ENABLE_GPU
     vsyncSampler->RegSetScreenVsyncEnabledCallback([this, vsyncEnabledScreenId](bool enabled) {
         RSHardwareThread::Instance().PostTask([this, vsyncEnabledScreenId, enabled]() {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -749,6 +756,7 @@ void RSScreenManager::RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId
             screensIt->second->SetScreenVsyncEnabled(enabled);
         });
     });
+#endif
 }
 
 // If the previous primary screen disconnected, we traversal the left screens
@@ -1493,6 +1501,7 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
 
 void RSScreenManager::ReleaseScreenDmaBuffer(uint64_t screenId)
 {
+#ifdef RS_ENABLE_GPU
     RSHardwareThread::Instance().PostTask([screenId]() {
         RS_TRACE_NAME("RSScreenManager ReleaseScreenDmaBuffer");
         auto screenManager = CreateOrGetScreenManager();
@@ -1508,6 +1517,7 @@ void RSScreenManager::ReleaseScreenDmaBuffer(uint64_t screenId)
         std::vector<LayerInfoPtr> layer;
         output->SetLayerInfo(layer);
     });
+#endif
 }
 
 std::vector<RSScreenModeInfo> RSScreenManager::GetScreenSupportedModes(ScreenId id) const
@@ -1820,6 +1830,7 @@ void RSScreenManager::ClearFpsDump(std::string& dumpString, std::string& arg)
 
 void RSScreenManager::ClearFrameBufferIfNeed()
 {
+#ifdef RS_ENABLE_GPU
     RSHardwareThread::Instance().PostTask([this]() {
         std::lock_guard<std::mutex> lock(mutex_);
         for (const auto& [id, screen] : screens_) {
@@ -1833,6 +1844,7 @@ void RSScreenManager::ClearFrameBufferIfNeed()
             }
         }
     });
+#endif
 }
 
 int32_t RSScreenManager::SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type)

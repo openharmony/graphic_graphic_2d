@@ -32,8 +32,7 @@ RSSymbolLayers HMSymbolRun::GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt&
     symbolInfo.symbolGlyphId = glyphId;
     RSSymbolLayersGroups symbolInfoOrign = RSHmSymbolConfig_OHOS::GetSymbolLayersGroups(glyphId);
     if (symbolInfoOrign.renderModeGroups.empty() || symbolInfoOrign.symbolGlyphId == 0) {
-        TEXT_LOGD("[%{public}s] HmSymbol: GetSymbolLayersGroups of graphId %{public}d failed\n",
-            __func__, static_cast<int>(glyphId));
+        TEXT_LOGD("GetSymbolLayersGroups of graphId %{public}d failed", static_cast<int>(glyphId));
         return symbolInfo;
     }
 
@@ -89,41 +88,65 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
     }
 }
 
-void HMSymbolRun::DrawSymbol(RSCanvas* canvas, RSTextBlob* blob, const RSPoint& offset, const HMSymbolTxt& symbolTxt)
+void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
-    if (canvas == nullptr || blob == nullptr) {
-        TEXT_LOGD("[%{public}s] HmSymbol: the canvas or textBlob is nullptr\n", __func__);
+    if (!textBlob_) {
+        TEXT_LOGD("HmSymbol: the textBlob is nullptr");
+        return;
+    }
+
+    if (canvas == nullptr) {
+        TEXT_LOGD("HmSymbol: the canvas is nullptr");
         return;
     }
 
     std::vector<uint16_t> glyphIds;
-    RSTextBlob::GetDrawingGlyphIDforTextBlob(blob, glyphIds);
+    RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
     if (glyphIds.size() == 1) {
-        TEXT_LOGD("[%{public}s] HmSymbol: DrawSymbol\n", __func__);
+        TEXT_LOGD("HmSymbol: DrawSymbol");
         uint16_t glyphId = glyphIds[0];
-        OHOS::Rosen::Drawing::Path path = RSTextBlob::GetDrawingPathforTextBlob(glyphId, blob);
+        OHOS::Rosen::Drawing::Path path = RSTextBlob::GetDrawingPathforTextBlob(glyphId, textBlob_.get());
         RSHMSymbolData symbolData;
 
-        symbolData.symbolInfo_ = GetSymbolLayers(glyphId, symbolTxt);
+        symbolData.symbolInfo_ = GetSymbolLayers(glyphId, symbolTxt_);
         if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
-            path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, blob);
+            path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, textBlob_.get());
         }
         symbolData.path_ = path;
         symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
-        RSEffectStrategy symbolEffect = symbolTxt.GetEffectStrategy();
+        RSEffectStrategy symbolEffect = symbolTxt_.GetEffectStrategy();
         std::pair<float, float> offsetXY(offset.GetX(), offset.GetY());
-        if (symbolEffect > 0 && symbolTxt.GetAnimationStart()) { // 0 > has animation
-            if (!SymbolAnimation(symbolData, glyphId, offsetXY, symbolTxt)) {
+        if (symbolEffect > 0 && symbolTxt_.GetAnimationStart()) { // 0 > has animation
+            if (!SymbolAnimation(symbolData, glyphId, offsetXY)) {
                 ClearSymbolAnimation(symbolData, offsetXY);
                 OnDrawSymbol(canvas, symbolData, offset);
+                animationReset_ = true;
+            } else {
+                animationReset_ = false;
             }
         } else {
             ClearSymbolAnimation(symbolData, offsetXY);
             OnDrawSymbol(canvas, symbolData, offset);
+            animationReset_ = true;
         }
     } else {
-        TEXT_LOGD("[%{public}s] HmSymbol: the glyphIds is > 1\n", __func__);
-        canvas->DrawTextBlob(blob, offset.GetX(), offset.GetY());
+        TEXT_LOGD("HmSymbol: the glyphIds is > 1");
+        canvas->DrawTextBlob(textBlob_.get(), offset.GetX(), offset.GetY());
+    }
+}
+
+void HMSymbolRun::SetTextBlob(const std::shared_ptr<RSTextBlob>& textBlob)
+{
+    if (!textBlob) {
+        std::vector<uint16_t> glyphId1;
+        std::vector<uint16_t> glyphId2;
+        RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob.get(), glyphId1);
+        RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphId2);
+        // 1 mean the textBlob has one symbol
+        if (glyphId1.size() == 1 && glyphId2.size() == 1 && glyphId1[0] != glyphId2[0]) {
+            animationReset_ = true;
+        }
+        textBlob_ = textBlob;
     }
 }
 
@@ -148,13 +171,9 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
 
     // draw path
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
-    TEXT_LOGD("HMSymbolRun::OnDrawSymbol RenderGroup size %{public}d", static_cast<int>(groups.size()));
+    TEXT_LOGD("RenderGroup size %{public}d", static_cast<int>(groups.size()));
     if (groups.empty()) {
-        canvas->AttachBrush(brush);
-        canvas->AttachPen(pen);
         canvas->DrawPath(path);
-        canvas->DetachBrush();
-        canvas->DetachPen();
     }
     RSColor color;
     for (auto group : groups) {
@@ -174,19 +193,18 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
 }
 
 bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphid,
-    const std::pair<float, float>& offset, const HMSymbolTxt& symbolTxt)
+    const std::pair<float, float>& offset)
 {
-    RSEffectStrategy effectMode = symbolTxt.GetEffectStrategy();
-    uint16_t animationMode = symbolTxt.GetAnimationMode();
+    RSEffectStrategy effectMode = symbolTxt_.GetEffectStrategy();
+    uint16_t animationMode = symbolTxt_.GetAnimationMode();
     if (effectMode == RSEffectStrategy::NONE) {
-        TEXT_LOGD("[%{public}s] HmSymbol: the RSEffectStrategy is NONE\n", __func__);
+        TEXT_LOGD("HmSymbol: the RSEffectStrategy is NONE");
         return false;
     }
     RSAnimationSetting animationSetting;
     if (animationMode == 0 || effectMode == RSEffectStrategy::VARIABLE_COLOR) {
         if (!GetAnimationGroups(glyphid, effectMode, animationSetting)) {
-            TEXT_LOGD("[%{public}s] HmSymbol: GetAnimationGroups of glyphId %{public}d is failed\n",
-                __func__, static_cast<int>(glyphid));
+            TEXT_LOGD("HmSymbol: GetAnimationGroups of glyphId %{public}d is failed", static_cast<int>(glyphid));
             return false;
         }
 
@@ -199,9 +217,10 @@ bool HMSymbolRun::SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphid
     symbolNode.SetAnimation(animationFunc_);
     symbolNode.SetSymbolId(symbolId_);
     symbolNode.SetAnimationMode(animationMode);
-    symbolNode.SetRepeatCount(symbolTxt.GetRepeatCount());
-    symbolNode.SetAnimationStart(symbolTxt.GetAnimationStart());
-    symbolNode.SetCommonSubType(symbolTxt.GetCommonSubType());
+    symbolNode.SetRepeatCount(symbolTxt_.GetRepeatCount());
+    symbolNode.SetAnimationStart(symbolTxt_.GetAnimationStart());
+    symbolNode.SetCommonSubType(symbolTxt_.GetCommonSubType());
+    symbolNode.SetAnimationReset(animationReset_);
     return symbolNode.DecomposeSymbolAndDraw();
 }
 

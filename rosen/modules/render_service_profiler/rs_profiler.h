@@ -330,6 +330,12 @@ private:
     static uint64_t NowNano();
     static double Now();
 
+    static bool IsNoneMode();
+    static bool IsReadMode();
+    static bool IsReadEmulationMode();
+    static bool IsWriteMode();
+    static bool IsWriteEmulationMode();
+
     static bool IsRecording();
     static bool IsPlaying();
 
@@ -368,7 +374,7 @@ private:
     static void ProcessCommands();
     // Deprecated: Use SendMessage instead
     static void Respond(const std::string& message);
-    static void SendMessage(const char* format, ...);
+    static void SendMessage(const char* format, ...) __attribute__((__format__(printf, 1, 2)));
     static void SetSystemParameter(const ArgList& args);
     static void GetSystemParameter(const ArgList& args);
     static void Reset(const ArgList& args);

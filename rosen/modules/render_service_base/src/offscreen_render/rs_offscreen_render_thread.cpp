@@ -16,7 +16,7 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GPU))
 #include "render_context/render_context.h"
 #endif
 
@@ -39,7 +39,7 @@ RSOffscreenRenderThread::RSOffscreenRenderThread()
     if (!RSSystemProperties::GetUniRenderEnabled()) {
         return;
     }
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GPU))
     PostTask([this]() {
         renderContext_ = std::make_shared<RenderContext>();
 #if defined(RS_ENABLE_GL)
@@ -92,7 +92,7 @@ const std::function<void()> RSOffscreenRenderThread::GetCaptureTask(NodeId nodeI
     return nullptr;
 }
 
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GPU))
 const std::shared_ptr<RenderContext> RSOffscreenRenderThread::GetRenderContext()
 {
     if (!renderContext_) {

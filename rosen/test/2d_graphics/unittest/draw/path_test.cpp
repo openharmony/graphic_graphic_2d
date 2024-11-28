@@ -775,6 +775,22 @@ HWTEST_F(PathTest, SetFillStyle002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetFillStyle001
+ * @tc.desc: Test Path's GetFillStyle
+ * @tc.type: FUNC
+ * @tc.require: IB742Z
+ */
+HWTEST_F(PathTest, GetFillStyle001, TestSize.Level1)
+{
+    auto path = std::make_unique<Path>();
+    ASSERT_TRUE(path != nullptr);
+    path->SetFillStyle(PathFillType::WINDING);
+    EXPECT_TRUE(path->GetFillStyle() == PathFillType::WINDING);
+    path->SetFillStyle(PathFillType::INVERSE_WINDING);
+    EXPECT_TRUE(path->GetFillStyle() == PathFillType::INVERSE_WINDING);
+}
+
+/**
  * @tc.name: Interpolate001
  * @tc.desc:
  * @tc.type: FUNC

@@ -208,5 +208,13 @@ bool RSSystemParameters::IsNeedScRGBForP3(const GraphicColorGamut& currentGamut)
     static bool isSupportScRGBForP3_ = system::GetBoolParameter("persist.sys.graphic.scrgb.enabled", false);
     return isSupportScRGBForP3_ && (currentGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
+
+bool RSSystemParameters::GetWiredScreenOndrawEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.wiredScreenOndraw.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

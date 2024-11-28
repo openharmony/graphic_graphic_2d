@@ -1,0 +1,81 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+module_output_path = "graphic_2d/graphic_2d"
+
+##############################fuzztest##########################################
+ohos_fuzztest("PixelMapFromSurfaceGLFuzzTest") {
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/create_pixelmap_surface/test/fuzztest/pixelmapfromsurfacegl_fuzzer"
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "$graphic_2d_root/interfaces/inner_api/common",
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+  ]
+  include_dirs += [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_base",
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+  ]
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  sources = [ "pixelmapfromsurfacegl_fuzzer.cpp" ]
+  if (graphic_2d_feature_enable_opengl) {
+    sources += [ "fuzz_rs_system_properties.cpp" ]
+  }
+  deps = [
+    "$graphic_2d_root/rosen/modules/create_pixelmap_surface:create_pixelmap_surface_src",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+  public_deps = [ "$graphic_2d_root/rosen/modules/composer:libcomposer" ]
+  external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
+    "image_framework:image_native",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+  if (graphic_2d_feature_enable_vulkan) {
+    defines -= [
+      "RS_ENABLE_VK",
+      "ACE_ENABLE_VK",
+    ]
+  }
+}
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":PixelMapFromSurfaceGLFuzzTest",
+  ]
+}
+###############################################################################

@@ -56,6 +56,7 @@ namespace OHOS {
 namespace Rosen {
 using namespace OHOS::Media;
 
+#ifdef RS_ENABLE_GPU
 static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_t &height,
     const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
@@ -94,6 +95,7 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
     return surfaceBuffer;
 #endif
 }
+#endif
 
 #if defined(RS_ENABLE_GL)
 class DmaMem {

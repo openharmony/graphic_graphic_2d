@@ -76,6 +76,38 @@ HWTEST_F(RSPropertyModifierTest, CreateRenderModifier, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSHDRBrightnessModifier
+ * @tc.desc: RSHDRBrightnessModifier CreateRenderModifier Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier001, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    auto res = hdrModifier->CreateRenderModifier();
+    EXPECT_NE(res, nullptr);
+}
+
+/**
+ * @tc.name: RSHDRBrightnessModifier
+ * @tc.desc: RSHDRBrightnessModifier GetModifierType Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyModifierTest, RSHDRBrightnessModifier002, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSHDRBrightnessModifier> hdrModifier =
+        std::make_shared<RSHDRBrightnessModifier>(property);
+    ASSERT_NE(hdrModifier, nullptr);
+    RSModifierType res = hdrModifier->GetModifierType();
+    EXPECT_EQ(res, RSModifierType::HDR_BRIGHTNESS);
+}
+
+/**
  * @tc.name: GetModifierType02
  * @tc.desc: RSEnvForegroundColorStrategyModifier Test
  * @tc.type: FUNC

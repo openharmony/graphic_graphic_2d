@@ -45,30 +45,12 @@ void RSDefaultSurfaceBufferCallbackTest::TearDown() {}
 HWTEST_F(RSDefaultSurfaceBufferCallbackTest, Constructor, TestSize.Level1)
 {
     bool flag = false;
-    std::function<void(uint64_t, const std::vector<uint32_t>&)> callback =
-        [&flag](uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) { flag = true; };
-    RSDefaultSurfaceBufferCallback rsDefaultSurfaceBufferCallback(callback);
-    EXPECT_TRUE(rsDefaultSurfaceBufferCallback.callback_ != nullptr);
+    DefaultSurfaceBufferCallbackFuncs funcs = {
+        .OnFinish = [&flag](const FinishCallbackRet&) { flag = true; }
+    };
+    RSDefaultSurfaceBufferCallback rsDefaultSurfaceBufferCallback(funcs);
+    EXPECT_TRUE(rsDefaultSurfaceBufferCallback.finishCallback_ != nullptr);
     EXPECT_FALSE(flag);
-}
-
-/**
- * @tc.name: OnFinish
- * @tc.desc: Verify the OnFinish
- * @tc.type:FUNC
- * @tc.require: issueIB2AHG
- */
-HWTEST_F(RSDefaultSurfaceBufferCallbackTest, OnFinish, TestSize.Level1)
-{
-    RSDefaultSurfaceBufferCallback rsDefaultSurfaceBufferCallback(nullptr);
-    rsDefaultSurfaceBufferCallback.OnFinish(1, { 1, 2, 3 });
-    EXPECT_EQ(rsDefaultSurfaceBufferCallback.callback_, nullptr);
-    bool flag = false;
-    std::function<void(uint64_t, const std::vector<uint32_t>&)> callback =
-        [&flag](uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) { flag = true; };
-    RSDefaultSurfaceBufferCallback rsDefaultSurfaceBufferCallback1(callback);
-    rsDefaultSurfaceBufferCallback1.OnFinish(1, { 1, 2, 3 });
-    EXPECT_TRUE(flag);
 }
 } // namespace Rosen
 } // namespace OHOS

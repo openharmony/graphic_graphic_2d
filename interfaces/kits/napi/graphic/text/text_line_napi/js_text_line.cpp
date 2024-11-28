@@ -21,7 +21,7 @@
 
 namespace OHOS::Rosen {
 namespace {
-const std ::string CLASS_NAME = "TextLine";
+const std::string CLASS_NAME = "TextLine";
 }
 thread_local napi_ref JsTextLine::constructor_ = nullptr;
 
@@ -509,10 +509,8 @@ bool CallJsFunc(napi_env env, napi_value callback, int32_t index, double leftOff
 
 napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info info)
 {
-    if (textLine_ == nullptr) {
-        TEXT_LOGE("TextLine is nullptr");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    TEXT_ERROR_CHECK(textLine_ != nullptr,
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params."), "TextLine is nullptr");
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE];
@@ -529,6 +527,11 @@ napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info 
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_ref refCallback = nullptr;
+    std::unique_ptr<napi_ref, std::function<void(napi_ref*)>> refCallbackGuard(&refCallback, [env](napi_ref* ref) {
+        if (ref != nullptr && *ref != nullptr) {
+            TEXT_CHECK(napi_delete_reference(env, *ref) == napi_ok, TEXT_LOGE("Failed to release ref callback"));
+        }
+    });
     status = napi_create_reference(env, argv[0], 1, &refCallback);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to napi_create_reference");

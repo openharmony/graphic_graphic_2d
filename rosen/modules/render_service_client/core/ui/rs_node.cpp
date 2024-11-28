@@ -1808,6 +1808,12 @@ void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
         RSModifierType::CUSTOM_CLIP_TO_FRAME, clipRect);
 }
 
+void RSNode::SetHDRBrightness(const float& hdrBrightness)
+{
+    SetProperty<RSHDRBrightnessModifier, RSAnimatableProperty<float>>(
+        RSModifierType::HDR_BRIGHTNESS, hdrBrightness);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.
@@ -2773,6 +2779,11 @@ void RSNode::ClearChildren()
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), nodeId);
 }
 
+void RSNode::SetExportTypeChangedCallback(ExportTypeChangedCallback callback)
+{
+    exportTypeChangedCallback_ = callback;
+}
+
 void RSNode::SetTextureExport(bool isTextureExportNode)
 {
     if (isTextureExportNode == isTextureExportNode_) {
@@ -2781,6 +2792,9 @@ void RSNode::SetTextureExport(bool isTextureExportNode)
     isTextureExportNode_ = isTextureExportNode;
     if (!IsUniRenderEnabled()) {
         return;
+    }
+    if (exportTypeChangedCallback_) {
+        exportTypeChangedCallback_(isTextureExportNode);
     }
     if ((isTextureExportNode_ && !hasCreateRenderNodeInRT_) ||
         (!isTextureExportNode_ && !hasCreateRenderNodeInRS_)) {

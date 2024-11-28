@@ -36,6 +36,7 @@ namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
 using NodeId = uint64_t;
+constexpr size_t MAX_OPITEMSIZE = 10000;
 
 class DRAWING_API ExtendImageObject {
 public:

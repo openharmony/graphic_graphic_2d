@@ -157,6 +157,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/hgm_config_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
+    "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_proxy.cpp",
     "src/ipc_callbacks/rs_occlusion_change_callback_stub.cpp",
     "src/ipc_callbacks/rs_rt_refresh_callback.cpp",
@@ -180,14 +182,6 @@ ohos_source_set("render_service_base_src") {
     "src/memory/rs_memory_snapshot.cpp",
     "src/memory/rs_memory_track.cpp",
     "src/memory/rs_tag_tracker.cpp",
-
-    #params
-    "src/params/rs_canvas_drawing_render_params.cpp",
-    "src/params/rs_display_render_params.cpp",
-    "src/params/rs_effect_render_params.cpp",
-    "src/params/rs_render_params.cpp",
-    "src/params/rs_render_thread_params.cpp",
-    "src/params/rs_surface_render_params.cpp",
 
     #pipeline
     "src/pipeline/rs_canvas_drawing_render_node.cpp",
@@ -230,16 +224,6 @@ ohos_source_set("render_service_base_src") {
     "src/property/rs_property_drawable_frame_geometry.cpp",
     "src/property/rs_property_drawable_utilities.cpp",
     "src/property/rs_property_trace.cpp",
-
-    #drawable
-    "src/drawable/rs_drawable.cpp",
-    "src/drawable/rs_misc_drawable.cpp",
-    "src/drawable/rs_property_drawable.cpp",
-    "src/drawable/rs_property_drawable_background.cpp",
-    "src/drawable/rs_property_drawable_foreground.cpp",
-    "src/drawable/rs_property_drawable_utils.cpp",
-    "src/drawable/rs_render_node_drawable_adapter.cpp",
-    "src/drawable/rs_render_node_shadow_drawable.cpp",
 
     #render
     "src/render/rs_aibar_shader_filter.cpp",
@@ -303,6 +287,28 @@ ohos_source_set("render_service_base_src") {
     "src/info_collection/rs_hdr_collection.cpp",
     "src/info_collection/rs_layer_compose_collection.cpp",
   ]
+
+  if (rs_enable_gpu) {
+    sources += [
+      #drawable
+      "src/drawable/rs_drawable.cpp",
+      "src/drawable/rs_misc_drawable.cpp",
+      "src/drawable/rs_property_drawable.cpp",
+      "src/drawable/rs_property_drawable_background.cpp",
+      "src/drawable/rs_property_drawable_foreground.cpp",
+      "src/drawable/rs_property_drawable_utils.cpp",
+      "src/drawable/rs_render_node_drawable_adapter.cpp",
+      "src/drawable/rs_render_node_shadow_drawable.cpp",
+
+      #params
+      "src/params/rs_canvas_drawing_render_params.cpp",
+      "src/params/rs_display_render_params.cpp",
+      "src/params/rs_effect_render_params.cpp",
+      "src/params/rs_render_params.cpp",
+      "src/params/rs_render_thread_params.cpp",
+      "src/params/rs_surface_render_params.cpp",
+    ]
+  }
 
   if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
     sources += [

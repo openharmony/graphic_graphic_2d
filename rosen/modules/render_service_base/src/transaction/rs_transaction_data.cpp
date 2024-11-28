@@ -18,6 +18,7 @@
 #include "command/rs_canvas_node_command.h"
 #include "command/rs_command.h"
 #include "command/rs_command_factory.h"
+#include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_profiler.h"
@@ -129,7 +130,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                 success = false;
             }
         }
-        if (!success) {
+        if (!success && command != nullptr) {
             ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
             return false;
         }
@@ -313,11 +314,13 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
-        if (callingPid == commandPid) {
-            continue;
-        }
-        if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
-            continue;
+        if (command->GetAccessPermission() != RSCommandPermissionType::DISALLOW_NONSYSTEM_APP_CALLING) {
+            if (callingPid == commandPid) {
+                continue;
+            }
+            if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+                continue;
+            }
         }
         conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);

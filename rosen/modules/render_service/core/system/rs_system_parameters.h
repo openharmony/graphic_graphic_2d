@@ -76,6 +76,7 @@ public:
     static bool GetTcacheEnabled();
     static bool GetDumpCanvasDrawingNodeEnabled();
     static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);
+    static bool GetWiredScreenOndrawEnabled();
 };
 
 } // namespace Rosen

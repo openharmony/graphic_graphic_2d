@@ -292,6 +292,15 @@ void RSProfiler::DumpNodeDrawCmdModifier(
             out["CUSTOM_CLIP_TO_FRAME"] = str;
             out.PopObject();
         }
+    } else if (modType == RSModifierType::HDR_BRIGHTNESS) {
+        auto propertyPtr = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier.GetProperty());
+        if (propertyPtr) {
+            std::string str;
+            propertyPtr->Dump(str);
+            out.PushObject();
+            out["HDR_BRIGHTNESS"] = str;
+            out.PopObject();
+        }
     }
 }
 

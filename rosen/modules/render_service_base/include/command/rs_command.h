@@ -45,6 +45,11 @@ enum RSCommandType : uint16_t {
     FRAME_RATE_LINKER,
 };
 
+enum RSCommandPermissionType : uint16_t {
+    NO_INTERCEPTION = 0,
+    DISALLOW_NONSYSTEM_APP_CALLING = 1,
+};
+
 // [attention]
 // RSCommand object is serializable, when use ADD_COMMAND macro to define a new RSCommand type,
 // use POD types or type with marshalling & unmarshalling func defined in RSMarshallingHelper for construction
@@ -60,6 +65,11 @@ public:
     ~RSCommand() noexcept override = default;
 
     virtual void Process(RSContext& context) = 0;
+
+    virtual RSCommandPermissionType GetAccessPermission() const
+    {
+        return RSCommandPermissionType::NO_INTERCEPTION;
+    }
 
     virtual uint16_t GetType() const
     {

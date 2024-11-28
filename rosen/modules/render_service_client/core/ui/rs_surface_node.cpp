@@ -28,10 +28,11 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/drawing/rs_surface_converter.h"
 #endif
+#ifdef RS_ENABLE_GPU
 #include "render_context/render_context.h"
+#endif
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_hdr_manager.h"
 #include "ui/rs_proxy_node.h"
 #include "rs_trace.h"
 
@@ -64,12 +65,6 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
-    RS_LOGD("RSSurfaceNode::Create HDRClient name: %{public}s, type: %{public}hhu, id: %{public}" PRIu64,
-        node->name_.c_str(), type, node->GetId());
-    if (type == RSSurfaceNodeType::APP_WINDOW_NODE || type == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
-        auto callback = &RSSurfaceNode::SetHDRPresent;
-        RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
-    }
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = {
@@ -655,7 +650,6 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 
 RSSurfaceNode::~RSSurfaceNode()
 {
-    RSHDRManager::Instance().UnRegisterSetHDRPresent(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;

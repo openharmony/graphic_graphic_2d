@@ -188,9 +188,12 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
         imgInfo.GetAlphaType(), imgInfo.GetColorSpace());
     Drawing::Matrix blurMatrixGeo;
     blurMatrixGeo.Translate(halfExtension, halfExtension);
-
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRenderTarget(canvas.GetGPUContext().get(),
         false, scaledInfoGeo);
+#else
+    std::shared_ptr<Drawing::Surface> surface = nullptr;
+#endif
     if (!surface) {
         ROSEN_LOGE("RSForegroundEffectFilter surface is null");
         return;

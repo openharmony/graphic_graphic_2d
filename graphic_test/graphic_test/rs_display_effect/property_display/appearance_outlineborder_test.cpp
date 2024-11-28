@@ -23,8 +23,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest04 : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -53,10 +53,10 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Co
     Color colorList[] = { Color(0, 0, 0), Color(255, 0, 0), Color(0, 255, 0), Color(0, 0, 255) };
 
     for (int i = 0; i < FOUR_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
+        int x = (i % TWO_) * FOUR_HUNDRED_TWENTY_;
+        int y = (i / TWO_) * FOUR_HUNDRED_TWENTY_;
         auto testNodeColor = RSCanvasNode::Create();
-        setNode(testNodeColor, { x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ }, Vector4<Color>(colorList[i]));
+        setNode(testNodeColor, { x, y, FOUR_HUNDRED_, FOUR_HUNDRED_ }, Vector4<Color>(colorList[i]));
         GetRootNode()->AddChild(testNodeColor);
         RegisterNode(testNodeColor);
     }
@@ -64,28 +64,27 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Co
     // parent black, child red color, white border
     auto testNodeParent = RSCanvasNode::Create();
     setNode(
-        testNodeParent, { 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ }, Vector4<Color>(colorList[0]));
+        testNodeParent, { 0, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ }, Vector4<Color>(colorList[0]));
     testNodeParent->SetBackgroundColor(0xff000000);
     GetRootNode()->AddChild(testNodeParent);
     RegisterNode(testNodeParent);
 
     auto testNodeChild = RSCanvasNode::Create();
-    setNode(
-        testNodeChild, { FIFTY_, FIFTY_, TWO_HUNDRED_FIFTY_, TWO_HUNDRED_FIFTY_ }, Vector4<Color>(Color(0xffffffff)));
+    setNode(testNodeChild, { FIFTY_, FIFTY_, TWO_HUNDRED_, TWO_HUNDRED_ }, Vector4<Color>(Color(0xffffffff)));
     testNodeChild->SetForegroundColor(0xffff0000);
     testNodeParent->AddChild(testNodeChild);
     RegisterNode(testNodeChild);
 
     // alpha border
     auto testNodeAlphaColor = RSCanvasNode::Create();
-    setNode(testNodeAlphaColor, { FIVE_HUNDRED_TWENTY_, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ },
+    setNode(testNodeAlphaColor, { FOUR_HUNDRED_TWENTY_, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ },
         Vector4<Color>(Color(0x7dffffff)));
     GetRootNode()->AddChild(testNodeAlphaColor);
     RegisterNode(testNodeAlphaColor);
 
     // four different color
     auto testNodeFourColor = RSCanvasNode::Create();
-    setNode(testNodeFourColor, { 0, FIVE_HUNDRED_TWENTY_ * 3, FIVE_HUNDRED_, FIVE_HUNDRED_ },
+    setNode(testNodeFourColor, { 0, FOUR_HUNDRED_TWENTY_ * 3, FOUR_HUNDRED_, FOUR_HUNDRED_ },
         Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
     GetRootNode()->AddChild(testNodeFourColor);
     RegisterNode(testNodeFourColor);
@@ -100,10 +99,10 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Wi
     Vector4<Color> outLineColor = { color, color, color, color };
 
     for (int i = 0; i < THREE_; i++) {
-        int x = (i % TWO_) * FIVE_HUNDRED_TWENTY_;
-        int y = (i / TWO_) * FIVE_HUNDRED_TWENTY_;
+        int x = (i % TWO_) * FOUR_HUNDRED_TWENTY_;
+        int y = (i / TWO_) * FOUR_HUNDRED_TWENTY_;
         auto testNodeWidth = RSCanvasNode::Create();
-        testNodeWidth->SetBounds({ x, y, FIVE_HUNDRED_, FIVE_HUNDRED_ });
+        testNodeWidth->SetBounds({ x, y, FOUR_HUNDRED_, FOUR_HUNDRED_ });
         testNodeWidth->SetTranslate(widthList[i] + TWENTY_, widthList[i] + FIFTY_, 0);
         testNodeWidth->SetOutlineStyle(style);
         testNodeWidth->SetOutlineWidth({ widthList[i], widthList[i], widthList[i], widthList[i] });
@@ -114,8 +113,8 @@ GRAPHIC_TEST(AppearanceTest04, CONTENT_DISPLAY_TEST, Appearance_OutlineBorder_Wi
 
     // four different width
     auto testNodeFourWidth = RSCanvasNode::Create();
-    testNodeFourWidth->SetBounds({ 0, FIVE_HUNDRED_TWENTY_ * 2, FIVE_HUNDRED_, FIVE_HUNDRED_ });
-    testNodeFourWidth->SetTranslate(TWENTY_, SIX_HUNDRED_, 0);
+    testNodeFourWidth->SetBounds({ 0, FOUR_HUNDRED_TWENTY_ * 2, FOUR_HUNDRED_, FOUR_HUNDRED_ });
+    testNodeFourWidth->SetTranslate(TWENTY_, FOUR_HUNDRED_, 0);
     testNodeFourWidth->SetOutlineStyle(style);
     testNodeFourWidth->SetOutlineWidth({ widthList[1] * 0, widthList[1] * 2, widthList[1] * 4, widthList[1] * 8 });
     testNodeFourWidth->SetOutlineColor(outLineColor);

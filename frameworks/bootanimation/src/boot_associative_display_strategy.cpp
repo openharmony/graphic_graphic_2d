@@ -54,11 +54,15 @@ void BootAssociativeDisplayStrategy::Display(int32_t duration, std::vector<BootA
         int screenHeight = modeInfo.GetScreenHeight();
         operator_ = std::make_shared<BootAnimationOperation>();
         operator_->Init(config, screenWidth, screenHeight, duration);
-        operator_->GetThread().join();
+        if (operator_->GetThread().joinable()) {
+            operator_->GetThread().join();
+        }
 
-        if (CheckNeedOtaCompile()) {
+        bool needOtaCompile = CheckNeedOtaCompile();
+        bool needBundleScan = CheckNeedBundleScan();
+        if (needOtaCompile || needBundleScan) {
             bootCompileProgress_ = std::make_shared<BootCompileProgress>();
-            bootCompileProgress_->Init(config);
+            bootCompileProgress_->Init(config, needOtaCompile, needBundleScan);
         }
 
         while (!CheckExitAnimation()) {

@@ -53,7 +53,9 @@ namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
 class RSShadowDrawable;
+#ifdef RS_ENABLE_GPU
 class RSFilterDrawable;
+#endif
 }
 class RSB_EXPORT RSProperties final {
 public:
@@ -734,7 +736,9 @@ private:
     friend class DrawableV2::RSBackgroundImageDrawable;
     friend class DrawableV2::RSBackgroundFilterDrawable;
     friend class DrawableV2::RSShadowDrawable;
+#ifdef RS_ENABLE_GPU
     friend class DrawableV2::RSFilterDrawable;
+#endif
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

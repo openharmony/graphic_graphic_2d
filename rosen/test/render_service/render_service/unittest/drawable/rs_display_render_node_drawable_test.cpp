@@ -169,6 +169,27 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender002, TestSize.Le
 }
 
 /**
+ * @tc.name: InitTranslateForWallpaper
+ * @tc.desc: Test InitTranslateForWallpaper
+ * @tc.type: FUNC
+ * @tc.require: #IB5JZQ
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, InitTranslateForWallpaper, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    system::SetParameter("const.cache.optimize.rotate.enable", "true");
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->frameRect_ = {0.f, 0.f, 100.f, 100.f};
+    params->screenInfo_.width = 100;
+    params->screenInfo_.height = 100;
+    displayDrawable_->InitTranslateForWallpaper();
+    auto& rtThread = RSUniRenderThread::Instance();
+    EXPECT_EQ(rtThread.wallpaperTranslate_.first, 21);
+    EXPECT_EQ(rtThread.wallpaperTranslate_.second, 21);
+}
+
+/**
  * @tc.name: ClearTransparentBeforeSaveLayer
  * @tc.desc: Test ClearTransparentBeforeSaveLayer, with two surface with/without param initialization
  * @tc.type: FUNC
@@ -188,8 +209,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable2 = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2);
     surfaceNode2->InitRenderParams();
-    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable1);
-    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable2);
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(std::make_pair(1, drawable1));
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(std::make_pair(1, drawable2));
     ASSERT_NE(renderNode_, nullptr);
     renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
     renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
@@ -1409,5 +1430,16 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, EnablescRGBForP3AndUiFirstTest, TestSi
     auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto result = displayDrawable_->EnablescRGBForP3AndUiFirst(currentGamut);
     EXPECT_FALSE(result);
+}
+
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDraw, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
 }
 }

@@ -1845,16 +1845,16 @@ std::shared_ptr<DrawImageRectOpItem> DrawTextBlobOpItem::GenerateCachedOpItem(Ca
 void DrawTextBlobOpItem::DumpItems(std::string& out) const
 {
     out += " scalarX:" + std::to_string(x_) + " scalarY:" + std::to_string(y_);
-    if (textBlob_) {
+    if (textBlob_ != nullptr) {
         out += " TextBlob[";
         out += "UniqueID:" + std::to_string(textBlob_->UniqueID());
         auto bounds = textBlob_->Bounds();
-        if (bounds) {
+        if (bounds != nullptr) {
             out += " Bounds";
             bounds->Dump(out);
         }
         out += " isEmoji:" + std::string(textBlob_->IsEmoji() ? "true" : "false");
-        out += "]";
+        out += ']';
     }
 }
 

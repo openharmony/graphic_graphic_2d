@@ -70,6 +70,7 @@ using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigDa
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
+using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(uint32_t, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -109,7 +110,8 @@ class SurfaceBufferCallback {
 public:
     SurfaceBufferCallback() = default;
     virtual ~SurfaceBufferCallback() noexcept = default;
-    virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
+    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
+    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
 };
 
 class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
@@ -132,7 +134,8 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
         uint64_t id = 0,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
@@ -314,6 +317,9 @@ public:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
+
     void SetAppWindowNum(uint32_t num);
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes);
@@ -377,6 +383,9 @@ public:
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+    
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
     void SetFreeMultiWindowStatus(bool enable);
@@ -387,7 +396,9 @@ public:
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
-    void TriggerSurfaceBufferCallback(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) const;
+    void TriggerOnFinish(const FinishCallbackRet& ret) const;
+    void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
+
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;

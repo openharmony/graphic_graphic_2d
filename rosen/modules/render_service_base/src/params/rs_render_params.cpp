@@ -413,6 +413,9 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->canvasDrawingNodeSurfaceChanged_ = true;
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     canvasDrawingNodeSurfaceChanged_ = false;
 }
 

@@ -129,6 +129,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_CURTAIN_SCREEN_USING_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::DROP_FRAME_BY_PID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::DROP_FRAME_BY_PID");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FOCUS_APP_INFO): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FOCUS_APP_INFO");
             break;
@@ -237,6 +241,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CURRENT_REFRESH_RATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_CURRENT_REFRESH_RATE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_LIGHT_FACTOR_STATUS): {

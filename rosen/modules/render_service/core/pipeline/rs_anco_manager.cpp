@@ -89,7 +89,7 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
             !surfaceNode->GetRSSurfaceHandler()->GetBuffer()) {
             continue;
         }
-
+#ifdef RS_ENABLE_GPU
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
         if (params == nullptr) {
             continue;
@@ -104,6 +104,7 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
                 sfvNodesCnt++;
             }
         }
+#endif
     }
 
     return AncoOptimizeCheck(isHebc, nodesCnt, sfvNodesCnt);

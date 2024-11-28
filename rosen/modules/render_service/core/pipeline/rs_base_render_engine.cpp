@@ -16,6 +16,7 @@
 #include "rs_base_render_engine.h"
 #include <memory>
 
+#include "v2_1/cm_color_space.h"
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
 #endif
@@ -26,7 +27,9 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#endif
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -35,8 +38,9 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "metadata_helper.h"
-
+#ifdef RS_ENABLE_GPU
 #include "drawable/rs_display_render_node_drawable.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -74,7 +78,7 @@ void RSBaseRenderEngine::Init(bool independentContext)
     renderContext_->SetUpGpuContext();
 #endif
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#if defined(RS_ENABLE_EGLIMAGE)
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     eglImageManager_ = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK
@@ -90,10 +94,12 @@ void RSBaseRenderEngine::Init(bool independentContext)
 
 void RSBaseRenderEngine::InitCapture(bool independentContext)
 {
+#ifdef RS_ENABLE_GPU
     (void)independentContext;
     if (captureRenderContext_) {
         return;
     }
+#endif
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     captureRenderContext_ = std::make_shared<RenderContext>();
@@ -120,10 +126,12 @@ void RSBaseRenderEngine::InitCapture(bool independentContext)
 
 void RSBaseRenderEngine::ResetCurrentContext()
 {
+#ifdef RS_ENABLE_GPU
     if (renderContext_ == nullptr) {
         RS_LOGE("This render context is nullptr.");
         return;
     }
+#endif
 #if (defined RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         renderContext_->ShareMakeCurrentNoSurface(EGL_NO_CONTEXT);
@@ -172,7 +180,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateEglImageFromBuffer(RSP
     const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const uint32_t threadIndex,
     const std::shared_ptr<Drawing::ColorSpace>& drawingColorSpace)
 {
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
 #if defined(RS_ENABLE_GL)
     if (!RSSystemProperties::IsUseVulkan() && canvas.GetGPUContext() == nullptr) {
         RS_LOGE("RSBaseRenderEngine::CreateEglImageFromBuffer GrContext is null!");
@@ -389,7 +397,9 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
 {
     if (params.useCPU) {
         DrawBuffer(canvas, params);
-    } else {
+    }
+#ifdef RS_ENABLE_GPU
+    else {
         auto drawable = node.GetRenderDrawable();
         if (!drawable) {
             return;
@@ -398,6 +408,7 @@ void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, 
         RegisterDeleteBufferListener(displayDrawable->GetRSSurfaceHandlerOnDraw()->GetConsumer());
         DrawImage(canvas, params);
     }
+#endif
 }
 
 void RSBaseRenderEngine::DrawDisplayNodeWithParams(RSPaintFilterCanvas& canvas, RSSurfaceHandler& surfaceHandler,
@@ -580,31 +591,11 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     return true;
 }
 
-std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut)
-{
-    std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
-    switch (colorGamut) {
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-            break;
-        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
-            break;
-        case GRAPHIC_COLOR_GAMUT_BT2020:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
-            break;
-        default:
-            break;
-    }
-
-    return colorSpace;
-}
-
 void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader,
     BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
     RS_OPTIONAL_TRACE_BEGIN("RSBaseRenderEngine::ColorSpaceConvertor");
-    
+
     if (!SetColorSpaceConverterDisplayParameter(params, parameter)) {
         RS_OPTIONAL_TRACE_END();
         return;
@@ -637,9 +628,39 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
 }
 #endif
 
+std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(
+    GraphicColorGamut colorGamut)
+{
+    std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
+    switch (colorGamut) {
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+            break;
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
+            break;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+            break;
+        default:
+            break;
+    }
+
+    return colorSpace;
+}
+
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
+    std::shared_ptr<Drawing::AutoCanvasRestore> acr = nullptr;
+    if (params.preRotation) {
+        acr = std::make_shared<Drawing::AutoCanvasRestore>(canvas, true);
+        canvas.ResetMatrix();
+    }
+
     auto image = std::make_shared<Drawing::Image>();
     if (!RSBaseRenderUtil::IsBufferValid(params.buffer)) {
         RS_LOGE("RSBaseRenderEngine::DrawImage invalid buffer!");
@@ -728,13 +749,13 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
-    
+
     if (!ConvertDrawingColorSpaceToSpaceInfo(drawingColorSpace, parameter.outputColorSpace.colorSpaceInfo)) {
         RS_LOGD("RSBaseRenderEngine::DrawImage ConvertDrawingColorSpaceToSpaceInfo failed");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
- 
+
     if (parameter.inputColorSpace.colorSpaceInfo.primaries == parameter.outputColorSpace.colorSpaceInfo.primaries
         && parameter.inputColorSpace.colorSpaceInfo.transfunc == parameter.outputColorSpace.colorSpaceInfo.transfunc) {
         RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
@@ -783,7 +804,16 @@ bool RSBaseRenderEngine::CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfa
     if (surfaceBuffer == nullptr) {
         return false;
     }
-    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    std::vector<uint8_t> metadataType{};
+    if (surfaceBuffer->GetMetadata(Media::VideoProcessingEngine::ATTRKEY_HDR_METADATA_TYPE, metadataType) ==
+        GSERROR_OK && metadataType.size() > 0 &&
+        metadataType[0] == HDI::Display::Graphic::Common::V2_1::CM_VIDEO_AI_HDR) {
+        return true;
+    }
+#endif
+    if (surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_RGBA_1010102 &&
+        surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCBCR_P010 &&
         surfaceBuffer->GetFormat() != GRAPHIC_PIXEL_FMT_YCRCB_P010) {
         return false;
     }
@@ -814,7 +844,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
     }
 #endif // #ifdef RS_ENABLE_VK
 
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
         if (isForUniRedraw) {
             eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(bufferId);
@@ -843,7 +873,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
     }
 #endif // #ifdef RS_ENABLE_VK
 
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     auto regUnMapEglImageFunc = [this](int32_t bufferId) {
         eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
     };
@@ -862,7 +892,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
     }
 #endif // RS_ENABLE_VK
 
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         eglImageManager_->ShrinkCachesIfNeeded(isForUniRedraw);
     }
@@ -882,7 +912,7 @@ void RSBaseRenderEngine::ClearCacheSet(const std::set<int32_t> unmappedCache)
     }
 #endif // RS_ENABLE_VK
 
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     if (eglImageManager_ != nullptr) {
         for (auto id : unmappedCache) {
             eglImageManager_->UnMapEglImageFromSurfaceBuffer(id);

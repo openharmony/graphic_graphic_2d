@@ -20,6 +20,7 @@
 #include "luminance/rs_luminance_control.h"
 #include "metadata_helper.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -82,6 +83,8 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
 {
     RS_LOGD("RSColorSpaceConvertor HDRDraw targetColorSpace: %{public}d, screenId: %{public}" PRIu64 ""
         ", dynamicRangeMode: %{public}u", targetColorSpace, screenId, dynamicRangeMode);
+    RS_TRACE_NAME_FMT("RSColorSpaceConvertor HDRDraw targetColorSpace: %d, screenId: %" PRIu64 ""
+        ", dynamicRangeMode: %u", targetColorSpace, screenId, dynamicRangeMode);
     VPEParameter parameter;
 
     if (inputShader == nullptr) {
@@ -150,7 +153,6 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
 
     if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
         scaler = 1.0f;
-        parameter.disableHeadRoom = true;
     }
 
     ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);

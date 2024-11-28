@@ -27,6 +27,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t BLENDMODE_SIZE = 29;
+constexpr size_t MATH_TEN = 10;
 constexpr size_t MAX_SIZE = 5000;
 constexpr size_t MATRIX_SIZE = 9;
 constexpr size_t PIONTMODE_SIZE = 3;
@@ -55,11 +56,11 @@ bool DrawCmdFuzzTest001(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
-    cmdListData.second = length - 1;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    cmdListData.second = length;
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Brush brush;
     DrawOpItem::BrushHandleToBrush(brushHandle, *drawCmdList, brush);
     if (dataText != nullptr) {
@@ -91,11 +92,11 @@ bool DrawCmdFuzzTest002(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -135,11 +136,11 @@ bool DrawCmdFuzzTest003(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -184,11 +185,11 @@ bool DrawCmdFuzzTest004(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
     uint32_t blue = GetObject<uint32_t>();
@@ -224,11 +225,11 @@ bool DrawCmdFuzzTest005(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     uint32_t type = GetObject<uint32_t>();
     uint32_t alpha = GetObject<uint32_t>();
     uint32_t red = GetObject<uint32_t>();
@@ -244,7 +245,7 @@ bool DrawCmdFuzzTest005(const uint8_t* data, size_t size)
     paint.SetAntiAlias(isAntiAlias);
     DrawWithPaintOpItem drawWithPaintOpItem = DrawWithPaintOpItem(paint, type);
     drawWithPaintOpItem.Marshalling(*drawCmdList);
-    std::string out = dataText;
+    std::string out;
     drawWithPaintOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -269,11 +270,11 @@ bool DrawCmdFuzzTest006(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     uint32_t type = GetObject<uint32_t>();
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -308,11 +309,11 @@ bool DrawCmdFuzzTest007(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
     paintHandle.blenderEnabled = GetObject<bool>();
@@ -325,7 +326,7 @@ bool DrawCmdFuzzTest007(const uint8_t* data, size_t size)
     DrawPointOpItem drawPointOpItem = DrawPointOpItem(*drawCmdList, &constructorHandle);
     drawPointOpItem.Marshalling(*drawCmdList);
     DrawPointOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawPointOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -364,11 +365,11 @@ bool DrawCmdFuzzTest008(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;
@@ -410,11 +411,11 @@ bool DrawCmdFuzzTest009(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     std::pair<uint32_t, size_t> pts = { GetObject<uint32_t>(), length };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -465,11 +466,11 @@ bool DrawCmdFuzzTest010(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle pathT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -480,7 +481,7 @@ bool DrawCmdFuzzTest010(const uint8_t* data, size_t size)
     drawPathOpItem.Marshalling(*drawCmdList);
     DrawPathOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawPathOpItem drawPathOpItemTwo = DrawPathOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawPathOpItemTwo.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -509,11 +510,11 @@ bool DrawCmdFuzzTest011(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     BrushHandle brushHandle;
     brushHandle.colorFilterHandle.size = GetObject<size_t>();
     brushHandle.colorSpaceHandle.size = GetObject<size_t>();
@@ -556,17 +557,17 @@ bool DrawCmdFuzzTest012(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle regionT { GetObject<uint32_t>(), GetObject<size_t>() };
     ClipRegionOpItem::ConstructorHandle constructorHandle = ClipRegionOpItem::ConstructorHandle(regionT, op);
     clipRegionOpItem.Marshalling(*drawCmdList);
     ClipRegionOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     ClipRegionOpItem clipRegionOpItemT = ClipRegionOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     clipRegionOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -611,18 +612,18 @@ bool DrawCmdFuzzTest013(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle pathT { GetObject<uint32_t>(), GetObject<size_t>() };
     DrawShadowOpItem::ConstructorHandle constructorHandle = DrawShadowOpItem::ConstructorHandle(pathT, planeParams,
         devLightPos, lightRadius, ambient, spotColor, flag);
     drawShadowOpItem.Marshalling(*drawCmdList);
     DrawShadowOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawShadowOpItem drawShadowOpItemT = DrawShadowOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawShadowOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -675,11 +676,11 @@ bool DrawCmdFuzzTest015(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     scalar startPtX = GetObject<scalar>();
     scalar startPtY = GetObject<scalar>();
     scalar endPtX = GetObject<scalar>();
@@ -696,7 +697,7 @@ bool DrawCmdFuzzTest015(const uint8_t* data, size_t size)
     DrawLineOpItem drawLineOpItem = DrawLineOpItem(*drawCmdList, &constructorHandle);
     drawLineOpItem.Marshalling(*drawCmdList);
     DrawLineOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawLineOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -751,11 +752,11 @@ bool DrawCmdFuzzTest017(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -766,7 +767,7 @@ bool DrawCmdFuzzTest017(const uint8_t* data, size_t size)
     DrawRectOpItem drawRectOpItem = DrawRectOpItem(*drawCmdList, &constructorHandle);
     drawRectOpItem.Marshalling(*drawCmdList);
     DrawRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawRectOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -816,11 +817,11 @@ bool DrawCmdFuzzTest019(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
@@ -835,7 +836,7 @@ bool DrawCmdFuzzTest019(const uint8_t* data, size_t size)
     DrawRoundRectOpItem drawRoundRectOpItem = DrawRoundRectOpItem(*drawCmdList, &constructorHandle);
     drawRoundRectOpItem.Marshalling(*drawCmdList);
     DrawRoundRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawRoundRectOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -888,11 +889,11 @@ bool DrawCmdFuzzTest021(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Rect otherRect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
@@ -911,7 +912,7 @@ bool DrawCmdFuzzTest021(const uint8_t* data, size_t size)
     DrawNestedRoundRectOpItem drawNestedRoundRectOpItem = DrawNestedRoundRectOpItem(*drawCmdList, &constructorHandle);
     drawNestedRoundRectOpItem.Marshalling(*drawCmdList);
     DrawNestedRoundRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawNestedRoundRectOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -968,11 +969,11 @@ bool DrawCmdFuzzTest023(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar startAngle = GetObject<scalar>();
     scalar sweepAngle = GetObject<scalar>();
@@ -986,7 +987,7 @@ bool DrawCmdFuzzTest023(const uint8_t* data, size_t size)
     DrawArcOpItem drawArcOpItem = DrawArcOpItem(*drawCmdList, &constructorHandle);
     drawArcOpItem.Marshalling(*drawCmdList);
     DrawArcOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawArcOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1038,11 +1039,11 @@ bool DrawCmdFuzzTest025(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar startAngle = GetObject<scalar>();
     scalar sweepAngle = GetObject<scalar>();
@@ -1056,7 +1057,7 @@ bool DrawCmdFuzzTest025(const uint8_t* data, size_t size)
     DrawPieOpItem drawPieOpItem = DrawPieOpItem(*drawCmdList, &constructorHandle);
     drawPieOpItem.Marshalling(*drawCmdList);
     DrawPieOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawPieOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1108,11 +1109,11 @@ bool DrawCmdFuzzTest027(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -1123,7 +1124,7 @@ bool DrawCmdFuzzTest027(const uint8_t* data, size_t size)
     DrawOvalOpItem drawOvalOpItem = DrawOvalOpItem(*drawCmdList, &constructorHandle);
     drawOvalOpItem.Marshalling(*drawCmdList);
     DrawOvalOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawOvalOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1173,11 +1174,11 @@ bool DrawCmdFuzzTest029(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     int32_t x = GetObject<int32_t>();
     int32_t y = GetObject<int32_t>();
     Point point { x, y };
@@ -1192,7 +1193,7 @@ bool DrawCmdFuzzTest029(const uint8_t* data, size_t size)
     DrawCircleOpItem drawCircleOpItem = DrawCircleOpItem(*drawCmdList, &constructorHandle);
     drawCircleOpItem.Marshalling(*drawCmdList);
     DrawCircleOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawCircleOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1246,11 +1247,11 @@ bool DrawCmdFuzzTest031(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     scalar deg = GetObject<scalar>();
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
@@ -1258,7 +1259,7 @@ bool DrawCmdFuzzTest031(const uint8_t* data, size_t size)
     RotateOpItem rotateOpItem = RotateOpItem(&constructorHandle);
     rotateOpItem.Marshalling(*drawCmdList);
     RotateOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     rotateOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1304,18 +1305,18 @@ bool DrawCmdFuzzTest033(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     ShearOpItem::ConstructorHandle constructorHandle = ShearOpItem::ConstructorHandle(sx, sy);
     ShearOpItem shearOpItem = ShearOpItem(&constructorHandle);
     shearOpItem.Marshalling(*drawCmdList);
     ShearOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     shearOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1360,11 +1361,11 @@ bool DrawCmdFuzzTest035(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     FlushOpItem::ConstructorHandle constructorHandle = FlushOpItem::ConstructorHandle();
     FlushOpItem flushOpItem = FlushOpItem();
     flushOpItem.Marshalling(*drawCmdList);
@@ -1410,17 +1411,17 @@ bool DrawCmdFuzzTest037(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     ColorQuad colorQuad = GetObject<ColorQuad>();
     ClearOpItem::ConstructorHandle constructorHandle = ClearOpItem::ConstructorHandle(colorQuad);
     ClearOpItem clearOpItem = ClearOpItem(&constructorHandle);
     clearOpItem.Marshalling(*drawCmdList);
     ClearOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     clearOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1479,11 +1480,11 @@ bool DrawCmdFuzzTest039(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle regionT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -1494,7 +1495,7 @@ bool DrawCmdFuzzTest039(const uint8_t* data, size_t size)
     drawRegionOpItem.Marshalling(*drawCmdList);
     DrawRegionOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawRegionOpItem drawRegionOpItemTwo = DrawRegionOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawRegionOpItemTwo.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1540,11 +1541,11 @@ bool DrawCmdFuzzTest040(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle verticesT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -1556,7 +1557,7 @@ bool DrawCmdFuzzTest040(const uint8_t* data, size_t size)
     drawVerticesOpItem.Marshalling(*drawCmdList);
     DrawVerticesOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawVerticesOpItem drawVerticesOpItemTwo = DrawVerticesOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawVerticesOpItemTwo.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1596,18 +1597,18 @@ bool DrawCmdFuzzTest041(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     ColorQuad color = GetObject<ColorQuad>();
     BlendMode mode = GetObject<BlendMode>();
     DrawColorOpItem::ConstructorHandle constructorHandle = DrawColorOpItem::ConstructorHandle(color, mode);
     DrawColorOpItem drawColorOpItem = DrawColorOpItem(&constructorHandle);
     drawColorOpItem.Marshalling(*drawCmdList);
     DrawColorOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawColorOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1647,8 +1648,8 @@ bool DrawCmdFuzzTest043(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int bitmapWidth = GetObject<int>() % MAX_SIZE;
-    int bitmapHeight = GetObject<int>() % MAX_SIZE;
+    int bitmapWidth = GetObject<int>() % MATH_TEN;
+    int bitmapHeight = GetObject<int>() % MATH_TEN;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(bitmapWidth, bitmapHeight, bitmapFormat);
     if (!buildBitmap) {
@@ -1672,11 +1673,11 @@ bool DrawCmdFuzzTest043(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     BrushHandle brushHandle;
     brushHandle.colorFilterHandle.size = GetObject<size_t>();
@@ -1690,7 +1691,7 @@ bool DrawCmdFuzzTest043(const uint8_t* data, size_t size)
     drawImageNineOpItem.Marshalling(*drawCmdList);
     DrawImageNineOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageNineOpItem drawImageNineOpItemT = DrawImageNineOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawImageNineOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1710,8 +1711,8 @@ bool DrawCmdFuzzTest044(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int bitmapWidth = GetObject<int>() % MAX_SIZE;
-    int bitmapHeight = GetObject<int>() % MAX_SIZE;
+    int bitmapWidth = GetObject<int>() % MATH_TEN;
+    int bitmapHeight = GetObject<int>() % MATH_TEN;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(bitmapWidth, bitmapHeight, bitmapFormat);
     if (!buildBitmap) {
@@ -1732,11 +1733,11 @@ bool DrawCmdFuzzTest044(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -1751,12 +1752,7 @@ bool DrawCmdFuzzTest044(const uint8_t* data, size_t size)
     drawImageLatticeOpItem.Marshalling(*drawCmdList);
     DrawImageLatticeOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageLatticeOpItem drawImageLatticeOpItemT = DrawImageLatticeOpItem(*drawCmdList, &constructorHandle);
-    int32_t width = GetObject<int32_t>();
-    int32_t height = GetObject<int32_t>();
-    Canvas canvas = Canvas(width, height);
-    Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
-    drawImageLatticeOpItemT.Playback(&canvas, &rect);
-    std::string out = dataText;
+    std::string out;
     drawImageLatticeOpItemT.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1775,8 +1771,8 @@ bool DrawCmdFuzzTest045(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int bitmapWidth = GetObject<int>() % MAX_SIZE;
-    int bitmapHeight = GetObject<int>() % MAX_SIZE;
+    int bitmapWidth = GetObject<int>() % MATH_TEN;
+    int bitmapHeight = GetObject<int>() % MATH_TEN;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(bitmapWidth, bitmapHeight, bitmapFormat);
     if (!buildBitmap) {
@@ -1804,11 +1800,11 @@ bool DrawCmdFuzzTest045(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle atlas { GetObject<uint32_t>(), GetObject<size_t>() };
     std::pair<uint32_t, size_t> xformT = { GetObject<uint32_t>(), GetObject<size_t>() };
     std::pair<uint32_t, size_t> texT = { GetObject<uint32_t>(), GetObject<size_t>() };
@@ -1822,7 +1818,7 @@ bool DrawCmdFuzzTest045(const uint8_t* data, size_t size)
         colorsT, mode, samplingOptions, hasCullRect, cullRect, paintHandle);
     drawAtlasOpItem.Marshalling(*drawCmdList);
     DrawAtlasOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawAtlasOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1845,11 +1841,11 @@ bool DrawCmdFuzzTest046(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle atlas { GetObject<uint32_t>(), GetObject<size_t>() };
     std::pair<uint32_t, size_t> xformT = { GetObject<uint32_t>(), GetObject<size_t>() };
     std::pair<uint32_t, size_t> texT = { GetObject<uint32_t>(), GetObject<size_t>() };
@@ -1890,8 +1886,8 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int bitmapWidth = GetObject<int>() % MAX_SIZE;
-    int bitmapHeight = GetObject<int>() % MAX_SIZE;
+    int bitmapWidth = GetObject<int>() % MATH_TEN;
+    int bitmapHeight = GetObject<int>() % MATH_TEN;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(bitmapWidth, bitmapHeight, bitmapFormat);
     if (!buildBitmap) {
@@ -1908,11 +1904,11 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     ImageHandle bitmapT { GetObject<uint32_t>(), GetObject<size_t>(), GetObject<int32_t>(), GetObject<int32_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -1924,7 +1920,7 @@ bool DrawCmdFuzzTest047(const uint8_t* data, size_t size)
     drawBitmapOpItem.Marshalling(*drawCmdList);
     DrawBitmapOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawBitmapOpItem drawBitmapOpItemT = DrawBitmapOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawBitmapOpItemT.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -1944,8 +1940,8 @@ bool DrawCmdFuzzTest048(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int bitmapWidth = GetObject<int>() % MAX_SIZE;
-    int bitmapHeight = GetObject<int>() % MAX_SIZE;
+    int bitmapWidth = GetObject<int>() % MATH_TEN;
+    int bitmapHeight = GetObject<int>() % MATH_TEN;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(bitmapWidth, bitmapHeight, bitmapFormat);
     if (!buildBitmap) {
@@ -1970,11 +1966,11 @@ bool DrawCmdFuzzTest048(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -1986,7 +1982,7 @@ bool DrawCmdFuzzTest048(const uint8_t* data, size_t size)
     drawImageOpItem.Marshalling(*drawCmdList);
     DrawImageOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageOpItem drawImageOpItemT = DrawImageOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawImageOpItemT.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2005,8 +2001,8 @@ bool DrawCmdFuzzTest049(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
     Bitmap bitmap;
-    int bitmapWidth = GetObject<int>() % MAX_SIZE;
-    int bitmapHeight = GetObject<int>() % MAX_SIZE;
+    int bitmapWidth = GetObject<int>() % MATH_TEN;
+    int bitmapHeight = GetObject<int>() % MATH_TEN;
     BitmapFormat bitmapFormat = { COLORTYPE_ARGB_4444, ALPHATYPE_OPAQUE };
     bool buildBitmap = bitmap.Build(bitmapWidth, bitmapHeight, bitmapFormat);
     if (!buildBitmap) {
@@ -2034,11 +2030,11 @@ bool DrawCmdFuzzTest049(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle imageT { GetObject<uint32_t>(), GetObject<size_t>() };
     PaintHandle paintHandle;
     paintHandle.isAntiAlias = GetObject<bool>();
@@ -2050,7 +2046,7 @@ bool DrawCmdFuzzTest049(const uint8_t* data, size_t size)
     drawImageRectOpItem.Marshalling(*drawCmdList);
     DrawImageRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
     DrawImageRectOpItem drawImageRectOpItemT = DrawImageRectOpItem(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawImageRectOpItemT.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2076,7 +2072,6 @@ bool DrawCmdFuzzTest050(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     dataVal->BuildWithoutCopy(dataText, length);
     picture.Deserialize(dataVal);
     picture.Serialize();
@@ -2089,7 +2084,8 @@ bool DrawCmdFuzzTest050(const uint8_t* data, size_t size)
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle pictureT { GetObject<uint32_t>(), GetObject<size_t>() };
     DrawPictureOpItem::ConstructorHandle constructorHandle = DrawPictureOpItem::ConstructorHandle(pictureT);
     drawPictureOpItem.Marshalling(*drawCmdList);
@@ -2117,11 +2113,11 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle textBlob { GetObject<uint32_t>(), GetObject<size_t>() };
     uint64_t globalUniqueId = GetObject<uint64_t>();
     scalar x = GetObject<scalar>();
@@ -2140,7 +2136,7 @@ bool DrawCmdFuzzTest051(const uint8_t* data, size_t size)
     DrawTextBlobOpItem drawTextBlobOpItem = DrawTextBlobOpItem(*drawCmdList, &constructorHandle);
     drawTextBlobOpItem.Marshalling(*drawCmdList);
     DrawTextBlobOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawTextBlobOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2196,11 +2192,11 @@ bool DrawCmdFuzzTest053(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     SymbolLayersHandle symbolLayerHandle { GetObject<uint32_t>() };
     OpDataHandle pathHandle { GetObject<uint32_t>(), GetObject<size_t>() };
     uint64_t symbolId = GetObject<uint64_t>();
@@ -2218,7 +2214,7 @@ bool DrawCmdFuzzTest053(const uint8_t* data, size_t size)
     DrawSymbolOpItem drawSymbolOpItem = DrawSymbolOpItem(*drawCmdList, &constructorHandle);
     drawSymbolOpItem.Marshalling(*drawCmdList);
     DrawSymbolOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     drawSymbolOpItem.DumpItems(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2289,11 +2285,11 @@ bool DrawCmdFuzzTest055(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     SaveOpItem::ConstructorHandle constructorHandle = SaveOpItem::ConstructorHandle();
     SaveOpItem saveOpItem = SaveOpItem();
     saveOpItem.Marshalling(*drawCmdList);
@@ -2339,18 +2335,18 @@ bool DrawCmdFuzzTest057(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     scalar dx = GetObject<scalar>();
     scalar dy = GetObject<scalar>();
     TranslateOpItem::ConstructorHandle constructorHandle = TranslateOpItem::ConstructorHandle(dx, dy);
     TranslateOpItem translateOpItem = TranslateOpItem(&constructorHandle);
     translateOpItem.Marshalling(*drawCmdList);
     TranslateOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     translateOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2395,18 +2391,18 @@ bool DrawCmdFuzzTest059(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     scalar sx = GetObject<scalar>();
     scalar sy = GetObject<scalar>();
     ScaleOpItem::ConstructorHandle constructorHandle = ScaleOpItem::ConstructorHandle(sx, sy);
     ScaleOpItem scaleOpItem = ScaleOpItem(&constructorHandle);
     scaleOpItem.Marshalling(*drawCmdList);
     ScaleOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     scaleOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2451,11 +2447,11 @@ bool DrawCmdFuzzTest061(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     ClipOp op = GetObject<ClipOp>();
     bool doAntiAlias = GetObject<bool>();
@@ -2463,7 +2459,7 @@ bool DrawCmdFuzzTest061(const uint8_t* data, size_t size)
     ClipRectOpItem clipRectOpItem = ClipRectOpItem(&constructorHandle);
     clipRectOpItem.Marshalling(*drawCmdList);
     ClipRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     clipRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2508,18 +2504,18 @@ bool DrawCmdFuzzTest063(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     RectI rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     ClipOp op = GetObject<ClipOp>();
     ClipIRectOpItem::ConstructorHandle constructorHandle = ClipIRectOpItem::ConstructorHandle(rect, op);
     ClipIRectOpItem clipIRectOpItem = ClipIRectOpItem(&constructorHandle);
     clipIRectOpItem.Marshalling(*drawCmdList);
     ClipIRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     clipIRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2564,11 +2560,11 @@ bool DrawCmdFuzzTest065(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     scalar xRad = GetObject<scalar>();
     scalar yRad = GetObject<scalar>();
@@ -2580,7 +2576,7 @@ bool DrawCmdFuzzTest065(const uint8_t* data, size_t size)
     ClipRoundRectOpItem clipRoundRectOpItem = ClipRoundRectOpItem(&constructorHandle);
     clipRoundRectOpItem.Marshalling(*drawCmdList);
     ClipRoundRectOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     clipRoundRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2645,11 +2641,11 @@ bool DrawCmdFuzzTest067(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle pathT { GetObject<uint32_t>(), GetObject<size_t>() };
     ClipPathOpItem::ConstructorHandle constructorHandle = ClipPathOpItem::ConstructorHandle(pathT, op, doAntiAlias);
     clipPathOpItem.Marshalling(*drawCmdList);
@@ -2681,11 +2677,11 @@ bool DrawCmdFuzzTest068(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Matrix::Buffer matrixBuffer;
     for (size_t i = 0; i < MATRIX_SIZE; i++) {
         matrixBuffer[i] = GetObject<scalar>();
@@ -2694,7 +2690,7 @@ bool DrawCmdFuzzTest068(const uint8_t* data, size_t size)
     SetMatrixOpItem setMatrixOpItem = SetMatrixOpItem(&constructorHandle);
     setMatrixOpItem.Marshalling(*drawCmdList);
     SetMatrixOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     setMatrixOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2748,11 +2744,11 @@ bool DrawCmdFuzzTest070(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     ResetMatrixOpItem::ConstructorHandle constructorHandle = ResetMatrixOpItem::ConstructorHandle();
     ResetMatrixOpItem resetMatrixOpItem = ResetMatrixOpItem();
     resetMatrixOpItem.Marshalling(*drawCmdList);
@@ -2798,11 +2794,11 @@ bool DrawCmdFuzzTest072(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Matrix::Buffer matrixBuffer;
     for (size_t i = 0; i < MATRIX_SIZE; i++) {
         matrixBuffer[i] = GetObject<scalar>();
@@ -2811,7 +2807,7 @@ bool DrawCmdFuzzTest072(const uint8_t* data, size_t size)
     ConcatMatrixOpItem concatMatrixOpItem = ConcatMatrixOpItem(&constructorHandle);
     concatMatrixOpItem.Marshalling(*drawCmdList);
     ConcatMatrixOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = dataText;
+    std::string out;
     concatMatrixOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -2865,11 +2861,11 @@ bool DrawCmdFuzzTest074(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);
@@ -2909,11 +2905,11 @@ bool DrawCmdFuzzTest075(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     bool hasBrush = GetObject<bool>();
     BrushHandle brushHandle;
@@ -2957,11 +2953,11 @@ bool DrawCmdFuzzTest076(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     Rect rect { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     bool hasBrush = GetObject<bool>();
     BrushHandle brushHandle;
@@ -2978,7 +2974,7 @@ bool DrawCmdFuzzTest076(const uint8_t* data, size_t size)
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);
     saveLayerOpItem.Playback(&canvas, &rect);
-    std::string out = dataText;
+    std::string out;
     saveLayerOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -3002,11 +2998,11 @@ bool DrawCmdFuzzTest077(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     RestoreOpItem::ConstructorHandle constructorHandle = RestoreOpItem::ConstructorHandle();
     RestoreOpItem restoreOpItem;
     restoreOpItem.Marshalling(*drawCmdList);
@@ -3038,11 +3034,11 @@ bool DrawCmdFuzzTest078(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     DiscardOpItem::ConstructorHandle constructorHandle = DiscardOpItem::ConstructorHandle();
     DiscardOpItem discardOpItem = DiscardOpItem();
     discardOpItem.Marshalling(*drawCmdList);
@@ -3074,11 +3070,11 @@ bool DrawCmdFuzzTest079(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     std::pair<uint32_t, size_t> radiusData = { GetObject<uint32_t>(), length };
     ClipAdaptiveRoundRectOpItem::ConstructorHandle constructorHandle = ClipAdaptiveRoundRectOpItem::ConstructorHandle(
         radiusData);
@@ -3116,17 +3112,17 @@ bool DrawCmdFuzzTest080(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     std::pair<uint32_t, size_t> radiusData = { GetObject<uint32_t>(), length };
     ClipAdaptiveRoundRectOpItem::ConstructorHandle constructorHandle = ClipAdaptiveRoundRectOpItem::ConstructorHandle(
         radiusData);
     ClipAdaptiveRoundRectOpItem clipAdaptiveRoundRectOpItem = ClipAdaptiveRoundRectOpItem(*drawCmdList,
         &constructorHandle);
-    std::string out(dataText);
+    std::string out;
     clipAdaptiveRoundRectOpItem.Dump(out);
     if (dataText != nullptr) {
         delete [] dataText;
@@ -3150,11 +3146,11 @@ bool DrawCmdFuzzTest081(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         dataText[i] = GetObject<char>();
     }
-    dataText[length - 1] = '\0';
     std::pair<const void*, size_t> cmdListData;
     cmdListData.first = static_cast<const void*>(dataText);
     cmdListData.second = length;
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, false);
+    bool isCopy = GetObject<bool>();
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle recordCmdHandle { GetObject<uint32_t>(), GetObject<size_t>() };
     Matrix::Buffer matrixBuffer;
     for (size_t i = 0; i < MATRIX_SIZE; i++) {
@@ -3189,9 +3185,11 @@ bool DrawCmdFuzzTest081(const uint8_t* data, size_t size)
     Rect bounds { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     std::shared_ptr<RecordCmd> recordCmd = std::make_shared<RecordCmd>(drawCmdList, bounds);
     DrawRecordCmdOpItem drawRecordCmdOpItem = DrawRecordCmdOpItem(recordCmd, &matrix, &brush);
-    drawRecordCmdOpItem.Marshalling(*drawCmdList);
-    DrawRecordCmdOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    DrawRecordCmdOpItem drawRecordCmdOpItemT = DrawRecordCmdOpItem(*drawCmdList, &constructorHandle);
+    static std::shared_ptr<DrawCmdList> drawCmdList2 = DrawCmdList::CreateFromData(cmdListData, true);
+    drawRecordCmdOpItem.Marshalling(*drawCmdList2);
+    DrawRecordCmdOpItem::Unmarshalling(*drawCmdList2, &constructorHandle);
+    static std::shared_ptr<DrawCmdList> drawCmdList3 = DrawCmdList::CreateFromData(cmdListData, true);
+    DrawRecordCmdOpItem drawRecordCmdOpItemT = DrawRecordCmdOpItem(*drawCmdList3, &constructorHandle);
     int32_t width = GetObject<int32_t>();
     int32_t height = GetObject<int32_t>();
     Canvas canvas = Canvas(width, height);
@@ -3241,13 +3239,13 @@ bool DrawCmdFuzzTest082(const uint8_t* data, size_t size)
     cmdListData.first = static_cast<const void*>(str);
     cmdListData.second = strCount - 1;
     bool isCopy = GetObject<bool>();
-    auto drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
+    static std::shared_ptr<DrawCmdList> drawCmdList = DrawCmdList::CreateFromData(cmdListData, isCopy);
     OpDataHandle pathT { GetObject<uint32_t>(), GetObject<size_t>() };
     DrawShadowStyleOpItem::ConstructorHandle constructorHandle = DrawShadowStyleOpItem::ConstructorHandle(
         pathT, planeParams, devLightPos, lightRadius, ambient, spotColor, flag, isLimitElevation);
     drawShadowStyleOpItem.Marshalling(*drawCmdList);
     DrawShadowStyleOpItem::Unmarshalling(*drawCmdList, &constructorHandle);
-    std::string out = str;
+    std::string out;
     drawShadowStyleOpItem.Dump(out);
     if (str != nullptr) {
         delete [] str;

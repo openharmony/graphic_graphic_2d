@@ -197,7 +197,7 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "0") != "0";
     return isPurgeable;
 }
 
@@ -205,6 +205,12 @@ bool RSSystemProperties::GetRSImagePurgeEnabled()
 {
     static bool isPurgeable = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
     return isPurgeable;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
+{
+    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.purge.enabled", "1") != "0";
+    return isClosePixelMapFd;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -349,7 +355,11 @@ bool RSSystemProperties::GetHighContrastStatus()
 
 bool RSSystemProperties::GetDrmEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.enabled", "1");
+    // The switch only works on PC, will remove the restriction in the future.
+    if (!IsPcType()) {
+        return true;
+    }
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.drm.enabled", "0");
     int changed = 0;
     const char *enabled = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enabled, 0) != 0;
@@ -717,6 +727,14 @@ bool RSSystemProperties::GetCacheOptimizeRotateEnable()
 {
     static bool debugEnable = system::GetBoolParameter("const.cache.optimize.rotate.enable", false);
     return debugEnable;
+}
+
+CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffscreenDebugEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.crossnode.offscreen.render.enabled", "1");
+    int chanded = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &chanded);
+    return static_cast<CrossNodeOffScreenRenderDebugType>(ConvertToInt(type, 1));
 }
 
 bool RSSystemProperties::GetUIFirstEnabled()

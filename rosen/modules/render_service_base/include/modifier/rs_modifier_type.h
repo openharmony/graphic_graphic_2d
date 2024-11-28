@@ -169,6 +169,7 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR_STRATEGY,
     GEOMETRYTRANS,
     CUSTOM_CLIP_TO_FRAME,
+    HDR_BRIGHTNESS,
     BEHIND_WINDOW_FILTER_RADIUS,
     BEHIND_WINDOW_FILTER_SATURATION,
     BEHIND_WINDOW_FILTER_BRIGHTNESS,
@@ -350,6 +351,7 @@ public:
             case RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY: return "EnvForegroundColorStrategy";
             case RSModifierType::GEOMETRYTRANS: return "Geometrytrans";
             case RSModifierType::CUSTOM_CLIP_TO_FRAME: return "CustomClipToFrame";
+            case RSModifierType::HDR_BRIGHTNESS: return "HDRBrightness";
             case RSModifierType::BEHIND_WINDOW_FILTER_RADIUS: return "BehindWindowFilterRadius";
             case RSModifierType::BEHIND_WINDOW_FILTER_SATURATION: return "BehindWindowFilterSaturation";
             case RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS: return "BehindWindowFilterBrightness";

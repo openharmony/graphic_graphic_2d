@@ -26,6 +26,12 @@
 namespace OHOS {
 namespace Rosen {
 
+enum class CrossNodeOffScreenRenderDebugType {
+    DISABLED = 0,
+    ENABLE,
+    ENABLE_DFX
+};
+
 enum class DirtyRegionDebugType {
     DISABLED = 0,
     CURRENT_SUB,
@@ -140,6 +146,7 @@ public:
     static bool GetAnimationTraceEnabled();
     static bool GetRenderNodePurgeEnabled();
     static bool GetRSImagePurgeEnabled();
+    static bool GetClosePixelMapFdEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -220,6 +227,7 @@ public:
     static bool GetBoolSystemProperty(const char* name, bool defaultValue);
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
+    static CrossNodeOffScreenRenderDebugType GetCrossNodeOffscreenDebugEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);

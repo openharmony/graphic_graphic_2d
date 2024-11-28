@@ -67,7 +67,9 @@ private:
         const Drawing::Color color, const RSPaintStyle fillType, int edgeWidth = 6) const;
     bool DrawDetailedTypesOfDirtyRegionForDFX(RSPaintFilterCanvas& canvas,
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable) const;
+#ifdef RS_ENABLE_GPU
     void DrawSurfaceOpaqueRegionForDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams) const;
+#endif
     void DrawHwcRegionForDFX(RSPaintFilterCanvas& canvas) const;
 
     void DrawDirtyRegionForDFX(RSPaintFilterCanvas& canvas, const std::vector<RectI>& dirtyRects) const;

@@ -58,46 +58,6 @@ HWTEST_F(FontDescriptorTest, ParserStylishFontsTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ParserInstallFontsTest
- * @tc.desc: test the ParserInstallFonts and ParseInstalledConfigFile function
- * @tc.type: FUNC
- */
-HWTEST_F(FontDescriptorTest, ParserInstallFontsTest, TestSize.Level1)
-{
-    auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
-    std::vector<std::string> fontPathList;
-    bool res = false;
-    std::ifstream configFile(FILE_NAME);
-    if (configFile.is_open()) {
-        fontDescriptorCache->ParserInstallFonts();
-        res = fontDescriptorCache->ParseInstalledConfigFile(FILE_NAME, fontPathList);
-        EXPECT_EQ(res, true);
-        configFile.close();
-    } else {
-        fontDescriptorCache->ParserInstallFonts();
-        res = fontDescriptorCache->ParseInstalledConfigFile(FILE_NAME, fontPathList);
-        EXPECT_EQ(res, false);
-    }
-}
-
-/**
- * @tc.name: ProcessInstalledFontPathTest
- * @tc.desc: test the ProcessInstalledFontPath function
- * @tc.type: FUNC
- */
-HWTEST_F(FontDescriptorTest, ProcessInstalledFontPathTest, TestSize.Level1)
-{
-    auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
-    std::string path = "-1";
-    bool res = fontDescriptorCache->ProcessInstalledFontPath(FILE_NAME);
-    EXPECT_EQ(res, false);
-    res = fontDescriptorCache->ProcessInstalledFontPath(FILE_NAME_PATH);
-    EXPECT_EQ(res, false);
-    res = fontDescriptorCache->ProcessInstalledFontPath(EFFECTIVE_FILE_NAME);
-    EXPECT_EQ(res, true);
-}
-
-/**
  * @tc.name: FontDescriptorScatterTest
  * @tc.desc: test the FontDescriptorScatter function
  * @tc.type: FUNC
@@ -186,18 +146,6 @@ HWTEST_F(FontDescriptorTest, GetSystemFontFullNamesByTypeTest, TestSize.Level1)
     fontLis.emplace(fullName);
     fontDescriptorCache->GetSystemFontFullNamesByType(16, fontLis);
     EXPECT_EQ(fontLis.size(), 0);
-
-    FontDescSharedPtr fontDescSharedPtr = std::make_shared<TextEngine::FontParser::FontDescriptor>();
-    fontDescSharedPtr->fullName = "GetSystemFontFullNamesByTypeTests1";
-    fontDescriptorCache->allFontDescriptor_.emplace(fontDescSharedPtr);
-    std::set<FontDescSharedPtr> fontDescSet;
-    fontDescSet.emplace(fontDescSharedPtr);
-    fontDescriptorCache->stylishFullNameMap_.emplace("GetSystemFontFullNamesByTypeTests2", fontDescSet);
-    std::vector<std::string> vectorName;
-    vectorName.emplace_back("GetSystemFontFullNamesByTypeTests");
-    fontDescriptorCache->installPathMap_.emplace("GetSystemFontFullNamesByTypeTests3", vectorName);
-    fontDescriptorCache->GetSystemFontFullNamesByType(14, fontLis);
-    EXPECT_NE(fontLis.size(), 0);
 }
 
 /**
@@ -274,24 +222,6 @@ HWTEST_F(FontDescriptorTest, GetFontDescSharedPtrByFullNameTest, TestSize.Level1
     fontDescriptorCache->stylishFullNameMap_.clear();
     fontDescriptorCache->GetFontDescSharedPtrByFullName(fullName, systemFontType, result);
     EXPECT_TRUE(result == nullptr);
-}
-
-/**
- * @tc.name: ParseInstallFontDescSharedPtrByNameTest
- * @tc.desc: test the ParseInstallFontDescSharedPtrByName function
- * @tc.type: FUNC
- */
-HWTEST_F(FontDescriptorTest, ParseInstallFontDescSharedPtrByNameTest, TestSize.Level1)
-{
-    auto fontDescriptorCache = std::make_shared<FontDescriptorCache>();
-    EXPECT_NE(fontDescriptorCache, nullptr);
-
-    FontDescSharedPtr result = nullptr;
-    std::string fullName = "ParseInstallFontDescSharedPtrByNameTest";
-    std::vector<std::string> vectorName;
-    vectorName.emplace_back("GetSystemFontFullNamesByTypeTests");
-    fontDescriptorCache->installPathMap_.emplace("GetSystemFontFullNamesByTypeTests", vectorName);
-    EXPECT_FALSE(fontDescriptorCache->ParseInstallFontDescSharedPtrByName(fullName, result));
 }
 
 /**

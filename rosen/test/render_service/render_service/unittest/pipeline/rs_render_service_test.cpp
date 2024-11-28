@@ -178,5 +178,8 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
 
     dumpResult = GetDumpResult(renderService, u"flushJankStatsRs");
     ASSERT_TRUE(dumpResult.find("flushJankStatsRs") != std::string::npos);
+
+    dumpResult = GetDumpResult(renderService, u"client");
+    ASSERT_TRUE(dumpResult.find("ClientNodeTreeDump") != std::string::npos);
 }
 } // namespace OHOS::Rosen

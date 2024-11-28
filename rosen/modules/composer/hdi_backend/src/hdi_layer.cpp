@@ -790,7 +790,7 @@ int32_t HdiLayer::SetPerFrameParameters()
 
 int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetDisplayNit() == prevLayerInfo_->GetDisplayNit()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -803,7 +803,7 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 
 int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetBrightnessRatio() == prevLayerInfo_->GetBrightnessRatio()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }
@@ -816,7 +816,7 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 {
-    if (doLayerInfoCompare_) {
+    if (prevLayerInfo_ != nullptr) {
         if (layerInfo_->GetLayerSourceTuning() == prevLayerInfo_->GetLayerSourceTuning()) {
             return GRAPHIC_DISPLAY_SUCCESS;
         }

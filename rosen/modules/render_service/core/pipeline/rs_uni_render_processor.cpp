@@ -34,9 +34,7 @@
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
-#ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
-#endif
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()
@@ -229,8 +227,13 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         return true;
     }
     bool forceClientForDRM = false;
+    auto ancestorDrawableMap = params.GetAncestorDisplayDrawable();
+    if (ancestorDrawableMap.empty()) {
+        RS_LOGE("ancestorDrawableMap return empty");
+        return false;
+    }
     auto ancestorDisplayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(ancestorDrawableMap.begin()->second.lock());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
         uniParam == nullptr) {
@@ -304,6 +307,9 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     ProcessLayerSetCropRect(layer, layerInfo, buffer);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
+    if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
+        layer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    }
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
         layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_X), layerInfo.matrix.Get(Drawing::Matrix::Index::TRANS_X),
         layerInfo.matrix.Get(Drawing::Matrix::Index::SKEW_Y), layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_Y),
@@ -319,6 +325,16 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
     sptr<SurfaceBuffer> buffer)
 {
     auto adaptedSrcRect = layerInfo.srcRect;
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
+    if (MetadataHelper::GetCropRectMetadata(buffer, metaRegion) == GSERROR_OK) {
+        RS_LOGD("RSUniRenderProcessor::GetCropRectMetadata success,"
+            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
+            metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+        adaptedSrcRect.x = metaRegion.left;
+        adaptedSrcRect.y = metaRegion.top;
+        adaptedSrcRect.w = metaRegion.width;
+        adaptedSrcRect.h = metaRegion.height;
+    }
     // Because the buffer is mirrored in the horiziontal/vertical directions,
     // srcRect need to be adjusted.
     switch (layerInfo.transformType) {

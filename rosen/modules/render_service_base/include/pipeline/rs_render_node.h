@@ -161,10 +161,11 @@ public:
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID);
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID);
     void SetIsOntheTreeOnlyFlag(bool flag)
     {
-        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
+            uifirstRootNodeId_, displayNodeId_);
     }
     inline bool IsOnTheTree() const
     {
@@ -470,6 +471,7 @@ public:
         curFrameHasAnimation_ = b;
     }
 
+    float GetHDRBrightness() const;
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
     bool GetCommandExecuted() const
@@ -538,8 +540,10 @@ public:
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
+#ifdef RS_ENABLE_GPU
     void CheckFilterCacheAndUpdateDirtySlots(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
+#endif
     bool IsFilterCacheValid() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
@@ -626,7 +630,6 @@ public:
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
-    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
@@ -672,13 +675,13 @@ public:
     {
         return;
     }
-
+#ifdef RS_ENABLE_GPU
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
 
     // Deprecated! Do not use this interface.
     // This interface has crash risks and will be deleted in later versions.
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
-
+#endif
     void UpdatePointLightDirtySlot();
     void AccmulateDirtyInOcclusion(bool isOccluded);
     void RecordCurDirtyStatus();
@@ -785,6 +788,7 @@ public:
         curDisplayOffsetY_ = offsetY;
     }
 
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
@@ -794,6 +798,11 @@ public:
     bool IsAccessibilityConfigChanged() const
     {
         return isAccessibilityConfigChanged_;
+    }
+
+    NodeId GetDisplayNodeId() const
+    {
+        return displayNodeId_;
     }
 
     void ProcessBehindWindowOnTreeStateChanged();
@@ -863,12 +872,12 @@ protected:
     {
         renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
     }
-
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
-
+#endif
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     mutable bool isFullChildrenListValid_ = true;
     bool isOnTheTree_ = false;
@@ -1062,6 +1071,7 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    NodeId displayNodeId_ = INVALID_NODEID;
     // for blur effct count
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     void UpdateBlurEffectCounter(int deltaCount);

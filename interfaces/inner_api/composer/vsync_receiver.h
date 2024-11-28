@@ -35,6 +35,7 @@ public:
     using VSyncCallback = std::function<void(int64_t, void*)>;
     using VSyncCallbackWithId = std::function<void(int64_t, int64_t, void*)>;
     using FdShutDownCallback = std::function<void(int32_t)>;
+    using ReadableCallback = std::function<bool(int32_t)>;
     struct FrameCallback {
         void *userData_;
         VSyncCallback callback_;
@@ -101,6 +102,7 @@ public:
     }
 
     void RegisterFdShutDownCallback(FdShutDownCallback cb);
+    void RegisterReadableCallback(ReadableCallback cb);
 
     void SetFdClosedFlagLocked(bool fdClosed);
 
@@ -124,6 +126,7 @@ private:
     std::vector<FrameCallback> frameCallbacks_ = {};
     bool fdClosed_ = false;
     FdShutDownCallback fdShutDownCallback_ = nullptr;
+    ReadableCallback readableCallback_ = nullptr;
     std::mutex cbMutex_;
 };
 

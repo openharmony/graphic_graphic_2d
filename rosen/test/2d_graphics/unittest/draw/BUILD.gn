@@ -30,6 +30,7 @@ ohos_unittest("2d_graphics_draw_test") {
 
   if (rs_enable_gpu) {
     defines = [ "RS_ENABLE_GPU" ]
+    defines += [ "RS_ENABLE_GL" ]
   }
 
   include_dirs = [

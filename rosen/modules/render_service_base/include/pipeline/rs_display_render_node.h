@@ -69,13 +69,15 @@ public:
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {
         if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
             releaseScreenDmaBufferTask_(screenId_);
         }
+        RS_LOGW("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
+            "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
         screenId_ = screenId;
     }
 
@@ -370,6 +372,11 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
+    GraphicPixelFormat GetPixelFormat() const;
+    void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetColorSpace() const;
+
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
         return dirtySurfaceNodeMap_;
@@ -452,6 +459,7 @@ public:
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
     {
         oldScbPids_ = oldScbPids;
+        lastScbPid_ = currentScbPid_;
         currentScbPid_ = currentScbPid;
         isNeedWaitNewScbPid_ = true;
         isFullChildrenListValid_ = false;
@@ -510,6 +518,8 @@ private:
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
+    GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
@@ -551,6 +561,7 @@ private:
 
     std::vector<int32_t> oldScbPids_ {};
     int32_t currentScbPid_ = -1;
+    int32_t lastScbPid_ = -1;
     mutable bool isNeedWaitNewScbPid_ = false;
     mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();

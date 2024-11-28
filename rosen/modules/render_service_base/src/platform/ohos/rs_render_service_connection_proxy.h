@@ -46,7 +46,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token,
                                                          uint64_t id = 0,
-                                                         NodeId windowNodeId = 0) override;
+                                                         NodeId windowNodeId = 0,
+                                                         bool fromXcomponent = false) override;
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
@@ -228,6 +229,9 @@ public:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
+
     void SetAppWindowNum(uint32_t num) override;
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
@@ -291,6 +295,8 @@ public:
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
+    
+    void DropFrameByPid(const std::vector<int32_t> pidList) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 
@@ -308,6 +314,8 @@ private:
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
+
+    int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
     bool SetAncoForceDoDirect(bool direct) override;
 

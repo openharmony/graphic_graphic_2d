@@ -51,10 +51,11 @@ const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
 inline int64_t GenerateCurrentTimeStamp()
 {
     struct timeval now;
-    gettimeofday(&now, nullptr);
-    constexpr int64_t secToUsec = 1000 * 1000;
-    int64_t nowVal =  static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
-    return nowVal;
+    if (gettimeofday(&now, nullptr) == 0) {
+        constexpr int64_t secToUsec = 1000 * 1000;
+        return static_cast<int64_t>(now.tv_sec) * secToUsec + static_cast<int64_t>(now.tv_usec);
+    }
+    return 0;
 }
 }
 namespace Detail {
@@ -871,7 +872,7 @@ BufferRequestConfig RSBaseRenderUtil::GetFrameBufferRequestConfig(const ScreenIn
     config.format = isPhysical ? pixelFormat : screenInfo.pixelFormat;
     config.usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB;
     if (isProtected) {
-        config.usage |= BUFFER_USAGE_PROTECTED;
+        config.usage |= BUFFER_USAGE_PROTECTED | BUFFER_USAGE_DRM_REDRAW; // for redraw frameBuffer mem reservation
     }
     config.timeout = 0;
     return config;
@@ -944,7 +945,8 @@ Rect RSBaseRenderUtil::MergeBufferDamages(const std::vector<Rect>& damages)
     return {damage.left_, damage.top_, damage.width_, damage.height_};
 }
 
-bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen)
+bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+    uint64_t presentWhen, bool dropFrameByPidEnable)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -955,13 +957,26 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
         return false;
     }
 
+    // check presentWhen conversion validation range
+    bool presentWhenValid = presentWhen <= static_cast<uint64_t>(INT64_MAX);
     bool acqiureWithPTSEnable =
         RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled();
-    uint64_t acquireTimeStamp = acqiureWithPTSEnable ? presentWhen : CONSUME_DIRECTLY;
+    uint64_t acquireTimeStamp = presentWhen;
+    if (!presentWhenValid || !acqiureWithPTSEnable) {
+        acquireTimeStamp = CONSUME_DIRECTLY;
+        RS_LOGD("RSBaseRenderUtil::ConsumeAndUpdateBuffer ignore presentWhen "\
+            "[acqiureWithPTSEnable:%{public}d, presentWhenValid:%{public}d]", acqiureWithPTSEnable, presentWhenValid);
+    }
+
     std::shared_ptr<RSSurfaceHandler::SurfaceBufferEntry> surfaceBuffer;
     if (surfaceHandler.GetHoldBuffer() == nullptr) {
         IConsumerSurface::AcquireBufferReturnValue returnValue;
-        int32_t ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+        int32_t ret;
+        if (acqiureWithPTSEnable && dropFrameByPidEnable) {
+            ret = consumer->AcquireBuffer(returnValue, INT64_MAX, true);
+        } else {
+            ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
+        }
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             RS_LOGE("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer failed(ret: %{public}d)!",
                 surfaceHandler.GetNodeId(), ret);
@@ -1017,12 +1032,16 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, 
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
     // should drop frame after acquire buffer to avoid drop key frame
     DropFrameProcess(surfaceHandler, acquireTimeStamp);
+#ifdef RS_ENABLE_GPU
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if (!renderEngine) {
         return true;
     }
     renderEngine->RegisterDeleteBufferListener(surfaceHandler);
     return true;
+#else
+    return true;
+#endif
 }
 
 bool RSBaseRenderUtil::ReleaseBuffer(RSSurfaceHandler& surfaceHandler)
@@ -1209,7 +1228,7 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 
     return gravityMatrix;
 }
-
+#ifdef RS_ENABLE_GPU
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
     RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
 {
@@ -1248,9 +1267,14 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
-    params.dstRect = params.srcRect;
+    if (UNLIKELY(params.hasCropMetadata)) {
+        params.dstRect = Drawing::Rect(0, 0,
+            params.buffer->GetSurfaceBufferWidth(), params.buffer->GetSurfaceBufferHeight());
+    } else {
+        params.dstRect = params.srcRect;
+    }
 }
-
+#endif
 void RSBaseRenderUtil::FlipMatrix(GraphicTransformType transform, BufferDrawParam& params)
 {
     GraphicTransformType type = GetFlipTransform(transform);

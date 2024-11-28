@@ -189,6 +189,18 @@ public:
         return whiteList_;
     }
 
+    void SetWallpaperTranslate(int32_t translateX, int32_t translateY)
+    {
+        std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
+        wallpaperTranslate_ = {translateX, translateY};
+    }
+
+    std::pair<int32_t, int32_t> GetWallpaperTranslate() const
+    {
+        std::lock_guard<std::mutex> lock(wallpaperTranslateMutex_);
+        return wallpaperTranslate_;
+    }
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -246,6 +258,9 @@ private:
     bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
     uint32_t vmaCacheCount_ = 0;
     std::mutex vmaCacheCountMutex_;
+
+    std::pair<int32_t, int32_t> wallpaperTranslate_ = {0, 0};
+    mutable std::mutex wallpaperTranslateMutex_;
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;

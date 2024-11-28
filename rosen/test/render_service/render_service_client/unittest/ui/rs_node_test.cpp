@@ -5235,6 +5235,20 @@ HWTEST_F(RSNodeTest, SetCameraDistance, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHDRBrightness
+ * @tc.desc: test results of SetHDRBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetHDRBrightness, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float hdrBrightness = 0.5f; // for test
+    rsNode->SetHDRBrightness(hdrBrightness);
+    EXPECT_EQ(hdrBrightness, 0.5f);
+}
+
+/**
  * @tc.name: SetEnvForegroundColor
  * @tc.desc: test results of SetEnvForegroundColor
  * @tc.type: FUNC

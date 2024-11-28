@@ -189,12 +189,6 @@ constexpr size_t ARGC_SEVEN = 7;
 constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
-extern const char* const JSPROPERTY[4];
-constexpr size_t A_SHIFT = 24;
-constexpr size_t R_SHIFT = 16;
-constexpr size_t G_SHIFT = 8;
-constexpr size_t B_SHIFT = 0;
-constexpr size_t CHANNEL_MASK = 0xFF;
 
 enum class DrawingErrorCode : int32_t {
     OK = 0,
@@ -357,8 +351,6 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
 
-bool ConvertFromJsColorWithNumber(napi_env env, napi_value jsValue, int32_t* argb, size_t size, size_t argc);
-
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 
 bool ConvertFromJsIRect(napi_env env, napi_value jsValue, int32_t* ltrb, size_t size);
@@ -472,15 +464,6 @@ inline napi_value GetColorAndConvertToJsValue(napi_env env, const Color& color)
         napi_set_named_property(env, objValue, "blue", CreateJsNumber(env, color.GetBlue()));
     }
     return objValue;
-}
-
-inline napi_value GetHexColorAndConvertToJsValue(napi_env env, const Color& color)
-{
-    uint32_t alpha = color.GetAlpha() & CHANNEL_MASK;
-    uint32_t red = color.GetRed() & CHANNEL_MASK;
-    uint32_t green = color.GetGreen() & CHANNEL_MASK;
-    uint32_t blue = color.GetBlue() & CHANNEL_MASK;
-    return CreateJsNumber(env, (alpha << A_SHIFT) | (red << R_SHIFT) | (green << G_SHIFT) | (blue << B_SHIFT));
 }
 
 napi_value NapiThrowError(napi_env env, DrawingErrorCode err, const std::string& message);

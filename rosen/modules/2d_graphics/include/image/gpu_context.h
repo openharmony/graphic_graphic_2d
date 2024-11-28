@@ -18,9 +18,8 @@
 #include <functional>
 #include <set>
 
-#include "trace_memory_dump.h"
-
 #include "impl_interface/gpu_context_impl.h"
+#include "trace_memory_dump.h"
 #include "utils/data.h"
 #include "utils/drawing_macros.h"
 
@@ -276,7 +275,7 @@ public:
 
     void SetGpuCacheSuppressWindowSwitch(bool enabled);
 
-    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled);
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority);
 
     void FlushGpuMemoryInWaitQueue();
     

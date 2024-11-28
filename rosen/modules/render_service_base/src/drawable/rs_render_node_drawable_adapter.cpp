@@ -75,6 +75,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node null");
         return nullptr;
     }
     if (node->renderDrawable_ != nullptr) {
@@ -100,7 +101,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     // If we don't have a cached drawable, try to generate a new one and cache it.
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
-        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %d is not supported", node->GetType());
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
         return nullptr;
     }
     auto ptr = it->second(node);
@@ -141,6 +142,8 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(sharedPtr->nodeId_);
             break;
     }
+    sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
+    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
@@ -157,6 +160,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     };
 
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable, node null");
         return nullptr;
     }
     auto id = node->GetId();
@@ -266,8 +270,14 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     drawCmdList_[index](&canvas, &rect);
 }
 
-void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        RS_LOGE("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     if (uifirstDrawCmdList_.empty()) {
         return;
     }

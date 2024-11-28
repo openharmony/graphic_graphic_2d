@@ -112,7 +112,13 @@ HWTEST_F(RSImplicitAnimatorTest, EndImplicitDurationKeyFrameAnimation001, TestSi
     implicitAnimator->OpenImplicitAnimation(timingProtocol, timingCurve);
     implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration, timingCurve);
     implicitAnimator->EndImplicitDurationKeyFrameAnimation();
+    int duration2 = INT32_MAX;
+    implicitAnimator->BeginImplicitDurationKeyFrameAnimation(duration2, timingCurve);
+    implicitAnimator->EndImplicitDurationKeyFrameAnimation();
     EXPECT_TRUE(implicitAnimator != nullptr);
+    [[maybe_unused]] auto& [isDurationKeyframe, totalDuration, currentDuration] =
+        implicitAnimator->durationKeyframeParams_.top();
+    EXPECT_EQ(totalDuration, INT32_MAX);
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest EndImplicitDurationKeyFrameAnimation001 end";
 }
 

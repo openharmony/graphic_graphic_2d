@@ -23,8 +23,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -50,7 +50,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
-        testNodeBackGround->SetBounds({ x, y, 500, 300 });
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(normalRadius[i]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -63,7 +63,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
-        testNodeBackGround->SetBounds({ x, y, 500, 300 });
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(asymmetryRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -77,7 +77,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
-        testNodeBackGround->SetBounds({ x, y, 500, 300 });
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(capsuleRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -99,7 +99,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     for (; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(normalRadius[i]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -111,7 +111,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     for (; i < 4; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(asymmetryRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -123,7 +123,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     for (; i < 7; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(capsuleRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -132,7 +132,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     i = 7;
     int x = (i % columnCount) * sizeX;
     int y = (i / columnCount) * sizeY;
-    auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+    auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
     testNodeBackGround->SetCornerRadius({ 160, 180, 200, 220 });
     GetRootNode()->AddChild(testNodeBackGround);
     RegisterNode(testNodeBackGround);

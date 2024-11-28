@@ -27,6 +27,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -66,7 +67,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token = nullptr,
                                                          uint64_t id = 0,
-                                                         NodeId windowNodeId = 0) = 0;
+                                                         NodeId windowNodeId = 0,
+                                                         bool fromXcomponent = false) = 0;
 
     virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect) = 0;
@@ -258,6 +260,9 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t pid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
+
     virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
@@ -302,6 +307,8 @@ public:
     virtual void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) = 0;
 
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
+
+    virtual void DropFrameByPid(const std::vector<int32_t> pidList) = 0;
 
     virtual std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() = 0;
 

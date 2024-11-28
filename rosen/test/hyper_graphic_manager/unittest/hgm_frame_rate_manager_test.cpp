@@ -180,6 +180,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmUiFrameworkDirtyNodeTest, Function | SmallTest 
             frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, 0);
         }
     }
+    sleep(1);
 }
 
 /**

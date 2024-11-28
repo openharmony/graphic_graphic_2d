@@ -337,7 +337,7 @@ static void SetAlignValueForParagraphStyle(napi_env env, napi_value argValue, Ty
         return;
     }
     napi_value tempValue = nullptr;
-    napi_get_named_property(env, argValue, "ellipsis", &tempValue);
+    napi_get_named_property(env, argValue, "align", &tempValue);
     uint32_t align = 0;
     if (tempValue != nullptr && napi_get_value_uint32(env, tempValue, &align) == napi_ok) {
         pographyStyle.textAlign = TextAlign(align);
@@ -388,7 +388,7 @@ bool GetParagraphStyleFromJS(napi_env env, napi_value argValue, TypographyStyle&
 
     pographyStyle.ellipsis = textStyle.ellipsis;
     pographyStyle.ellipsisModal = textStyle.ellipsisModal;
-   
+
     napi_get_named_property(env, argValue, "tab", &tempValue);
     TextTab textTab;
     if (tempValue != nullptr && GetTextTabFromJS(env, tempValue, textTab)) {
@@ -503,15 +503,15 @@ bool SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographySty
             typographyStyle.lineStyleFontFamilies = fontFamilies;
         }
     }
-
+ 
     SetEnumValueFromJS(env, strutStyleValue, "fontStyle", typographyStyle.lineStyleFontStyle);
     SetEnumValueFromJS(env, strutStyleValue, "fontWidth", typographyStyle.lineStyleFontWidth);
     SetEnumValueFromJS(env, strutStyleValue, "fontWeight", typographyStyle.lineStyleFontWeight);
-
+ 
     SetDoubleValueFromJS(env, strutStyleValue, "fontSize", typographyStyle.lineStyleFontSize);
     SetDoubleValueFromJS(env, strutStyleValue, "height", typographyStyle.lineStyleHeightScale);
     SetDoubleValueFromJS(env, strutStyleValue, "leading", typographyStyle.lineStyleSpacingScale);
-
+ 
     SetBoolValueFromJS(env, strutStyleValue, "forceHeight", typographyStyle.lineStyleOnly);
     SetBoolValueFromJS(env, strutStyleValue, "enabled", typographyStyle.useLineStyle);
     SetBoolValueFromJS(env, strutStyleValue, "heightOverride", typographyStyle.lineStyleHeightOnly);
@@ -558,7 +558,7 @@ napi_value CreateLineMetricsJsValue(napi_env env, OHOS::Rosen::LineMetrics& line
     }
     return objValue;
 }
-
+ 
 napi_value CreateTextStyleJsValue(napi_env env, TextStyle textStyle)
 {
     napi_value objValue = nullptr;
@@ -657,7 +657,7 @@ napi_value ConvertMapToNapiMap(napi_env env, const std::map<size_t, RunMetrics>&
     }
     return mapReturn.instance;
 }
-
+ 
 napi_value CreateFontMetricsJsValue(napi_env env, Drawing::FontMetrics& fontMetrics)
 {
     napi_value objValue = nullptr;

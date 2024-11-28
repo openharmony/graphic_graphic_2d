@@ -44,6 +44,7 @@
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/rs_main_thread.h"
+#include "static_factory.h"
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
 #include "platform/ohos/backend/native_buffer_utils.h"
@@ -59,6 +60,7 @@
 namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float GAMMA2_2 = 2.2f;
+constexpr const char* WALLPAPER = "SCBWallpaper";
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -69,6 +71,9 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     auto nodeSp = std::const_pointer_cast<RSRenderNode>(node);
     auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(nodeSp);
     name_ = surfaceNode->GetName();
+    if (name_.find("SCBScreenLock") != std::string::npos) {
+        vmaCacheOff_ = true;
+    }
     surfaceNodeType_ = surfaceNode->GetSurfaceNodeType();
 #ifndef ROSEN_CROSS_PLATFORM
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
@@ -97,7 +102,8 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         return true;
     }
     if (uniParams.IsFirstVisitCrossNodeDisplay() &&
-        !RSUniRenderThread::IsInCaptureProcess() && !uniParams.HasDisplayHdrOn()) {
+        !RSUniRenderThread::IsInCaptureProcess() && !uniParams.HasDisplayHdrOn() &&
+        uniParams.GetCrossNodeOffscreenDebugEnabled() != CrossNodeOffScreenRenderDebugType::DISABLED) {
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
     }
@@ -132,6 +138,12 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
     if (CheckDrawAndCacheWindowContent(surfaceParams, uniParams)) {
         // 3/4 Draw content and children of this node by the main canvas, and cache
         drawWindowCache_.DrawAndCacheWindowContent(this, canvas, bounds);
+        if (surfaceParams.IsCrossNode() &&
+            uniParams.GetCrossNodeOffscreenDebugEnabled() == CrossNodeOffScreenRenderDebugType::ENABLE_DFX) {
+            // rgba: Alpha 128, green 128, blue 128
+            Drawing::Color color(0, 128, 128, 128);
+            drawWindowCache_.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
+        }
     } else {
         // 3. Draw content of this node by the main canvas.
         DrawContent(canvas, bounds);
@@ -250,6 +262,13 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     }
     int offscreenWidth = curCanvas_->GetSurface()->Width();
     int offscreenHeight = curCanvas_->GetSurface()->Height();
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam && uniParam->IsMirrorScreen() &&
+        uniParam->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+        auto screenInfo = uniParam->GetScreenInfo();
+        offscreenWidth = screenInfo.width;
+        offscreenHeight = screenInfo.height;
+    }
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");
         return false;
@@ -314,7 +333,7 @@ bool RSSurfaceRenderNodeDrawable::IsHardwareEnabled()
 {
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    for (const auto& drawable : hardwareDrawables) {
+    for (const auto& [_, drawable] : hardwareDrawables) {
         if (!drawable || !drawable->GetRenderParams()) {
             continue;
         }
@@ -340,6 +359,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw %s should not paint", name_.c_str());
         return;
+    }
+
+    if (vmaCacheOff_) {
+        Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
     }
 
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
@@ -384,7 +407,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     }
     bool isUiFirstNode = rscanvas->GetIsParallelCanvas();
-    if (!isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
+    bool disableFilterCache = rscanvas->GetDisableFilterCache();
+    if (!disableFilterCache && !isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
         SetDrawSkipType(DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] %sAlpha: %f, "
             "NodeId:%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
@@ -424,6 +448,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(),
         surfaceParams->GetBounds().ToString().c_str());
 
+    if (RSSystemProperties::GetCacheOptimizeRotateEnable() &&
+        (surfaceParams->GetName().find(WALLPAPER) != std::string::npos)) {
+        auto translate = RSUniRenderThread::Instance().GetWallpaperTranslate();
+        canvas.Translate(-translate.first, -translate.second);
+    }
+
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
@@ -438,6 +468,13 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+        return;
+    }
+
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
 
@@ -510,6 +547,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (needOffscreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
+        canvasBackup_->Clear(Drawing::Color::COLOR_BLACK);
         if (surfaceParams->HasSandBox()) {
             canvasBackup_->SetMatrix(surfaceParams->GetParentSurfaceMatrix());
             canvasBackup_->ConcatMatrix(surfaceParams->GetMatrix());
@@ -595,6 +633,10 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture surfaceParams is nullptr");
         return;
+    }
+
+    if (vmaCacheOff_) {
+        Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
     }
 
     // HidePrivacyContent is only for UICapture or NoneSystemCalling-WindowCapture
@@ -715,26 +757,31 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     auto isSnapshotSkipLayer =
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && surfaceParams.GetIsSnapshotSkipLayer();
-    if (UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) ||
-        surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) {
+    if ((surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
+        !RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+        return;
+    }
+
+    auto isSecurityLayer = surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption();
+    if ((UNLIKELY(isSecurityLayer)|| surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
+        RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
             surfaceParams.GetId(), name_.c_str());
         RS_TRACE_NAME("CaptureSurface with security or skip layer");
-        if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-            Drawing::Brush rectBrush;
-            rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
-            canvas.AttachBrush(rectBrush);
-            canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
-                surfaceParams.GetBounds().GetHeight()));
-            canvas.DetachBrush();
-        }
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+            surfaceParams.GetBounds().GetHeight()));
+        canvas.DetachBrush();
         return;
     }
 
-    if (surfaceParams.GetIsProtectedLayer()) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with protected layer.",
+    if (surfaceParams.GetIsProtectedLayer() || (RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
+        !RSUniRenderThread::GetCaptureParam().isSingleSurface_ && UNLIKELY(isSecurityLayer))) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]\
+            name:[%{public}s]) with protected layer or isSingleSurface with security layer.",
             surfaceParams.GetId(), name_.c_str());
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
@@ -767,6 +814,12 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         return;
     }
 
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     bool isSelfDrawingSurface = surfaceParams.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
         !surfaceParams.IsSpherizeValid() && !surfaceParams.IsAttractionValid();
     if (isSelfDrawingSurface) {
@@ -786,17 +839,22 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 GraphicColorGamut RSSurfaceRenderNodeDrawable::GetAncestorDisplayColorGamut(const RSSurfaceRenderParams& surfaceParams)
 {
     GraphicColorGamut targetColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    auto ancestorDrawable = surfaceParams.GetAncestorDisplayDrawable().lock();
-    if (!ancestorDrawable) {
-        RS_LOGE("ancestorDrawable return nullptr");
+    auto ancestorDrawableMap = surfaceParams.GetAncestorDisplayDrawable();
+    if (ancestorDrawableMap.empty()) {
+        RS_LOGE("ancestorDrawableMap return empty");
         return targetColorGamut;
     }
-    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(ancestorDrawable);
+    auto mainAncestorDrawable = ancestorDrawableMap.begin()->second.lock();
+    if (!mainAncestorDrawable) {
+        RS_LOGE("main ancestor drawable return nullptr");
+        return targetColorGamut;
+    }
+    auto ancestorDisplayDrawable = std::static_pointer_cast<RSDisplayRenderNodeDrawable>(mainAncestorDrawable);
     if (!ancestorDisplayDrawable) {
         RS_LOGE("ancestorDisplayDrawable return nullptr");
         return targetColorGamut;
     }
-    auto& ancestorParam = ancestorDrawable->GetRenderParams();
+    auto& ancestorParam = ancestorDisplayDrawable->GetRenderParams();
     if (!ancestorParam) {
         RS_LOGE("ancestorParam return nullptr");
         return targetColorGamut;
@@ -816,6 +874,10 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }
+        return;
+    }
+    if (surfaceParams.GetIsProtectedLayer()) {
+        RS_LOGD("protected layer cannot draw in non-protected context.");
         return;
     }
     if (surfaceParams.IsInFixedRotation()) {

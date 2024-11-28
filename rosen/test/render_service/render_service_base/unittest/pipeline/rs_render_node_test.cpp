@@ -930,6 +930,7 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
 
     const auto cnt = 9;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
     auto curSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     auto preSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
     curSurfaceParent->subSurfaceCnt_ = cnt;
@@ -937,6 +938,20 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
     surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
     EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
     EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    curSurfaceParent->subSurfaceCnt_ = cnt;
+    preSurfaceParent->subSurfaceCnt_ = cnt;
+    surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
+    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
+    EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
+
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    curSurfaceParent->subSurfaceCnt_ = cnt;
+    preSurfaceParent->subSurfaceCnt_ = cnt;
+    surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
+    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt);
+    EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt);
 }
 
 /**
@@ -2732,5 +2747,22 @@ HWTEST_F(RSRenderNodeTest, SetAccumulatedClipFlagTest, TestSize.Level1)
     ASSERT_TRUE(nodeTest->SetAccumulatedClipFlag(true));
     ASSERT_FALSE(nodeTest->SetAccumulatedClipFlag(false));
 }
+
+/**
+ * @tc.name: GetIsFullChildrenListValid
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->isFullChildrenListValid_ = true;
+    ASSERT_TRUE(renderNode->GetIsFullChildrenListValid());
+    renderNode->isFullChildrenListValid_ = false;
+    ASSERT_FALSE(renderNode->GetIsFullChildrenListValid());
+}
+
 } // namespace Rosen
 } // namespace OHOS

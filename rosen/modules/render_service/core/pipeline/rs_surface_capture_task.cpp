@@ -42,6 +42,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
+#include "rs_base_render_engine.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 namespace OHOS {
@@ -61,11 +62,16 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     std::unique_ptr<Media::PixelMap> pixelmap;
     visitor_ = std::make_shared<RSSurfaceCaptureVisitor>(captureConfig_, RSUniRenderJudgement::IsUniRender());
     std::string nodeName("RSSurfaceCaptureTask");
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
         pixelmap = CreatePixelMapBySurfaceNode(surfaceNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(false);
         nodeName = surfaceNode->GetName();
     } else if (auto displayNode = node->ReinterpretCastTo<RSDisplayRenderNode>()) {
+        GraphicColorGamut colorGamut = displayNode->GetColorSpace();
+        if (colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
+            colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
+        }
         pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender());
         visitor_->IsDisplayNode(true);
     } else {
@@ -81,7 +87,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
     Drawing::GPUContext* grContext = renderContext != nullptr ? renderContext->GetDrGPUContext() : nullptr;
     RSTagTracker tagTracker(grContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
 #endif
-    auto surface = CreateSurface(pixelmap);
+    auto surface = CreateSurface(pixelmap, colorSpace);
     if (surface == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::Run: surface is nullptr!");
         return false;
@@ -94,7 +100,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         RS_LOGE("RSSurfaceCaptureTask::Run: img is nullptr");
         return false;
     }
-    if (!CopyDataToPixelMap(img, pixelmap)) {
+    if (!CopyDataToPixelMap(img, pixelmap, colorSpace)) {
             RS_LOGE("RSSurfaceCaptureTask::Run: CopyDataToPixelMap failed");
             return false;
     }
@@ -169,7 +175,8 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNo
     return Media::PixelMap::Create(opts);
 }
 
-bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap)
+bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_ptr<Media::PixelMap>& pixelmap,
+    std::shared_ptr<Drawing::ColorSpace> colorSpace)
 {
     if (!img || !pixelmap) {
         RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap failed, img or pixelmap is nullptr");
@@ -198,7 +205,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
 
     Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
-    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
+    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
     bitmap.SetPixels(data);
     if (!img->ReadPixels(bitmap, 0, 0)) {
         RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
@@ -218,7 +225,7 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
 
     Drawing::BitmapFormat format { Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL };
     Drawing::Bitmap bitmap;
-    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format);
+    bitmap.Build(pixelmap->GetWidth(), pixelmap->GetHeight(), format, 0, colorSpace);
     bitmap.SetPixels(data);
     if (!img->ReadPixels(bitmap, 0, 0)) {
         RS_LOGE("RSSurfaceCaptureTask::CopyDataToPixelMap readPixels failed");
@@ -232,7 +239,8 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
     return true;
 }
 
-std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap)
+std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(
+    const std::unique_ptr<Media::PixelMap>& pixelmap, std::shared_ptr<Drawing::ColorSpace> colorSpace)
 {
     if (pixelmap == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreateSurface: pixelmap == nullptr");
@@ -244,7 +252,7 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTask::CreateSurface(const std:
         return nullptr;
     }
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
-        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace};
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {

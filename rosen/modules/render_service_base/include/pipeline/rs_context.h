@@ -222,7 +222,9 @@ private:
 
     friend class RSRenderThread;
     friend class RSMainThread;
+#ifdef RS_ENABLE_GPU
     friend class RSDrawFrame;
+#endif
     friend class RSSurfaceCaptureTaskParallel;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

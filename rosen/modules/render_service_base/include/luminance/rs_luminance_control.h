@@ -27,6 +27,7 @@ namespace Rosen {
 enum HDR_TYPE : int32_t {
     PHOTO,
     VIDEO,
+    AIHDR_VIDEO,
     MAX = 255,
 };
 
@@ -55,7 +56,7 @@ public:
     RSB_EXPORT float GetHdrDisplayNits(ScreenId screenId);
     RSB_EXPORT float GetDisplayNits(ScreenId screenId);
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
-    RSB_EXPORT float CalScaler(const float& maxContentLightLevel);
+    RSB_EXPORT float CalScaler(const float& maxContentLightLevel, const float& ratio = 1.0f);
     RSB_EXPORT bool IsHdrPictureOn();
 
 private:
@@ -84,7 +85,7 @@ private:
     using GetHdrDisplayNitsFunc = float(*)(ScreenId);
     using GetDisplayNitsFunc = float(*)(ScreenId);
     using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
-    using CalScalerFunc = float(*)(const float&);
+    using CalScalerFunc = float(*)(const float&, const float&);
     using IsHdrPictureOnFunc = bool(*)();
 
     SetHdrStatusFunc setHdrStatus_{nullptr};

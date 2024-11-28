@@ -131,7 +131,7 @@ public:
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
-    void UnmarshallingDrawOps();
+    void UnmarshallingDrawOps(uint32_t* opItemCount = nullptr);
 
     /**
      * @brief   Change typeface ids adding 1 << (30 + 32) - used for profiler replay
@@ -179,11 +179,11 @@ public:
      */
     void GenerateCache(Canvas* canvas = nullptr, const Rect* rect = nullptr);
 
-    bool GetIsCache();
+    bool GetIsCache() const;
 
     void SetIsCache(bool isCached);
 
-    bool GetCachedHighContrast();
+    bool GetCachedHighContrast() const;
 
     void SetCachedHighContrast(bool cachedHighContrast);
 
@@ -198,6 +198,8 @@ public:
     void Dump(std::string& out);
 
     void Purge();
+
+    void SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct);
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -220,6 +222,7 @@ private:
     bool isCached_ = false;
     bool cachedHighContrast_ = false;
     uint32_t performanceCaculateOpType_ = 0;
+    bool isNeedUnmarshalOnDestruct_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

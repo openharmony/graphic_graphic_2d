@@ -580,6 +580,9 @@ bool DoModifier011(const uint8_t* data, size_t size)
     auto customClipToFramemodifier = std::make_shared<RSCustomClipToFrameModifier>(property);
     customClipToFramemodifier->GetModifierType();
     customClipToFramemodifier->CreateRenderModifier();
+    auto hdrBrightnessModifier = std::make_shared<RSHDRBrightnessModifier>(property);
+    hdrBrightnessModifier->GetModifierType();
+    hdrBrightnessModifier->CreateRenderModifier();
     auto behindWindowFilterRadiusModifier = std::make_shared<RSBehindWindowFilterRadiusModifier>(property);
     behindWindowFilterRadiusModifier->GetModifierType();
     behindWindowFilterRadiusModifier->CreateRenderModifier();

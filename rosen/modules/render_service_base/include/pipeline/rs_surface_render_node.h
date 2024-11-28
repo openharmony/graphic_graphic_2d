@@ -69,7 +69,7 @@ public:
 
     void SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
     bool IsAppWindow() const
     {
         return nodeType_ == RSSurfaceNodeType::APP_WINDOW_NODE;
@@ -276,7 +276,8 @@ public:
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
         if (isProtectedLayer_ && IsOnTheTree()) {
-            return false;
+            constexpr float DRM_MIN_ALPHA = 0.1f;
+            return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
         return isHardwareForcedDisabled_ ||
             GetDstRect().GetWidth() <= 1 || GetDstRect().GetHeight() <= 1; // avoid fallback by composer
@@ -527,6 +528,9 @@ public:
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
+
+    void IncreaseHDRNum();
+    void ReduceHDRNum();
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -1089,9 +1093,9 @@ public:
     }
     bool GetNodeIsSingleFrameComposer() const override;
 
-    void SetAncestorDisplayNode(const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorDisplayNode(const ScreenId screenId, const RSBaseRenderNode::WeakPtr& ancestorDisplayNode)
     {
-        ancestorDisplayNode_ = ancestorDisplayNode;
+        ancestorDisplayNodeMap_[screenId] = ancestorDisplayNode;
     }
 
     void SetUifirstNodeEnableParam(MultiThreadCacheType b);
@@ -1110,9 +1114,9 @@ public:
         return uifirstStartTime_;
     }
 
-    RSBaseRenderNode::WeakPtr GetAncestorDisplayNode() const
+    const std::unordered_map<ScreenId, RSBaseRenderNode::WeakPtr>& GetAncestorDisplayNode() const
     {
-        return ancestorDisplayNode_;
+        return ancestorDisplayNodeMap_;
     }
     bool QuerySubAssignable(bool isRotation);
     bool QueryIfAllHwcChildrenForceDisabledByFilter();
@@ -1305,10 +1309,13 @@ private:
     void UpdateRenderParams() override;
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
+    bool IsCurFrameSwitchToPaint();
+
     std::mutex mutexRT_;
     std::mutex mutexUI_;
     std::mutex mutexClear_;
     std::mutex mutex_;
+    std::mutex mutexHDR_;
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
@@ -1332,6 +1339,7 @@ private:
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    int hdrNum_ = 0;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
@@ -1534,9 +1542,10 @@ private:
     bool isTargetUIFirstDfxEnabled_ = false;
 
     TreeStateChangeCallback treeStateChangeCallback_;
-    RSBaseRenderNode::WeakPtr ancestorDisplayNode_;
+    std::unordered_map<ScreenId, RSBaseRenderNode::WeakPtr> ancestorDisplayNodeMap_;
     bool hasSharedTransitionNode_ = false;
     size_t lastFrameChildrenCnt_ = 0;
+    bool lastFrameShouldPaint_ = true;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
 

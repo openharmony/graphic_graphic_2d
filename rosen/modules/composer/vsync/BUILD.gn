@@ -60,6 +60,7 @@ ohos_shared_library("libvsync") {
     ubsan = true
   }
   sources = [
+    "src/vsync_callback_listener.cpp",
     "src/vsync_connection_proxy.cpp",
     "src/vsync_connection_stub.cpp",
     "src/vsync_controller.cpp",

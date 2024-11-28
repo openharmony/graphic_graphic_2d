@@ -33,6 +33,7 @@ Drawing::Canvas* RSRecordCmdUtils::BeginRecording(Drawing::Rect& bounds)
         return nullptr;
     }
     extendRecordingCanvas_ = std::make_shared<ExtendRecordingCanvas>(width, height);
+    extendRecordingCanvas_->SetIsRecordCmd(true);
     cullRect_ = bounds;
     return extendRecordingCanvas_.get();
 }

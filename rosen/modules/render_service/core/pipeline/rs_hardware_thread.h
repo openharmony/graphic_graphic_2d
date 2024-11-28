@@ -55,7 +55,9 @@ public:
     std::future<Return> ScheduleTask(Task&& task)
     {
         auto [scheduledTask, taskFuture] = Detail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
+#ifdef RS_ENABLE_GPU
         PostTask([t(std::move(scheduledTask))]() { t->Run(); });
+#endif
         return std::move(taskFuture);
     }
     uint32_t GetunExecuteTaskNum();
@@ -77,7 +79,7 @@ private:
     void RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers);
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
-    void AddRefreshRateCount();
+    void AddRefreshRateCount(const OutputPtr& output);
     int64_t GetCurTimeCount();
     bool IsInAdaptiveMode(const OutputPtr &output);
 

@@ -159,136 +159,154 @@ public:
 };
 
 ADD_COMMAND(RSAddModifier,
-    ARG(RS_NODE, ADD_MODIFIER, RSNodeCommandHelper::AddModifier, NodeId, std::shared_ptr<RSRenderModifier>))
+    ARG(NO_INTERCEPTION, RS_NODE, ADD_MODIFIER,
+        RSNodeCommandHelper::AddModifier, NodeId, std::shared_ptr<RSRenderModifier>))
 ADD_COMMAND(RSRemoveModifier,
-    ARG(RS_NODE, REMOVE_MODIFIER, RSNodeCommandHelper::RemoveModifier, NodeId, PropertyId))
+    ARG(NO_INTERCEPTION, RS_NODE, REMOVE_MODIFIER,
+        RSNodeCommandHelper::RemoveModifier, NodeId, PropertyId))
 
 ADD_COMMAND(RSUpdatePropertyBool,
-    ARG(RS_NODE, UPDATE_MODIFIER_BOOL, RSNodeCommandHelper::UpdateModifier<bool>,
-        NodeId, bool, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_BOOL,
+        RSNodeCommandHelper::UpdateModifier<bool>, NodeId, bool, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFloat,
-    ARG(RS_NODE, UPDATE_MODIFIER_FLOAT, RSNodeCommandHelper::UpdateModifier<float>,
-        NodeId, float, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_FLOAT,
+        RSNodeCommandHelper::UpdateModifier<float>, NodeId, float, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyInt,
-    ARG(RS_NODE, UPDATE_MODIFIER_INT, RSNodeCommandHelper::UpdateModifier<int>,
-        NodeId, int, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_INT,
+        RSNodeCommandHelper::UpdateModifier<int>, NodeId, int, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyColor,
-    ARG(RS_NODE, UPDATE_MODIFIER_COLOR, RSNodeCommandHelper::UpdateModifier<Color>,
-        NodeId, Color, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_COLOR,
+        RSNodeCommandHelper::UpdateModifier<Color>, NodeId, Color, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyGravity,
-    ARG(RS_NODE, UPDATE_MODIFIER_GRAVITY, RSNodeCommandHelper::UpdateModifier<Gravity>,
-        NodeId, Gravity, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_GRAVITY,
+        RSNodeCommandHelper::UpdateModifier<Gravity>, NodeId, Gravity, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMatrix3f,
-    ARG(RS_NODE, UPDATE_MODIFIER_MATRIX3F, RSNodeCommandHelper::UpdateModifier<Matrix3f>,
-        NodeId, Matrix3f, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_MATRIX3F,
+        RSNodeCommandHelper::UpdateModifier<Matrix3f>, NodeId, Matrix3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyQuaternion,
-    ARG(RS_NODE, UPDATE_MODIFIER_QUATERNION, RSNodeCommandHelper::UpdateModifier<Quaternion>,
-        NodeId, Quaternion, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_QUATERNION,
+        RSNodeCommandHelper::UpdateModifier<Quaternion>, NodeId, Quaternion, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFilter,
-    ARG(RS_NODE, UPDATE_MODIFIER_FILTER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSFilter>>,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_FILTER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSFilter>>,
         NodeId, std::shared_ptr<RSFilter>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
-    ARG(RS_NODE, UPDATE_MODIFIER_IMAGE_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSImage>>,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSImage>>,
         NodeId, std::shared_ptr<RSImage>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMask,
-    ARG(RS_NODE, UPDATE_MODIFIER_MASK_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMask>>,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_MASK_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMask>>,
         NodeId, std::shared_ptr<RSMask>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyPath,
-    ARG(RS_NODE, UPDATE_MODIFIER_PATH_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_PATH_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
         NodeId, std::shared_ptr<RSPath>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDynamicBrightness,
-    ARG(RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
         RSNodeCommandHelper::UpdateModifier<RSDynamicBrightnessPara>,
         NodeId, RSDynamicBrightnessPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyWaterRipple,
-    ARG(RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
         RSNodeCommandHelper::UpdateModifier<RSWaterRipplePara>,
         NodeId, RSWaterRipplePara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFlyOut,
-    ARG(RS_NODE, UPDATE_MODIFIER_FLY_OUT,
-        RSNodeCommandHelper::UpdateModifier<RSFlyOutPara>,
-        NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_FLY_OUT,
+        RSNodeCommandHelper::UpdateModifier<RSFlyOutPara>, NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
-    ARG(RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
         NodeId, std::shared_ptr<RSLinearGradientBlurPara>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
-    ARG(RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMagnifierPara,
-    ARG(RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMagnifierParams>>,
         NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
-    ARG(RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
         RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,
         NodeId, std::vector<std::shared_ptr<EmitterUpdater>>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
-    ARG(RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
         RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseFields>>,
         NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
-    ARG(RS_NODE, UPDATE_MODIFIER_SHADER_PTR, RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
+        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector2f,
-    ARG(RS_NODE, UPDATE_MODIFIER_VECTOR2F, RSNodeCommandHelper::UpdateModifier<Vector2f>,
-        NodeId, Vector2f, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_VECTOR2F,
+        RSNodeCommandHelper::UpdateModifier<Vector2f>, NodeId, Vector2f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyBorderStyle,
-    ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE, RSNodeCommandHelper::UpdateModifier<Vector4<uint32_t>>,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
+        RSNodeCommandHelper::UpdateModifier<Vector4<uint32_t>>,
         NodeId, Vector4<uint32_t>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector4Color,
-    ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR, RSNodeCommandHelper::UpdateModifier<Vector4<Color>>,
-        NodeId, Vector4<Color>, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR,
+        RSNodeCommandHelper::UpdateModifier<Vector4<Color>>, NodeId, Vector4<Color>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector4f,
-    ARG(RS_NODE, UPDATE_MODIFIER_VECTOR4F, RSNodeCommandHelper::UpdateModifier<Vector4f>,
-        NodeId, Vector4f, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_VECTOR4F,
+        RSNodeCommandHelper::UpdateModifier<Vector4f>, NodeId, Vector4f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyRRect,
-    ARG(RS_NODE, UPDATE_MODIFIER_RRECT, RSNodeCommandHelper::UpdateModifier<RRect>,
-        NodeId, RRect, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_RRECT,
+        RSNodeCommandHelper::UpdateModifier<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
-    ARG(RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST, RSNodeCommandHelper::UpdateModifierDrawCmdList,
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
+        RSNodeCommandHelper::UpdateModifierDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
-    ARG(RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX, RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>,
-        NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
+    ARG(NO_INTERCEPTION, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
+        RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
-    ARG(RS_NODE, SET_FREEZE, RSNodeCommandHelper::SetFreeze, NodeId, bool))
+    ARG(NO_INTERCEPTION, RS_NODE, SET_FREEZE,
+        RSNodeCommandHelper::SetFreeze, NodeId, bool))
 ADD_COMMAND(RSSetNodeName,
-    ARG(RS_NODE, SET_NODE_NAME, RSNodeCommandHelper::SetNodeName, NodeId, std::string))
+    ARG(NO_INTERCEPTION, RS_NODE, SET_NODE_NAME,
+        RSNodeCommandHelper::SetNodeName, NodeId, std::string))
 ADD_COMMAND(RSMarkNodeGroup,
-    ARG(RS_NODE, MARK_NODE_GROUP, RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
+    ARG(NO_INTERCEPTION, RS_NODE, MARK_NODE_GROUP,
+        RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
 ADD_COMMAND(RSMarkNodeSingleFrameComposer,
-    ARG(RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER, RSNodeCommandHelper::MarkNodeSingleFrameComposer,
-        NodeId, bool, pid_t))
+    ARG(NO_INTERCEPTION, RS_NODE, MARK_NODE_SINGLE_FRAME_COMPOSER,
+        RSNodeCommandHelper::MarkNodeSingleFrameComposer, NodeId, bool, pid_t))
 ADD_COMMAND(RSMarkSuggestOpincNode,
-    ARG(RS_NODE, MARK_SUGGEST_OPINC_NODE, RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
+    ARG(NO_INTERCEPTION, RS_NODE, MARK_SUGGEST_OPINC_NODE,
+        RSNodeCommandHelper::MarkSuggestOpincNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSMarkUifirstNode,
-    ARG(RS_NODE, MARK_UIFIRST_NODE, RSNodeCommandHelper::MarkUifirstNode, NodeId, bool))
+    ARG(NO_INTERCEPTION, RS_NODE, MARK_UIFIRST_NODE,
+        RSNodeCommandHelper::MarkUifirstNode, NodeId, bool))
 
 ADD_COMMAND(RSForceUifirstNode,
-    ARG(RS_NODE, MARK_UIFIRST_NODE_FORCE, RSNodeCommandHelper::ForceUifirstNode, NodeId, bool, bool))
+    ARG(NO_INTERCEPTION, RS_NODE, MARK_UIFIRST_NODE_FORCE,
+        RSNodeCommandHelper::ForceUifirstNode, NodeId, bool, bool))
 
 ADD_COMMAND(RSSetDrawRegion,
-    ARG(RS_NODE, SET_DRAW_REGION, RSNodeCommandHelper::SetDrawRegion,
-        NodeId, std::shared_ptr<RectF>))
+    ARG(NO_INTERCEPTION, RS_NODE, SET_DRAW_REGION,
+        RSNodeCommandHelper::SetDrawRegion, NodeId, std::shared_ptr<RectF>))
 ADD_COMMAND(RSSetOutOfParent,
-    ARG(RS_NODE, SET_OUT_OF_PARENT, RSNodeCommandHelper::SetOutOfParent,
-        NodeId, OutOfParentType))
+    ARG(NO_INTERCEPTION, RS_NODE, SET_OUT_OF_PARENT,
+        RSNodeCommandHelper::SetOutOfParent, NodeId, OutOfParentType))
 
 ADD_COMMAND(RSRegisterGeometryTransitionNodePair,
-    ARG(RS_NODE, REGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
+    ARG(NO_INTERCEPTION, RS_NODE, REGISTER_GEOMETRY_TRANSITION,
+        RSNodeCommandHelper::RegisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSUnregisterGeometryTransitionNodePair,
-    ARG(RS_NODE, UNREGISTER_GEOMETRY_TRANSITION, RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
+    ARG(NO_INTERCEPTION, RS_NODE, UNREGISTER_GEOMETRY_TRANSITION,
+        RSNodeCommandHelper::UnregisterGeometryTransitionPair, NodeId, NodeId))
 ADD_COMMAND(RSRemoveAllModifiers,
-    ARG(RS_NODE, REMOVE_ALL_MODIFIERS, RSNodeCommandHelper::RemoveAllModifiers, NodeId))
+    ARG(NO_INTERCEPTION, RS_NODE, REMOVE_ALL_MODIFIERS,
+        RSNodeCommandHelper::RemoveAllModifiers, NodeId))
 
 ADD_COMMAND(RSDumpClientNodeTree,
-    ARG(RS_NODE, DUMP_CLIENT_NODE_TREE, RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t))
+    ARG(NO_INTERCEPTION, RS_NODE, DUMP_CLIENT_NODE_TREE,
+        RSNodeCommandHelper::DumpClientNodeTree, NodeId, pid_t, uint32_t))
 ADD_COMMAND(RSCommitDumpClientNodeTree,
-    ARG(RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
+    ARG(NO_INTERCEPTION, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
 } // namespace Rosen
 } // namespace OHOS

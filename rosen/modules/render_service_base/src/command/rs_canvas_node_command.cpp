@@ -73,5 +73,12 @@ void RSCanvasNodeCommandHelper::ClearRecording(RSContext& context, NodeId id)
     }
 }
 
+void RSCanvasNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+        node->SetHDRPresent(hdrPresent);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

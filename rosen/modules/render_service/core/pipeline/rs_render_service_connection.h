@@ -54,6 +54,7 @@ private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
+    void CleanFrameRateLinkerExpectedFpsCallbacks() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -71,7 +72,8 @@ private:
     sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                  const sptr<VSyncIConnectionToken>& token,
                                                  uint64_t id,
-                                                 NodeId windowNodeId = 0) override;
+                                                 NodeId windowNodeId = 0,
+                                                 bool fromXcomponent = false) override;
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect) override;
 
@@ -253,6 +255,9 @@ private:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
+
     void SetAppWindowNum(uint32_t num) override;
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
@@ -317,6 +322,8 @@ private:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
+    void DropFrameByPid(const std::vector<int32_t> pidList) override;
+
     bool SetAncoForceDoDirect(bool direct) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;
@@ -330,7 +337,9 @@ private:
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
+#ifdef RS_ENABLE_GPU
     RSUniRenderThread& renderThread_;
+#endif
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
 

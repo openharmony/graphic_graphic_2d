@@ -99,7 +99,6 @@ napi_value NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBase, c
             "Failed to get undefined, stat:%d", static_cast<int>(stat));
     }
 
-    contextBase->IncStrongRef(nullptr);
     napi_value resource = nullptr;
     stat = napi_create_string_utf8(contextBase->env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
     NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return promise,
@@ -183,6 +182,5 @@ void NapiAsyncWork::GenerateOutput(sptr<ContextBase> contextBase)
     }
     contextBase->execute = nullptr;
     contextBase->complete = nullptr;
-    contextBase->DecStrongRef(nullptr);
 }
 }

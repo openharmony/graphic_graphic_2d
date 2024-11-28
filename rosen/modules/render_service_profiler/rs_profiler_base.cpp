@@ -109,6 +109,31 @@ bool RSProfiler::IsBetaRecordEnabled()
 #endif
 }
 
+bool RSProfiler::IsNoneMode()
+{
+    return g_mode == Mode::NONE;
+}
+
+bool RSProfiler::IsReadMode()
+{
+    return g_mode == Mode::READ;
+}
+
+bool RSProfiler::IsReadEmulationMode()
+{
+    return g_mode == Mode::READ_EMUL;
+}
+
+bool RSProfiler::IsWriteMode()
+{
+    return g_mode == Mode::WRITE;
+}
+
+bool RSProfiler::IsWriteEmulationMode()
+{
+    return g_mode == Mode::WRITE_EMUL;
+}
+
 uint32_t RSProfiler::GetCommandCount()
 {
     const uint32_t count = g_commandCount;

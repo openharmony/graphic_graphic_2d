@@ -24,6 +24,8 @@ using namespace OHOS::ColorManager;
 using namespace OHOS::Media;
 using namespace OHOS::Rosen;
 
+const int64_t EFFECTKIT_ERROR = -1;
+
 CJColorPicker::CJColorPicker() {}
 
 int64_t CJColorPicker::CreateColorPicker(Media::PixelMapImpl* source, uint32_t& code)
@@ -31,6 +33,9 @@ int64_t CJColorPicker::CreateColorPicker(Media::PixelMapImpl* source, uint32_t& 
     std::shared_ptr<Media::PixelMap> pixmap = source->GetRealPixelMap();
     ColorPickerCommon::CreateColorPicker(pixmap, code);
     auto native = FFIData::Create<CJColorPicker>();
+    if (!native) {
+        return EFFECTKIT_ERROR;
+    }
     return native->GetID();
 }
 
@@ -39,6 +44,9 @@ int64_t CJColorPicker::CreateColorPicker(Media::PixelMapImpl* source, std::vecto
     std::shared_ptr<Media::PixelMap> pixmap = source->GetRealPixelMap();
     ColorPickerCommon::CreateColorPicker(pixmap, region, code);
     auto native = FFIData::Create<CJColorPicker>();
+    if (!native) {
+        return EFFECTKIT_ERROR;
+    }
     return native->GetID();
 }
 

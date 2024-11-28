@@ -39,8 +39,10 @@ std::shared_ptr<MaskCmdList> MaskCmdList::CreateFromData(const CmdListData& data
 bool MaskCmdList::Playback(MaskPlayer &player) const
 {
     uint32_t offset = 0;
+    uint32_t count = 0;
     size_t totalSize = opAllocator_.GetSize();
     do {
+        count++;
         if (totalSize < offset || totalSize - offset < sizeof(OpItem)) {
             LOGD("MaskCmdList::Playback size error");
             return false;
@@ -52,13 +54,16 @@ bool MaskCmdList::Playback(MaskPlayer &player) const
                 LOGD("MaskCmdList::Playback failed!");
                 break;
             }
-
+            
+            if (curOpItemPtr->GetNextOpItemOffset() < offset + sizeof(OpItem)) {
+                break;
+            }
             offset = curOpItemPtr->GetNextOpItemOffset();
         } else {
             LOGE("MaskCmdList::Playback failed, opItem is nullptr");
             break;
         }
-    } while (offset != 0);
+    } while (offset != 0 && count <= MAX_OPITEMSIZE);
 
     return true;
 }

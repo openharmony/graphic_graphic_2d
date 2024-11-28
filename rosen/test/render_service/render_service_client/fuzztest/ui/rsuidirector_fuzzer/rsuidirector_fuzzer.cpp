@@ -703,6 +703,7 @@ bool DoPostDelayTask(const uint8_t* data, size_t size)
     };
     uint32_t delay = GetData<uint32_t>();
     int32_t instanceId = GetData<int32_t>();
+    director->PostDelayTask(task);
     director->PostDelayTask(task, delay, instanceId);
     return true;
 }

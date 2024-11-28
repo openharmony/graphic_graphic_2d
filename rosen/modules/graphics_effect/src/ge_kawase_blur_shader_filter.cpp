@@ -151,8 +151,12 @@ std::shared_ptr<Drawing::ShaderEffect> GEKawaseBlurShaderFilter::ApplySimpleFilt
 {
     Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
     simpleBlurBuilder.SetChild("imageInput", prevShader);
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
     return Drawing::ShaderEffect::CreateImageShader(*tmpSimpleBlur, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         linear, Drawing::Matrix());
 }
@@ -199,8 +203,11 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
 
     auto offsetXY = radiusByPasses * blurScale_;
     SetBlurBuilderParam(blurBuilder, offsetXY, scaledInfo, width, height);
-
+#ifdef RS_ENABLE_GPU
     auto tmpBlur(blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+    auto tmpBlur(blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
 
     if (!tmpBlur) {
         return image;
@@ -216,7 +223,11 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
         // Advanced Filter
         auto offsetXYFilter = radiusByPasses * stepScale;
         SetBlurBuilderParam(blurBuilder, offsetXYFilter, scaledInfo, width, height);
+#ifdef RS_ENABLE_GPU
         tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+        tmpBlur = blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
     }
 
     auto output = ScaleAndAddRandomColor(canvas, input, tmpBlur, src, dst, width, height);
@@ -406,6 +417,7 @@ Drawing::Matrix GEKawaseBlurShaderFilter::GetShaderTransform(
 void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const
 {
+#ifdef RS_ENABLE_GPU
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
@@ -421,6 +433,7 @@ void GEKawaseBlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const st
             LOGD("GEKawaseBlurShaderFilter::resize image failed, use original image");
         }
     }
+#endif
 }
 
 void GEKawaseBlurShaderFilter::OutputOriginalImage(Drawing::Canvas& canvas,
@@ -486,7 +499,11 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ScaleAndAddRandomColor
     auto scaledInfo = Drawing::ImageInfo(width, height, blurImage->GetImageInfo().GetColorType(),
         blurImage->GetImageInfo().GetAlphaType(), blurImage->GetImageInfo().GetColorSpace());
 
+#ifdef RS_ENABLE_GPU
     auto output = mixBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    auto output = mixBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
     return output;
 }
 

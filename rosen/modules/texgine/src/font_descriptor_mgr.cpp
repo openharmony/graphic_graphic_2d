@@ -74,7 +74,7 @@ void FontDescriptorMgr::GetFontDescSharedPtrByFullName(const std::string& fullNa
 }
 
 void FontDescriptorMgr::GetSystemFontFullNamesByType(
-    const int32_t& systemFontType, std::unordered_set<std::string>& fontList)
+    const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
     CheckLocale();
     std::unique_lock<std::mutex> guard(parserMtx_);

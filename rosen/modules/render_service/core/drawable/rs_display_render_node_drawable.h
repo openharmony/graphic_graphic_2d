@@ -141,6 +141,7 @@ private:
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNodeDrawable& mirroredDrawable);
     void DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorOnDraw(RSDisplayRenderNodeDrawable& mirroredDrawable, RSDisplayRenderParams& params);
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
@@ -157,6 +158,7 @@ private:
         std::shared_ptr<RSUniRenderVirtualProcessor> virtualProcesser, RSRenderThreadParams& uniParam);
     void DrawExpandScreen(RSUniRenderVirtualProcessor& processor);
     void DrawCurtainScreen() const;
+    void InitTranslateForWallpaper();
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);
@@ -222,6 +224,8 @@ private:
     bool enableVisibleRect_ = false;
     Drawing::RectI curVisibleRect_;
     Drawing::RectI lastVisibleRect_;
+    int32_t offscreenTranslateX_ = 0;
+    int32_t offscreenTranslateY_ = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

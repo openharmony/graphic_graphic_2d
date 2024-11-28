@@ -242,6 +242,9 @@ void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, const R
     buffer_ = buffer;
     damageRect_ = damageRect;
     needSync_ = true;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
@@ -259,6 +262,9 @@ void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
 {
     preBuffer_ = preBuffer;
     needSync_ = true;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     dirtyType_.set(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);
 }
 
@@ -451,8 +457,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isAppWindow_ = isAppWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
-    targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
-    targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->ancestorDisplayNodeMap_ = ancestorDisplayNodeMap_;
+    targetSurfaceParams->ancestorDisplayDrawableMap_ = ancestorDisplayDrawableMap_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;

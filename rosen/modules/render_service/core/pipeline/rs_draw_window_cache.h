@@ -52,8 +52,13 @@ public:
      * @param surfaceParams Indicates the render params
      * @return true if success, otherwise false
     */
+#ifdef RS_ENABLE_GPU
     bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam);
+#endif
+
+    void DrawCrossNodeOffscreenDFX(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams, const Drawing::Color& color);
 private:
     bool HasCache() const;
     void ClearCache();

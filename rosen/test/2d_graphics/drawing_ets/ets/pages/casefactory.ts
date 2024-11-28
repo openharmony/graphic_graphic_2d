@@ -15,10 +15,10 @@
 
 import {TestBase, StyleType} from './testbase';
 import { CanvasDrawRect, CanvasDrawLine, CanvasDrawPath, CanvasDrawPoint, CanvasDrawImage, CanvasDrawCircle, CanvasDrawTextBlob,
-  CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetColor, CanvasSetMatrix, CanvasResetMatrix, CanvasClipRoundRect, CanvasIsClipEmpty,
+  CanvasDrawPixelMapMesh, CanvasDrawColor, CanvasSetMatrix, CanvasResetMatrix, CanvasClipRoundRect, CanvasIsClipEmpty,
   FontIsSubpixel, FontIsLinearMetrics, FontIsEmbolden, FontGetSkewX, FontGetScaleX, FontGetHinting, FontGetEdging,
   BrushGetColorFilter, BrushSetImageFilter, PenGetColorFilter, PenSetImageFilter,
-  CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion,CanvasClear,
+  CreateBlurImageFilter, CreateColorImageFilter, CanvasDrawImageRect, CanvasDrawImageRectWithSrc, CanvasClipRegion,
   CanvasDrawShadow,CanvasCreateLattice} from '../testcase/interface/canvastest';
 import { PathLineTo, PathArcTo, PathQuadTo, PathCubicTo,PathClose, PathReset, PathIsClosed, PathGetPositionAndTangent, PathGetMatrix, PathBuildFromSvgString, PathConstructor } from '../testcase/interface/pathtest';
 import { MatrixGetValue, MatrixPostRotate, MatrixPostTranslate, MatrixReset, MatrixGetAll, MatrixSetPolyToPoly, MatrixSetRectToRect, MatrixPreScale, MatrixPreTranslate, MatrixPreRotate, MatrixPostScale, MatrixMapPoints, MatrixMapRect } from '../testcase/interface/matrixtest';
@@ -34,7 +34,6 @@ import {PerformanceCanvasDrawRect, PerformanceCanvasDrawCircle, PerformanceCanva
   PerformanceCanvasPoint} from '../testcase/interface/performancetest';
 import { RoundRectSetCornerTest, RoundRectGetCornerTest, RoundRectOffsetTest } from '../testcase/interface/roundrecttest';
 import { PenGetFillPath } from '../testcase/interface/pentest'
-import { PenBrushGetHexColor } from '../testcase/interface/gethexcolortest'
 import { ColorFilterCreateMatrix } from '../testcase/interface/colorfiltertests';
 import { PerformanceBrushSetColor,PerformanceBrushGetColor,PerformanceBrushSetAntiAlias,PerformanceBrushSetAlpha,PerformanceBrushGetAlpha,
   PerformanceBrushSetColorFilter, PerformanceBrushSetMaskFilter, PerformanceBrushSetImageFilter, PerformanceBrushSetShadowLayer,
@@ -72,6 +71,51 @@ import { PerformancePathAddArc, PerformancePathAddCircle, PerformancePathAddOval
   PerformancePathGetMatrix, PerformancePathGetPositionAndTangent, PerformancePathIsClosed, PerformancePathLineTo, PerformancePathMoveTo, PerformancePathOffset, PerformancePathOp, PerformancePathQuadTo,
   PerformancePathRConicTo, PerformancePathRCubicTo, PerformancePathReset, PerformancePathRLineTo, PerformancePathRMoveTo, PerformancePathRQuadTo, PerformancePathSetFillType, PerformancePathTransform,
   PerformancePathConstructorWithPath } from '../testcase/interface/performancepathtest';
+import {
+    ReliabilityDetachBrush,
+    ReliabilityAttachBrush,
+    ReliabilityBrushSetColorFilter,
+    ReliabilityBrushSetMaskFilter,
+    ReliabilityBrushSetShadowLayer,
+    ReliabilityDetachBrushWorker,
+    ReliabilityAttachBrushWorker,
+    ReliabilityBrushSetColorFilterWorker,
+    ReliabilityBrushSetMaskFilterWorker,
+    ReliabilityBrushSetShadowLayerWorker
+  } from '../testcase/reliability/reliability_brush_test';
+import {
+    ReliabilityDetachPen,
+    ReliabilityAttachPen,
+    ReliabilityPenSetColorFilter,
+    ReliabilityPenSetMaskFilter,
+    ReliabilityPenSetPathEffect,
+    ReliabilityPenSetShadowLayer,
+    ReliabilityDetachPenWorker,
+    ReliabilityAttachPenWorker,
+    ReliabilityPenSetColorFilterWorker,
+    ReliabilityPenSetMaskFilterWorker,
+    ReliabilityPenSetPathEffectWorker,
+    ReliabilityPenSetShadowLayerWorker
+  } from '../testcase/reliability/reliability_pen_test';
+import { } from '../testcase/reliability/reliability_common';
+import {
+    StabilityTextBlobMakeFromString,
+    StabilityTextBlobMakeFromRunBuffer,
+    StabilityTextBlobMakeInvoke,
+    StabilityTextBlobRandInvoke
+  } from '../testcase/stability/textblobmake';
+import { StabilityFontNew, StabilityFontAllInvoke, StabilityFontRandInvoke } from '../testcase/stability/fonttest';
+import { StabilityBrushNew, StabilityBrushInvoke, StabilityBrushRandInvoke } from '../testcase/stability/brushtest';
+import {
+    StabilityCreateBlendModeColorFilter,
+    StabilityCreateComposeColorFilter,
+    StabilityCreateLinearToSRGBGamma,
+    StabilityCreateSRGBGammaToLinear,
+    StabilityCreateLumaColorFilter
+  } from '../testcase/stability/colorfiltertest';
+import { StabilityPenInvoke, StabilityPenNew, StabilityPenRandInvoke } from '../testcase/stability/pentest';
+import { StabilityPathNew, StabilityPathInvoke, StabilityPathRandInvoke } from '../testcase/stability/pathtest';
+import { StabilityCanvasNew, StabilityCanvasInvoke, StabilityCanvasRandInvoke } from '../testcase/stability/canvastest';
 
 const TAG = '[DrawingTest]';
 
@@ -81,7 +125,6 @@ export class CaseFactory {
       ['canvasdrawshadow', () => {return new CanvasDrawShadow();}],
       ['canvascreatelattice', () => {return new CanvasCreateLattice();}],
       ['canvascliproundrect', () => { return new CanvasClipRoundRect(); }],
-      ['canvasclear', () => { return new CanvasClear(); }],
       ['canvasdrawrect', () => { return new CanvasDrawRect(); }],
       ['canvasdrawcircle', () => { return new CanvasDrawCircle(); }],
       ['canvasdrawcolor', () => { return new CanvasDrawColor(); }],
@@ -90,7 +133,6 @@ export class CaseFactory {
       ['canvasdrawline', () => { return new CanvasDrawLine(); }],
       ['canvasdrawtextblob', () => { return new CanvasDrawTextBlob(); }],
       ['canvasdrawimage', () => { return new CanvasDrawImage(); }],
-      ['canvassetcolor', () => { return new CanvasSetColor(); }],
       ['canvasdrawimagerect', () => { return new CanvasDrawImageRect(); }],
       ['canvasdrawimagerectwithsrc', () => { return new CanvasDrawImageRectWithSrc(); }],
       ['canvasdrawsubpixelfont', () => { return new FontIsSubpixel(); }],
@@ -138,10 +180,32 @@ export class CaseFactory {
       ['textblob_unique_id', () => { return new MakeUniqueId(); }],
       ['textblob_createfrom_string', () => { return new MakeFromString(StyleType.DRAW_STYLE_COMPLEX); }],
       ['pengetfillpath', () => { return new PenGetFillPath(); }],
-      ['penbrushgethexcolor', ()=> { return new PenBrushGetHexColor(); }],
       ['matrix_maprect', () => { return new MatrixMapRect(); }],
       ['matrixmappoints', () => { return new MatrixMapPoints(); }],
       ['colorfilter_creatematrix', () => { return new ColorFilterCreateMatrix(); }],
+      // reliablity
+      ['reliabilityDetachBrush', () => { return new ReliabilityDetachBrush(); }],
+      ['reliabilityAttachBrush', () => { return new ReliabilityAttachBrush(); }],
+      ['reliabilityBrushSetColorFilter', () => { return new ReliabilityBrushSetColorFilter(); }],
+      ['reliabilityBrushSetMaskFilter', () => { return new ReliabilityBrushSetMaskFilter(); }],
+      ['reliabilityBrushSetShadowLayer', () => { return new ReliabilityBrushSetShadowLayer(); }],
+      ['reliabilityDetachBrushWorker', () => { return new ReliabilityDetachBrushWorker(); }],
+      ['reliabilityAttachBrushWorker', () => { return new ReliabilityAttachBrushWorker(); }],
+      ['reliabilityBrushSetColorFilterWorker', () => { return new ReliabilityBrushSetColorFilterWorker(); }],
+      ['reliabilityBrushSetMaskFilterWorker', () => { return new ReliabilityBrushSetMaskFilterWorker(); }],
+      ['reliabilityBrushSetShadowLayerWorker', () => { return new ReliabilityBrushSetShadowLayerWorker(); }],
+      ['reliabilityDetachPen', () => { return new ReliabilityDetachPen(); }],
+      ['reliabilityAttachPen', () => { return new ReliabilityAttachPen(); }],
+      ['reliabilityPenSetColorFilter', () => { return new ReliabilityPenSetColorFilter(); }],
+      ['reliabilityPenSetMaskFilter', () => { return new ReliabilityPenSetMaskFilter(); }],
+      ['reliabilityPenSetPathEffect', () => { return new ReliabilityPenSetPathEffect(); }],
+      ['reliabilityPenSetShadowLayer', () => { return new ReliabilityPenSetShadowLayer(); }],
+      ['reliabilityDetachPenWorker', () => { return new ReliabilityDetachPenWorker(); }],
+      ['reliabilityAttachPenWorker', () => { return new ReliabilityAttachPenWorker(); }],
+      ['reliabilityPenSetColorFilterWorker', () => { return new ReliabilityPenSetColorFilterWorker(); }],
+      ['reliabilityPenSetMaskFilterWorker', () => { return new ReliabilityPenSetMaskFilterWorker(); }],
+      ['reliabilityPenSetPathEffectWorker', () => { return new ReliabilityPenSetPathEffectWorker(); }],
+      ['reliabilityPenSetShadowLayerWorker', () => { return new ReliabilityPenSetShadowLayerWorker(); }],
     ]
   );
   static PerformanceMap: Map<string, Function> = new Map(
@@ -149,7 +213,6 @@ export class CaseFactory {
       ['canvasdrawshadow', () => {return new CanvasDrawShadow();}],
       ['canvascreatelattice', () => {return new CanvasCreateLattice();}],
       ['canvas_cliproundrect', () => { return new CanvasClipRoundRect(); }],
-      ['canvasclear', () => { return new CanvasClear(); }],// 1000次耗时378ms
       ['canvas_drawrect', () => { return new CanvasDrawRect(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时109ms
       ['canvas_drawline', () => { return new CanvasDrawLine(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时347ms
       ['canvas_drawpath', () => { return new CanvasDrawPath(StyleType.DRAW_STYLE_COMPLEX); }], // 100次耗时506ms
@@ -181,7 +244,6 @@ export class CaseFactory {
       ['textblob_createfrom_postext', () => { return new MakeFromPosText(StyleType.DRAW_STYLE_COMPLEX); }], // 1000次耗时271ms
       ['textblob_unique_id', () => { return new MakeUniqueId(); }],
       ['performance_pengetfillpath', () => { return new PenGetFillPath(); }],
-      ['penbrushgethexcolor', () => { return new PenBrushGetHexColor(); }],
       ['font_isfakeboldtext', () => { return new FontIsEmbolden(StyleType.DRAW_STYLE_COMPLEX); }],
       ['font_gettextskewx', () => { return new FontGetSkewX(StyleType.DRAW_STYLE_COMPLEX); }],
       ['font_getscalex', () => { return new FontGetScaleX(StyleType.DRAW_STYLE_COMPLEX); }],
@@ -403,6 +465,102 @@ export class CaseFactory {
   static StabilityMap: Map<string, Function> = new Map(
     [
       ['canvasdrawrect', () => { return new CanvasDrawRect(); }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_PATH_0100
+      ['stabilityPathNew', () => {
+        return new StabilityPathNew();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_PATH_0200
+      ['stabilityPathInvoke', () => {
+        return new StabilityPathInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_PATH_0300
+      ['stabilityPathRandInvoke', () => {
+        return new StabilityPathRandInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_TEXTBLOB_0100
+      ['stabilityTextBlobMakeFromString', () => {
+        return new StabilityTextBlobMakeFromString();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_TEXTBLOB_0400
+      ['stabilityTextBlobMakeFromRunBuffer', () => {
+        return new StabilityTextBlobMakeFromRunBuffer();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_TEXTBLOB_0200
+      ['stabilityTextBlobMakeInvoke', () => {
+        return new StabilityTextBlobMakeInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_TEXTBLOB_0300
+      ['stabilityTextBlobRandInvoke', () => {
+        return new StabilityTextBlobRandInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_FONT_0100
+      ['stabilityFontNew', () => {
+        return new StabilityFontNew();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_FONT_0200
+      ['stabilityFontAllInvoke', () => {
+        return new StabilityFontAllInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_FONT_0300
+      ['stabilityFontRandInvoke', () => {
+        return new StabilityFontRandInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_CANVAS_0100
+      ['stabilityCanvasNew', () => {
+        return new StabilityCanvasNew();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_CANVAS_0200
+      ['stabilityCanvasInvoke', () => {
+        return new StabilityCanvasInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_CANVAS_0300
+      ['stabilityCanvasRandInvoke', () => {
+        return new StabilityCanvasRandInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_COLORFILTER_0100
+      ['stabilityCreateBlendModeColorFilter', () => {
+        return new StabilityCreateBlendModeColorFilter();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_COLORFILTER_0200
+      ['stabilityCreateComposeColorFilter', () => {
+        return new StabilityCreateComposeColorFilter();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_COLORFILTER_0300
+      ['stabilityCreateLinearToSRGBGamma', () => {
+        return new StabilityCreateLinearToSRGBGamma();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_COLORFILTER_0400
+      ['stabilityCreateSRGBGammaToLinear', () => {
+        return new StabilityCreateSRGBGammaToLinear();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_COLORFILTER_0500
+      ['stabilityCreateLumaColorFilter', () => {
+        return new StabilityCreateLumaColorFilter();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_PEN_0100
+      ['stabilityPenNew', () => {
+        return new StabilityPenNew();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_PEN_0200
+      ['stabilityPenInvoke', () => {
+        return new StabilityPenInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_PEN_0300
+      ['stabilityPenRandInvoke', () => {
+        return new StabilityPenRandInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_BRUSH_0100
+      ['stabilityBrushNew', () => {
+        return new StabilityBrushNew();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_BRUSH_0200
+      ['stabilityBrushInvoke', () => {
+        return new StabilityBrushInvoke();
+      }],
+      //SUB_BASIC_GRAPHICS_SPECIAL_STABLE_TS_DRAWING_BRUSH_0300
+      ['stabilityBrushRandInvoke', () => {
+        return new StabilityBrushRandInvoke();
+      }],
     ]
   );
 

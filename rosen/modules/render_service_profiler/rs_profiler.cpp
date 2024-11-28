@@ -147,6 +147,7 @@ static void SendTelemetry(double time)
 */
 void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 {
+#ifdef RS_ENABLE_GPU
     if (!IsRecording()) {
         return;
     }
@@ -184,6 +185,7 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     if (g_dirtyRegionPercentage > maxPercentValue) {
         g_dirtyRegionPercentage = maxPercentValue;
     }
+#endif
 }
 
 void RSProfiler::Init(RSRenderService* renderService)
@@ -552,7 +554,7 @@ void RSProfiler::ProcessPauseMessage()
         if (recordPlayTime > g_replayLastPauseTimeReported) {
             int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
             if (vsyncId) {
-                Respond("Replay timer paused vsyncId=" + std::to_string(vsyncId));
+                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
             }
             g_replayLastPauseTimeReported = recordPlayTime;
         }
@@ -1018,7 +1020,7 @@ void RSProfiler::RecordUpdate()
 
     constexpr size_t maxConsumption = 1024 * 1024 * 1024;
     if (ImageCache::Consumption() > maxConsumption) {
-        SendMessage("Record: Exceeded memory limit. Abort");
+        SendMessage("Record: Exceeded memory limit. Abort"); // DO NOT TOUCH!
         RecordStop(ArgList{});
         return;
     }
@@ -1455,7 +1457,7 @@ void RSProfiler::GetPerfTree(const ArgList& args)
 
 void RSProfiler::CalcPerfNodePrepareLo(const std::shared_ptr<RSRenderNode>& node, bool forceExcludeNode)
 {
-        if (!node || node->id_ == Utils::PatchNodeId(0)) {
+    if (!node || node->id_ == Utils::PatchNodeId(0)) {
         return;
     }
 
@@ -1714,6 +1716,8 @@ void RSProfiler::RecordStart(const ArgList& args)
         }
     });
     thread.detach();
+
+    SendMessage("Network: Record start"); // DO NOT TOUCH!
 }
 
 void RSProfiler::RecordStop(const ArgList& args)
@@ -1779,8 +1783,8 @@ void RSProfiler::RecordStop(const ArgList& args)
     ImageCache::Reset();
     g_lastCacheImageCount = 0;
 
-    SendMessage("Record: record_vsync_range %zu %zu", g_recordMinVsync, g_recordMaxVsync);
     SendMessage("Record: Stopped");
+    SendMessage("Network: record_vsync_range %llu %llu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
 }
 
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
@@ -1841,7 +1845,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     // The number of frames loaded before command processing
     constexpr int defaultWaitFrames = 5;
     g_playbackWaitFrames = defaultWaitFrames;
-    Respond("awake_frame " + std::to_string(g_playbackWaitFrames)); // this formatting should not be changed
+    SendMessage("awake_frame %d", g_playbackWaitFrames); // DO NOT TOUCH!
     AwakeRenderServiceThread();
 }
 
@@ -1850,9 +1854,9 @@ void RSProfiler::RecordSendBinary(const ArgList& args)
     bool flag = args.Int8(0);
     Network::SetBlockBinary(!flag);
     if (flag) {
-        Respond("Result: data will be sent to client during recording");
+        SendMessage("Result: data will be sent to client during recording"); // DO NOT TOUCH!
     } else {
-        Respond("Result: data will NOT be sent to client during recording");
+        SendMessage("Result: data will NOT be sent to client during recording"); // DO NOT TOUCH!
     }
 }
 
@@ -1897,6 +1901,18 @@ void RSProfiler::PlaybackStart(const ArgList& args)
                 std::this_thread::sleep_for(std::chrono::nanoseconds(timeout));
             }
         }
+        if (g_playbackFile.IsOpen()) {
+            const double deltaTime = Now() - g_playbackStartTime;
+            if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime)) {
+                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+            }
+            g_playbackFile.Close();
+        }
+        g_playbackStartTime = 0.0;
+        g_playbackPid = 0;
+        TimePauseClear();
+        g_playbackShouldBeTerminated = false;
+        Respond("Playback thread terminated");
     });
     thread.detach();
 
@@ -1927,7 +1943,7 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     ImageCache::Reset();
     g_replayLastPauseTimeReported = 0;
 
-    Respond("Playback stop");
+    SendMessage("Playback stop"); // DO NOT TOUCH!
 }
 
 double RSProfiler::PlaybackUpdate(double deltaTime)
@@ -1981,15 +1997,8 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
         }
     }
 
-    if (g_playbackShouldBeTerminated || g_playbackFile.RSDataEOF()) {
-        if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime)) {
-            Respond("Replay timer paused vsyncId=" + std::to_string(vsyncId));
-        }
-        g_playbackStartTime = 0.0;
-        g_playbackFile.Close();
-        g_playbackPid = 0;
-        TimePauseClear();
-        g_playbackShouldBeTerminated = false;
+    if (g_playbackFile.RSDataEOF()) {
+        g_playbackShouldBeTerminated = true;
     }
     return readTime;
 }
@@ -2018,7 +2027,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
     if (vsyncId) {
-        Respond("Replay timer paused vsyncId=" + std::to_string(vsyncId));
+        SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
     }
     g_replayLastPauseTimeReported = recordPlayTime;
 }
@@ -2072,7 +2081,7 @@ void RSProfiler::ProcessCommands()
 {
     if (g_playbackWaitFrames > 0) {
         g_playbackWaitFrames--;
-        Respond("awake_frame " + std::to_string(g_playbackWaitFrames)); // this formatting should not be changed
+        SendMessage("awake_frame %d", g_playbackWaitFrames); // DO NOT TOUCH!
         AwakeRenderServiceThread();
         return;
     }

@@ -120,8 +120,10 @@ public:
     bool hasRequestedVsync_ = false;
     bool destroyed_ = false;
     std::string vsyncTimeoutTaskName_ = "";
+#ifdef RS_ENABLE_GPU
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
+#endif
 };
 
 using IdToSoloistMapType = std::unordered_map<SoloistIdType, std::shared_ptr<RSDisplaySoloist>>;
@@ -171,7 +173,9 @@ private:
     };
 
     enum ActiveStatus managerStatus_ = ActiveStatus::INACTIVE;
+#ifdef RS_ENABLE_GPU
     bool hasInitVsyncReceiver_ = false;
+#endif
     int32_t sourceVsyncRate_ = 0;
 
     FrameRateRange frameRateRange_;
@@ -182,8 +186,10 @@ private:
     std::mutex mtx_;
     std::mutex dataUpdateMtx_;
     std::string vsyncTimeoutTaskName_ = "soloist_manager_time_out_task";
+#ifdef RS_ENABLE_GPU
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
+#endif
 };
 
 } // namespace Rosen

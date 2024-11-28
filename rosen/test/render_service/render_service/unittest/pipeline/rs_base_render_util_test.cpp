@@ -18,6 +18,8 @@
 #include "pipeline/rs_base_render_util.h"
 #include "rs_test_util.h"
 #include "surface_buffer_impl.h"
+#include "system/rs_system_parameters.h"
+
 
 using namespace testing;
 using namespace testing::ext;
@@ -215,6 +217,92 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_001, TestSize.Level2)
     NodeId id = 0;
     RSSurfaceHandler surfaceHandler(id);
     ASSERT_EQ(true, RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, 0));
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_002
+ * @tc.desc: Test ConsumeAndUpdateBuffer while presentWhen invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIB7PH1
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_002, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // acquire buffer
+    if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
+        surfaceHandler.SetConsumer(surfaceConsumer);
+        uint64_t presentWhen = static_cast<uint64_t>(INT64_MAX) + 1; // let presentWhen bigger than INT64_MAX
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen);
+        ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
+    }
+
+    // release buffer
+    surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
+}
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_003
+ * @tc.desc: Test ConsumeAndUpdateBuffer while need drop frame by pid
+ * @tc.type: FUNC
+ * @tc.require: issueIB7PH1
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_003, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(1);
+
+    // request buffer
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // flush buffer
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // acquire buffer
+    if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
+        auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
+        surfaceHandler.SetConsumer(surfaceConsumer);
+        uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
+        RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, true);
+        ASSERT_EQ(surfaceConsumer->GetAvailableBufferCount(), 0);
+    }
+
+    // release buffer
+    surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
 }
 
 /*

@@ -283,21 +283,6 @@ HWTEST_F(RsMainThreadTest, ProcessCommandForDividedRender01, TestSize.Level1)
 }
 
 /**
- * @tc.name: WaitUtilUniRenderFinished
- * @tc.desc: Test RsMainThreadTest.WaitUtilUniRenderFinished
- * @tc.type: FUNC
- * @tc.require: issueI60QX1
- */
-HWTEST_F(RsMainThreadTest, WaitUtilUniRenderFinished, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->NotifyUniRenderFinish();
-    mainThread->WaitUtilUniRenderFinished();
-    ASSERT_EQ(mainThread->uniRenderFinished_, true);
-}
-
-/**
  * @tc.name: CalcOcclusion
  * @tc.desc: Test RsMainThreadTest.CalcOcclusion, doWindowAnimate_ is false, isUniRender_ is true
  * @tc.type: FUNC

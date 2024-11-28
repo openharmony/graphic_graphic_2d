@@ -28,7 +28,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSRcdSurfaceRenderNode;
+#ifdef RS_ENABLE_GPU
 class RSDisplayRenderParams;
+#endif
 class RSSurfaceRenderParams;
 namespace DrawableV2 {
 class RSDisplayRenderNodeDrawable;

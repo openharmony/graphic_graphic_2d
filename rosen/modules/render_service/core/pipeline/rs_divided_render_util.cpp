@@ -78,8 +78,10 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     params.buffer = buffer;
     params.acquireFence = surfaceHandler->GetAcquireFence();
     params.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+#ifdef RS_ENABLE_GPU
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(surface->GetTransform(), property.GetFrameGravity(),
         localBounds, params);
+#endif
     RSBaseRenderUtil::FlipMatrix(surface->GetTransform(), params);
     return params;
 }

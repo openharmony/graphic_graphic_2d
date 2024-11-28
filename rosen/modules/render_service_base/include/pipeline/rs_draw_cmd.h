@@ -24,6 +24,8 @@
 #include "GLES2/gl2ext.h"
 #endif
 
+#include "common/rs_common_def.h"
+
 #include "recording/draw_cmd.h"
 #include "recording/recording_canvas.h"
 #include "render/rs_image.h"
@@ -43,15 +45,14 @@ namespace Rosen {
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
-          pid_(pid), uid_(uid), acquireFence_(acquireFence)
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr, Drawing::Rect srcRect = {})
+        : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
+          dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
+          acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
-    int offSetX_ = 0;
-    int offSetY_ = 0;
-    int width_ = 0;
-    int height_ = 0;
+    Drawing::Rect srcRect_;
+    Drawing::Rect dstRect_;
     pid_t pid_ = {};
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
@@ -246,14 +247,35 @@ private:
 };
 
 #ifdef ROSEN_OHOS
+struct RSB_EXPORT DrawSurfaceBufferFinishCbData {
+    uint64_t uid;
+    pid_t pid;
+    uint32_t surfaceBufferId;
+    NodeId rootNodeId = INVALID_NODEID;
+    sptr<SyncFence> releaseFence = SyncFence::INVALID_FENCE;
+    bool isRendered = false;
+    bool isNeedTriggerCbDirectly = false;
+};
+ 
+struct RSB_EXPORT DrawSurfaceBufferAfterAcquireCbData {
+    uint64_t uid;
+    pid_t pid;
+};
+
+struct RSB_EXPORT DrawSurfaceBufferOpItemCb {
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> OnFinish;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> OnAfterAcquireBuffer;
+};
+
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
+        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
+            uint64_t uid, Drawing::Rect srcRect, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
-            paintHandle(paintHandle) {}
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, srcRect),
+              paintHandle(paintHandle)
+        {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;
@@ -269,9 +291,14 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     virtual void DumpItems(std::string& out) const override;
-    RSB_EXPORT static void RegisterSurfaceBufferCallback(std::function<void(pid_t, uint64_t, uint32_t)> callback);
+    RSB_EXPORT static void RegisterSurfaceBufferCallback(DrawSurfaceBufferOpItemCb callbacks);
+    RSB_EXPORT static void RegisterGetRootNodeIdFuncForRT(std::function<NodeId()> func);
+    RSB_EXPORT static void SetIsUniRender(bool isUniRender);
 private:
     void OnDestruct();
+    void OnAfterAcquireBuffer();
+    void OnAfterDraw();
+    void ReleaseBuffer();
     void Clear();
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
@@ -279,6 +306,9 @@ private:
     bool CreateEglTextureId();
     Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
+    NodeId rootNodeId_ = INVALID_NODEID;
+    sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
+    bool isRendered_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

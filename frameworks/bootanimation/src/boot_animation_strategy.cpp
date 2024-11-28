@@ -34,6 +34,9 @@ bool BootAnimationStrategy::CheckExitAnimation()
 {
     if (!isAnimationEnd_) {
         LOGI("boot animation is end");
+        if (!system::GetBoolParameter(BOOT_ANIMATION_STARTED, false)) {
+            system::SetParameter(BOOT_ANIMATION_STARTED, "true");
+        }
         system::SetParameter(BOOT_ANIMATION_FINISHED, "true");
         isAnimationEnd_ = true;
     }
@@ -97,5 +100,15 @@ bool BootAnimationStrategy::CheckNeedOtaCompile() const
         return true;
     }
     return false;
+}
+
+bool BootAnimationStrategy::CheckNeedBundleScan() const
+{
+    LOGI("CheckNeedBundleScan");
+    if (system::GetParameter("bms.scanning_apps.status", "-1") == "1") {
+        LOGI("bundle scan is already done.");
+        return false;
+    }
+    return true;
 }
 } // namespace OHOS

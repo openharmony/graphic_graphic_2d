@@ -16,7 +16,7 @@ import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 module_output_path =
-    "graphic/rosen_engine/render_service_base/platform/ohos/backend"
+    "graphic_2d/rosen_engine/render_service_base/platform/ohos/backend"
 
 ##############################  RSRenderServiceBaseBackendTest  ##################################
 ohos_unittest("RSRenderServiceBaseBackendTest") {

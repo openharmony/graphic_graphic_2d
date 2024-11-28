@@ -265,6 +265,22 @@ public:
     ~RSAppearanceRenderModifier() override = default;
 };
 
+class RSB_EXPORT RSHDRBrightnessRenderModifier : public RSAnimatableRenderModifier {
+public:
+    RSHDRBrightnessRenderModifier(const std::shared_ptr<RSRenderPropertyBase>& property)
+        : RSAnimatableRenderModifier(property)
+    {
+        property->SetModifierType(RSModifierType::HDR_BRIGHTNESS);
+    }
+    ~RSHDRBrightnessRenderModifier() override = default;
+    void Apply(RSModifierContext& context) const override;
+    void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;
+    bool Marshalling(Parcel& parcel) override;
+    RSModifierType GetType() override
+    {
+        return RSModifierType::HDR_BRIGHTNESS;
+    }
+};
 
 class RSB_EXPORT RSEnvForegroundColorRenderModifier : public RSForegroundRenderModifier {
 public:

@@ -151,9 +151,11 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
@@ -1798,6 +1800,23 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK) : {
+            sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            uint32_t dstPid = data.ReadUint32();
+            if (data.ReadBool()) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
+            }
+            int32_t status = RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
             bool isEnabled = false;
             if (!data.ReadBool(isEnabled)) {
@@ -1907,6 +1926,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS) : {
             auto isCurtainScreenOn = data.ReadBool();
             SetCurtainScreenUsingStatus(isCurtainScreenOn);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID) : {
+            std::vector<int32_t> pidList;
+            if (!data.ReadInt32Vector(&pidList)) {
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            DropFrameByPid(pidList);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK): {

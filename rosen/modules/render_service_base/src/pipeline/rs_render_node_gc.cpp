@@ -89,21 +89,25 @@ void RSRenderNodeGC::ReleaseNodeBucket()
 void RSRenderNodeGC::ReleaseNodeMemory()
 {
     RS_TRACE_FUNC();
+    uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(nodeMutex_);
         if (nodeBucket_.empty()) {
             return;
         }
+        remainBucketSize = nodeBucket_.size();
     }
+    nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
     if (mainTask_) {
         auto task = [this]() {
-            if (isEnable_.load() == false) {
+            if (isEnable_.load() == false &&
+                nodeGCLevel_ != GCLevel::IMMEDIATE) {
                 return;
             }
             ReleaseNodeBucket();
             ReleaseNodeMemory();
         };
-        mainTask_(task, DELETE_NODE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
+        mainTask_(task, DELETE_NODE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(nodeGCLevel_));
     } else {
         ReleaseNodeBucket();
     }
@@ -164,18 +168,21 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
 
 void RSRenderNodeGC::ReleaseDrawableMemory()
 {
+    uint32_t remainBucketSize;
     {
         std::lock_guard<std::mutex> lock(drawableMutex_);
         if (drawableBucket_.empty()) {
             return;
         }
+        remainBucketSize = drawableBucket_.size();
     }
+    drawableGCLevel_ = JudgeGCLevel(remainBucketSize);
     if (renderTask_) {
         auto task = []() {
             RSRenderNodeGC::Instance().ReleaseDrawableBucket();
             RSRenderNodeGC::Instance().ReleaseDrawableMemory();
         };
-        renderTask_(task, DELETE_DRAWABLE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
+        renderTask_(task, DELETE_DRAWABLE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(drawableGCLevel_));
     } else {
         ReleaseDrawableBucket();
     }
@@ -244,6 +251,19 @@ void RSRenderNodeGC::ReleaseFromTree()
         mainTask_(task, OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
     } else {
         ReleaseOffTreeNodeBucket();
+    }
+}
+
+GCLevel RSRenderNodeGC::JudgeGCLevel(uint32_t remainBucketSize)
+{
+    if (remainBucketSize < GC_LEVEL_THR_LOW) {
+        return GCLevel::IDLE;
+    } else if (remainBucketSize < GC_LEVEL_THR_HIGH) {
+        return GCLevel::LOW;
+    } else if (remainBucketSize < GC_LEVEL_THR_IMMEDIATE) {
+        return GCLevel::HIGH;
+    } else {
+        return GCLevel::IMMEDIATE;
     }
 }
 

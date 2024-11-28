@@ -162,6 +162,7 @@ void SymbolNodeBuild::MergeDrawingPath(RSPath& multPath, const RSRenderGroup& gr
             Drawing::Path outPath;
             auto isOk = outPath.Op(pathTemp, maskPath, Drawing::PathOp::DIFFERENCE);
             pathTemp = isOk ? outPath : pathTemp;
+            multPath.SetFillStyle(pathTemp.GetFillStyle());
         }
         multPath.AddPath(pathTemp);
     }
@@ -185,7 +186,7 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
-    TEXT_LOGD("SymbolNodeBuild::AddWholeAnimation RenderGroup size %{public}d", static_cast<int>(groups.size()));
+    TEXT_LOGD("RenderGroup size %{public}d", static_cast<int>(groups.size()));
     for (const auto& group : groups) {
         RSPath multPath;
         MergeDrawingPath(multPath, group, pathLayers);
@@ -251,11 +252,11 @@ void SymbolNodeBuild::ClearAnimation()
 bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 {
     if (symbolData_.symbolInfo_.renderGroups.size() <= 0) {
-        TEXT_LOGD("[%{public}s] HmSymbol: symbolInfo_.renderGroups is empty\n", __func__);
+        TEXT_LOGD("HmSymbol: symbolInfo_.renderGroups is empty");
         return false;
     }
     if (animationFunc_ == nullptr) {
-        TEXT_LOGD("[%{public}s] HmSymbol: animationFunc_ is nullprt\n", __func__);
+        TEXT_LOGD("HmSymbol: animationFunc_ is nullprt");
         return false;
     }
     auto symbolAnimationConfig = std::make_shared<TextEngine::SymbolAnimationConfig>();
@@ -279,6 +280,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
+    symbolAnimationConfig->animationReset = animationReset_;
     return animationFunc_(symbolAnimationConfig);
 }
 }

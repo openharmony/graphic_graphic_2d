@@ -175,12 +175,12 @@ napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi SetBlur parsing input fail"));
 
     float radius = 0.0f;
-    UIEFFECT_NAPI_CHECK_RET_D(UIEffectNapiUtils::GetType(env, argv[NUM_0]) == napi_number,
-        nullptr, FILTER_LOG_E("FilterNapi SetBlur radius is not napi_number"));
-    double tmp = 0.0;
-    UIEFFECT_NAPI_CHECK_RET_D(napi_get_value_double(env, argv[NUM_0], &tmp) == napi_ok, nullptr,
-        FILTER_LOG_E("FilterNapi SetBlur parsing brightness fail"));
-    radius = static_cast<float>(tmp);
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_0]) == napi_number) {
+        double tmp = 0.0f;
+        if (napi_get_value_double(env, argv[NUM_0], &tmp) == napi_ok) {
+            radius = static_cast<float>(tmp);
+        }
+    }
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, _this, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
@@ -309,15 +309,14 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
             "FilterNapi SetWaterRipple failed, is not system app");
         return nullptr;
     }
-    const size_t requireArgc = NUM_5;
-    size_t realArgc = NUM_5;
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_5] = {0};
-    UIEFFECT_JS_ARGS(env, info, status, realArgc, argValue, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    size_t argCount = NUM_5;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         FILTER_LOG_E("FilterNapi SetWaterRipple parsing input fail"));
 
     std::shared_ptr<WaterRipplePara> para = std::make_shared<WaterRipplePara>();
@@ -329,6 +328,11 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
     float rippleCenterX = 0.0f;
     float rippleCenterY = 0.0f;
     uint32_t rippleMode = 0;
+
+    if (argCount != NUM_5) {
+        FILTER_LOG_E("Args number less than 5");
+        return thisVar;
+    }
 
     progress = GetSpecialValue(env, argValue[NUM_0]);
     waveCount = GetSpecialIntValue(env, argValue[NUM_1]);
@@ -359,19 +363,23 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
             "FilterNapi SetFlyOut failed, is not system app");
         return nullptr;
     }
-    const size_t requireArgc = NUM_2;
-    size_t realArgc = NUM_2;
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_2] = {0};
-    UIEFFECT_JS_ARGS(env, info, status, realArgc, argValue, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    size_t argCount = NUM_2;
+    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
         FILTER_LOG_E("FilterNapi SetFlyOut parsing input fail"));
 
     std::shared_ptr<FlyOutPara> para = std::make_shared<FlyOutPara>();
     UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetFlyOut para is nullptr"));
+
+    if (argCount != NUM_2) {
+        FILTER_LOG_E("Args number less than 2");
+        return thisVar;
+    }
 
     float degree = GetSpecialValue(env, argValue[NUM_0]);
     uint32_t flyMode = GetSpecialIntValue(env, argValue[NUM_1]);
@@ -407,12 +415,12 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         FILTER_LOG_E("FilterNapi SetDistort parsing input fail"));
     float distortionK = 0.0f;
-    UIEFFECT_NAPI_CHECK_RET_D(UIEffectNapiUtils::GetType(env, argv[NUM_0]) == napi_number,
-        nullptr, FILTER_LOG_E("FilterNapi SetDistort distortionK is not napi_number"));
-    double tmp = 0.0;
-    UIEFFECT_NAPI_CHECK_RET_D(napi_get_value_double(env, argv[NUM_0], &tmp) == napi_ok,
-        nullptr, FILTER_LOG_E("FilterNapi SetDistort parsing distortionK fail"));
-    distortionK = static_cast<float>(tmp);
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_0]) == napi_number) {
+        double tmp = 0.0f;
+        if (napi_get_value_double(env, argv[NUM_0], &tmp) == napi_ok) {
+            distortionK = static_cast<float>(tmp);
+        }
+    }
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,

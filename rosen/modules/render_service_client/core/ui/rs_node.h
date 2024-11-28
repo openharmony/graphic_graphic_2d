@@ -50,6 +50,7 @@ namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+using ExportTypeChangedCallback = std::function<void(bool)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -339,6 +340,7 @@ public:
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
     void SetCustomClipToFrame(const Vector4f& clipRect);
+    void SetHDRBrightness(const float& hdrBrightness);
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
@@ -464,6 +466,7 @@ public:
     {
         return animations_.size();
     }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
 
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
@@ -503,6 +506,7 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
 
     // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
     bool hasCreateRenderNodeInRT_ = false;

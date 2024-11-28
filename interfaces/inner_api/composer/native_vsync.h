@@ -59,10 +59,24 @@ typedef void (*OH_NativeVSync_FrameCallback)(long long timestamp, void *data);
 OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length);
 
 /**
+ * @brief Creates a associated with Xcomponentid <b>NativeVsync</b> instance.\n
+ * A new associated with Xcomponentid<b>NativeVsync</b> instance is created each time this function is called.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param windowID Indicates the Xcomponentid of the associated window.
+ * @param name Indicates the vsync connection name.
+ * @param length Indicates the name's length.
+ * @return Returns the pointer to the <b>NativeVsync</b> instance created.
+ * @since 14
+ * @version 1.0
+ */
+OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, const char* name, unsigned int length);
+
+/**
  * @brief Delete the NativeVsync instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
- * @param window Indicates the pointer to a <b>NativeVsync</b> instance.
+ * @param nativeVsync Indicates the pointer to a <b>NativeVsync</b> instance.
  * @since 9
  * @version 1.0
  */

@@ -105,8 +105,13 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
         std::ceil(image->GetHeight() * FLOAT_IMAGE_SCALE), originImageInfo.GetColorType(),
         originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpBlur(builder->MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpBlur(builder->MakeImage(
+        nullptr, nullptr, scaledInfo, false));
+#endif
 
     float invBlurScale = 1.0f / FLOAT_IMAGE_SCALE;
     Drawing::Matrix invBlurMatrix;

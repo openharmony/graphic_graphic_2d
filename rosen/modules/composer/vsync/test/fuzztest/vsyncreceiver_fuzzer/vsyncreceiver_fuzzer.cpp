@@ -119,8 +119,6 @@ namespace OHOS {
         std::string name = GetStringFromData(STR_LEN);
         bool rnvFlag = GetData<bool>();
         int64_t now = GetData<int64_t>();
-        int32_t fileDescriptor = GetData<int32_t>();
-        bool fdClosed = GetData<bool>();
         void* userData = static_cast<void*>(GetStringFromData(STR_LEN).data());
         Rosen::VSyncReceiver::FrameCallback fcb = {
             .userData_ = userData,
@@ -139,24 +137,6 @@ namespace OHOS {
         vsyncCallBackListener->GetTimeStampShared();
         vsyncCallBackListener->AddCallback(fcb);
         vsyncCallBackListener->CalculateExpectedEndLocked(now);
-
-        int64_t vsyncData[3];
-        ssize_t dataCount = GetData<ssize_t>();
-        vsyncData[0] = GetData<int64_t>();
-        vsyncData[1] = GetData<int64_t>();
-        vsyncData[2] = GetData<int64_t>(); // index 2
-        TEMP_FAILURE_RETRY(send(
-            receiver->fd_, vsyncData, sizeof(vsyncData), MSG_DONTWAIT | MSG_NOSIGNAL));
-        if (fileDescriptor >= 0 && fileDescriptor <= 2) { // 0, 1, 2 not allowed
-            fileDescriptor = receiver->fd_;
-        }
-        vsyncCallBackListener->OnReadable(receiver->fd_);
-        vsyncCallBackListener->OnShutdown(fileDescriptor);
-        vsyncCallBackListener->ReadFdInternal(receiver->fd_, vsyncData, dataCount);
-        vsyncCallBackListener->HandleVsyncCallbacks(vsyncData, dataCount, fileDescriptor);
-        vsyncCallBackListener->CalculateExpectedEndLocked(now);
-        vsyncCallBackListener->SetFdClosedFlagLocked(fdClosed);
-        vsyncCallBackListener->RegisterFdShutDownCallback([](int32_t fd) {});
 
         GraphicCommonTest();
     }
@@ -200,8 +180,6 @@ namespace OHOS {
             .userData_ = data1,
             .callback_ = OnVSync,
         };
-        vsyncReceiver->Init();
-        vsyncReceiver2->Init();
         vsyncReceiver->SetVSyncRate(fcb, rate);
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
@@ -218,8 +196,6 @@ namespace OHOS {
 
         //tearDown
         vsyncReceiver->CloseVsyncReceiverFd();
-        vsyncReceiver2->RemoveAndCloseFdLocked();
-        vsyncReceiver2->DestroyLocked();
         return true;
     }
 }

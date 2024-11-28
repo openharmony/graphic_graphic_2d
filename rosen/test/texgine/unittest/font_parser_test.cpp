@@ -19,7 +19,7 @@
 
 #include "font_config.h"
 #include "font_parser.h"
-#include "texgine/utils/exlog.h"
+#include "utils/text_log.h"
 #include "cmap_table_parser.h"
 #include "name_table_parser.h"
 #include "post_table_parser.h"
@@ -50,17 +50,12 @@ std::vector<std::string> GetFontSet(const char* fname)
 
 void ShowVisibilityFonts(std::vector<FontParser::FontDescriptor>& visibilityFonts)
 {
-    for (auto &it : visibilityFonts) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily: " << it.fontFamily
-                              << "\n fontSubfamily: " << it.fontSubfamily
-                              << "\n fullName: " << it.fullName
-                              << "\n italic: " << it.italic
-                              << "\n monoSpace: " << it.monoSpace
-                              << "\n path: " << it.path
-                              << "\n postScriptName: " << it.postScriptName
-                              << "\n symbolic: " << it.symbolic
-                              << "\n weight: " << it.weight
-                              << "\n width: " << it.width;
+    for (auto& it : visibilityFonts) {
+        TEXT_LOGI("fontFamily: %{public}s\nfontSubfamily: %{public}s\nfullName: %{public}s\nitalic: %{public}d\n"
+                  "monoSpace: %{public}d\npath: %{public}s\npostScriptName: %{public}s\nsymbolic: %{public}d\n"
+                  "weight: %{public}d\nwidth: %{public}d",
+            it.fontFamily.c_str(), it.fontSubfamily.c_str(), it.fullName.c_str(), it.italic, it.monoSpace,
+            it.path.c_str(), it.postScriptName.c_str(), it.symbolic, it.weight, it.width);
     }
 }
 

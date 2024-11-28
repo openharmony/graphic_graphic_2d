@@ -225,7 +225,8 @@ public:
         const std::string& name,
         uint64_t id,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
 
@@ -243,6 +244,11 @@ public:
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
+
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
+
+    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid);
 
     void SetAppWindowNum(uint32_t num);
 
@@ -284,6 +290,8 @@ public:
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
+    void DropFrameByPid(const std::vector<int32_t> pidList);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
 

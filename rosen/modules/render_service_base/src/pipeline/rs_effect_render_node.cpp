@@ -127,6 +127,7 @@ void RSEffectRenderNode::SetEffectRegion(const std::optional<Drawing::RectI>& ef
 
 void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged, bool rotationStatusChanged)
 {
+#ifdef RS_ENABLE_GPU
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
     }
@@ -144,14 +145,18 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
     } else if (CheckFilterCacheNeedForceSave()) {
         filterDrawable->MarkFilterForceUseCache();
     }
+#endif
 }
 
 void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
 {
+#ifdef RS_ENABLE_GPU
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::FilterCacheEnabled) {
         ROSEN_LOGE("RSEffectRenderNode::UpdateFilterCacheManagerWithCacheRegion filter cache is disabled.");
         return;
     }
+#endif
     auto filterDrawable = GetFilterDrawable(false);
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
@@ -163,8 +168,10 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
     }
     // effect render node  only support background filter
     MarkFilterStatusChanged(false, true);
+#endif
 }
 
+#ifdef RS_ENABLE_GPU
 void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
@@ -179,6 +186,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
     }
     RSRenderNode::MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
 }
+#endif
 
 bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
 {
@@ -226,16 +234,19 @@ void RSEffectRenderNode::SetFoldStatusChanged(bool foldStatusChanged)
 
 void RSEffectRenderNode::InitRenderParams()
 {
+#ifdef RS_ENABLE_GPU
     stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(GetId());
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(shared_from_this());
     if (renderDrawable_ == nullptr) {
         RS_LOGE("RSEffectRenderNode::InitRenderParams failed");
         return;
     }
+#endif
 }
 
 void RSEffectRenderNode::MarkFilterHasEffectChildren()
 {
+#ifdef RS_ENABLE_GPU
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
     }
@@ -244,19 +255,24 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
         return;
     }
     effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
+#if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::FilterCacheEnabled) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
     }
+#endif
+#endif
 }
 
 void RSEffectRenderNode::OnFilterCacheStateChanged()
 {
+#ifdef RS_ENABLE_GPU
     auto filterDrawable = GetFilterDrawable(false);
     auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
     if (filterDrawable == nullptr || effectParams == nullptr) {
         return;
     }
     effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
+#endif
 }
 
 bool RSEffectRenderNode::EffectNodeShouldPaint() const
@@ -280,6 +296,7 @@ bool RSEffectRenderNode::FirstFrameHasNoEffectChildren() const
 
 void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
 {
+#ifdef RS_ENABLE_GPU
     // the first frame node has no effect child, it should not be painted and filter cache need to be cleared.
     auto filterDrawable = GetFilterDrawable(false);
     if (filterDrawable == nullptr || filterDrawable->IsForceClearFilterCache()) {
@@ -293,6 +310,7 @@ void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
     if (filterDrawable->IsForceUseFilterCache()) {
         filterDrawable->MarkFilterForceUseCache(false);
     }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

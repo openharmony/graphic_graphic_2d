@@ -115,7 +115,8 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     const std::string& name,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
     uint64_t id,
-    NodeId windowNodeId)
+    NodeId windowNodeId,
+    bool fromXcomponent)
 {
     return std::make_shared<VSyncReceiverWindows>();
 }
@@ -503,6 +504,12 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
+    uint32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    return {};
+}
+
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
@@ -628,6 +635,10 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
 }
 
 void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+{
+}
+
+void RSRenderServiceClient::DropFrameByPid(const std::vector<int32_t> pidList)
 {
 }
 

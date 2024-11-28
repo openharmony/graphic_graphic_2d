@@ -62,6 +62,7 @@ void RSDisplaySoloist::OnVsync(TimestampType timestamp, void* client)
 
 void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
 {
+#ifdef RS_ENABLE_GPU
     {
         std::lock_guard<std::mutex> lock(mtx_);
         hasRequestedVsync_ = false;
@@ -91,10 +92,12 @@ void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
         RequestNextVSync();
     }
     FlushFrameRate(frameRateRange_.preferred_);
+#endif
 }
 
 void RSDisplaySoloist::Init()
 {
+#ifdef RS_ENABLE_GPU
     if (useExclusiveThread_ && (!subReceiver_ || !hasInitVsyncReceiver_)) {
         if (!subVsyncHandler_) {
             subVsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
@@ -110,10 +113,12 @@ void RSDisplaySoloist::Init()
         subStatus_ = ActiveStatus::ACTIVE;
         hasInitVsyncReceiver_ = true;
     }
+#endif
 }
 
 void RSDisplaySoloist::RequestNextVSync()
 {
+#ifdef RS_ENABLE_GPU
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (destroyed_) {
@@ -134,6 +139,7 @@ void RSDisplaySoloist::RequestNextVSync()
         subReceiver_->RequestNextVSync(subFrameCallback_);
         hasRequestedVsync_ = true;
     }
+#endif
 }
 
 void RSDisplaySoloist::OnVsyncTimeOut()
@@ -366,6 +372,7 @@ RSDisplaySoloistManager::~RSDisplaySoloistManager() noexcept {}
 
 bool RSDisplaySoloistManager::InitVsyncReceiver()
 {
+#ifdef RS_ENABLE_GPU
     if (hasInitVsyncReceiver_) {
         return false;
     }
@@ -386,10 +393,14 @@ bool RSDisplaySoloistManager::InitVsyncReceiver()
     managerStatus_ = ActiveStatus::ACTIVE;
 
     return true;
+#else
+    return false;
+#endif
 }
 
 void RSDisplaySoloistManager::RequestNextVSync()
 {
+#ifdef RS_ENABLE_GPU
     if (receiver_ == nullptr) {
         ROSEN_LOGE("%{public}s, VSyncReceiver is null.", __func__);
         return;
@@ -409,6 +420,7 @@ void RSDisplaySoloistManager::RequestNextVSync()
     }
 
     receiver_->RequestNextVSync(managerFrameCallback_);
+#endif
 }
 
 void RSDisplaySoloistManager::OnVsync(TimestampType timestamp, void* client)

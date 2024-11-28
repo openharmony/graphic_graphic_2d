@@ -219,17 +219,6 @@ bool DoDrawCircle(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoDrawPath(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Path path;
-    rsGpu->DrawPath(path);
-    return true;
-}
-
 bool DoDrawBackground(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -278,17 +267,6 @@ bool DoDrawShadow(const uint8_t* data, size_t size)
     auto flag = (Drawing::ShadowFlags)value;
 
     rsGpu->DrawShadow(path, planeParams, devLightPos, lightRadius, ambientColor, spotColor, flag);
-    return true;
-}
-
-bool DoDrawRegion(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Region region;
-    rsGpu->DrawRegion(region);
     return true;
 }
 
@@ -344,17 +322,6 @@ bool DoDrawImageRect(const uint8_t* data, size_t size)
 
     rsGpu->DrawImageRect(image, src, dst, sampling);
     rsGpu->DrawImageRect(image, dst, sampling);
-    return true;
-}
-
-bool DoDrawPicture(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Drawing::Picture picture;
-    rsGpu->DrawPicture(picture);
     return true;
 }
 
@@ -418,14 +385,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoDrawPie(data, size);
     OHOS::Rosen::DoDrawOval(data, size);
     OHOS::Rosen::DoDrawCircle(data, size);
-    OHOS::Rosen::DoDrawPath(data, size);
     OHOS::Rosen::DoDrawBackground(data, size);
     OHOS::Rosen::DoDrawShadow(data, size);
-    OHOS::Rosen::DoDrawRegion(data, size);
     OHOS::Rosen::DoDrawBitmap(data, size);
     OHOS::Rosen::DoDrawImage(data, size);
     OHOS::Rosen::DoDrawImageRect(data, size);
-    OHOS::Rosen::DoDrawPicture(data, size);
     OHOS::Rosen::DoClear(data, size);
     OHOS::Rosen::DoAttachPen(data, size);
     OHOS::Rosen::DoAttachBrush(data, size);

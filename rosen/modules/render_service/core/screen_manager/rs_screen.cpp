@@ -391,7 +391,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         return;
     }
 
-    RS_LOGI("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
+    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
@@ -408,6 +408,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
+    RS_LOGW("[UL_POWER]RSScreen_%{pubilc}" PRIu64 " SetPowerStatus done", id_);
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const

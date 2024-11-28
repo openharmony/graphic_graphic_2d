@@ -24,7 +24,6 @@ namespace Rosen {
 namespace {
 constexpr size_t ENCODING_SIZE = 4;
 constexpr size_t MAX_SIZE = 5000;
-constexpr size_t TEXT_SIZE = 130;
 constexpr size_t TEXTUTF8_SIZE = 128;
 } // namespace
 namespace Drawing {
@@ -174,19 +173,21 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t count = GetObject<uint32_t>() % TEXT_SIZE + 1;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
     char* text = new char[count];
     for (size_t i = 0; i < count; i++) {
         text[i] = GetObject<char>() % TEXTUTF8_SIZE; // Skia问题，非Drawing。TextEncoding::UTF8 text 传>128会导致崩溃
     }
-    RSXform xform[count];
-    for (size_t i = 0; i < count; i++) {
+    text[count - 1] = '\0';
+    uint32_t length = (count - 1) * sizeof(RSXform);
+    RSXform xform[length];
+    for (size_t i = 0; i < length; i++) {
         xform[i] = RSXform::Make(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
     }
     Font font;
     scalar fSize = GetObject<scalar>();
     font.SetSize(fSize);
-    auto textBlob = TextBlob::MakeFromRSXform(text, count, xform, font, TextEncoding::UTF8);
+    auto textBlob = TextBlob::MakeFromRSXform(text, count - 1, xform, font, TextEncoding::UTF8);
     uint32_t countT = GetObject<uint32_t>() % MAX_SIZE + 1;
     float* bounds = new float[countT];
     float* intervals = new float[countT];
@@ -194,11 +195,7 @@ bool TextBlobFuzzTest005(const uint8_t* data, size_t size)
         bounds[i] = GetObject<float>();
         intervals[i] = GetObject<float>();
     }
-    uint32_t alpha = GetObject<uint32_t>();
-    uint32_t red = GetObject<uint32_t>();
-    uint32_t blue = GetObject<uint32_t>();
-    uint32_t green = GetObject<uint32_t>();
-    Color color = Color(red, green, blue, alpha);
+    Color color = Color(GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>(), GetObject<uint32_t>());
     Paint paint = Paint(color);
     if (textBlob) {
         textBlob->GetIntercepts(bounds, intervals, &paint);

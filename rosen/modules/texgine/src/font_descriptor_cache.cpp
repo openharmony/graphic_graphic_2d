@@ -122,7 +122,7 @@ std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
     std::unordered_set<std::string> fullNameList;
     std::vector<std::string> fontPathList;
     if (!ParserInstallFontsPathList(fontPathList)) {
-        TEXT_LOGE("Parser install fonts path list failed");
+        TEXT_LOGE("Failed to parser install fonts path list");
         return fullNameList;
     }
     for (const auto& path : fontPathList) {
@@ -162,7 +162,7 @@ bool FontDescriptorCache::ProcessSystemFontType(const int32_t& systemFontType, i
         return false;
     }
     fontType = systemFontType;
-    if (systemFontType & TextEngine::FontParser::SystemFontType::ALL) {
+    if (static_cast<uint32_t>(systemFontType) & TextEngine::FontParser::SystemFontType::ALL) {
         fontType = TextEngine::FontParser::SystemFontType::GENERIC |
             TextEngine::FontParser::SystemFontType::STYLISH |
             TextEngine::FontParser::SystemFontType::INSTALLED;
@@ -183,17 +183,17 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
         return;
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::GENERIC) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::GENERIC) {
         auto fullNameList = GetGenericFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::STYLISH) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::STYLISH) {
         auto fullNameList = GetStylishFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::INSTALLED) {
         auto fullNameList = GetInstallFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
@@ -203,7 +203,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
 {
     std::vector<std::string> fontPathList;
     if (!ParserInstallFontsPathList(fontPathList)) {
-        TEXT_LOGE("Parser install fonts path list failed");
+        TEXT_LOGE("Failed to parser install fonts path list");
         return false;
     }
     for (const auto& path : fontPathList) {
@@ -216,7 +216,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
             }
         }
     }
-    TEXT_LOGE_LIMIT3_MIN("Parser installed fontDescriptor by name failed, fullName: %{public}s", fullName.c_str());
+    TEXT_LOGE_LIMIT3_MIN("Failed to parser installed fontDescriptor by name, fullName: %{public}s", fullName.c_str());
     return false;
 }
 
@@ -228,12 +228,6 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         result = nullptr;
         return;
     }
-    if (systemFontType < 0) {
-        TEXT_LOGE("SystemFontType is an invalid value");
-        result = nullptr;
-        return;
-    }
-
     int32_t fontType = 0;
     if (!ProcessSystemFontType(systemFontType, fontType)) {
         result = nullptr;
@@ -244,6 +238,7 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
         result = nullptr;
         return;
     }
+
     auto tryFindFontDescriptor = [&fullName, &result](const std::unordered_map<std::string,
         std::set<FontDescSharedPtr>>& map) -> bool {
         auto it = map.find(fullName);
@@ -447,7 +442,7 @@ bool FontDescriptorCache::IsDefault(FontDescSharedPtr desc)
 void FontDescriptorCache::MatchFromFontDescriptor(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& result)
 {
     if (desc == nullptr) {
-        TEXT_LOGE("desc is nullptr");
+        TEXT_LOGE("Desc is nullptr");
         return;
     }
 
@@ -512,7 +507,7 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
     // Obtain weight ranges for non-whole hundred values
     auto it = std::lower_bound(weightType.begin(), weightType.end(), weight);
     std::vector<int> targetRange = { *(it - 1), *it };
-    
+
     /**
      * When the font weight is less than NORMAL_WEIGHT, round down as much as possible;
      * when the font weight exceeds NORMAL_WEIGHT, round up where possible. For example, when weight is 360,

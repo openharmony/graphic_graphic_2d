@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class GeometryTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -37,7 +37,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, CameraDistance_Test_1)
 {
     float zList[] = { 0.0, 0.5, 1, 100.0 };
     for (int i = 0; i < 4; i++) {
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 680 + 40, 600, 600 });
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 480 + 40, 600, 600 });
         testNode->SetPivot(Vector2f(0.5, 0.5));
         testNode->SetRotation(45.0, 0, 45.0);
         testNode->SetCameraDistance(zList[i]);

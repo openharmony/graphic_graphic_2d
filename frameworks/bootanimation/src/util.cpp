@@ -333,7 +333,9 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
     imageStruct->memPtr.setOwnerShip(data);
     imageStruct->fileName = fileName;
     imageStruct->imageData = std::make_shared<Rosen::Drawing::Image>();
+#ifdef RS_ENABLE_GPU
     imageStruct->imageData->MakeFromEncoded(data);
+#endif
     imgVec.push_back(imageStruct);
     return true;
 }

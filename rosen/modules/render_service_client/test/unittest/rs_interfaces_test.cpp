@@ -1392,6 +1392,22 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
 }
 
 /*
+ * @tc.name: RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest
+ * @tc.desc: test RegisterFrameRateLinkerExpectedFpsUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    FrameRateLinkerExpectedFpsUpdateCallback cb = [](uint32_t pid, int32_t fps){};
+    int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
+    ASSERT_EQ(ret, 0);
+    ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, nullptr);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
  * @tc.name: RegisterSurfaceOcclusionChangeCallback001
  * @tc.desc: RegisterOcclusionChangeCallback interface test.
  * @tc.type: FUNC
@@ -1457,6 +1473,7 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(true);
 }
 
@@ -1468,7 +1485,32 @@ HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus002, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: DropFrameByPid001
+ * @tc.desc: Test DropFrameByPid interface
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid001, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({0});
+}
+
+/*
+ * @tc.name: DropFrameByPid002
+ * @tc.desc: Test DropFrameByPid interface while pidList empty
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({});
 }
 
 /*

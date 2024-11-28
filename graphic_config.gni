@@ -110,6 +110,10 @@ if (graphic_2d_feature_ace_enable_gpu) {
     gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 
+  if (graphic_2d_feature_rs_enable_profiler) {
+    gpu_defines += [ "SKP_RECORDING_ENABLED" ]
+  }
+
   ace_enable_gpu = true
   rs_enable_gpu = true
   surface_enable_gpu = true

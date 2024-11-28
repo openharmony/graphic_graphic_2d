@@ -47,6 +47,15 @@ struct DirtyRegionInfoForDFX {
 };
 struct RSLayerInfo;
 struct ScreenInfo;
+
+typedef enum {
+    RS_PARAM_DEFAULT,
+    RS_PARAM_OWNED_BY_NODE,
+    RS_PARAM_OWNED_BY_DRAWABLE,
+    RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST,
+    RS_PARAM_INVALID,
+} RSRenderParamsType;
+
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id) {}
@@ -96,6 +105,16 @@ public:
     inline NodeId GetId() const
     {
         return id_;
+    }
+
+    void SetParamsType(RSRenderParamsType paramsType)
+    {
+        paramsType_ = paramsType;
+    }
+
+    inline RSRenderParamsType GetParamsType() const
+    {
+        return paramsType_;
     }
 
     Gravity GetFrameGravity() const
@@ -320,6 +339,7 @@ protected:
 
 private:
     NodeId id_;
+    RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;

@@ -121,11 +121,7 @@ public:
     {
         return isRegionDebugEnabled_;
     }
-    // Use in vulkan parallel rendering
-    GraphicColorGamut GetColorGamut() const
-    {
-        return newColorSpace_;
-    }
+    
     uint32_t GetLayerNum() const
     {
         return layerNum_;
@@ -185,9 +181,8 @@ private:
     // should ensure that the surface size of dirty region manager has been set
     void ResetDisplayDirtyRegion();
     bool CheckScreenPowerChange() const;
-    bool CheckColorFilterChange() const;
     bool CheckCurtainScreenUsingStatusChange() const;
-    bool CheckLuminanceStatusChange();
+    bool CheckLuminanceStatusChange(ScreenId id);
     bool CheckSkipCrossNode(RSSurfaceRenderNode& node);
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
@@ -260,13 +255,11 @@ private:
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
 
-    bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentFilter(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
     void CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRenderNode::SharedPtr>& surfaces);
-    void CheckMergeDisplayDirtyByRoundCornerDisplay(
-        RSDisplayRenderNode &node, const sptr<RSScreenManager> &screenManager);
+    void CheckMergeDisplayDirtyByRoundCornerDisplay() const;
 
     // merge last childRect as dirty if any child has been removed
     void MergeRemovedChildDirtyRegion(RSRenderNode& node, bool needMap = false);
@@ -274,9 +267,9 @@ private:
     void ResetCurSurfaceInfoAsUpperSurfaceParent(RSSurfaceRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
-    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
+    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicColorGamut& newColorSpace);
     void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
-    void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node);
+    void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& node, GraphicPixelFormat& pixelFormat);
     void UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
@@ -390,7 +383,6 @@ private:
     OcclusionRectISet curSurfaceNoBelowDirtyFilter_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;
-    GraphicPixelFormat newPixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     bool hasDisplayHdrOn_ = false;
     bool hasVisitCrossNode_ = false;
     bool isDirtyRegionDfxEnabled_ = false; // dirtyRegion DFX visualization
@@ -405,6 +397,7 @@ private:
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isExpandScreenDirtyEnabled_ = false;
     bool needRequestNextVsync_ = true;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     DirtyRegionDebugType dirtyRegionDebugType_;
     std::vector<std::string> dfxTargetSurfaceNames_;
 
@@ -415,7 +408,6 @@ private:
     std::vector<std::string> dfxUIFirstSurfaceNames_;
     PartialRenderType partialRenderType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;
-    GraphicColorGamut newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     uint32_t threadIndex_ = UNI_MAIN_THREAD_INDEX;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;

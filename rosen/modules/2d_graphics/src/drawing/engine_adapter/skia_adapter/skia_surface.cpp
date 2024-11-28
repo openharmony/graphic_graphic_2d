@@ -55,7 +55,6 @@ SkSurface::BackendHandleAccess ConvertToSkiaBackendAccess(BackendAccess access)
 }
 }
 #endif
-
 SkiaSurface::SkiaSurface() {}
 
 void SkiaSurface::PostSkSurfaceToTargetThread()
@@ -239,7 +238,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     sk_sp<SkSurface> skSurface = nullptr;
     SkSurfaceProps surfaceProps(0, SkPixelGeometry::kUnknown_SkPixelGeometry);
 #ifdef RS_ENABLE_VK
-    if (SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         GrVkImageInfo image_info;
         SkiaTextureInfo::ConvertToGrBackendTexture(info).getVkImageInfo(&image_info);
         GrBackendTexture backendRenderTarget(info.GetWidth(), info.GetHeight(), image_info);
@@ -250,7 +249,7 @@ std::shared_ptr<Surface> SkiaSurface::MakeFromBackendTexture(GPUContext* gpuCont
     }
 #endif
 #ifdef RS_ENABLE_GL
-    if (!SystemProperties::IsUseVulkan()) {
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         GrBackendTexture glBackendTexture = SkiaTextureInfo::ConvertToGrBackendTexture(info);
         skSurface = SkSurface::MakeFromBackendTexture(grContext.get(),
             glBackendTexture, SkiaTextureInfo::ConvertToGrSurfaceOrigin(origin),
@@ -378,9 +377,9 @@ std::shared_ptr<Image> SkiaSurface::GetImageSnapshot(const RectI& bounds) const
     return image;
 }
 
-#ifdef RS_ENABLE_GPU
 BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
 {
+#ifdef RS_ENABLE_GPU
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return {};
@@ -400,8 +399,11 @@ BackendTexture SkiaSurface::GetBackendTexture(BackendAccess access) const
     backendTexture.SetTextureInfo(SkiaTextureInfo::ConvertToTextureInfo(grBackendTexture));
 #endif
     return backendTexture;
-}
+#else
+    return {};
 #endif
+}
+
 
 std::shared_ptr<Surface> SkiaSurface::MakeSurface(int width, int height) const
 {
@@ -526,7 +528,6 @@ void SkiaSurface::Wait(int32_t time, const VkSemaphore& semaphore)
     if (!SystemProperties::IsUseVulkan()) {
         return;
     }
-
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
         return;

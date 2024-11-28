@@ -25,25 +25,67 @@ RSSurfaceBufferCallbackProxy::RSSurfaceBufferCallbackProxy(const sptr<IRemoteObj
 {
 }
 
-void RSSurfaceBufferCallbackProxy::OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds)
+void RSSurfaceBufferCallbackProxy::OnFinish(const FinishCallbackRet& ret)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSISurfaceBufferCallback::GetDescriptor())) {
-        ROSEN_LOGE("RSSurfaceBufferCallbackProxy: data.WriteInterfaceToken error");
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish data.WriteInterfaceToken error");
         return;
     }
-    if (!data.WriteUint64(uid)) {
+    if (!data.WriteUint64(ret.uid)) {
         ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write uid error");
         return;
     }
-    if (!data.WriteUInt32Vector(surfaceBufferIds)) {
+    if (!data.WriteUInt32Vector(ret.surfaceBufferIds)) {
         ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write surfaceBufferIds error");
         return;
     }
+    if (!data.WriteUInt8Vector(ret.isRenderedFlags)) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write isRenderedFlags error");
+        return;
+    }
+    if (!data.WriteBool(ret.isUniRender)) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write isUniRender error");
+        return;
+    }
+#ifdef ROSEN_OHOS
+    if (!data.WriteUint64(static_cast<uint64_t>(ret.releaseFences.size()))) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnFinish write releaseFences Size error");
+        return;
+    }
+    for (auto& releaseFence : ret.releaseFences) {
+        releaseFence->WriteToMessageParcel(data);
+    }
+#endif
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_FINISH);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy: Remote()->SendRequest() error");
+    }
+}
+
+void RSSurfaceBufferCallbackProxy::OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSISurfaceBufferCallback::GetDescriptor())) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnAfterAcquireBuffer data.WriteInterfaceToken error");
+        return;
+    }
+    if (!data.WriteUint64(ret.uid)) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnAfterAcquireBuffer write uid error");
+        return;
+    }
+    if (!data.WriteBool(ret.isUniRender)) {
+        ROSEN_LOGE("RSSurfaceBufferCallbackProxy::OnAfterAcquireBuffer write isUniRender error");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSISurfaceBufferCallbackInterfaceCode::ON_AFTER_ACQUIRE_BUFFER);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSSurfaceBufferCallbackProxy: Remote()->SendRequest() error");

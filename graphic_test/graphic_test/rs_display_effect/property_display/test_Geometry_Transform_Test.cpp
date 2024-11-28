@@ -36,8 +36,8 @@ public:
 
 class GeometryTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -54,7 +54,7 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Transform_Test)
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<Vector2f> transList = { { 1, 5 }, { 5, 2 } };
+    std::vector<Vector2f> transList = { { 0.1, 0.5 }, { 0.5, 0.2 } };
 
     for (int i = 0; i < 2; i++) {
         int x = (i % columnCount) * sizeX;

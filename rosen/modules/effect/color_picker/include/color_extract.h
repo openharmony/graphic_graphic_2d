@@ -95,13 +95,18 @@ private:
 
     class VBox {
     private:
-        int lowerIndex_, upperIndex_;
+        int lowerIndex_ = INT_MAX;
+        int upperIndex_ = 0;
         // total pixel nums in this box;
-        int pixelNums_;
-        uint32_t minRed_, maxRed_;
-        uint32_t minGreen_, maxGreen_;
-        uint32_t minBlue_, maxBlue_;
+        int pixelNums_ = 0;
+        uint32_t minRed_ = UINT32_MAX;
+        uint32_t maxRed_ = 0;
+        uint32_t minGreen_ = UINT32_MAX;
+        uint32_t maxGreen_ = 0;
+        uint32_t minBlue_ = UINT32_MAX;
+        uint32_t maxBlue_ = 0;
         ColorExtract* colorExtract_ = nullptr;
+
     public:
         VBox(int lowerIndex, int upperIndex, ColorExtract* colorExtract)
         {
@@ -113,7 +118,7 @@ private:
 
         uint32_t GetVolume() const
         {
-            return (maxRed_ - minRed_ + 1) * (maxGreen_ - minGreen_ +1) * (maxBlue_ -minBlue_ + 1);
+            return (maxRed_ - minRed_ + 1) * (maxGreen_ - minGreen_ + 1) * (maxBlue_ - minBlue_ + 1);
         }
 
         bool CanSplit()

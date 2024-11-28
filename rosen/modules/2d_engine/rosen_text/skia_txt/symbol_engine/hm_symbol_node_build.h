@@ -74,6 +74,11 @@ public:
         animationStart_ = animationStart;
     }
 
+    void SetAnimationReset(bool animationReset)
+    {
+        animationReset_ = animationReset;
+    }
+
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
     {
         commonSubType_ = commonSubType;
@@ -87,12 +92,13 @@ private:
     float offsetY_ = 0.0f;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool animationStart_ = false;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
     uint64_t symblSpanId_ = 0;
+    bool animationStart_ = false;
+    bool animationReset_ = true;
 };
 }
 }

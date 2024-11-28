@@ -465,7 +465,7 @@ napi_value ColorPickerNapi::GetMainColor(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("ColorPickerNapi GetMainColor parsing input fail"));
     
     std::unique_ptr<ColorPickerAsyncContext> asyncContext = std::make_unique<ColorPickerAsyncContext>();
-    EFFECT_NAPI_CHECK_RET_D(asyncContext == nullptr, nullptr,
+    EFFECT_NAPI_CHECK_RET_D(asyncContext != nullptr, nullptr,
         EFFECT_LOG_E("ColorPickerNapi GetMainColor asyncContext is nullptr"));
 
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&asyncContext->nConstructor));
@@ -676,12 +676,12 @@ napi_value ColorPickerNapi::IsBlackOrWhiteOrGrayColor(napi_env env, napi_callbac
         EFFECT_LOG_E("ColorPickerNapi IsBlackOrWhiteOrGrayColor unwrap native ColorPicker fail"));
 
     unsigned int color = 0;
-    EFFECT_NAPI_CHECK_RET_D(EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number,
-        nullptr, EFFECT_LOG_E("ColorPickerNapi IsBlackOrWhiteOrGrayColor color is not napi_number"));
-    unsigned int scale = 0;
-    EFFECT_NAPI_CHECK_RET_D(napi_get_value_uint32(env, argValue[0], &scale) == napi_ok, nullptr,
-        EFFECT_LOG_E("ColorPickerNapi IsBlackOrWhiteOrGrayColor parsing color fail"));
-    color = scale;
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
+        unsigned int scale = 0;
+        if (napi_get_value_uint32(env, argValue[NUM_0], &scale) == napi_ok) {
+            color = scale;
+        }
+    }
 
     bool rst = thisColorPicker->nativeColorPicker_->IsBlackOrWhiteOrGrayColor(color);
     napi_value result = nullptr;
@@ -927,12 +927,12 @@ napi_value ColorPickerNapi::GetTopProportionColors(napi_env env, napi_callback_i
         EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors unwrap native ColorPicker fail"));
  
     unsigned int colorsNum = 0;
-    EFFECT_NAPI_CHECK_RET_D(EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number,
-        nullptr, EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors colorsNum is not napi_number"));
-    double number = 0;
-    EFFECT_NAPI_CHECK_RET_D(napi_get_value_double(env, argValue[0], &number) == napi_ok, nullptr,
-        EFFECT_LOG_E("ColorPickerNapi IsBlackOrWhiteOrGrayColor parsing color fail"));
-    colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argValue[NUM_0]) == napi_number) {
+        double number = 0;
+        if (napi_get_value_double(env, argValue[NUM_0], &number) == napi_ok) {
+            colorsNum = static_cast<unsigned int>(std::clamp(number, 0.0, PROPORTION_COLORS_NUM_LIMIT));
+        }
+    }
  
     napi_value arrayValue = nullptr;
     std::vector<ColorManager::Color> colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);

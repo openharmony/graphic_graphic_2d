@@ -201,14 +201,15 @@ void MemoryManager::SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuCont
 #endif
 }
 
-void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled)
+void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+    Drawing::GPUContext* gpuContext, bool enabled, const std::function<void()>& setThreadPriority)
 {
 #if defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr");
         return;
     }
-    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 #endif
 }
 
@@ -473,8 +474,8 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
     std::string stat;
     gpuContext->DumpGpuStats(stat);
 
-    int statIndex = 0;
-    int statLength = stat.length();
+    size_t statIndex = 0;
+    size_t statLength = stat.length();
     while (statIndex < statLength) {
         std::string statSubStr;
         if (statLength - statIndex > DUPM_STRING_BUF_SIZE) {

@@ -26,7 +26,6 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_hdr_manager.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -67,8 +66,17 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode)
 RSCanvasNode::~RSCanvasNode()
 {
     CheckThread();
-    if (hdrPresent_) {
-        RSHDRManager::Instance().ReduceHDRNum();
+}
+
+void RSCanvasNode::SetHDRPresent(bool hdrPresent)
+{
+    CheckThread();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGD("RSCanvasNode::SetHDRPresent HDRClient set hdr true");
+        transactionProxy->AddCommand(command, true);
     }
 }
 
@@ -78,6 +86,9 @@ ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas_->SetIsCustomTypeface(isCustomTypeface_);
+    if (auto recording = recordingCanvas_->GetDrawCmdList()) {
+        recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
+    }
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -151,6 +162,9 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         return;
     }
     auto recording = recordingCanvas->GetDrawCmdList();
+    if (recording) {
+        recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
+    }
     if (recording && recording->IsEmpty()) {
         return;
     }
@@ -188,17 +202,6 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-}
-
-void RSCanvasNode::SetHDRPresent(bool hdrPresent)
-{
-    hdrPresent_ = hdrPresent;
-    if (hdrPresent) {
-        RSHDRManager::Instance().IncreaseHDRNum();
-    } else {
-        RSHDRManager::Instance().ReduceHDRNum();
-    }
-    ROSEN_LOGD("SetHDRPresent:%{public}d hdrnum:%{public}d", hdrPresent, RSHDRManager::Instance().getHDRNum());
 }
 
 void RSCanvasNode::OnBoundsSizeChanged() const

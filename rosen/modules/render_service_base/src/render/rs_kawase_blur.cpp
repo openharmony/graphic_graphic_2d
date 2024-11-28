@@ -190,6 +190,7 @@ Drawing::Matrix KawaseBlurFilter::GetShaderTransform(const Drawing::Canvas* canv
 void KawaseBlurFilter::CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const KawaseParameter& param, std::shared_ptr<Drawing::Image>& checkedImage)
 {
+#ifdef RS_ENABLE_GPU
     auto src = param.src;
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
@@ -207,6 +208,7 @@ void KawaseBlurFilter::CheckInputImage(Drawing::Canvas& canvas, const std::share
             ROSEN_LOGE("KawaseBlurFilter::resize image failed, use original image");
         }
     }
+#endif
 }
 
 void KawaseBlurFilter::OutputOriginalImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -244,8 +246,12 @@ std::shared_ptr<Drawing::ShaderEffect> KawaseBlurFilter::ApplySimpleFilter(Drawi
     Drawing::RuntimeShaderBuilder simpleBlurBuilder(simpleFilter_);
     simpleBlurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, linear, blurMatrix));
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpSimpleBlur(simpleBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
     return Drawing::ShaderEffect::CreateImageShader(*tmpSimpleBlur, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
         linear, Drawing::Matrix());
 }
@@ -322,9 +328,12 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
         blurBuilder.SetUniform("in_blurOffset", blur.radiusByPass * blurScale_, blur.radiusByPass * blurScale_);
         blurBuilder.SetUniform("in_maxSizeXY", blur.width * blurScale_, blur.height * blurScale_);
     }
-
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpBlur(blurBuilder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpBlur(blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
     // And now we'll build our chain of scaled blur stages
     for (auto i = 1; i < blur.numberOfPasses; i++) {
         const float stepScale = static_cast<float>(i) * blurScale_;
@@ -343,7 +352,11 @@ std::shared_ptr<Drawing::Image> KawaseBlurFilter::ExecutePingPongBlur(Drawing::C
             blurBuilder.SetUniform("in_blurOffset", blur.radiusByPass * stepScale, blur.radiusByPass * stepScale);
             blurBuilder.SetUniform("in_maxSizeXY", blur.width * blurScale_, blur.height * blurScale_);
         }
+#ifdef RS_ENABLE_GPU
         tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+        tmpBlur = blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
     }
     return tmpBlur;
 }

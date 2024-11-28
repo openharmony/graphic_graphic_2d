@@ -43,7 +43,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int32_t CORNER_SIZE = 4;
-#ifdef ROSEN_OHOS
+#if (defined(ROSEN_OHOS) && defined(RS_ENABLE_GPU))
 constexpr uint32_t FENCE_WAIT_TIME = 3000; // ms
 #endif
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
@@ -729,12 +729,13 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
     DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
-DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
-    DrawSurfaceBufferOpItem::ConstructorHandle* handle)
+DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
+    const DrawCmdList& cmdList, DrawSurfaceBufferOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
-      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
-                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_,
-                         handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
+      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.dstRect_.GetLeft(),
+          handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
+          handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
+          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.srcRect_)
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
@@ -761,31 +762,105 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     std::shared_ptr<SurfaceBufferEntry> surfaceBufferEntry =
         std::make_shared<SurfaceBufferEntry>(surfaceBufferInfo_.surfaceBuffer_, surfaceBufferInfo_.acquireFence_);
-    cmdList.AddOp<ConstructorHandle>(
-        CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
-        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_,
-        surfaceBufferInfo_.pid_, surfaceBufferInfo_.uid_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
+        surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
+        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
+        surfaceBufferInfo_.uid_, surfaceBufferInfo_.srcRect_, paintHandle);
 }
 
 namespace {
-    std::function<void(pid_t, uint64_t, uint32_t)> surfaceBufferFenceCallback;
+    std::function<void(const DrawSurfaceBufferFinishCbData&)> surfaceBufferFinishCb;
+    std::function<void(const DrawSurfaceBufferAfterAcquireCbData&)> surfaceBufferAfterAcquireCb;
+    std::function<NodeId()> getRootNodeIdForRT;
+    bool contextIsUniRender = true;
 }
 
 void DrawSurfaceBufferOpItem::OnDestruct()
 {
-    if (surfaceBufferFenceCallback && surfaceBufferInfo_.surfaceBuffer_) {
-        std::invoke(surfaceBufferFenceCallback, surfaceBufferInfo_.pid_,
-            surfaceBufferInfo_.uid_, surfaceBufferInfo_.surfaceBuffer_->GetSeqNum());
+    ReleaseBuffer();
+}
+
+void DrawSurfaceBufferOpItem::SetIsUniRender(bool isUniRender)
+{
+    contextIsUniRender = isUniRender;
+}
+
+void DrawSurfaceBufferOpItem::OnAfterDraw()
+{
+    isRendered_ = true;
+    if (contextIsUniRender) {
+        return;
+    }
+    rootNodeId_ = getRootNodeIdForRT ? std::invoke(getRootNodeIdForRT) : INVALID_NODEID;
+#ifdef RS_ENABLE_GL
+    if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
+        auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+        auto sync = eglCreateSyncKHR(disp, EGL_SYNC_NATIVE_FENCE_ANDROID, nullptr);
+        if (sync == EGL_NO_SYNC_KHR) {
+            RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw Error on eglCreateSyncKHR %{public}d",
+                static_cast<int>(eglGetError()));
+            return;
+        }
+        auto fd = eglDupNativeFenceFDANDROID(disp, sync);
+        eglDestroySyncKHR(disp, sync);
+        if (fd == EGL_NO_NATIVE_FENCE_FD_ANDROID) {
+            RS_LOGE("DrawSurfaceBufferOpItem::OnAfterDraw: Error on eglDupNativeFenceFD");
+            return;
+        }
+        releaseFence_ = new (std::nothrow) SyncFence(fd);
+        if (!releaseFence_) {
+            releaseFence_ = SyncFence::INVALID_FENCE;
+        }
+    }
+#endif
+}
+
+void DrawSurfaceBufferOpItem::ReleaseBuffer()
+{
+    if (surfaceBufferFinishCb && surfaceBufferInfo_.surfaceBuffer_) {
+        RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release, isNeedTriggerCbDirectly = %d",
+            std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str(),
+            releaseFence_ && releaseFence_->IsValid());
+        std::invoke(surfaceBufferFinishCb, DrawSurfaceBufferFinishCbData {
+            .uid = surfaceBufferInfo_.uid_,
+            .pid = surfaceBufferInfo_.pid_,
+            .surfaceBufferId = surfaceBufferInfo_.surfaceBuffer_->GetSeqNum(),
+            .rootNodeId = rootNodeId_,
+            .releaseFence = releaseFence_,
+            .isRendered = isRendered_,
+            .isNeedTriggerCbDirectly = releaseFence_ && releaseFence_->IsValid(),
+        });
+    }
+}
+
+void DrawSurfaceBufferOpItem::OnAfterAcquireBuffer()
+{
+    if (surfaceBufferAfterAcquireCb && surfaceBufferInfo_.surfaceBuffer_) {
+        std::invoke(surfaceBufferAfterAcquireCb, DrawSurfaceBufferAfterAcquireCbData {
+            .uid = surfaceBufferInfo_.uid_,
+            .pid = surfaceBufferInfo_.pid_,
+        });
     }
 }
 
 void DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
-    std::function<void(pid_t, uint64_t, uint32_t)> callback)
+    DrawSurfaceBufferOpItemCb callbacks)
 {
-    if (std::exchange(surfaceBufferFenceCallback, callback)) {
+    if (std::exchange(surfaceBufferFinishCb, callbacks.OnFinish)) {
         RS_LOGE("DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback"
-            " registered callback twice incorrectly.");
+            " registered OnFinish twice incorrectly.");
+    }
+    if (std::exchange(surfaceBufferAfterAcquireCb, callbacks.OnAfterAcquireBuffer)) {
+        RS_LOGE("DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback"
+            " registered OnAfterAcquireBuffer twice incorrectly.");
+    }
+}
+
+void DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT(std::function<NodeId()> func)
+{
+    if (std::exchange(getRootNodeIdForRT, func)) {
+        RS_LOGE("DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT"
+            " registered OnAfterAcquireBuffer twice incorrectly.");
     }
 }
 
@@ -837,15 +912,14 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         DrawWithVulkan(canvas);
-        return;
     }
 #endif
 #ifdef RS_ENABLE_GL
     if (SystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         DrawWithGles(canvas);
-        return;
     }
 #endif
+    OnAfterDraw();
 }
 
 Drawing::BitmapFormat DrawSurfaceBufferOpItem::CreateBitmapFormat(int32_t bufferFormat)
@@ -863,6 +937,8 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         int res = surfaceBufferInfo_.acquireFence_->Wait(FENCE_WAIT_TIME);
         if (res < 0) {
             LOGW("DrawSurfaceBufferOpItem::DrawWithVulkan waitfence timeout");
+        } else {
+            OnAfterAcquireBuffer();
         }
     }
     auto backendTexture = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
@@ -885,11 +961,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImageRect(*image, Rect{
-        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
-        surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
-        Drawing::SamplingOptions());
+    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, surfaceBufferInfo_.dstRect_, Drawing::SamplingOptions());
 #endif
 }
 
@@ -901,6 +973,8 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         int res = surfaceBufferInfo_.acquireFence_->Wait(FENCE_WAIT_TIME);
         if (res < 0) {
             LOGW("DrawSurfaceBufferOpItem::DrawWithGles waitfence timeout");
+        } else {
+            OnAfterAcquireBuffer();
         }
     }
     if (!CreateEglTextureId()) {
@@ -909,11 +983,11 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
 
     GrBackendTexture backendTexture(
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, GrMipMapped::kNo, textureInfo);
+        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), GrMipMapped::kNo, textureInfo);
 
     Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(surfaceBufferInfo_.width_);
-    externalTextureInfo.SetHeight(surfaceBufferInfo_.height_);
+    externalTextureInfo.SetWidth(surfaceBufferInfo_.dstRect_.GetWidth());
+    externalTextureInfo.SetHeight(surfaceBufferInfo_.dstRect_.GetHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
@@ -934,12 +1008,14 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImage(*newImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+    canvas->DrawImage(*newImage, surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
+        Drawing::SamplingOptions());
 #endif // RS_ENABLE_GL
 }
 
 bool DrawSurfaceBufferOpItem::CreateEglTextureId()
 {
+#ifdef RS_ENABLE_GL
     EGLint attrs[] = { EGL_IMAGE_PRESERVED, EGL_TRUE, EGL_NONE };
 
     auto disp = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -979,16 +1055,16 @@ bool DrawSurfaceBufferOpItem::CreateEglTextureId()
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, magFilter);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, wrapS);
     glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, wrapT);
-
+#endif
     return true;
 }
 
 void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
 {
-    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.width_);
-    out += " height:" + std::to_string(surfaceBufferInfo_.height_);
-    out += " offSetX:" + std::to_string(surfaceBufferInfo_.offSetX_);
-    out += " offSetY:" + std::to_string(surfaceBufferInfo_.offSetY_);
+    out += " surfaceBufferInfo[width:" + std::to_string(surfaceBufferInfo_.dstRect_.GetWidth());
+    out += " height:" + std::to_string(surfaceBufferInfo_.dstRect_.GetHeight());
+    out += " offSetX:" + std::to_string(surfaceBufferInfo_.dstRect_.GetLeft());
+    out += " offSetY:" + std::to_string(surfaceBufferInfo_.dstRect_.GetTop());
     out += "]";
 #ifdef RS_ENABLE_GL
     out += " texId:" + std::to_string(texId_);

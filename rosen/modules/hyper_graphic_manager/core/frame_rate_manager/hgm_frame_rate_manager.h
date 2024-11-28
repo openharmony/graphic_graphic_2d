@@ -140,6 +140,10 @@ public:
     uint32_t GetCurrRefreshRate() { return currRefreshRate_; }
     ScreenId GetCurScreenId() const { return curScreenId_.load(); };
     ScreenId GetLastCurScreenId() const { return lastCurScreenId_.load(); };
+    void SetLastCurScreenId(ScreenId screenId)
+    {
+        lastCurScreenId_.store(screenId);
+    }
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);

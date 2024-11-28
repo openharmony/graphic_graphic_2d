@@ -21,6 +21,8 @@
 #include "iconsumer_surface.h"
 #include "surface_utils.h"
 #include "transaction/rs_interfaces.h"
+#include "common/rs_background_thread.h"
+#include "core/pipeline/rs_render_engine.h"
 
 namespace OHOS {
     using namespace Rosen;
@@ -166,7 +168,53 @@ namespace OHOS {
         pSurface = nullptr;
         return true;
     }
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_VK)
+    bool DoSomethingInterestingWithMyAPI3(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
 
+        // initialize
+        data_ = data;
+        size_ = size;
+        pos = 0;
+
+        int32_t width = 100;
+        int32_t height = 100;
+        sptr<IConsumerSurface> cSurface = nullptr;
+        sptr<Surface> pSurface = nullptr;
+        PrepareSurfaceBuffer(width, height, cSurface, pSurface);
+        if (!pSurface) {
+            return false;
+        }
+        std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
+        renderEngine->Init();
+        auto renderContext = renderEngine->GetRenderContext();
+        if (!renderContext) {
+            return false;
+        }
+        RSBackgroundThread::Instance().InitRenderContext(renderContext.get());
+        usleep(8000); // wait 8000 us for InitRenderContext finish
+
+        OHOS::Media::Rect rect1 = {
+            .left = GetData<uint32_t>() % width,
+            .top = GetData<uint32_t>() % height,
+            .width = GetData<uint32_t>() % width,
+            .height = GetData<uint32_t>() % height,
+        };
+        OHOS::Media::Rect rect2 = {
+            .left = GetData<uint32_t>(),
+            .top = GetData<uint32_t>(),
+            .width = GetData<uint32_t>(),
+            .height = GetData<uint32_t>(),
+        };
+        (void)OHOS::Rosen::CreatePixelMapFromSurface(nullptr, rect1);
+        (void)OHOS::Rosen::CreatePixelMapFromSurface(pSurface, rect1);
+        (void)OHOS::Rosen::CreatePixelMapFromSurface(pSurface, rect2);
+        return true;
+    }
+#endif
 }
 
 /* Fuzzer entry point */
@@ -175,6 +223,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     OHOS::DoSomethingInterestingWithMyAPI2(data, size);
+#if defined(RS_ENABLE_UNI_RENDER) && defined(RS_ENABLE_VK)
+    OHOS::DoSomethingInterestingWithMyAPI3(data, size);
+#endif
     return 0;
 }
 
