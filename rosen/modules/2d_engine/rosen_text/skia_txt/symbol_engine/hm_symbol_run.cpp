@@ -173,11 +173,7 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
     TEXT_LOGD("RenderGroup size %{public}d", static_cast<int>(groups.size()));
     if (groups.empty()) {
-        canvas->AttachBrush(brush);
-        canvas->AttachPen(pen);
         canvas->DrawPath(path);
-        canvas->DetachBrush();
-        canvas->DetachPen();
     }
     RSColor color;
     for (auto group : groups) {

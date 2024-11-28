@@ -38,10 +38,10 @@ public:
         const std::shared_ptr<RSTextBlob>& textBlob,
         std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)
     {
-                symbolId_ = symbolId;
-                symbolTxt_ = symbolTxt;
-                textBlob_  = textBlob;
-                animationFunc_ = animationFunc;
+        symbolId_ = symbolId;
+        symbolTxt_ = symbolTxt;
+        textBlob_  = textBlob;
+        animationFunc_ = animationFunc;
     }
 
     static RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
