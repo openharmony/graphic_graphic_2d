@@ -130,8 +130,12 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                 success = false;
             }
         }
-        if (!success && command != nullptr) {
-            ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
+        if (!success) {
+            if (command != nullptr) {
+                ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
+            } else {
+                ROSEN_LOGE("failed RSTransactionData::Marshalling, pparcel write error");
+            }
             return false;
         }
         ++marshallingIndex_;
