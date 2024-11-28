@@ -48,14 +48,18 @@ private:
         std::shared_ptr<Drawing::DrawCmdList> drawCmds, RSModifierType type);
 };
 
-ADD_COMMAND(RSCanvasNodeCreate, ARG(CANVAS_NODE, CANVAS_NODE_CREATE, RSCanvasNodeCommandHelper::Create, NodeId, bool))
+ADD_COMMAND(RSCanvasNodeCreate,
+    ARG(NO_INTERCEPTION, CANVAS_NODE, CANVAS_NODE_CREATE,
+        RSCanvasNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSCanvasNodeUpdateRecording,
-    ARG(CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING, RSCanvasNodeCommandHelper::UpdateRecording, NodeId,
-        std::shared_ptr<Drawing::DrawCmdList>, uint16_t))
+    ARG(NO_INTERCEPTION, CANVAS_NODE, CANVAS_NODE_UPDATE_RECORDING,
+        RSCanvasNodeCommandHelper::UpdateRecording, NodeId, std::shared_ptr<Drawing::DrawCmdList>, uint16_t))
 ADD_COMMAND(RSCanvasNodeClearRecording,
-    ARG(CANVAS_NODE, CANVAS_NODE_CLEAR_RECORDING, RSCanvasNodeCommandHelper::ClearRecording, NodeId))
+    ARG(NO_INTERCEPTION, CANVAS_NODE, CANVAS_NODE_CLEAR_RECORDING,
+        RSCanvasNodeCommandHelper::ClearRecording, NodeId))
 ADD_COMMAND(RSCanvasNodeSetHDRPresent,
-    ARG(CANVAS_NODE, CANVAS_NODE_SET_HDR_PRESENT, RSCanvasNodeCommandHelper::SetHDRPresent, NodeId, bool))
+    ARG(NO_INTERCEPTION, CANVAS_NODE, CANVAS_NODE_SET_HDR_PRESENT,
+        RSCanvasNodeCommandHelper::SetHDRPresent, NodeId, bool))
 
 } // namespace Rosen
 } // namespace OHOS

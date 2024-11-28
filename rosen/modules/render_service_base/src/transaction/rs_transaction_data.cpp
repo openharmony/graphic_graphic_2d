@@ -314,7 +314,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
-        if (command->GetType() != RSCommandType::DISPLAY_NODE) {
+        if (command->GetAccessPermission() == RSCommandPermissionType::NO_INTERCEPTION) {
             if (callingPid == commandPid) {
                 continue;
             }
