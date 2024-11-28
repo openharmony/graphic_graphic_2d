@@ -87,6 +87,11 @@ bool RSSystemProperties::GetRSImagePurgeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
