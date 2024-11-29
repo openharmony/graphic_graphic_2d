@@ -294,11 +294,13 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
-        if (callingPid == commandPid) {
-            continue;
-        }
-        if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
-            continue;
+        if (command->GetType() != RSCommandType::DISPLAY_NODE) {
+            if (callingPid == commandPid) {
+                continue;
+            }
+            if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+                continue;
+            }
         }
         conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);
