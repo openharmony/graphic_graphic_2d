@@ -52,6 +52,8 @@ bool RSForegroundEffectFilter::IsValid() const
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSForegroundEffectFilter::MakeForegroundEffect()
 {
     static std::shared_ptr<Drawing::RuntimeEffect> blurEffect_ = nullptr;
+    static std::mutex blurEffectMutex;
+
     std::string blurString(
         R"(
         uniform shader imageInput;
@@ -71,13 +73,19 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSForegroundEffectFilter::MakeFor
         }
     )");
 
-    if (blurEffect_ == nullptr) {
-        blurEffect_ = Drawing::RuntimeEffect::CreateForShader(blurString);
+    {
         if (blurEffect_ == nullptr) {
-            ROSEN_LOGE("RSForegroundEffect::RuntimeShader blurEffect create failed");
-            return nullptr;
+            std::lock_guard<std::mutex> lock(blurEffectMutex);
+            if (blurEffect_ == nullptr) {
+                blurEffect_ = Drawing::RuntimeEffect::CreateForShader(blurString);
+                if (blurEffect_ == nullptr) {
+                    ROSEN_LOGE("RSForegroundEffect::RuntimeShader blurEffect create failed");
+                    return nullptr;
+                }
+            }
         }
     }
+
     std::shared_ptr<Drawing::RuntimeShaderBuilder> blurBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(blurEffect_);
     return blurBuilder;
