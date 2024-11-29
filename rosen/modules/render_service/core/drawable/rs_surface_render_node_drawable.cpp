@@ -385,6 +385,14 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
     auto realTid = gettid();
     if (realTid == RSUniRenderThread::Instance().GetTid()) {
@@ -728,6 +736,13 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, useNodeMatchOptimize)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
+        return;
+    }
+
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
 
