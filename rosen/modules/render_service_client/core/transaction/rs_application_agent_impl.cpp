@@ -56,7 +56,8 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent()
             if (appSptr == nullptr) {
                 return;
             }
-            conn->RegisterApplicationAgent(GetRealPid(), appSptr);
+            // Not necessory to set pid
+            conn->RegisterApplicationAgent(0, appSptr);
         });
 #endif
 }

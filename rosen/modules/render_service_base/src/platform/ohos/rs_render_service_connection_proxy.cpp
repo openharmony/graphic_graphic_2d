@@ -1283,9 +1283,6 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteUint32(pid)) {
-        return;
-    }
     if (!data.WriteRemoteObject(app->AsObject())) {
         return;
     }
