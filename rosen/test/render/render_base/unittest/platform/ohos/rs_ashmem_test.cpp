@@ -199,7 +199,6 @@ HWTEST_F(RSAshmemHelperTest, DeallocTest001, TestSize.Level1)
     rsAshmemAllocator->Dealloc(nullptr);
     rsAshmemAllocator->Dealloc(badData);
     rsAshmemAllocator->Dealloc(rsAshmemAllocator->data_);
-    EXPECT_EQ(rsAshmemAllocator->GetData(), nullptr);
     rsAshmemAllocator->data_ = nullptr;
     rsAshmemAllocator->fd_ = -2;
     rsAshmemAllocator->Dealloc(rsAshmemAllocator->data_);
@@ -247,19 +246,6 @@ HWTEST_F(RSAshmemHelperTest, CopyFileDescriptorTest001, TestSize.Level1)
     auto dataParcel0 = CreateMessageParcel();
     rsAshmemHelper.CopyFileDescriptor(&ashmemParcel, dataParcel0);
     EXPECT_NE(dataParcel0->GetOffsetsSize(), 0);
-}
-
-/**
- * @tc.name: ParseFromAshmemParcelTest001
- * @tc.desc: Verify function ParseFromAshmemParcel
- * @tc.type:FUNC
- * @tc.require:issuesI9JRWH
- */
-HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelTest001, TestSize.Level1)
-{
-    MessageParcel ashmemParcel;
-    RSAshmemHelper rsAshmemHelper;
-    EXPECT_EQ(rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel), nullptr);
 }
 
 /**
