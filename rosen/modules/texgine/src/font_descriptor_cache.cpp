@@ -57,7 +57,7 @@ void FontDescriptorCache::ClearFontFileCache()
 
 void FontDescriptorCache::ParserSystemFonts()
 {
-    for (auto& item : parser_.GetSystemFonts(locale_)) {
+    for (auto& item : parser_.GetSystemFonts()) {
         FontDescriptorScatter(item);
     }
     Dump();
@@ -65,7 +65,7 @@ void FontDescriptorCache::ParserSystemFonts()
 
 void FontDescriptorCache::ParserStylishFonts()
 {
-    std::vector<TextEngine::FontParser::FontDescriptor> descriptors = parser_.GetVisibilityFonts(locale_);
+    std::vector<TextEngine::FontParser::FontDescriptor> descriptors = parser_.GetVisibilityFonts(TextEngine::ENGLISH);
     for (const auto& descriptor : descriptors) {
         FontDescSharedPtr descriptorPtr = std::make_shared<TextEngine::FontParser::FontDescriptor>(descriptor);
         descriptorPtr->weight = WeightAlignment(descriptorPtr->weight);
@@ -126,7 +126,7 @@ std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
         return fullNameList;
     }
     for (const auto& path : fontPathList) {
-        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path, locale_);
+        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path);
         for (const auto& item : descriptors) {
             fullNameList.emplace(item->fullName);
         }
@@ -207,7 +207,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
         return false;
     }
     for (const auto& path : fontPathList) {
-        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path, locale_);
+        std::vector<FontDescSharedPtr> descriptors = parser_.ParserFontDescriptorsFromPath(path);
         for (const auto& item : descriptors) {
             if (item->fullName == fullName) {
                 item->weight = WeightAlignment(item->weight);
