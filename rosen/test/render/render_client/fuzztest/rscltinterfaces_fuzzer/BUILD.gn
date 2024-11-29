@@ -19,7 +19,8 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("RSCltInterfacesFuzzTest") {
-  fuzz_config_file = "//foundation/graphic/graphic_2d/rosen/test/render/render_client/fuzztest/rscltinterfaces_fuzzer"
+  fuzz_config_file = 
+      "//foundation/graphic/graphic_2d/rosen/test/render/render_client/fuzztest/rscltinterfaces_fuzzer"
   module_out_path = module_output_path
 
   include_dirs = [

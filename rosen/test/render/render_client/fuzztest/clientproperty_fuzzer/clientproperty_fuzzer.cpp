@@ -29,13 +29,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-const uint8_t* g_data = nullptr;
+const uint8_t* g_data_ = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
 
 /*
- * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
+ * describe: get data from outside untrusted data(g_data_) which size is according to sizeof(T)
  * tips: only support basic type
  */
 template<class T>
@@ -43,10 +43,10 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data == nullptr || objectSize > g_size - g_pos) {
+    if (g_data_ == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, g_data_ + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
@@ -61,7 +61,7 @@ bool DoSetAndGet(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -80,7 +80,7 @@ bool DoSetThreshold01(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -98,7 +98,7 @@ bool DoSetThreshold02(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -116,7 +116,7 @@ bool DoSetThreshold03(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -134,7 +134,7 @@ bool DoSetThreshold04(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -152,7 +152,7 @@ bool DoSetThreshold05(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -170,7 +170,7 @@ bool DoSetThreshold06(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -188,7 +188,7 @@ bool DoSetThreshold07(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -206,7 +206,7 @@ bool DoSetValueFromRender(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -225,7 +225,7 @@ bool DoAttachMod(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -244,7 +244,7 @@ bool DoGetRenderProp(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -262,7 +262,7 @@ bool DoAddr(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -281,7 +281,7 @@ bool DoAddPathAnimation(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -299,7 +299,7 @@ bool DoAnimateWithInitialVelocity(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -321,7 +321,7 @@ bool DoGetStagingValue(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -339,7 +339,7 @@ bool DoRequestCancelAnimation(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -357,7 +357,7 @@ bool DoSetPropertyUnit(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -375,7 +375,7 @@ bool DoGetId(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -393,7 +393,7 @@ bool DoGetShowingValue(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -411,7 +411,7 @@ bool DoUpdateCustomAnimat(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -429,7 +429,7 @@ bool DoUpdateOnAllAnimat(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -447,7 +447,7 @@ bool DoRSProperty(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -465,7 +465,7 @@ bool DoOper(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -493,7 +493,7 @@ bool DoUpdateToRender01(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -546,7 +546,7 @@ bool DoUpdateToRender02(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -593,7 +593,7 @@ bool DoUpdateToRender03(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -621,7 +621,7 @@ bool DoIsValid(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 
@@ -645,7 +645,7 @@ bool DoGetPropertyType(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data = data;
+    g_data_ = data;
     g_size = size;
     g_pos = 0;
 

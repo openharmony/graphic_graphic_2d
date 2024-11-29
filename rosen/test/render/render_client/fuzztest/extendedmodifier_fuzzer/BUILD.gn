@@ -18,7 +18,8 @@ module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
 ohos_fuzztest("ExtendedModifierFuzzTest") {
-  fuzz_config_file = "../../../../../test/render/render_client/fuzztest/extendedmodifier_fuzzer"
+  fuzz_config_file = 
+      "../../../../../test/render/render_client/fuzztest/extendedmodifier_fuzzer"
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
