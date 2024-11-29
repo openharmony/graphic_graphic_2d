@@ -1403,7 +1403,7 @@ HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest,
     FrameRateLinkerExpectedFpsUpdateCallback cb = [](uint32_t pid, int32_t fps){};
     int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
     ASSERT_EQ(ret, 0);
-    ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, nullptr);
+    ret = rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(1);
     ASSERT_EQ(ret, 0);
 }
 
