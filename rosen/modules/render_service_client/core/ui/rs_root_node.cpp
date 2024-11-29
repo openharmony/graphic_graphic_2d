@@ -48,6 +48,7 @@ bool RegisterTypefaceCallback()
 }
 
 #ifndef ARKUI_X_ENABLE
+// Prohibiting resigter the callback function in advance when arkui-x use custom's font
 bool g_typefaceAutoRegister = RegisterTypefaceCallback();
 #endif
 }
