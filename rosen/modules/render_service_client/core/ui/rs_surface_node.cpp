@@ -76,7 +76,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .bundleName = node->bundleName_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
-        .isSync = isWindow || surfaceNodeConfig.isSync,
+        .isSync = surfaceNodeConfig.isSync,
         .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
