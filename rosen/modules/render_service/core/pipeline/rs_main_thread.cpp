@@ -1158,7 +1158,9 @@ void RSMainThread::ProcessCommandForUniRender()
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
-    transactionFlags_ = transactionFlags;
+    if (transactionFlags != "") {
+        transactionFlags_ = transactionFlags;
+    }
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
