@@ -507,41 +507,6 @@ bool DoSetVirtualScreenSurface(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoRemoveVirtualScreen(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    std::shared_ptr<RSRenderServiceClient> clients = std::make_shared<RSRenderServiceClient>();
-    ScreenId id = GetData<ScreenId>();
-    clients->RemoveVirtualScreen(id);
-    return true;
-}
-
-bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    std::shared_ptr<RSRenderServiceClient> clients = std::make_shared<RSRenderServiceClient>();
-    ScreenId id = GetData<ScreenId>();
-    int32_t sceneId = GetData<int32_t>();
-    int32_t rate = GetData<int32_t>();
-    clients->SetScreenRefreshRate(id, sceneId, rate);
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -569,7 +534,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoDropFrameByPid(data, size);
     OHOS::Rosen::DoSetWatermark(data, size);
     OHOS::Rosen::DoSetVirtualScreenSurface(data, size);
-    OHOS::Rosen::DoRemoveVirtualScreen(data, size);
-    OHOS::Rosen::DoSetScreenRefreshRate(data, size);
     return 0;
 }
