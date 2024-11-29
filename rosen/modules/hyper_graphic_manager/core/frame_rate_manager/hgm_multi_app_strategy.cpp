@@ -99,7 +99,7 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
     CalcVote();
 }
 
-void HandleLowBrightStrategyStatus(bool isEffect)
+void HgmMultiAppStrategy::HandleLowBrightStrategyStatus(bool isEffect)
 {
     RS_TRACE_NAME_FMT("[HandleLowBrightStrategyStatus] isEffect: %d", isEffect);
     if (lowBrightStrategyStatus_.load() == isEffect) {

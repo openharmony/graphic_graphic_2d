@@ -516,7 +516,7 @@ int32_t XMLParser::ParseLowBrightList(xmlNode &node, PolicyConfigData::LowBright
     currNode = currNode->xmlChildrenNode;
     for (; currNode; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {
-           continue;
+            continue;
         }
         PolicyConfigData::LowBrightConfig lowBrightConfig;
         auto name = ExtractPropertyValue("name", *currNode);
