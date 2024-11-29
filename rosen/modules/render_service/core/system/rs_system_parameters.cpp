@@ -194,5 +194,13 @@ bool RSSystemParameters::GetTcacheEnabled()
     static bool flag = system::GetBoolParameter("persist.sys.graphic.tcache.enable", true);
     return flag;
 }
+
+bool RSSystemParameters::GetWiredScreenOndrawEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.wiredScreenOndraw.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

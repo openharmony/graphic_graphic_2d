@@ -155,6 +155,8 @@ private:
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorOnDraw(RSDisplayRenderNodeDrawable& mirroredDrawable, RSDisplayRenderParams& params);
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;

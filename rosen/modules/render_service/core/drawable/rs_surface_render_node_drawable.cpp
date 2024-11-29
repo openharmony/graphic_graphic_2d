@@ -218,6 +218,13 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     }
     int offscreenWidth = curCanvas_->GetSurface()->Width();
     int offscreenHeight = curCanvas_->GetSurface()->Height();
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (uniParam && uniParam->IsMirrorScreen() &&
+        uniParam->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
+        auto screenInfo = uniParam->GetScreenInfo();
+        offscreenWidth = screenInfo.width;
+        offscreenHeight = screenInfo.height;
+    }
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");
         return false;
@@ -338,7 +345,8 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     }
     bool isUiFirstNode = rscanvas->GetIsParallelCanvas();
-    if (!isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
+    bool disableFilterCache = rscanvas->GetDisableFilterCache();
+    if (!disableFilterCache && !isUiFirstNode && surfaceParams->GetOccludedByFilterCache()) {
         SetDrawSkipType(DrawSkipType::FILTERCACHE_OCCLUSION_SKIP);
         RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw filterCache occlusion skip [%s] %sAlpha: %f, "
             "NodeId:%" PRIu64 "", name_.c_str(), surfaceParams->GetAbsDrawRect().ToString().c_str(),
