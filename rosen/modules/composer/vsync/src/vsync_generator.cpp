@@ -630,7 +630,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
         uint64_t linkerId = rateVec.first;
         uint32_t refreshrate = rateVec.second;
-        RS_TRACE_NAME_FMT("linkerId:%ld, refreshrate:%ld", linkerId, refreshrate);
+        RS_TRACE_NAME_FMT("linkerId:%lu, refreshrate:%u", linkerId, refreshrate);
     }
     std::lock_guard<std::mutex> locker(mutex_);
     if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
