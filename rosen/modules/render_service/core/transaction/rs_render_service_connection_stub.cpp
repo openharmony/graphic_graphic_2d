@@ -179,7 +179,7 @@ bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 
     size_t objectNum = old.GetOffsetsSize();
     if (objectNum > MAX_OBJECTNUM) {
-        ROSEN_LOGW("CopyFileDescriptor failed, objectNum is too large");
+        ROSEN_LOGW("CopyFileDescriptor failed, objectNum: %{public}zu is too large", objectNum);
         return false;
     }
 
