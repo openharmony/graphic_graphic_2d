@@ -4349,4 +4349,45 @@ HWTEST_F(RSMainThreadTest, ProcessHgmFrameRate, TestSize.Level2)
     mainThread->ProcessHgmFrameRate(timestamp);
     sleep(1);
 }
+
+/**
+ * @tc.name: SetCurtainScreenUsingStatus
+ * @tc.desc: test SetCurtainScreenUsingStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadTest, SetCurtainScreenUsingStatus001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isCurtainScreenOn = mainThread->isCurtainScreenOn_;
+
+    mainThread->isCurtainScreenOn_ = true;
+    mainThread->SetCurtainScreenUsingStatus(true);
+
+    mainThread->isCurtainScreenOn_ = false;
+    mainThread->SetCurtainScreenUsingStatus(true);
+    ASSERT_EQ(mainThread->isCurtainScreenOn_, true);
+
+    mainThread->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+}
+
+/**
+ * @tc.name: CountMem
+ * @tc.desc: test CountMem
+ * @tc.type: FUNC
+ * @tc.require: issueIB5RAM
+ */
+HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    auto context = mainThread->context_;
+    mainThread->context_ = nullptr;
+    std::vector<MemoryGraphic> memoryGraphic;
+
+    mainThread->CountMem(memoryGraphic);
+    mainThread->context_ = context;
+}
 } // namespace OHOS::Rosen
