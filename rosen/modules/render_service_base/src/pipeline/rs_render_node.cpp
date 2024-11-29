@@ -974,10 +974,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         UpdateChildrenOutOfRectFlag(false); // collect again
         return true;
     }
-    if (childHasSharedTransition_) {
-        return true;
-    }
-    if (isAccumulatedClipFlagChanged_) {
+    if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -3791,8 +3788,12 @@ const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
 }
 void RSRenderNode::UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent)
 {
-    uint32_t subSurfaceCnt = GetType() == RSRenderNodeType::SURFACE_NODE ?
-        subSurfaceCnt_ + 1 : subSurfaceCnt_;
+    uint32_t subSurfaceCnt = subSurfaceCnt_;
+    if (GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+        subSurfaceCnt = (surfaceNode && (surfaceNode->IsLeashWindow() || surfaceNode->IsAppWindow())) ?
+            subSurfaceCnt_ + 1 : subSurfaceCnt;
+    }
     if (subSurfaceCnt == 0) {
         return;
     }
