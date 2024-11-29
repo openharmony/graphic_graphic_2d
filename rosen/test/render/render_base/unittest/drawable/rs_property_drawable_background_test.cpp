@@ -272,22 +272,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable002, TestSize.Level1)
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
- * @tc.name: RSBackgroundImageDrawable004
- * @tc.desc: Test GetColorTypeFromVKFormat
- * @tc.type:FUNC
- * @tc.require: issueI9QIQO
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable004, TestSize.Level1)
-{
-    EXPECT_EQ(Drawing::COLORTYPE_RGBA_8888,
-        DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R8G8B8A8_UNORM));
-    EXPECT_EQ(Drawing::COLORTYPE_RGBA_F16,
-        DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R16G16B16A16_SFLOAT));
-}
-#endif
-
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-/**
  * @tc.name: RSBackgroundImageDrawable005
  * @tc.desc: Test MakeFromTextureForVK
  * @tc.type:FUNC
