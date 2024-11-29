@@ -955,9 +955,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
     if (node.NeedUpdateDrawableBehindWindow()) {
-        node.AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
-        node.SetDirty(true);
-        RSMainThread::Instance()->SetNextDVsyncDrawBehindWindowFlag(true);
         RSMainThread::Instance()->RequestNextVSync("drawBehindWindow");
     }
 }

@@ -3142,13 +3142,14 @@ void RSSurfaceRenderNode::SetNeedCacheSurface(bool needCacheSurface)
 
 bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
 {
-    bool hasChildrenBlurBehindWindow = !childrenBlurBehindWindow_.empty();
-    GetMutableRenderProperties().SetNeedDrawBehindWindow(hasChildrenBlurBehindWindow);
-    if (hasChildrenBlurBehindWindow != oldHasChildrenBlurBehindWindow_) {
-        oldHasChildrenBlurBehindWindow_ = hasChildrenBlurBehindWindow;
-        return true;
-    }
-    return false;
+    bool needDrawBehindWindow = !childrenBlurBehindWindow_.empty();
+    GetMutableRenderProperties().SetNeedDrawBehindWindow(needDrawBehindWindow);
+    return needDrawBehindWindow != oldNeedDrawBehindWindow_;
+}
+
+void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
+{
+    oldNeedDrawBehindWindow_ = val;
 }
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const

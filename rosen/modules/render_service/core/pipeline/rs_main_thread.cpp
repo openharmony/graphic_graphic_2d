@@ -1412,6 +1412,15 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
             surfaceNode->SetContentDirty(); // screen recording capsule force mark dirty
         }
+        if (surfaceNode->NeedUpdateDrawableBehindWindow()) {
+            RS_LOGD("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
+            RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
+            surfaceNode->AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
+            surfaceNode->SetContentDirty();
+            SetDirtyFlag();
+            surfaceNode->SetDoDirectComposition(false);
+            surfaceNode->SetOldNeedDrawBehindWindow(surfaceNode->NeedDrawBehindWindow());
+        }
         if (surfaceNode->IsHardwareEnabledType()
             && CheckSubThreadNodeStatusIsDoing(surfaceNode->GetInstanceRootNodeId())) {
             RS_LOGD("SubThread is processing %{public}s, skip acquire buffer", surfaceNode->GetName().c_str());
@@ -2095,10 +2104,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             RS_TRACE_NAME("RSMainThread::UniRender ForceUpdateUniRender");
         } else if (!pendingUiCaptureTasks_.empty()) {
             RS_LOGD("RSMainThread::Render pendingUiCaptureTasks_ not empty");
-        } else if (needRequestNextVsyncDrawBehindWindow_) {
-            RS_LOGD("RSMainThread::UniRender NeedRequestNextVsyncDrawBehindWindow");
-            RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::UniRender NeedRequestNextVsyncDrawBehindWindow");
-            needRequestNextVsyncDrawBehindWindow_ = false;
         } else {
             needDrawFrame_ = false;
             RS_LOGD("RSMainThread::Render nothing to update");
