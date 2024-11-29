@@ -124,14 +124,15 @@ HWTEST_F(RSRenderFrameRateLinkerMapTest, GetFrameRateLinker, TestSize.Level1)
 HWTEST_F(RSRenderFrameRateLinkerMapTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, TestSize.Level1)
 {
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
-    FrameRateLinkerId linkerId = 1;
+    FrameRateLinkerId linkerId = 0x100000000;
     auto frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(linkerId);
     ASSERT_NE(frameRateLinker, nullptr);
     frameRateLinkerMap.RegisterFrameRateLinker(frameRateLinker);
 
     uint32_t listenerPid = 2;
     auto cb = new CustomFrameRateLinkerCallback();
-    EXPECT_EQ(frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(listenerPid, linkerId, cb), true);
+    EXPECT_TRUE(
+        frameRateLinkerMap.RegisterFrameRateLinkerExpectedFpsUpdateCallback(listenerPid, ExtractPid(linkerId), cb));
     frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(listenerPid);
 }
 } // namespace OHOS::Rosen
