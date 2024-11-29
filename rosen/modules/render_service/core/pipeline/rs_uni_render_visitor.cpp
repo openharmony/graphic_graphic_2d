@@ -1620,9 +1620,16 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
-    } else if (stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
+    } else if (RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() &&
+        stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
         node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
         stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    } else if (!RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() &&
+        stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
+        node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
+        node.SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by solid background color",
+            node.GetName().c_str(), node.GetId());
     }
 }
 
