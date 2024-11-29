@@ -34,6 +34,7 @@ public:
             onConnectCallback_(instance_->conn_);
         }
     }
+    static sptr<RSIRenderServiceConnection> GetCachedConnection();
 
 private:
     static sptr<RSRenderServiceConnectHub> GetInstance();
@@ -70,6 +71,7 @@ private:
     static std::once_flag flag_;
     static sptr<RSRenderServiceConnectHub> instance_;
     static OnConnectCallback onConnectCallback_;
+    static sptr<RSIRenderServiceConnection> cachedConnection_;
 };
 } // namespace Rosen
 } // namespace OHOS
