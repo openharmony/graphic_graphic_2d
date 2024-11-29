@@ -1615,8 +1615,7 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
         RSUniRenderUtil::LayerScaleDown(node);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
         // For scale fit, when aspect ratios of buffer and bounds of node are "dramatically" different,
-        // moving node out of screen causes unexpected dstRect cropping problem,
-        // disable HWC if this happens
+        // moving node out of screen causes unexpected dstRect cropping problem. Disable HWC if this happens
         float bufferAspectRatio = buffer->GetSurfaceBufferHeight() == 0 ? 0.f :
             static_cast<float>(buffer->GetSurfaceBufferWidth()) / static_cast<float>(buffer->GetSurfaceBufferHeight());
         float boundsAspectRatio = ROSEN_EQ(node.GetRenderProperties().GetBoundsHeight(), 0.f, 1e-6f) ? 0.f :
@@ -1633,8 +1632,7 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
                 absBoundsRect.GetTop() + absBoundsRect.GetHeight() > screenInfo.height) {
                 node.SetHardwareForcedDisabledState(true);
                 RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s id %llu disabled by scale fit bounds out of screen. "
-                                           "bounds: %s, screenWidth: %u, screenHeight: %u "
-                                           "bufferAspectRatio: %f, boundsAspectRatio: %f",
+                    "bounds: %s, screenWidth: %u, screenHeight: %u bufferAspectRatio: %f, boundsAspectRatio: %f",
                     node.GetName().c_str(), node.GetId(), absBoundsRect.ToString().c_str(), screenInfo.width,
                     screenInfo.height, bufferAspectRatio, boundsAspectRatio);
                 return;
