@@ -72,6 +72,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSCanvasRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
@@ -109,6 +110,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSCanvasRenderNodeDrawable::OnCapture node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }

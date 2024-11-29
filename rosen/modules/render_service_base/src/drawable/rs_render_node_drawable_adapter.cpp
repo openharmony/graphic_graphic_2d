@@ -15,10 +15,12 @@
 
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include <mutex>
+#include <sstream>
 
 #include "skia_adapter/skia_canvas.h"
 #include "src/core/SkCanvasPriv.h"
 
+#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
@@ -30,6 +32,10 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+
+#ifdef ROSEN_OHOS
+#include "hisysevent.h"
+#endif
 
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
@@ -269,6 +275,7 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
 {
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
@@ -618,5 +625,45 @@ void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& ca
     if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
         drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
     }
+}
+
+// will only called by OnDraw or OnSync
+void RSRenderNodeSingleDrawableLocker::DrawableOnDrawMultiAccessEventReport(const std::string& func) const
+{
+#ifdef ROSEN_OHOS
+    auto tid = gettid();
+    MultiAccessReportInfo reportInfo;
+    if (drawable_) {
+        reportInfo.drawableNotNull = true;
+        reportInfo.nodeId = drawable_->GetId();
+        reportInfo.nodeType = drawable_->GetNodeType();
+        const auto& params = drawable_->GetRenderParams();
+        if (params) {
+            reportInfo.paramNotNull = true;
+            reportInfo.uifirstRootNodeId = params->GetUifirstRootNodeId();
+            reportInfo.firstLevelNodeId = params->GetFirstLevelNodeId();
+        }
+    }
+
+    auto task = [tid, func, reportInfo]() {
+        RS_TRACE_NAME_FMT("DrawableOnDrawMultiAccessEventReport HiSysEventWrite nodeId:%" PRIu64, reportInfo.nodeId);
+        std::ostringstream oss;
+        oss << "func:" << func << ",";
+        oss << "drawable:" << reportInfo.drawableNotNull << ",";
+        oss << "param:" << reportInfo.paramNotNull << ",";
+        if (reportInfo.drawableNotNull) {
+            oss << "id:" << reportInfo.nodeId << ",";
+            oss << "type:" << int(reportInfo.nodeType) << ",";
+        }
+        if (reportInfo.paramNotNull) {
+            oss << "URN:" << reportInfo.uifirstRootNodeId << ",";
+            oss << "FLN:" << reportInfo.firstLevelNodeId << ",";
+        }
+        oss << "tid:" << tid;
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RENDER_DRAWABLE_MULTI_ACCESS",
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "MULTI_ACCESS_MSG", oss.str());
+    };
+    RSBackgroundThread::Instance().PostTask(task);
+#endif
 }
 } // namespace OHOS::Rosen::DrawableV2
