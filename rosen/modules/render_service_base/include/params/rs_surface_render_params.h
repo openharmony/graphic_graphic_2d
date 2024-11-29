@@ -494,6 +494,16 @@ public:
     {
         return allSubSurfaceNodeIds_;
     }
+    
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -510,6 +520,7 @@ private:
     bool uiFirstParentFlag_ = false;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;

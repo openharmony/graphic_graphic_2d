@@ -68,17 +68,33 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
             continue;
         }
+        GraphicLayerColor layerBlackColor = {
+            .r = 0,
+            .g = 0,
+            .b = 0,
+            .a = 0
+        };
         auto layerSurface = layer->GetSurface();
-        if (layerSurface != nullptr) {
-            if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
-                rcdLayersEnableMap[layerSurface->GetName()] = true;
-                continue;
+        if (layerSurface == nullptr) {
+            const auto& layerColor = layer->GetLayerColor();
+            if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
+                layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
+                Drawing::AutoCanvasRestore acr(canvas, true);
+                const auto& dstRect = layer->GetLayerSize();
+                auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r, layerColor.g, layerColor.b);
+                Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+                    static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
+                    static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
+                canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+                canvas.DrawColor(color);
             }
-        } else {
-            RS_LOGE("RSUniRenderEngine::DrawLayers layerSurface is nullptr");
+            continue;
+        } else if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
+            rcdLayersEnableMap[layerSurface->GetName()] = true;
             continue;
         }
         Drawing::AutoCanvasRestore acr(canvas, true);

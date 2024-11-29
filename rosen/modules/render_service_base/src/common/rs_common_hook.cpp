@@ -65,4 +65,14 @@ bool RsCommonHook::GetHardwareEnabledByBackgroundAlphaFlag() const
     return hardwareEnabledByBackgroundAlphaSkippedFlag_;
 }
 
+bool RsCommonHook::GetIsWhiteListForSolidColorLayerFlag() const
+{
+    return isWhiteListForSolidColorLayerFlag_;
+}
+
+void RsCommonHook::SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag)
+{
+    isWhiteListForSolidColorLayerFlag_ = isWhiteListForSolidColorLayerFlag;
+}
+
 } // namespace OHOS::Rosen
