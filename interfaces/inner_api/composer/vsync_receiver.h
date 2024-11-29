@@ -167,6 +167,7 @@ public:
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
 private:
+    void RegisterFileDescriptorListener();
     VsyncError DestroyLocked();
     void RemoveAndCloseFdLocked();
     sptr<IVSyncConnection> connection_;
