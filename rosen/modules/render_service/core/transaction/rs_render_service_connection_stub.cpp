@@ -803,6 +803,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             pid_t pid = data.ReadInt32();
+            if (!IsValidCallingPid(pid, callingPid)) {
+                RS_LOGW("GET_REFRESH_INFO invalid pid[%{public}d]", callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             std::string refreshInfo = GetRefreshInfo(pid);
             if (!reply.WriteString(refreshInfo)) {
                 ret = ERR_INVALID_REPLY;
@@ -927,6 +932,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC): {
             auto pid = data.ReadInt32();
             RS_PROFILER_PATCH_PID(data, pid);
+            if (!IsValidCallingPid(pid, callingPid)) {
+                RS_LOGW("GET_MEMORY_GRAPHIC invalid pid[%{public}d]", callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             MemoryGraphic memoryGraphic = GetMemoryGraphic(pid);
             if (!reply.WriteParcelable(&memoryGraphic)) {
                 ret = ERR_INVALID_REPLY;
