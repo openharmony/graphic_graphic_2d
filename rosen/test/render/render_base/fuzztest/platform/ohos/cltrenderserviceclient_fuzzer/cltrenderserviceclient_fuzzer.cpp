@@ -32,13 +32,13 @@ namespace OHOS {
 namespace Rosen {
 
 namespace {
-const uint8_t* g_data_ = nullptr;
+const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 } // namespace
 
 /*
- * describe: get data from outside untrusted data(g_data_) which size is according to sizeof(T)
+ * describe: get data from outside untrusted data(DATA) which size is according to sizeof(T)
  * tips: only support basic type
  */
 template<class T>
@@ -46,10 +46,10 @@ T GetData()
 {
     T object {};
     size_t objectSize = sizeof(object);
-    if (g_data_ == nullptr || objectSize > g_size - g_pos) {
+    if (DATA == nullptr || objectSize > g_size - g_pos) {
         return object;
     }
-    errno_t ret = memcpy_s(&object, objectSize, g_data_ + g_pos, objectSize);
+    errno_t ret = memcpy_s(&object, objectSize, DATA + g_pos, objectSize);
     if (ret != EOK) {
         return {};
     }
@@ -58,7 +58,7 @@ T GetData()
 }
 
 /*
- * get a string from g_data_
+ * get a string from DATA
  */
 std::string GetStringFromData(int strlen)
 {
@@ -107,7 +107,7 @@ bool DoExecuteSynchronous(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -126,7 +126,7 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -144,7 +144,7 @@ bool DoCreateRSSurface(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -161,7 +161,7 @@ bool DoCreateVSyncReceiver(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -181,7 +181,7 @@ bool DoGetMemoryGraphics(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -197,7 +197,7 @@ bool DoGetTotalAppMemSize(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -215,7 +215,7 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -241,7 +241,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -258,7 +258,7 @@ bool DoCreatePixelMapFromSurfaceId(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -276,7 +276,7 @@ bool DoTriggerSurfaceCaptureCallback(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -306,7 +306,7 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -333,7 +333,7 @@ bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -351,7 +351,7 @@ bool DoDropFrameByPid(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -373,7 +373,7 @@ bool DoSetWatermark(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -401,7 +401,7 @@ bool DoSetFocusAppInfo(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -423,7 +423,7 @@ bool DoGetDefaultScreenId(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -439,7 +439,7 @@ bool DoGetActiveScreenId(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -455,7 +455,7 @@ bool DoGetAllScreenIds(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -471,7 +471,7 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
@@ -496,7 +496,7 @@ bool DoSetVirtualScreenSurface(const uint8_t* data, size_t size)
     }
 
     // initialize
-    g_data_ = data;
+    DATA = data;
     g_size = size;
     g_pos = 0;
 
