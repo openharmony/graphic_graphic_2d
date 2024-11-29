@@ -199,3 +199,7 @@ RS_HARDWARE_THREAD_LOAD_WARNING:
   FRAME_RATE: {type: UINT16, desc: the refresh rate you set}
   MISSED_FRAMES: {type: UINT32, desc: number of dropped frames}
   FRAME_TIME: {type: UINT64, desc: frame length}
+
+RENDER_DRAWABLE_MULTI_ACCESS:
+  __BASE: {type: STATISTIC, level: CRITICAL, desc: multi thread competition occurs in the graphics drawing process}
+  MULTI_ACCESS_MSG: {type: STRING, desc: drawable multi-access information}

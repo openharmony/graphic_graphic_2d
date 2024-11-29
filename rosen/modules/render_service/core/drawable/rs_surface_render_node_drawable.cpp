@@ -474,6 +474,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
@@ -816,6 +817,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }

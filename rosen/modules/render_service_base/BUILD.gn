@@ -475,6 +475,7 @@ ohos_source_set("render_service_base_src") {
   if (rosen_is_ohos) {
     external_deps += [
       "hicollie:libhicollie",
+      "hisysevent:libhisysevent",
       "image_framework:image_native",
     ]
   }
