@@ -161,6 +161,8 @@ public:
         uifirstCacheState_.clear();
     }
 
+    bool IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node);
+
 private:
     RSUifirstManager();
     ~RSUifirstManager() = default;

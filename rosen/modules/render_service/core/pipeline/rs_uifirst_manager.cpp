@@ -1591,5 +1591,12 @@ bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSRenderPara
     }
     return false;
 }
+
+bool RSUifirstManager::IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node)
+{
+    return RSUifirstManager::Instance().IsRecentTaskScene() &&
+        (node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()) ||
+        node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()));
+}
 } // namespace Rosen
 } // namespace OHOS
