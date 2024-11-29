@@ -33,7 +33,6 @@ public:
     static void DisplayTestInfo();
     void SetUp() override;
     void TearDown() override;
-    
 };
 
 class ConcreteRSRenderNodeDrawableAdapter : public DrawableV2::RSRenderNodeDrawableAdapter {
