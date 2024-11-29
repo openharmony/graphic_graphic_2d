@@ -43,8 +43,8 @@ namespace Rosen {
 namespace {
 constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
-constexpr size_t MAX_OBJECTNUM = INT_MAX;
-constexpr size_t MAX_DATA_SIZE = INT_MAX;
+constexpr size_t MAX_OBJECTNUM = 512;
+constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
@@ -172,14 +172,15 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
 };
 
-void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
+bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 {
     binder_size_t* object = reinterpret_cast<binder_size_t*>(old.GetObjectOffsets());
     binder_size_t* copiedObject = reinterpret_cast<binder_size_t*>(copied.GetObjectOffsets());
 
     size_t objectNum = old.GetOffsetsSize();
     if (objectNum > MAX_OBJECTNUM) {
-        return;
+        ROSEN_LOGW("CopyFileDescriptor failed, objectNum: %{public}zu is too large", objectNum);
+        return false;
     }
 
     uintptr_t data = old.GetData();
@@ -198,6 +199,7 @@ void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
     }
+    return true;
 }
 
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
@@ -238,7 +240,9 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     auto objectNum = old.GetOffsetsSize();
     if (objectNum != 0) {
         parcelCopied->InjectOffsets(old.GetObjectOffsets(), objectNum);
-        CopyFileDescriptor(old, *parcelCopied);
+        if (!CopyFileDescriptor(old, *parcelCopied)) {
+            return nullptr;
+        }
     }
     if (parcelCopied->ReadInt32() != 0) {
         RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed parcel data not match");
