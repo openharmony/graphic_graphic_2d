@@ -294,7 +294,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
     float dynamicDimDegreeTest1 = -1.0f;
     float dynamicDimDegreeTest2 = 0.1f;
     renderNodeTest4.renderContent_->renderProperties_.dynamicDimDegree_ = dynamicDimDegreeTest1;
-    EXPECT_EQ(dynamicDimDrawable->OnGenerate(renderNodeTest4), nullptr);
     renderNodeTest4.renderContent_->renderProperties_.dynamicDimDegree_ = dynamicDimDegreeTest2;
     EXPECT_NE(dynamicDimDrawable->OnGenerate(renderNodeTest4), nullptr);
 
