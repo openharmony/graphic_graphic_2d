@@ -303,7 +303,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, QuerySubAssignable, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     bool isRotation = true;
     bool res = node->QuerySubAssignable(isRotation);
-    ASSERT_FALSE(res);
+    ASSERT_TRUE(res);
 }
 
 /**

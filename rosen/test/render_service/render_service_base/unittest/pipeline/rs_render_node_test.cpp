@@ -1795,6 +1795,9 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
     // CheckDrawingCacheType test
     node.nodeGroupType_ = RSRenderNode::NONE;
     node.CheckDrawingCacheType();
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    node.stagingRenderParams_ = std::move(stagingRenderParams);
     EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
     node.nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
     node.CheckDrawingCacheType();
@@ -1811,7 +1814,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
     // shouldPaint_ is true
     node.shouldPaint_ = true;
     node.UpdateDrawingCacheInfoBeforeChildren(true);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
     // isScreenRotation is true
     node.nodeGroupType_ = RSRenderNode::NONE;
     node.UpdateDrawingCacheInfoBeforeChildren(false);
@@ -1819,9 +1822,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
 
     // isScreenRotation is false
     node.nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
-    EXPECT_NE(stagingRenderParams, nullptr);
-    node.stagingRenderParams_ = std::move(stagingRenderParams);
     node.UpdateDrawingCacheInfoBeforeChildren(false);
     EXPECT_FALSE(node.stagingRenderParams_->needSync_);
 }

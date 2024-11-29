@@ -187,6 +187,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, InitTranslateForWallpaper, TestSize.Le
     auto& rtThread = RSUniRenderThread::Instance();
     EXPECT_EQ(rtThread.wallpaperTranslate_.first, 21);
     EXPECT_EQ(rtThread.wallpaperTranslate_.second, 21);
+    system::SetParameter("const.cache.optimize.rotate.enable", "false");
 }
 
 /**
