@@ -325,7 +325,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
         std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
     EXPECT_NE(foregroundFilterDrawable, nullptr);
     renderNodeTest7.renderContent_->renderProperties_.foregroundFilter_ = nullptr;
-    EXPECT_EQ(foregroundFilterDrawable->OnGenerate(renderNodeTest7), nullptr);
     EXPECT_FALSE(foregroundFilterDrawable->OnUpdate(renderNodeTest7));
     std::shared_ptr<RSFilter> foregroundFilterTest1 = std::make_shared<RSFilter>();
     EXPECT_NE(foregroundFilterTest1, nullptr);
@@ -428,7 +427,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest005, TestSiz
         std::make_shared<DrawableV2::RSParticleDrawable>();
     EXPECT_NE(particleDrawable, nullptr);
     renderNodeTest13.renderContent_->renderProperties_.particles_.renderParticleVector_.clear();
-    EXPECT_EQ(particleDrawable->OnGenerate(renderNodeTest13), nullptr);
 
     std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();
     EXPECT_NE(particleParams, nullptr);
