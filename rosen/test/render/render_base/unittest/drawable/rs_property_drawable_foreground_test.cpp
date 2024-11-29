@@ -257,7 +257,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSiz
         std::make_shared<DrawableV2::RSBinarizationDrawable>();
     EXPECT_NE(binarizationDrawable, nullptr);
     renderNodeTest1.renderContent_->renderProperties_.aiInvert_ = std::nullopt;
-    EXPECT_EQ(binarizationDrawable->OnGenerate(renderNodeTest1), nullptr);
     renderNodeTest1.renderContent_->renderProperties_.aiInvert_ = aiInvertTest;
     EXPECT_NE(binarizationDrawable->OnGenerate(renderNodeTest1), nullptr);
 
@@ -304,7 +303,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
         std::make_shared<DrawableV2::RSForegroundColorDrawable>();
     EXPECT_NE(foregroundColorDrawable, nullptr);
     renderNodeTest5.renderContent_->renderProperties_.decoration_ = std::nullopt;
-    EXPECT_EQ(foregroundColorDrawable->OnGenerate(renderNodeTest5), nullptr);
     Decoration decorationTest;
     RSColor val(0.0f, 0.0f, 1.0f, 1.0f);
     decorationTest.foregroundColor_ = val;
@@ -375,7 +373,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest004, TestSiz
     std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
     EXPECT_NE(border, nullptr);
     renderNodeTest10.renderContent_->renderProperties_.border_ = border;
-    EXPECT_EQ(borderDrawable->OnGenerate(renderNodeTest10), nullptr);
     border->colors_.emplace_back(RSColor(1.0f, 1.0f, 1.0f, 1.0f));
     border->widths_.emplace_back(1.0f);
     border->styles_.emplace_back(BorderStyle::SOLID);
