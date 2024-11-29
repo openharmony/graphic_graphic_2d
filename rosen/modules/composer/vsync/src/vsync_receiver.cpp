@@ -20,8 +20,12 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
+
+#include "accesstoken_kit.h"
 #include "event_handler.h"
 #include "graphic_common.h"
+#include "ipc_skeleton.h"
+#include "parameters.h"
 #include "res_sched_client.h"
 #include "res_type.h"
 #include "rs_frame_report_ext.h"
@@ -34,6 +38,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t INVALID_FD = -1;
+static const int32_t APP_VSYNC_PRIORITY = system::GetIntParameter("persist.sys.app_vsync_priority", -1);
 }
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     const sptr<IRemoteObject>& token,
@@ -99,7 +104,16 @@ VsyncError VSyncReceiver::Init()
         return true;
     });
 
-    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(static_cast<uint32_t>(selfToken));
+    bool isApp = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    if (isApp && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
+        (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
+        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
+            static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
+    } else {
+        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    }
     init_ = true;
     return VSYNC_ERROR_OK;
 }
