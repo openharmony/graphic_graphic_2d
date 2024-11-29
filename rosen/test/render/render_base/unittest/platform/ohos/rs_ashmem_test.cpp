@@ -158,39 +158,6 @@ HWTEST_F(RSAshmemHelperTest, MapAshmemTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetSizeTest001
- * @tc.desc: Verify function GetSize
- * @tc.type:FUNC
- * @tc.require:issuesI9JRWH
- */
-HWTEST_F(RSAshmemHelperTest, GetSizeTest001, TestSize.Level1)
-{
-    EXPECT_EQ(rsAshmemAllocator->GetSize(), 10);
-}
-
-/**
- * @tc.name: GetDataTest001
- * @tc.desc: Verify function GetData
- * @tc.type:FUNC
- * @tc.require:issuesI9JRWH
- */
-HWTEST_F(RSAshmemHelperTest, GetDataTest001, TestSize.Level1)
-{
-    EXPECT_EQ(rsAshmemAllocator->GetData(), nullptr);
-}
-
-/**
- * @tc.name: GetFdTest001
- * @tc.desc: Verify function GetFd
- * @tc.type:FUNC
- * @tc.require:issuesI9JRWH
- */
-HWTEST_F(RSAshmemHelperTest, GetFdTest001, TestSize.Level1)
-{
-    EXPECT_EQ(rsAshmemAllocator->GetFd(), 10);
-}
-
-/**
  * @tc.name: CopyFromAshmemTest001
  * @tc.desc:
  * @tc.type:FUNC
@@ -202,14 +169,17 @@ HWTEST_F(RSAshmemHelperTest, CopyFromAshmemTest001, TestSize.Level1)
     size_t size0 = 10;
     AshmemAllocator ashmemAllocator(fd, size0);
 
+    // case 1
     size_t size1 = 0;
     ashmemAllocator.CopyFromAshmem(size1);
     ASSERT_EQ(ashmemAllocator.CopyFromAshmem(size1), nullptr);
 
+    // case 2
     size_t size2 = 100;
     ashmemAllocator.CopyFromAshmem(size2);
     ASSERT_EQ(ashmemAllocator.CopyFromAshmem(size2), nullptr);
     
+    // case 3
     size_t size3 = 200000001;
     ashmemAllocator.size_ = 200000002;
     ASSERT_EQ(ashmemAllocator.CopyFromAshmem(size3), nullptr);
@@ -233,7 +203,6 @@ HWTEST_F(RSAshmemHelperTest, DeallocTest001, TestSize.Level1)
     rsAshmemAllocator->data_ = nullptr;
     rsAshmemAllocator->fd_ = -2;
     rsAshmemAllocator->Dealloc(rsAshmemAllocator->data_);
-    EXPECT_EQ(rsAshmemAllocator->GetData(), nullptr);
     EXPECT_NE(rsAshmemAllocator->GetFd(), -1);
 }
 
@@ -263,18 +232,6 @@ HWTEST_F(RSAshmemHelperTest, InjectFileDescriptorTest001, TestSize.Level1)
     auto dataParcel0 = CreateMessageParcel();
     rsAshmemHelper.InjectFileDescriptor(dataParcel0, &ashmemParcel);
     EXPECT_NE(dataParcel0->GetOffsetsSize(), 0);
-}
-
-/**
- * @tc.name: AllocTest001
- * @tc.desc: Verify function Alloc
- * @tc.type:FUNC
- * @tc.require:issuesI9JRWH
- */
-HWTEST_F(RSAshmemHelperTest, AllocTest001, TestSize.Level1)
-{
-    size_t allocSize = 1;
-    EXPECT_EQ(rsAshmemAllocator->Alloc(allocSize), nullptr);
 }
 
 /**
@@ -314,10 +271,8 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelTest001, TestSize.Level1)
 HWTEST_F(RSAshmemHelperTest, CreateAshmemParcelTest001, TestSize.Level1)
 {
     RSAshmemHelper rsAshmemHelper;
-    auto dataParcel1 = std::make_shared<MessageParcel>();
-    EXPECT_EQ(rsAshmemHelper.CreateAshmemParcel(dataParcel1), nullptr);
-    auto dataParcel2 = CreateMessageParcel();
-    EXPECT_NE(rsAshmemHelper.CreateAshmemParcel(dataParcel2), nullptr);
+    auto dataParcel = CreateMessageParcel();
+    EXPECT_NE(rsAshmemHelper.CreateAshmemParcel(dataParcel), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

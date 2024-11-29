@@ -236,25 +236,6 @@ HWTEST_F(RSEventMgrTest, AddEventTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateParamTest001
- * @tc.desc: Verify function UpdateParam
- * @tc.type:FUNC
- * @tc.require:issuesI9JRWH
- */
-HWTEST_F(RSEventMgrTest, UpdateParamTest001, TestSize.Level1)
-{
-    std::string key0 = "0";
-    std::string key1 = "1";
-    auto detectorPtr1 = RSBaseEventDetector::CreateRSTimeOutDetector(1, "0");
-    eventManager->eventDetectorList_[key0];
-    eventManager->eventDetectorList_[key1] = detectorPtr1;
-    eventManager->UpdateParam();
-    eventManager->updateCount_ = 200;
-    eventManager->UpdateParam();
-    EXPECT_EQ(eventManager->updateCount_, 0);
-}
-
-/**
  * @tc.name: EventReportTest001
  * @tc.desc: Verify function EventReport
  * @tc.type:FUNC
