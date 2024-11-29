@@ -114,6 +114,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        GetLowBrightVec(configData);
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -588,6 +589,19 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     changeGeneratorRateValid_.store(false);
 }
 
+void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (isLtpo_) {
+        // obtain the refresh rate supported in low ambient light
+        const std::string settingMode = std::to_string(curRefreshRateMode_);
+        auto lowBrightMap = configData->screenConfigs_[curScreenStrategyId_][settingMode].lowBrightList;
+        if (auto iter = lowBrightMap.find("LTPO1"); iter != lowBrightMap.end() && !iter->second.optionalRefreshRateVec.empty()) {
+            isAmbientEffect_ = true;
+            lowBrightVec_ = iter->second.optionalRefreshRateVec;
+        }
+    }
+}
+
 uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
 {
     // Find current refreshRate by FrameRateRange. For example:
@@ -596,7 +610,12 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
-    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    std::vector<uint_32> supportRefreshRateVec;
+    if (isSafe_ && isAmbientEffect_) {
+        supportRefreshRateVec = lowBrightVec_;
+    } else {
+        supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    }
     if (supportRefreshRateVec.empty()) {
         return refreshRate;
     }
@@ -753,7 +772,10 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
+    auto isEffect = isAmbientEffect_;
+    multiAppStrategy.HandleLowBrightStrategyStatus(isEffect);
     multiAppStrategy_.HandleLightFactorStatus(isSafe);
+    isSafe_ = isSafe;
 }
 
 void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList)

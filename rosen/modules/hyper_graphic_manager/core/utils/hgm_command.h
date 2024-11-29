@@ -119,6 +119,12 @@ public:
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;
 
+    struct LowBrightConfig {
+        std::vector<uint_32> optionalRefreshRateVec;
+    };
+    // <"LTPO1", LowBrightConfig>
+    using LowBrightConfigMap = std::unordered_map<std::string, LowBrightConfig>;
+
     struct DynamicConfig {
         int32_t min;
         int32_t max;
@@ -140,6 +146,7 @@ public:
         // <appType, strategyName>
         std::unordered_map<int32_t, std::string> appTypes;
         SceneConfigMap sceneList;
+        LowBrightConfigMap lowBrightList;
         // <SCENE_APP_START_ANIMATION, placeholder>
         std::unordered_map<std::string, std::string> gameSceneList;
         DynamicSettingMap animationDynamicSettings;

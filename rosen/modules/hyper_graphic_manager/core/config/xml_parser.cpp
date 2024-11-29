@@ -14,6 +14,8 @@
  */
 #include "xml_parser.h"
 #include <algorithm>
+#include <sstream>
+#include <regex>
 
 #include "config_policy_utils.h"
 
@@ -367,6 +369,8 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else if (name == "component_power_config") {
         setResult = ParsePowerStrategy(*thresholdNode, screenSetting.componentPowerConfig);
+    } else if (name == "low_bright_config") {
+        setResult = ParseLowBrightList(*thresholdNode, screenSetting.lowBrightList);
     } else {
         setResult = EXEC_SUCCESS;
     }
@@ -498,6 +502,33 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParseLowBrightList(xmlNode &node, PolicyConfigData::LowBrightConfigMap &lowBrightList)
+{
+    HGM_LOGD("XMLParser parsing lowBrightList");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing lowBrightList, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    lowBrightList.clear():
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+           continue;
+        }
+        PolicyConfigData::LowBrightConfig lowBrightConfig;
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        lowBrightConfig.optionalRefreshRateVec = StringToVector(value);
+
+        lowBrightList[name] = lowBrightConfig;
+        HGM_LOGI("HgmXMLParser ParseLowBrightList name=%{public}s value=%{public}s", name.c_str(), value.c_str());
+    }
+    return EXEC_SUCCESS;
+}
+
 int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting)
 {
     auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
@@ -571,6 +602,24 @@ bool XMLParser::IsNumber(const std::string& str)
         return std::isdigit(c);
     }));
     return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
+}
+
+std::vector<uint_32> XMLParser::StringToVector(const std::string &str)
+{
+    // valid format: string consisting of only numbers and spaces
+    if (!std::regex_match(str, std::regex("^\\s*(\\d+(\\s+\\d+)*)\\s*$"))) {
+        HGM_LOGD("Input invalid format.");
+        return {};
+    }
+
+    std::istringstream isstr(str);
+    std::vector<uint_32> vec;
+    uint_32 num;
+    while (isstr >> num) {
+        vec.push_back(num);
+    }
+
+    return vec;
 }
 
 } // namespace OHOS::Rosen
