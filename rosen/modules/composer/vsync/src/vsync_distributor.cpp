@@ -170,6 +170,8 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         RS_TRACE_NAME_FMT("socketPair is null, conn: %s", info_.name_.c_str());
         return ERRNO_OTHER;
     }
+
+    std::unique_lock<std::mutex> lockerPostEvent(postEventMutex_);
     RS_TRACE_NAME_FMT("SendVsyncTo conn: %s, now:%ld, refreshRate:%d", info_.name_.c_str(), now, refreshRate_);
     // 3 is array size.
     int64_t data[3];

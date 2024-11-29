@@ -100,6 +100,7 @@ private:
     sptr<LocalSocketPair> socketPair_;
     bool isDead_;
     std::mutex mutex_;
+    std::mutex postEventMutex_;
     bool isFirstRequestVsync_ = true;
     bool isFirstSendVsync_ = true;
 };
