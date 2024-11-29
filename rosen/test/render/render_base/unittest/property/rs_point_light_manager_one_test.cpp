@@ -40,7 +40,7 @@ void RSPointLightManagerOneTest::TearDown() {}
  * @tc.name: RegisterLightSourceTest001
  * @tc.desc: test results of RegisterLightSource
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, RegisterLightSourceTest001, TestSize.Level1)
 {
@@ -54,7 +54,7 @@ HWTEST_F(RSPointLightManagerOneTest, RegisterLightSourceTest001, TestSize.Level1
  * @tc.name: InstanceTest001
  * @tc.desc: test results of Instance
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, InstanceTest001, TestSize.Level1)
 {
@@ -66,7 +66,7 @@ HWTEST_F(RSPointLightManagerOneTest, InstanceTest001, TestSize.Level1)
  * @tc.name: UnRegisterLightSourceTest001
  * @tc.desc: test results of UnRegisterLightSource
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, UnRegisterLightSourceTest001, TestSize.Level1)
 {
@@ -80,7 +80,7 @@ HWTEST_F(RSPointLightManagerOneTest, UnRegisterLightSourceTest001, TestSize.Leve
  * @tc.name: RegisterIlluminatedTest001
  * @tc.desc: test results of RegisterIlluminated
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, RegisterIlluminatedTest001, TestSize.Level1)
 {
@@ -94,7 +94,7 @@ HWTEST_F(RSPointLightManagerOneTest, RegisterIlluminatedTest001, TestSize.Level1
  * @tc.name: AddDirtyLightSourceTest001
  * @tc.desc: test results of AddDirtyLightSource
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, AddDirtyLightSourceTest001, TestSize.Level1)
 {
@@ -109,7 +109,7 @@ HWTEST_F(RSPointLightManagerOneTest, AddDirtyLightSourceTest001, TestSize.Level1
  * @tc.name: UnRegisterIlluminatedTest001
  * @tc.desc: test results of UnRegisterIlluminated
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, UnRegisterIlluminatedTest001, TestSize.Level1)
 {
@@ -123,7 +123,7 @@ HWTEST_F(RSPointLightManagerOneTest, UnRegisterIlluminatedTest001, TestSize.Leve
  * @tc.name: ClearDirtyListTest001
  * @tc.desc: test results of ClearDirtyList
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, ClearDirtyListTest001, TestSize.Level1)
 {
@@ -136,7 +136,7 @@ HWTEST_F(RSPointLightManagerOneTest, ClearDirtyListTest001, TestSize.Level1)
  * @tc.name: AddDirtyIlluminatedTest001
  * @tc.desc: test results of AddDirtyIlluminated
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, AddDirtyIlluminatedTest001, TestSize.Level1)
 {
@@ -151,7 +151,7 @@ HWTEST_F(RSPointLightManagerOneTest, AddDirtyIlluminatedTest001, TestSize.Level1
  * @tc.name: PrepareLightTest001
  * @tc.desc: test results of PrepareLight
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest001, TestSize.Level1)
 {
@@ -180,7 +180,7 @@ HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest001, TestSize.Level1)
  * @tc.name: PrepareLightTest002
  * @tc.desc: test results of PrepareLight
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest002, TestSize.Level1)
 {
@@ -205,7 +205,7 @@ HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest002, TestSize.Level1)
  * @tc.name: PrepareLightTest003
  * @tc.desc: test results of PrepareLight
  * @tc.type: FUNC
- * @tc.require: issueI9RBVH
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest003, TestSize.Level1)
 {
@@ -252,7 +252,7 @@ HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest003, TestSize.Level1)
  * @tc.name: PrepareLightTest004
  * @tc.desc: test results of PrepareLight
  * @tc.type: FUNC
- * @tc.require: issueI9RBVH
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest004, TestSize.Level1)
 {
@@ -300,7 +300,7 @@ HWTEST_F(RSPointLightManagerOneTest, PrepareLightTest004, TestSize.Level1)
  * @tc.name: CheckIlluminatedTest001
  * @tc.desc: test results of CheckIlluminated
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, CheckIlluminatedTest001, TestSize.Level1)
 {
@@ -335,7 +335,7 @@ HWTEST_F(RSPointLightManagerOneTest, CheckIlluminatedTest001, TestSize.Level1)
  * @tc.name: CheckIlluminatedTest002
  * @tc.desc: test results of CheckIlluminated
  * @tc.type: FUNC
- * @tc.require: issueI9RBVH
+ * @tc.require: issuesIB7RWT
  */
 HWTEST_F(RSPointLightManagerOneTest, CheckIlluminatedTest002, TestSize.Level1)
 {
