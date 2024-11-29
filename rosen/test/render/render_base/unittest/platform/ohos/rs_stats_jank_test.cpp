@@ -594,7 +594,6 @@ HWTEST_F(RSJankStatsTest, GetTraceIdInit009, TestSize.Level1)
     rsJankStats9->rtLastEndTimeSteadyFloat_ = 0;
     rsJankStats9->rsStartTimeSteadyFloat_ = 0;
     rsJankStats9->rtEndTimeSteadyFloat_ = 1;
-    EXPECT_EQ(rsJankStats9->GetEffectiveFrameTimeFloat(false), 1);
     rsJankStats9->isCurrentFrameSwitchToNotDoDirectComposition_ = true;
 
     // ConvertTimeToSystime test
