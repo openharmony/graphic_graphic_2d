@@ -769,6 +769,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
     return hwcDisabledReasonInfo;
 }
 
+int64_t RSInterfaces::GetHdrOnDuration() const
+{
+    return renderServiceClient_->GetHdrOnDuration();
+}
+
 void RSInterfaces::SetVmaCacheStatus(bool flag)
 {
     renderServiceClient_->SetVmaCacheStatus(flag);

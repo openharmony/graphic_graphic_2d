@@ -53,6 +53,7 @@
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
+#include "info_collection/rs_hdr_collection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -366,6 +367,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo();
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
+
+    int64_t GetHdrOnDuration();
 
     void SetVmaCacheStatus(bool flag);
 

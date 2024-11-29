@@ -3235,7 +3235,7 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         return hwcDisabledReasonInfos;
     }
     int32_t size = reply.ReadInt32();
-    size_t readableSize = reply.GetReadableBytes() / (sizeof(HwcDisabledReasonInfo) - HWC_DISABLED_REASON_INFO_OFFSET);
+    size_t readableSize = reply.GetReadableBytes() / HWC_DISABLED_REASON_INFO_MINIMUM_SIZE;
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > hwcDisabledReasonInfos.max_size()) {
         RS_LOGE("RSRenderServiceConnectionProxy GetHwcDisabledReasonInfo Failed read vector, size:%{public}zu,"
@@ -3253,6 +3253,25 @@ HwcDisabledReasonInfos RSRenderServiceConnectionProxy::GetHwcDisabledReasonInfo(
         hwcDisabledReasonInfos.emplace_back(hwcDisabledReasonInfo);
     }
     return hwcDisabledReasonInfos;
+}
+
+int64_t RSRenderServiceConnectionProxy::GetHdrOnDuration()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HDR_ON_DURATION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int64_t result = reply.ReadInt64();
+    return result;
 }
 
 void RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)

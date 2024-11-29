@@ -1552,6 +1552,15 @@ HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
     return renderService->GetHwcDisabledReasonInfo();
 }
 
+int64_t RSRenderServiceClient::GetHdrOnDuration()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    return renderService->GetHdrOnDuration();
+}
+
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 {
     auto renderService = RSRenderServiceConnectHub::GetCachedConnection();

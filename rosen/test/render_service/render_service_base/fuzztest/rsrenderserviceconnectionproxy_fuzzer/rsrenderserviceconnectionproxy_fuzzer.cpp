@@ -243,6 +243,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
     rsRenderServiceConnectionProxy.GetHwcDisabledReasonInfo();
+    rsRenderServiceConnectionProxy.GetHdrOnDuration();
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(true);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(false);
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);

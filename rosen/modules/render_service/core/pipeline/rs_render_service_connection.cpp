@@ -2283,6 +2283,17 @@ HwcDisabledReasonInfos RSRenderServiceConnection::GetHwcDisabledReasonInfo()
     return HwcDisabledReasonCollection::GetInstance().GetHwcDisabledReasonInfo();
 }
 
+int64_t RSRenderServiceConnection::GetHdrOnDuration()
+{
+    auto rsHdrCollection = RsHdrCollection::GetInstance();
+    if (rsHdrCollection == nullptr) {
+        return -1;
+    }
+    int64_t duration = rsHdrCollection->GetHdrOnDuration();
+    rsHdrCollection->ResetHdrOnDuration();
+    return duration;
+}
+
 void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_GPU

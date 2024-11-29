@@ -1022,6 +1022,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.
 }
 
 /**
+ * @tc.name: GetHdrOnDuration Test
+ * @tc.desc: GetHdrOnDuration Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    EXPECT_GE(proxy->GetHdrOnDuration(), 0);
+}
+
+/**
  * @tc.name: RegisterUIExtensionCallback Test
  * @tc.desc: RegisterUIExtensionCallback Test, with empty/non-empty callback.
  * @tc.type:FUNC

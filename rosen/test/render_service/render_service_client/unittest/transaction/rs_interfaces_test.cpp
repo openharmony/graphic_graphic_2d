@@ -344,6 +344,20 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetHdrOnDuration001
+ * @tc.desc: test results of GetHdrOnDuration
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSInterfacesTest, GetHdrOnDuration001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_GE(instance.GetHdrOnDuration(), 0);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
  * @tc.name: SetVmaCacheStatus001
  * @tc.desc: test results of SetVmaCacheStatus
  * @tc.type: FUNC

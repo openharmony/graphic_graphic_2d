@@ -34,6 +34,7 @@
 #include "platform/ohos/overdraw/rs_overdraw_controller.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "visitor/rs_node_visitor.h"
+#include "info_collection/rs_hdr_collection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -418,6 +419,7 @@ private:
     void UpdateSurfaceRenderNodeScale(RSSurfaceRenderNode& node);
     // use for hardware compose disabled reason collection
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
+    std::shared_ptr<RsHdrCollection> rsHdrCollection_ = RsHdrCollection::GetInstance();
 
     bool zoomStateChange_ = false;
 
