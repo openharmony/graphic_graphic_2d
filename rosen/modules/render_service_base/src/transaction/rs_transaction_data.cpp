@@ -299,8 +299,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);
 }
 
-bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
-    std::string& commandMapDesc) const
+bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
     // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
     // we temporarily add a white list to avoid abnormal functionality or abnormal display.
@@ -331,11 +330,11 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
     }
     lock.unlock();
     for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap) {
-        conflictCommandPid = commandPid;
-        commandMapDesc = PrintCommandMapDesc(commandTypeMap);
-        return false;
+        std::string commandMapDesc = PrintCommandMapDesc(commandTypeMap);
+        RS_LOGE("RSTransactionData::IsCallingPidValid non-system callingPid %{public}d is denied to access commandPid "
+                "%{public}d, commandMap = %{public}s", (int)callingPid, (int)commandPid, commandMapDesc.c_str());
     }
-    return true;
+    return conflictPidToCommandMap.empty();
 }
 
 std::string RSTransactionData::PrintCommandMapDesc(

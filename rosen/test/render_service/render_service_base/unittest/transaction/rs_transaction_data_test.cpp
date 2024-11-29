@@ -359,11 +359,8 @@ HWTEST_F(RSTransactionDataTest, IsCallingPidValid, TestSize.Level1)
     RSTransactionData rsTransactionData;
     RSRenderNodeMap rsRenderNodeMap;
     pid_t callingPid = -1;
-    pid_t conflictCommandPid = 0;
-    std::string commandMapDesc = "";
 
-    bool isCallingPidValid =
-        rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap, conflictCommandPid, commandMapDesc);
+    bool isCallingPidValid = rsTransactionData.IsCallingPidValid(callingPid, rsRenderNodeMap);
     EXPECT_TRUE(isCallingPidValid);
 }
 } // namespace Rosen

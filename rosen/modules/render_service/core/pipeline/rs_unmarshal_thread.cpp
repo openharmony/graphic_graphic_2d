@@ -97,12 +97,8 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         }
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-            pid_t conflictCommandPid = 0;
-            std::string commandMapDesc = "";
-            if (!transData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
-                RS_LOGE("RSUnmarshalThread::RecvParcel non-system callingPid %{public}d"
-                        " is denied to access commandPid %{public}d, commandMap = %{public}s",
-                        callingPid, conflictCommandPid, commandMapDesc.c_str());
+            if (!transData->IsCallingPidValid(callingPid, nodeMap)) {
+                RS_LOGE("RSUnmarshalThread::RecvParcel IsCallingPidValid check failed");
             }
             bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
             if (shouldDrop) {

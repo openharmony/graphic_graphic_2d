@@ -190,7 +190,7 @@ bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
         const flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
         flat_binder_object* copiedFlat = reinterpret_cast<flat_binder_object*>(copiedData + copiedObject[i]);
 
-        if (flat->hdr.type == BINDER_TYPE_FD && flat->handle > 0) {
+        if (flat->hdr.type == BINDER_TYPE_FD && flat->handle >= 0) {
             int32_t val = dup(flat->handle);
             if (val < 0) {
                 ROSEN_LOGW("CopyFileDescriptor dup failed, fd:%{public}d, handle:%{public}" PRIu32, val,
@@ -375,13 +375,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     auto transactionData = RSBaseRenderUtil::ParseTransactionData(data);
                     if (transactionData && isNonSystemAppCalling) {
                         const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-                        pid_t conflictCommandPid = 0;
-                        std::string commandMapDesc = "";
-                        if (!transactionData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid,
-                                                                commandMapDesc)) {
-                            RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION non-system callingPid %{public}d"
-                                    " is denied to access commandPid %{public}d, commandMap = %{public}s",
-                                    callingPid, conflictCommandPid, commandMapDesc.c_str());
+                        if (!transactionData->IsCallingPidValid(callingPid, nodeMap)) {
+                            RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION IsCallingPidValid check failed");
                         }
                     }
                     CommitTransaction(transactionData);
@@ -404,12 +399,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel);
                 if (transactionData && isNonSystemAppCalling) {
                     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-                    pid_t conflictCommandPid = 0;
-                    std::string commandMapDesc = "";
-                    if (!transactionData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
-                        RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION non-system callingPid %{public}d"
-                                " is denied to access commandPid %{public}d, commandMap = %{public}s",
-                                callingPid, conflictCommandPid, commandMapDesc.c_str());
+                    if (!transactionData->IsCallingPidValid(callingPid, nodeMap)) {
+                        RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION IsCallingPidValid check failed");
                     }
                 }
                 CommitTransaction(transactionData);
