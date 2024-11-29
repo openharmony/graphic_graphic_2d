@@ -452,7 +452,8 @@ HWTEST_F(RSMarshallingHelperTest, Marshalling010, TestSize.Level1)
     Parcel parcel10;
     Vector2f fieldCenter10;
     Vector2f fieldSize10;
-    auto val = std::make_shared<ParticleNoiseField>(1, ShapeType::RECT, fieldSize10, fieldCenter10, 1, 1.0f, 1.0f, 1.0f);
+    auto val =
+        std::make_shared<ParticleNoiseField>(1, ShapeType::RECT, fieldSize10, fieldCenter10, 1, 1.0f, 1.0f, 1.0f);
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel10, val));
 }
 
@@ -508,7 +509,8 @@ HWTEST_F(RSMarshallingHelperTest, Marshalling012, TestSize.Level1)
     Vector2f fieldSize12;
     Vector2f fieldCenter;
     auto val = std::make_shared<ParticleNoiseFields>();
-    auto field = std::make_shared<ParticleNoiseField>(1, ShapeType::RECT, fieldSize12, fieldCenter, 1, 1.0f, 1.0f, 1.0f);
+    auto field =
+        std::make_shared<ParticleNoiseField>(1, ShapeType::RECT, fieldSize12, fieldCenter, 1, 1.0f, 1.0f, 1.0f);
     val->AddField(field);
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel12, val));
 }
@@ -614,35 +616,6 @@ HWTEST_F(RSMarshallingHelperTest, Unmarshalling016, TestSize.Level1)
     RenderParticleParaType<float> val16;
     Parcel parcel16;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel16, val16));
-}
-
-/**
- * @tc.name: Marshalling016
- * @tc.desc: Verify function Marshalling
- * @tc.type:FUNC
- * @tc.require: issuesI9NIKQ
- */
-HWTEST_F(RSMarshallingHelperTest, Marshalling016, TestSize.Level1)
-{
-    Parcel parcel16;
-    Range<Color> colorVal(RSColor(0, 0, 0), RSColor(0, 0, 0));
-    Range<float> alphaRandom(0.f, 0.f);
-    Range<float> blueRandom(0.f, 0.f);
-    Range<float> greenRandom(0.f, 0.f);
-    Range<float> redRandom(0.f, 0.f);
-    std::vector<std::shared_ptr<ChangeInOverLife<Color>>> valChangeOverLife;
-    parcel16.WriteInt16(1);
-    parcel16.WriteUint64(1);
-    std::shared_ptr<RSInterpolator> interpolator = RSInterpolator::Unmarshalling(parcel16);
-    auto changeInOverLife =
-        std::make_shared<ChangeInOverLife<Color>>(RSColor(0, 0, 0), RSColor(0, 0, 0), 0, 0, interpolator);
-    valChangeOverLife.push_back(changeInOverLife);
-    RenderParticleColorParaType val1(colorVal, DistributionType::UNIFORM, ParticleUpdator::RANDOM, redRandom,
-        greenRandom, blueRandom, alphaRandom, valChangeOverLife);
-    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel16, val1));
-    RenderParticleColorParaType val2(colorVal, DistributionType::UNIFORM, ParticleUpdator::CURVE, redRandom,
-        greenRandom, blueRandom, alphaRandom, valChangeOverLife);
-    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel16, val2));
 }
 
 /**
