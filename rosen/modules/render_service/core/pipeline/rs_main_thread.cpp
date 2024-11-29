@@ -4440,6 +4440,7 @@ void RSMainThread::UpdateLuminance()
         }
     }
     if (isNeedRefreshAll) {
+        SetForceUpdateUniRenderFlag(true);
         SetDirtyFlag();
         RequestNextVSync();
     }
