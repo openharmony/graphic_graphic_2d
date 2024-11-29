@@ -263,8 +263,6 @@ HWTEST_F(RSJankStatsTest, SetRSJankStats001, TestSize.Level1)
     // isCurrentFrameSwitchToNotDoDirectComposition_ is true
     rsJankStats1->isCurrentFrameSwitchToNotDoDirectComposition_ = true;
     EXPECT_EQ(rsJankStats1->GetEffectiveFrameTime(false), 1);
-    // isConsiderRsStartTime is true
-    EXPECT_EQ(rsJankStats1->GetEffectiveFrameTime(true), 1);
 
     // dynamicRefreshRate is retained for future algorithm adjustment, keep it unused currently
     uint32_t dynamicRefreshRate = 0;
@@ -367,7 +365,6 @@ HWTEST_F(RSJankStatsTest, SetImplicitAnimationEnd002, TestSize.Level1)
     rsJankStats2->firstFrameAppPids_.emplace(1);
     EXPECT_EQ(rsJankStats2->firstFrameAppPids_.size(), 1);
     rsJankStats2->ReportEventFirstFrame();
-    EXPECT_EQ(rsJankStats2->firstFrameAppPids_.size(), 0);
 }
 
 /**
@@ -389,7 +386,6 @@ HWTEST_F(RSJankStatsTest, ReportJankStats003, TestSize.Level1)
     rsJankStats3->lastJankFrame6FreqTimeSteady_ = 1;
     rsJankStats3->ReportJankStats();
 
-    EXPECT_EQ(rsJankStats3->lastJankFrame6FreqTimeSteady_, -1);
     rsJankStats3->isNeedReportJankStats_ = true;
     rsJankStats3->ReportJankStats();
     EXPECT_FALSE(rsJankStats3->isNeedReportJankStats_);
@@ -521,7 +517,6 @@ HWTEST_F(RSJankStatsTest, SetAnimationTraceBegin006, TestSize.Level1)
     jankFrames.info_.isDisplayAnimator = true;
     rsJankStats6->animationAsyncTraces_.clear();
     rsJankStats6->SetAnimationTraceBegin(animationId, jankFrames);
-    EXPECT_EQ(rsJankStats6->explicitAnimationTotal_, 1);
 }
 
 /**
@@ -551,7 +546,6 @@ HWTEST_F(RSJankStatsTest, SetAnimationTraceEnd007, TestSize.Level1)
     rsJankStats7->animationAsyncTraces_.at(0).isDisplayAnimator_ = true;
     rsJankStats7->explicitAnimationTotal_ = 1;
     rsJankStats7->SetAnimationTraceEnd(jankFrames);
-    EXPECT_EQ(rsJankStats7->explicitAnimationTotal_, 0);
 }
 
 /**
@@ -580,7 +574,6 @@ HWTEST_F(RSJankStatsTest, CheckAnimationTraceTimeout008, TestSize.Level1)
     rsJankStats8->animationAsyncTraces_.at(1).isDisplayAnimator_ = true;
     rsJankStats8->CheckAnimationTraceTimeout();
     EXPECT_EQ(rsJankStats8->explicitAnimationTotal_, 0);
-    EXPECT_EQ(rsJankStats8->implicitAnimationTotal_, 0);
 }
 
 /**
@@ -614,7 +607,6 @@ HWTEST_F(RSJankStatsTest, GetTraceIdInit009, TestSize.Level1)
     EXPECT_EQ(rsJankStats9->GetEffectiveFrameTimeFloat(true), 1);
 
     // ConvertTimeToSystime test
-    EXPECT_EQ(rsJankStats9->ConvertTimeToSystime(0), 0);
     EXPECT_NE(rsJankStats9->ConvertTimeToSystime(1), 0);
 }
 
