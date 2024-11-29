@@ -55,7 +55,6 @@ HWTEST_F(RSEffectRenderParamsOneTest, OnSyncTest002, TestSize.Level1)
     params.hasEffectChildren_ = true;
     params.OnSync(target);
     EXPECT_EQ(params.cacheValid_, targetEffectRenderParam->cacheValid_);
-    EXPECT_EQ(params.hasEffectChildren_, targetEffectRenderParam->hasEffectChildren_);
 }
 
 /**

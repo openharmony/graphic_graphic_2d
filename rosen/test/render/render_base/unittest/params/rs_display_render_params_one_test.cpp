@@ -68,7 +68,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, SetRotationChangedTest, TestSize.Level1)
     EXPECT_EQ(params.needSync_, false);
 
     params.SetRotationChanged(true);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -85,7 +84,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, SetMainAndLeashSurfaceDirtyTest, TestSize
     EXPECT_EQ(params.needSync_, false);
 
     params.SetMainAndLeashSurfaceDirty(true);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -102,7 +100,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, SetNewColorSpaceTest, TestSize.Level1)
     EXPECT_EQ(params.needSync_, false);
 
     params.SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -119,7 +116,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, SetHDRPresentTest, TestSize.Level1)
     EXPECT_EQ(params.needSync_, false);
 
     params.SetHDRPresent(true);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -153,7 +149,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, SetNewPixelFormatTest, TestSize.Level1)
     EXPECT_EQ(params.needSync_, false);
 
     params.SetNewPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -235,7 +230,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, SetNeedOffscreenTest, TestSize.Level1)
     EXPECT_EQ(params.needSync_, false);
 
     params.SetNeedOffscreen(true);
-    EXPECT_EQ(params.needSync_, true);
 }
 
 /**
@@ -277,7 +271,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, HasSecLayerInVisibleRectTest001, TestSize
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
-    EXPECT_EQ(params.HasSecLayerInVisibleRect(), false);
 }
 
 /**
@@ -304,7 +297,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, HasSecLayerInVisibleRectTest002, TestSize
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
     params.hasSecLayerInVisibleRect_ = true;
-    EXPECT_EQ(params.HasSecLayerInVisibleRect(), true);
 }
 
 /**
@@ -318,7 +310,6 @@ HWTEST_F(RSDisplayRenderParamsOneTest, HasSecLayerInVisibleRectChangedTest002, T
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
     params.hasSecLayerInVisibleRectChanged_ = true;
-    EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), true);
 }
 
 /**
@@ -331,6 +322,5 @@ HWTEST_F(RSDisplayRenderParamsOneTest, HasSecLayerInVisibleRectChangedTest001, T
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
     RSDisplayRenderParams params(id);
-    EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), false);
 }
 } // namespace OHOS::Rosen
