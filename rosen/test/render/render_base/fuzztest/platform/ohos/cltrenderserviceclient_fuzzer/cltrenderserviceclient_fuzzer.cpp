@@ -489,42 +489,6 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetVirtualScreenSecurityExemptionList(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    std::shared_ptr<RSRenderServiceClient> clients = std::make_shared<RSRenderServiceClient>();
-    ScreenId id = GetData<ScreenId>();
-    std::vector<NodeId> securityExemptionList;
-    clients->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
-    return true;
-}
-
-bool DoSetCastScreenEnableSkipWindow(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    std::shared_ptr<RSRenderServiceClient> clients = std::make_shared<RSRenderServiceClient>();
-    ScreenId id = GetData<ScreenId>();
-    bool enable = GetData<bool>();
-    clients->SetCastScreenEnableSkipWindow(id, enable);
-    return true;
-}
-
 bool DoSetVirtualScreenSurface(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -607,7 +571,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetVirtualScreenSurface(data, size);
     OHOS::Rosen::DoRemoveVirtualScreen(data, size);
     OHOS::Rosen::DoSetScreenRefreshRate(data, size);
-    OHOS::Rosen::DoSetVirtualScreenSecurityExemptionList(data, size);
-    OHOS::Rosen::DoSetCastScreenEnableSkipWindow(data, size);
     return 0;
 }
