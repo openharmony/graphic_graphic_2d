@@ -801,6 +801,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
             out += ", drawRegion: " + drawRegion->ToString();
         }
     }
+    if (drawableVecStatus_ != 0) {
+        out += ", drawableVecStatus: " + std::to_string(drawableVecStatus_);
+    }
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
