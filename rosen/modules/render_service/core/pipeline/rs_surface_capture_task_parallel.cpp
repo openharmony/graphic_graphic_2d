@@ -447,7 +447,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
-            if (!colorSpace->IsSRGB()) {
+            if (colorSpace!= nullptr && !colorSpace->IsSRGB()) {
                 surfaceBuffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
             }
             surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext);

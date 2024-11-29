@@ -41,9 +41,7 @@ static inline SkImageInfo MakeSkImageInfo(const int width, const int height,
     sk_sp<SkColorSpace> skColorSpace = nullptr;
     if (colorSpace != nullptr) {
         auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
-        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
-    } else {
-        skColorSpace = SkColorSpace::MakeSRGB();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : nullptr;
     }
 
     auto imageInfo = SkImageInfo::Make(width, height,
