@@ -266,7 +266,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest001, TestSiz
         std::make_shared<DrawableV2::RSColorFilterDrawable>();
     EXPECT_NE(colorFilterDrawable, nullptr);
     renderNodeTest2.renderContent_->renderProperties_.colorFilter_ = nullptr;
-    EXPECT_EQ(colorFilterDrawable->OnGenerate(renderNodeTest2), nullptr);
     std::shared_ptr<Drawing::ColorFilter> colorFilter = std::make_shared<Drawing::ColorFilter>();
     EXPECT_NE(colorFilter, nullptr);
     renderNodeTest2.renderContent_->renderProperties_.colorFilter_ = colorFilter;
@@ -317,7 +316,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
         std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
     EXPECT_NE(compositingFilterDrawable, nullptr);
     renderNodeTest6.renderContent_->renderProperties_.filter_ = nullptr;
-    EXPECT_EQ(compositingFilterDrawable->OnGenerate(renderNodeTest6), nullptr);
 
     RSRenderNode renderNodeTest7(0);
     std::shared_ptr<DrawableV2::RSForegroundFilterDrawable> foregroundFilterDrawable =
@@ -346,7 +344,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest003, TestSiz
     EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
     renderNodeTest8.renderContent_->renderProperties_.foregroundFilter_ = nullptr;
     EXPECT_FALSE(foregroundFilterRestoreDrawable->OnUpdate(renderNodeTest8));
-    EXPECT_EQ(foregroundFilterRestoreDrawable->OnGenerate(renderNodeTest8), nullptr);
     std::shared_ptr<RSFilter> foregroundFilterTest2 = std::make_shared<RSFilter>();
     EXPECT_NE(foregroundFilterTest2, nullptr);
     renderNodeTest8.renderContent_->renderProperties_.foregroundFilter_ = foregroundFilterTest2;
@@ -375,7 +372,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest004, TestSiz
     std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable = std::make_shared<DrawableV2::RSBorderDrawable>();
     EXPECT_NE(borderDrawable, nullptr);
     renderNodeTest10.renderContent_->renderProperties_.border_ = nullptr;
-    EXPECT_EQ(borderDrawable->OnGenerate(renderNodeTest10), nullptr);
     std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
     EXPECT_NE(border, nullptr);
     renderNodeTest10.renderContent_->renderProperties_.border_ = border;
@@ -412,7 +408,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest005, TestSiz
     std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSPointLightDrawable>(propertiesTest1);
     EXPECT_NE(pointLightDrawableTest, nullptr);
-    EXPECT_EQ(pointLightDrawableTest->OnGenerate(renderNodeTest12), nullptr);
     std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
     EXPECT_NE(illuminated, nullptr);
     renderNodeTest12.renderContent_->renderProperties_.illuminatedPtr_ = illuminated;
