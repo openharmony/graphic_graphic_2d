@@ -50,6 +50,10 @@
 #include "pipeline/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_sched_kill_reason.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace {
@@ -629,6 +633,29 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
 #endif
 }
 
+static void KillProcessByPid(const pid_t pid, const std::string& processName, const std::string& reason)
+{
+#ifdef RES_SCHED_ENABLE
+    std::unordered_map<std::string, std::string> killInfo;
+    killInfo["pid"] = std::to_string(pid);
+    killInfo["processName"] = processName;
+    killInfo["killReason"] = reason;
+    if (pid > 0) {
+        int32_t eventWriteStatus = -1;
+        int32_t killStatus = ResourceSchedule::ResSchedClient::GetInstance().KillProcess(killInfo);
+        if (killStatus == 0) {
+            eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
+                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
+                "MSG", reason, "FOREGROUND", false);
+        }
+        // To prevent the print from being filtered, use RS_LOGE.
+        RS_LOGE("KillProcessByPid, pid: %{public}d, process name: %{public}s, "
+            "killStatus: %{public}d, eventWriteStatus: %{public}d, reason: %{public}s",
+            static_cast<int32_t>(pid), processName.c_str(), killStatus, eventWriteStatus, reason.c_str());
+    }
+#endif
+}
+
 void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 {
     MemorySnapshotInfo info;
@@ -640,21 +667,40 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     std::string bundleName;
     auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
     appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
+    RSMainThread::Instance()->PostTask([]() {
+        RS_TRACE_NAME_FMT("RSMem Dump Task");
+        std::unordered_set<std::u16string> argSets;
+        std::string dumpString = "";
+        std::string type = MEM_SNAPSHOT;
+        RSMainThread::Instance()->DumpMem(argSets, dumpString, type, 0);
+        RS_LOGI("=======================RSMem Dump Info=======================");
+        std::istringstream stream(dumpString);
+        std::string line;
+        while (std::getline(stream, line)) {
+            RS_LOGI("%{public}s", line.c_str());
+        }
+        RS_LOGI("=============================================================");
+    });
+    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
+        + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
+        + std::to_string(info.TotalMemory()) + "]";
     MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
+    KillProcessByPid(pid, bundleName, reason);
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
     const std::string& reportName)
 {
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid,
         "BUNDLE_NAME", bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory());
-    RS_LOGW("RSMemoryOverReport pid[%d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
-        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+    RS_LOGW("RSMemoryOverReport pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] "
+        "gpu[%{public}zu] total[%{public}zu] ret[%{public}d]",
+        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory(), ret);
 }
 
 void MemoryManager::TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)
