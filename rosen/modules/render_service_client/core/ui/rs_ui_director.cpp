@@ -55,7 +55,6 @@
 namespace OHOS {
 namespace Rosen {
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
-uint32_t RSUIDirector::index_ = 0;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 
@@ -72,8 +71,9 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
-    std::call_once(g_initDumpNodeTreeProcessorFlag, [] () {
-        RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor);
+    std::call_once(g_initDumpNodeTreeProcessorFlag, [this] () {
+        RSNodeCommandHelper::SetDumpNodeTreeProcessor(std::bind(&RSUIDirector::DumpNodeTreeProcessor, this,
+            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     });
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
