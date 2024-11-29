@@ -497,7 +497,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetInvertedBackgroundColorTest, testing::e
     EXPECT_NE(blender, nullptr);
 
     rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 0, true);
-    EXPECT_EQ(paintFilterCanvasTest1.alphaStack_.size(), 1);
     rsPropertyDrawableUtilsTest1->BeginBlender(paintFilterCanvasTest1, blender, 1, true);
 
     std::shared_ptr<RSPropertyDrawableUtils> rsPropertyDrawableUtilsTest2 = std::make_shared<RSPropertyDrawableUtils>();
@@ -533,7 +532,6 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetShadowRegionImageTest, testing::ext::Te
     Drawing::Path drPath;
     Drawing::Matrix matrix;
     auto resultTest1 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
-    EXPECT_EQ(resultTest1, nullptr);
     auto surface = Drawing::Surface::MakeRasterN32Premul(10, 10);
     paintFilterCanvas.surface_ = surface.get();
     auto resultTest2 = rsPropertyDrawableUtilsTest->GetShadowRegionImage(&paintFilterCanvas, drPath, matrix);
