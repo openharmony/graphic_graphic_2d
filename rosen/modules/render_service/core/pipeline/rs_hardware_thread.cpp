@@ -352,7 +352,7 @@ bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
     if (isLastAdaptive_ && !isSamplerEnabled) {
         // exit adaptive sync mode must restore vsync sampler, and startSample immediately
         hdiBackend_->SetVsyncSamplerEnabled(output, true);
-        hdiBackend_->StartSampler(output);
+        hdiBackend_->StartSample(output);
     }
 
     return false;
