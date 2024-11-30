@@ -106,11 +106,6 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
     }
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(id, captureConfig);
-    if (captureHandle == nullptr) {
-        RS_LOGE("RSSurfaceCaptureTaskParallel::Capture captureHandle is nullptr!");
-        callback->OnSurfaceCapture(id, nullptr);
-        return;
-    }
     if (!captureHandle->CreateResources()) {
         callback->OnSurfaceCapture(id, nullptr);
         return;
