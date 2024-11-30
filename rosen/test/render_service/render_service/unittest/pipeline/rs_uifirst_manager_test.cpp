@@ -1375,4 +1375,19 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 }
+
+/**
+@tc.name: IsSubTreeNeedPrepareForSnapshot
+@tc.desc: Test IsSubTreeNeedPrepareForSnapshot in recents.
+@tc.type: FUNC
+@tc.require: #IB7WHH
+*/
+HWTEST_F(RSUifirstManagerTest, IsSubTreeNeedPrepareForSnapshot, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_RECENTS);
+    bool isOccluded = uifirstManager_.IsSubTreeNeedPrepareForSnapshot(*surfaceNode);
+    ASSERT_EQ(isOccluded, false);
+}
 }
