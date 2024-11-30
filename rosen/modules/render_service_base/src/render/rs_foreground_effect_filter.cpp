@@ -74,15 +74,13 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSForegroundEffectFilter::MakeFor
         }
     )");
 
-    {
+    if (blurEffect_ == nullptr) {
+        std::lock_guard<std::mutex> lock(blurEffectMutex_);
         if (blurEffect_ == nullptr) {
-            std::lock_guard<std::mutex> lock(blurEffectMutex_);
+            blurEffect_ = Drawing::RuntimeEffect::CreateForShader(blurString);
             if (blurEffect_ == nullptr) {
-                blurEffect_ = Drawing::RuntimeEffect::CreateForShader(blurString);
-                if (blurEffect_ == nullptr) {
-                    ROSEN_LOGE("RSForegroundEffect::RuntimeShader blurEffect create failed");
-                    return nullptr;
-                }
+                ROSEN_LOGE("RSForegroundEffect::RuntimeShader blurEffect create failed");
+                return nullptr;
             }
         }
     }
