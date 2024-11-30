@@ -328,7 +328,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
 
 bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
 {
-    if(hdiBackend_ == nullptr) {
+    if (hdiBackend_ == nullptr) {
         RS_LOGE("RSHardwareThread::IsInAdaptiveMode hdiBackend_ is nullptr");
         return false;
     }
