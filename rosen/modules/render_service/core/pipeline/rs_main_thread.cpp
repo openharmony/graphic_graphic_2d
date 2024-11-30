@@ -712,7 +712,8 @@ void RSMainThread::Init()
     RSLuminanceControl::Get().Init();
 #ifdef RS_ENABLE_GPU
     if (deviceType_ == DeviceType::PHONE || deviceType_ == DeviceType::TABLET) {
-        MemoryManager::InitMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        MemoryManager::InitMemoryLimit();
+        MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
     }
 #endif
 }

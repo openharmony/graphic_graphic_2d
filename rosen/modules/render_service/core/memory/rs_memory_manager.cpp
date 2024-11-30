@@ -71,6 +71,7 @@ std::mutex MemoryManager::mutex_;
 std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidInfo_;
 uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
+uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
@@ -538,7 +539,7 @@ uint64_t ParseMemoryLimit(const cJSON* json, const char* name)
     return UINT64_MAX;
 }
 
-void MemoryManager::InitMemoryLimit(Drawing::GPUContext* gpuContext)
+void MemoryManager::InitMemoryLimit()
 {
     std::ifstream configFile;
     configFile.open(KERNEL_CONFIG_PATH);
@@ -579,15 +580,20 @@ void MemoryManager::InitMemoryLimit(Drawing::GPUContext* gpuContext)
     // error threshold for cpu memory of a single process
     uint64_t cpuMemoryControl = ParseMemoryLimit(rsWatchPoint, "process_cpu_control_threshold");
     // error threshold for gpu memory of a single process
-    uint64_t gpuMemoryControl = ParseMemoryLimit(rsWatchPoint, "process_gpu_control_threshold");
+    gpuMemoryControl_ = ParseMemoryLimit(rsWatchPoint, "process_gpu_control_threshold");
     // threshold for the total memory of all processes in renderservice
     uint64_t totalMemoryWarning = ParseMemoryLimit(rsWatchPoint, "total_threshold");
     cJSON_Delete(root);
 
-    if (gpuContext != nullptr) {
-        gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl);
-    }
     MemorySnapshot::Instance().InitMemoryLimit(MemoryOverflow, memoryWarning_, cpuMemoryControl, totalMemoryWarning);
+}
+
+void MemoryManager::SetGpuMemoryLimit(Drawing::GPUContext* gpuContext)
+{
+    if (gpuContext == nullptr || gpuMemoryControl_ == UINT64_MAX) {
+        return;
+    }
+    gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl_);
 }
 
 void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)

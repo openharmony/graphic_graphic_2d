@@ -47,7 +47,8 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
-    static void InitMemoryLimit(Drawing::GPUContext* gpuContext);
+    static void InitMemoryLimit();
+    static void SetGpuMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
@@ -78,6 +79,7 @@ private:
     static std::unordered_map<pid_t, std::pair<std::string, uint64_t>> pidInfo_;
     static uint32_t frameCount_;
     static uint64_t memoryWarning_;
+    static uint64_t gpuMemoryControl_;
     static uint64_t totalMemoryReportTime_;
 };
 } // namespace OHOS::Rosen
