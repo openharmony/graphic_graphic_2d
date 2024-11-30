@@ -242,7 +242,7 @@ bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr &output)
 {
     if (output == nullptr) {
         HLOGE("output is nullptr.");
-        return;
+        return false;
     }
     return output->GetVsyncSamplerEnabled();
 }
