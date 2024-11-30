@@ -1986,4 +1986,926 @@ HWTEST_F(RSCanvasNodeTest002, SetandGetOutlineWidth004, TestSize.Level1)
     rsNode->SetOutlineWidth(floatData[4]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetOutlineWidth().x_, floatData[4]));
 }
+
+/**
+ * @tc.name: SetandGetOutlineDashParams001
+ * @tc.desc: Check for zero values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetOutlineDashParams001, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_ZERO);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams002
+ * @tc.desc: Check for positive values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetOutlineDashParams002, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_POSITIVE);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams003
+ * @tc.desc: Check for negative values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetOutlineDashParams003, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_NEGATIVE);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams004
+ * @tc.desc: Check for max values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetOutlineDashParams004, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_MAX);
+}
+
+/**
+ * @tc.name: SetandGetOutlineDashParams005
+ * @tc.desc: Check for min values
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetOutlineDashParams005, TestSize.Level1)
+{
+    SetOutlineDashParamsAndTest(FLOAT_DATA_MIN);
+}
+
+/**
+ * @tc.name: SetandGetPivot001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivot001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivot(floatData[0], floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[0]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetPivot002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivot002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivot(floatData[3], floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[3]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetPivot003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivot003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivot(floatData[1], floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetPivotX001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotX001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotX(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetPivotX002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotX002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotX(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetPivotX003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotX003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotX(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetPivotX004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotX004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotX(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetPivotX005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotX005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotX(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().x_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetPivotY001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotY001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotY(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetPivotY002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotY002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotY(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetPivotY003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotY003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotY(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetPivotY004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotY004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotY(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetPivotY005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetPivotY005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetPivotY(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetPivot().y_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffset001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffset001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffset(floatData[2], floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffset002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffset002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffset(floatData[2], floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffset003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffset003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffset(floatData[1], floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[3]));
+}
+/**
+ * @tc.name: SetandGetShadowOffsetX001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetX001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetX(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetX002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetX002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetX(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetX003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetX003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetX(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetX004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetX004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetX(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetX005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetX005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetX(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetX(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetY001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetY001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetY(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetY002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetY002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetY(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetY003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetY003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetY(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetY004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetY004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetY(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetShadowOffsetY005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowOffsetY005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowOffsetY(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowOffsetY(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetShadowAlpha001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowAlpha001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowAlpha(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[1], 0.02f));
+}
+
+/**
+ * @tc.name: SetandGetShadowAlpha002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowAlpha002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowAlpha(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[2], 0.02f));
+}
+
+/**
+ * @tc.name: SetandGetShadowAlpha003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowAlpha003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowAlpha(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[3], 0.02f));
+}
+
+/**
+ * @tc.name: SetandGetShadowAlpha004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowAlpha004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowAlpha(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[4], 0.02f));
+}
+
+/**
+ * @tc.name: SetandGetShadowAlpha005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowAlpha005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowAlpha(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(),
+        std::clamp(floatData[0], 0.0f, 1.0f), 0.02f));
+}
+
+/**
+ * @tc.name: SetandGetShadowElevation001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowElevation001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowElevation(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowElevation(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetShadowElevation002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowElevation002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowElevation(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowElevation(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetShadowElevation003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowElevation003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowElevation(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowElevation(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetShadowElevation004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowElevation004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowElevation(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowElevation(), floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetShadowElevation005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowElevation005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowElevation(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowElevation(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetShadowRadius001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowRadius001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowRadius(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowRadius(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetShadowRadius002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowRadius002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowRadius(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowRadius(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetShadowRadius003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowRadius003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowRadius(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowRadius(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetShadowRadius004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowRadius004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowRadius(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowRadius(), floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetShadowRadius005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowRadius005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetShadowRadius(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowRadius(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetShadowColor001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColor001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x034123;
+    rsNode->SetShadowColor(colorValue);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetShadowColor002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColor002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x45ba87;
+    rsNode->SetShadowColor(colorValue);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetShadowColor003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColor003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = 0x32aadd;
+    rsNode->SetShadowColor(colorValue);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetShadowColor004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColor004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::max();
+    rsNode->SetShadowColor(colorValue);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetShadowColor005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColor005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    constexpr uint32_t colorValue = std::numeric_limits<uint32_t>::min();
+    rsNode->SetShadowColor(colorValue);
+    EXPECT_TRUE(rsNode->GetStagingProperties().GetShadowColor() == Color::FromArgbInt(colorValue));
+}
+
+/**
+ * @tc.name: SetandGetShadowColorStrategy001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColorStrategy001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    ASSERT_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy);
+}
+
+/**
+ * @tc.name: SetandGetShadowColorStrategy002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColorStrategy002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+}
+
+/**
+ * @tc.name: SetandGetShadowColorStrategy003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetShadowColorStrategy003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    int shadowColorStrategy = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_MAIN;
+    rsNode->SetShadowColorStrategy(shadowColorStrategy);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowColorStrategy(), shadowColorStrategy));
+}
+
+/**
+ * @tc.name: SetandGetTranslateThree001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateThree001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslate(floatData[1], floatData[2], floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[2]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateThree002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateThree002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslate(floatData[0], floatData[0], floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[0]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[0]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateThree003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateThree003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslate(floatData[1], floatData[3], floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[1]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[3]));
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateX001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateX001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateX(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateX002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateX002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateX(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateX003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateX003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateX(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateX004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateX004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateX(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateX005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateX005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateX(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().x_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateY001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateY001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateY(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateY002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateY002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateY(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateY003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateY003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateY(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateY004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateY004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateY(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateY005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateY005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateY(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslate().y_, floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateZ001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateZ(floatData[1]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[1]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateZ002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateZ(floatData[2]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[2]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateZ003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateZ(floatData[3]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[3]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateZ004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateZ(floatData[4]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[4]));
+}
+
+/**
+ * @tc.name: SetandGetTranslateZ005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetTranslateZ005, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetTranslateZ(floatData[0]);
+    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetTranslateZ(), floatData[0]));
+}
+
+/**
+ * @tc.name: SetandGetClipToBounds001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetClipToBounds001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetClipToBounds(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetClipToBounds(), true);
+}
+
+/**
+ * @tc.name: SetandGetClipToBounds002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetClipToBounds002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetClipToBounds(false);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetClipToBounds(), false);
+}
+
+/**
+ * @tc.name: SetandGetClipToFrame001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetClipToFrame001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetClipToFrame(true);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetClipToFrame(), true);
+}
+
+/**
+ * @tc.name: SetandGetClipToFrame002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSCanvasNodeTest002, SetandGetClipToFrame002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetClipToFrame(false);
+    EXPECT_EQ(rsNode->GetStagingProperties().GetClipToFrame(), false);
+}
 } // namespace OHOS::Rosen
