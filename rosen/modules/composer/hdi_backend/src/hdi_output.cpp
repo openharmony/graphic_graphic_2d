@@ -515,6 +515,22 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     return ret;
 }
 
+void HdiOutput::SetVsyncSamplerEnabled(bool enabled)
+{
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
+    }
+    sampler_->SetVsyncSamplerEnabled(enabled);
+}
+
+bool HdiOutput::GetVsyncSamplerEnabled()
+{
+    if (sampler_ == nullptr) {
+        sampler_ = CreateVSyncSampler();
+    }
+    return sampler_->GetVsyncSamplerEnabled();
+}
+
 int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
 {
     if (currFrameBuffer_ == nullptr) {
