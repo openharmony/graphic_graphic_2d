@@ -1470,10 +1470,12 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const Gravity frameGravity = property.GetFrameGravity();
 
     CheckForceHardwareAndUpdateDstRect(node);
-    // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
+    // We don't have to do additional works when renderfit mode is Gravity::RESIZE or frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
         return;
     }
+    // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT or Gravity::CENTER,
+    // we are suppose to disable hardware composer.
     if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT && frameGravity != Gravity::CENTER) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
             node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
@@ -1483,7 +1485,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     Drawing::Matrix gravityMatrix;
     (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
         RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
-    // create a canvas to calculate new dstRect and new srcRect
+    // Create canvas to calculate aimed dstRect and corresponding srcRect
     int32_t screenWidth = screenInfo.phyWidth;
     int32_t screenHeight = screenInfo.phyHeight;
     const auto screenRotation = screenInfo.rotation;
@@ -1511,13 +1513,11 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     gravityMatrixScalePart.MapRect(newDstRect,
         Drawing::Rect(absRect.left_, absRect.top_, absRect.left_ + frameWidth, absRect.top_ + frameHeight));
     newDstRect = Drawing::Rect(
-        absRect.left_,
-        absRect.top_,
+        absRect.left_, absRect.top_,
         absRect.left_ + newDstRect.right_ - newDstRect.left_,
         absRect.top_ + newDstRect.bottom_ - newDstRect.top_);
     gravityMatrixTranslatePart.MapRect(newDstRect, newDstRect);
-    newDstRect.Intersect(Drawing::Rect(
-        absRect.left_, absRect.top_, absRect.right_, absRect.bottom_));
+    newDstRect.Intersect(Drawing::Rect(absRect.left_, absRect.top_, absRect.right_, absRect.bottom_));
     Drawing::Rect croppedNewDstRect = newDstRect;
     croppedNewDstRect.Intersect(Drawing::RectI(
         dstRect.left_, dstRect.top_, dstRect.left_ + dstRect.width_, dstRect.top_ + dstRect.height_));
@@ -1530,7 +1530,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const float offsetYBottom = (newDstRect.bottom_ - croppedNewDstRect.bottom_) > 0 ?
         newDstRect.bottom_ - croppedNewDstRect.bottom_ : 0;
     Drawing::Rect clipRect = Drawing::Rect(0.0f, 0.0f, 0.0f, 0.0f);
-    gravityMatrix.MapRect(clipRect, Drawing::Rect(0, 0, frameWidth, frameHeight));
+    gravityMatrix.MapRect(clipRect, Drawing::Rect(0.0f, 0.0f, frameWidth, frameHeight));
     canvas->ClipRect(Drawing::Rect(
         -clipRect.GetLeft() + offsetXLeft,
         -clipRect.GetTop() + offsetYTop,
