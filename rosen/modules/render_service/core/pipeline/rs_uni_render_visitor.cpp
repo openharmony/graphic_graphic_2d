@@ -838,9 +838,11 @@ void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& node)
     // 1. record this surface node and its position on second display, for global dirty region conversion.
     curDisplayNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
     node.UpdateCrossNodeSkippedDisplayOffset(curDisplayNode_->GetId(), curOffsetX, curOffsetY);
-    curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), node.GetOldDirty().Offset(
+    RectI surfaceRect = node.GetOldDirty().Offset(
         node.GetPreparedDisplayOffsetX() - curOffsetX,
-        node.GetPreparedDisplayOffsetY() - curOffsetY).IntersectRect(screenRect_));
+        node.GetPreparedDisplayOffsetY() - curOffsetY).IntersectRect(screenRect_);
+    curDisplayNode_->UpdateSurfaceNodePos(node.GetId(), surfaceRect);
+    curDisplayNode_->AddSurfaceNodePosByDescZOrder(node.GetId(), surfaceRect);
     // 2. record all children surface nodes and their position on second display, for global dirty region conversion.
     std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
     node.GetAllSubSurfaceNodes(allSubSurfaceNodes);
@@ -848,9 +850,11 @@ void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& node)
         if (auto childPtr = subSurfaceNode.lock()) {
             curDisplayNode_->RecordMainAndLeashSurfaces(childPtr);
             childPtr->UpdateCrossNodeSkippedDisplayOffset(curDisplayNode_->GetId(), curOffsetX, curOffsetY);
-            curDisplayNode_->UpdateSurfaceNodePos(childPtr->GetId(), childPtr->GetOldDirty().Offset(
+            RectI childSurfaceRect = childPtr->GetOldDirty().Offset(
                 childPtr->GetPreparedDisplayOffsetX() - curOffsetX,
-                childPtr->GetPreparedDisplayOffsetY() - curOffsetY).IntersectRect(screenRect_));
+                childPtr->GetPreparedDisplayOffsetY() - curOffsetY).IntersectRect(screenRect_);
+            curDisplayNode_->UpdateSurfaceNodePos(childPtr->GetId(), childSurfaceRect);
+            curDisplayNode_->AddSurfaceNodePosByDescZOrder(childPtr->GetId(), childSurfaceRect);
         }
     }
 }

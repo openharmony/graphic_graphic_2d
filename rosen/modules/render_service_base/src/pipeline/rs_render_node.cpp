@@ -1066,10 +1066,12 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     // stop visit invisible or clean without filter subtree
-    if (!shouldPaint_ || isOccluded) {
+    // Exception: If cross-display node is fully invisible under current visited display, its subtree can't be skipped,
+    // since it may be visible on other displays, and it is only prepared once.
+    if (!shouldPaint_ || (isOccluded && !IsFirstLevelCrossNode())) {
         // when subTreeOccluded, need to applyModifiers to node's children
-        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint %d, isOccluded %d",
-            GetId(), shouldPaint_, isOccluded);
+        RS_OPTIONAL_TRACE_NAME_FMT("IsSubTreeNeedPrepare node[%llu] skip subtree ShouldPaint [%d], isOccluded [%d], "
+            "CrossDisplay: %d", GetId(), shouldPaint_, isOccluded, IsFirstLevelCrossNode());
         return false;
     }
     if (checkType == SubTreePrepareCheckType::DISABLE_SUBTREE_DIRTY_CHECK) {
