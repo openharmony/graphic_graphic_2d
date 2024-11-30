@@ -89,7 +89,7 @@ bool VSyncSampler::GetVsyncSamplerEnabled()
     return enableVsyncSample_.load();
 }
 
-int32_t VsyncSampler::StartSample(bool forceReSample)
+int32_t VSyncSampler::StartSample(bool forceReSample)
 {
     RS_TRACE_NAME_FMT("HdiOutput::StartVsyncSampler, forcewReSample:%d", forceReSample);
     if (!enableVsyncSample_.load()) {
