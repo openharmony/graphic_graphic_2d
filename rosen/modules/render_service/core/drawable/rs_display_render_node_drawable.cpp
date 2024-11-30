@@ -1014,7 +1014,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     (mirroredDrawable.get()->*drawFunc)(*curCanvas_);
     uniParam.SetOpDropped(isOpDropped);
     RSUniRenderThread::ResetCaptureParam();
-    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::CubicResampler::Mitchell()));
+    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST));
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
