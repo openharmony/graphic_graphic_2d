@@ -332,7 +332,8 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
     for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap) {
         std::string commandMapDesc = PrintCommandMapDesc(commandTypeMap);
         RS_LOGE("RSTransactionData::IsCallingPidValid non-system callingPid %{public}d is denied to access commandPid "
-                "%{public}d, commandMap = %{public}s", (int)callingPid, (int)commandPid, commandMapDesc.c_str());
+                "%{public}d, commandMap = %{public}s", static_cast<int>(callingPid), static_cast<int>(commandPid),
+                commandMapDesc.c_str());
     }
     return conflictPidToCommandMap.empty();
 }
