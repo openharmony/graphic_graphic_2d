@@ -217,7 +217,6 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             FrameReport::GetInstance().SetLastSwapBufferTime(endTimeNs - startTimeNs);
         }
-
         unExecuteTaskNum_--;
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
             RSMainThread::Instance()->NotifyHardwareThreadCanExecuteTask();
@@ -226,15 +225,10 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RSBaseRenderUtil::IncAcquiredBufferCount();
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
-    if (!hgmCore.GetLtpoEnabled()) {
-        PostTask(task);
-    } else {
-
     uint64_t currTime = SystemTime();
     if (IsDelayRequired(hgmCore, param, output, hasGameScene)) {
         CalculateDelayTime(hgmCore, param, currentRate, currTime);
     }
-
     // We need to ensure the order of composition frames, postTaskTime(n + 1) must > postTaskTime(n),
     // and we give a delta time more between two composition tasks.
     uint64_t currCommitTime = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
@@ -253,12 +247,10 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     }
     lastCommitTime_ = currTime + delayTime_ * NS_MS_UNIT_CONVERSION;
     PostDelayTask(task, delayTime_);
-
     for (const auto& layer : layers) {
         if (layer == nullptr || layer->GetClearCacheSet().empty()) {
             continue;
         }
-
         // Remove image caches when their SurfaceNode has gobackground/cleancache.
         RSTaskMessage::RSTask clearTask = [this, cacheset = layer->GetClearCacheSet()]() {
             if (uniRenderEngine_ != nullptr) {
