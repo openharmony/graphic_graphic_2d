@@ -498,6 +498,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         surfaceParams->GetRoundedCornerRegion().Area()));
     curCanvas_ = rscanvas;
     if (needOffscreen) {
+        isInRotationFixed_ = false;
         releaseCount_ = 0;
         if (!PrepareOffscreenRender()) {
             needOffscreen = false;
@@ -548,7 +549,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     if (needOffscreen && canvasBackup_) {
         Drawing::AutoCanvasRestore acrBackUp(*canvasBackup_, true);
-        canvasBackup_->Clear(Drawing::Color::COLOR_BLACK);
+        if (isInRotationFixed_) {
+            canvasBackup_->Clear(Drawing::Color::COLOR_BLACK);
+        }
         if (surfaceParams->HasSandBox()) {
             canvasBackup_->SetMatrix(surfaceParams->GetParentSurfaceMatrix());
             canvasBackup_->ConcatMatrix(surfaceParams->GetMatrix());
@@ -899,6 +902,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
         return;
     }
     if (surfaceParams.IsInFixedRotation()) {
+        isInRotationFixed_ = true;
         DrawBufferForRotationFixed(canvas, surfaceParams);
         return;
     }
