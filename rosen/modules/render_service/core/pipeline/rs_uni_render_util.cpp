@@ -1534,8 +1534,8 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     canvas->ClipRect(Drawing::Rect(
         -clipRect.GetLeft() + offsetXLeft,
         -clipRect.GetTop() + offsetYTop,
-        -clipRect.GetLeft() + std::min(absRect.right - absRect.left_, frameWidth) - offsetXRight,
-        -clipRect.GetTop() + std::min(absRect.bottom - absRect.top_, frameHeight) - offsetYBottom),
+        -clipRect.GetLeft() + std::min(absRect.right_ - absRect.left_, frameWidth) - offsetXRight,
+        -clipRect.GetTop() + std::min(absRect.bottom_ - absRect.top_, frameHeight) - offsetYBottom),
         Drawing::ClipOp::INTERSECT);
     auto localRect = canvas->GetLocalClipBounds();
     int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
