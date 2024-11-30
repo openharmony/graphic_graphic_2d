@@ -23,6 +23,10 @@
 
 namespace OHOS {
 namespace Rosen {
+
+std::mutex RSForegroundEffectFilter::blurEffectMutex_;
+std::shared_ptr<Drawing::RuntimeEffect> RSForegroundEffectFilter::blurEffect_ = nullptr;
+
 RSForegroundEffectFilter::RSForegroundEffectFilter(float blurRadius)
     : RSDrawingFilterOriginal(nullptr)
 {

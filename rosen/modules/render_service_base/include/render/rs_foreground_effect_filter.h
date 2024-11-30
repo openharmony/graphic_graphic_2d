@@ -59,7 +59,7 @@ private:
     float unit_{};
 
     static std::mutex blurEffectMutex_;
-    static std::shared_ptr<Drawing::RuntimeEffect> blurEffect_ = nullptr;
+    static std::shared_ptr<Drawing::RuntimeEffect> blurEffect_;
 
     static constexpr float BASE_BLUR_SCALE = 0.5f; // base downSample radio
     static constexpr uint32_t MAX_PASSES_LARGE_RADIUS = 7;
