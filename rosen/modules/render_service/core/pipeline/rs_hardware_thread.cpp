@@ -326,6 +326,38 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         period, delayTime_);
 }
 
+bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
+{
+    if(hdiBackend_ == nullptr) {
+        RS_LOGE("RSHardwareThread::IsInAdaptiveMode hdiBackend_ is nullptr");
+        return false;
+    }
+
+    bool isSamplerEnabled = hdiBackend_->GetVsyncSamplerEnabled(output);
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+
+    // if in game adaptive vsync mode and do direct composition, send layer immediately
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr != nullptr) {
+        bool isAdaptive = frameRateMgr->IsAdaptive();
+        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers send layer isAdaptive: %{public}u", isAdaptive);
+        if (isAdaptive) {
+            if (isSamplerEnabled) {
+                // when phone enter game adaptive sync mode must disable vsync sampler
+                hdiBackend_->SetVsyncSamplerEnabled(output, false);
+            }
+            return true;
+        }
+    }
+    if (isLastAdaptive_ && !isSamplerEnabled) {
+        // exit adaptive sync mode must restore vsync sampler, and startSample immediately
+        hdiBackend_->SetVsyncSamplerEnabled(output, true);
+        hdiBackend_->StartSampler(output);
+    }
+
+    return false;
+}
+
 RefreshRateParam RSHardwareThread::GetRefreshRateParam()
 {
     // need to sync the hgm data from main thread.

@@ -77,7 +77,7 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
-
+    bool IsInAdaptiveMode(const OutputPtr &output);
     RefreshRateParam GetRefreshRateParam();
     bool IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param,
         const OutputPtr& output, bool hasGameScene);
