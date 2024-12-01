@@ -704,11 +704,14 @@ bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         return false;
     }
     RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
-        new (std::nothrow) RSDefaultSurfaceBufferCallback (
-            [callback](uint64_t uid, const std::vector<uint32_t>& bufferIds) {
-                callback->OnFinish(uid, bufferIds);
-            }
-        )
+        new (std::nothrow) RSDefaultSurfaceBufferCallback ({
+            .OnFinish = [callback](const FinishCallbackRet& ret) {
+                callback->OnFinish(ret);
+            },
+            .OnAfterAcquireBuffer = [callback](const AfterAcquireBufferRet& ret) {
+                callback->OnAfterAcquireBuffer(ret);
+            },
+        })
     );
     return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }

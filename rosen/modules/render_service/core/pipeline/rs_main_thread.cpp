@@ -542,8 +542,11 @@ void RSMainThread::Init()
         };
         RSUnmarshalThread::Instance().Start();
     }
-    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
-        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback({
+        .OnFinish = RSSurfaceBufferCallbackManager::Instance().GetOnFinishCb(),
+        .OnAfterAcquireBuffer = RSSurfaceBufferCallbackManager::Instance().GetOnAfterAcquireBufferCb(),
+    });
+    RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(true);
 
     RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
         RSHardwareThread::Instance().PostTask(task);
