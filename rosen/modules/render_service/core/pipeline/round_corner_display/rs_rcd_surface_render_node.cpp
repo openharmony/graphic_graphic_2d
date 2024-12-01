@@ -25,6 +25,7 @@ namespace Rosen {
 const unsigned long long PRIV_USAGE_FBC_CLD_LAYER = 1ULL << 56; // 56 means the buffer usage is hardware
 const float RCD_LAYER_Z_TOP1 = static_cast<float>(0x7FFFFFFF); // toppest
 const float RCD_LAYER_Z_TOP2 = static_cast<float>(0x7FFFFEFF); // not set toppest - 1, float only 6 significant digits
+const int32_t BUFFER_TIME_OUT = 500;
 
 RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context)
@@ -126,7 +127,7 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
         | PRIV_USAGE_FBC_CLD_LAYER;
     RS_LOGD("RCD: GetHardenBufferRequestConfig Buffer usage %{public}" PRIu64 ", width %{public}d, height %{public}d",
         config.usage, config.width, config.height);
-    config.timeout = 0;
+    config.timeout = BUFFER_TIME_OUT; // ms
     return config;
 }
 

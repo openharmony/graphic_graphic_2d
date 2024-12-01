@@ -452,8 +452,19 @@ void RSSurfaceRenderNode::UpdateChildSubSurfaceNodes(RSSurfaceRenderNode::Shared
     }
 }
 
+std::unordered_set<NodeId> RSSurfaceRenderNode::GetAllSubSurfaceNodeIds() const
+{
+    std::unordered_set<NodeId> allSubSurfaceNodeIds;
+    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>> allSubSurfaceNodes;
+    GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    for (auto& [id, _] : allSubSurfaceNodes) {
+        allSubSurfaceNodeIds.insert(id);
+    }
+    return allSubSurfaceNodeIds;
+}
+
 void RSSurfaceRenderNode::GetAllSubSurfaceNodes(
-    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes)
+    std::vector<std::pair<NodeId, RSSurfaceRenderNode::WeakPtr>>& allSubSurfaceNodes) const
 {
     for (auto& [id, node] : childSubSurfaceNodes_) {
         auto subSubSurfaceNodePtr = node.lock();
@@ -1225,7 +1236,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
     }
 
     if (isRefresh_) {
-        ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderThread", GetId());
+        ROSEN_LOGD("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderThread", GetId());
         RSRTRefreshCallback::Instance().ExecuteRefresh();
     }
     if (isTextureExportNode) {
@@ -1235,7 +1246,7 @@ void RSSurfaceRenderNode::NotifyRTBufferAvailable(bool isTextureExportNode)
     {
         std::lock_guard<std::mutex> lock(mutexRT_);
         if (callbackFromRT_) {
-            ROSEN_LOGI("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderService",
+            ROSEN_LOGD("RSSurfaceRenderNode::NotifyRTBufferAvailable nodeId = %{public}" PRIu64 " RenderService",
                 GetId());
             callbackFromRT_->OnBufferAvailable();
         }
@@ -2281,6 +2292,15 @@ void RSSurfaceRenderNode::UpdateChildHardwareEnabledNode(NodeId id, bool isOnTre
     if (isOnTree) {
         needCollectHwcNode_ = true;
     } else {
+        childHardwareEnabledNodes_.erase(std::remove_if(childHardwareEnabledNodes_.begin(),
+            childHardwareEnabledNodes_.end(),
+            [&id](std::weak_ptr<RSSurfaceRenderNode> item) {
+                std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr = item.lock();
+                if (!hwcNodePtr) {
+                    return false;
+                }
+                return hwcNodePtr->GetId() == id;
+            }), childHardwareEnabledNodes_.end());
     }
 }
 
@@ -2764,6 +2784,8 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->visibleFilterChild_ = GetVisibleFilterChild();
     surfaceParams->isTransparent_ = IsTransparent();
     surfaceParams->leashPersistentId_ = leashPersistentId_;
+    surfaceParams->hasSubSurfaceNodes_ = HasSubSurfaceNodes();
+    surfaceParams->allSubSurfaceNodeIds_ = GetAllSubSurfaceNodeIds();
     surfaceParams->SetNeedSync(true);
 
     RSRenderNode::UpdateRenderParams();

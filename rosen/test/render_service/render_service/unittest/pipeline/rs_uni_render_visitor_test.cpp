@@ -3939,6 +3939,10 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByTransparent001, TestSiz
     rsSurfaceRenderNode->SetAbilityBGAlpha(0);
     rsSurfaceRenderNode->SetSrcRect(DEFAULT_RECT);
     rsSurfaceRenderNode->GetDirtyManager()->MergeDirtyRect(DEFAULT_RECT);
+    Occlusion::Region visibleRegion{DEFAULT_RECT};
+    rsSurfaceRenderNode->SetVisibleRegion(visibleRegion);
+    auto dirtyRect = rsSurfaceRenderNode->GetDirtyManager()->GetCurrentFrameDirtyRegion();
+    ASSERT_TRUE(rsSurfaceRenderNode->GetVisibleRegion().IsIntersectWith(dirtyRect));
     rsSurfaceRenderNode->oldDirtyInSurface_ = DEFAULT_RECT;
 
     rsUniRenderVisitor->CheckMergeDisplayDirtyByTransparent(*rsSurfaceRenderNode);

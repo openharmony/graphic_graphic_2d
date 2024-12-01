@@ -17,6 +17,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_image_cache.h"
 #include "recording/cmd_list_helper.h"
 #include "recording/draw_cmd_list.h"
 #include "rs_trace.h"
@@ -121,6 +122,13 @@ void RSExtendImageObject::SetPaint(Drawing::Paint paint)
     }
 }
 
+void RSExtendImageObject::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
+    }
+}
+
 void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect& rect,
     const Drawing::SamplingOptions& sampling, bool isBackground)
 {
@@ -192,7 +200,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            if (GetRsImageCache(canvas, pixelMap,
+                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -228,6 +237,34 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
     if (RSPixelMapUtil::IsYUVFormat(pixelMap)) {
         rsImage_->MarkYUVImage();
     }
+}
+#endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RSExtendImageObject::GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+    SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
+{
+    if (pixelMap == nullptr) {
+        return false;
+    }
+    std::shared_ptr<Drawing::Image> imageCache = nullptr;
+    if (!pixelMap->IsEditable()) {
+        imageCache = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(
+            rsImage_->GetUniqueId(), gettid());
+    }
+    if (imageCache) {
+        this->image_ = imageCache;
+    } else {
+        bool ret = MakeFromTextureForVK(
+            canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace);
+        if (ret && image_ && !pixelMap->IsEditable()) {
+            SKResourceManager::Instance().HoldResource(image_);
+            RSImageCache::Instance().CacheRenderDrawingImageByPixelMapId(
+                rsImage_->GetUniqueId(), image_, gettid());
+        }
+        return ret;
+    }
+    return true;
 }
 #endif
 
@@ -420,6 +457,13 @@ void RSExtendImageBaseObj::SetNodeId(NodeId id)
 {
     if (rsImage_) {
         rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageBaseObj::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
     }
 }
 
@@ -651,12 +695,13 @@ void DrawFuncOpItem::Playback(Canvas* canvas, const Rect* rect)
 UNMARSHALLING_REGISTER(DrawSurfaceBuffer, DrawOpItem::SURFACEBUFFER_OPITEM,
     DrawSurfaceBufferOpItem::Unmarshalling, sizeof(DrawSurfaceBufferOpItem::ConstructorHandle));
 
-DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(const DrawCmdList& cmdList,
-    DrawSurfaceBufferOpItem::ConstructorHandle* handle)
+DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
+    const DrawCmdList& cmdList, DrawSurfaceBufferOpItem::ConstructorHandle* handle)
     : DrawWithPaintOpItem(cmdList, handle->paintHandle, SURFACEBUFFER_OPITEM),
-      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.offSetX_, handle->surfaceBufferInfo.offSetY_,
-                         handle->surfaceBufferInfo.width_, handle->surfaceBufferInfo.height_,
-                         handle->surfaceBufferInfo.pid_, handle->surfaceBufferInfo.uid_)
+      surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.dstRect_.GetLeft(),
+          handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
+          handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
+          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.srcRect_)
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     surfaceBufferInfo_.surfaceBuffer_ = surfaceBufferEntry->surfaceBuffer_;
@@ -681,11 +726,10 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     GenerateHandleFromPaint(cmdList, paint_, paintHandle);
     std::shared_ptr<SurfaceBufferEntry> surfaceBufferEntry =
         std::make_shared<SurfaceBufferEntry>(surfaceBufferInfo_.surfaceBuffer_, surfaceBufferInfo_.acquireFence_);
-    cmdList.AddOp<ConstructorHandle>(
-        CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
-        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_,
-        surfaceBufferInfo_.pid_, surfaceBufferInfo_.uid_, paintHandle);
+    cmdList.AddOp<ConstructorHandle>(CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
+        surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
+        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
+        surfaceBufferInfo_.uid_, surfaceBufferInfo_.srcRect_, paintHandle);
 }
 
 namespace {
@@ -805,11 +849,7 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImageRect(*image, Rect{
-        surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_,
-        surfaceBufferInfo_.offSetX_ + surfaceBufferInfo_.width_,
-        surfaceBufferInfo_.offSetY_ + surfaceBufferInfo_.height_},
-        Drawing::SamplingOptions());
+    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, surfaceBufferInfo_.dstRect_, Drawing::SamplingOptions());
 #endif
 }
 
@@ -829,11 +869,11 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
 
     GrBackendTexture backendTexture(
-        surfaceBufferInfo_.width_, surfaceBufferInfo_.height_, GrMipMapped::kNo, textureInfo);
+        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), GrMipMapped::kNo, textureInfo);
 
     Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(surfaceBufferInfo_.width_);
-    externalTextureInfo.SetHeight(surfaceBufferInfo_.height_);
+    externalTextureInfo.SetWidth(surfaceBufferInfo_.dstRect_.GetWidth());
+    externalTextureInfo.SetHeight(surfaceBufferInfo_.dstRect_.GetHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
@@ -854,7 +894,8 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImage(*newImage, surfaceBufferInfo_.offSetX_, surfaceBufferInfo_.offSetY_, Drawing::SamplingOptions());
+    canvas->DrawImage(*newImage, surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
+        Drawing::SamplingOptions());
 #endif // RS_ENABLE_GL
 }
 

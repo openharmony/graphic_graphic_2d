@@ -110,7 +110,7 @@ bool MemAllocator::Resize(size_t size)
 
 void* MemAllocator::Add(const void* data, size_t size)
 {
-    if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX) {
+    if (isReadOnly_ || !data || size == 0 || size > MEM_SIZE_MAX || size > MEM_SIZE_MAX - size_) {
         return nullptr;
     }
     auto current = startPtr_ + size_;

@@ -99,5 +99,23 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask003, TestSize.Level1)
     EXPECT_EQ(count, 1);
     EXPECT_GE(std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(), 1000);
 }
+
+/*
+ * @tc.name: DetectMultiThreadingCalls
+ * @tc.desc: Test DetectMultiThreadingCalls
+ * @tc.type: FUNC
+ * @tc.require:IB3MVN
+ */
+HWTEST_F(HgmTaskHandleThreadTest, DetectMultiThreadingCalls, TestSize.Level1)
+{
+    HgmTaskHandleThread& instance = HgmTaskHandleThread::Instance();
+    instance.DetectMultiThreadingCalls();
+    EXPECT_NE(instance.curThreadId_, -1);
+    int32_t curThreadId = instance.curThreadId_;
+    instance.DetectMultiThreadingCalls();
+    EXPECT_EQ(curThreadId, instance.curThreadId_);
+    std::thread([&instance]() { instance.DetectMultiThreadingCalls(); }).join();
+    EXPECT_NE(curThreadId, instance.curThreadId_);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -227,7 +227,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-    const RectI& globalDirtyRegion)
+    const Occlusion::Region& globalDirtyRegion)
 {
     // Set Surface Global Dirty Region
     for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
@@ -486,10 +486,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceParams->GetScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceParams->SetScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -539,10 +536,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceNodeParams->GetScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceNodeParams->SetScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -720,17 +714,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& surface = layer->GetSurface();
     if (surface == nullptr) {
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) != GSERROR_OK) {
-        scalingMode = layer->GetScalingMode();
-    }
-
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -1406,13 +1396,8 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetScalingMode();
-        if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetScalingMode(scalingMode);
-        }
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
             srcRect.left_ = srcRect.left_ * scale;
             srcRect.top_ = srcRect.top_ * scale;
@@ -1596,18 +1581,14 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
 
 void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
-    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
     const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (nodeParams == nullptr || surface == nullptr || buffer == nullptr) {
-        RS_LOGE("nodeParams or surface or buffer is nullptr");
+    if (surface == nullptr || buffer == nullptr) {
+        RS_LOGE("surface or buffer is nullptr");
         return;
     }
 
-    ScalingMode scalingMode = nodeParams->GetScalingMode();
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {

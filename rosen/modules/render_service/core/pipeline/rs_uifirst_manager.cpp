@@ -1465,12 +1465,20 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     if (rootId == INVALID_NODEID) {
         /* uifirst will not draw with no firstlevel node, and there's no need to check and wait for uifirst onDraw */
-        RS_LOGW("node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
+        RS_LOGW("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
         return true;
     }
 
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
-    if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+    if (!uifirstRootNodeDrawable) {
+        // drawable may release when node off tree
+        // uifirst will not draw with null uifirstRootNodeDrawable
+        RS_LOGW("uifirstnode %{public}" PRIu64 " uifirstroot %{public}" PRIu64 " nullptr", params.GetId(), rootId);
+        return true;
+    }
+
+    if (UNLIKELY(uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE)) {
+        RS_LOGE("uifirst invalid uifirstrootNodeId %{public}" PRIu64, rootId);
         return false;
     }
     auto uifirstRootSurfaceNodeDrawable =
@@ -1509,6 +1517,13 @@ bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSRenderPara
         return true;
     }
     return false;
+}
+
+bool RSUifirstManager::IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node)
+{
+    return RSUifirstManager::Instance().IsRecentTaskScene() &&
+        (node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()) ||
+        node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -36,6 +36,7 @@ namespace Rosen {
 namespace Drawing {
 using CmdListData = std::pair<const void*, size_t>;
 using NodeId = uint64_t;
+constexpr size_t MAX_OPITEMSIZE = 170000;
 
 class DRAWING_API ExtendImageObject {
 public:
@@ -44,6 +45,7 @@ public:
         const SamplingOptions& sampling, bool isBackground = false) = 0;
     virtual void SetNodeId(NodeId id) {};
     virtual void SetPaint(Paint paint) {};
+    virtual void Purge() {};
 };
 
 class DRAWING_API ExtendImageBaseObj {
@@ -52,6 +54,7 @@ public:
     virtual void Playback(Canvas& canvas, const Rect& rect, const SamplingOptions& sampling,
         SrcRectConstraint constraint = SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT) = 0;
     virtual void SetNodeId(NodeId id) {};
+    virtual void Purge() {};
 };
 
 class DRAWING_API ExtendDrawFuncObj {

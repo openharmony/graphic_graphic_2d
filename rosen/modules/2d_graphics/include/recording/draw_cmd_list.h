@@ -131,7 +131,7 @@ public:
      * @brief   Unmarshalling Draw Ops from contiguous buffers to vector
      *          it is only called by Unmarshalling-Thread, the mode should be set to DEFERRED when create.
      */
-    void UnmarshallingDrawOps();
+    void UnmarshallingDrawOps(uint32_t* opItemCount = nullptr);
 
     /**
      * @brief   Draw cmd is empty or not.
@@ -191,6 +191,10 @@ public:
     size_t CountTextBlobNum();
 
     void Dump(std::string& out);
+
+    void Purge();
+
+    void SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct);
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);
@@ -213,6 +217,7 @@ private:
     bool isCached_ = false;
     bool cachedHighContrast_ = false;
     uint32_t performanceCaculateOpType_ = 0;
+    bool isNeedUnmarshalOnDestruct_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

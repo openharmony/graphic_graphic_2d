@@ -167,7 +167,6 @@ constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
-constexpr uint32_t WAIT_FOR_MEM_MGR_SERVICE = 100;
 constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
@@ -181,7 +180,6 @@ constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
-constexpr const char* MEM_MGR = "MemMgr";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
@@ -547,6 +545,18 @@ void RSMainThread::Init()
     Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
         RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
 
+    RSSurfaceBufferCallbackManager::Instance().SetRunPolicy([](auto task) {
+        RSHardwareThread::Instance().PostTask(task);
+    });
+    RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
+        .requestNextVsync = []() {
+            RSMainThread::Instance()->RequestNextVSync();
+        },
+        .isRequestedNextVSync = []() {
+            return RSMainThread::Instance()->IsRequestedNextVSync();
+        },
+    });
+
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_, WATCHDOG_TIMEVAL);
@@ -829,10 +839,12 @@ void RSMainThread::ProcessCommand()
         case RSContext::PurgeType::GENTLY:
             isUniRender_ ? RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, false) :
                 ClearMemoryCache(context_->clearMoment_, false);
+                isNeedResetClearMemoryTask_ = true;
             break;
         case RSContext::PurgeType::STRONGLY:
             isUniRender_ ? RSUniRenderThread::Instance().ClearMemoryCache(context_->clearMoment_, true) :
                 ClearMemoryCache(context_->clearMoment_, true);
+                isNeedResetClearMemoryTask_ = true;
             break;
         default:
             break;
@@ -1146,7 +1158,9 @@ void RSMainThread::ProcessCommandForUniRender()
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
     RS_TRACE_NAME("RSMainThread::ProcessCommandUni" + transactionFlags);
-    transactionFlags_ = transactionFlags;
+    if (transactionFlags != "") {
+        transactionFlags_ = transactionFlags;
+    }
     for (auto& rsTransactionElem: *transactionDataEffective) {
         for (auto& rsTransaction: rsTransactionElem.second) {
             if (rsTransaction) {
@@ -1244,7 +1258,7 @@ void RSMainThread::ProcessSyncTransactionCount(std::unique_ptr<RSTransactionData
             subSyncTransactionCounts_.erase(parentPid);
         }
     }
-    ROSEN_LOGD("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
+    ROSEN_LOGI("RSMainThread::ProcessSyncTransactionCount isNeedCloseSync:%{public}d syncId:%{public}" PRIu64 ""
                " parentPid:%{public}d syncNum:%{public}d subSyncTransactionCounts_.size:%{public}zd",
         rsTransactionData->IsNeedCloseSync(), rsTransactionData->GetSyncId(), parentPid,
         rsTransactionData->GetSyncTransactionNum(), subSyncTransactionCounts_.size());
@@ -1278,7 +1292,7 @@ void RSMainThread::ProcessSyncRSTransactionData(std::unique_ptr<RSTransactionDat
     ProcessSyncTransactionCount(rsTransactionData);
     syncTransactionData_[pid].emplace_back(std::move(rsTransactionData));
     if (subSyncTransactionCounts_.empty()) {
-        ROSEN_LOGD("SyncTransaction sucess");
+        ROSEN_LOGI("SyncTransaction success");
         ProcessAllSyncTransactionData();
     }
 }
@@ -1352,7 +1366,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->GetName().c_str(), surfaceNode->GetId());
             }
             if (isUniRender_ && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-                RSBaseRenderUtil::SetScalingMode(*surfaceNode);
                 auto buffer = surfaceHandler->GetBuffer();
                 auto preBuffer = surfaceHandler->GetPreBuffer();
                 surfaceNode->UpdateBufferInfo(buffer,
@@ -1921,7 +1934,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     bool needTraverseNodeTree = true;
     needDrawFrame_ = true;
-    RSUniRenderThread::Instance().PostTask([] { RSUniRenderThread::Instance().ResetClearMemoryTask(); });
     if (doDirectComposition_ && !isDirty_ && !isAccessibilityConfigChanged_
         && !isCachedSurfaceUpdated_) {
         if (isHardwareEnabledBufferUpdated_) {
@@ -1947,6 +1959,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids));
+        });
         RSUifirstManager::Instance().ProcessForceUpdateNode();
         doDirectComposition_ = false;
         uniVisitor->SetAnimateState(doWindowAnimate_);
@@ -2145,6 +2160,7 @@ void RSMainThread::Render()
         CheckSystemSceneStatus();
         PerfForBlurIfNeeded();
     }
+    RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
     UpdateLuminance();
 }
 
@@ -2160,6 +2176,13 @@ void RSMainThread::OnUniRenderDraw()
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
         drawFrame_.PostAndWait();
         return;
+    }
+    // To remove ClearMemoryTask for first frame of doDirectComposition or if needed
+    if ((doDirectComposition_ && !isLastFrameDirectComposition_) || isNeedResetClearMemoryTask_ || !needDrawFrame_) {
+        RSUniRenderThread::Instance().PostTask([ids = context_->GetMutableNodeMap().GetAndClearPurgeableNodeIds()] {
+            RSUniRenderThread::Instance().ResetClearMemoryTask(std::move(ids), true);
+        });
+        isNeedResetClearMemoryTask_ = false;
     }
 
     UpdateDisplayNodeScreenId();
@@ -3356,6 +3379,7 @@ void RSMainThread::ClearTransactionDataPidInfo(pid_t remotePid)
         if (!IsResidentProcess(remotePid)) {
             if (isUniRender_) {
                 RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true, remotePid);
+                isNeedResetClearMemoryTask_ = true;
             } else {
                 ClearMemoryCache(ClearMemoryMoment::PROCESS_EXIT, true);
             }
@@ -3753,16 +3777,14 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
 
 bool RSMainThread::IsHardwareEnabledNodesNeedSync()
 {
-    if (!doDirectComposition_) {
-        return false;
-    }
-
     bool needSync = false;
     for (const auto& node : hardwareEnabledNodes_) {
-        if (node == nullptr || node->IsHardwareForcedDisabled()) {
-            continue;
+        if (node != nullptr && ((!doDirectComposition_ && node->GetStagingRenderParams() != nullptr &&
+            node->GetStagingRenderParams()->NeedSync()) ||
+            (doDirectComposition_ && !node->IsHardwareForcedDisabled()))) {
+            needSync = true;
+            break;
         }
-        needSync = true;
     }
     RS_TRACE_NAME_FMT("%s %u", __func__, needSync);
     RS_LOGD("%{public}s %{public}u", __func__, needSync);
@@ -4016,7 +4038,7 @@ void RSMainThread::GetAppMemoryInMB(float& cpuMemSize, float& gpuMemSize)
 
 void RSMainThread::SubscribeAppState()
 {
-    PostTask(
+    RSBackgroundThread::Instance().PostTask(
         [this]() {
             rsAppStateListener_ = std::make_shared<RSAppStateListener>();
             if (Memory::MemMgrClient::GetInstance().SubscribeAppState(*rsAppStateListener_) != -1) {
@@ -4032,8 +4054,7 @@ void RSMainThread::SubscribeAppState()
                     RS_LOGE("Subscribe Failed 10 times, exiting");
                 }
             }
-        },
-        MEM_MGR, WAIT_FOR_MEM_MGR_SERVICE);
+        });
 }
 
 void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
@@ -4047,6 +4068,7 @@ void RSMainThread::HandleOnTrim(Memory::SystemMemoryLevel level)
                     case Memory::SystemMemoryLevel::MEMORY_LEVEL_CRITICAL:
                         if (isUniRender_) {
                             RSUniRenderThread::Instance().ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
+                            isNeedResetClearMemoryTask_ = true;
                         } else {
                             ClearMemoryCache(ClearMemoryMoment::LOW_MEMORY, true);
                         }

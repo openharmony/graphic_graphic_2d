@@ -277,6 +277,7 @@ enum class MultiThreadCacheType : uint8_t {
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+    XCOM,
 };
 
 enum class SurfaceWindowType : uint8_t {
@@ -326,6 +327,7 @@ enum class RSSurfaceNodeAbilityState : uint8_t {
 constexpr int64_t NS_TO_S = 1000000000;
 constexpr int64_t NS_PER_MS = 1000000;
 constexpr uint32_t SIZE_UPPER_LIMIT = 1000;
+constexpr uint32_t PARTICLE_EMMITER_UPPER_LIMIT = 2000;
 constexpr uint32_t PARTICLE_UPPER_LIMIT = 1000000;
 
 #if defined(M_PI)

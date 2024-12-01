@@ -134,7 +134,7 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
 int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
 {
     int64_t expectedEnd = 0;
-    if (now < period_ || now > INT64_MAX - period_) {
+    if (period_ < 0 || now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
         return 0;

@@ -48,12 +48,12 @@ std::shared_ptr<RSRenderNodeDrawable> RSRenderNodeDrawableTest::CreateDrawable()
 }
 
 /**
- * @tc.name: CreateRenderNodeDrawableTest
+ * @tc.name: CreateRenderNodeForTextureExportSwitchDrawableTest
  * @tc.desc: Test If RenderNodeDrawable Can Be Created
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSRenderNodeDrawableTest, CreateRenderNodeDrawable, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, CreateRenderNodeForTextureExportSwitchDrawable, TestSize.Level1)
 {
     NodeId id = 1;
     auto renderNode = std::make_shared<RSRenderNode>(id);

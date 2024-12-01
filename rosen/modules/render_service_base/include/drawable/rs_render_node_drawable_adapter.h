@@ -19,6 +19,7 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
@@ -96,7 +97,8 @@ enum class DrawSkipType : uint8_t {
     RENDER_SKIP_IF_SCREEN_OFF = 25,
     HARD_CURSOR_ENAbLED = 26,
     CHECK_MATCH_AND_WAIT_NOTIFY_FAIL = 27,
-    DEAL_WITH_CACHED_WINDOW = 28
+    DEAL_WITH_CACHED_WINDOW = 28,
+    MULTI_ACCESS = 29,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -119,6 +121,8 @@ public:
 
     static SharedPtr OnGenerate(const std::shared_ptr<const RSRenderNode>& node);
     static SharedPtr GetDrawableById(NodeId id);
+    static std::vector<RSRenderNodeDrawableAdapter::SharedPtr> GetDrawableVectorById(
+        const std::unordered_set<NodeId>& ids);
     static SharedPtr OnGenerateShadowDrawable(
         const std::shared_ptr<const RSRenderNode>& node, const std::shared_ptr<RSRenderNodeDrawableAdapter>& drawable);
 
@@ -210,12 +214,30 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
+    virtual void Purge()
+    {
+        if (purgeFunc_) {
+            purgeFunc_();
+        }
+    }
+    
     void SetDrawSkipType(DrawSkipType type) {
         drawSkipType_ = type;
     }
 
     DrawSkipType GetDrawSkipType() {
         return drawSkipType_;
+    }
+
+    inline bool DrawableTryLockForDraw()
+    {
+        bool expected = false;
+        return isOnDraw_.compare_exchange_strong(expected, true);
+    }
+
+    inline void DrawableResetLock()
+    {
+        isOnDraw_.store(false);
     }
 
 protected:
@@ -227,7 +249,7 @@ protected:
 
     // Draw functions
     void DrawAll(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
-    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
+    void DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     void DrawBackground(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawContent(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
@@ -277,6 +299,7 @@ protected:
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
+    std::function<void()> purgeFunc_;
 #ifdef ROSEN_OHOS
     static thread_local RSRenderNodeDrawableAdapter* curDrawingCacheRoot_;
 #else
@@ -302,6 +325,8 @@ private:
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
+    std::atomic<bool> isOnDraw_ = false;
+
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSDisplayRenderNode;
     friend class OHOS::Rosen::RSSurfaceRenderNode;
@@ -310,6 +335,37 @@ private:
     friend class RSRenderNodeDrawable;
 };
 
+ 
+// RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.
+class RSB_EXPORT RSRenderNodeSingleDrawableLocker {
+public:
+    RSRenderNodeSingleDrawableLocker() = delete;
+    inline RSRenderNodeSingleDrawableLocker(RSRenderNodeDrawableAdapter* drawable)
+        : drawable_(drawable), locked_(LIKELY(drawable != nullptr) && drawable->DrawableTryLockForDraw())
+    {}
+    inline ~RSRenderNodeSingleDrawableLocker()
+    {
+        if (LIKELY(locked_)) {
+            drawable_->DrawableResetLock();
+        }
+    }
+    inline bool IsLocked() const
+    {
+        return locked_;
+    }
+    struct MultiAccessReportInfo {
+        bool drawableNotNull = false;
+        bool paramNotNull = false;
+        RSRenderNodeType nodeType = RSRenderNodeType::UNKNOW;
+        NodeId nodeId = INVALID_NODEID;
+        NodeId uifirstRootNodeId = INVALID_NODEID;
+        NodeId firstLevelNodeId = INVALID_NODEID;
+    };
+    void DrawableOnDrawMultiAccessEventReport(const std::string& func) const;
+private:
+    RSRenderNodeDrawableAdapter* drawable_;
+    const bool locked_;
+};
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_ADAPTER_H

@@ -69,6 +69,14 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSCanvasRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     if (LIKELY(isDrawingCacheEnabled_)) {
         BeforeDrawCache(nodeCacheType_, canvas, *params, isOpincDropNodeExt_);
         if (!drawBlurForCache_) {
@@ -97,6 +105,13 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
     // To be deleted after captureWindow being deleted
     if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && EnableRecordingOptimization(*params)) {
+        return;
+    }
+
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSCanvasRenderNodeDrawable::OnCapture node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
 

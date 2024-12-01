@@ -199,6 +199,19 @@ HWTEST_F(RSImageBaseTest, GetPixelMapTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PurgeTest
+ * @tc.desc: Verify function Purge
+ * @tc.type:FUNC
+ * @tc.require: issueI9I9D1
+ */
+HWTEST_F(RSImageBaseTest, PurgeTest, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    imageBase->Purge();
+}
+
+/**
  * @tc.name: SetDmaImageTest
  * @tc.desc: Verify function SetDmaImage
  * @tc.type:FUNC

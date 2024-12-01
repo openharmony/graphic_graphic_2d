@@ -45,15 +45,14 @@ class VulkanCleanupHelper;
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr)
-        : surfaceBuffer_(surfaceBuffer), offSetX_(offSetX), offSetY_(offSetY), width_(width), height_(height),
-          pid_(pid), uid_(uid), acquireFence_(acquireFence)
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr, Drawing::Rect srcRect = {})
+        : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
+          dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
+          acquireFence_(acquireFence)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
-    int offSetX_ = 0;
-    int offSetY_ = 0;
-    int width_ = 0;
-    int height_ = 0;
+    Drawing::Rect srcRect_;
+    Drawing::Rect dstRect_;
     pid_t pid_ = {};
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
@@ -77,9 +76,12 @@ public:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     bool MakeFromTextureForVK(Drawing::Canvas& canvas, SurfaceBuffer *surfaceBuffer,
         const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+    bool GetRsImageCache(Drawing::Canvas& canvas, const std::shared_ptr<Media::PixelMap>& pixelMap,
+        SurfaceBuffer *surfaceBuffer, const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
 #endif
     void SetNodeId(NodeId id) override;
     void SetPaint(Drawing::Paint paint) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImage> rsImage_;
 private:
@@ -112,6 +114,7 @@ public:
     bool Marshalling(Parcel &parcel) const;
     static RSExtendImageBaseObj *Unmarshalling(Parcel &parcel);
     void SetNodeId(NodeId id) override;
+    void Purge() override;
 protected:
     std::shared_ptr<RSImageBase> rsImage_;
 };
@@ -176,6 +179,12 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     std::shared_ptr<ExtendImageObject> objectHandle_;
@@ -203,6 +212,12 @@ public:
     void Marshalling(DrawCmdList& cmdList) override;
     void Playback(Canvas* canvas, const Rect* rect) override;
     void SetNodeId(NodeId id) override;
+    void Purge() override
+    {
+        if (objectHandle_) {
+            objectHandle_->Purge();
+        }
+    }
 private:
     SamplingOptions sampling_;
     SrcRectConstraint constraint_;
@@ -232,11 +247,12 @@ private:
 class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
-        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height,
-            pid_t pid, uint64_t uid, const PaintHandle& paintHandle)
+        ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
+            uint64_t uid, Drawing::Rect srcRect, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-            surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr),
-            paintHandle(paintHandle) {}
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, srcRect),
+              paintHandle(paintHandle)
+        {}
         ~ConstructorHandle() override = default;
         uint32_t surfaceBufferId;
         DrawingSurfaceBufferInfo surfaceBufferInfo;

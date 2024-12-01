@@ -62,6 +62,13 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
 }
 

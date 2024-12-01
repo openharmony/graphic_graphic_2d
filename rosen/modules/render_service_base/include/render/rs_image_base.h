@@ -59,12 +59,21 @@ public:
     void UpdateNodeIdToPicture(NodeId nodeId);
     void MarkRenderServiceImage();
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
+    uint64_t GetUniqueId() const;
 #ifdef ROSEN_OHOS
     virtual bool Marshalling(Parcel& parcel) const;
     [[nodiscard]] static RSImageBase* Unmarshalling(Parcel& parcel);
 #endif
 
     void ConvertPixelMapToDrawingImage(bool parallelUpload = false);
+
+    void Purge();
+    enum class CanPurgeFlag : int8_t {
+        UNINITED = -1,
+        DISABLED = 0,
+        ENABLED = 1,
+    };
+    CanPurgeFlag canPurgeShareMemFlag_ = CanPurgeFlag::UNINITED;
 
 protected:
     void GenUniqueId(uint32_t id);

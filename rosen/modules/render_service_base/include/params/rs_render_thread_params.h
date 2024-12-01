@@ -19,9 +19,11 @@
 #include <memory>
 #include <vector>
 #include "common/rs_occlusion_region.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
 struct CaptureParam {
@@ -377,6 +379,35 @@ public:
     {
         return isAceDebugBoundaryEnabled_;
     }
+    const ScreenInfo& GetScreenInfo() const
+    {
+        return screenInfo_;
+    }
+
+    void SetScreenInfo(const ScreenInfo& info)
+    {
+        screenInfo_ = info;
+    }
+
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    RSDisplayRenderNode::CompositeType GetCompositeType() const
+    {
+        return compositeType_;
+    }
+
+    void SetCompositeType(RSDisplayRenderNode::CompositeType type)
+    {
+        compositeType_ = type;
+    }
 
 private:
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
@@ -426,12 +457,15 @@ private:
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
     bool isAceDebugBoundaryEnabled_ = false;
+    RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMirrorScreen_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
     bool isSecurityExemption_ = false;
+    ScreenInfo screenInfo_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

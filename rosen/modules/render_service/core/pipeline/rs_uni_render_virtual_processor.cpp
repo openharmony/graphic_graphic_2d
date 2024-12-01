@@ -356,7 +356,6 @@ void RSUniRenderVirtualProcessor::ScaleMirrorIfNeed(const ScreenRotation angle, 
         return;
     }
 
-    canvas.Clear(SK_ColorBLACK);
     if (scaleMode_ == ScreenScaleMode::FILL_MODE) {
         Fill(canvas, mirroredScreenWidth_, mirroredScreenHeight_, virtualScreenWidth_, virtualScreenHeight_);
     } else if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
@@ -473,6 +472,22 @@ void RSUniRenderVirtualProcessor::UniScale(RSPaintFilterCanvas& canvas,
         }
         canvas.Translate(startX, startY);
         canvas.Scale(mirrorScaleX_, mirrorScaleY_);
+    }
+}
+
+void RSUniRenderVirtualProcessor::CanvasClipRegionForUniscaleMode()
+{
+    if (canvas_ == nullptr) {
+        RS_LOGE("RSUniRenderVirtualProcessor::CanvasClipRegion: Canvas is null!");
+        return;
+    }
+    if (scaleMode_ == ScreenScaleMode::UNISCALE_MODE) {
+        Drawing::Rect rect(0, 0, mirroredScreenWidth_, mirroredScreenHeight_);
+        canvas_->GetTotalMatrix().MapRect(rect, rect);
+        Drawing::RectI rectI = {rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()};
+        Drawing::Region clipRegion;
+        clipRegion.SetRect(rectI);
+        canvas_->ClipRegion(clipRegion);
     }
 }
 

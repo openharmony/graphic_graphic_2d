@@ -1149,4 +1149,15 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrame, TestSize.Level1)
     res = displayDrawable_->SkipFrame(1, 2);
     ASSERT_FALSE(res);
 }
+
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDraw, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
+}
 }

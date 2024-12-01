@@ -239,6 +239,9 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(ROSEN_IOS))
+    surface_ = Drawing::Surface::MakeRaster(info);
+#else
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
@@ -262,6 +265,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
             return true;
         }
     }
+#endif
 #else
     surface_ = Drawing::Surface::MakeRaster(info);
 #endif
