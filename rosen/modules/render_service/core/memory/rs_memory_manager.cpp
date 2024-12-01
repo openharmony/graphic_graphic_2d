@@ -591,6 +591,7 @@ void MemoryManager::InitMemoryLimit()
 void MemoryManager::SetGpuMemoryLimit(Drawing::GPUContext* gpuContext)
 {
     if (gpuContext == nullptr || gpuMemoryControl_ == UINT64_MAX) {
+        RS_LOGW("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr or gpuMemoryControl_ is uninitialized");
         return;
     }
     gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl_);
