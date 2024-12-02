@@ -400,6 +400,21 @@ HWTEST_F(RSUifirstManagerTest, CheckVisibleDirtyRegionIsEmpty003, TestSize.Level
 }
 
 /**
+ * @tc.name: SyncHDRDisplayParam
+ * @tc.desc: Test SyncHDRDisplayParam
+ * @tc.type: FUNC
+ * @tc.require: #IB8HZA
+ */
+HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    ASSERT_NE(surfaceDrawable, nullptr);
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable);
+}
+/**
  * @tc.name: ProcessTreeStateChange
  * @tc.desc: Test ProcessTreeStateChange, early return case
  * @tc.type: FUNC
@@ -731,6 +746,12 @@ HWTEST_F(RSUifirstManagerTest, UpdateSkipSyncNode001, TestSize.Level1)
     EXPECT_FALSE(uifirstManager_.mainThread_);
     uifirstManager_.mainThread_ = mainThread_;
     EXPECT_TRUE(uifirstManager_.mainThread_);
+
+    NodeId nodeId = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto pid = ExtractPid(nodeId);
+    mainThread_->GetContext().GetMutableNodeMap().renderNodeMap_[pid][nodeId] = surfaceNode;
+    uifirstManager_.UpdateSkipSyncNode();
 
     uifirstManager_.subthreadProcessingNode_.clear();
     uifirstManager_.UpdateSkipSyncNode();
@@ -1375,14 +1396,17 @@ HWTEST_F(RSUifirstManagerTest, DoPurgePendingPostNodes001, TestSize.Level1)
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingNode;
     NodeId nodeId = 1;
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(nodeId);
+    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
     pendingNode.insert(std::make_pair(nodeId, surfaceRenderNode));
     uifirstManager_.subthreadProcessingNode_.clear();
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
     uifirstManager_.DoPurgePendingPostNodes(pendingNode);
     EXPECT_FALSE(pendingNode.empty());
 
     nodeId = 2;
     auto node = std::make_shared<RSSurfaceRenderNode>(nodeId);
-    auto adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+    adapter = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
     surfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::ARKTS_CARD;
     uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(nodeId, adapter));
