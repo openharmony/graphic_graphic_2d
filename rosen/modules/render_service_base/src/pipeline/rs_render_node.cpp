@@ -487,7 +487,7 @@ bool RSRenderNode::IsCrossNode() const
     }
 
     const auto& property = GetRenderProperties();
-    auto surfaceRect = RectI{
+    const auto surfaceRect = RectI{
         property.GetBoundsPositionX(),
         property.GetBoundsPositionY(),
         property.GetBoundsWidth(),
@@ -514,7 +514,7 @@ bool RSRenderNode::IsCrossNode() const
                 displayRenderNode->GetDisplayOffsetY(),
                 displayProperty.GetBoundsWidth(),
                 displayProperty.GetBoundsHeight()
-            }
+            };
 
             if (surfaceRect.Intersect(displayRect)) {
                 intersectCount++;
