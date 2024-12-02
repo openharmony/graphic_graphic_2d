@@ -2769,6 +2769,26 @@ void RSRenderServiceConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtainS
     }
 }
 
+void RSRenderServiceConnectionProxy::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return;
+    }
+    if (!data.WriteInt32Vector(pidList)) {
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::DropFrameByPid: Send Request err.");
+        return;
+    }
+}
+
 int32_t RSRenderServiceConnectionProxy::RegisterUIExtensionCallback(
     uint64_t userId, sptr<RSIUIExtensionCallback> callback)
 {

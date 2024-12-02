@@ -294,6 +294,9 @@ public:
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void AddPidNeedDropFrame(std::vector<int32_t> pid);
+    void ClearNeedDropframePidList();
+    bool IsNeedDropFrameByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus();
     bool IsCurtainScreenOn() const;
@@ -700,6 +703,7 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     RsParallelType rsParallelType_;
     bool isCurtainScreenOn_ = false;
+    std::unordered_set<int32_t> surfacePidNeedDropFrame_;
 #ifdef RES_SCHED_ENABLE
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif

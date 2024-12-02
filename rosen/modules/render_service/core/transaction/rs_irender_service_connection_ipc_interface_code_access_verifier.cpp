@@ -129,6 +129,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_CURTAIN_SCREEN_USING_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::DROP_FRAME_BY_PID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::DROP_FRAME_BY_PID");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FOCUS_APP_INFO): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FOCUS_APP_INFO");
             break;

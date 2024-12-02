@@ -441,6 +441,7 @@ void RSMainThread::Init()
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
         RS_LOGI("DoComposition start time:%{public}" PRIu64, curTime_);
         ConsumeAndUpdateAllNodes();
+        ClearNeedDropframePidList();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
         Animate(timestamp_);
@@ -1352,7 +1353,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
         }
         surfaceHandler->ResetCurrentFrameBufferConsumed();
-        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_)) {
+        if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandler, timestamp_,
+            IsNeedDropFrameByPid(surfaceHandler->GetNodeId()))) {
             if (!isUniRender_) {
                 this->dividedRenderbufferTimestamps_[surfaceNode->GetId()] =
                     static_cast<uint64_t>(surfaceHandler->GetTimestamp());
@@ -4100,6 +4102,24 @@ void RSMainThread::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     SetDirtyFlag();
     RequestNextVSync();
     RS_LOGD("RSMainThread::SetCurtainScreenUsingStatus %{public}d", isCurtainScreenOn);
+}
+
+void RSMainThread::AddPidNeedDropFrame(std::vector<int32_t> pidList)
+{
+    for (const auto& pid: pidList) {
+        surfacePidNeedDropFrame_.insert(pid);
+    }
+}
+
+void RSMainThread::ClearNeedDropframePidList()
+{
+    surfacePidNeedDropFrame_.clear();
+}
+
+bool RSMainThread::IsNeedDropFrameByPid(NodeId nodeId)
+{
+    int32_t pid = ExtractPid(nodeId);
+    return surfacePidNeedDropFrame_.find(pid) != surfacePidNeedDropFrame_.end();
 }
 
 void RSMainThread::SetLuminanceChangingStatus(bool isLuminanceChanged)
