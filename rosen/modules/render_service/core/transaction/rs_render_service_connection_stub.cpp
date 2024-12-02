@@ -26,6 +26,7 @@
 #include "sys_binder.h"
 
 #include "command/rs_command_factory.h"
+#include "command/rs_command_verify_helper.h"
 #include "common/rs_xcollie.h"
 #include "hgm_frame_rate_manager.h"
 #include "pipeline/rs_base_render_util.h"
@@ -362,6 +363,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!isTokenTypeValid) {
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION invalid token type");
                 return ERR_INVALID_STATE;
+            }
+            if (isNonSystemAppCalling) {
+                RsCommandVerifyHelper::GetInstance().RegisterNonSystemPid(callingPid);
             }
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
