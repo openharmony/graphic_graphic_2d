@@ -308,8 +308,9 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         // 2 period for draw and composition, pipelineOffset = 2 * period
         frameOffset = 2 * period + vsyncOffset;
     } else {
+        vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
-        frameOffset = pipelineOffset + dvsyncOffset;
+        frameOffset = pipelineOffset + vsyncOffset + dvsyncOffset;
     }
     expectCommitTime = static_cast<uint64_t>(param.actualTimestamp +
         static_cast<uint64_t>(frameOffset) - compositionTime - RESERVE_TIME);

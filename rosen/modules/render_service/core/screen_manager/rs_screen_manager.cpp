@@ -396,6 +396,7 @@ void RSScreenManager::OnHwcDeadEvent()
 
 void RSScreenManager::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data)
 {
+    CreateVSyncSampler()->StartSample(true);
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {
         RS_LOGE("RSScreenManager %{public}s: Failed to find RSScreenManager instance.", __func__);
