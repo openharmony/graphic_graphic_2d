@@ -134,8 +134,14 @@ private:
         // Recomputes the boundaries of this box to tightly fit the color within the box.
         void fitBox()
         {
-            uint32_t *colors = colorExtract_->colors_.data();
-            uint32_t *hist = colorExtract_->hist_.data();
+            if (colorExtract_ == nullptr) {
+                return;
+            }
+            uint32_t* colors = colorExtract_->colors_.data();
+            uint32_t* hist = colorExtract_->hist_.data();
+            if (colors == nullptr || hist == nullptr) {
+                return;
+            }
 
             uint32_t minR = UINT32_MAX;
             uint32_t minG = UINT32_MAX;
@@ -262,8 +268,15 @@ private:
         // Return the average color of the box
         std::pair<uint32_t, uint32_t> GetAverageColor()
         {
-            uint32_t *colors = colorExtract_->colors_.data();
-            uint32_t *hist = colorExtract_->hist_.data();
+            uint32_t error_color = 0;
+            if (colorExtract_ == nullptr) {
+                return std::make_pair(error_color, error_color);
+            }
+            uint32_t* colors = colorExtract_->colors_.data();
+            uint32_t* hist = colorExtract_->hist_.data();
+            if (colors == nullptr || hist == nullptr) {
+                return std::make_pair(error_color, error_color);
+            }
             uint32_t redSum = 0;
             uint32_t greenSum = 0;
             uint32_t blueSum = 0;
@@ -277,7 +290,6 @@ private:
                 blueSum += colorPixelNum * QuantizedBlue(color);
             }
             if (totalPixelNum == 0) {
-                uint32_t error_color = 0;
                 return std::make_pair(error_color, error_color);
             }
             uint32_t redMean = round(redSum / (float)totalPixelNum);

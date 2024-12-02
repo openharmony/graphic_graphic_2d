@@ -100,10 +100,11 @@ napi_value EffectNapi::Constructor(napi_env env, napi_callback_info info)
 void EffectNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
     EffectNapi *effectNapi = reinterpret_cast<EffectNapi*>(nativeObject);
- 
-    if (UIEFFECT_NOT_NULL(effectNapi)) {
-        effectNapi->~EffectNapi();
-    }
+    UIEFFECT_NAPI_CHECK_RET_VOID_D(effectNapi != nullptr,
+        UIEFFECT_LOG_E("EffectNapi Destructor nativeObject is nullptr"));
+
+    delete effectNapi;
+    effectNapi = nullptr;
 }
  
 napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)

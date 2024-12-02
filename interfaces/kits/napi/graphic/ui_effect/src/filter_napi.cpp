@@ -49,21 +49,19 @@ thread_local napi_ref FilterNapi::sConstructor_ = nullptr;
 
 napi_value TileModeInit(napi_env env)
 {
-    if (env == nullptr) {
-        FILTER_LOG_E("[NAPI] FilterNapi Engine is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(env != nullptr, nullptr, FILTER_LOG_E("FilterNapi TileModeInit env is nullptr"));
     napi_value object = nullptr;
-    napi_create_object(env, &object);
-    if (object == nullptr) {
-        FILTER_LOG_E("[NAPI] FilterNapi Failed to get object");
-        return nullptr;
-    }
+    napi_status status = napi_create_object(env, &object);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi TileModeInit fail to get object"));
 
-    for (auto& [TileModeName, TileMode] : STRING_TO_JS_MAP) {
+    for (auto& [tileModeName, tileMode] : STRING_TO_JS_MAP) {
         napi_value value = nullptr;
-        napi_create_int32(env, static_cast<int32_t>(TileMode), &value);
-        napi_set_named_property(env, object, TileModeName.c_str(), value);
+        status = napi_create_int32(env, static_cast<int32_t>(tileMode), &value);
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            FILTER_LOG_E("FilterNapi TileModeInit fail to create int32"));
+        status = napi_set_named_property(env, object, tileModeName.c_str(), value);
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            FILTER_LOG_E("FilterNapi TileModeInit fail to set tileModeName"));
     }
     return object;
 }
@@ -102,7 +100,8 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
     UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("define properties fail"));
 
     auto tileModeFormat = TileModeInit(env);
-    napi_set_named_property(env, exports, "TileMode", tileModeFormat);
+    status = napi_set_named_property(env, exports, "TileMode", tileModeFormat);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init set TileMode fail"));
     return exports;
 }
 
@@ -134,10 +133,11 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
 void FilterNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
     FilterNapi *filterNapi = reinterpret_cast<FilterNapi*>(nativeObject);
+    UIEFFECT_NAPI_CHECK_RET_VOID_D(filterNapi != nullptr,
+        FILTER_LOG_E("FilterNapi Destructor nativeObject is nullptr"));
 
-    if (UIEFFECT_NOT_NULL(filterNapi)) {
-        filterNapi->~FilterNapi();
-    }
+    delete filterNapi;
+    filterNapi = nullptr;
 }
 
 napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
@@ -149,8 +149,10 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
     }
 
     napi_value object = nullptr;
-    napi_create_object(env, &object);
-    napi_wrap(
+    napi_status status = napi_create_object(env, &object);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+        FILTER_LOG_E("FilterNapi CreateFilter create object fail"));
+    status = napi_wrap(
         env, object, filterObj,
         [](napi_env env, void* data, void* hint) {
             Filter* filterObj = (Filter*)data;
@@ -158,6 +160,8 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
             filterObj = nullptr;
         },
         nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+        FILTER_LOG_E("FilterNapi CreateFilter wrap fail"));
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("blur", SetBlur),
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
@@ -165,7 +169,9 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
     };
-    NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
+    status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+        FILTER_LOG_E("FilterNapi CreateFilter define properties fail"));
     return object;
 }
 

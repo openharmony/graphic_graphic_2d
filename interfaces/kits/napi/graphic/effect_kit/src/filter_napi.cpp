@@ -73,6 +73,8 @@ void BuildMsgOnError(napi_env env, const std::unique_ptr<FilterAsyncContext>& ct
 
 static void FilterAsyncCommonComplete(napi_env env, const FilterAsyncContext* ctx, const napi_value& valueParam)
 {
+    EFFECT_NAPI_CHECK_RET_VOID_D(ctx != nullptr,
+        EFFECT_LOG_E("FilterAsyncCommonComplete FilterAsyncContext is nullptr"));
     napi_value result[NUM_2] = {};
     napi_get_undefined(env, &result[NUM_0]);
     napi_get_undefined(env, &result[NUM_1]);
@@ -134,8 +136,9 @@ void FilterNapi::Destructor(napi_env env,
                             void* nativeObject,
                             void* finalize_hint)
 {
-    EFFECT_LOG_D("FilterNapi::Destructor");
-    FilterNapi* obj = static_cast<FilterNapi *>(nativeObject);
+    EFFECT_LOG_D("FilterNapi Destructor");
+    FilterNapi* obj = static_cast<FilterNapi*>(nativeObject);
+    EFFECT_NAPI_CHECK_RET_VOID_D(obj != nullptr, EFFECT_LOG_E("FilterNapi Destructor nativeObject is nullptr"));
 
     std::shared_lock<std::shared_mutex> lock(filterNapiManagerMutex);
     auto manager = filterNapiManager.find(obj);
@@ -262,25 +265,16 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     if (argc == 1) {
         valueType = EffectKitNapiUtils::GetInstance().GetType(env, argv[0]);
     }
-    if (valueType == napi_undefined) {
-        EFFECT_LOG_E("FilterNapi parse input PixelMapNapi fail, the type is napi_undefined");
-        return nullptr;
-    } else if (valueType == napi_object) {
-        Media::PixelMapNapi* tempPixelMap = nullptr;
-        napi_unwrap(env, argv[0], reinterpret_cast<void**>(&tempPixelMap));
-        if (tempPixelMap == nullptr) {
-            EFFECT_LOG_E("Constructor fail when parse input PixelMapNapi, the PixelMap is NULL!");
-            return nullptr;
-        }
-
-        std::shared_ptr<Media::PixelMap> sharPixelPoint = tempPixelMap->GetPixelNapiInner();
-        if (sharPixelPoint == nullptr) {
-            EFFECT_LOG_E("Constructor fail, the srcPixelMap is NULL!");
-            return nullptr;
-        }
-
-        filterNapi->srcPixelMap_ = sharPixelPoint;
-    }
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(valueType == napi_object, nullptr, filterNapi,
+        EFFECT_LOG_E("FilterNapi Constructor parse input PixelMapNapi fail, the type is napi_undefined"));
+    Media::PixelMapNapi* tempPixelMap = nullptr;
+    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&tempPixelMap));
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok && tempPixelMap != nullptr, nullptr, filterNapi,
+        EFFECT_LOG_E("FilterNapi Constructor parse input PixelMapNapi fail, the PixelMap is nullptr"));
+    std::shared_ptr<Media::PixelMap> sharPixelPoint = tempPixelMap->GetPixelNapiInner();
+    EFFECT_NAPI_CHECK_RET_DELETE_POINTER(sharPixelPoint != nullptr, nullptr, filterNapi,
+        EFFECT_LOG_E("FilterNapi Constructor fail, the srcPixelMap is nullptr"));
+    filterNapi->srcPixelMap_ = sharPixelPoint;
 
     size_t filterSize = sizeof(FilterNapi);
     auto srcPixelMap = filterNapi->GetSrcPixelMap();
@@ -350,6 +344,8 @@ napi_value FilterNapi::GetPixelMap(napi_env env, napi_callback_info info)
 void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void* data)
 {
     auto ctx = static_cast<FilterAsyncContext*>(data);
+    EFFECT_NAPI_CHECK_RET_VOID_D(ctx != nullptr, EFFECT_LOG_E("FilterNapi GetPixelMapAsyncComplete empty context"));
+
     napi_value value = nullptr;
     if (ctx->dstPixelMap_ == nullptr) {
         ctx->status = ERROR;
@@ -364,6 +360,7 @@ void FilterNapi::GetPixelMapAsyncComplete(napi_env env, napi_status status, void
 void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
 {
     auto ctx = static_cast<FilterAsyncContext*>(data);
+    EFFECT_NAPI_CHECK_RET_VOID_D(ctx != nullptr, EFFECT_LOG_E("FilterNapi GetPixelMapAsyncExecute empty context"));
 
     bool managerFlag = false;
     {
@@ -392,9 +389,12 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
 
 static void GetPixelMapAsyncErrorComplete(napi_env env, napi_status status, void* data)
 {
+    auto ctx = static_cast<FilterAsyncContext*>(data);
+    EFFECT_NAPI_CHECK_RET_VOID_D(ctx != nullptr,
+        EFFECT_LOG_E("FilterNapi GetPixelMapAsyncErrorComplete empty context"));
+
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
-    auto ctx = static_cast<FilterAsyncContext*>(data);
     ctx->status = ERROR;
     FilterAsyncCommonComplete(env, ctx, result);
 }
