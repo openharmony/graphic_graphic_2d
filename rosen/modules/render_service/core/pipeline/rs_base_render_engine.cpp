@@ -606,9 +606,10 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         RS_OPTIONAL_TRACE_END();
         return;
     }
-    if (params.isHdrRedraw || RSUniRenderThread::GetCaptureParam().isSnapshot_ ||
-        RSUniRenderThread::GetCaptureParam().isMirror_) {
-        parameter.disableHeadRoom = true;
+    if (params.isHdrRedraw) {
+        parameter.disableHdrFloatHeadRoom = true;
+    } else if (RSUniRenderThread::GetCaptureParam().isSnapshot_ || RSUniRenderThread::GetCaptureParam().isMirror_) {
+        parameter.tmoNits = parameter.sdrNits;
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
