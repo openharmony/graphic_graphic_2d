@@ -61,14 +61,14 @@ uint32_t CacheData::CrcGen(const uint8_t *buffer, const size_t bufferSize)
 bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
 {
     if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
-        LOGD("abandon, because of mismatched RS_CACHE_MAGIC_HEAD");
+        LOGE("abandon, because of mismatched RS_CACHE_MAGIC_HEAD");
         return false;
     }
 
     uint32_t* storedCrc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
     uint32_t computedCrc = CrcGen(buffer + RS_CACHE_HEAD_LEN, bufferSize - RS_CACHE_HEAD_LEN);
     if (computedCrc != *storedCrc) {
-        LOGD("abandon, because of mismatched crc code");
+        LOGE("abandon, because of mismatched crc code");
         DumpAbnormalCacheToFile(buffer, bufferSize);
         return false;
     }
@@ -79,7 +79,7 @@ bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
 void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
 {
     if (cacheDir_.length() <= 0) {
-        LOGD("dump abnormal cache failed, because of empty filename");
+        LOGE("dump abnormal cache failed, because of empty filename");
         return;
     }
     std::string abnormalCacheDir = cacheDir_ + "_abnormal";
@@ -87,13 +87,13 @@ void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
     if (fd == ERR_NUMBER) {
         if (errno == EEXIST) {
             if (unlink(abnormalCacheDir.c_str()) == ERR_NUMBER) {
-                LOGD("dump abnormal cache failed, because unlinking the existing file fails");
+                LOGE("dump abnormal cache failed, because unlinking the existing file fails");
                 return;
             }
             fd = open(abnormalCacheDir.c_str(), O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
         }
         if (fd == ERR_NUMBER) {
-            LOGD("dump abnormal cache failed, because the file creation fails");
+            LOGE("dump abnormal cache failed, because the file creation fails");
             return;
         }
     }
@@ -102,14 +102,14 @@ void CacheData::DumpAbnormalCacheToFile(uint8_t *buffer, size_t bufferSize)
     char timestamp[TIME_MAX_LEN] = {0};
     std::strftime(timestamp, TIME_MAX_LEN, "%Y-%m-%d %H:%M:%S", std::localtime(&curTime));
     if (write(fd, timestamp, TIME_MAX_LEN) == ERR_NUMBER) {
-        LOGD("dump abnormal cache failed, because fail to write timestamp to disk");
+        LOGE("dump abnormal cache failed, because fail to write timestamp to disk");
         close(fd);
         unlink(abnormalCacheDir.c_str());
         return;
     }
 
     if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
-        LOGD("dump abnormal cache failed, because fail to write data to disk");
+        LOGE("dump abnormal cache failed, because fail to write data to disk");
         close(fd);
         unlink(abnormalCacheDir.c_str());
         return;
@@ -146,8 +146,8 @@ void CacheData::CacheReadFromFile(const std::string filePath)
     }
 
     size_t fileSize = static_cast<size_t>(statBuf.st_size);
-    if (fileSize == 0 || fileSize > maxTotalSize_ * maxMultipleSize_ + RS_CACHE_HEAD_LEN) {
-        LOGD("abandon, illegal file size");
+    if (fileSize < RS_CACHE_HEAD_LEN || fileSize > maxTotalSize_ * maxMultipleSize_ + RS_CACHE_HEAD_LEN) {
+        LOGE("abandon, illegal file size");
         close(fd);
         return;
     }
@@ -159,7 +159,7 @@ void CacheData::CacheReadFromFile(const std::string filePath)
     }
 
     if (!IsValidFile(buffer, fileSize)) {
-        LOGD("abandon, invalid file");
+        LOGE("abandon, invalid file");
         munmap(buffer, fileSize);
         close(fd);
         return;
@@ -167,7 +167,7 @@ void CacheData::CacheReadFromFile(const std::string filePath)
 
     uint8_t *shaderBuffer = reinterpret_cast<uint8_t*>(buffer + RS_CACHE_HEAD_LEN);
     if (DeSerialize(shaderBuffer, fileSize - RS_CACHE_HEAD_LEN) < 0) {
-        LOGD("abandon, because fail to read file contents");
+        LOGE("abandon, because fail to read file contents");
     }
     munmap(buffer, fileSize);
     close(fd);
