@@ -47,9 +47,21 @@ bool RegisterTypefaceCallback()
     return true;
 }
 
+class TypefaceAutoRegister {
+public:
+    TypefaceAutoRegister() {
+        RegisterTypefaceCallback();
+    }
+
+    ~TypefaceAutoRegister() {
+        Drawing::Typeface::RegisterCallBackFunc(nullptr);
+        Drawing::Typeface::UnRegisterCallBackFunc(nullptr);
+    }
+};
+
 #ifndef ARKUI_X_ENABLE
 // Prohibiting resigter the callback function in advance when arkui-x use custom's font
-bool g_typefaceAutoRegister = RegisterTypefaceCallback();
+TypefaceAutoRegister g_typefaceAutoRegister;
 #endif
 }
 
