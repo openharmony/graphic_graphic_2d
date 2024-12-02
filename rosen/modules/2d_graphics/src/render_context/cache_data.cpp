@@ -40,7 +40,7 @@ CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
 
 CacheData::~CacheData() {}
 
-uint32_t CacheData::CrcGen(const uint8_t *buffer, const size_t bufferSize)
+uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
 {
     const uint32_t polynoimal = 0xEDB88320;
     uint32_t crc = 0xFFFFFFFF;
