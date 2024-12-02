@@ -58,7 +58,7 @@ namespace {
         "VOTER_MUTIPHYSICALSCREEN",
         "VOTER_MULTISELFOWNEDSCREEN",
         "VOTER_POWER_MODE",
-        "VOTER_DISPLAY_ENGIN",
+        "VOTER_DISPLAY_ENGINE",
         "VOTER_GAMES",
         "VOTER_ANCO",
 
