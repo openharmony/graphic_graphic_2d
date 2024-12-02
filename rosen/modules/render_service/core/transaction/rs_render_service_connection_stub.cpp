@@ -347,7 +347,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     auto accessible = securityManager_.IsInterfaceCodeAccessible(code);
     if (!accessible && code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC) &&
-        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO)) {
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)) {
         RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission code:%{public}d", code);
         return ERR_INVALID_STATE;
     }
@@ -999,6 +1001,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER): {
             NodeId id = data.ReadUint64();
+            if (!accessible && (ExtractPid(id) != callingPid)) {
+                RS_LOGW("The SetBufferAvailableListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
+                    id, callingPid);
+                break;
+            }
             RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             bool isFromRenderThread = data.ReadBool();
@@ -1016,6 +1023,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER): {
             NodeId id = data.ReadUint64();
+            if (!accessible && (ExtractPid(id) != callingPid)) {
+                RS_LOGW("The SetBufferClearListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
+                    id, callingPid);
+                break;
+            }
             RS_PROFILER_PATCH_NODE_ID(data, id);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
