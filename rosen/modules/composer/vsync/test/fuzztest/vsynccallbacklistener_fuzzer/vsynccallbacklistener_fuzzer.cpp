@@ -86,7 +86,6 @@ namespace OHOS {
         sptr<Rosen::VSyncReceiver> vsyncReceiver = new Rosen::VSyncReceiver(
             vsyncConnection, nullptr, eventHandler, "FuzzTest");
         vsyncReceiver->listener_->OnReadable(vsyncReceiver->fd_);
-        vsyncReceiver->Init();
         if (fileDescriptor >= 0 && fileDescriptor <= 2) { // 0, 1, 2 not allowed
             fileDescriptor = vsyncReceiver->fd_;
         }
