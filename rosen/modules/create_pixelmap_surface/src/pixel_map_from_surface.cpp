@@ -373,6 +373,9 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
 {
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace1(__func__);
+    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+        return false;
+    }
     Drawing::BackendTexture backendTextureTmp = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
         nativeWindowBufferTmp, surfaceBufferTmp->GetWidth(), surfaceBufferTmp->GetHeight());
     if (!backendTextureTmp.IsValid()) {
@@ -386,9 +389,6 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
     auto cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
         vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     if (cleanUpHelper == nullptr) {
-        return false;
-    }
-    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
         return false;
     }
     std::shared_ptr<Drawing::Surface> drawingSurface = Drawing::Surface::MakeFromBackendTexture(
