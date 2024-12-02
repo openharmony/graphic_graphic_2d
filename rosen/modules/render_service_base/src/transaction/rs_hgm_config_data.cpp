@@ -30,13 +30,10 @@ RSHgmConfigData::~RSHgmConfigData() noexcept
 RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSHgmConfigData();
-    if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_)) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read failed");
-        return data;
-    }
     uint32_t size;
-    if (!parcel.readUint32(size)) {
-        RS_LOGE("RSHgmConfigData Unmarshalling read size failed");
+    if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_) ||
+        !parcel.ReadUint32(size)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read failed");
         return data;
     }
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
