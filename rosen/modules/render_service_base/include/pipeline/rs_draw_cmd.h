@@ -32,6 +32,7 @@
 
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #include "surface_buffer.h"
+#include "surface_type.h"
 #include "sync_fence.h"
 #include "external_window.h"
 #endif
@@ -45,10 +46,12 @@ namespace Rosen {
 struct DrawingSurfaceBufferInfo {
     DrawingSurfaceBufferInfo() = default;
     DrawingSurfaceBufferInfo(const sptr<SurfaceBuffer>& surfaceBuffer, int offSetX, int offSetY, int width, int height,
-        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr, Drawing::Rect srcRect = {})
+        pid_t pid = {}, uint64_t uid = {}, sptr<SyncFence> acquireFence = nullptr,
+        GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+        Drawing::Rect srcRect = {})
         : surfaceBuffer_(surfaceBuffer), srcRect_(srcRect),
           dstRect_(Drawing::Rect { offSetX, offSetY, offSetX + width, offSetY + height }), pid_(pid), uid_(uid),
-          acquireFence_(acquireFence)
+          acquireFence_(acquireFence), transform_(transform)
     {}
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     Drawing::Rect srcRect_;
@@ -56,6 +59,7 @@ struct DrawingSurfaceBufferInfo {
     pid_t pid_ = {};
     uint64_t uid_ = {};
     sptr<SyncFence> acquireFence_ = nullptr;
+    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 };
 #endif
 
@@ -271,9 +275,9 @@ class DrawSurfaceBufferOpItem : public DrawWithPaintOpItem {
 public:
     struct ConstructorHandle : public OpItem {
         ConstructorHandle(uint32_t surfaceBufferId, int offSetX, int offSetY, int width, int height, pid_t pid,
-            uint64_t uid, Drawing::Rect srcRect, const PaintHandle& paintHandle)
+            uint64_t uid, GraphicTransformType transform, Drawing::Rect srcRect, const PaintHandle& paintHandle)
             : OpItem(DrawOpItem::SURFACEBUFFER_OPITEM), surfaceBufferId(surfaceBufferId),
-              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, srcRect),
+              surfaceBufferInfo(nullptr, offSetX, offSetY, width, height, pid, uid, nullptr, transform, srcRect),
               paintHandle(paintHandle)
         {}
         ~ConstructorHandle() override = default;
@@ -295,20 +299,24 @@ public:
     RSB_EXPORT static void RegisterGetRootNodeIdFuncForRT(std::function<NodeId()> func);
     RSB_EXPORT static void SetIsUniRender(bool isUniRender);
 private:
-    void OnDestruct();
     void OnAfterAcquireBuffer();
+    void OnBeforeDraw();
     void OnAfterDraw();
+    void OnDestruct();
     void ReleaseBuffer();
     void Clear();
+    void DealWithRotate(Canvas* canvas);
     void Draw(Canvas* canvas);
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
     Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+    static GraphicTransformType MapGraphicTransformType(GraphicTransformType origin);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
     NodeId rootNodeId_ = INVALID_NODEID;
     sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     bool isRendered_ = false;
+    bool isNeedRotateDstRect_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

@@ -735,7 +735,8 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
       surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.dstRect_.GetLeft(),
           handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
           handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
-          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.srcRect_)
+          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.transform_,
+          handle->surfaceBufferInfo.srcRect_)
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
@@ -765,7 +766,7 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     cmdList.AddOp<ConstructorHandle>(CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
         surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
         surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
-        surfaceBufferInfo_.uid_, surfaceBufferInfo_.srcRect_, paintHandle);
+        surfaceBufferInfo_.uid_, surfaceBufferInfo_.transform_, surfaceBufferInfo_.srcRect_, paintHandle);
 }
 
 namespace {
@@ -783,6 +784,20 @@ void DrawSurfaceBufferOpItem::OnDestruct()
 void DrawSurfaceBufferOpItem::SetIsUniRender(bool isUniRender)
 {
     contextIsUniRender = isUniRender;
+}
+
+void DrawSurfaceBufferOpItem::OnBeforeDraw()
+{
+    switch (MapGraphicTransformType(surfaceBufferInfo_.transform_)) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90 :
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_ROTATE_270 : {
+            isNeedRotateDstRect_ = true;
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void DrawSurfaceBufferOpItem::OnAfterDraw()
@@ -883,6 +898,7 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 #endif
     canvas->AttachPaint(paint_);
+    DealWithRotate(canvas);
     Draw(canvas);
 }
 
@@ -907,8 +923,46 @@ void DrawSurfaceBufferOpItem::Clear()
 #endif
 }
 
+void DrawSurfaceBufferOpItem::DealWithRotate(Canvas* canvas)
+{
+    // The first step rotates the center of the buffer by the corresponding
+    // number of degrees, and in the second step we translate according to
+    // the relative coordinates.
+    // The purpose of our translation is to align the 'upper left corner'
+    // of the relative coordinates to ensure that after rotating the buffer,
+    // the buffer can be drawn in the correct viewport.
+    auto halfW = surfaceBufferInfo_.dstRect_.GetWidth() / 2.f;
+    auto halfH = surfaceBufferInfo_.dstRect_.GetHeight() / 2.f;
+    auto halfWHDiff = halfW - halfH;
+    switch (MapGraphicTransformType(surfaceBufferInfo_.transform_)) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90 : {
+            canvas->Rotate(-90,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_0) + halfW,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_1) + halfH);
+            canvas->Translate(halfWHDiff, -halfWHDiff);
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_180 : {
+            canvas->Rotate(-180,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_0) + halfW,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_1) + halfH);
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_270 : {
+            canvas->Rotate(-270,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_0) + halfW,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_1) + halfH);
+            canvas->Translate(halfWHDiff, -halfWHDiff);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 {
+    OnBeforeDraw();
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         DrawWithVulkan(canvas);
@@ -961,7 +1015,15 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, surfaceBufferInfo_.dstRect_, Drawing::SamplingOptions());
+    auto rotatedRect = surfaceBufferInfo_.dstRect_;
+    if (isNeedRotateDstRect_) {
+        auto width = rotatedRect.GetWidth();
+        auto height = rotatedRect.GetHeight();
+        std::swap(width, height);
+        rotatedRect.SetRight(rotatedRect.GetLeft() + width);
+        rotatedRect.SetBottom(rotatedRect.GetTop() + height);
+    }
+    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, rotatedRect, Drawing::SamplingOptions());
 #endif
 }
 
@@ -980,14 +1042,22 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     if (!CreateEglTextureId()) {
         return;
     }
+    auto rotatedRect = surfaceBufferInfo_.dstRect_;
+    if (isNeedRotateDstRect_) {
+        auto width = rotatedRect.GetWidth();
+        auto height = rotatedRect.GetHeight();
+        std::swap(width, height);
+        rotatedRect.SetRight(rotatedRect.GetLeft() + width);
+        rotatedRect.SetBottom(rotatedRect.GetTop() + height);
+    }
     GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
 
     GrBackendTexture backendTexture(
-        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), GrMipMapped::kNo, textureInfo);
+        rotatedRect.GetWidth(), rotatedRect.GetHeight(), GrMipMapped::kNo, textureInfo);
 
     Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(surfaceBufferInfo_.dstRect_.GetWidth());
-    externalTextureInfo.SetHeight(surfaceBufferInfo_.dstRect_.GetHeight());
+    externalTextureInfo.SetWidth(rotatedRect.GetWidth());
+    externalTextureInfo.SetHeight(rotatedRect.GetHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
@@ -1008,9 +1078,34 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImage(*newImage, surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
-        Drawing::SamplingOptions());
+    canvas->DrawImage(*newImage, rotatedRect.GetLeft(), rotatedRect.GetTop(), Drawing::SamplingOptions());
 #endif // RS_ENABLE_GL
+}
+
+GraphicTransformType DrawSurfaceBufferOpItem::MapGraphicTransformType(GraphicTransformType origin)
+{
+    GraphicTransformType rotation;
+    switch (origin) {
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_90;
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_180;
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_270;
+            break;
+        default:
+            rotation = origin;
+            break;
+    }
+    return rotation;
 }
 
 bool DrawSurfaceBufferOpItem::CreateEglTextureId()
@@ -1065,6 +1160,7 @@ void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
     out += " height:" + std::to_string(surfaceBufferInfo_.dstRect_.GetHeight());
     out += " offSetX:" + std::to_string(surfaceBufferInfo_.dstRect_.GetLeft());
     out += " offSetY:" + std::to_string(surfaceBufferInfo_.dstRect_.GetTop());
+    out += " transform: " + std::to_string(surfaceBufferInfo_.transform_);
     out += "]";
 #ifdef RS_ENABLE_GL
     out += " texId:" + std::to_string(texId_);
