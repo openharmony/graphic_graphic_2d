@@ -160,6 +160,9 @@ bool RSDirtyRectsDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
 {
     if (rotation != ScreenRotation::ROTATION_0) {
         auto screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            return false;
+        }
         auto mainScreenInfo = screenManager->QueryScreenInfo(screenId);
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas.Rotate(-90, 0, 0); // 90 degree for text draw
