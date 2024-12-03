@@ -91,6 +91,62 @@ void RSUniRenderVisitorTest::TearDown()
 }
 
 /**
+ * @tc.name: ProcessFilterNodeObscured
+ * @tc.desc: Test ProcessFilterNodeObscured
+ * @tc.type: FUNC
+ * @tc.require: issueIB787L
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
+    ASSERT_NE(filter, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    NodeId id = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    surfaceNode->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    Occlusion::Region extendRegion;
+    Occlusion::Region region{ Occlusion::Rect{ 0, 0, 100, 100 } };
+    surfaceNode->SetVisibleRegion(region);
+    surfaceNode->GetDirtyManager()->SetCurrentFrameDirtyRect({ 0, 0, 100, 100 });
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    auto filterNode1 = std::make_shared<RSCanvasRenderNode>(++id);
+    auto filterNode2 = std::make_shared<RSCanvasRenderNode>(++id);
+    auto filterNode3 = std::make_shared<RSCanvasRenderNode>(++id);
+    auto filterNode4 = std::make_shared<RSCanvasRenderNode>(++id);
+    ASSERT_NE(filterNode1, nullptr);
+    ASSERT_NE(filterNode2, nullptr);
+    ASSERT_NE(filterNode3, nullptr);
+    ASSERT_NE(filterNode4, nullptr);
+    filterNode1->absDrawRect_ = DEFAULT_FILTER_RECT;
+    filterNode3->SetOldDirtyInSurface({ 200, 200, 100, 100 });
+    filterNode4->SetOldDirtyInSurface({ 0, 0, 300, 300 });
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(filterNode1);
+    nodeMap.RegisterRenderNode(filterNode3);
+    nodeMap.RegisterRenderNode(filterNode4);
+    filterNode1->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    filterNode3->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    filterNode4->renderContent_->renderProperties_.SetBackgroundFilter(filter);
+    surfaceNode->visibleFilterChild_.push_back(filterNode1->GetId());
+    surfaceNode->visibleFilterChild_.push_back(filterNode2->GetId());
+    surfaceNode->visibleFilterChild_.push_back(filterNode3->GetId());
+    surfaceNode->visibleFilterChild_.push_back(filterNode4->GetId());
+    surfaceNode->SetAbilityBGAlpha(MAX_ALPHA);
+
+    ASSERT_FALSE(surfaceNode->IsTransparent());
+    rsUniRenderVisitor->ProcessFilterNodeObscured(surfaceNode, extendRegion, nodeMap);
+    nodeMap.UnregisterRenderNode(filterNode1->GetId());
+    nodeMap.UnregisterRenderNode(filterNode3->GetId());
+    nodeMap.UnregisterRenderNode(filterNode4->GetId());
+}
+
+/**
  * @tc.name: AfterUpdateSurfaceDirtyCalc_001
  * @tc.desc: AfterUpdateSurfaceDirtyCalc Test, property.GetBoundsGeometry() is null, expect false
  * @tc.type:FUNC

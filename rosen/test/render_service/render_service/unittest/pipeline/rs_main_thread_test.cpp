@@ -22,6 +22,7 @@
 #include "limit_number.h"
 #include "rs_test_util.h"
 
+#include "command/rs_base_node_command.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
@@ -106,6 +107,38 @@ public:
     {
     }
 };
+
+/**
+ * @tc.name: ProcessCommandForDividedRender
+ * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    int dataIndex = 1;
+    rsTransactionData->SetIndex(dataIndex);
+    int dataPayloadSize = 3;
+    rsTransactionData->payload_.resize(dataPayloadSize);
+    NodeId id = 0;
+    rsTransactionData->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::NONE, std::make_unique<RSBaseNodeAddChild>(0, 1, 3));
+    id = 1;
+    rsTransactionData->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_SELF, nullptr);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    node->SetIsOnTheTree(true, 0, 1, 2);
+    mainThread->ConsumeAndUpdateAllNodes();
+
+    mainThread->ProcessCommandForDividedRender();
+}
 
 /**
  * @tc.name: Start001
