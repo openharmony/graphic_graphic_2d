@@ -1549,12 +1549,9 @@ void RSDisplayRenderNodeDrawable::FindHardCursorNodes(RSDisplayRenderParams& par
         RS_LOGE("RSDisplayRenderNodeDrawable::FindHardCursorNodes surfaceParams is null");
         return;
     }
-    // screenshot is not required
-    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable.drawablePtr);
-        if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
-            params.GetHardwareEnabledTopDrawables().emplace_back(surfaceDrawable);
-        }
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable.drawablePtr);
+    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+        params.GetHardwareEnabledTopDrawables().emplace_back(surfaceDrawable);
     }
 }
 
@@ -1623,9 +1620,12 @@ void RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes(RSDisplayRenderParams
         RS_LOGE("RSDisplayRenderNodeDrawable::FindHardwareEnabledNodes surfaceParams is null");
         return;
     }
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable.drawablePtr);
-    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
-        params.GetHardwareEnabledTopDrawables().emplace_back(surfaceDrawable);
+    // screenshot is not required
+    if (!RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable.drawablePtr);
+        if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
+            params.GetHardwareEnabledTopDrawables().emplace_back(surfaceDrawable);
+        }
     }
 }
 
