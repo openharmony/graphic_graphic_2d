@@ -343,7 +343,7 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
             // 1. Intersect the left border of the screen.
             // map_x = (buffer_width - buffer_right_x)
             if (adaptedSrcRect.x > 0) {
-                adaptedSrcRect.x = 0;
+                adaptedSrcRect.x = buffer->GetSurfaceBufferWidth() - adaptedSrcRect.x - adaptedSrcRect.w;
             } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= static_cast<int32_t>(screenInfo_.width)) {
                 // 2. Intersect the right border of the screen.
                 // map_x = (buffer_width - buffer_right_x)
@@ -357,7 +357,7 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
             // The processing in the vertical direction is similar to that in the horizontal direction.
             if (adaptedSrcRect.y > 0) {
-                adaptedSrcRect.y = 0;
+                adaptedSrcRect.y = buffer->GetSurfaceBufferHeight() - adaptedSrcRect.y - adaptedSrcRect.h;
             } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= static_cast<int32_t>(screenInfo_.height)) {
                 adaptedSrcRect.y =
                     buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;
