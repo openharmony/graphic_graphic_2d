@@ -329,6 +329,62 @@ bool DoDropFrameByPid()
     return true;
 }
 
+bool DoSetCurtainScreenUsingStatus()
+{
+    bool status = GetData<bool>();
+    
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteBool(status)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoSetScreenActiveRect()
+{
+    ScreenId id = GetData<uint64_t>();
+
+    Rect activeRect;
+    activeRect.x = GetData<int32_t>();
+    activeRect.y = GetData<int32_t>();
+    activeRect.w = GetData<int32_t>();
+    activeRect.h = GetData<int32_t>();
+    
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteInt32(activeRect.x) || !dataP.WriteInt32(activeRect.y) ||
+        !dataP.WriteInt32(activeRect.w) || !dataP.WriteInt32(activeRect.h)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -1622,7 +1678,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetBitmap(data, size);
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
-    OHOS::Rosen::DoDropFrameByPid();
     OHOS::Rosen::DoSetScreenPowerStatus(data, size);
     OHOS::Rosen::DoSetHwcNodeBounds(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
@@ -1646,6 +1701,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
+    OHOS::Rosen::DoDropFrameByPid();
+    OHOS::Rosen::DoSetCurtainScreenUsingStatus();
+    OHOS::Rosen::DoSetScreenActiveRect();
     OHOS::Rosen::DoSetVirtualScreenSurface();
     OHOS::Rosen::DoSetVirtualScreenResolution();
     OHOS::Rosen::DoGetVirtualScreenResolution();
