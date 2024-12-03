@@ -335,6 +335,11 @@ bool RSSystemProperties::GetHpsBlurEnabled()
     return false;
 }
 
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
+}
+
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
 {
     return false;

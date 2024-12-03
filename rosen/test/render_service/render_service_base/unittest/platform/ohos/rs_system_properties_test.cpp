@@ -664,6 +664,23 @@ HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetHpsBlurNoiseFactor
+ * @tc.desc: GetHpsBlurNoiseFactor Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHpsBlurNoiseFactor, TestSize.Level1)
+{
+    static bool deviceHpsType = system::GetParameter("const.product.devicetype", "pc") == "pc";
+    float epsilon = 0.001f;
+    if (deviceHpsType) {
+        EXPECT_NEAR(0.f, RSSystemProperties::GetHpsBlurNoiseFactor(), epsilon);
+    } else {
+        ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
+    }
+}
+
+/**
  * @tc.name: GetKawaseRandomColorFactor
  * @tc.desc: GetKawaseRandomColorFactor Test
  * @tc.type:FUNC

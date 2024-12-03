@@ -201,6 +201,7 @@ public:
     static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
+    static float GetHpsBlurNoiseFactor();
     static bool GetHpsBlurEnabled();
     static bool GetMESABlurFuzedEnabled();
     static float GetKawaseRandomColorFactor();

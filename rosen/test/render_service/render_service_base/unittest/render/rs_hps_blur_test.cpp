@@ -74,6 +74,38 @@ HWTEST_F(RSHpsBlurTest, GetShaderTransformTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetMixEffectTest
+ * @tc.desc: Verify function GetMixEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, GetMixEffectTest, TestSize.Level1)
+{
+    auto mixEffect = HpsBlurFilter::GetHpsBlurFilter().GetMixEffect();
+    EXPECT_NE(mixEffect, nullptr);
+}
+
+/**
+ * @tc.name: SetShaderEffectTest
+ * @tc.desc: Verify function SetShaderEffect
+ * @tc.type:FUNC
+ * @tc.require: issuesI9UWCD
+ */
+HWTEST_F(RSHpsBlurTest, SetShaderEffectTest, TestSize.Level1)
+{
+    Drawing::Brush brush;
+
+    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::Matrix blurMatrix;
+    auto imageCache = std::make_shared<Drawing::Image>();
+    const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*imageCache, Drawing::TileMode::CLAMP,
+        Drawing::TileMode::CLAMP, linear, blurMatrix);
+
+    bool res = HpsBlurFilter::GetHpsBlurFilter().SetShaderEffect(brush, blurShader, imageCache);
+    EXPECT_EQ(res, true);
+}
+
+/**
  * @tc.name: ApplyHpsBlurTest001
  * @tc.desc: Verify function ApplyHpsBlur
  * @tc.type:FUNC

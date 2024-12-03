@@ -40,6 +40,9 @@ public:
 private:
     HpsBlurFilter() = default;
     static Drawing::Matrix GetShaderTransform(const Drawing::Rect& blurRect, float scaleW = 1.0f, float scaleH = 1.0f);
+    std::shared_ptr<Drawing::RuntimeEffect> GetMixEffect() const;
+    bool SetShaderEffect(Drawing::Brush& brush, std::shared_ptr<Drawing::ShaderEffect> blurShader,
+        std::shared_ptr<Drawing::Image> imageCache) const;
 };
 } // namespace Rosen
 } // namespace OHOS
