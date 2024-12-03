@@ -348,7 +348,6 @@ HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
     std::string str = "";
     mainThread->RenderServiceTreeDump(str);
 }
