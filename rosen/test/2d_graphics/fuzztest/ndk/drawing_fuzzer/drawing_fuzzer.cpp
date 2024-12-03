@@ -374,8 +374,7 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
         OH_Drawing_GetDrawingArraySize(nullptr);
         OH_Drawing_GetDrawingArraySize(runs);
         OH_Drawing_DestroyRuns(runs);
-        double x = GetObject<double>();
-        double y = GetObject<double>();
+        double x = GetObject<double>(), y = GetObject<double>();
         OH_Drawing_TextLinePaint(nullptr, nullptr, x, y);
         auto canvas = OH_Drawing_CanvasCreate();
         OH_Drawing_TextLinePaint(line, canvas, x, y);
@@ -392,8 +391,7 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
         OH_Drawing_TextLine* truncatedLine =
             OH_Drawing_TextLineCreateTruncatedLine(line, GetObject<double>(), 0, ellipsis);
         OH_Drawing_DestroyTextLine(truncatedLine);
-        double pointX = GetObject<double>();
-        double pointY = GetObject<double>();
+        double pointX = GetObject<double>(), pointY = GetObject<double>();
         OH_Drawing_Point* point = OH_Drawing_PointCreate(pointX, pointY);
         int32_t index = OH_Drawing_TextLineGetStringIndexForPosition(line, point);
         int32_t index1 = OH_Drawing_TextLineGetStringIndexForPosition(nullptr, point);
