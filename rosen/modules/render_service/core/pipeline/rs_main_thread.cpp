@@ -1960,8 +1960,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
     }
-    
-    frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
+
+    postHgmTaskFlag_ |= frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
 
     if (!postHgmTaskFlag_ && HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
         return;

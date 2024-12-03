@@ -50,6 +50,7 @@ namespace {
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
+    constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
@@ -1529,12 +1530,12 @@ void HgmFrameRateManager::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSki
         curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
 }
 
-void HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
+bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp)
 {
     timestamp_ = timestamp;
     if (!voterTouchEffective_ || voterGamesEffective_) {
-        return;
+        return false;
     }
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
     for (auto iter = uiFwkDirtyNodes.begin(); iter != uiFwkDirtyNodes.end();) {
@@ -1549,8 +1550,9 @@ void HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
         }
     }
 
-    if (uiFrameworkDirtyNodeName.empty() && surfaceData_.empty()) {
-        return;
+    if (uiFrameworkDirtyNodeName.empty() && surfaceData_.empty() &&
+        (timestamp - lastPostIdleDetectorTaskTimestamp_) < BUFFER_IDLE_TIME_OUT) {
+        return false;
     }
     HgmTaskHandleThread::Instance().PostTask([this, uiFrameworkDirtyNodeName, timestamp,
                                               surfaceData = surfaceData_] () {
@@ -1566,6 +1568,8 @@ void HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
         }
     });
     surfaceData_.clear();
+    lastPostIdleDetectorTaskTimestamp_ = timestamp;
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS
