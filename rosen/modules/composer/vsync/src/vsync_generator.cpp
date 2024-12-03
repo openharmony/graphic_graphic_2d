@@ -63,7 +63,25 @@ static void SetThreadHighPriority()
     sched_setscheduler(0, SCHED_FIFO, &param);
 }
 
-static uint32_t CalculateRefreshRate(int64_t period)
+static bool IsPcType()
+{
+    static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
+                       (system::GetParameter("const.product.devicetype", "pc") == "2in1");
+    return isPc;
+}
+
+static bool IsPCRefreshRateLock60()
+{
+    static bool isPCRefreshRateLock60 =
+        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "0").c_str()) != 0);
+    return isPCRefreshRateLock60;
+}
+}
+
+std::once_flag VSyncGenerator::createFlag_;
+sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::instance_ = nullptr;
+
+uint32_t CalculateRefreshRate(int64_t period)
 {
     static struct {
         int min;
@@ -83,24 +101,6 @@ static uint32_t CalculateRefreshRate(int64_t period)
     }
     return 0;
 }
-
-static bool IsPcType()
-{
-    static bool isPc = (system::GetParameter("const.product.devicetype", "pc") == "pc") ||
-                       (system::GetParameter("const.product.devicetype", "pc") == "2in1");
-    return isPc;
-}
-
-static bool IsPCRefreshRateLock60()
-{
-    static bool isPCRefreshRateLock60 =
-        (std::atoi(system::GetParameter("persist.pc.refreshrate.lock60", "0").c_str()) != 0);
-    return isPCRefreshRateLock60;
-}
-}
-
-std::once_flag VSyncGenerator::createFlag_;
-sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::instance_ = nullptr;
 
 sptr<OHOS::Rosen::VSyncGenerator> VSyncGenerator::GetInstance() noexcept
 {

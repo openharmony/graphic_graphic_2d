@@ -38,7 +38,7 @@ class ScheduledTask;
 struct RefreshRateParam {
     uint32_t rate = 0;
     uint64_t frameTimestamp = 0;
-    uint64_t actualTimestamp = 0;
+    int64_t actualTimestamp = 0;
     uint64_t vsyncId = 0;
     uint64_t constraintRelativeTime = 0;
     bool isForceRefresh = false;
@@ -77,12 +77,10 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(uint32_t rate);
     void AddRefreshRateCount();
-    bool IsInAdaptiveMode(const OutputPtr &output);
     RefreshRateParam GetRefreshRateParam();
-    bool IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param,
-        const OutputPtr& output, bool hasGameScene);
+    bool IsDelayRequired(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param, bool hasGameScene);
     void CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, RefreshRateParam param, uint32_t currentRate,
-        uint64_t currTime);
+        int64_t currTime);
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
@@ -112,8 +110,7 @@ private:
     std::map<uint32_t, uint64_t> refreshRateCounts_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
     int64_t delayTime_ = 0;
-    uint64_t lastCommitTime_ = 0;
-    bool isLastAdaptive_ = false;
+    int64_t lastCommitTime_ = 0;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

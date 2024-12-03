@@ -483,7 +483,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = sampler_->AddPresentFenceTime(timestamp);
+        startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
         bool presentTimeUpdated = false;
         LayerPtr uniRenderLayer = nullptr;
@@ -651,19 +651,14 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
 
 int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
-    ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
-    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-    if (!forceReSample && alreadyStartSample) {
-        HLOGD("Already Start Sample.");
+    if (sampler_->StartSample(forceReSample) == VSYNC_ERROR_OK) {
         return GRAPHIC_DISPLAY_SUCCESS;
+    } else {
+        return GRAPHIC_DISPLAY_FAILURE;
     }
-    HLOGD("Enable Screen Vsync");
-    sampler_->SetScreenVsyncEnabledInRSMainThread(true);
-    sampler_->BeginSample();
-    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 void HdiOutput::SetPendingMode(int64_t period, int64_t timestamp)

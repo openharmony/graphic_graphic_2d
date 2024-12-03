@@ -289,8 +289,6 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
     } else {
         isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
         EXPECT_EQ(isDelayRequired == false, true);
-
-
         if (hgmCore.IsDelayMode()) {
             hasGameScene = false;
             isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);

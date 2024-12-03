@@ -396,6 +396,8 @@ void RSScreenManager::OnHwcDeadEvent()
 
 void RSScreenManager::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data)
 {
+    RS_LOGE("RSScreenManager::OnScreenVBlankIdle devId:%{public}u, ns:%{public}" PRIu64 "", devId, ns);
+    RS_TRACE_NAME_FMT("OnScreenVBlankIdle devId:%u, ns:%" PRIu64 "", devId, ns);
     CreateVSyncSampler()->StartSample(true);
     RSScreenManager *screenManager = static_cast<RSScreenManager *>(RSScreenManager::GetInstance().GetRefPtr());
     if (screenManager == nullptr) {

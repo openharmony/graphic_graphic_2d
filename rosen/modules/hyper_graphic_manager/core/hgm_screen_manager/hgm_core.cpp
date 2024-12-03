@@ -111,7 +111,7 @@ bool HgmCore::Init()
 
     isInit_.store(true);
     isDelayMode_ = RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType();
-        HGM_LOGI("HgmCore initialization success!!! delayMode: %{public}d", isDelayMode_);
+    HGM_LOGI("HgmCore initialization success!!! delayMode: %{public}d", isDelayMode_);
     return isInit_;
 }
 

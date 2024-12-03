@@ -114,12 +114,12 @@ public:
         return timestamp_;
     }
 
-    void SetActualTimestamp(uint64_t timestamp)
+    void SetActualTimestamp(int64_t timestamp)
     {
         actualTimestamp_ = timestamp;
     }
 
-    uint64_t GetActualTimestamp() const
+    int64_t GetActualTimestamp() const
     {
         return actualTimestamp_;
     }
@@ -414,7 +414,7 @@ private:
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
-    uint64_t actualTimestamp_ = 0;
+    int64_t actualTimestamp_ = 0;
     uint64_t vsyncId_ = 0;
     bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
