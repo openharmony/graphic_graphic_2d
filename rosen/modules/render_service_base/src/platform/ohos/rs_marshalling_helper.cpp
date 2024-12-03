@@ -1466,7 +1466,11 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Medi
 static void CustomFreePixelMap(void* addr, void* context, uint32_t size)
 {
 #ifdef ROSEN_OHOS
-    MemoryTrack::Instance().RemovePictureRecord(context);
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        MemoryTrack::Instance().RemovePictureRecord(addr);
+    } else {
+        MemoryTrack::Instance().RemovePictureRecord(context);
+    }
 #else
     MemoryTrack::Instance().RemovePictureRecord(addr);
 #endif
@@ -1493,12 +1497,19 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         }
         return false;
     }
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        val->CloseFd();
+    }
     MemoryInfo info = {
         val->GetByteCount(), 0, 0, val->GetUniqueId(), MEMORY_TYPE::MEM_PIXELMAP, val->GetAllocatorType(), val
     };
 
 #ifdef ROSEN_OHOS
-    MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
+    } else {
+        MemoryTrack::Instance().AddPictureRecord(val->GetFd(), info);
+    }
 #else
     MemoryTrack::Instance().AddPictureRecord(val->GetPixels(), info);
 #endif
