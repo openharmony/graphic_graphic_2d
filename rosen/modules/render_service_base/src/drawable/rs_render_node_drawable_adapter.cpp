@@ -591,6 +591,9 @@ void RSRenderNodeDrawableAdapter::SetSkipCacheLayer(bool hasSkipCacheLayer)
 
 void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
 {
+    if (drawCmdList_.empty()) {
+        return;
+    }
     if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
         drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
     }
