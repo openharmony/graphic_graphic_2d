@@ -482,7 +482,51 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
 
 bool RSRenderNode::IsCrossNode() const
 {
-    return isCrossNode_;
+    if (!isCrossNode_) {
+        return false;
+    }
+
+    const auto& property = GetRenderProperties();
+    const auto surfaceRect = RectI{
+        property.GetBoundsPositionX(),
+        property.GetBoundsPositionY(),
+        property.GetBoundsWidth(),
+        property.GetBoundsHeight()
+    };
+
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSRenderNode::IsCrossNode: Invalid context");
+        return isCrossNode_;
+    }
+    const auto& nodeMap = context->GetNodeMap();
+    int intersectCount = 0;
+
+    nodeMap.TraverseDisplayNodes(
+        [&intersectCount, &surfaceRect](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode == nullptr) {
+                return;
+            }
+            
+            const auto& displayProperty = displayRenderNode->GetRenderProperties();
+            auto displayRect = RectI{
+                displayRenderNode->GetDisplayOffsetX(),
+                displayRenderNode->GetDisplayOffsetY(),
+                displayProperty.GetBoundsWidth(),
+                displayProperty.GetBoundsHeight()
+            };
+            if (surfaceRect.Intersect(displayRect)) {
+                intersectCount++;
+            }
+
+            ROSEN_LOGD("RSRenderNode::IsCrossNode displayRect={%{public}d, %{public}d, %{public}d, %{public}d}"
+                " surfaceRect={%{public}d, %{public}d, %{public}d, %{public}d}",
+                displayRect.left_, displayRect.top_, displayRect.width_, displayRect.height_,
+                surfaceRect.left_, surfaceRect.top_, surfaceRect.width_, surfaceRect.height_);
+        });
+
+    ROSEN_LOGD("RSRenderNode::IsCrossNode intersectCount=%{public}d", intersectCount);
+    return intersectCount > 1;
 }
 
 void RSRenderNode::IncreaseCrossScreenNum()
