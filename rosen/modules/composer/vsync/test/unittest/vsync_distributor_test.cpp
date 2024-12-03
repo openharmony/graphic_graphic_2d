@@ -337,7 +337,8 @@ HWTEST_F(VSyncDistributorTest, UpdatePendingReferenceTime001, Function | MediumT
 {
     int64_t timeStamp = 0;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->UpdatePendingReferenceTime(timeStamp);
 }
 
@@ -352,7 +353,8 @@ HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Lev
 {
     uint32_t num = 0;
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
+    ASSERT_EQ(res, VSYNC_ERROR_OK);
     VSyncDistributorTest::vsyncDistributor->SetHardwareTaskNum(num);
 }
 
