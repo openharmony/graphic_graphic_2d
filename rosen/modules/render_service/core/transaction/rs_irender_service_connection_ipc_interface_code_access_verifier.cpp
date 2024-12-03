@@ -280,11 +280,11 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
-            hasPermission = CheckPermission(code);
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
-            hasPermission = CheckPermission(code);
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_POWER_STATUS): {
