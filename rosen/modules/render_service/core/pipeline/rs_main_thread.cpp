@@ -265,7 +265,10 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
     auto screenId = ancestorDisplayNodeMap.begin()->first;
 
     if (!isHdrSurface) {
-        surfaceNode.SetBrightnessRatio(RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0));
+        auto& rsLuminance = RSLuminanceControl::Get();
+        surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
+        surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
+        surfaceNode.SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
         return;
     }
 
