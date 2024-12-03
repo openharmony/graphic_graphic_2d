@@ -1962,7 +1962,6 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     }
 
     postHgmTaskFlag_ |= frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
-
     if (!postHgmTaskFlag_ && HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
         return;
     }

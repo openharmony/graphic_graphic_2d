@@ -358,15 +358,17 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     if (!needHighRefresh_) {
         needHighRefresh_ = true;
         if (!idleDetector_.ThirdFrameNeedHighRefresh()) {
-            touchManager_.HandleThirdFrameIdle();
+            DeliverRefreshRateVote({"VOTER_TOUCH"}, REMOVE_VOTE);
+            lastTouchUpExpectFps_ = 0;
             return;
         }
     }
 
-    //Third frame need high refresh vote
+    // Third frame need high refresh vote
     if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleState()) {
-        RS_TRACE_NAME_FMT("UpdateGuaranteedPlanVote:: Surface And Animator Idle, Vote Idle");
-        touchManager_.HandleThirdFrameIdle();
+        RS_TRACE_NAME_FMT("UpdateGuaranteedPlanVote:: Surface And Animator Idle, remove touch vote");
+        DeliverRefreshRateVote({"VOTER_TOUCH"}, REMOVE_VOTE);
+        lastTouchUpExpectFps_ = 0;
     } else {
         int32_t currTouchUpExpectedFPS = idleDetector_.GetTouchUpExpectedFPS();
         if (currTouchUpExpectedFPS == lastTouchUpExpectFps_) {
