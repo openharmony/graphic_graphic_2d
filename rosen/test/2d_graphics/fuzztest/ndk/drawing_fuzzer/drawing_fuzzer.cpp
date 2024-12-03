@@ -374,8 +374,8 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
         OH_Drawing_TextLineGetTextRange(line, &start, &end);
         OH_Drawing_TextLineGetGlyphRuns(nullptr);
         OH_Drawing_Array* runs = OH_Drawing_TextLineGetGlyphRuns(line);
-        OH_Drawing_GetRunByIndex(runs, data[0]);
-        OH_Drawing_GetRunByIndex(nullptr, data[0]);
+        OH_Drawing_GetRunByIndex(runs, GetObject<size_t>());
+        OH_Drawing_GetRunByIndex(nullptr, GetObject<size_t>());
         OH_Drawing_GetDrawingArraySize(nullptr);
         OH_Drawing_GetDrawingArraySize(runs);
         OH_Drawing_DestroyRuns(runs);
@@ -478,7 +478,7 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_TypographyCreate* createHandler =
         OH_Drawing_CreateTypographyHandler(typographStyle, OH_Drawing_CreateFontCollection());
     OH_Drawing_SetTextStyleColor(textStyle, OH_Drawing_ColorSetArgb(alpha, red, gree, blue));
-    OH_Drawing_SetTextStyleFontSize(textStyle, static_cast<float>(data[0]));
+    OH_Drawing_SetTextStyleFontSize(textStyle, GetObject<float>());
     OH_Drawing_SetTextStyleFontWeight(textStyle, FONT_WEIGHT_400);
     OH_Drawing_SetTextStyleBaseLine(textStyle, TEXT_BASELINE_ALPHABETIC);
     const char* fontFamilies[] = { "Roboto" };
