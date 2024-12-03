@@ -641,7 +641,7 @@ std::vector<std::string>& HdiDeviceImpl::GetSupportedLayerPerFrameParameterKey()
 }
 
 int32_t HdiDeviceImpl::SetLayerPerFrameParameter(uint32_t devId, uint32_t layerId, const std::string& key,
-                                                 const std::vector<int8_t>& value)
+    const std::vector<int8_t>& value)
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetLayerPerFrameParameter(devId, layerId, key, value);
