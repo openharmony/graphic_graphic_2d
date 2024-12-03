@@ -232,7 +232,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     RS_LOGI_IF(DEBUG_COMPOSER,
         "RSHardwareThread::CommitAndReleaseData hgmCore's LtpoEnabled is %{public}d", hgmCore.GetLtpoEnabled());
     int64_t currTime = SystemTime();
-    if (IsDelayRequired(hgmCore, param, output, hasGameScene)) {
+    if (IsDelayRequired(hgmCore, param, hasGameScene)) {
         CalculateDelayTime(hgmCore, param, currentRate, currTime);
     }
     // We need to ensure the order of composition frames, postTaskTime(n + 1) must > postTaskTime(n),
@@ -311,8 +311,8 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         frameOffset = pipelineOffset + vsyncOffset + static_cast<int64_t>(dvsyncOffset);
     }
     expectCommitTime = param.actualTimestamp + frameOffset - compositionTime - RESERVE_TIME;
-    int64_t diffTime = expectCommitTie - currTime;
-    if (diffTime > 0 && period > 0) m{
+    int64_t diffTime = expectCommitTime - currTime;
+    if (diffTime > 0 && period > 0) {
         delayTime_ = std::round(diffTime * 1.0f / NS_MS_UNIT_CONVERSION);
     }
     RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \

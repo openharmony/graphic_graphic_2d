@@ -179,7 +179,7 @@ void RSDrawFrame::UnblockMainThread()
 
 void RSDrawFrame::Render()
 {
-    RS_TRACE_NAME_FMT("Render vsyncId: %" PRIU64 "", unirenderInstance_.GetVsyncId());
+    RS_TRACE_NAME_FMT("Render vsyncId: %" PRIu64 "", unirenderInstance_.GetVsyncId());
     unirenderInstance_.Render();
 }
 
