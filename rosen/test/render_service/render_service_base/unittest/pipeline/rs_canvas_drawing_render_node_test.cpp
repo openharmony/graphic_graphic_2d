@@ -630,4 +630,23 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ClearResourceTest, TestSize.Level1)
     auto lists = rsCanvasDrawingRenderNode->GetDrawCmdLists();
     EXPECT_TRUE(lists.empty());
 }
+
+/**
+ * @tc.name: CheckCanvasDrawingPostPlayBacked
+ * @tc.desc: Test CheckCanvasDrawingPostPlayBacked
+ * @tc.type: FUNC
+ * @tc.require: issueIB8OVD
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlayBackedTest, TestSize.Level1)
+{
+    NodeId nodeId = 7;
+    auto rsCanvasDrawingRenderNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsCanvasDrawingRenderNode);
+    if (!drawable) {
+        return;
+    }
+    EXPECT_FALSE(drawable == nullptr);
+    rsCanvasDrawingRenderNode->isPostPlayBacked_ = true;
+    rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlayBacked();
+}
 } // namespace OHOS::Rosen
