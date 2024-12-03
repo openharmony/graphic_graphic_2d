@@ -274,26 +274,23 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
     };
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     bool hasGameScene = true;
-    bool isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
+    bool isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, hasGameScene);
     EXPECT_EQ(isDelayRequired == false, true);
 
     param.isForceRefresh = false;
     bool getLtpoEnabled = hgmCore.GetLtpoEnabled();
-    if (getLtpoEnabled) {
-        isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
-        if (hardwareThread.IsInAdaptiveMode(output)) {
+    if (!getLtpoEnabled) {
+        if (hgmCore.IsDelayMode()) {
+            isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, hasGameScene);
             EXPECT_EQ(isDelayRequired == false, true);
         } else {
-            EXPECT_EQ(isDelayRequired == true, true);
+            isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, hasGameScene);
+            EXPECT_EQ(isDelayRequired == false, true);
         }
     } else {
-        isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
-        EXPECT_EQ(isDelayRequired == false, true);
-        if (hgmCore.IsDelayMode()) {
-            hasGameScene = false;
-            isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, output, hasGameScene);
-            EXPECT_EQ(isDelayRequired == true, true);
-        }
+        param.isForceRefresh = false;
+        isDelayRequired = hardwareThread.IsDelayRequired(hgmCore, param, hasGameScene);
+        EXPECT_EQ(isDelayRequired == true, true);
     }
 }
 
