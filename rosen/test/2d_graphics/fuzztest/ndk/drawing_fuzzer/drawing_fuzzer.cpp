@@ -70,10 +70,10 @@ void NativeDrawingBrushTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t red = static_cast<uint32_t>(data[0]);
-    uint32_t gree = static_cast<uint32_t>(data[1]);
-    uint32_t blue = static_cast<uint32_t>(data[0]);
-    uint32_t alpha = static_cast<uint32_t>(data[1]);
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t gree = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t alpha = GetObject<uint32_t>();
     OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
     OH_Drawing_BrushSetAntiAlias(brush, false);
     OH_Drawing_BrushIsAntiAlias(brush);
@@ -145,10 +145,10 @@ void NativeDrawingCanvasDrawLineTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float x1 = static_cast<float>(data[0]);
-    float y1 = static_cast<float>(data[1]);
-    float x2 = static_cast<float>(data[1]);
-    float y2 = static_cast<float>(data[0]);
+    float x1 = GetObject<float>();
+    float y1 = GetObject<float>();
+    float x2 = GetObject<float>();
+    float y2 = GetObject<float>();
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_CanvasDrawLine(canvas, x1, y1, x2, y2);
     OH_Drawing_CanvasDestroy(canvas);
@@ -232,8 +232,8 @@ void NativeDrawingPathMoveToTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float x = static_cast<float>(data[0]);
-    float y = static_cast<float>(data[1]);
+    float x = GetObject<float>();
+    float y = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, x, y);
     OH_Drawing_PathDestroy(path);
@@ -249,8 +249,8 @@ void NativeDrawingPathLineToTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float x = static_cast<float>(data[0]);
-    float y = static_cast<float>(data[1]);
+    float x = GetObject<float>();
+    float y = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathLineTo(path, x, y);
     OH_Drawing_PathDestroy(path);
@@ -266,8 +266,8 @@ void NativeDrawingPathResetTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float x = static_cast<float>(data[0]);
-    float y = static_cast<float>(data[1]);
+    float x = GetObject<float>();
+    float y = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathMoveTo(path, x, y);
     OH_Drawing_PathReset(path);
@@ -284,12 +284,12 @@ void NativeDrawingPathArcToTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float x1 = static_cast<float>(data[0]);
-    float y1 = static_cast<float>(data[1]);
-    float x2 = static_cast<float>(data[1]);
-    float y2 = static_cast<float>(data[0]);
-    float startDeg = static_cast<float>(data[0]);
-    float sweepDeg = static_cast<float>(data[1]);
+    float x1 = GetObject<float>();
+    float y1 = GetObject<float>();
+    float x2 = GetObject<float>();
+    float y2 = GetObject<float>();
+    float startDeg = GetObject<float>();
+    float sweepDeg = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathArcTo(path, x1, y1, x2, y2, startDeg, sweepDeg);
     OH_Drawing_PathDestroy(path);
@@ -305,10 +305,10 @@ void NativeDrawingPathQuadToTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float ctrlX = static_cast<float>(data[0]);
-    float ctrlY = static_cast<float>(data[1]);
-    float endX = static_cast<float>(data[1]);
-    float endY = static_cast<float>(data[0]);
+    float ctrlX = GetObject<float>();
+    float ctrlY = GetObject<float>();
+    float endX = GetObject<float>();
+    float endY = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathQuadTo(path, ctrlX, ctrlY, endX, endY);
     OH_Drawing_PathDestroy(path);
@@ -324,12 +324,12 @@ void NativeDrawingPathCubicToTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float ctrlX1 = static_cast<float>(data[0]);
-    float ctrlY1 = static_cast<float>(data[1]);
-    float ctrlX2 = static_cast<float>(data[1]);
-    float ctrlY2 = static_cast<float>(data[0]);
-    float endX = static_cast<float>(data[0]);
-    float endY = static_cast<float>(data[1]);
+    float ctrlX1 = GetObject<float>();
+    float ctrlY1 = GetObject<float>();
+    float ctrlX2 = GetObject<float>();
+    float ctrlY2 = GetObject<float>();
+    float endX = GetObject<float>();
+    float endY = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathCubicTo(path, ctrlX1, ctrlY1, ctrlX2, ctrlY2, endX, endY);
     OH_Drawing_PathDestroy(path);
@@ -345,8 +345,8 @@ void NativeDrawingPathCloseTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    float x = static_cast<float>(data[0]);
-    float y = static_cast<float>(data[1]);
+    float x = GetObject<float>();
+    float y = GetObject<float>();
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
     OH_Drawing_PathLineTo(path, x, y);
     OH_Drawing_PathClose(path);
@@ -355,6 +355,14 @@ void NativeDrawingPathCloseTest(const uint8_t* data, size_t size)
 
 void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, size_t size)
 {
+    if (data == nullptr) {
+        return;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     size_t linesSize = OH_Drawing_GetDrawingArraySize(linesArray);
     for (size_t i = 0; i < linesSize; ++i) {
         OH_Drawing_GetTextLineByIndex(nullptr, i);
@@ -414,12 +422,12 @@ void OHDrawTextLineTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t width = static_cast<float>(data[1]);
-    uint32_t red = static_cast<float>(data[1]);
-    uint32_t gree = static_cast<float>(data[1]);
-    uint32_t blue = static_cast<float>(data[0]);
-    uint32_t alpha = static_cast<float>(data[1]);
-    uint32_t fontSize = static_cast<float>(data[0]);
+    uint32_t width = GetObject<uint32_t>();
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t gree = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t alpha = GetObject<uint32_t>();
+    uint32_t fontSize = GetObject<uint32_t>();
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* txtStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TypographyCreate* handler =
@@ -461,10 +469,10 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t red = static_cast<float>(data[1]);
-    uint32_t gree = static_cast<float>(data[1]);
-    uint32_t blue = static_cast<float>(data[1]);
-    uint32_t alpha = static_cast<float>(data[0]);
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t gree = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t alpha = GetObject<uint32_t>();
     OH_Drawing_TypographyStyle* typographStyle = OH_Drawing_CreateTypographyStyle();
     OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
     OH_Drawing_TypographyCreate* createHandler =
@@ -487,13 +495,11 @@ void OHDrawingLineTypographyTest(const uint8_t* data, size_t size)
     if (lineTypography == nullptr) {
         return;
     }
-    for (size_t i = 0; i < size - 1; i++) {
-        double maxWidth = data[i];
-        size_t startIndex = data[++i];
-        auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
-        OH_Drawing_TextLine* line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
-        OH_Drawing_DestroyTextLine(line);
-    }
+    double maxWidth = GetObject<double>();
+    size_t startIndex = GetObject<size_t>();
+    auto count = OH_Drawing_LineTypographyGetLineBreak(lineTypography, startIndex, maxWidth);
+    OH_Drawing_TextLine* line = OH_Drawing_LineTypographyCreateLine(lineTypography, startIndex, count);
+    OH_Drawing_DestroyTextLine(line);
 
     OH_Drawing_DestroyLineTypography(lineTypography);
     OH_Drawing_DestroyTypographyHandler(createHandler);
@@ -511,12 +517,12 @@ void NativeDrawingPenTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    uint32_t red = static_cast<float>(data[0]);
-    uint32_t gree = static_cast<float>(data[0]);
-    uint32_t blue = static_cast<float>(data[0]);
-    uint32_t alpha = static_cast<float>(data[0]);
-    float width = static_cast<float>(data[1]);
-    float miter = static_cast<float>(data[1]);
+    uint32_t red = GetObject<uint32_t>();
+    uint32_t gree = GetObject<uint32_t>();
+    uint32_t blue = GetObject<uint32_t>();
+    uint32_t alpha = GetObject<uint32_t>();
+    float width = GetObject<float>();
+    float miter = GetObject<float>();
     OH_Drawing_Pen* pen = OH_Drawing_PenCreate();
     OH_Drawing_PenSetAntiAlias(pen, true);
     OH_Drawing_PenIsAntiAlias(pen);
