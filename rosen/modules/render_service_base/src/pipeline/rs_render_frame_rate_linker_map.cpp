@@ -60,7 +60,7 @@ bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallbac
 {
     bool success = false;
     for (auto& [id, linker] : frameRateLinkerMap_) {
-        if (ExtractPid(id) == dstPid && linker != nullptr) {
+        if (static_cast<uint32_t>(ExtractPid(id)) == dstPid && linker != nullptr) {
             linker->RegisterExpectedFpsUpdateCallback(listenerPid, callback);
             success = true;
         }
