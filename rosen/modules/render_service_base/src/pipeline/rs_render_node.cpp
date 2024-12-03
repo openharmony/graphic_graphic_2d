@@ -515,7 +515,6 @@ bool RSRenderNode::IsCrossNode() const
                 displayProperty.GetBoundsWidth(),
                 displayProperty.GetBoundsHeight()
             };
-
             if (surfaceRect.Intersect(displayRect)) {
                 intersectCount++;
             }
@@ -527,7 +526,6 @@ bool RSRenderNode::IsCrossNode() const
         });
 
     ROSEN_LOGD("RSRenderNode::IsCrossNode intersectCount=%{public}d", intersectCount);
-
     return intersectCount > 1;
 }
 
