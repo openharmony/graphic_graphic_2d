@@ -156,6 +156,11 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
 
     // 1.0 move path
     path.Offset(locate.GetX(), locate.GetY());
+    if (symbolData.symbolInfo_.renderGroups.empty()) {
+        TEXT_LOGD("The symbolLayerGroups is empty!");
+        canvas->DrawPath(path);
+        return;
+    }
 
     // 2.0 split path
     std::vector<RSPath> paths;
@@ -172,9 +177,6 @@ void HMSymbolRun::OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolDat
     // draw path
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
     TEXT_LOGD("RenderGroup size %{public}d", static_cast<int>(groups.size()));
-    if (groups.empty()) {
-        canvas->DrawPath(path);
-    }
     RSColor color;
     for (auto group : groups) {
         RSPath multPath;
