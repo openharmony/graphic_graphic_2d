@@ -338,6 +338,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
+        MemoryManager::SetGpuMemoryLimit(gpuContext.get());
         return gpuContext;
     }
 #endif
