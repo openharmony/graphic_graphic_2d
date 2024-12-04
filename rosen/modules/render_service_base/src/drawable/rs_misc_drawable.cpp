@@ -540,8 +540,7 @@ Drawing::RecordingCanvas::DrawFunc RSCustomClipToFrameDrawable::CreateDrawFunc()
 {
     auto ptr = std::static_pointer_cast<const RSCustomClipToFrameDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        paintFilterCanvas->ClipRect(ptr->customClipRect_);
+        canvas->ClipRect(ptr->customClipRect_);
     };
 }
 
