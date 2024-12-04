@@ -345,6 +345,7 @@ private:
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
+    bool vmaCacheOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
