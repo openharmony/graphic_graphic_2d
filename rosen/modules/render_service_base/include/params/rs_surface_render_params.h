@@ -549,6 +549,20 @@ public:
     {
         return crossNodeSkippedDisplayOffsets_;
     }
+
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+    {
+        if (ROSEN_EQ(apiCompatibleVersion_, apiCompatibleVersion)) {
+            return;
+        }
+        apiCompatibleVersion_ = apiCompatibleVersion;
+        needSync_ = true;
+    }
+    uint32_t GetApiCompatibleVersion() const
+    {
+        return apiCompatibleVersion_;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -650,6 +664,9 @@ private:
     std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
     std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
     Vector2<int32_t> preparedDisplayOffset_ = { 0, 0 };
+
+    uint32_t apiCompatibleVersion_ = 0;
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

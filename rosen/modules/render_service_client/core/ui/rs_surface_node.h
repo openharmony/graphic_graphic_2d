@@ -199,6 +199,8 @@ private:
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;
 #endif
 
+    std::mutex apiInitMutex_;
+
     friend class RSUIDirector;
     friend class RSAnimation;
     friend class RSPathAnimation;

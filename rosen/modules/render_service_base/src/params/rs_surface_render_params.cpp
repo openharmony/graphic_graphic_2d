@@ -531,6 +531,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
     targetSurfaceParams->preparedDisplayOffset_ = preparedDisplayOffset_;
     targetSurfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
+    targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     RSRenderParams::OnSync(target);
 }
 

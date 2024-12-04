@@ -1289,6 +1289,13 @@ public:
     {
         crossNodeSkippedDisplayOffsets_.clear();
     }
+
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
+    uint32_t GetApiCompatibleVersion()
+    {
+        return apiCompatibleVersion_;
+    }
+
 protected:
     void OnSync() override;
 
@@ -1594,6 +1601,9 @@ private:
     bool oldNeedDrawBehindWindow_ = false;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
+
+    uint32_t apiCompatibleVersion_ = 0;
+
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;
