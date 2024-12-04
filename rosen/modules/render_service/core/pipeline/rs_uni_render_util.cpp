@@ -1813,9 +1813,6 @@ void RSUniRenderUtil::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNo
         const auto& curProperty = parent->GetRenderProperties();
         alpha *= curProperty.GetAlpha();
         matrix.PostConcat(curProperty.GetBoundsGeometry()->GetMatrix());
-        if (ROSEN_EQ(alpha, 1.f)) {
-            parent->DisableDrawingCacheByHwcNode();
-        }
         parent = parent->GetParent().lock();
     }
     if (!parent) {
