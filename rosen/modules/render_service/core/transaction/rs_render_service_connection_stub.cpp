@@ -172,16 +172,12 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
 };
 
-bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
+void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 {
     binder_size_t* object = reinterpret_cast<binder_size_t*>(old.GetObjectOffsets());
     binder_size_t* copiedObject = reinterpret_cast<binder_size_t*>(copied.GetObjectOffsets());
 
     size_t objectNum = old.GetOffsetsSize();
-    if (objectNum > MAX_OBJECTNUM) {
-        ROSEN_LOGW("CopyFileDescriptor failed, objectNum: %{public}zu is too large", objectNum);
-        return false;
-    }
 
     uintptr_t data = old.GetData();
     uintptr_t copiedData = copied.GetData();
@@ -199,7 +195,6 @@ bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
     }
-    return true;
 }
 
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
@@ -218,6 +213,13 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     if (dataSize == 0) {
         return nullptr;
     }
+
+    if (old.GetOffsetsSize() > MAX_OBJECTNUM) {
+        ROSEN_LOGW("RSRenderServiceConnectionStub::CopyParcelIfNeed failed, parcel fdCnt: %{public}zu is too large",
+            old.GetOffsetsSize());
+        return nullptr;
+    }
+
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
     void* base = malloc(dataSize);
     if (base == nullptr) {
@@ -240,9 +242,7 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     auto objectNum = old.GetOffsetsSize();
     if (objectNum != 0) {
         parcelCopied->InjectOffsets(old.GetObjectOffsets(), objectNum);
-        if (!CopyFileDescriptor(old, *parcelCopied)) {
-            return nullptr;
-        }
+        CopyFileDescriptor(old, *parcelCopied);
     }
     if (parcelCopied->ReadInt32() != 0) {
         RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed parcel data not match");
