@@ -477,6 +477,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->hasSubSurfaceNodes_ = hasSubSurfaceNodes_;
     targetSurfaceParams->allSubSurfaceNodeIds_ = std::move(allSubSurfaceNodeIds_);
     targetSurfaceParams->isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer_;
+    targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
     RSRenderParams::OnSync(target);
 }
 

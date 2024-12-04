@@ -2935,5 +2935,22 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 {
     return abilityState_;
 }
+
+void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetApiCompatibleVersion: stagingRenderPrams is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetApiCompatibleVersion: surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetApiCompatibleVersion(apiCompatibleVersion);
+    AddToPendingSyncList();
+
+    apiCompatibleVersion_ = apiCompatibleVersion;
+}
 } // namespace Rosen
 } // namespace OHOS

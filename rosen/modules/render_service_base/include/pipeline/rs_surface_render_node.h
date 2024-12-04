@@ -1242,6 +1242,12 @@ public:
         return intersectedRoundCornerAABBs_.size();
     }
 
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
+    uint32_t GetApiCompatibleVersion()
+    {
+        return apiCompatibleVersion_;
+    }
+
 protected:
     void OnSync() override;
 
@@ -1523,6 +1529,8 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
 
     bool arsrTag_ = true;
+
+    uint32_t apiCompatibleVersion_ = 0;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
