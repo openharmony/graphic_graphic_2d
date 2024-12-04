@@ -339,6 +339,8 @@ public:
     bool GetHardwareEnabled() const override;
     void SetHardCursorStatus(bool status);
     bool GetHardCursorStatus() const override;
+    void SetPreSubHighPriorityType(bool enabledType);
+    bool GetPreSubHighPriorityType() const;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -606,6 +608,7 @@ private:
     bool isHardwareEnabled_ = false;
     bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool subHighPriorityType_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;

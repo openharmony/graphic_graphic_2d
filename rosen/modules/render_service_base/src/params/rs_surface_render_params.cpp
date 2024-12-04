@@ -181,6 +181,20 @@ bool RSSurfaceRenderParams::GetHardCursorStatus() const
     return isHardCursor_;
 }
 
+void RSSurfaceRenderParams::SetPreSubHighPriorityType(bool enabledType)
+{
+    if (subHighPriorityType_ == enabledType) {
+        return;
+    }
+    subHighPriorityType_ = enabledType;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetPreSubHighPriorityType() const
+{
+    return subHighPriorityType_;
+}
+
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
 {
     if (isLastFrameHardwareEnabled_ == enabled) {
@@ -476,6 +490,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
+    targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
     targetSurfaceParams->uiFirstFlag_ = uiFirstFlag_;
