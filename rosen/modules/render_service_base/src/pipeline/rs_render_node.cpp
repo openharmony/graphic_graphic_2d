@@ -705,16 +705,22 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
             out += ", drawRegion: " + drawRegion->ToString();
         }
     }
+    if (drawableVecStatus_ != 0) {
+        out += ", drawableVecStatus: " + std::to_string(drawableVecStatus_);
+    }
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
 
+    auto sortedChildren = GetSortedChildren();
     if (!isFullChildrenListValid_) {
         out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size()) +
-               " expected count: " + std::to_string(GetSortedChildren()->size());
-        if (!disappearingChildren_.empty()) {
-            out += "+" + std::to_string(disappearingChildren_.size());
-        }
+               " expected count: " + std::to_string(sortedChildren->size());
+    } else if (!sortedChildren->empty()) {
+        out += ", sortedChildren: " + std::to_string(sortedChildren->size());
+    }
+    if (!disappearingChildren_.empty()) {
+        out += ", disappearingChildren: " + std::to_string(disappearingChildren_.size());
     }
 
     out += "\n";

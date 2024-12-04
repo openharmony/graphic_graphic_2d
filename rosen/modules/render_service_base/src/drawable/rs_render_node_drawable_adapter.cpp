@@ -83,6 +83,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node null");
         return nullptr;
     }
     if (node->renderDrawable_ != nullptr) {
@@ -168,6 +169,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     };
 
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable, node null");
         return nullptr;
     }
     auto id = node->GetId();
@@ -334,6 +336,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
     if (drawSkipType_ != DrawSkipType::NONE) {
         out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_));
     }
+    out += ", ChildrenIndex:" + std::to_string(drawCmdIndex_.childrenIndex_);
     out += "\n";
 
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
