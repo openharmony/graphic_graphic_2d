@@ -4181,8 +4181,9 @@ void RSProperties::UpdateFilter()
     needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                  foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid();
+                  foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
+                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
+                  mask_;
 }
 
 void RSProperties::UpdateForegroundFilter()
