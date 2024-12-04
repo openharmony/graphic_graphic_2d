@@ -363,7 +363,7 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     }
     std::string layerArg;
     argSets.erase(iter);
-    if (!argSets.empty()) {
+    if (argSets.empty()) {
         RS_LOGE("RSRenderService::FPSDUMPProcess layer name is not specified");
         return ;
     }
