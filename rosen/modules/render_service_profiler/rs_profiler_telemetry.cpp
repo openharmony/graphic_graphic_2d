@@ -42,11 +42,6 @@ struct CpuTime final {
 
 static std::string GetTemperaturePath()
 {
-    static std::string path;
-    if (!path.empty()) {
-        return path;
-    }
-
     std::vector<std::string> directories;
     Utils::IterateDirectory(*TERMAL, directories);
 
@@ -54,12 +49,11 @@ static std::string GetTemperaturePath()
     for (const std::string& directory : directories) {
         Utils::LoadContent(Utils::MakePath(directory, "type"), type);
         if (type.find("soc_thermal") != std::string::npos) {
-            path = Utils::MakePath(directory, "temp");
-            break;
+            return Utils::MakePath(directory, "temp");
         }
     }
 
-    return path;
+    return {};
 }
 
 // cpufreq
@@ -223,7 +217,7 @@ static void GetCpuTime(std::vector<CpuTime>& infos)
     }
 }
 
-static double GetCpuTotalUsage(const CpuTime& info, const CpuTime& lastInfo)
+static float GetCpuTotalUsage(const CpuTime& info, const CpuTime& lastInfo)
 {
     const double deltaTotal = info.total - lastInfo.total;
     if (deltaTotal <= 0.0) {
@@ -236,7 +230,7 @@ static double GetCpuTotalUsage(const CpuTime& info, const CpuTime& lastInfo)
     }
 
     constexpr double ratioToPercent = 100.0;
-    return usage * ratioToPercent / deltaTotal;
+    return static_cast<float>(usage * ratioToPercent / deltaTotal);
 }
 
 static uint32_t GetCoreCount()
@@ -263,28 +257,29 @@ static uint32_t GetCoreCount()
 
 static void GetCPUCores(CPUInfo& cpu)
 {
-    static const uint32_t CORE_COUNT = GetCoreCount();
-    cpu.cores = std::min(CPUInfo::MAX_CORES, CORE_COUNT);
+    const uint32_t cores = GetCoreCount();
+    cpu.cores = std::min(CPUInfo::MAX_CORES, cores);
 
     for (uint32_t i = 0; i < cpu.cores; i++) {
         cpu.coreFrequencyLoad[i].current = GetMetricFloat(GetCpuCurrentFrequencyPath(i)) * Utils::MICRO;
     }
 
-    static std::vector<CpuTime> cpuTimeInfos;
-    if (cpuTimeInfos.empty()) {
-        cpuTimeInfos.resize(cpu.cores);
+    std::vector<CpuTime> cpuTime(cpu.cores);
+    GetCpuTime(cpuTime);
+
+    static std::mutex mutex;
+    static std::vector<CpuTime> lastCpuTime;
+
+    const std::lock_guard<std::mutex> guard(mutex);
+    if (lastCpuTime.size() < cpu.cores) {
+        lastCpuTime.resize(cpu.cores);
     }
 
-    static std::vector<CpuTime> lastCpuTimeInfos;
-    if (lastCpuTimeInfos.empty()) {
-        lastCpuTimeInfos.resize(cpu.cores);
-    }
-
-    GetCpuTime(cpuTimeInfos);
     for (size_t i = 0; i < cpu.cores; i++) {
-        cpu.coreFrequencyLoad[i].load = GetCpuTotalUsage(cpuTimeInfos[i], lastCpuTimeInfos[i]);
+        cpu.coreFrequencyLoad[i].load = GetCpuTotalUsage(cpuTime[i], lastCpuTime[i]);
     }
-    lastCpuTimeInfos = cpuTimeInfos;
+
+    lastCpuTime = cpuTime;
 }
 
 static void GetGPUFrequencyLoad(GPUInfo& gpu)
@@ -295,9 +290,9 @@ static void GetGPUFrequencyLoad(GPUInfo& gpu)
     gpu.frequencyLoad.load = GetMetricFloat(*GPU_LOAD);
 }
 
-const DeviceInfo& RSTelemetry::GetDeviceInfo()
+DeviceInfo RSTelemetry::GetDeviceInfo()
 {
-    static DeviceInfo info;
+    DeviceInfo info;
     GetBattery(info.cpu);
     GetCPUTemperature(info.cpu);
     GetCPUMemory(info.cpu);
@@ -315,11 +310,10 @@ std::string RSTelemetry::GetDeviceInfoString()
         out += +"\nCPU" + std::to_string(i) + ": " + FrequencyLoadToString(info.cpu.coreFrequencyLoad[i]);
     }
 
-    out += "\nTemperature: " + TemperatureToString(info.cpu.temperature) +
-           "\nCurrent: " + CurrentToString(info.cpu.current) + "\nVoltage: " + VoltageToString(info.cpu.voltage) +
-           "\nRAM Total: " + MemoryToString(info.cpu.ramTotal) + "\nRAM Free: " + MemoryToString(info.cpu.ramFree) +
-           "\nGPU: " + FrequencyLoadToString(info.gpu.frequencyLoad);
-
+    out += "\nTemperature: " + TemperatureToString(info.cpu.temperature);
+    out += "\nCurrent: " + CurrentToString(info.cpu.current) + "\nVoltage: " + VoltageToString(info.cpu.voltage);
+    out += "\nRAM Total: " + MemoryToString(info.cpu.ramTotal) + "\nRAM Free: " + MemoryToString(info.cpu.ramFree);
+    out += "\nGPU: " + FrequencyLoadToString(info.gpu.frequencyLoad);
     return out;
 }
 

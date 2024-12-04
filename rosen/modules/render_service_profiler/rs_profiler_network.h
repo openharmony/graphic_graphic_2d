@@ -65,7 +65,7 @@ private:
     static void Receive(Socket& socket);
     static void Send(Socket& socket);
     static void SendPath(const std::string& path, PackageID id);
-    static void SendPacket(const Packet& packet);
+    static void SendPacket(Packet& packet);
     static void ResetSendQueue();
     static void Shutdown(Socket*& socket);
     static void Ping(Socket& socket);
