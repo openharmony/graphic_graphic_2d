@@ -30,26 +30,11 @@ ohos_unittest("EffectTest") {
 
   if (effect_enable_gpu) {
     sources += [
-      "algo_filter_unittest.cpp",
-      "brightness_filter_unittest.cpp",
-      "contrast_filter_unittest.cpp",
       "effect_filter_unittest.cpp",
       "egl_manager_test.cpp",
       "filter_common_unittest.cpp",
-      "filter_factory_unittest.cpp",
-      "filter_unittest.cpp",
-      "gaussian_blur_filter_unittest.cpp",
-      "horizontal_blur_filter_unittest.cpp",
-      "image_chain_unittest.cpp",
-      "input_unittest.cpp",
-      "mesh_unittest.cpp",
-      "output_unittest.cpp",
-      "program_unittest.cpp",
-      "saturation_filter_unittest.cpp",
-      "scale_filter_unittest.cpp",
       "sk_image_chain_unittest.cpp",
       "sk_image_filter_factory_unittest.cpp",
-      "vertical_blur_filter_unittest.cpp",
     ]
   }
 
@@ -57,7 +42,6 @@ ohos_unittest("EffectTest") {
     "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
     "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/effect/color_picker:color_picker",
-    "$graphic_2d_root/rosen/modules/effect/effectChain:libeffectchain",
     "$graphic_2d_root/rosen/modules/effect/effect_common:effect_common",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk:native_effect_ndk",
     "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
@@ -99,7 +83,6 @@ config("effect_test_config") {
     "//third_party/skia",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effect_common/include",
-    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/utils/color_manager/export",

@@ -33,7 +33,6 @@ config("effect_SKeffectChian_config") {
 
 config("effect_SKeffectChian_public_config") {
   include_dirs = [
-    "../effectChain/include",
     "../egl/include",
     "$graphic_2d_root/utils/log",
     "include",
