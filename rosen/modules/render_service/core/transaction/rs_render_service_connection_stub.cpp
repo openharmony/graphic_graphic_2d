@@ -45,6 +45,7 @@ constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = 512;
 constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
+static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
@@ -570,6 +571,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<NodeId> securityExemptionList;
             if (!data.ReadUInt64Vector(&securityExemptionList)) {
                 ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (securityExemptionList.size() > MAX_SECURITY_EXEMPTION_LIST_NUMBER) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST"
+                    " failed: too many lists.");
+                ret = ERR_INVALID_DATA;
                 break;
             }
             int32_t status = SetVirtualScreenSecurityExemptionList(id, securityExemptionList);

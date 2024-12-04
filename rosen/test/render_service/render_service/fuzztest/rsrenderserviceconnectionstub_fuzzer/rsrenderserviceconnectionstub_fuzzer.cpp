@@ -1349,9 +1349,12 @@ bool DoSetScreenSkipFrameInterval()
 bool DoSetVirtualScreenSecurityExemptionList()
 {
     uint64_t id = GetData<uint64_t>();
-    uint64_t nodeId = GetData<uint64_t>();
     std::vector<uint64_t> secExemptionListVector;
-    secExemptionListVector.push_back(nodeId);
+    uint16_t listSize = GetData<uint16_t>();
+    for (int i = 0; i < listSize; i++) {
+        uint64_t nodeId = GetData<uint64_t>();
+        secExemptionListVector.push_back(nodeId);
+    }
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
