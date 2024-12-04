@@ -149,7 +149,7 @@ size_t MemAllocator::AddrToOffset(const void* addr) const
     }
 
     size_t offset = static_cast<size_t>(static_cast<const char*>(addr) - startPtr_);
-    if (offset > size_) {
+    if (offset >= size_) {
         return 0;
     }
     return offset;
