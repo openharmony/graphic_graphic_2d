@@ -59,6 +59,8 @@ public:
 
     virtual void DumpGpuStats(std::string& out) = 0;
 
+    virtual void DumpAllResource(std::stringstream& dump) = 0;
+
     virtual void ReleaseResourcesAndAbandonContext() = 0;
 
     virtual void PurgeUnlockedResources(bool scratchResourcesOnly) = 0;

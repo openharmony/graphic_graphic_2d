@@ -106,6 +106,11 @@ void GPUContext::FreeGpuResources()
     impl_->FreeGpuResources();
 }
 
+void GPUContext::DumpAllResource(std::stringstream& dump) const
+{
+    impl_->DumpAllResource(dump);
+}
+
 void GPUContext::DumpGpuStats(std::string& out) const
 {
     impl_->DumpGpuStats(out);
