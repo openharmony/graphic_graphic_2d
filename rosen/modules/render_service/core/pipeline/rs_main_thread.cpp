@@ -1421,7 +1421,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
             surfaceNode->AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
             surfaceNode->SetContentDirty();
-            SetDirtyFlag();
             surfaceNode->SetDoDirectComposition(false);
             surfaceNode->SetOldNeedDrawBehindWindow(surfaceNode->NeedDrawBehindWindow());
         }
