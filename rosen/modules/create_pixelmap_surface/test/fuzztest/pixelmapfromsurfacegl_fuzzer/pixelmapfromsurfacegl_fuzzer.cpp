@@ -121,14 +121,6 @@ namespace OHOS {
         if (!pSurface) {
             return false;
         }
-        std::shared_ptr<RSBaseRenderEngine> renderEngine = std::make_shared<RSRenderEngine>();
-        renderEngine->Init();
-        auto renderContext = renderEngine->GetRenderContext();
-        if (!renderContext) {
-            return false;
-        }
-        RSBackgroundThread::Instance().InitRenderContext(renderContext.get());
-        usleep(8000); // wait 8000 us for InitRenderContext finish
 
         OHOS::Media::Rect rect1 = {
             .left = GetData<uint32_t>() % width,
