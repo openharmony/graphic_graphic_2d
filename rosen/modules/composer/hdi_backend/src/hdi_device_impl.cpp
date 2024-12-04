@@ -647,6 +647,13 @@ int32_t HdiDeviceImpl::SetLayerPerFrameParameter(uint32_t devId, uint32_t layerI
     return g_composer->SetLayerPerFrameParameter(devId, layerId, key, value);
 }
 
+int32_t HdiDeviceImpl::SetLayerPerFrameParameterSmq(uint32_t devId, uint32_t layerId, const std::string& key,
+    const std::vector<int8_t>& value)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetLayerPerFrameParameter(devId, layerId, key, value);
+}
+
 int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)
 {
     CHECK_FUNC(g_composer);

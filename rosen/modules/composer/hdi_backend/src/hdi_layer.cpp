@@ -798,7 +798,8 @@ int32_t HdiLayer::SetPerFrameParameterDisplayNit()
 
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetDisplayNit();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_BRIGHTNESS_NIT, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
@@ -811,7 +812,8 @@ int32_t HdiLayer::SetPerFrameParameterBrightnessRatio()
 
     std::vector<int8_t> valueBlob(sizeof(float));
     *reinterpret_cast<float*>(valueBlob.data()) = layerInfo_->GetBrightnessRatio();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SDR_RATIO, valueBlob);
 }
 
 int32_t HdiLayer::SetPerFrameLayerSourceTuning()
@@ -824,7 +826,8 @@ int32_t HdiLayer::SetPerFrameLayerSourceTuning()
 
     std::vector<int8_t> valueBlob(sizeof(int32_t));
     *reinterpret_cast<int32_t*>(valueBlob.data()) = layerInfo_->GetLayerSourceTuning();
-    return device_->SetLayerPerFrameParameter(screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
+    return device_->SetLayerPerFrameParameterSmq(
+        screenId_, layerId_, GENERIC_METADATA_KEY_SOURCE_CROP_TUNING, valueBlob);
 }
 
 void HdiLayer::ClearBufferCache()
