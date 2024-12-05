@@ -1423,9 +1423,6 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         hasCaptureWindow_[currentVisitDisplay_] = true;
     }
     node.UpdateUIFirstFrameGravity();
-    if (IsAccessibilityConfigChanged()) {
-        node.SetIsAccessibilityConfigChanged(true);
-    }
     if (node.IsMainWindowType() || node.IsLeashWindow()) {
         // UpdateCurCornerRadius must process before curSurfaceNode_ update
         node.UpdateCurCornerRadius(curCornerRadius_);
@@ -1453,7 +1450,6 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
             nodePtr->UpdateSurfaceCacheContentStaticFlag();
         }
     }
-    node.SetIsAccessibilityConfigChanged(false);
     // 2. update surface info and CheckIfOcclusionReusable
     node.SetAncestorDisplayNode(curDisplayNode_->GetScreenId(), curDisplayNode_); // set for boot animation
     node.UpdateAncestorDisplayNodeInRenderParams();

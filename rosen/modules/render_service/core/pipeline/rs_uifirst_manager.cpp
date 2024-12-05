@@ -191,15 +191,39 @@ void RSUifirstManager::ProcessForceUpdateNode()
     if (!mainThread_) {
         return;
     }
-    for (auto id : pendingForceUpdateCardNode_) {
+    std::vector<std::shared_ptr<RSRenderNode>> toDirtyNodes;
+    for (auto id : pendingForceUpdateNode_) {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node && !node->IsDirty() && !node->IsSubTreeDirty()) {
-            // card may not in dirty region, so we need to mark the node dirty to ensure the card will be refreshed.
-            // SetDirty method does not cause contentDirty, and we deliver task to sub-thread by contentDirty flag.
-            node->SetDirty(true);
+        if (!node) {
+            continue;
+        }
+        toDirtyNodes.push_back(node);
+        if (!node->IsDirty() && !node->IsSubTreeDirty()) {
+            markForceUpdateByUifirst_.push_back(node);
+            node->SetForceUpdateByUifirst(true);
+        }
+        if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
+            continue;
+        }
+        for (auto& child : *node->GetChildren()) {
+            if (!child) {
+                continue;
+            }
+            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (!surfaceNode || !surfaceNode->IsMainWindowType()) {
+                continue;
+            }
+            toDirtyNodes.push_back(child);
+            if (!child->IsDirty() && !child->IsSubTreeDirty()) {
+                markForceUpdateByUifirst_.push_back(child);
+                child->SetForceUpdateByUifirst(true);
+            }
         }
     }
-    pendingForceUpdateCardNode_.clear();
+    for (auto& node : toDirtyNodes) {
+        node->SetDirty(true);
+    }
+    pendingForceUpdateNode_.clear();
 }
 
 void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
@@ -242,7 +266,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
             drawable->UpdateCompletedCacheSurface();
             RenderGroupUpdate(drawable);
             SetHasDoneNodeFlag(true);
-            AddPendingForceUpdateCardNode(id);
+            pendingForceUpdateNode_.push_back(id);
         }
         NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
@@ -421,6 +445,10 @@ void RSUifirstManager::PurgePendingPostNodes()
     RS_OPTIONAL_TRACE_NAME_FMT("PurgePendingPostNodes");
     DoPurgePendingPostNodes(pendingPostNodes_);
     DoPurgePendingPostNodes(pendingPostCardNodes_);
+    for (auto& node : markForceUpdateByUifirst_) {
+        node->SetForceUpdateByUifirst(false);
+    }
+    markForceUpdateByUifirst_.clear();
 }
 
 void RSUifirstManager::PostSubTask(NodeId id)
@@ -950,17 +978,6 @@ void RSUifirstManager::AddReuseNode(NodeId id)
         return;
     }
     reuseNodes_.insert(id);
-}
-
-void RSUifirstManager::AddPendingForceUpdateCardNode(NodeId id)
-{
-    if (!mainThread_) {
-        return;
-    }
-    auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
-    if (node && node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
-        pendingForceUpdateCardNode_.push_back(id);
-    }
 }
 
 void RSUifirstManager::OnProcessEventResponse(DataBaseRs& info)

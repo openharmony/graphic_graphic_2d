@@ -696,6 +696,16 @@ public:
         uifirstSkipPartialSync_ = skip;
     }
 
+    void SetForceUpdateByUifirst(bool b)
+    {
+        forceUpdateByUifirst_ = b;
+    }
+
+    bool GetForceUpdateByUifirst() const
+    {
+        return forceUpdateByUifirst_;
+    }
+
     MultiThreadCacheType GetLastFrameUifirstFlag()
     {
         return lastFrameUifirstFlag_;
@@ -1060,6 +1070,7 @@ private:
     // for blur cache
     RectI lastFilterRegion_;
     bool uifirstSkipPartialSync_ = false;
+    bool forceUpdateByUifirst_ = false;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
     bool foregroundFilterRegionChanged_ = false;
