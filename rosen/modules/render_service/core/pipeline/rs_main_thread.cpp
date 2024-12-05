@@ -1924,14 +1924,18 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     }
 
     bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
-    if (!HgmCore::Instance().SetHgmTaskFlag(false) &&
+    bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
+    bool vrateStatusChange = rsVsyncRateReduceManager_.SetVSyncRatesChangeStatus(false);
+
+    if (!vrateStatusChange && !setHgmTaskFlag &&
         HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
         !needRefresh) {
         return;
     }
 
     HgmTaskHandleThread::Instance().PostTask([timestamp, rsFrameRateLinker = rsFrameRateLinker_,
-                                        appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get()] () mutable {
+                                        appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get(),
+                                        linkers = rsVsyncRateReduceManager_.GetVrateMap() ]() mutable {
         RS_TRACE_NAME("ProcessHgmFrameRate");
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr == nullptr) {
@@ -1939,7 +1943,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         }
         // hgm warning: use IsLtpo instead after GetDisplaySupportedModes ready
         if (frameRateMgr->GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
-            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers);
+            frameRateMgr->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkers);
         }
     });
 }

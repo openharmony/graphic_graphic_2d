@@ -407,7 +407,8 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
 }
 
 void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker, const FrameRateLinkerMap& appFrameRateLinkers)
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker, const FrameRateLinkerMap& appFrameRateLinkers,
+    const std::map<uint64_t, int>& vRatesMap)
 {
     RS_TRACE_FUNC();
     Reset();
@@ -415,6 +416,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     rsFrameRateLinker_ = rsFrameRateLinker;
     appFrameRateLinkers_ = appFrameRateLinkers;
 
+    vRatesMap_ = vRatesMap;
     auto& hgmCore = HgmCore::Instance();
     FrameRateRange finalRange;
     if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
@@ -501,6 +503,42 @@ void HgmFrameRateManager::FrameRateReport()
     schedulePreferredFpsChange_ = false;
 }
 
+void HgmFrameRateManager::CollectVRateChange(uint64_t linkerId, int& appFrameRate)
+{
+    auto iter = vRatesMap_.find(linkerId);
+    if (iter == vRatesMap_.end()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange not find linkerId = %" PRIu64 " return", linkerId);
+        HGM_LOGD("CollectVRateChange return linkerId = %{public}" PRIu64 " return", linkerId);
+        return;
+    }
+    if (iter->second == 1 || iter->second == 0) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange linkerId = %" PRIu64 ", vrate = %d return",
+            linkerId, iter->second);
+        HGM_LOGD("HgmFrameRateManager : CollectVRateChange linkerId = %{public}" PRIu64 ",vrate = %{public}d return",
+                linkerId, iter->second);
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CollectVRateChange Before modification linkerIdS = %" PRIu64 ",appFrameRate = %d, vrate = %d",
+        linkerId, appFrameRate, iter->second);
+    HGM_LOGD("HgmFrameRateManager: CollectVRateChange Before modification linkerId = %{public}" PRIu64 ","
+        "appFrameRate = %{public}d, vrate = %{public}d", linkerId, appFrameRate, iter->second);
+    // appFrameRate initial value is 0  means that the appframerate will not be changed.
+    if (appFrameRate == 0) {
+        appFrameRate = static_cast<int>(controllerRate_ / iter->second);
+    } else {
+        appFrameRate = static_cast<int>(appFrameRate / iter->second);
+    }
+    // vrate is int::max means app need not refreshing
+    if (appFrameRate == 0) {
+        //appFrameRate value is 1  means that not refreshing.
+        appFrameRate = 1;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("CollectVRateChange linkerId = %" PRIu64 ", %d", linkerId, appFrameRate);
+    HGM_LOGD("HgmFrameRateManager: CollectVRateChange linkerId = %{public}" PRIu64 ", %{public}d",
+                linkerId, appFrameRate);
+}
+
 bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
                                                  std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
                                                  const FrameRateLinkerMap& appFrameRateLinkers)
@@ -529,7 +567,8 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         if (linker.second == nullptr) {
             continue;
         }
-        const auto& expectedRange = linker.second->GetExpectedRange();
+        auto expectedRange = linker.second->GetExpectedRange();
+        CollectVRateChange(linker.first, expectedRange.preferred_);
         auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
         // The caculated drawing fps should be greater than or equal to preferred fps.
         // e.g. The preferred fps is 72, the refresh rate is 120, the drawing fps will be 120, not 60.

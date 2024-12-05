@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_VSYNC_RATE_REDUCE_MANAGER_H
 #define RENDER_SERVICE_VSYNC_RATE_REDUCE_MANAGER_H
 
+#include <atomic>
 #include <cstdint>
 #include <cstdio>
 #include <chrono>
@@ -67,7 +68,30 @@ public:
 
     void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
         std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
+    void SetWindowLinkersMap(NodeId windowId, uint64_t linkerId)
+    {
+        windowLinkerMap_.emplace(windowId, linkerId);
+    }
+    void ClearWindowLinkersMap(pid_t pid)
+    {
+        for (auto iter = windowLinkerMap_.begin(); iter != windowLinkerMap_.end();) {
+            // extract high 32 bits of linkerId as pid
+            if (static_cast<pid_t>(iter->second >> 32) == pid) {
+                iter = windowLinkerMap_.erase(iter);
+            } else {
+                ++iter;
+            }
+        }
+    }
+    std::map<uint64_t, int> GetVrateMap()
+    {
+        return linkersRateMap_;
+    }
 
+    bool SetVSyncRatesChangeStatus(bool newState)
+    {
+        return needPostTask_.exchange(newState);
+    }
 private:
     void NotifyVRates();
     int UpdateRatesLevel();
@@ -111,6 +135,9 @@ private:
     DeviceType deviceType_ = DeviceType::PC;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+    std::map<NodeId, uint64_t> windowLinkerMap_;
+    std::map<uint64_t, int> linkersRateMap_;
+    std::atomic<bool> needPostTask_{ false };
 };
 
 } // namespace Rosen

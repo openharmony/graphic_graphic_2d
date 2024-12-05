@@ -153,7 +153,7 @@ public:
     bool IsLtpo() const { return isLtpo_; };
     bool IsAdaptive() const { return isAdaptive_.load(); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
-        const FrameRateLinkerMap& appFrameRateLinkers);
+        const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
     int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity) const;
     void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
@@ -231,6 +231,8 @@ private:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     void InitRsIdleTimer();
     void InitPowerTouchManager();
+    // vrate voting to hgm linkerId means that frameLinkerid, appFrameRate means that vrate
+    void CollectVRateChange(uint64_t linkerId, int& appFrameRate);
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
     uint32_t controllerRate_ = 0;
@@ -300,6 +302,8 @@ private:
     std::atomic<uint64_t> timestamp_ = 0;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
     FrameRateLinkerMap appFrameRateLinkers_;
+    // linkerid is key, vrate is value
+    std::map<uint64_t, int> vRatesMap_;
 };
 } // namespace Rosen
 } // namespace OHOS
