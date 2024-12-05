@@ -790,7 +790,7 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
         return;
     }
     if (std::isinf(pixelStretch->x_) || std::isinf(pixelStretch->y_) ||
