@@ -610,8 +610,8 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         // When release fence's size is 0, the output may invalid, release all buffer
         // This situation may happen when killing composer_host
         for (const auto& [id, layer] : layerIdMap_) {
-            if (layer == nullptr || layer->GetLayerInfo() == nullptr
-                || layer->GetLayerInfo()->GetSurface() == nullptr) {
+            if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+                layer->GetLayerInfo()->GetSurface() == nullptr) {
                 HLOGW("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
                 continue;
             }
