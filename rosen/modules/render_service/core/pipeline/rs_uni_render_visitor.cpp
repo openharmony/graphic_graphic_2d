@@ -966,6 +966,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
 
 void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
 {
+    if (isCrossNodeOffscreenOn_ == CrossNodeOffScreenRenderDebugType::DISABLED) {
+        return;
+    }
     if (curDisplayNode_ == nullptr) {
         RS_LOGE("%{public}s curDisplayNode_ is nullptr", __func__);
         return;
