@@ -422,6 +422,7 @@ HWTEST_F(HgmFrameRateMgrTest, CleanPidCallbackTest, Function | SmallTest | Level
     EventInfo eventInfo2 = { .eventName = "VOTER_SCENE", .eventStatus = true, .description = testScene };
     frameRateMgr->HandleRefreshRateEvent(0, eventInfo2);
     frameRateMgr->UpdateVoteRule();
+    sleep(1);
 }
 
 /**
