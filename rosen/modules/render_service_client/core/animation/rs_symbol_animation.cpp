@@ -117,7 +117,7 @@ bool RSSymbolAnimation::SetSymbolAnimation(
         return true; // pre code already clear nodes.
     }
 
-    if (symbolAnimationConfig->animationReset) {
+    if (!symbolAnimationConfig->currentAnimationHasPlayed) {
         NodeProcessBeforeAnimation(symbolAnimationConfig);
     }
 
@@ -396,7 +396,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, symbolAnimationConfig->effectStrategy);
 
     for (uint32_t n = 0; n < nodeNum; n++) {
-        bool isCreateNode = false;
+        bool createNewNode = false;
         auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         auto symbolBounds = Vector4f(offsets[0], offsets[1], // 0: offsetX of newMode 1: offsetY
             symbolNode.nodeBoundary[NODE_WIDTH], symbolNode.nodeBoundary[NODE_HEIGHT]);
@@ -406,15 +406,15 @@ bool RSSymbolAnimation::SetPublicAnimation(
             if (outerIter == rsNode_->canvasNodesListMap.end()) {
                 outerIter = rsNode_->canvasNodesListMap.insert({symbolSpanId,
                     std::unordered_map<NodeId, std::shared_ptr<RSNode>>()}).first;
-                isCreateNode = true;
+                createNewNode = true;
             }
 
-            if (isCreateNode || outerIter->second.find(n) == outerIter->second.end()) {
+            if (createNewNode || outerIter->second.find(n) == outerIter->second.end()) {
                 auto childNode = RSCanvasNode::Create();
                 outerIter->second.insert({n, childNode});
                 SetSymbolGeometry(childNode, symbolBounds);
                 rsNode_->AddChild(childNode, -1);
-                isCreateNode = true;
+                createNewNode = true;
             } else {
                 UpdateSymbolGeometry(rsNode_->canvasNodesListMap[symbolSpanId][n], symbolBounds);
             }
@@ -427,7 +427,7 @@ bool RSSymbolAnimation::SetPublicAnimation(
             continue;
         }
 
-        if (isCreateNode) {
+        if (createNewNode) {
             ChooseAnimation(canvasNode, parameters[symbolNode.animationIndex], symbolAnimationConfig);
         }
     }

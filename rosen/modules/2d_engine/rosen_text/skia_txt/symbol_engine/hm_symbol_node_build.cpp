@@ -186,7 +186,7 @@ void SymbolNodeBuild::AddWholeAnimation(const RSHMSymbolData &symbolData, const 
     std::vector<RSPath> pathLayers;
     RSHMSymbol::MultilayerPath(symbolData.symbolInfo_.layers, paths, pathLayers);
     std::vector<RSRenderGroup> groups = symbolData.symbolInfo_.renderGroups;
-    TEXT_LOGD("RenderGroup size %{public}d", static_cast<int>(groups.size()));
+    TEXT_LOGD("RenderGroup size %{public}zu", groups.size());
     for (const auto& group : groups) {
         RSPath multPath;
         MergeDrawingPath(multPath, group, pathLayers);
@@ -251,7 +251,7 @@ void SymbolNodeBuild::ClearAnimation()
 
 bool SymbolNodeBuild::DecomposeSymbolAndDraw()
 {
-    if (symbolData_.symbolInfo_.renderGroups.size() <= 0) {
+    if (symbolData_.symbolInfo_.renderGroups.empty()) {
         TEXT_LOGD("HmSymbol: symbolInfo_.renderGroups is empty");
         return false;
     }
@@ -280,7 +280,7 @@ bool SymbolNodeBuild::DecomposeSymbolAndDraw()
     symbolAnimationConfig->animationStart = animationStart_;
     symbolAnimationConfig->symbolSpanId = symblSpanId_;
     symbolAnimationConfig->commonSubType = commonSubType_;
-    symbolAnimationConfig->animationReset = animationReset_;
+    symbolAnimationConfig->currentAnimationHasPlayed = currentAnimationHasPlayed_;
     return animationFunc_(symbolAnimationConfig);
 }
 }
