@@ -553,7 +553,7 @@ void RSProfiler::ProcessPauseMessage()
         if (recordPlayTime > g_replayLastPauseTimeReported) {
             int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
             if (vsyncId) {
-                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
             }
             g_replayLastPauseTimeReported = recordPlayTime;
         }
@@ -1786,7 +1786,8 @@ void RSProfiler::RecordStop(const ArgList& args)
     g_lastCacheImageCount = 0;
 
     SendMessage("Record: Stopped");
-    SendMessage("Network: record_vsync_range %llu %llu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
+    // DO NOT TOUCH!
+    SendMessage("Network: record_vsync_range %" PRIu64 " %" PRIu64 "", g_recordMinVsync, g_recordMaxVsync);
 }
 
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
@@ -1906,7 +1907,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         if (g_playbackFile.IsOpen()) {
             const double deltaTime = Now() - g_playbackStartTime;
             if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime)) {
-                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
             }
             g_playbackFile.Close();
         }
@@ -2029,7 +2030,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
     if (vsyncId) {
-        SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+        SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
     }
     g_replayLastPauseTimeReported = recordPlayTime;
 }
