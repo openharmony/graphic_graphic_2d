@@ -57,7 +57,7 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
 
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->CommitTransaction(transactionData);
     } else {
@@ -71,7 +71,7 @@ void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncT
         return;
     }
 
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ExecuteSynchronousTask(task);
     }
@@ -79,7 +79,7 @@ void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncT
 
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -88,7 +88,7 @@ bool RSRenderServiceClient::GetUniRenderEnabled()
 
 MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return MemoryGraphic {};
     }
@@ -97,7 +97,7 @@ MemoryGraphic RSRenderServiceClient::GetMemoryGraphic(int pid)
 
 std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return {};
     }
@@ -106,7 +106,7 @@ std::vector<MemoryGraphic> RSRenderServiceClient::GetMemoryGraphics()
 
 bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -115,7 +115,7 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
 
 bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -124,7 +124,7 @@ bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeCon
 
 bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -133,7 +133,7 @@ bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return nullptr;
     }
@@ -165,7 +165,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
     bool fromXcomponent)
 {
     ROSEN_LOGD("RSRenderServiceClient::CreateVSyncReceiver Start");
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return nullptr;
     }
@@ -182,7 +182,7 @@ std::shared_ptr<VSyncReceiver> RSRenderServiceClient::CreateVSyncReceiver(
 std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
     const Rect &srcRect)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return nullptr;
     }
@@ -248,7 +248,7 @@ private:
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::TakeSurfaceCapture renderService == nullptr!");
         return false;
@@ -279,7 +279,7 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         RS_LOGE("RSRenderServiceClient::SetHwcNodeBounds renderService is null!");
         return false;
@@ -291,7 +291,7 @@ bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, 
 int32_t RSRenderServiceClient::SetFocusAppInfo(
     int32_t pid, int32_t uid, const std::string &bundleName, const std::string &abilityName, uint64_t focusNodeId)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -301,7 +301,7 @@ int32_t RSRenderServiceClient::SetFocusAppInfo(
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_SCREEN_ID;
     }
@@ -311,7 +311,7 @@ ScreenId RSRenderServiceClient::GetDefaultScreenId()
 
 ScreenId RSRenderServiceClient::GetActiveScreenId()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_SCREEN_ID;
     }
@@ -321,7 +321,7 @@ ScreenId RSRenderServiceClient::GetActiveScreenId()
 
 std::vector<ScreenId> RSRenderServiceClient::GetAllScreenIds()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return std::vector<ScreenId>();
     }
@@ -338,7 +338,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_SCREEN_ID;
     }
@@ -348,7 +348,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -358,7 +358,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vecto
 
 int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -368,7 +368,7 @@ int32_t RSRenderServiceClient::AddVirtualScreenBlackList(ScreenId id, std::vecto
 
 int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -378,7 +378,7 @@ int32_t RSRenderServiceClient::RemoveVirtualScreenBlackList(ScreenId id, std::ve
 
 bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -390,7 +390,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -400,7 +400,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
 
 int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -410,7 +410,7 @@ int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rec
 
 int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -420,7 +420,7 @@ int32_t RSRenderServiceClient::SetCastScreenEnableSkipWindow(ScreenId id, bool e
 
 int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -430,7 +430,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSurface(ScreenId id, sptr<Surface
 
 void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -442,7 +442,7 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
 int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
     int64_t interval, int32_t rangeSize)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -452,7 +452,7 @@ int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, 
  
 int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -479,7 +479,7 @@ private:
  
 int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -490,7 +490,7 @@ int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const Poin
  
 int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -517,7 +517,7 @@ private:
 
 int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallback &callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -528,7 +528,7 @@ int32_t RSRenderServiceClient::SetScreenChangeCallback(const ScreenChangeCallbac
 
 void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -538,7 +538,7 @@ void RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 
 void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return;
@@ -549,7 +549,7 @@ void RSRenderServiceClient::SetScreenRefreshRate(ScreenId id, int32_t sceneId, i
 
 void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return;
@@ -561,7 +561,7 @@ void RSRenderServiceClient::SetRefreshRateMode(int32_t refreshRateMode)
 void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
     const FrameRateRange& range, int32_t animatorExpectedFrameRate)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return;
@@ -572,7 +572,7 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
 
 void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return;
@@ -582,7 +582,7 @@ void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 
 uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -593,7 +593,7 @@ uint32_t RSRenderServiceClient::GetScreenCurrentRefreshRate(ScreenId id)
 
 int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -604,7 +604,7 @@ int32_t RSRenderServiceClient::GetCurrentRefreshRateMode()
 
 std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return {};
@@ -615,7 +615,7 @@ std::vector<int32_t> RSRenderServiceClient::GetScreenSupportedRefreshRates(Scree
 
 bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return false;
@@ -626,7 +626,7 @@ bool RSRenderServiceClient::GetShowRefreshRateEnabled()
 
 std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return "";
@@ -636,7 +636,7 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
 
 void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGW("RSRenderServiceClient renderService == nullptr!");
         return;
@@ -647,7 +647,7 @@ void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
 
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualScreenResolution renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -658,7 +658,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t 
 
 RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RSVirtualScreenResolution {}; // return empty RSVirtualScreenResolution.
     }
@@ -668,7 +668,7 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
 
 void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -678,7 +678,7 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -688,7 +688,7 @@ void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -698,7 +698,7 @@ void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus 
 
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RSScreenModeInfo {}; // return empty RSScreenModeInfo.
     }
@@ -708,7 +708,7 @@ RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 
 std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return {};
     }
@@ -718,7 +718,7 @@ std::vector<RSScreenModeInfo> RSRenderServiceClient::GetScreenSupportedModes(Scr
 
 RSScreenCapability RSRenderServiceClient::GetScreenCapability(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RSScreenCapability {};
     }
@@ -728,7 +728,7 @@ RSScreenCapability RSRenderServiceClient::GetScreenCapability(ScreenId id)
 
 ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return ScreenPowerStatus::INVALID_POWER_STATUS;
     }
@@ -738,7 +738,7 @@ ScreenPowerStatus RSRenderServiceClient::GetScreenPowerStatus(ScreenId id)
 
 RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RSScreenData {};
     }
@@ -748,7 +748,7 @@ RSScreenData RSRenderServiceClient::GetScreenData(ScreenId id)
 
 int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return INVALID_BACKLIGHT_VALUE;
     }
@@ -758,7 +758,7 @@ int32_t RSRenderServiceClient::GetScreenBacklight(ScreenId id)
 
 void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -803,7 +803,7 @@ private:
 bool RSRenderServiceClient::RegisterBufferAvailableListener(
     NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -834,7 +834,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
 
 bool RSRenderServiceClient::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return false;
     }
@@ -866,7 +866,7 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -875,7 +875,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::v
 
 int32_t RSRenderServiceClient::GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RequestRotation renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -885,7 +885,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedMetaDataKeys(ScreenId id, std::
 
 int32_t RSRenderServiceClient::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -894,7 +894,7 @@ int32_t RSRenderServiceClient::GetScreenColorGamut(ScreenId id, ScreenColorGamut
 
 int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -903,7 +903,7 @@ int32_t RSRenderServiceClient::SetScreenColorGamut(ScreenId id, int32_t modeIdx)
 
 int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -912,7 +912,7 @@ int32_t RSRenderServiceClient::SetScreenGamutMap(ScreenId id, ScreenGamutMap mod
 
 int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -921,7 +921,7 @@ int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation s
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation: renderService is nullptr");
         return false;
@@ -931,7 +931,7 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bo
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetVirtualMirrorScreenScaleMode: renderService is nullptr");
         return false;
@@ -941,7 +941,7 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
 
 bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: renderService is nullptr");
         return false;
@@ -951,7 +951,7 @@ bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
 
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -960,7 +960,7 @@ int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mo
 
 int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetScreenHDRCapability renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -970,7 +970,7 @@ int32_t RSRenderServiceClient::GetScreenHDRCapability(ScreenId id, RSScreenHDRCa
 
 int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetPixelFormat renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -980,7 +980,7 @@ int32_t RSRenderServiceClient::GetPixelFormat(ScreenId id, GraphicPixelFormat& p
 
 int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pixelFormat)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetPixelFormat renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -990,7 +990,7 @@ int32_t RSRenderServiceClient::SetPixelFormat(ScreenId id, GraphicPixelFormat pi
 
 int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::vector<ScreenHDRFormat>& hdrFormats)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -999,7 +999,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedHDRFormats(ScreenId id, std::ve
 
 int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1008,7 +1008,7 @@ int32_t RSRenderServiceClient::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& 
 
 int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1018,7 +1018,7 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
 int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1027,7 +1027,7 @@ int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
 
 int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType& colorSpace)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1036,7 +1036,7 @@ int32_t RSRenderServiceClient::GetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorSpaceType colorSpace)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1045,7 +1045,7 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetScreenType renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1055,7 +1055,7 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
 
 bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetBitmap renderService == nullptr!");
         return false;
@@ -1066,7 +1066,7 @@ bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::GetPixelmap: renderService is nullptr");
         return false;
@@ -1076,7 +1076,7 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelM
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: renderService is nullptr");
         return false;
@@ -1089,7 +1089,7 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
 
 bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnRegisterTypeface: renderService is nullptr");
         return false;
@@ -1102,7 +1102,7 @@ bool RSRenderServiceClient::UnRegisterTypeface(std::shared_ptr<Drawing::Typeface
 
 int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1112,7 +1112,7 @@ int32_t RSRenderServiceClient::SetScreenSkipFrameInterval(ScreenId id, uint32_t 
 int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
     ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1121,7 +1121,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenRefreshRate(
 
 uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& activeRect)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
@@ -1147,7 +1147,7 @@ private:
 
 int32_t RSRenderServiceClient::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterOcclusionChangeCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1176,7 +1176,7 @@ private:
 int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, const SurfaceOcclusionChangeCallback& callback, std::vector<float>& partitionPoints)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1187,7 +1187,7 @@ int32_t RSRenderServiceClient::RegisterSurfaceOcclusionChangeCallback(
 
 int32_t RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnRegisterSurfaceOcclusionChangeCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1221,7 +1221,7 @@ private:
 
 int32_t RSRenderServiceClient::RegisterHgmConfigChangeCallback(const HgmConfigChangeCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterHgmConfigChangeCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1257,7 +1257,7 @@ private:
 int32_t RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback(
     const HgmRefreshRateModeChangeCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterHgmRefreshRateModeChangeCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1296,7 +1296,7 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     const HgmRefreshRateUpdateCallback& callback)
 {
     sptr<CustomHgmRefreshRateUpdateCallback> cb = nullptr;
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1333,7 +1333,7 @@ private:
 int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     uint32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback renderService == nullptr");
         return RENDER_SERVICE_NULL;
@@ -1350,7 +1350,7 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetAppWindowNum(num);
     }
@@ -1358,7 +1358,7 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 
 bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetSystemAnimatedScenes renderService == nullptr!");
         return false;
@@ -1368,7 +1368,7 @@ bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemA
 
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ShowWatermark(watermarkImg, isShow);
     }
@@ -1376,7 +1376,7 @@ void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap>
 
 int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::ResizeVirtualScreen renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1388,7 +1388,7 @@ int32_t RSRenderServiceClient::ResizeVirtualScreen(ScreenId id, uint32_t width, 
 
 void RSRenderServiceClient::ReportJankStats()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ReportJankStats();
     }
@@ -1396,7 +1396,7 @@ void RSRenderServiceClient::ReportJankStats()
 
 void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ReportEventResponse(info);
     }
@@ -1404,7 +1404,7 @@ void RSRenderServiceClient::ReportEventResponse(DataBaseRs info)
 
 void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ReportEventComplete(info);
     }
@@ -1412,7 +1412,7 @@ void RSRenderServiceClient::ReportEventComplete(DataBaseRs info)
 
 void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ReportEventJankFrame(info);
     }
@@ -1420,7 +1420,7 @@ void RSRenderServiceClient::ReportEventJankFrame(DataBaseRs info)
 
 void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->ReportGameStateData(info);
     }
@@ -1429,7 +1429,7 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
@@ -1437,7 +1437,7 @@ void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDr
 
 uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         return renderService->SetHidePrivacyContent(id, needHidePrivacyContent);
     }
@@ -1446,7 +1446,7 @@ uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePr
 
 void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->NotifyLightFactorStatus(isSafe);
     }
@@ -1454,7 +1454,7 @@ void RSRenderServiceClient::NotifyLightFactorStatus(bool isSafe)
 
 void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->NotifyPackageEvent(listSize, packageList);
     }
@@ -1462,7 +1462,7 @@ void RSRenderServiceClient::NotifyPackageEvent(uint32_t listSize, const std::vec
 
 void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->NotifyRefreshRateEvent(eventInfo);
     }
@@ -1470,7 +1470,7 @@ void RSRenderServiceClient::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 
 void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->NotifyTouchEvent(touchStatus, touchCnt);
     }
@@ -1478,7 +1478,7 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchC
 
 void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->NotifyDynamicModeEvent(enableDynamicMode);
     }
@@ -1486,7 +1486,7 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 
 void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetScreenSwitchStatus(flag);
     }
@@ -1494,7 +1494,7 @@ void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetCacheEnabledForRotation(isEnabled);
     }
@@ -1502,7 +1502,7 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 
 void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetDefaultDeviceRotationOffset(offset);
     }
@@ -1510,7 +1510,7 @@ void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetOnRemoteDiedCallback(callback);
     }
@@ -1518,7 +1518,7 @@ void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& 
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionInfo()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return {};
     }
@@ -1527,7 +1527,7 @@ std::vector<ActiveDirtyRegionInfo> RSRenderServiceClient::GetActiveDirtyRegionIn
 
 GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return GlobalDirtyRegionInfo {};
     }
@@ -1536,7 +1536,7 @@ GlobalDirtyRegionInfo RSRenderServiceClient::GetGlobalDirtyRegionInfo()
 
 LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return LayerComposeInfo {};
     }
@@ -1545,7 +1545,7 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 
 HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return {};
     }
@@ -1563,7 +1563,7 @@ int64_t RSRenderServiceClient::GetHdrOnDuration()
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -1574,7 +1574,7 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
     TpFeatureConfigType tpFeatureConfigType)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return;
     }
@@ -1584,7 +1584,7 @@ void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* conf
 
 void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetVirtualScreenUsingStatus(isVirtualScreenUsingStatus);
     }
@@ -1592,7 +1592,7 @@ void RSRenderServiceClient::SetVirtualScreenUsingStatus(bool isVirtualScreenUsin
 
 void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     }
@@ -1600,7 +1600,7 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSRenderServiceClient::DropFrameByPid(const std::vector<int32_t> pidList)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->DropFrameByPid(pidList);
     }
@@ -1625,7 +1625,7 @@ private:
 
 int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterUIExtensionCallback renderService == nullptr!");
         return RENDER_SERVICE_NULL;
@@ -1636,7 +1636,7 @@ int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, cons
 
 bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         return renderService->SetAncoForceDoDirect(direct);
     }
@@ -1646,7 +1646,7 @@ bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
 
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         return renderService->SetVirtualScreenStatus(id, screenStatus);
     }
@@ -1655,7 +1655,7 @@ bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenSta
 
 void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::SetFreeMultiWindowStatus renderService == nullptr!");
         return;
@@ -1671,7 +1671,7 @@ public:
     {
         client_->TriggerOnFinish(ret);
     }
- 
+
     void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override
     {
         client_->TriggerOnAfterAcquireBuffer(ret);
@@ -1684,7 +1684,7 @@ private:
 bool RSRenderServiceClient::RegisterSurfaceBufferCallback(
     pid_t pid, uint64_t uid, std::shared_ptr<SurfaceBufferCallback> callback)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterSurfaceBufferCallback renderService == nullptr!");
         return false;
@@ -1712,7 +1712,7 @@ bool RSRenderServiceClient::RegisterSurfaceBufferCallback(
 
 bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::UnregisterSurfaceBufferCallback renderService == nullptr!");
         return false;
@@ -1762,7 +1762,7 @@ void RSRenderServiceClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBuffer
 
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
-    auto renderService = RSRenderServiceConnectHub::GetCachedConnection();
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetLayerTop(nodeIdStr, isTop);
     }

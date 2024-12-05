@@ -74,6 +74,7 @@ public:
     static void Deserialize(std::stringstream& stream);
 
 private:
+    static std::atomic_uint64_t id_;
     static std::mutex mutex_;
     static std::map<uint64_t, Image> cache_;
     static std::atomic_size_t consumption_;

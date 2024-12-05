@@ -293,8 +293,7 @@ void RSUifirstManager::ProcessDoneNode()
             continue;
         }
         auto cacheStatus = drawable->GetCacheSurfaceProcessedStatus();
-        if ((drawable->HasCachedTexture() && cacheStatus == CacheProcessStatus::WAITING) ||
-            cacheStatus == CacheProcessStatus::SKIPPED) {
+        if (cacheStatus == CacheProcessStatus::SKIPPED) {
             it = subthreadProcessingNode_.erase(it);
             continue;
         }
@@ -749,6 +748,10 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
         }
         if (drawable->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::WAITING) {
             drawable->SetRenderCachePriority(NodePriorityType::SUB_HIGH_PRIORITY);
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+        if (surfaceParams && surfaceParams->GetPreSubHighPriorityType()) {
+            drawable->SetRenderCachePriority(NodePriorityType::SUB_VEDIO_PRIORITY);
         }
         sortedSubThreadNodeIds_.emplace_back(id);
     }

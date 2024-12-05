@@ -33,7 +33,6 @@ namespace Rosen {
 std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
 OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
-sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::cachedConnection_ = nullptr;
 
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::GetInstance()
 {
@@ -67,14 +66,6 @@ sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderService()
 {
     auto connHub = RSRenderServiceConnectHub::GetInstance();
     return connHub == nullptr ? nullptr : connHub->GetRenderServiceConnection();
-}
-
-sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetCachedConnection()
-{
-    if (!cachedConnection_) {
-        cachedConnection_ = RSRenderServiceConnectHub::GetRenderService();
-    }
-    return cachedConnection_;
 }
 
 sptr<RSIRenderServiceConnection> RSRenderServiceConnectHub::GetRenderServiceConnection()

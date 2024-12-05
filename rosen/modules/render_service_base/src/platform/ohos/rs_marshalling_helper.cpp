@@ -278,6 +278,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         ret = val->BuildFromMalloc(data, size);
     }
     if (!ret) {
+        if (isMalloc) {
+            free(const_cast<void*>(data));
+            data = nullptr;
+        }
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Unmarshalling Data failed with Build Data");
     }
     return ret;
@@ -1708,6 +1712,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     if (size == -1) {
         val = nullptr;
         return true;
+    } else if (size < 0) {
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling Drawing::DrawCmdList size is invalid!");
+        val = nullptr;
+        return false;
     }
     int32_t width = parcel.ReadInt32();
     int32_t height = parcel.ReadInt32();

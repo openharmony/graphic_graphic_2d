@@ -53,7 +53,7 @@ namespace {
 HWTEST_F(HdiFramebufferSurfaceTest, ReleaseFramebuffer001, Function | MediumTest| Level3)
 {
     sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> fence = new SyncFence(10);
+    auto fence = SyncFence::INVALID_FENCE;
     ASSERT_EQ(hdiFramebufferSurface_->ReleaseFramebuffer(buffer, fence), 0);
     buffer = new SurfaceBufferImpl();
     ASSERT_NE(hdiFramebufferSurface_->ReleaseFramebuffer(buffer, fence), 0);
@@ -104,7 +104,7 @@ HWTEST_F(HdiFramebufferSurfaceTest, ReleaseFramebuffer002, Function | MediumTest
 
     // no consumer, call ReleaseFramebuffer should not be crash
     sptr<SurfaceBuffer> buffer = nullptr;
-    sptr<SyncFence> fence = new SyncFence(10);
+    auto fence = SyncFence::INVALID_FENCE;
     ASSERT_EQ(fbSurface->ReleaseFramebuffer(buffer, fence), 0);
 
     // no consumer, call ReleaseFramebuffer should not be crash

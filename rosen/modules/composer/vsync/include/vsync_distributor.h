@@ -67,6 +67,7 @@ public:
     {
         gcNotifyTask_ = hook;
     }
+    void RegisterDeathRecipient();
 
     int32_t rate_; // used for LTPS
     int32_t highPriorityRate_ = -1;

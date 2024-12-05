@@ -155,7 +155,9 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
     });
 
     hgmCore.RegisterRefreshRateUpdateCallback([](int32_t refreshRate) {
-        HgmConfigCallbackManager::GetInstance()->SyncRefreshRateUpdateCallback(refreshRate);
+        HgmTaskHandleThread::Instance().PostTask([refreshRate] () {
+            HgmConfigCallbackManager::GetInstance()->SyncRefreshRateUpdateCallback(refreshRate);
+        });
     });
 
     controller_ = std::make_shared<HgmVSyncGeneratorController>(rsController, appController, vsyncGenerator);

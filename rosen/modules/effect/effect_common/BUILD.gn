@@ -24,7 +24,6 @@ ohos_shared_library("effect_common") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effect_common/include",
-    "$graphic_2d_root/rosen/modules/effect/effectChain/include",
     "$graphic_2d_root/rosen/modules/effect/egl/include",
     "$graphic_2d_root/rosen/modules/effect/skia_effectChain/include",
     "$graphic_2d_root/utils/color_manager/export",

@@ -1710,6 +1710,44 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
 #endif
 }
 
+void RSSurfaceRenderNode::GetHwcChildrenState(bool& enabledType)
+{
+    if (IsAppWindow()) {
+        auto hwcNodes = GetChildHardwareEnabledNodes();
+        if (hwcNodes.empty()) {
+            return;
+        }
+        for (auto hwcNode : hwcNodes) {
+            auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr || IsRosenWeb()) {
+                continue;
+            }
+            enabledType = true;
+        }
+    } else if (IsLeashWindow()) {
+        for (auto& child : *GetChildren()) {
+            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode == nullptr) {
+                continue;
+            }
+            surfaceNode->GetHwcChildrenState(enabledType);
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SetPreSubHighPriorityType()
+{
+    if (!RSSystemProperties::IsPcType()) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    bool preSubHighPriority = false;
+    GetHwcChildrenState(preSubHighPriority);
+    RS_OPTIONAL_TRACE_NAME_FMT("SetPreSubHighPriorityType::name:[%s] preSub:%d", GetName().c_str(), preSubHighPriority);
+    surfaceParams->SetPreSubHighPriorityType(preSubHighPriority);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
 {
 #ifdef RS_ENABLE_GPU

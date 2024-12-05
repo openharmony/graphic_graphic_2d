@@ -259,6 +259,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
         contentCmdList->second.clear();
     }
     savedirtyTypes.set(static_cast<int>(RSModifierType::CONTENT_STYLE), false);
+    isPostPlaybacked_ = true;
     dirtyTypes_ = savedirtyTypes;
 
     AddToPendingSyncList();
@@ -623,6 +624,21 @@ void RSCanvasDrawingRenderNode::ClearResource()
 void RSCanvasDrawingRenderNode::ClearNeverOnTree()
 {
     isNeverOnTree_ = false;
+}
+
+void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
+{
+    if (isPostPlaybacked_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("canvas drawing node [%" PRIu64 "] CheckCanvasDrawingPostPlaybacked", GetId());
+        // add empty drawop, only used in unirender mode
+        dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
+        auto contentCmdList = drawCmdLists_.find(RSModifierType::CONTENT_STYLE);
+        if (contentCmdList != drawCmdLists_.end()) {
+            auto cmd = std::make_shared<Drawing::DrawCmdList>();
+            contentCmdList->second.emplace_back(cmd);
+        }
+        isPostPlaybacked_ = false;
+    }
 }
 
 } // namespace Rosen

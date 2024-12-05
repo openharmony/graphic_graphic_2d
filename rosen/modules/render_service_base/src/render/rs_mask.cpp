@@ -240,11 +240,11 @@ void RSMask::Dump(std::string& out) const
     }
     out += "] pixelMap[";
     if (pixelMap_ != nullptr) {
-        out += " pixelMap[width:" + std::to_string(pixelMap_->GetWidth());
+        out += " width:" + std::to_string(pixelMap_->GetWidth());
         out += " height:" + std::to_string(pixelMap_->GetHeight());
         out += " byteCount:" + std::to_string(pixelMap_->GetByteCount());
     }
-    out += "]";
+    out += ']';
     if (image_ != nullptr) {
         out += " image";
         image_->Dump(out);

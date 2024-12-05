@@ -1958,6 +1958,23 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
 }
 
 /*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_006
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with securityExemptionList size more than 1024.
+ * @tc.type: FUNC
+ * @tc.require: issueIB8NPD
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_006, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<NodeId> securityExemptionList = {};
+    for (NodeId i = 0; i <= 1024; i++) {  // 1024 is max securityExemptionList number
+        securityExemptionList.emplace_back(i);
+    }
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
+}
+
+/*
  * @tc.name: SetMirrorScreenVisibleRect_001
  * @tc.desc: Test SetMirrorScreenVisibleRect with abnormal params, screenId is INVALID_SCREEN_ID.
  * @tc.type: FUNC

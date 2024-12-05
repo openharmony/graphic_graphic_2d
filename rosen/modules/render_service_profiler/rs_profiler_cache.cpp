@@ -20,6 +20,7 @@
 
 namespace OHOS::Rosen {
 
+std::atomic_uint64_t ImageCache::id_ = 0u;
 std::mutex ImageCache::mutex_;
 std::map<uint64_t, Image> ImageCache::cache_;
 std::atomic_size_t ImageCache::consumption_;
@@ -49,8 +50,7 @@ void Image::Serialize(Archive& archive)
 // ImageCache
 uint64_t ImageCache::New()
 {
-    static uint32_t id = 0u;
-    return Utils::ComposeNodeId(Utils::GetPid(), id++);
+    return Utils::ComposeNodeId(Utils::GetPid(), id_++);
 }
 
 bool ImageCache::Exists(uint64_t id)
@@ -90,6 +90,7 @@ size_t ImageCache::Consumption()
 
 void ImageCache::Reset()
 {
+    id_ = 0;
     consumption_ = 0u;
     const std::lock_guard<std::mutex> guard(mutex_);
     cache_.clear();

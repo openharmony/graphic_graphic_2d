@@ -332,7 +332,9 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         bool useHBackendContext = false;
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
-        useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+        if (!RSSystemProperties::IsPcType() || threadIndex_ != 0) {
+            useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+        }
 #endif
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(useHBackendContext),
             options)) {

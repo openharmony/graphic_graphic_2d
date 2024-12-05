@@ -45,6 +45,7 @@ private:
     void DumpNodesNotOnTheTree(std::string& dumpString) const;
     void DumpAllNodesMemSize(std::string& dumpString) const;
     void DumpHelpInfo(std::string& dumpString) const;
+    void DumpGpuInfo(std::string& dumpString) const;
     void DumpRSEvenParam(std::string& dumpString) const;
     void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;
     void DumpRefreshRateCounts(std::string& dumpString) const;

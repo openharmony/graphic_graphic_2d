@@ -95,11 +95,15 @@ VSyncConnection::VSyncConnection(
     if (err != 0) {
         RS_TRACE_NAME_FMT("Create socket channel failed, errno = %d", errno);
     }
+    proxyPid_ = GetCallingPid();
+    isDead_ = false;
+}
+
+void VSyncConnection::RegisterDeathRecipient()
+{
     if (token_ != nullptr) {
         token_->AddDeathRecipient(vsyncConnDeathRecipient_);
     }
-    proxyPid_ = GetCallingPid();
-    isDead_ = false;
 }
 
 VSyncConnection::~VSyncConnection()
@@ -363,7 +367,7 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
             connectionsMap_[tmpPid].push_back(connection);
         }
     }
-    
+    connection->RegisterDeathRecipient();
     return VSYNC_ERROR_OK;
 }
 

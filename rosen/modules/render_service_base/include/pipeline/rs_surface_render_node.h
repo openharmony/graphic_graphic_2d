@@ -140,6 +140,9 @@ public:
             IsLayerTop();
     }
 
+    void GetHwcChildrenState(bool& enabledType);
+    void SetPreSubHighPriorityType();
+
     bool IsDynamicHardwareEnable() const
     {
         return dynamicHardwareEnable_;

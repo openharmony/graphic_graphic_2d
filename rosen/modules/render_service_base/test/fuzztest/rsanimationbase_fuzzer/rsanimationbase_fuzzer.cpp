@@ -250,7 +250,7 @@ namespace OHOS {
             std::shared_ptr<RSCubicBezierInterpolator>(RSCubicBezierInterpolator::Unmarshalling(parcel));
     }
 
-    void RSInterpolatorFuzzerTest()
+    void RSInterpolatorFuzzerTest1()
     {
         // get data
         Parcel parcel;
@@ -263,11 +263,43 @@ namespace OHOS {
             std::shared_ptr<LinearInterpolator>(LinearInterpolator::Unmarshalling(parcel));
         linearInterpolator->GetType();
 
-        auto customInterpolator = std::make_shared<RSCustomInterpolator>(nullptr, duration);
+        auto lambda = [](float value) -> float { return value; };
+        auto customInterpolator = std::make_shared<RSCustomInterpolator>(lambda, duration);
         customInterpolator->Marshalling(parcel);
         auto copyCustomInterpolator =
             std::shared_ptr<RSCustomInterpolator>(RSCustomInterpolator::Unmarshalling(parcel));
         customInterpolator->GetType();
+    }
+
+    void RSInterpolatorFuzzerTest2()
+    {
+        Parcel parcel1;
+        uint16_t type = GetData<uint16_t>();
+        auto interpolator1 = RSInterpolator::Unmarshalling(parcel1);
+        parcel1.WriteUint16(type);
+        interpolator1 = RSInterpolator::Unmarshalling(parcel1);
+
+        Parcel parcel2;
+        auto interpolator2 = LinearInterpolator::Unmarshalling(parcel2);
+        if (interpolator2) {
+            interpolator2->GetType();
+        }
+
+        uint16_t id = GetData<uint16_t>();
+        float time = GetData<float>();
+        std::vector<float> times = { time };
+        float value = GetData<float>();
+        std::vector<float> values = { value };
+        float input = GetData<float>();
+        auto customInterpolator2 = std::make_shared<RSCustomInterpolator>(id, std::move(times), std::move(values));
+        customInterpolator2->InterpolateImpl(input);
+        customInterpolator2->InterpolateImpl(time);
+        Parcel parcel3;
+        customInterpolator2->Marshalling(parcel3);
+        auto copyCustomInterpolator2 = RSCustomInterpolator::Unmarshalling(parcel3);
+        if (copyCustomInterpolator2) {
+            copyCustomInterpolator2->GetType();
+        }
     }
 
     void RSSpringInterpolatorFuzzerTest()
@@ -303,7 +335,7 @@ namespace OHOS {
         animation->GetType();
     }
 
-    void RSRenderCurveAnimationFuzzerTest()
+    void RSRenderCurveAnimationFuzzerTest1()
     {
         // get data
         auto animationId = GetData<AnimationId>();
@@ -325,6 +357,33 @@ namespace OHOS {
         Parcel parcel;
         animation->Marshalling(parcel);
         auto copyAnimation = std::shared_ptr<RSRenderCurveAnimation>(RSRenderCurveAnimation::Unmarshalling(parcel));
+    }
+
+    void RSRenderCurveAnimationFuzzerTest2()
+    {
+        // get data
+        auto animationId = GetData<AnimationId>();
+        auto propertyId = GetData<PropertyId>();
+        int32_t steps = GetData<int32_t>();
+        StepsCurvePosition position = GetData<StepsCurvePosition>();
+        auto property = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto fraction = GetData<float>();
+
+        // test
+        auto animation = std::make_shared<RSRenderCurveAnimation>(
+            animationId, propertyId, property, startValue, endValue);
+        auto interpolator = std::make_shared<RSStepsInterpolator>(steps, position);
+        animation->property_ = property;
+        animation->SetInterpolator(interpolator);
+        animation->OnSetFraction(fraction);
+        animation->OnAnimateInner(fraction, interpolator);
+        animation->InitValueEstimator();
+        animation->OnSetFraction(fraction);
+        animation->UpdateFractionAfterContinue();
+        animation->OnAnimate(fraction);
+        animation->OnAnimateInner(fraction, interpolator);
     }
 
     void RSRenderInteractiveImplictAnimatorAndMapFuzzerTest()
@@ -353,7 +412,7 @@ namespace OHOS {
         context.GetInteractiveImplictAnimatorMap().UnregisterInteractiveImplictAnimator(animatorId);
     }
 
-    void RSRenderInterpolatingSpringAnimationFuzzerTest()
+    void RSRenderInterpolatingSpringAnimationFuzzerTest1()
     {
         // get data
         auto animationId = GetData<AnimationId>();
@@ -380,7 +439,45 @@ namespace OHOS {
             RSRenderInterpolatingSpringAnimation::Unmarshalling(parcel));
     }
 
-    void RSRenderKeyframeAnimationFuzzerTest()
+    void RSRenderInterpolatingSpringAnimationFuzzerTest2()
+    {
+        // get data
+        auto animationId = GetData<AnimationId>();
+        auto propertyId = GetData<PropertyId>();
+        auto property = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto response = GetData<float>();
+        auto dampingRatio = GetData<float>();
+        auto normalizedInitialVelocity = GetData<float>();
+        auto minimumAmplitudeRatio = GetData<float>();
+        auto zeroThreshold = GetData<float>();
+        auto fraction = GetData<float>();
+        auto time = GetData<int64_t>();
+
+        // test
+        auto animation = std::make_shared<RSRenderInterpolatingSpringAnimation>(
+            animationId, propertyId, property, startValue, endValue);
+        animation->property_ = property;
+        animation->SetSpringParameters(response, dampingRatio, normalizedInitialVelocity, minimumAmplitudeRatio);
+        animation->OnSetFraction(fraction);
+        animation->OnAnimate(fraction);
+        animation->CalculateVelocity(fraction);
+        animation->SetZeroThreshold(zeroThreshold);
+
+        animation->InitValueEstimator();
+        animation->OnSetFraction(fraction);
+        animation->UpdateFractionAfterContinue();
+        animation->CalculateTimeFraction(fraction);
+        animation->OnAnimate(fraction);
+        animation->OnAnimate(1.0f);
+        animation->OnInitialize(time);
+        animation->CalculateVelocity(fraction);
+        animation->GetNeedLogicallyFinishCallback();
+        animation->CallLogicallyFinishCallback();
+    }
+
+    void RSRenderKeyframeAnimationFuzzerTest1()
     {
         // get data
         auto animationId = GetData<AnimationId>();
@@ -412,7 +509,32 @@ namespace OHOS {
             RSRenderKeyframeAnimation::Unmarshalling(parcel));
     }
 
-    void RSRenderPathAnimationFuzzerTest()
+    void RSRenderKeyframeAnimationFuzzerTest2()
+    {
+        // get data
+        auto animationId = GetData<AnimationId>();
+        auto propertyId = GetData<PropertyId>();
+        int32_t steps = GetData<int32_t>();
+        StepsCurvePosition position = GetData<StepsCurvePosition>();
+        auto property = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        auto fraction = GetData<float>();
+
+        // test
+        auto animation = std::make_shared<RSRenderKeyframeAnimation>(animationId, propertyId, property);
+        auto interpolator = std::make_shared<RSStepsInterpolator>(steps, position);
+        animation->property_ = property;
+        Parcel parcel;
+        parcel.WriteFloat(fraction);
+        parcel.WriteFloat(fraction);
+        RSRenderPropertyBase::Marshalling(parcel, property);
+        interpolator->Marshalling(parcel);
+        animation->ParseDurationKeyframesParam(parcel, 1);
+        animation->OnAnimate(fraction);
+        animation->InitValueEstimator();
+        animation->OnAnimate(fraction);
+    }
+
+    void RSRenderPathAnimationFuzzerTest1()
     {
         // get data
         auto animationId = GetData<AnimationId>();
@@ -447,6 +569,56 @@ namespace OHOS {
         Parcel parcel;
         animation->Marshalling(parcel);
         auto copyAnimation = std::shared_ptr<RSRenderPathAnimation>(RSRenderPathAnimation::Unmarshalling(parcel));
+    }
+
+    void RSRenderPathAnimationFuzzerTest2()
+    {
+        // get data
+        auto animationId = GetData<AnimationId>();
+        auto propertyId = GetData<PropertyId>();
+        NodeId nodeId = GetData<NodeId>();
+        Vector4f value = Vector4f(GetData<float>(), GetData<float>(), GetData<float>(), GetData<float>());
+        Vector2f value2 = Vector2f(GetData<float>(), GetData<float>());
+        auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(value);
+        auto startValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(value);
+        auto endValue = std::make_shared<RSRenderAnimatableProperty<Vector4f>>(value);
+        auto originRotation = GetData<float>();
+        auto rotationMode = GetData<RotationMode>();
+        auto fraction = GetData<float>();
+        auto isNeedPath = GetData<bool>();
+        auto tangent = GetData<float>();
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+
+        // test
+        auto animation1 = std::make_shared<RSRenderPathAnimation>(
+            animationId, propertyId, property, startValue, endValue, originRotation, nullptr);
+        animation1->OnAnimate(fraction);
+
+        // no node
+        auto animation2 = std::make_shared<RSRenderPathAnimation>(
+            animationId, propertyId, property, startValue, endValue, originRotation, RSPath::CreateRSPath());
+        animation2->property_ = property;
+        animation2->SetIsNeedPath(isNeedPath);
+        animation2->OnAnimate(fraction);
+        animation2->OnAttach();
+        animation2->OnRemoveOnCompletion();
+        animation2->OnDetach();
+        animation2->SetRotation(tangent);
+
+        animation2->Attach(renderNode.get());
+        animation2->InitValueEstimator();
+        animation2->OnRemoveOnCompletion();
+        animation2->OnAttach();
+        animation2->OnDetach();
+        animation2->SetPathValue(value2, tangent);
+        animation2->SetPathValue(value, tangent);
+        animation2->SetRotationMode(rotationMode);
+        animation2->SetRotationValue(tangent);
+        animation2->SetRotation(tangent);
+        animation2->GetPosTanValue(fraction, value2, tangent);
+        animation2->SetPathNeedAddOrigin(isNeedPath);
+        animation2->UpdateVector2fPathValue(value2);
+        animation2->UpdateVector4fPathValue(value, value2);
     }
 
     void RSCurveValueEstimatorFuzzerTest()
@@ -741,6 +913,71 @@ namespace OHOS {
         animation3->FinishOnCurrentPosition();
     }
 
+    void RSRenderPropertyAnimationFuzzerTest1()
+    {
+        // get data
+        AnimationId animationId = GetData<AnimationId>();
+        PropertyId propertyId = GetData<PropertyId>();
+        auto property = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        bool isAdditive = GetData<bool>();
+        auto frameInterval = GetData<float>();
+        auto fraction = GetData<float>();
+        auto time = GetData<float>();
+        std::string out;
+
+        auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(animationId, propertyId, property);
+        renderPropertyAnimation->DumpAnimationInfo(out);
+        renderPropertyAnimation->SetAdditive(isAdditive);
+        renderPropertyAnimation->GetAdditive();
+        renderPropertyAnimation->AttachRenderProperty(property);
+        Parcel parcel;
+        renderPropertyAnimation->Marshalling(parcel);
+        renderPropertyAnimation->ParseParam(parcel);
+        renderPropertyAnimation->SetPropertyValue(property);
+        renderPropertyAnimation->GetPropertyValue();
+        renderPropertyAnimation->GetOriginValue();
+        renderPropertyAnimation->GetLastValue();
+        renderPropertyAnimation->SetAnimationValue(property);
+        renderPropertyAnimation->GetAnimationValue(property);
+        renderPropertyAnimation->OnRemoveOnCompletion();
+        renderPropertyAnimation->RecordLastAnimateValue();
+        renderPropertyAnimation->UpdateAnimateVelocity(frameInterval);
+        renderPropertyAnimation->ProcessAnimateVelocityUnderAngleRotation(frameInterval);
+        renderPropertyAnimation->DumpFraction(fraction, time);
+    }
+
+    void RSRenderPropertyAnimationFuzzerTest2()
+    {
+        // get data
+        AnimationId animationId = GetData<AnimationId>();
+        PropertyId propertyId = GetData<PropertyId>();
+        auto property = std::make_shared<RSRenderAnimatableProperty<float>>(GetData<float>());
+        bool isAdditive = GetData<bool>();
+        auto frameInterval = GetData<float>();
+        auto fraction = GetData<float>();
+        auto time = GetData<float>();
+        NodeId nodeId = GetData<NodeId>();
+        auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+
+        auto renderPropertyAnimation = std::make_shared<RSRenderPropertyAnimation>(animationId, propertyId, property);
+
+        renderPropertyAnimation->Attach(renderNode.get());
+        renderPropertyAnimation->Start();
+
+        renderPropertyAnimation->SetAdditive(isAdditive);
+        renderPropertyAnimation->GetAdditive();
+        renderPropertyAnimation->AttachRenderProperty(property);
+
+        renderPropertyAnimation->SetAnimationValue(nullptr);
+        renderPropertyAnimation->SetAnimationValue(property);
+        renderPropertyAnimation->GetAnimationValue(nullptr);
+        renderPropertyAnimation->GetAnimationValue(property);
+        renderPropertyAnimation->OnRemoveOnCompletion();
+        renderPropertyAnimation->RecordLastAnimateValue();
+        renderPropertyAnimation->ProcessAnimateVelocityUnderAngleRotation(frameInterval);
+        renderPropertyAnimation->DumpFraction(fraction, time);
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -756,14 +993,19 @@ namespace OHOS {
         RSAnimationTimingProtocolFuzzerTest();
         RSAnimationTraceUtilsFuzzerTest();
         RSCubicBezierInterpolatorFuzzerTest();
-        RSInterpolatorFuzzerTest();
+        RSInterpolatorFuzzerTest1();
+        RSInterpolatorFuzzerTest2();
         RSSpringInterpolatorFuzzerTest();
         RSStepsInterpolatorFuzzerTest();
-        RSRenderCurveAnimationFuzzerTest();
+        RSRenderCurveAnimationFuzzerTest1();
+        RSRenderCurveAnimationFuzzerTest2();
         RSRenderInteractiveImplictAnimatorAndMapFuzzerTest();
-        RSRenderInterpolatingSpringAnimationFuzzerTest();
-        RSRenderKeyframeAnimationFuzzerTest();
-        RSRenderPathAnimationFuzzerTest();
+        RSRenderInterpolatingSpringAnimationFuzzerTest1();
+        RSRenderInterpolatingSpringAnimationFuzzerTest2();
+        RSRenderKeyframeAnimationFuzzerTest1();
+        RSRenderKeyframeAnimationFuzzerTest2();
+        RSRenderPathAnimationFuzzerTest1();
+        RSRenderPathAnimationFuzzerTest2();
         RSCurveValueEstimatorFuzzerTest();
         RSKeyframeValueEstimatorFuzzerTest();
         RSSpringValueEstimatorFuzzerTest();
@@ -773,6 +1015,8 @@ namespace OHOS {
         RSRenderSpringAnimationFuzzerTest();
         RSRenderAnimation1FuzzerTest();
         RSRenderAnimation2FuzzerTest();
+        RSRenderPropertyAnimationFuzzerTest1();
+        RSRenderPropertyAnimationFuzzerTest2();
         return true;
     }
 }

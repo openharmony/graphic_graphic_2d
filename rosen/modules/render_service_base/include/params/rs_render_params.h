@@ -278,10 +278,12 @@ public:
     {
         return absDrawRect_;
     }
+
     void SetAbsDrawRect(RectI& absRect)
     {
         absDrawRect_ = absRect;
     }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
@@ -353,7 +355,7 @@ private:
     RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
-
+    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
@@ -379,7 +381,6 @@ private:
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
-    bool freezeFlag_ = false;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     bool isFirstLevelCrossNode_ = false;

@@ -2645,6 +2645,9 @@ void RSRenderNode::ApplyModifiers()
 
     // Temporary code, copy matrix into render params
     if (LIKELY(RSUniRenderJudgement::IsUniRender() && !isTextureExportNode_)) {
+        if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+            CheckCanvasDrawingPostPlaybacked();
+        }
         UpdateDrawableVecV2();
     } else {
         UpdateDrawableVec();
@@ -4383,6 +4386,7 @@ void RSRenderNode::OnSync()
     DrawableV2::RSRenderNodeSingleDrawableLocker
         singleLocker(uifirstSkipPartialSync_ ? nullptr : renderDrawable_.get());
     if (!uifirstSkipPartialSync_ && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }

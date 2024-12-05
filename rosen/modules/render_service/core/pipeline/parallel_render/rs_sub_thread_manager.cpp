@@ -25,6 +25,7 @@
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
+static constexpr uint32_t SUB_VEDIO_THREAD_TASKS_NUM_MAX = 2;
 static constexpr uint32_t WAIT_NODE_TASK_TIMEOUT = 5 * 1000; // 5s
 constexpr const char* RELEASE_RESOURCE = "releaseResource";
 constexpr const char* RELEASE_TEXTURE = "releaseTexture";
@@ -378,7 +379,11 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
 
     auto minDoingCacheProcessNum = threadList_[defaultThreadIndex_]->GetDoingCacheProcessNum();
     minLoadThreadIndex_ = defaultThreadIndex_;
-    for (unsigned int j = 0; j < SUB_THREAD_NUM; j++) {
+    unsigned int loadDefaultIndex = 0;
+    if (RSSystemProperties::IsPcType()) {
+        loadDefaultIndex = 1;
+    }
+    for (unsigned int j = loadDefaultIndex; j < SUB_THREAD_NUM; j++) {
         if (j == defaultThreadIndex_) {
             continue;
         }
@@ -393,7 +398,14 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     } else {
         defaultThreadIndex_++;
         if (defaultThreadIndex_ >= SUB_THREAD_NUM) {
-            defaultThreadIndex_ = 0;
+            defaultThreadIndex_ = loadDefaultIndex;
+        }
+    }
+    if (RSSystemProperties::IsPcType()) {
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+        if (surfaceParams && surfaceParams->GetPreSubHighPriorityType() &&
+            threadList_[0]->GetDoingCacheProcessNum() <= SUB_VEDIO_THREAD_TASKS_NUM_MAX) {
+            nowIdx = 0;
         }
     }
 
