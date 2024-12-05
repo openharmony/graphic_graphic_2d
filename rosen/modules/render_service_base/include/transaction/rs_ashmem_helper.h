@@ -19,6 +19,7 @@
 #include <message_parcel.h>
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "memory/rs_memory_flow_control.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -49,7 +50,8 @@ private:
 class RSB_EXPORT RSAshmemHelper {
 public:
     static std::shared_ptr<MessageParcel> CreateAshmemParcel(std::shared_ptr<MessageParcel>& dataParcel);
-    static std::shared_ptr<MessageParcel> ParseFromAshmemParcel(MessageParcel* ashmemParcel);
+    static std::shared_ptr<MessageParcel> ParseFromAshmemParcel(MessageParcel* ashmemParcel,
+        std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr);
     static std::shared_ptr<MessageParcel> CopyParcel(MessageParcel& old);
 
     static void CopyFileDescriptor(

@@ -28,6 +28,7 @@
 #include "command/rs_command_factory.h"
 #include "common/rs_xcollie.h"
 #include "hgm_frame_rate_manager.h"
+#include "memory/rs_memory_flow_control.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -325,6 +326,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
 
     pid_t callingPid = GetCallingPid();
+    RSMarshallingHelper::SetCallingPid(callingPid);
     auto tid = gettid();
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -367,6 +369,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
             std::shared_ptr<MessageParcel> parsedParcel;
+            auto ashmemFlowControlUnit = std::make_shared<AshmemFlowControlUnit>(callingPid);
             if (data.ReadInt32() == 0) { // indicate normal parcel
                 if (isUniRender) {
                     // in uni render mode, if parcel size over threshold,
@@ -390,15 +393,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             } else {
                 // indicate ashmem parcel
                 // should be parsed to normal parcel before Unmarshalling
-                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data);
+                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFlowControlUnit);
             }
             if (parsedParcel == nullptr) {
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed: parsed parcel is nullptr");
+                // ParseFromAshmemParcel flow control end
+                MemoryFlowControl::Instance().RemoveAshmemStatistic(ashmemFlowControlUnit);
                 return ERR_INVALID_DATA;
             }
             if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
-                RSUnmarshalThread::Instance().RecvParcel(parsedParcel, isNonSystemAppCalling, callingPid);
+                RSUnmarshalThread::Instance().RecvParcel(parsedParcel, isNonSystemAppCalling, callingPid,
+                    ashmemFlowControlUnit);
             } else {
                 // execute Unmarshalling immediately
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel);
@@ -409,6 +415,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     }
                 }
                 CommitTransaction(transactionData);
+                // ParseFromAshmemParcel flow control end
+                MemoryFlowControl::Instance().RemoveAshmemStatistic(ashmemFlowControlUnit);
             }
             break;
         }

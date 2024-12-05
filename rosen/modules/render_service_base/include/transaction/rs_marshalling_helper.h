@@ -419,6 +419,9 @@ public:
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);
     static bool CheckReadPosition(Parcel& parcel);
+
+    static void SetCallingPid(pid_t callingPid);
+
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);

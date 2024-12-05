@@ -24,6 +24,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include "memory/rs_memory_flow_control.h"
 #include "memory/rs_memory_track.h"
 #include "pixel_map.h"
 
@@ -76,11 +77,7 @@ bool g_useSharedMem = true;
 std::thread::id g_tid = std::thread::id();
 std::mutex g_writeMutex;
 constexpr size_t PIXELMAP_UNMARSHALLING_DEBUG_OFFSET = 12;
-// when buffer size >1GB in ashmem parcel, discard it to avoid OOM
-constexpr uint32_t ASHMEM_PARCEL_BUFFER_SIZE_UPPER_BOUND = 1024 * 1024 * 1024;
-// when ipc copys >100MB from ashmem at a single time, lock it to avoid OOM
-constexpr size_t COPY_FROM_ASHMEM_LOCK_THRESHOLD = 100 * 1024 * 1024;
-std::mutex g_copyFromAshmemMutex;
+thread_local pid_t g_callingPid = 0;
 }
 
 #define MARSHALLING_AND_UNMARSHALLING(TYPE, TYPENAME)                      \
@@ -2281,16 +2278,22 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, boo
         isMalloc = false;
         return parcel.ReadUnpadBuffer(size);
     }
-    // read from ashmem
-    if (bufferSize > ASHMEM_PARCEL_BUFFER_SIZE_UPPER_BOUND) {
+    // ReadFromAshmem flow control begin
+    bool success = MemoryFlowControl::Instance().AddAshmemStatistic(g_callingPid, bufferSize);
+    if (!success) {
+        // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
         isMalloc = false;
-        RS_TRACE_NAME_FMT(
-            "RSMarshallingHelper::ReadFromParcel bufferSize %" PRIu32 " oversteps upper bound", bufferSize);
-        ROSEN_LOGE(
-            "RSMarshallingHelper::ReadFromParcel bufferSize %{public}" PRIu32 " oversteps upper bound", bufferSize);
+        RS_TRACE_NAME_FMT("RSMarshallingHelper::ReadFromParcel callingPid %d is submitting too many data, "
+            "discard parcel with bufferSize %" PRIu32, static_cast<int>(g_callingPid), bufferSize);
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel callingPid %{public}d is submitting too many data, "
+            "discard parcel with bufferSize %{public}" PRIu32, static_cast<int>(g_callingPid), bufferSize);
         return nullptr;
     }
-    return RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
+    // read from ashmem
+    const void* data = RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
+    // ReadFromAshmem flow control end
+    MemoryFlowControl::Instance().RemoveAshmemStatistic(g_callingPid, bufferSize);
+    return data;
 }
 
 bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
@@ -2324,13 +2327,6 @@ const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, boo
         return nullptr;
     }
     isMalloc = true;
-    if (size > COPY_FROM_ASHMEM_LOCK_THRESHOLD) {
-        std::lock_guard<std::mutex> lock(g_copyFromAshmemMutex);
-        RS_TRACE_NAME_FMT("RSMarshallingHelper::ReadFromAshmem lock CopyFromAshmem: fd=%d, size=%zu", fd, size);
-        ROSEN_LOGW(
-            "RSMarshallingHelper::ReadFromAshmem lock CopyFromAshmem: fd=%{public}d, size=%{public}zu", fd, size);
-        return ashmemAllocator->CopyFromAshmem(size);
-    }
     return ashmemAllocator->CopyFromAshmem(size);
 }
 
@@ -2365,6 +2361,11 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
         return false;
     }
     return true;
+}
+
+void RSMarshallingHelper::SetCallingPid(pid_t callingPid)
+{
+    g_callingPid = callingPid;
 }
 
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val)
