@@ -209,7 +209,7 @@ bool RSSystemProperties::GetRSImagePurgeEnabled()
 
 bool RSSystemProperties::GetClosePixelMapFdEnabled()
 {
-    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.purge.enabled", "1") != "0";
+    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
     return isClosePixelMapFd;
 }
 
