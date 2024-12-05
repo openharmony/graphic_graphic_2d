@@ -110,6 +110,43 @@ HWTEST_F(RSRenderNodeAutocacheTest, OpincQuickMarkStableNode001, TestSize.Level1
 }
 
 /**
+ * @tc.name: OpincQuickMarkStableNode002
+ * @tc.desc: test results of OpincQuickMarkStableNode
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSRenderNodeAutocacheTest, OpincQuickMarkStableNode002, TestSize.Level1)
+{
+    RSRenderNode renderNode(0);
+    bool unchangeMarkInApp = false;
+    bool unchangeMarkEnable = true;
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(renderNode.isUnchangeMarkInApp_ == false);
+
+    unchangeMarkInApp = true;
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(renderNode.isUnchangeMarkInApp_ == false);
+
+    renderNode.isSuggestOpincNode_ = true;
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(renderNode.isSuggestOpincNode_);
+
+    unchangeMarkEnable = false;
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(renderNode.isUnchangeMarkEnable_);
+
+    unchangeMarkEnable = true;
+    renderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    renderNode.nodeCacheState_ = NodeCacheState::STATE_CHANGE;
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(renderNode.isUnchangeMarkEnable_);
+
+    renderNode.isSubTreeDirty_ = true;
+    renderNode.OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    EXPECT_TRUE(renderNode.isSubTreeDirty_);
+}
+
+/**
  * @tc.name: OpincUpdateRootFlag001
  * @tc.desc: test results of OpincUpdateRootFlag
  * @tc.type: FUNC
