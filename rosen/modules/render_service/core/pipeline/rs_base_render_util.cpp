@@ -47,6 +47,8 @@ namespace Rosen {
 namespace {
 const std::string DUMP_CACHESURFACE_DIR = "/data/cachesurface";
 const std::string DUMP_CANVASDRAWING_DIR = "/data/canvasdrawing";
+constexpr uint32_t API14 = 14;
+constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 
 inline int64_t GenerateCurrentTimeStamp()
 {
@@ -1228,6 +1230,23 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
 
     return gravityMatrix;
 }
+
+int32_t RSBaseRenderUtil::GetDeviceRotation(RSSurfaceRenderParams* nodeParams)
+{
+    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
+    if (nodeParams == nullptr) {
+        return rotationDegree;
+    }
+    static bool isCameraRotationCompensation =
+        system::GetBoolParameter("const.multimedia.enable_camera_rotation_compensation", 0);
+    uint32_t apiCompatibleVersion = nodeParams->GetApiCompatibleVersion();
+    if (isCameraRotationCompensation && apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION &&
+        apiCompatibleVersion < API14) {
+        rotationDegree = 0;
+    }
+    return rotationDegree;
+}
+
 #ifdef RS_ENABLE_GPU
 void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
     RectF &localBounds, BufferDrawParam &params, RSSurfaceRenderParams *nodeParams)
@@ -1235,8 +1254,8 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     // the surface can rotate itself.
     auto rotationTransform = GetRotateTransform(transform);
     int extraRotation = 0;
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
+        int32_t rotationDegree = GetDeviceRotation(nodeParams);
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
         extraRotation = degree - rotationDegree;
     }
