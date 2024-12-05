@@ -1520,6 +1520,8 @@ GraphicTransformType RSUniRenderUtil::GetConsumerTransform(RSSurfaceRenderNode& 
             RS_LOGE("RSUniRenderUtil::GetConsumerTransform GetSurfaceBufferTransformType failed");
         }
     }
+    GraphicTransformType consumerTransform = RSBaseRenderUtil::GetRotateTransform(transformType);
+    return consumerTransform;
 }
 
 void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
