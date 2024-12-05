@@ -94,7 +94,13 @@ napi_value JsFont::Init(napi_env env, napi_value exportObj)
     }
 
     napi_value constructor = nullptr;
-    napi_status status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        ROSEN_LOGE("Failed to get the representation of constructor object");
+        return nullptr;
+    }
+
+    status = napi_set_named_property(env, exportObj, CLASS_NAME.c_str(), constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("Failed to set constructor");
         return nullptr;
