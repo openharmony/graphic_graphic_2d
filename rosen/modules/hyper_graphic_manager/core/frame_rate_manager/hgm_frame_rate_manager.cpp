@@ -244,16 +244,24 @@ void HgmFrameRateManager::InitPowerTouchManager()
         powerTouchManager_.ChangeState(TouchState::DOWN_STATE);
     });
     powerTouchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
-        [](TouchState lastState, TouchState newState) {
+        [this] (TouchState lastState, TouchState newState) {
         HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::DOWN_STATE);
+        HgmCore::Instance().SetHgmTaskFlag(true);
+        if (forceUpdateCallback_ != nullptr) {
+            forceUpdateCallback_(false, true);
+        }
     });
     powerTouchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
         [](TouchState lastState, TouchState newState) {
         HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::UP_STATE);
     });
     powerTouchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
-        [](TouchState lastState, TouchState newState) {
+        [this] (TouchState lastState, TouchState newState) {
         HgmEnergyConsumptionPolicy::Instance().SetTouchState(TouchState::IDLE_STATE);
+        HgmCore::Instance().SetHgmTaskFlag(true);
+        if (forceUpdateCallback_ != nullptr) {
+            forceUpdateCallback_(false, true);
+        }
     });
 }
 

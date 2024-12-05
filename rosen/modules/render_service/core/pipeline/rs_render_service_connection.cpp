@@ -461,7 +461,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     if (ExtractPid(id) == remotePid_) {
         auto observer = [] (const RSRenderFrameRateLinker& linker) {
             if (auto mainThread = RSMainThread::Instance(); mainThread != nullptr) {
-                mainThread->UpdateFrameRateLinker(linker);
+                HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
         mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
