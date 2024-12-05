@@ -248,8 +248,8 @@ HWTEST_F(RSInterpolatorTest, RSCustomInterpolatorMarshallingTest001, TestSize.Le
         EXPECT_EQ(copyInterpolator->values_.size(), values.size());
         EXPECT_EQ(copyInterpolator->times_[0], times[0]);
         EXPECT_EQ(copyInterpolator->times_[1], times[1]);
-        EXPECT_EQ(copyInterpolator->values_[0], times[0]);
-        EXPECT_EQ(copyInterpolator->values_[1], times[1]);
+        EXPECT_EQ(copyInterpolator->values_[0], values[0]);
+        EXPECT_EQ(copyInterpolator->values_[1], values[1]);
     }
     GTEST_LOG_(INFO) << "RSInterpolatorTest RSCustomInterpolatorMarshallingTest001 end";
 }
