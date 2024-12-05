@@ -20,6 +20,10 @@
 #include <securec.h>
 #include <sstream>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <event_handler.h>
 #include <sys/types.h>
@@ -36,6 +40,7 @@ namespace OHOS {
         size_t g_size = 0;
         size_t g_pos;
 
+        constexpr size_t STR_LEN = 10;
         void OnVSync(int64_t now, void* data) {}
     }
 
@@ -57,6 +62,20 @@ namespace OHOS {
         }
         g_pos += objectSize;
         return object;
+    }
+
+    /*
+    * get a string from g_data
+    */
+    std::string GetStringFromData(int strlen)
+    {
+        char cstr[strlen];
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
+            cstr[i] = GetData<char>();
+        }
+        std::string str(cstr);
+        return str;
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
@@ -116,6 +135,11 @@ namespace OHOS {
         vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
         vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
         vsyncReceiver->SetUiDvsyncConfig(bufferCount);
+
+        vsyncReceiver->fd_ = open("fuzztest", O_RDWR | O_CREAT);
+        int64_t dataTmp[3];
+        write(vsyncReceiver->fd_, dataTmp, sizeof(int64_t) * 3);
+        vsyncReceiver->listener_->OnReadable(vsyncReceiver->fd_);
         return true;
     }
 }
