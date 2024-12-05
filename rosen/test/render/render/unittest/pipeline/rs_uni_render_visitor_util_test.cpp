@@ -1081,4 +1081,687 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level1)
     rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
 }
 
+/**
+ * @tc.name: PrepareEffectRenderNode001
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareEffectRenderNode api
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareEffectRenderNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id1 = 0;
+    RSDisplayNodeConfig displayConfig;
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id1,
+        displayConfig, rsContext->weak_from_this());
+    rsUniRenderVisitor->curDisplayNode_->InitRenderParams();
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    NodeId id2 = 1;
+    auto node = std::make_shared<RSEffectRenderNode>(id2, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->PrepareEffectRenderNode(*node);
+}
+
+/**
+ * @tc.name: ProcessSurfaceRenderNode005
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessSurfaceRenderNode while surface node has protected layer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(drawingCanvas, nullptr);
+    surfaceNode->SetParent(node);
+    surfaceNode->SetProtectedLayer(true);
+    rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
+}
+
+/**
+ * @tc.name: ProcessSurfaceRenderNode006
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessSurfaceRenderNode while surface node does not have protected layer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessSurfaceRenderNode006, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    auto drawingCanvas = std::make_shared<Drawing::Canvas>(DEFAULT_CANVAS_WIDTH, DEFAULT_CANVAS_HEIGHT);
+    ASSERT_NE(drawingCanvas, nullptr);
+    surfaceNode->SetParent(node);
+    surfaceNode->SetProtectedLayer(false);
+    rsUniRenderVisitor->ProcessSurfaceRenderNode(*surfaceNode);
+}
+
+/**
+ * @tc.name: ProcessEffectRenderNode001
+ * @tc.desc: Test RSUniRenderVisitorTest.ProcessEffectRenderNode api
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessEffectRenderNode001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSEffectRenderNode node(id);
+    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
+    ASSERT_NE(node.stagingRenderParams_, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->ProcessEffectRenderNode(node);
+}
+
+/**
+ * @tc.name: HandleColorGamuts001
+ * @tc.desc: HandleColorGamuts for virtual screen
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, HandleColorGamuts001, TestSize.Level2)
+{
+    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtual screen 001", 0, 0, nullptr);
+    ASSERT_NE(INVALID_SCREEN_ID, virtualScreenId);
+
+    RSDisplayNodeConfig config;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(0, config, rsContext->weak_from_this());
+    displayNode->SetScreenId(virtualScreenId);
+    
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    displayNode->SetColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
+    rsUniRenderVisitor->HandleColorGamuts(*displayNode, screenManager);
+
+    ScreenColorGamut screenColorGamut;
+    screenManager->GetScreenColorGamut(displayNode->GetScreenId(), screenColorGamut);
+    ASSERT_EQ(displayNode->GetColorSpace(), static_cast<GraphicColorGamut>(screenColorGamut));
+
+    screenManager->RemoveVirtualScreen(virtualScreenId);
+}
+
+/**
+ * @tc.name: CheckColorSpaceWithSelfDrawingNode001
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
+ *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
+ *           and this node will be drawn with gpu
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode001, TestSize.Level2)
+{
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    selfDrawingNode->SetHardwareForcedDisabledState(true);
+    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    selfDrawingNode->SetIsOnTheTree(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    GraphicColorGamut colorSpace = GRAPHIC_COLOR_GAMUT_ADOBE_RGB;
+    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
+    ASSERT_EQ(colorSpace, selfDrawingNode->GetColorSpace());
+}
+
+/**
+ * @tc.name: CheckColorSpace001
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpace while
+ *           app Window node's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
+{
+    auto appWindowNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(appWindowNode, nullptr);
+    appWindowNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindowNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+    rsUniRenderVisitor->CheckColorSpace(*appWindowNode);
+    ASSERT_EQ(rsUniRenderVisitor->curDisplayNode_->GetColorSpace(), appWindowNode->GetColorSpace());
+}
+
+/**
+ * @tc.name: PrepareForCrossNodeTest001
+ * @tc.desc: Test PrepareForCrossNode
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCrossNodeTest001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    node->isCrossNode_ = true;
+    rsUniRenderVisitor->curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
+    rsUniRenderVisitor->PrepareForCrossNode(*node);
+}
+
+/**
+ * @tc.name: CheckSkipCrossNodeTest001
+ * @tc.desc: Test CheckSkipCrossNode
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckSkipCrossNodeTest001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceRenderNode = RSSurfaceRenderNode(1);
+    RSDisplayNodeConfig config = {};
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(2, config);
+    rsUniRenderVisitor->CheckSkipCrossNode(surfaceRenderNode);
+    ASSERT_FALSE(rsUniRenderVisitor->CheckSkipCrossNode(surfaceRenderNode));
+    surfaceRenderNode.isCrossNode_ = true;
+    ASSERT_FALSE(rsUniRenderVisitor->CheckSkipCrossNode(surfaceRenderNode));
+    ASSERT_TRUE(rsUniRenderVisitor->CheckSkipCrossNode(surfaceRenderNode));
+}
+
+/**
+ * @tc.name: CheckPixelFormatWithSelfDrawingNode001
+ * @tc.desc: Test CheckPixelFormatWithSelfDrawingNode
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormatWithSelfDrawingNode001, TestSize.Level2)
+{
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    selfDrawingNode->SetIsOnTheTree(false);
+    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+    selfDrawingNode->SetIsOnTheTree(true);
+    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+
+    selfDrawingNode->SetHardwareForcedDisabledState(false);
+    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+    selfDrawingNode->SetHardwareForcedDisabledState(true);
+    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+
+    ASSERT_NE(selfDrawingNode->GetRSSurfaceHandler(), nullptr);
+    auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    rsUniRenderVisitor->CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+}
+
+/*
+ * @tc.name: UpdatePixelFormatAfterHwcCalc001
+ * @tc.desc: Test UpdatePixelFormatAfterHwcCalc
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdatePixelFormatAfterHwcCalc001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    selfDrawingNode->SetAncestorDisplayNode(0, displayNode);
+    selfDrawingNode->SetHardwareForcedDisabledState(true);
+
+    ASSERT_NE(selfDrawingNode->GetRSSurfaceHandler(), nullptr);
+    auto bufferHandle = selfDrawingNode->GetRSSurfaceHandler()->buffer_.buffer->GetBufferHandle();
+    ASSERT_NE(bufferHandle, nullptr);
+    bufferHandle->format = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    rsUniRenderVisitor->UpdatePixelFormatAfterHwcCalc(*displayNode);
+}
+
+/**
+ * @tc.name: CheckColorSpaceWithSelfDrawingNode002
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckColorSpaceWithSelfDrawingNode while
+ *           selfDrawingNode's color space is not equal to GRAPHIC_COLOR_GAMUT_SRGB,
+ *           and this node will not be drawn with gpu
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckColorSpaceWithSelfDrawingNode002, TestSize.Level2)
+{
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    selfDrawingNode->SetProtectedLayer(true);
+    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    selfDrawingNode->SetIsOnTheTree(true);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    GraphicColorGamut colorSpace = GRAPHIC_COLOR_GAMUT_ADOBE_RGB;
+    rsUniRenderVisitor->CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
+    ASSERT_NE(colorSpace, selfDrawingNode->GetColorSpace());
+}
+
+#ifndef ROSEN_CROSS_PLATFORM
+/**
+ * @tc.name: UpdateColorSpaceWithMetadata
+ * @tc.desc: test results of UpdateColorSpaceWithMetadata, if node has no buffer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata001, TestSize.Level1)
+{
+    // register instance root node
+    auto instanceRootNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(instanceRootNode, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    NodeId instanceRootNodeId = instanceRootNode->GetId();
+    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
+    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
+    // create subsurface node
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->context_ = rsContext;
+    surfaceNode->instanceRootNodeId_ = instanceRootNode->GetId();
+
+    ASSERT_NE(surfaceNode->GetInstanceRootNode(), nullptr);
+    surfaceNode->UpdateColorSpaceWithMetadata();
+    ASSERT_EQ(surfaceNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/**
+ * @tc.name: UpdateColorSpaceWithMetadata
+ * @tc.desc: test results of UpdateColorSpaceWithMetadata, if node has buffer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceWithMetadata002, TestSize.Level1)
+{
+    // register instance root node
+    auto instanceRootNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(instanceRootNode, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    NodeId instanceRootNodeId = instanceRootNode->GetId();
+    pid_t instanceRootNodePid = ExtractPid(instanceRootNodeId);
+    nodeMap.renderNodeMap_[instanceRootNodePid][instanceRootNodeId] = instanceRootNode;
+    // create subsurface node
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    const sptr<SurfaceBuffer>& buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    ASSERT_NE(buffer, nullptr);
+    surfaceNode->context_ = rsContext;
+    surfaceNode->instanceRootNodeId_ = instanceRootNode->GetId();
+
+    ASSERT_NE(surfaceNode->GetInstanceRootNode(), nullptr);
+    surfaceNode->UpdateColorSpaceWithMetadata();
+    ASSERT_EQ(surfaceNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+#endif
+
+/*
+ * @tc.name: UpdateColorSpaceAfterHwcCalc_001
+ * @tc.desc: Test UpdateColorSpaceAfterHwcCalc when there is a P3 selfDrawingNode.
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateColorSpaceAfterHwcCalc_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto selfDrawingNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(selfDrawingNode, nullptr);
+    RSMainThread::Instance()->AddSelfDrawingNodes(selfDrawingNode);
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
+    ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    selfDrawingNode->SetAncestorDisplayNode(displayNode->GetScreenId(), displayNode);
+    selfDrawingNode->SetHardwareForcedDisabledState(true);
+    selfDrawingNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    rsUniRenderVisitor->UpdateColorSpaceAfterHwcCalc(*displayNode);
+    ASSERT_EQ(displayNode->GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/*
+ * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent001
+ * @tc.desc: Reset but keep single node's surfaceInfo
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(upperSurfaceNode, nullptr);
+    surfaceNode->SetParent(upperSurfaceNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->ResetCurSurfaceInfoAsUpperSurfaceParent(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->curSurfaceNode_, surfaceNode);
+}
+
+/*
+ * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent002
+ * @tc.desc: Reset but keep node's surfaceInfo since upper surface's InstanceRootNode is not registered
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(upperSurfaceNode, nullptr);
+    upperSurfaceNode->instanceRootNodeId_ = upperSurfaceNode->GetId();
+    ASSERT_EQ(upperSurfaceNode->GetInstanceRootNode(), nullptr);
+    surfaceNode->SetParent(std::weak_ptr<RSSurfaceRenderNode>(upperSurfaceNode));
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->ResetCurSurfaceInfoAsUpperSurfaceParent(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->curSurfaceNode_, surfaceNode);
+}
+
+/*
+ * @tc.name: ResetCurSurfaceInfoAsUpperSurfaceParent003
+ * @tc.desc: Reset curSurfaceInfo when upper surface is leash/main window
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, ResetCurSurfaceInfoAsUpperSurfaceParent003, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    auto upperSurfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(upperSurfaceNode, nullptr);
+    upperSurfaceNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    surfaceNode->SetParent(upperSurfaceNode);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->ResetCurSurfaceInfoAsUpperSurfaceParent(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->curSurfaceNode_, surfaceNode);
+}
+
+/*
+ * @tc.name: UpdateHwcNodeEnableByNodeBelow
+ * @tc.desc: Test RSUniRenderVistorTest.UpdateHwcNodeEnableByNodeBelow
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByNodeBelow, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto hwcNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(hwcNode1, nullptr);
+    surfaceConfig.id = 2;
+    auto hwcNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(hwcNode2, nullptr);
+    hwcNode1->SetIsOnTheTree(true);
+    hwcNode2->SetIsOnTheTree(false);
+    surfaceNode->AddChildHardwareEnabledNode(hwcNode1);
+    surfaceNode->AddChildHardwareEnabledNode(hwcNode2);
+
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->UpdateHwcNodeEnableByNodeBelow();
+}
+
+/*
+ * @tc.name: UpdateChildHwcNodeEnabledByHwcNodeBelow
+ * @tc.desc: Test RSUniRenderVistorTest.UpdateChildHwcNodeEnableByHwcNodeBelow
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateChildHwcNodeEnableByHwcNodeBelow, TestSize.Level2)
+{
+    auto appNode = RSTestUtil::CreateSurfaceNode();
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto hwcNode1 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(hwcNode1, nullptr);
+    surfaceConfig.id = 2;
+    auto hwcNode2 = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(hwcNode2, nullptr);
+    std::weak_ptr<RSSurfaceRenderNode> hwcNode3;
+    hwcNode1->SetIsOnTheTree(true);
+    hwcNode2->SetIsOnTheTree(false);
+    appNode->AddChildHardwareEnabledNode(hwcNode1);
+    appNode->AddChildHardwareEnabledNode(hwcNode2);
+    appNode->AddChildHardwareEnabledNode(hwcNode3);
+    std::vector<RectI> hwcRects;
+    hwcRects.emplace_back(0, 0, 0, 0);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, appNode);
+}
+
+/*
+ * @tc.name: PrepareForUIFirstNode001
+ * @tc.desc: Test PrePareForUIFirstNode with last frame uifirst flag is not leash window and hardware enabled
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::NONE);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareForUIFirstNode(*surfaceNode);
+}
+
+/*
+ * @tc.name: PrepareForUIFirstNode002
+ * @tc.desc: Test PrePareForUIFirstNode with last frame uifirst flag is leash window and hardware disabled
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCapsuleWindowMode002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetLastFrameUifirstFlag(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceNode->SetHardwareForcedDisabledState(true);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->PrepareForUIFirstNode(*surfaceNode);
+}
+
+/*
+ * @tc.name: QuickPrepareSurfaceRenderNode001
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareSurfaceRenderNode while surface node has security layer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode001, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSecurityLayer(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->InitRenderParams();
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->displayHasSecSurface_[rsUniRenderVisitor->currentVisitDisplay_] = false;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->displayHasSecSurface_[rsUniRenderVisitor->currentVisitDisplay_], true);
+}
+
+/*
+ * @tc.name: QuickPrepareSurfaceRenderNode002
+ * @tc.desc: Test RSUniRenderVisitorTest.QuickPrepareSurfaceRenderNode while surface node is capture window
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode002, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceNode->name_ = CAPTURE_WINDOW_NAME;
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->AddChild(surfaceNode, 0);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->hasCaptureWindow_[rsUniRenderVisitor->currentVisitDisplay_] = false;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->hasCaptureWindow_[rsUniRenderVisitor->currentVisitDisplay_], true);
+}
+
+/*
+ * @tc.name: QuickPrepareSurfaceRenderNode0043
+ * @tc.desc: Test RSUniRenderVisitorTest.QuickPrepareSurfaceRenderNode while surface node has protected layer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode003, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->SetProtectedLayer(true);
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->InitRenderParams();
+    displayNode->AddChild(surfaceNode, 0);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->displayHasProtectedSurface_[rsUniRenderVisitor->currentVisitDisplay_] = true;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+}
+
+/*
+ * @tc.name: QuickPrepareSurfaceRenderNode0024
+ * @tc.desc: Test RSUniRenderVisitorTest.QuickPrepareSurfaceRenderNode while surface node has skip layer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode004, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetSkipLayer(true);
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->InitRenderParams();
+    displayNode->AddChild(surfaceNode, 0);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->displayHasSkipSurface_[rsUniRenderVisitor->currentVisitDisplay_] = false;
+    rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
+    ASSERT_EQ(rsUniRenderVisitor->displayHasSkipSurface_[rsUniRenderVisitor->currentVisitDisplay_], true);
+}
+
+/*
+ * @tc.name: PrepareSurfaceRenderNode005
+ * @tc.desc: Test RSUniRenderVisitorTest.PrepareSurfaceRenderNode while surface node does not have protected layer
+ * @tc.type: FUNC
+ * @tc.require: issueB94PQ
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareSurfaceRenderNode005, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+
+    surfaceNode->SetIsOnTheTree(true, surfaceNode->GetId(), surfaceNode->GetId());
+    surfaceNode->SetProtectedLayer(false);
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(displayNode, nullptr);
+    displayNode->InitRenderParams();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curDisplayNode_ = displayNode;
+    rsUniRenderVisitor->displayHasProtectedSurface_[rsUniRenderVisitor->currentVisitDisplay_] = false;
+    rsUniRenderVisitor->PrepareSurfaceRenderNode(*surfaceNode);
+}
 } // OHOS::Rosen
