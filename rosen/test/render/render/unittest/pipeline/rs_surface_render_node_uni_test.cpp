@@ -45,7 +45,7 @@ public:
     static inline std::weak_ptr<RSContext> context = {};
     static inline RSPaintFilterCanvas* canvas_;
     static inline Drawing::Canvas drawingCanvas_;
-    uint8_t MAX_ALPHA = 255;
+    static constexpr uint8_t maxAlpha = 255;
     static constexpr float outerRadius = 30.4f;
     RRect rrect = RRect({0, 0, 0, 0}, outerRadius, outerRadius);
 };
@@ -117,7 +117,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ConnectToNodeInRenderServiceTest001, TestSi
  * @tc.name: SurfaceNodeTypeTest001
  * @tc.desc: Test SurfaceNodeTypeTest001
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest001, TestSize.Level1)
 {
@@ -138,7 +138,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest001, TestSize.Level1)
  * @tc.name: SurfaceNodeTypeTest002
  * @tc.desc: Test SurfaceNodeTypeTest002
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest002, TestSize.Level1)
 {
@@ -159,7 +159,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest002, TestSize.Level1)
  * @tc.name: SurfaceNodeTypeTest003
  * @tc.desc: Test SurfaceNodeTypeTest003
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest003, TestSize.Level1)
 {
@@ -177,7 +177,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest003, TestSize.Level1)
  * @tc.name: SurfaceNodeTypeTest004
  * @tc.desc: Test SurfaceNodeTypeTest004
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceNodeTypeTest004, TestSize.Level1)
 {
@@ -208,7 +208,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ChildrenCacheTest001, TestSize.Level1)
  * @tc.name: SurfaceOpaqueRegionTest001
  * @tc.desc: test SurfaceOpaqueRegionTest001
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest001, TestSize.Level1)
 {
@@ -234,7 +234,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest001, TestSize.Level1
  * @tc.name: SurfaceOpaqueRegionTest002
  * @tc.desc: test SurfaceOpaqueRegionTest002
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest002, TestSize.Level1)
 {
@@ -263,7 +263,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest002, TestSize.Level1
  * @tc.name: SurfaceOpaqueRegionTest003
  * @tc.desc: test SurfaceOpaqueRegionTest003
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest003, TestSize.Level1)
 {
@@ -291,7 +291,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest003, TestSize.Level1
  * @tc.name: SurfaceOpaqueRegionTest004
  * @tc.desc: test SurfaceOpaqueRegionTest004
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest004, TestSize.Level1)
 {
@@ -320,7 +320,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest004, TestSize.Level1
  * @tc.name: SurfaceOpaqueRegionTest005
  * @tc.desc: function test
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest005, TestSize.Level1)
 {
@@ -349,7 +349,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest005, TestSize.Level1
  * @tc.name: SurfaceOpaqueRegionTest006
  * @tc.desc: test SurfaceOpaqueRegionTest006
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest006, TestSize.Level1)
 {
@@ -378,7 +378,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SurfaceOpaqueRegionTest006, TestSize.Level1
  * @tc.name: NodeCostTest001
  * @tc.desc: test NodeCostTest001
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, NodeCostTest001, TestSize.Level1)
 {
@@ -394,7 +394,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, NodeCostTest001, TestSize.Level1)
  * @tc.name: NodeCostTest002
  * @tc.desc: test NodeCostTest002
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, NodeCostTest002, TestSize.Level1)
 {
@@ -410,7 +410,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, NodeCostTest002, TestSize.Level1)
  * @tc.name: FingerprintTest001
  * @tc.desc: SetFingerprint and GetFingerprint
  * @tc.type:FUNC
- * @tc.require: issueI6Z3YK
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, FingerprintTest001, TestSize.Level1)
 {
@@ -545,7 +545,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, BootAnimationTest001, TestSize.Level1)
  * @tc.name: GlobalPositionEnabledTest001
  * @tc.desc: SetGlobalPositionEnabled and GetGlobalPositionEnabled
  * @tc.type:FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, GlobalPositionEnabledTest001, TestSize.Level1)
 {
@@ -624,7 +624,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, IsContentDirtyNodeLimitedTest001, TestSize.
  * @tc.name: SkipLayerTest001
  * @tc.desc: Test SetSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SkipLayerTest001, TestSize.Level2)
 {
@@ -641,7 +641,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SkipLayerTest001, TestSize.Level2)
  * @tc.name: SnapshotSkipLayerTest001
  * @tc.desc: Test SetSnapshotSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SnapshotSkipLayerTest001, TestSize.Level2)
 {
@@ -658,7 +658,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SnapshotSkipLayerTest001, TestSize.Level2)
  * @tc.name: SkipLayerTest002
  * @tc.desc: Test SetSkipLayer for surface node while skip Layer isn't first level node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SkipLayerTest002, TestSize.Level2)
 {
@@ -688,7 +688,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SkipLayerTest002, TestSize.Level2)
  * @tc.name: SnapshotSkipLayerTest002
  * @tc.desc: Test SetSnapshotSkipLayer for surface node while skip Layer isn't first level node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SnapshotSkipLayerTest002, TestSize.Level2)
 {
@@ -718,7 +718,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SnapshotSkipLayerTest002, TestSize.Level2)
  * @tc.name: SecurityLayerTest001
  * @tc.desc: Test SetSecurityLayer for single surface node which is security layer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SecurityLayerTest001, TestSize.Level2)
 {
@@ -735,7 +735,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SecurityLayerTest001, TestSize.Level2)
  * @tc.name: SecurityLayerTest002
  * @tc.desc: Test SetSecurityLayer for surface node while security Layer isn't first level node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SecurityLayerTest002, TestSize.Level2)
 {
@@ -765,7 +765,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SecurityLayerTest002, TestSize.Level2)
  * @tc.name: StoreMustRenewedInfoTest001
  * @tc.desc: Test StoreMustRenewedInfo while has filter
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest001, TestSize.Level2)
 {
@@ -782,7 +782,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest001, TestSize.Level
  * @tc.name: StoreMustRenewedInfoTest002
  * @tc.desc: Test StoreMustRenewedInfo while has effect node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest002, TestSize.Level2)
 {
@@ -800,7 +800,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest002, TestSize.Level
  * @tc.name: StoreMustRenewedInfoTest003
  * @tc.desc: Test StoreMustRenewedInfo while has hardware node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest003, TestSize.Level2)
 {
@@ -817,7 +817,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest003, TestSize.Level
  * @tc.name: StoreMustRenewedInfoTest004
  * @tc.desc: Test StoreMustRenewedInfo while is skip layer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest004, TestSize.Level2)
 {
@@ -834,7 +834,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest004, TestSize.Level
  * @tc.name: StoreMustRenewedInfoTest005
  * @tc.desc: Test StoreMustRenewedInfo while is security layer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest005, TestSize.Level2)
 {
@@ -851,7 +851,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest005, TestSize.Level
  * @tc.name: StoreMustRenewedInfoTest006
  * @tc.desc: Test StoreMustRenewedInfo while is protected layer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest006, TestSize.Level2)
 {
@@ -868,7 +868,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, StoreMustRenewedInfoTest006, TestSize.Level
  * @tc.name: CornerRadiusInfoForDRMTest001
  * @tc.desc: Test SetCornerRadiusInfoForDRM and GetCornerRadiusInfoForDRM
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, CornerRadiusInfoForDRMTest001, TestSize.Level2)
 {
@@ -885,7 +885,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, CornerRadiusInfoForDRMTest001, TestSize.Lev
  * @tc.name: GetFirstLevelNodeIdTest001
  * @tc.desc: Test GetFirstLevelNode for single app window node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, GetFirstLevelNodeIdTest001, TestSize.Level2)
 {
@@ -905,7 +905,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, GetFirstLevelNodeIdTest001, TestSize.Level2
  * @tc.name: GetFirstLevelNodeIdTest002
  * @tc.desc: Test GetFirstLevelNode for app window node which parent is leash window node
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, GetFirstLevelNodeIdTest002, TestSize.Level2)
 {
@@ -934,7 +934,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, GetFirstLevelNodeIdTest002, TestSize.Level2
  * @tc.name: HasSharedTransitionNodeTest001
  * @tc.desc: Test HasSharedTransitionNodeTest001
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, HasSharedTransitionNodeTest001, TestSize.Level2)
 {
@@ -949,7 +949,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, HasSharedTransitionNodeTest001, TestSize.Le
  * @tc.name: QuerySubAssignableTest001
  * @tc.desc: Test QuerySubAssignableTest001
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest001, TestSize.Level2)
 {
@@ -963,7 +963,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest001, TestSize.Level2)
  * @tc.name: QuerySubAssignableTest002
  * @tc.desc: Test QuerySubAssignable while has filter
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest002, TestSize.Level2)
 {
@@ -982,7 +982,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest002, TestSize.Level2)
  * @tc.name: QuerySubAssignableTest003
  * @tc.desc: Test QuerySubAssignable while node's child has filter and child is transparent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest003, TestSize.Level2)
 {
@@ -1005,7 +1005,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest003, TestSize.Level2)
  * @tc.name: QuerySubAssignableTest004
  * @tc.desc: Test QuerySubAssignable while node's child has filter and is not transparent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest004, TestSize.Level2)
 {
@@ -1021,7 +1021,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest004, TestSize.Level2)
     }
     childNode->SetHasFilter(true);
     testNode->SetChildHasVisibleFilter(true);
-    testNode->SetAbilityBGAlpha(MAX_ALPHA);
+    testNode->SetAbilityBGAlpha(maxAlpha);
     
     ASSERT_EQ(testNode->QuerySubAssignable(false), true);
 }
@@ -1030,7 +1030,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, QuerySubAssignableTest004, TestSize.Level2)
  * @tc.name: SetForceHardwareAndFixRotationTest001
  * @tc.desc: Test SetForceHardwareAndFixRotationTest001
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SetForceHardwareAndFixRotationTest001, TestSize.Level2)
 {
@@ -1046,7 +1046,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SetForceHardwareAndFixRotationTest001, Test
  * @tc.name: SetForceHardwareAndFixRotationTest002
  * @tc.desc: Test SetForceHardwareAndFixRotationTest002
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SetForceHardwareAndFixRotationTest002, TestSize.Level2)
 {
@@ -1062,7 +1062,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SetForceHardwareAndFixRotationTest002, Test
  * @tc.name: UpdateSrcRectTest001
  * @tc.desc: test results of UpdateSrcRect
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateSrcRectTest001, TestSize.Level1)
 {
@@ -1079,7 +1079,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateSrcRectTest001, TestSize.Level1)
  * @tc.name: UpdateHwcDisabledBySrcRectTest001
  * @tc.desc: test results of UpdateHwcDisabledBySrcRect
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateHwcDisabledBySrcRectTest001, TestSize.Level1)
 {
@@ -1097,7 +1097,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateHwcDisabledBySrcRectTest001, TestSize
  * @tc.name: YUVBufferFormatTest001
  * @tc.desc: test results of IsYUVBufferFormat
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, YUVBufferFormatTest001, TestSize.Level1)
 {
@@ -1114,7 +1114,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, YUVBufferFormatTest001, TestSize.Level1)
  * @tc.name: ShouldPrepareSubnodesTest001
  * @tc.desc: test results of ShouldPrepareSubnodes
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ShouldPrepareSubnodesTest001, TestSize.Level1)
 {
@@ -1132,7 +1132,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ShouldPrepareSubnodesTest001, TestSize.Leve
  * @tc.name: DirtyRegionDumpTest001
  * @tc.desc: test results of DirtyRegionDump
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, DirtyRegionDumpTest001, TestSize.Level1)
 {
@@ -1148,7 +1148,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, DirtyRegionDumpTest001, TestSize.Level1)
  * @tc.name: PrepareRenderBeforeChildrenTest001
  * @tc.desc: test results of PrepareRenderBeforeChildren
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, PrepareRenderBeforeChildrenTest001, TestSize.Level1)
 {
@@ -1164,7 +1164,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, PrepareRenderBeforeChildrenTest001, TestSiz
  * @tc.name: CollectSurfaceTest001
  * @tc.desc: test results of CollectSurface
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, CollectSurfaceTest001, TestSize.Level1)
 {
@@ -1191,7 +1191,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, CollectSurfaceTest001, TestSize.Level1)
  * @tc.name: ChildrenCacheTest002
  * @tc.desc: test results of ClearChildrenCache
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ChildrenCacheTest002, TestSize.Level1)
 {
@@ -1204,7 +1204,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ChildrenCacheTest002, TestSize.Level1)
  * @tc.name: OnTreeStateChangedTest001
  * @tc.desc: test results of OnTreeStateChanged
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, OnTreeStateChangedTest001, TestSize.Level1)
 {
@@ -1219,7 +1219,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, OnTreeStateChangedTest001, TestSize.Level1)
  * @tc.name: OnResetParentTest001
  * @tc.desc: test results of OnResetParent
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, OnResetParentTest001, TestSize.Level1)
 {
@@ -1237,7 +1237,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, OnResetParentTest001, TestSize.Level1)
  * @tc.name: SetIsNotifyUIBufferAvailableTest001
  * @tc.desc: test results of SetIsNotifyUIBufferAvailable
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SetIsNotifyUIBufferAvailableTest001, TestSize.Level1)
 {
@@ -1250,7 +1250,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SetIsNotifyUIBufferAvailableTest001, TestSi
  * @tc.name: SubTreeNeedPrepareTest001
  * @tc.desc: test results of IsSubTreeNeedPrepare
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SubTreeNeedPrepareTest001, TestSize.Level1)
 {
@@ -1264,7 +1264,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SubTreeNeedPrepareTest001, TestSize.Level1)
  * @tc.name: PrepareTest001
  * @tc.desc: test results of QuickPrepare
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, PrepareTest001, TestSize.Level1)
 {
@@ -1281,7 +1281,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, PrepareTest001, TestSize.Level1)
  * @tc.name: ProcessTest001
  * @tc.desc: test results of Process
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ProcessTest001, TestSize.Level1)
 {
@@ -1297,7 +1297,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ProcessTest001, TestSize.Level1)
  * @tc.name: ProcessAnimatePropertyBeforeChildrenTest001
  * @tc.desc: test results of ProcessAnimatePropertyBeforeChildren
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ProcessAnimatePropertyBeforeChildrenTest001, TestSize.Level1)
 {
@@ -1316,7 +1316,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ProcessAnimatePropertyBeforeChildrenTest001
  * @tc.name: ProcessRenderAfterChildrenTest001
  * @tc.desc: test results of ProcessRenderAfterChildren
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ProcessRenderAfterChildrenTest001, TestSize.Level1)
 {
@@ -1331,7 +1331,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ProcessRenderAfterChildrenTest001, TestSize
  * @tc.name: ContextAlphaTest001
  * @tc.desc: test results of SetContextAlpha
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ContextAlphaTest001, TestSize.Level1)
 {
@@ -1346,7 +1346,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ContextAlphaTest001, TestSize.Level1)
  * @tc.name: ContextClipRegionTest001
  * @tc.desc: test results of GetContextClipRegion
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ContextClipRegionTest001, TestSize.Level1)
 {
@@ -1363,7 +1363,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ContextClipRegionTest001, TestSize.Level1)
  * @tc.name: SkipLayerTest003
  * @tc.desc: test results of SetSkipLayer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SkipLayerTest003, TestSize.Level1)
 {
@@ -1378,7 +1378,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SkipLayerTest003, TestSize.Level1)
  * @tc.name: SnapshotSkipLayerTest003
  * @tc.desc: test results of SetSnapshotSkipLayer
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SnapshotSkipLayerTest003, TestSize.Level1)
 {
@@ -1393,7 +1393,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SnapshotSkipLayerTest003, TestSize.Level1)
  * @tc.name: SyncSecurityInfoToFirstLevelNodeTest001
  * @tc.desc: test results of SyncSecurityInfoToFirstLevelNode
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SyncSecurityInfoToFirstLevelNodeTest001, TestSize.Level1)
 {
@@ -1406,7 +1406,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SyncSecurityInfoToFirstLevelNodeTest001, Te
  * @tc.name: SyncSkipInfoToFirstLevelNodeTest001
  * @tc.desc: test results of SyncSkipInfoToFirstLevelNode
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SyncSkipInfoToFirstLevelNodeTest001, TestSize.Level1)
 {
@@ -1419,7 +1419,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SyncSkipInfoToFirstLevelNodeTest001, TestSi
  * @tc.name: SyncSnapshotSkipInfoToFirstLevelNodeTest001
  * @tc.desc: test results of SyncSnapshotSkipInfoToFirstLevelNode
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SyncSnapshotSkipInfoToFirstLevelNodeTest001, TestSize.Level1)
 {
@@ -1432,7 +1432,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SyncSnapshotSkipInfoToFirstLevelNodeTest001
  * @tc.name: NotifyTreeStateChangeTest001
  * @tc.desc: test results of NotifyTreeStateChange
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, NotifyTreeStateChangeTest001, TestSize.Level1)
 {
@@ -1449,7 +1449,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, NotifyTreeStateChangeTest001, TestSize.Leve
  * @tc.name: UpdateSurfaceDefaultSizeTest001
  * @tc.desc: test results of UpdateSurfaceDefaultSize
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateSurfaceDefaultSizeTest001, TestSize.Level1)
 {
@@ -1465,7 +1465,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateSurfaceDefaultSizeTest001, TestSize.L
  * @tc.name: NeedClearBufferCacheTest001
  * @tc.desc: test results of NeedClearBufferCache
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, NeedClearBufferCacheTest001, TestSize.Level1)
 {
@@ -1480,7 +1480,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, NeedClearBufferCacheTest001, TestSize.Level
  * @tc.name: RegisterBufferAvailableListenerTest001
  * @tc.desc: test results of RegisterBufferAvailableListener
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, RegisterBufferAvailableListenerTest001, TestSize.Level1)
 {
@@ -1495,7 +1495,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, RegisterBufferAvailableListenerTest001, Tes
  * @tc.name: SetNotifyRTBufferAvailableTest001
  * @tc.desc: test results of SetNotifyRTBufferAvailable
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, SetNotifyRTBufferAvailableTest001, TestSize.Level1)
 {
@@ -1508,7 +1508,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, SetNotifyRTBufferAvailableTest001, TestSize
  * @tc.name: ConnectToNodeInRenderServiceTest001
  * @tc.desc: test results of ConnectToNodeInRenderService
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, ConnectToNodeInRenderServiceTest001, TestSize.Level1)
 {
@@ -1521,7 +1521,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, ConnectToNodeInRenderServiceTest001, TestSi
  * @tc.name: NotifyRTBufferAvailableTest001
  * @tc.desc: test results of NotifyRTBufferAvailable
  * @tc.type: FUNC
- * @tc.require: 
+ * @tc.require:
  */
 HWTEST_F(RSSurfaceRenderNodeUniTest, NotifyRTBufferAvailableTest001, TestSize.Level1)
 {
