@@ -1641,7 +1641,8 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            srcRect = Drawing::Rect(frameWidth - width - left, frameHeight - height - top, frameWidth - left, frameHeight - top);
+            srcRect = Drawing::Rect(frameWidth - width - left, frameHeight - height - top,
+                frameWidth - left, frameHeight - top);
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
