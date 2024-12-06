@@ -872,21 +872,24 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
         value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
 }
 
-bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
+bool RSUniRenderUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
-    // ScaleX and ScaleY must have different sign
-    if (!(std::signbit(value[Drawing::Matrix::Index::SCALE_X]) ^
-        std::signbit(value[Drawing::Matrix::Index::SCALE_Y]))) {
-        return false;
+    if (!ROSEN_EQ(value[Drawing::Matrix::Index::PERSP_0], 0.f) ||
+        !ROSEN_EQ(value[Drawing::Matrix::Index::PERSP_1], 0.f)) {
+        return true;
     }
-
-    int rotateX = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_1],
-        value[Drawing::Matrix::Index::SCALE_Y]) * (180 / PI)));
-    int rotateY = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_0],
-        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
-    return (rotateX != 0) || (rotateY != 0);
+    int rotation = static_cast<int>(round(value[Drawing::Matrix::Index::SCALE_X] *
+        value[Drawing::Matrix::Index::SKEW_Y] +
+        value[Drawing::Matrix::Index::SCALE_Y] *
+        value[Drawing::Matrix::Index::SKEW_X]));
+    if (rotation != 0) {
+        return true;
+    }
+    int vectorZ = value[Drawing::Matrix::Index::SCALE_X] * value[Drawing::Matrix::Index::SCALE_Y] -
+        value[Drawing::Matrix::Index::SKEW_Y] * value[Drawing::Matrix::Index::SKEW_X];
+    return vectorZ < 0;
 }
 
 bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
