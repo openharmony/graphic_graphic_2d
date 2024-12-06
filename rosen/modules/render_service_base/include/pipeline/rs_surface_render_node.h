@@ -1284,6 +1284,7 @@ public:
     bool NeedDrawBehindWindow() const override;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
+    void SetUifirstStartingFlag(bool flag);
     void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
     {
         crossNodeSkippedDisplayOffsets_[displayId] = { offsetX, offsetY };

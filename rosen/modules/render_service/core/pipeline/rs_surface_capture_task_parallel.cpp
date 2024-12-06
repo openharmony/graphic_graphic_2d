@@ -193,7 +193,8 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
         // make sure the previous uifirst task is completed.
-        if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*curNodeParams, false)) {
+        if (!surfaceNodeDrawable_->HasCache() &&
+            !RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*curNodeParams, false)) {
             RS_LOGE("RSSurfaceCaptureTaskParallel::Run: CheckMatchAndWaitNotify failed");
             return false;
         }

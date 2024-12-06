@@ -243,6 +243,11 @@ public:
     {
         return cacheSurface_ ? true : false;
     }
+
+    bool HasCache() const override
+    {
+        return drawWindowCache_.HasCache();
+    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(

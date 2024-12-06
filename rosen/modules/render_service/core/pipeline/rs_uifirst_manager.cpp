@@ -268,7 +268,6 @@ void RSUifirstManager::ProcessDoneNodeInner()
             SetHasDoneNodeFlag(true);
             pendingForceUpdateNode_.push_back(id);
         }
-        NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
     }
 }
@@ -1257,11 +1256,28 @@ bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
     return false;
 }
 
+void RSUifirstManager::UifirstFirstFrameCacheState(RSSurfaceRenderNode& node)
+{
+    if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE &&
+        !node.GetSubThreadAssignable()) {
+        UifirstStateChange(node, MultiThreadCacheType::NONE); // mark as draw win in RT thread
+        auto drawable = GetSurfaceDrawableByID(node.GetId());
+        if (drawable && drawable->HasCache()) {
+            node.SetSubThreadAssignable(true); // mark as assignable to uifirst next frame
+        }
+        node.SetNeedCacheSurface(true); // mark as that needs cache win in RT
+        // disable HWC, to prevent the rect of self-drawing nodes in cache from becoming transparent
+        node.SetHwcChildrenDisabledState();
+        node.SetUifirstStartingFlag(true);
+    } else {
+        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+    }
+}
+
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
     RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isForceFlag:[%d]",
-        node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
+        " isForceFlag:[%d]", node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
         ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_);
     if (ForceUpdateUifirstNodes(node)) {
         return;
@@ -1286,7 +1302,7 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
         }
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
-        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        UifirstFirstFrameCacheState(node);
         return;
     }
     if (RSUifirstManager::IsNonFocusWindowCache(node, ancestorNodeHasAnimation)) {
@@ -1353,10 +1369,6 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             if (currentFrameCacheType == MultiThreadCacheType::ARKTS_CARD) { // now only update ArkTSCardNode
                 node.UpdateTreeUifirstRootNodeId(node.GetId());
             }
-            if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW) {
-                node.SetUifirstUseStarting(LeashWindowContainMainWindowAndStarting(*surfaceNode));
-                NotifyUIStartingWindow(node.GetId(), true);
-            }
             auto func = &RSUifirstManager::ProcessTreeStateChange;
             node.RegisterTreeStateChangeCallback(func);
             node.SetUifirstStartTime(GetCurSysTime());
@@ -1364,10 +1376,12 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             AddCardNodes(node.GetId(), currentFrameCacheType);
             node.SetSubThreadAssignable(true);
             node.SetNeedCacheSurface(false);
+            node.SetUifirstStartingFlag(false);
         } else { // keep disable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep disable  %" PRIu64"", node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
+            node.SetUifirstStartingFlag(false);
         }
     } else { // last is enable
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
@@ -1386,11 +1400,11 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
             }
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64"", node.GetId());
             node.SetUifirstStartTime(-1); // -1: default start time
-            NotifyUIStartingWindow(node.GetId(), false);
             AddPendingResetNode(node.GetId(), surfaceNode); // set false onsync when task done
             RemoveCardNodes(node.GetId());
             node.SetSubThreadAssignable(false);
             node.SetNeedCacheSurface(false);
+            node.SetUifirstStartingFlag(false);
         }
     }
     node.SetLastFrameUifirstFlag(currentFrameCacheType);

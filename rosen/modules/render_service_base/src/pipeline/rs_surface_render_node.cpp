@@ -3022,6 +3022,15 @@ void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 #endif
 }
 
+void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetUifirstStartingFlag(flag);
+        AddToPendingSyncList();
+    }
+}
+
 void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
 {
 #ifdef RS_ENABLE_GPU

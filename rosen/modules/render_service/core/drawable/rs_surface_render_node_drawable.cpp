@@ -833,6 +833,10 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
     }
+    if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
+        surfaceParams.SetHardwareEnabled(hwcEnable);
+        return;
+    }
     surfaceParams.SetHardwareEnabled(hwcEnable);
 
     // cannot useNodeMatchOptimize if leash window is on draw
