@@ -35,7 +35,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-int32_t g_iSize = 512;
 } // namespace
 
 template<class T>
