@@ -1629,7 +1629,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     Drawing::Rect srcRect;
     switch (consumerTransformType) {
         case GraphicTransformType::GRAPHIC_ROTATE_NONE: {
-            srcRect = Drawing::Rect(left, top, width, height);
+            srcRect = Drawing::Rect(left, top, left + width, top + height);
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
