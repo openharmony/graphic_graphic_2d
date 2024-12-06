@@ -1462,7 +1462,8 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     node.SetSrcRect(newSrcRect);
 }
 
-Drawing::Matrix RSUniRenderUtil::GetPreTransformMatrix(GraphicTransformType transformType, Drawing::scalar dx, Drawing::scalar dy)
+Drawing::Matrix RSUniRenderUtil::GetPreTransformMatrix(GraphicTransformType transformType,
+    Drawing::scalar dx, Drawing::scalar dy)
 {
     Drawing::Matrix matrix;
     switch (transformType) {
@@ -1484,7 +1485,8 @@ Drawing::Matrix RSUniRenderUtil::GetPreTransformMatrix(GraphicTransformType tran
     return matrix;
 }
 
-Drawing::Matrix RSUniRenderUtil::GetTransformMatrix(GraphicTransformType transformType, Drawing::scalar dx, Drawing::scalar dy)
+Drawing::Matrix RSUniRenderUtil::GetTransformMatrix(GraphicTransformType transformType,
+    Drawing::scalar dx, Drawing::scalar dy)
 {
     Drawing::Matrix matrix;
     switch (transformType) {
@@ -1613,8 +1615,10 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     clipRect = Drawing::Rect(
         clipRect.GetLeft() - preRotatedAbsRect.left_ - gravityMatrix.Get(Drawing::Matrix::Index::TRANS_X),
         clipRect.GetTop() - preRotatedAbsRect.top_ - gravityMatrix.Get(Drawing::Matrix::Index::TRANS_Y),
-        clipRect.GetLeft() + clipRect.GetWidth() - preRotatedAbsRect.left_ - gravityMatrix.Get(Drawing::Matrix::Index::TRANS_X),
-        clipRect.GetTop() + clipRect.GetHeight() - preRotatedAbsRect.top_ - gravityMatrix.Get(Drawing::Matrix::Index::TRANS_Y));
+        clipRect.GetLeft() + clipRect.GetWidth() -
+            preRotatedAbsRect.left_ - gravityMatrix.Get(Drawing::Matrix::Index::TRANS_X),
+        clipRect.GetTop() + clipRect.GetHeight() -
+            preRotatedAbsRect.top_ - gravityMatrix.Get(Drawing::Matrix::Index::TRANS_Y));
     canvas->ClipRect(clipRect, Drawing::ClipOp::INTERSECT);
     auto localRect = canvas->GetLocalClipBounds();
     int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
