@@ -502,6 +502,18 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
         dataText[i] = GetData<char>();
     }
     dataVal->BuildWithoutCopy(dataText, length);
+
+    scalar sx = GetData<scalar>();
+    scalar sy = GetData<scalar>();
+    scalar sz = GetData<scalar>();
+    scalar dx = GetData<scalar>();
+    scalar dy = GetData<scalar>();
+    scalar dz = GetData<scalar>();
+    scalar tx = GetData<scalar>();
+    scalar ty = GetData<scalar>();
+    scalar tz = GetData<scalar>();
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(tx, ty, tz, sx, sy, sz, dx, dy, dz);
     AdaptiveImageInfo adaptiveImageInfo;
     adaptiveImageInfo.fitNum = GetData<int32_t>();
     adaptiveImageInfo.repeatNum = GetData<int32_t>();
@@ -517,6 +529,7 @@ bool DoMarshallingHelper012(const uint8_t* data, size_t size)
     adaptiveImageInfo.width = GetData<int32_t>();
     adaptiveImageInfo.height = GetData<int32_t>();
     adaptiveImageInfo.dynamicRangeMode = GetData<uint32_t>();
+    adaptiveImageInfo.fitMatrix = matrix;
     auto extendImageObject = std::make_shared<RSExtendImageObject>(image, dataVal, adaptiveImageInfo);
     RSMarshallingHelper::Marshalling(parcel, extendImageObject);
     RSMarshallingHelper::Unmarshalling(parcel, extendImageObject);
