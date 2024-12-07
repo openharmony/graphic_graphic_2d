@@ -195,6 +195,9 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param,
         currentRate = currentRate, hasGameScene = hasGameScene]() {
+#ifdef HIPERF_TRACE_ENABLE
+        RS_LOGW("hiperf_surface_counter3 %{public}" PRIu64 " ", static_cast<uint64_t>(layers.size()));
+#endif
         int64_t startTime = GetCurTimeCount();
         if (output == nullptr || hdiBackend_ == nullptr) {
             return;
