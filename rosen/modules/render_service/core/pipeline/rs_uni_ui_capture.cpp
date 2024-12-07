@@ -112,7 +112,7 @@ std::shared_ptr<Media::PixelMap> RSUniUICapture::TakeLocalCapture()
 bool RSUniUICapture::CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img,
     std::shared_ptr<Media::PixelMap> pixelmap)
 {
-    auto size = pixelmap->GetRowBytes() * pixelmap->GetHeight();
+    auto size = static_cast<int64_t>(pixelmap->GetRowBytes()) * pixelmap->GetHeight();
     if (size <= 0) {
         return false;
     }
