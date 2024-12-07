@@ -25,8 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-const uint16_t LOW_BYTE_MASK = 0x00FF;
-const uint16_t HIGH_BYTE_MASK = 0xFF00;
 const int BYTE_SHIFT = 8;
 
 [[maybe_unused]] static bool IsUtf8(const char* text, uint32_t len)
@@ -56,12 +54,6 @@ const int BYTE_SHIFT = 8;
         }
     }
     return true;
-}
-
-[[maybe_unused]] static inline bool IsBigEndian()
-{
-    int num = 1;
-    return (*(reinterpret_cast<uint8_t*>(&num)) == 0);
 }
 
 [[maybe_unused]] static bool ConvertToString(const uint8_t* data, size_t len, std::string& fullNameString)
