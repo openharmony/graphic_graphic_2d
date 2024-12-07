@@ -59,6 +59,7 @@ void VSyncReceiver::RegisterFileDescriptorListener()
     bool isApp = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
     if (isApp && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
         (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
+        listener_->SetDeamonWaiter();
         looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
             static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
     } else {
