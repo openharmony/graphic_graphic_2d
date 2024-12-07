@@ -938,10 +938,10 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     }
 
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
-    if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
-        specialLayerType_ == HAS_SPECIAL_LAYER && (!enableVisibleRect_ || params.HasSecLayerInVisibleRect())) {
-        DrawMirror(params, virtualProcesser,
-            &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
+    bool forceRedraw = RSSystemParameters::GetDFXMirrorScreenForceRedrawEnabled();
+    if (forceRedraw || (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
+        specialLayerType_ == HAS_SPECIAL_LAYER && (!enableVisibleRect_ || params.HasSecLayerInVisibleRect()))) {
+        DrawMirror(params, virtualProcesser, &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
@@ -1199,7 +1199,8 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         CalculateVirtualDirtyForWiredScreen(renderFrame, params, curCanvas_->GetTotalMatrix());
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
     // HDR does not support wired screen
-    if (params.GetHDRPresent() && RSSystemParameters::GetWiredScreenOndrawEnabled()) {
+    bool forceRedraw = RSSystemParameters::GetDFXMirrorScreenForceRedrawEnabled();
+    if (forceRedraw || (params.GetHDRPresent() && RSSystemParameters::GetWiredScreenOndrawEnabled())) {
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
     } else {
         DrawWiredMirrorCopy(*mirroredDrawable);

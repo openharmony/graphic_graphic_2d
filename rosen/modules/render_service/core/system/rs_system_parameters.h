@@ -77,6 +77,7 @@ public:
     static bool GetDumpCanvasDrawingNodeEnabled();
     static bool IsNeedScRGBForP3(const GraphicColorGamut& currentGamut);
     static bool GetWiredScreenOndrawEnabled();
+    static bool GetDFXMirrorScreenForceRedrawEnabled();
 };
 
 } // namespace Rosen
