@@ -79,6 +79,19 @@ RosenError HdiBackend::RegScreenRefresh(OnScreenRefreshFunc func, void* data)
     return ROSEN_ERROR_OK;
 }
 
+RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("OnPrepareCompleteFunc is null");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    onPrepareCompleteCb_ = func;
+    onPrepareCompleteCbData_ = data;
+
+    return ROSEN_ERROR_OK;
+}
+
 void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void *data)
 {
     HdiBackend *hdiBackend = nullptr;
@@ -96,19 +109,6 @@ void HdiBackend::OnScreenRefresh(uint32_t deviceId)
     if (onScreenRefreshCb_ != nullptr) {
         onScreenRefreshCb_(deviceId, onRefreshCbData_);
     }
-}
-
-RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data)
-{
-    if (func == nullptr) {
-        HLOGE("OnPrepareCompleteFunc is null");
-        return ROSEN_ERROR_INVALID_ARGUMENTS;
-    }
-
-    onPrepareCompleteCb_ = func;
-    onPrepareCompleteCbData_ = data;
-
-    return ROSEN_ERROR_OK;
 }
 
 RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
