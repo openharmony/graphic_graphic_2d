@@ -29,10 +29,22 @@ group("unittest") {
     ":RSScreenSkipFrameTest",
     ":RSTransactionsTest",
     ":RSTunnelHandleTest",
+    ":RSVirtualScreenRefreshRateTest",
     "animation:RSAnimationTest",
     "animation:RSAnimationTest1",
     "animation:RSAnimationTest2",
     "animation:RSAnimationTest3",
+  ]
+}
+
+## Build RSVirtualScreenRefreshRateTest
+ohos_unittest("RSVirtualScreenRefreshRateTest") {
+  module_out_path = module_out_path
+  sources = [ "rs_virtual_screen_refresh_rate_test.cpp" ]
+  deps = [ ":rs_client_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
 }
 

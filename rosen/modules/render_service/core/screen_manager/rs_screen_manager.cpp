@@ -42,6 +42,7 @@ namespace {
     constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
+    constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 60;
     void SensorPostureDataCallback(SensorEvent *event)
     {
         OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
@@ -1543,6 +1544,8 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
         info.state = ScreenState::SOFTWARE_OUTPUT_ENABLE;
     }
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
+    info.expectedRefreshRate = screen->GetScreenExpectedRefreshRate();
+    info.skipFrameStrategy = screen->GetScreenSkipFrameStrategy();
     screen->GetPixelFormat(info.pixelFormat);
     screen->GetScreenHDRFormat(info.hdrFormat);
     info.whiteList = screen->GetWhiteList();
@@ -1860,6 +1863,42 @@ int32_t RSScreenManager::SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t 
     screensIt->second->SetScreenSkipFrameInterval(skipFrameInterval);
     RS_LOGD("RSScreenManager %{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
         __func__, id, skipFrameInterval);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    if (!screensIt->second->IsVirtual()) {
+        RS_LOGW("RSScreenManager %{public}s: Not Support for screen:%{public}" PRIu64 ".", __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    if (maxRefreshRate == 0) {
+        RS_LOGW("RSScreenManager %{public}s: Invalid maxRefreshRate:%{public}u.", __func__, maxRefreshRate);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (maxRefreshRate > MAX_VIRTUAL_SCREEN_REFRESH_RATE) {
+        maxRefreshRate = MAX_VIRTUAL_SCREEN_REFRESH_RATE;
+    }
+    while (MAX_VIRTUAL_SCREEN_REFRESH_RATE % maxRefreshRate != 0) { // maxRefreshRate is greater than 0
+        maxRefreshRate--;
+    }
+    if (maxRefreshRate == MAX_VIRTUAL_SCREEN_REFRESH_RATE) {
+        uint32_t skipFrameInterval = MAX_VIRTUAL_SCREEN_REFRESH_RATE / maxRefreshRate;
+        screensIt->second->SetScreenSkipFrameInterval(skipFrameInterval);
+        RS_LOGI("RSScreenManager %{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
+            __func__, id, skipFrameInterval);
+    } else {
+        screensIt->second->SetScreenExpectedRefreshRate(maxRefreshRate);
+        RS_LOGI("RSScreenManager %{public}s: screen(id %" PRIu64 "), maxRefreshRate(%d).",
+            __func__, id, maxRefreshRate);
+    }
+    actualRefreshRate = maxRefreshRate;
     return StatusCode::SUCCESS;
 }
 

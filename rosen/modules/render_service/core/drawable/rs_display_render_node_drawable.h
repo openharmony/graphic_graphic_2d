@@ -135,7 +135,7 @@ public:
     {
         return originScreenRotation_;
     }
-    bool SkipFrame(uint32_t refreshRate, uint32_t skipFrameInterval);
+    bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
     bool GetResetRotate() const
     {
         return resetRotate_;
@@ -189,6 +189,8 @@ private:
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
+    bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
+    bool SkipFrameByRefreshRate(uint32_t refreshRate);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;
