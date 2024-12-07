@@ -518,7 +518,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
             std::vector<NodeId> whiteList;
-            data.ReadUInt64Vector(&whiteList);
+            if (!data.ReadUInt64Vector(&whiteList)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
             if (!reply.WriteUint64(id)) {
                 ret = ERR_INVALID_REPLY;
@@ -529,7 +532,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // read the parcel data.
             ScreenId id = data.ReadUint64();
             std::vector<NodeId> blackListVector;
-            data.ReadUInt64Vector(&blackListVector);
+            if (!data.ReadUInt64Vector(&blackListVector)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;

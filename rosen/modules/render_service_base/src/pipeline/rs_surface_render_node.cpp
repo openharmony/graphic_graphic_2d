@@ -2131,9 +2131,13 @@ RSSurfaceRenderNode::ContainerConfig RSSurfaceRenderNode::GetAbsContainerConfig(
     RSSurfaceRenderNode::ContainerConfig config;
     if (geoPtr) {
         auto& matrix = geoPtr->GetAbsMatrix();
-        float scale = std::min(matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SCALE_Y));
-        config.inR_ = static_cast<int>(std::round(containerConfig_.inR_ * scale));
-        config.outR_ = static_cast<int>(std::round(containerConfig_.outR_ * scale));
+        Drawing::Rect innerRadiusRect(0, 0, containerConfig_.inR_, containerConfig_.inR_);
+        matrix.MapRect(innerRadiusRect, innerRadiusRect);
+        Drawing::Rect outerRadiusRect(0, 0, containerConfig_.outR_, containerConfig_.outR_);
+        matrix.MapRect(outerRadiusRect, outerRadiusRect);
+        config.inR_ = static_cast<int>(std::round(std::max(innerRadiusRect.GetWidth(), innerRadiusRect.GetHeight())));
+        config.outR_ = static_cast<int>(
+            std::round(std::max(outerRadiusRect.GetWidth(), outerRadiusRect.GetHeight())));
         RectF r = {
             containerConfig_.innerRect_.left_,
             containerConfig_.innerRect_.top_,
