@@ -73,18 +73,9 @@ const int BYTE_SHIFT = 8;
     size_t utf16Len = len / sizeof(char16_t);
     std::unique_ptr<char16_t[]> utf16Str = std::make_unique<char16_t[]>(utf16Len);
 
-    if (IsBigEndian()) {
-        errno_t ret = memcpy_s(utf16Str.get(), utf16Len * sizeof(char16_t), data, len);
-        if (ret != EOK) {
-            return false;
-        }
-    } else {
-        for (size_t i = 0; i < utf16Len; ++i) {
-            const char16_t* utf16Data = reinterpret_cast<const char16_t*>(data);
-            uint16_t temp = static_cast<uint16_t>(utf16Data[i]);
-            utf16Str[i] = static_cast<char16_t>((temp & LOW_BYTE_MASK) << BYTE_SHIFT |
-                (temp & HIGH_BYTE_MASK) >> BYTE_SHIFT);
-        }
+    errno_t ret = memcpy_s(utf16Str.get(), utf16Len * sizeof(char16_t), data, len);
+    if (ret != EOK) {
+        return false;
     }
 
     std::u16string utf16String(utf16Str.get(), utf16Len);
