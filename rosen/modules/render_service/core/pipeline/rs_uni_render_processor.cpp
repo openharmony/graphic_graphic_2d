@@ -295,7 +295,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     layer->SetDirtyRegions(dirtyRegions);
 
     layer->SetBlendType(layerInfo.blendType);
-    layer->SetCropRect(layerInfo.srcRect);
+    ProcessLayerSetCropRect(layer, layerInfo, buffer);
     layer->SetGravity(layerInfo.gravity);
     layer->SetTransform(layerInfo.transformType);
     auto matrix = GraphicMatrix {layerInfo.matrix.Get(Drawing::Matrix::Index::SCALE_X),
