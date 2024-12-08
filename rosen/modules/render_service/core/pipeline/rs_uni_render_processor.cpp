@@ -310,6 +310,55 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     return layer;
 }
 
+void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, RSLayerInfo& layerInfo,
+    sptr<SurfaceBuffer> buffer)
+{
+    auto adaptedSrcRect = layerInfo.srcRect;
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
+    if (MetadataHelper::GetCropRectMetadata(buffer, metaRegion) == GSERROR_OK) {
+        RS_LOGD("RSUniRenderProcessor::GetCropRectMetadata success,"
+            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
+            metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
+        adaptedSrcRect.x = metaRegion.left;
+        adaptedSrcRect.y = metaRegion.top;
+        adaptedSrcRect.w = metaRegion.width;
+        adaptedSrcRect.h = metaRegion.height;
+    }
+    // Because the buffer is mirrored in the horiziontal/vertical directions,
+    // srcRect need to be adjusted.
+    switch (layerInfo.transformType) {
+        case GraphicTransformType::GRAPHIC_FLIP_H: [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180: {
+            // 1. Intersect the left border of the screen.
+            // map_x = (buffer_width - buffer_right_x)
+            if (adaptedSrcRect.x > 0) {
+                adaptedSrcRect.x = buffer->GetSurfaceBufferWidth() - adaptedSrcRect.x - adaptedSrcRect.w;
+            } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= static_cast<int32_t>(screenInfo_.width)) {
+                // 2. Intersect the right border of the screen.
+                // map_x = (buffer_width - buffer_right_x)
+                // Only left side adjustment can be triggerred on the narrow screen.
+                adaptedSrcRect.x =
+                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferWidth()) - adaptedSrcRect.w) : 0;
+            }
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_FLIP_V: [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
+            // The processing in the vertical direction is similar to that in the horizontal direction.
+            if (adaptedSrcRect.y > 0) {
+                adaptedSrcRect.y = buffer->GetSurfaceBufferHeight() - adaptedSrcRect.y - adaptedSrcRect.h;
+            } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= static_cast<int32_t>(screenInfo_.height)) {
+                adaptedSrcRect.y =
+                    buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    layerInfoPtr->SetCropRect(adaptedSrcRect);
+}
+
 void RSUniRenderProcessor::ProcessSurface(RSSurfaceRenderNode &node)
 {
     RS_LOGE("It is update to DrawableV2 to process node now!!");
