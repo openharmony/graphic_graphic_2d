@@ -1635,7 +1635,6 @@ void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const Scree
                     "bounds: %s, screenWidth: %u, screenHeight: %u bufferAspectRatio: %f, boundsAspectRatio: %f",
                     node.GetName().c_str(), node.GetId(), absBoundsRect.ToString().c_str(), screenInfo.width,
                     screenInfo.height, bufferAspectRatio, boundsAspectRatio);
-                return;
             }
         }
 
