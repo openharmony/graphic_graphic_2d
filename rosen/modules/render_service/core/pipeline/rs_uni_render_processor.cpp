@@ -314,16 +314,6 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
     sptr<SurfaceBuffer> buffer)
 {
     auto adaptedSrcRect = layerInfo.srcRect;
-    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
-    if (MetadataHelper::GetCropRectMetadata(buffer, metaRegion) == GSERROR_OK) {
-        RS_LOGD("RSUniRenderProcessor::GetCropRectMetadata success,"
-            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
-            metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
-        adaptedSrcRect.x = metaRegion.left;
-        adaptedSrcRect.y = metaRegion.top;
-        adaptedSrcRect.w = metaRegion.width;
-        adaptedSrcRect.h = metaRegion.height;
-    }
     // Because the buffer is mirrored in the horiziontal/vertical directions,
     // srcRect need to be adjusted.
     switch (layerInfo.transformType) {
