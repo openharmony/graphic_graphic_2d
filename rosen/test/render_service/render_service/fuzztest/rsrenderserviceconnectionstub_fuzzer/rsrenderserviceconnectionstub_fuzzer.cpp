@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <fuzzer/FuzzedDataProvider.h>
 
+#include "iservice_registry.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
@@ -30,6 +31,7 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1137,6 +1139,98 @@ bool DoGetHwcDisabledReasonInfo(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoRegisterUIExtensionCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
+    auto newPid = getpid();
+    auto userId = fdp.ConsumeIntegral<uint64_t>();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIUIExtensionCallback> rsIUIExtensionCallback = iface_cast<RSIUIExtensionCallback>(remoteObject);
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInt64(userId);
+    dataParcel.WriteRemoteObject(rsIUIExtensionCallback->AsObject());
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoMarkPowerOffNeedProcessOneFrame(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME);
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoDisablePowerOffRenderControl(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN);
+    auto newPid = getpid();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
 bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -1822,6 +1916,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenColorGamut(data, size);
     OHOS::Rosen::DoSetScreenColorGamut(data, size);
     OHOS::Rosen::DoCreateNodeAndSurface(data, size);
+    OHOS::Rosen::DoRegisterUIExtensionCallback(data, size);
+    OHOS::Rosen::DoMarkPowerOffNeedProcessOneFrame(data, size);
+    OHOS::Rosen::DoDisablePowerOffRenderControl(data, size);
     OHOS::Rosen::DoExecuteSynchronousTask(data, size);
     OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
