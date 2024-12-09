@@ -575,6 +575,9 @@ void VSyncDistributor::EnableVSync()
         controller_->SetCallback(this);
         controller_->SetEnable(true, vsyncEnabled_);
     }
+#if defined(RS_ENABLE_DVSYNC)
+    dvsync_->RecordEnableVsync();
+#endif
 }
 
 void VSyncDistributor::DisableVSync()
@@ -1253,7 +1256,7 @@ void VSyncDistributor::RecordVsyncModeChange(uint32_t refreshRate, int64_t perio
 #endif
 }
 
-bool VSyncDistributor::IsUiDvsyncOn()
+bool  VSyncDistributor::IsUiDvsyncOn()
 {
 #if defined(RS_ENABLE_DVSYNC)
     return dvsync_->IsUiDvsyncOn();
@@ -1261,7 +1264,6 @@ bool VSyncDistributor::IsUiDvsyncOn()
     return false;
 #endif
 }
-
 int64_t VSyncDistributor::GetUiCommandDelayTime()
 {
 #if defined(RS_ENABLE_DVSYNC)
