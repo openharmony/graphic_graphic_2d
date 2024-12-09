@@ -861,6 +861,8 @@ void RSScreenManager::GetScreenActiveModeLocked(ScreenId id, RSScreenModeInfo& s
         return;
     }
 
+    RS_LOGI("RSScreenManager %{public}s: screen[%{public}" PRIu64 "] pixel[%{public}d * %{public}d],"
+        "freshRate[%{public}d]", __func__, id, modeInfo->width, modeInfo->height, modeInfo->freshRate);
     screenModeInfo.SetScreenWidth(modeInfo->width);
     screenModeInfo.SetScreenHeight(modeInfo->height);
     screenModeInfo.SetScreenRefreshRate(modeInfo->freshRate);
