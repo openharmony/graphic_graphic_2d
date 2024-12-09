@@ -61,6 +61,7 @@ enum class RSDrawableSlot : int8_t {
     SAVE_FRAME,
     FRAME_OFFSET,
     CLIP_TO_FRAME,
+    CUSTOM_CLIP_TO_FRAME,
     CONTENT_STYLE,
     CHILDREN,
     FOREGROUND_STYLE,

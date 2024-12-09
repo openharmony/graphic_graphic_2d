@@ -58,7 +58,7 @@ HWTEST_F(RSDrawableTest, CalculateDirtySlots, TestSize.Level1)
     std::optional<Vector4f> aiInvert = { Vector4f() };
     node.renderContent_->GetMutableRenderProperties().SetAiInvert(aiInvert);
     ASSERT_TRUE(node.GetRenderProperties().GetAiInvert());
-    ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 33);
+    ASSERT_EQ(RSDrawable::CalculateDirtySlots(dirtyTypes, drawableVec).size(), 34);
 }
 
 /**
