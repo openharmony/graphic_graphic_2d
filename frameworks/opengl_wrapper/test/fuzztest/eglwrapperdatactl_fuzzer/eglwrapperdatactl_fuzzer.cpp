@@ -75,6 +75,7 @@ namespace OHOS {
         ThreadPrivateDataCtl::ClearError();
         ThreadPrivateDataCtl::ClearPrivateData();
         glActiveTexture(texture);
+        glActiveTexture(texture);
         return true;
     }
 }
