@@ -1343,6 +1343,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HdrVideoTest
+ * @tc.desc: test results of SetHdrVideo and GetHdrVideo
+ * @tc.type: FUNC
+ * @tc.require: issueI9JAFQ
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetHdrVideo(true);
+    EXPECT_EQ(testNode->GetHdrVideo(), true);
+    testNode->SetHdrVideo(false);
+    EXPECT_EQ(testNode->GetHdrVideo(), false);
+}
+
+/**
  * @tc.name: SetContextClipRegionTest
  * @tc.desc: test results of GetContextClipRegion
  * @tc.type: FUNC
