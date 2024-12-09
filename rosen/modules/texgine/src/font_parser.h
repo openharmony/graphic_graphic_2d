@@ -68,6 +68,13 @@ public:
         TRADEMARK = 7,
     };
 
+    enum SystemFontType : int32_t {
+        ALL = 1 << 0,
+        GENERIC = 1 << 1,
+        STYLISH = 1 << 2,
+        INSTALLED = 1 << 3,
+    };
+
     struct FontDescriptor {
         FontDescriptor();
         std::string path;
@@ -76,22 +83,29 @@ public:
         std::string fontFamily;
         std::string fontSubfamily;
         std::string requestedFullname;
-        unsigned int postScriptNameLid;
-        unsigned int fullNameLid;
-        unsigned int fontFamilyLid;
-        unsigned int fontSubfamilyLid;
-        unsigned int requestedLid;
-        int weight;
-        int width;
-        int italic;
-        bool monoSpace;
-        bool symbolic;
+        unsigned int postScriptNameLid = 0;
+        unsigned int fullNameLid = 0;
+        unsigned int fontFamilyLid = 0;
+        unsigned int fontSubfamilyLid = 0;
+        unsigned int requestedLid = 0;
+        int weight = 0;
+        int width = 0;
+        int italic = 0;
+        bool monoSpace = false;
+        bool symbolic = false;
     };
 
     FontParser();
     std::vector<FontDescriptor> GetVisibilityFonts(const std::string &locale = SIMPLIFIED_CHINESE);
     std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
         const std::string locale = SIMPLIFIED_CHINESE);
+
+    std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
+    std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
+        const std::string& path, const std::string& locale = ENGLISH);
+    std::vector<std::shared_ptr<FontDescriptor>> CreateFontDescriptors(
+        const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces,
+        const std::string& locale = ENGLISH);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
@@ -123,7 +137,8 @@ private:
         }
     }
 #ifdef BUILD_NON_SDK_VER
-    static std::string ToUtf8(const std::string& gbkStr);
+    static std::string ConvertToString(const std::string& src, const std::string& srcType,
+        const std::string& targetType);
 #endif
 
     const char* data_;

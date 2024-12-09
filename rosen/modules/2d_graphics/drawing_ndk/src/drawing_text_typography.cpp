@@ -16,28 +16,21 @@
 
 #include "drawing_text_typography.h"
 
-#include "utils/log.h"
-#include "utils/object_mgr.h"
-#include "utils/string_util.h"
+#include <codecvt>
+#include <locale>
+#include <shared_mutex>
+#include <string>
+#include <unicode/brkiter.h>
+#include <vector>
 
-#ifndef USE_GRAPHIC_TEXT_GINE
-#include "rosen_text/ui/font_collection.h"
-#include "rosen_text/ui/typography.h"
-#include "rosen_text/ui/typography_create.h"
-#else
+#include "array_mgr.h"
+#include "font_config.h"
+#include "font_parser.h"
+#include "font_utils.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
 #include "unicode/putil.h"
-#endif
-#include "font_config.h"
-#include "font_parser.h"
-#include <codecvt>
-#include <locale>
-#include <vector>
-#include <string>
-#include <unicode/brkiter.h>
-#include <shared_mutex>
 
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
@@ -1441,19 +1434,26 @@ void OH_Drawing_TextStyleGetBackgroundPen(OH_Drawing_TextStyle* style, OH_Drawin
 
 OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 {
-    auto fontDescriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
-    if (fontDescriptor == nullptr) {
+    OH_Drawing_FontDescriptor* desc = new (std::nothrow) OH_Drawing_FontDescriptor;
+    if (desc == nullptr) {
         return nullptr;
     }
-    return (OH_Drawing_FontDescriptor*)fontDescriptor;
+    desc->path = nullptr;
+    desc->postScriptName = nullptr;
+    desc->fullName = nullptr;
+    desc->fontFamily = nullptr;
+    desc->fontSubfamily = nullptr;
+    desc->weight = 0;
+    desc->width = 0;
+    desc->italic = 0;
+    desc->monoSpace = false;
+    desc->symbolic = false;
+    return desc;
 }
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    if (descriptor) {
-        delete ConvertToOriginalText<TextEngine::FontParser::FontDescriptor>(descriptor);
-        descriptor = nullptr;
-    }
+    delete descriptor;
 }
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
@@ -1564,15 +1564,19 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
     }
     std::vector<TextEngine::FontParser::FontDescriptor> systemFontList =
         ConvertToOriginalText<TextEngine::FontParser>(fontParser)->GetVisibilityFonts();
-    TextEngine::FontParser::FontDescriptor* descriptor = new (std::nothrow) TextEngine::FontParser::FontDescriptor;
-    if (descriptor == nullptr) {
-        return nullptr;
-    }
     for (size_t i = 0; i < systemFontList.size(); ++i) {
-        if (strcmp(name, systemFontList[i].fullName.c_str()) == 0) {
-            *descriptor = systemFontList[i];
-            return (OH_Drawing_FontDescriptor*)descriptor;
+        if (strcmp(name, systemFontList[i].fullName.c_str()) != 0) {
+            continue;
         }
+        OH_Drawing_FontDescriptor* descriptor = OH_Drawing_CreateFontDescriptor();
+        if (descriptor == nullptr) {
+            return nullptr;
+        }
+        if (!OHOS::Rosen::Drawing::CopyFontDescriptor(descriptor, systemFontList[i])) {
+            OH_Drawing_DestroyFontDescriptor(descriptor);
+            return nullptr;
+        }
+        return descriptor;
     }
     delete descriptor;
     return nullptr;
@@ -3721,4 +3725,18 @@ void OH_Drawing_TextStyleAddFontVariation(OH_Drawing_TextStyle* style, const cha
     if (convertStyle) {
         convertStyle->fontVariations.SetAxisValue(axis, value);
     }
+}
+
+size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray)
+{
+    if (drawingArray == nullptr) {
+        return 0;
+    }
+
+    ObjectArray* array = ConvertToOriginalText<ObjectArray>(drawingArray);
+    if (array == nullptr) {
+        return 0;
+    }
+
+    return array->num;
 }

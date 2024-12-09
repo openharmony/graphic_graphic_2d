@@ -16,6 +16,7 @@
 #include "js_text_init.h"
 #include "enum_napi/text_enum_napi.h"
 #include "fontcollection_napi/js_fontcollection.h"
+#include "js_fontdescriptor.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "paragraph_napi/js_paragraph.h"
 #include "run_napi/js_run.h"
@@ -30,6 +31,7 @@ napi_value TextInit(napi_env env, napi_value exportObj)
     JsTextLine::Init(env, exportObj);
     JsParagraph::Init(env, exportObj);
     JsParagraphBuilder::Init(env, exportObj);
+    JsFontDescriptor::Init(env, exportObj);
     return exportObj;
 }
 } // namespace OHOS::Rosen

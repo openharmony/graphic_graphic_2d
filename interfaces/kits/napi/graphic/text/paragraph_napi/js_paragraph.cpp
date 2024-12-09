@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "js_paragraph.h"
 #include "canvas_napi/js_canvas.h"
 #include "draw/canvas.h"
-#include "recording/recording_canvas.h"
-#include "js_paragraph.h"
 #include "napi_common.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "path_napi/js_path.h"
@@ -41,7 +41,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
     }
 
     if (!g_Typography) {
-        TEXT_LOGE("JsParagraph::Constructor g_Typography is nullptr");
+        TEXT_LOGE("Typography is null");
         return nullptr;
     }
 
@@ -167,7 +167,7 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     if (argv[0] == nullptr) {
-        TEXT_LOGE("JsParagraph::OnPaint Argv is invalid");
+        TEXT_LOGE("Argv is invalid");
         return NapiGetUndefined(env);
     }
     Drawing::JsCanvas* jsCanvas = nullptr;
@@ -379,14 +379,14 @@ napi_value JsParagraph::OnGetRectsForRange(napi_env env, napi_callback_info info
     TextRectHeightStyle hstyle;
     napi_get_named_property(env, argv[0], "start", &tempValue);
     if (tempValue == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForRange, get start property failed");
+        TEXT_LOGE("Get start property failed");
         return NapiGetUndefined(env);
     }
     bool isStartOk = ConvertFromJsValue(env, tempValue, start);
     tempValue = nullptr;
     napi_get_named_property(env, argv[0], "end", &tempValue);
     if (tempValue == nullptr) {
-        TEXT_LOGE("JsParagraph::OnGetRectsForRange, get end property failed");
+        TEXT_LOGE("Get end property failed");
         return NapiGetUndefined(env);
     }
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);

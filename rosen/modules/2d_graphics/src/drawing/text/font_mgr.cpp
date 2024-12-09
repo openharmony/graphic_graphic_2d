@@ -110,6 +110,21 @@ FontStyleSet* FontMgr::CreateStyleSet(int index) const
     return fontMgrImpl_->CreateStyleSet(index);
 }
 
+int FontMgr::GetFontFullName(int fontFd, std::vector<FontByteArray>& fullnameVec)
+{
+    if (fontMgrImpl_ == nullptr) {
+        return ERROR_TYPE_OTHER;
+    }
+    return fontMgrImpl_->GetFontFullName(fontFd, fullnameVec);
+};
+
+int FontMgr::ParseInstallFontConfig(const std::string& configPath, std::vector<std::string>& fontPathVec)
+{
+    if (fontMgrImpl_ == nullptr) {
+        return ERROR_TYPE_OTHER;
+    }
+    return fontMgrImpl_->ParseInstallFontConfig(configPath, fontPathVec);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

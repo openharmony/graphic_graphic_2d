@@ -313,6 +313,14 @@ typedef struct OH_Drawing_GpuContext OH_Drawing_GpuContext;
 typedef struct OH_Drawing_Surface OH_Drawing_Surface;
 
 /**
+ * @brief Defines a array object, which is used to store multiple object.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct OH_Drawing_Array OH_Drawing_Array;
+
+/**
  * @brief Enumerates storage formats of bitmap pixels.
  *
  * @since 8
@@ -477,6 +485,19 @@ typedef struct {
     /** radius in left bottom of rectstyle */
     double leftBottomRadius;
 } OH_Drawing_RectStyle_Info;
+
+/**
+ * @brief Defines the string information struct.
+ *
+ * @since 14
+ * @version 1.0
+ */
+typedef struct {
+    /** A pointer to a byte string containing UTF-16BE(Big Endian) encoded entities */
+    uint8_t* strData;
+    /** The length of `strData` in bytes */
+    uint32_t strLen;
+} OH_Drawing_String;
 
 /**
  * @brief Enumerates text encoding types.
