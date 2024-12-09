@@ -38,14 +38,6 @@ bool ConvertToDrawingString(std::u16string& utf16String, OH_Drawing_String& full
         return false;
     }
     char16_t* u16Data = const_cast<char16_t*>(utf16String.c_str());
-    if (!Drawing::IsBigEndian()) {
-        for (uint32_t i = 0; i < fullNameString.strLen / sizeof(char16_t); i++) {
-            uint16_t temp = static_cast<uint16_t>(u16Data[i]);
-            u16Data[i] = static_cast<char16_t>((temp & Drawing::LOW_BYTE_MASK) << Drawing::BYTE_SHIFT |
-                (temp & Drawing::HIGH_BYTE_MASK) >> Drawing::BYTE_SHIFT);
-        }
-    }
-
     if (memcpy_s(fullNameString.strData, fullNameString.strLen, u16Data, fullNameString.strLen) == EOK) {
         return true;
     }
