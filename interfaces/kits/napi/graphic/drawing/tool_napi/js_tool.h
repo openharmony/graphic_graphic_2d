@@ -34,7 +34,7 @@ struct ResourceInfo {
 
 enum class ResourceType {
     RAWFILE = 30000,
-}
+};
 
 class JsTool final {
 public:
@@ -44,7 +44,7 @@ public:
     static bool GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
         napi_value bundleNameNApi, napi_value moduleNameNApi);
     static bool GetResourceRawFileDataBuffer(std::unique_ptr<uint8_t[]>&& buffer,
-        size_t* buffer_length, ResourceInfo& info);
+        size_t* len, ResourceInfo& info);
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen
