@@ -38,7 +38,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t INVALID_FD = -1;
-static const int32_t APP_VSYNC_PRIORITY = system::GetIntParameter("persist.sys.app_vsync_priority", -1);
+static const int32_t APP_VSYNC_PRIORITY = system::GetIntParameter("const.graphic.app_vsync_priority", -1);
 }
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     const sptr<IRemoteObject>& token,
