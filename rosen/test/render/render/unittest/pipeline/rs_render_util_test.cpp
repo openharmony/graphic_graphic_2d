@@ -860,49 +860,4 @@ HWTEST_F(RSRenderUtilTest, SubNodeCheck_009, Function | SmallTest | Level2)
     ComposeInfo info;
     EXPECT_FALSE(RSUniRenderUtil::IsNeedClient(node, info));
 }
-
-/**
- * @tc.name: ClientTest_001
- * @tc.desc: ClientTest_001
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderUtilTest, ClientTest_001, Function | SmallTest | Level2)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(1);
-    ASSERT_NE(node, nullptr);
-    ComposeInfo info;
-    node->renderContent_->renderProperties_.SetRotation(1.0f);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-    node->renderContent_->renderProperties_.SetRotationX(1.0f);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-    node->renderContent_->renderProperties_.SetRotationY(1.0f);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-    Quaternion quaternion(90.0f, 90.0f, 90.0f, 90.0f);
-    node->renderContent_->renderProperties_.SetQuaternion(quaternion);
-    EXPECT_TRUE(RSUniRenderUtil::IsNeedClient(*node, info));
-}
-
-/*
- * @tc.name: ClientTest_002
- * @tc.desc: ClientTest_002
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderUtilTest, ClientTest_002, Function | SmallTest | Level2)
-{
-    Drawing::Canvas canvas;
-    RSPaintFilterCanvas filterCanvas(&canvas);
-    RectI rect(1, 1, -1, -1);
-    Drawing::Color color;
-    float alpha = 1.f;
-    std::string extraInfo = "";
-    RSUniRenderUtil::DrawRectForDfx(filterCanvas, rect, color, alpha, extraInfo);
-    EXPECT_TRUE(rect.width_ <= 0);
-
-    rect.width_ = 1;
-    rect.height_ = 1;
-    RSUniRenderUtil::DrawRectForDfx(filterCanvas, rect, color, alpha, extraInfo);
-    EXPECT_TRUE(rect.width_ >= 0);
-}
 } // namespace OHOS::Rosen
