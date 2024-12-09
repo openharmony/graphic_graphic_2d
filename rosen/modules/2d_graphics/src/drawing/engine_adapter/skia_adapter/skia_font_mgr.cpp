@@ -38,7 +38,6 @@ namespace Rosen {
 namespace Drawing {
 namespace {
 const uint8_t MOVEBITS = 8;
-const std::string OHOS_THEME_FONT_LOW = "ohosthemefont";
 void SwapBytes(char16_t* srcStr, uint32_t len)
 {
     if (srcStr == nullptr || len == 0) {
