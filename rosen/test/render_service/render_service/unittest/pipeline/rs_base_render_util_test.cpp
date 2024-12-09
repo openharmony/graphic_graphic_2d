@@ -1148,7 +1148,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_001, TestSize.Level2)
     matrix.PreTranslate(0, boundsHeight);
     matrix.PreRotate(-90);
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_90;
-    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds, bounds));
 }
 
 /*
@@ -1166,7 +1166,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_002, TestSize.Level2)
     matrix.PreTranslate(boundsWidth, boundsHeight);
     matrix.PreRotate(-180);
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_180;
-    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds, bounds));
 }
 
 /*
@@ -1183,7 +1183,7 @@ HWTEST_F(RSBaseRenderUtilTest, GetSurfaceTransformMatrix_003, TestSize.Level2)
     matrix.PreTranslate(boundsWidth, 0);
     matrix.PreRotate(-270);
     GraphicTransformType rotationTransform = GraphicTransformType::GRAPHIC_ROTATE_270;
-    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds));
+    ASSERT_EQ(matrix, RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, bounds, bounds));
 }
 
 /*
