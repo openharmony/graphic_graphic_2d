@@ -34,6 +34,10 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+constexpr SkImageLeft = 50;
+constexpr SkImageTop = 50;
+constexpr SkImageWidth = 100;
+constexpr SkImageHeight = 100;
 class RSRenderUtilTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -55,7 +59,7 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     Drawing::Brush paint;
     paint.SetColor(Drawing::Color::COLOR_RED);
     canvas->AttachBrush(paint);
-    canvas->DrawRect(Drawing::Rect(50, 50, 100, 100));
+    canvas->DrawRect(Drawing::Rect(SkImageLeft, SkImageTop, SkImageWidth, SkImageHeight));
     canvas->DetachBrush();
     return surface->GetImageSnapshot();
 }
