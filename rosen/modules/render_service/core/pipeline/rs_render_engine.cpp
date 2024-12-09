@@ -192,7 +192,7 @@ void RSRenderEngine::ClipHoleForLayer(RSPaintFilterCanvas& canvas, RSSurfaceRend
     BufferDrawParam params = RSDividedRenderUtil::CreateBufferDrawParam(node, false, true);
 
     std::string traceInfo;
-    AppendFormat(traceInfo, "Node name:%s ClipHole[%d %d %d %d]", node.GetName().c_str(),
+    AppendFormat(traceInfo, "Node name:%s ClipHole[%f %f %f %f]", node.GetName().c_str(),
         params.clipRect.GetLeft(), params.clipRect.GetTop(), params.clipRect.GetWidth(), params.clipRect.GetHeight());
     RS_LOGD("RSRenderEngine::Redraw layer composition ClipHoleForLayer, %{public}s.", traceInfo.c_str());
     RS_TRACE_NAME(traceInfo);
