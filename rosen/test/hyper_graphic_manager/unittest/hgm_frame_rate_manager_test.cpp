@@ -674,7 +674,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(HgmFrameRateManager, GetLowBrightVec, Function | SmallTest | Level2)
+HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
 {
     HgmFrameRateManager mgr;
     std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
