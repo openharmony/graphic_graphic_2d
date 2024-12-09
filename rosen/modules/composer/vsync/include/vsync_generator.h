@@ -163,6 +163,7 @@ private:
     VsyncError SetExpectNextVsyncTimeInternal(int64_t expectNextVsyncTime);
     void ClearAllSamplesInternal(bool clearAllSamplesFlag);
     void CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenceTime);
+    void WaitForTimeoutConNotifyLocked();
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     int64_t period_ = 0;
@@ -210,6 +211,7 @@ private:
     bool clearAllSamplesFlag_ = false;
     uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
     int64_t vsyncOffset_ = 0;
+    int64_t nextTimeStamp_ = 0;
 };
 } // impl
 } // namespace Rosen

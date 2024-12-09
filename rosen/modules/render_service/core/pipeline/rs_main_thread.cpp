@@ -603,7 +603,7 @@ void RSMainThread::Init()
     sptr<VSyncIConnectionToken> token = new IRemoteStub<VSyncIConnectionToken>();
     sptr<VSyncConnection> conn = new VSyncConnection(rsVSyncDistributor_, "rs", token->AsObject());
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] (const RSRenderFrameRateLinker& linker) {
-        UpdateFrameRateLinker(linker);
+        HgmCore::Instance().SetHgmTaskFlag(true);
     });
     conn->id_ = rsFrameRateLinker_->GetId();
     rsVSyncDistributor_->AddConnection(conn);
@@ -1421,7 +1421,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
             surfaceNode->AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
             surfaceNode->SetContentDirty();
-            SetDirtyFlag();
             surfaceNode->SetDoDirectComposition(false);
             surfaceNode->SetOldNeedDrawBehindWindow(surfaceNode->NeedDrawBehindWindow());
         }
@@ -1510,20 +1509,21 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         if (surfaceHandler->GetAvailableBufferCount() > 0) {
             needRequestNextVsync = true;
         }
+        bool isHdrSurface = CheckIsHdrSurface(*surfaceNode);
         if (!hasHdrVideo) {
-            hasHdrVideo = CheckIsHdrSurface(*surfaceNode);
+            hasHdrVideo = isHdrSurface;
             hdrType = CheckIsAihdrSurface(*surfaceNode) ? HDR_TYPE::AIHDR_VIDEO : hdrType;
         }
+        surfaceNode->SetHdrVideo(isHdrSurface);
         if ((*surfaceNode).GetRSSurfaceHandler() == nullptr) {
             RS_LOGE("surfaceNode.GetRSSurfaceHandler is NULL");
             return;
         }
         UpdateSurfaceNodeNit((*surfaceNode).GetRSSurfaceHandler()->GetBuffer(),
-            *surfaceNode, CheckIsHdrSurface(*surfaceNode));
+            *surfaceNode, isHdrSurface);
         bool isDimmingOn = RSLuminanceControl::Get().IsDimmingOn(0);
         if (isDimmingOn) {
             bool hasHdrPresent = surfaceNode->GetHDRPresent();
-            bool isHdrSurface = CheckIsHdrSurface(*surfaceNode);
             RS_LOGD("HDRDiming IsDimmingOn: %{public}d, GetHDRPresent: %{public}d, CheckIsHdrSurface: %{public}d",
                 isDimmingOn, hasHdrPresent, isHdrSurface);
             if (hasHdrPresent || isHdrSurface) {
@@ -1902,8 +1902,11 @@ void RSMainThread::MergeToEffectiveTransactionDataMap(TransactionDataMap& cached
 void RSMainThread::OnHideNotchStatusCallback(const char *key, const char *value, void *context)
 {
     if (strcmp(key, HIDE_NOTCH_STATUS) != 0) {
+        RS_LOGI("RSMainThread::OnHideNotchStatusCallback, key is not HIDE_NOTCH_STATUS");
         return;
     }
+    RS_LOGI("RSMainThread::OnHideNotchStatusCallback HideNotchStatus is change, status is %{public}d",
+        RSSystemParameters::GetHideNotchStatus());
     RSMainThread::Instance()->RequestNextVSync();
 }
 
@@ -1960,13 +1963,12 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         rsFrameRateLinker_->SetExpectedRange(rsCurrRange);
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
     }
-    
-    frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
 
-    if (!postHgmTaskFlag_ && HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
+    if (!HgmCore::Instance().SetHgmTaskFlag(false) &&
+        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
+        !frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_)) {
         return;
     }
-    postHgmTaskFlag_ = false;
 
     HgmTaskHandleThread::Instance().PostTask([timestamp, rsFrameRateLinker = rsFrameRateLinker_,
                                         appFrameRateLinkers = GetContext().GetFrameRateLinkerMap().Get()] () mutable {

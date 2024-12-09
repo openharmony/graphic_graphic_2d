@@ -151,6 +151,12 @@ public:
         return isForceRefresh_.load();
     }
 
+    // called by RSMainThread
+    bool SetHgmTaskFlag(bool value)
+    {
+        return postHgmTaskFlag_.exchange(value);
+    }
+
     bool GetLtpoEnabled() const
     {
         return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
@@ -334,6 +340,7 @@ private:
     std::atomic<bool> doDirectComposition_{ false };
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
+    std::atomic<bool> postHgmTaskFlag_{ true };
 };
 } // namespace OHOS::Rosen
 #endif // HGM_CORE_H

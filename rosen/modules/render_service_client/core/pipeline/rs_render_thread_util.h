@@ -20,10 +20,21 @@
 
 namespace OHOS {
 namespace Rosen {
+
+#ifdef ROSEN_OHOS
+namespace {
+constexpr uint32_t API_VERSION_MOD = 1000;
+constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
+} // namespace
+#endif
+
 class RSRenderThreadUtil {
 public:
     static void SrcRectScaleDown(Drawing::Rect& srcRect, const Drawing::Rect& localBounds);
     static void SrcRectScaleFit(const Drawing::Rect& srcRect, Drawing::Rect& dstRect, const Drawing::Rect& localBounds);
+#ifdef ROSEN_OHOS
+    static uint32_t GetApiCompatibleVersion();
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

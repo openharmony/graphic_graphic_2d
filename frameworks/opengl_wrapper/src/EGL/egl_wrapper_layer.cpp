@@ -78,7 +78,7 @@ static void SetupFuncMaps(FunctionTable &table,
         if (table.find(name) == table.end()) {
             table[name] = *curr;
         } else {
-            WLOGW("duplicate function name(%{public}s)", name);
+            WLOGD("duplicate function name(%{public}s)", name);
         }
 
         entries++;

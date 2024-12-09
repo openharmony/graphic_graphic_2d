@@ -153,7 +153,6 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithDma(
         RS_TRACE_NAME_FMT("HandleSubThreadNode wait %" PRIu64 "", surfaceParams.GetId());
         RSSubThreadManager::Instance()->WaitNodeTask(surfaceParams.GetId());
     }
-    // ConsumeAndUpdateBuffer may set buffer, must be before !GetBuffer()
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfaceHandlerUiFirst_) ||
         !surfaceHandlerUiFirst_->GetBuffer()) {
         RS_LOGE("DrawUIFirstCacheWithDma ConsumeAndUpdateBuffer or GetBuffer return false");

@@ -32,6 +32,7 @@ namespace {
 static constexpr size_t ASHMEM_SIZE_THRESHOLD = 400 * 1024; // cannot > 500K in TF_ASYNC mode
 static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
+static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
@@ -631,6 +632,10 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<NodeId>& securityExemptionList)
 {
+    if (securityExemptionList.size() > MAX_SECURITY_EXEMPTION_LIST_NUMBER) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList: too many lists.");
+        return INVALID_ARGUMENTS;
+    }
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
@@ -2581,24 +2586,23 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
     return result;
 }
 
-int32_t RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+int32_t RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return RS_CONNECTION_ERROR;
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterFrameRateLinkerCallback: WriteInterfaceToken err.");
+        return WRITE_PARCEL_ERR;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteUint32(dstPid)) {
+    if (!data.WriteInt32(dstPid)) {
         return WRITE_PARCEL_ERR;
     }
     if (callback) {
-        if (!data.WriteBool(true)) {
-            return WRITE_PARCEL_ERR;
-        }
-        if (!data.WriteRemoteObject(callback->AsObject())) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
             return WRITE_PARCEL_ERR;
         }
     } else {

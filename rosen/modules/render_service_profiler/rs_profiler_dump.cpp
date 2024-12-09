@@ -161,7 +161,8 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
         auto p = node.parent_.lock();
         subclass["Parent"] = p ? p->GetId() : uint64_t(0);
         subclass["Name"] = surfaceNode.GetName();
-        out["hasConsumer"] = surfaceNode.GetRSSurfaceHandler()->HasConsumer();
+        const auto surfaceHandler = surfaceNode.GetRSSurfaceHandler();
+        out["hasConsumer"] = surfaceHandler ? surfaceHandler->HasConsumer() : false;
         std::string contextAlpha = std::to_string(surfaceNode.contextAlpha_);
         std::string propertyAlpha = std::to_string(surfaceNode.GetRenderProperties().GetAlpha());
         subclass["Alpha"] = propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";

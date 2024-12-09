@@ -260,7 +260,7 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
-    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t pid,
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
 
     virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;

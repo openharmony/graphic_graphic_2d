@@ -33,7 +33,7 @@ int RSFrameRateLinkerExpectedFpsUpdateCallbackStub::OnRemoteRequest(
     switch (code) {
         case static_cast<uint32_t>(
             RSIFrameRateLinkerExpectedFpsUpdateCallbackInterfaceCode::ON_FRAME_RATE_LINKER_EXPECTED_FPS_UPDATE): {
-            pid_t dstPid = data.ReadUint32();
+            pid_t dstPid = data.ReadInt32();
             int32_t expectedFps = data.ReadInt32();
             OnFrameRateLinkerExpectedFpsUpdate(dstPid, expectedFps);
             break;

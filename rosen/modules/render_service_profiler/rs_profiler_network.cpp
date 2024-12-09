@@ -122,11 +122,11 @@ void Network::Stop()
     isRunning_ = false;
 }
 
-void Network::SendPacket(const Packet& packet)
+void Network::SendPacket(Packet& packet)
 {
     if (isRunning_) {
         const std::lock_guard<std::mutex> guard(outgoingMutex_);
-        outgoing_.emplace(const_cast<Packet&>(packet).Release());
+        outgoing_.emplace(packet.Release());
     }
 }
 

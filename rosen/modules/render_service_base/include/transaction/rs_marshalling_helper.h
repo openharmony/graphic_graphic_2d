@@ -84,6 +84,7 @@ class RRectT;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
+    static constexpr int UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
     template<typename T>
@@ -151,14 +152,15 @@ public:
     }
 
     template<typename T>
-    static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val)
+    static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val, int maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
     {
         int size = 0;
         Unmarshalling(parcel, size);
-        if (size < 0) {
+        if (size < 0 || size > maxSize) {
             return false;
         }
         val.clear();
+        val.reserve(size);
         for (int i = 0; i < size; i++) {
             T tmp;
             if (!Unmarshalling(parcel, tmp)) {

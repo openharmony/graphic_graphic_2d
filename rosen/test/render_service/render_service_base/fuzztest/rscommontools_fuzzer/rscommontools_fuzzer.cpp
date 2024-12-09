@@ -35,7 +35,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-int32_t g_iSize = 512;
 } // namespace
 
 template<class T>
@@ -64,10 +63,19 @@ bool DoSavePixelmapToFile(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
+    int32_t width = GetData<int32_t>();
+    int32_t height = GetData<int32_t>();
     Media::InitializationOptions opts;
-    opts.size.width = g_iSize;
-    opts.size.height = g_iSize;
-    opts.editable = true;
+    opts.size.width = width;
+    opts.size.height = height;
+    opts.pixelFormat = static_cast<Media::PixelFormat>(GetData<int32_t>());
+    opts.alphaType = static_cast<Media::AlphaType>(GetData<int32_t>());
+    opts.scaleMode = static_cast<Media::ScaleMode>(GetData<int32_t>());
+    opts.editable = GetData<bool>();
+    opts.useSourceIfMatch = GetData<bool>();
+    std::shared_ptr<Media::PixelMap>  pixelmap = Media::PixelMap::Create(opts);
+    std::string dst = "/path/";
+    CommonTools::SavePixelmapToFile(pixelmap, dst);
     return true;
 }
 bool DoGetLocalTime(const uint8_t* data, size_t size)

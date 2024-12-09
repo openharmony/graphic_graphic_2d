@@ -696,6 +696,16 @@ public:
         uifirstSkipPartialSync_ = skip;
     }
 
+    void SetForceUpdateByUifirst(bool b)
+    {
+        forceUpdateByUifirst_ = b;
+    }
+
+    bool GetForceUpdateByUifirst() const
+    {
+        return forceUpdateByUifirst_;
+    }
+
     MultiThreadCacheType GetLastFrameUifirstFlag()
     {
         return lastFrameUifirstFlag_;
@@ -839,6 +849,7 @@ protected:
     virtual void OnSync();
     virtual void ClearResource() {};
     virtual void ClearNeverOnTree() {};
+    virtual void CheckCanvasDrawingPostPlaybacked() {};
 
     void UpdateDrawableVecV2();
 
@@ -1059,6 +1070,7 @@ private:
     // for blur cache
     RectI lastFilterRegion_;
     bool uifirstSkipPartialSync_ = false;
+    bool forceUpdateByUifirst_ = false;
     bool backgroundFilterRegionChanged_ = false;
     bool backgroundFilterInteractWithDirty_ = false;
     bool foregroundFilterRegionChanged_ = false;

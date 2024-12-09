@@ -113,9 +113,12 @@ bool BootVideoPlayer::SetVideoSound()
 
     bool bootSoundEnabled = BootAnimationUtils::GetBootAnimationSoundEnabled();
     if (!bootSoundEnabled) {
-        ret = mediaPlayer_->SetVolume(0, 0);
-        if (ret != 0) {
-            LOGE("PlayVideo SetVolume fail, errorCode:%{public}d", ret);
+        if (!SetCustomizedVolume(0)) {
+            return false;
+        }
+    } else {
+        int customizedVolume = system::GetIntParameter(BOOT_SOUND, INVALID_VOLUME, MIN_VOLUME, MAX_VOLUME);
+        if (customizedVolume != INVALID_VOLUME && !SetCustomizedVolume(customizedVolume)) {
             return false;
         }
     }

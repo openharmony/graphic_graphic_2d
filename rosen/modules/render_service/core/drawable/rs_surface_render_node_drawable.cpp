@@ -440,9 +440,16 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
     const auto &absDrawRect = surfaceParams->GetAbsDrawRect();
+    // syncDirtyManager_ is not null
+    const RectI& currentFrameDirty = syncDirtyManager_->GetCurrentFrameDirtyRegion();
+    const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
-    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] (%d, %d, %d, %d)Alpha: %f", name_.c_str(),
-        absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, surfaceParams->GetGlobalAlpha());
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw:[%s] (%d, %d, %d, %d)Alpha: %f, preSub:%d, "
+        "currentFrameDirty (%d, %d, %d, %d), mergeHistoryDirty (%d, %d, %d, %d)", name_.c_str(),
+        absDrawRect.left_, absDrawRect.top_, absDrawRect.width_, absDrawRect.height_, surfaceParams->GetGlobalAlpha(),
+        surfaceParams->GetPreSubHighPriorityType(),
+        currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
+        mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_);
 
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
             "OcclusionVisible:%{public}d Bound:%{public}s",
@@ -475,6 +482,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
@@ -815,13 +823,18 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 
     bool hwcEnable = surfaceParams.GetHardwareEnabled();
     surfaceParams.SetHardwareEnabled(false);
-    RS_LOGD("HDR hasHdrPresent_:%{public}d", canvas.IsCapture());
+    RS_LOGD("HDRService hasHdrPresent_: %{public}d, GetId: %{public}" PRIu64 "",
+        surfaceParams.GetHDRPresent(), surfaceParams.GetId());
     bool hasHidePrivacyContent = surfaceParams.HasPrivacyContentLayer() &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
-        surfaceParams.HasProtectedLayer() || hasHdrPresent_ || hasHidePrivacyContent) &&
+        surfaceParams.HasProtectedLayer() || surfaceParams.GetHDRPresent() || hasHidePrivacyContent) &&
         DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
+        surfaceParams.SetHardwareEnabled(hwcEnable);
+        return;
+    }
+    if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
         return;
     }
@@ -837,6 +850,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
 
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }

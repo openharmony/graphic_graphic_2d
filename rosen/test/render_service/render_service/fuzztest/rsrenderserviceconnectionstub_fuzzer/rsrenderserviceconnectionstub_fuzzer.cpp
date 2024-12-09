@@ -329,6 +329,62 @@ bool DoDropFrameByPid()
     return true;
 }
 
+bool DoSetCurtainScreenUsingStatus()
+{
+    bool status = GetData<bool>();
+    
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteBool(status)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoSetScreenActiveRect()
+{
+    ScreenId id = GetData<uint64_t>();
+
+    Rect activeRect;
+    activeRect.x = GetData<int32_t>();
+    activeRect.y = GetData<int32_t>();
+    activeRect.w = GetData<int32_t>();
+    activeRect.h = GetData<int32_t>();
+    
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (!dataP.WriteInt32(activeRect.x) || !dataP.WriteInt32(activeRect.y) ||
+        !dataP.WriteInt32(activeRect.w) || !dataP.WriteInt32(activeRect.h)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
 bool DoSetScreenPowerStatus(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -388,6 +444,75 @@ bool DoSetHwcNodeBounds(const uint8_t* data, size_t size)
     dataParcel.WriteFloat(1.0f);
     dataParcel.WriteFloat(1.0f);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetDefaultScreenId()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
+    auto newPid = getpid();
+    sptr<RSScreenManager> screenManager = nullptr;
+    if (GetData<bool>()) {
+        screenManager = CreateOrGetScreenManager();
+    }
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token_->AsObject(), nullptr);
+    if (connectionStub == nullptr) {
+        return false;
+    }
+    connectionStub->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoGetActiveScreenId()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID);
+    auto newPid = getpid();
+    sptr<RSScreenManager> screenManager = nullptr;
+    if (GetData<bool>()) {
+        screenManager = CreateOrGetScreenManager();
+    }
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token_->AsObject(), nullptr);
+    if (connectionStub == nullptr) {
+        return false;
+    }
+    connectionStub->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoGetAllScreenIds()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
+    auto newPid = getpid();
+    sptr<RSScreenManager> screenManager = nullptr;
+    if (GetData<bool>()) {
+        screenManager = CreateOrGetScreenManager();
+    }
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, screenManager, token_->AsObject(), nullptr);
+    if (connectionStub == nullptr) {
+        return false;
+    }
+    connectionStub->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
 
@@ -1349,9 +1474,12 @@ bool DoSetScreenSkipFrameInterval()
 bool DoSetVirtualScreenSecurityExemptionList()
 {
     uint64_t id = GetData<uint64_t>();
-    uint64_t nodeId = GetData<uint64_t>();
     std::vector<uint64_t> secExemptionListVector;
-    secExemptionListVector.push_back(nodeId);
+    uint16_t listSize = GetData<uint16_t>();
+    for (int i = 0; i < listSize; i++) {
+        uint64_t nodeId = GetData<uint64_t>();
+        secExemptionListVector.push_back(nodeId);
+    }
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
@@ -1678,7 +1806,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetBitmap(data, size);
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
-    OHOS::Rosen::DoDropFrameByPid();
     OHOS::Rosen::DoSetScreenPowerStatus(data, size);
     OHOS::Rosen::DoSetHwcNodeBounds(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
@@ -1699,9 +1826,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoRemoveVirtualScreen(data, size);
+    OHOS::Rosen::DoGetDefaultScreenId();
+    OHOS::Rosen::DoGetActiveScreenId();
+    OHOS::Rosen::DoGetAllScreenIds();
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
+    OHOS::Rosen::DoDropFrameByPid();
+    OHOS::Rosen::DoSetCurtainScreenUsingStatus();
+    OHOS::Rosen::DoSetScreenActiveRect();
     OHOS::Rosen::DoSetVirtualScreenSurface();
     OHOS::Rosen::DoSetVirtualScreenResolution();
     OHOS::Rosen::DoGetVirtualScreenResolution();

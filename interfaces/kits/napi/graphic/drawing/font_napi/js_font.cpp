@@ -24,6 +24,7 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsFont::constructor_ = nullptr;
+static std::mutex g_constructorInitMutex;
 const std::string CLASS_NAME = "Font";
 
 static napi_property_descriptor properties[] = {
@@ -62,19 +63,40 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getTextPath", JsFont::CreatePathForText),
 };
 
-napi_value JsFont::Init(napi_env env, napi_value exportObj)
+bool JsFont::CreateConstructor(napi_env env)
 {
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
                                            sizeof(properties) / sizeof(properties[0]), properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("Failed to define Font class");
-        return nullptr;
+        return false;
     }
 
     status = napi_create_reference(env, constructor, 1, &constructor_);
     if (status != napi_ok) {
         ROSEN_LOGE("Failed to create reference of constructor");
+        return false;
+    }
+    return true;
+}
+
+napi_value JsFont::Init(napi_env env, napi_value exportObj)
+{
+    {
+        std::lock_guard<std::mutex> lock(g_constructorInitMutex);
+        if (!constructor_) {
+            if (!CreateConstructor(env)) {
+                ROSEN_LOGE("Failed to CreateConstructor");
+                return nullptr;
+            }
+        }
+    }
+
+    napi_value constructor = nullptr;
+    napi_status status = napi_get_reference_value(env, constructor_, &constructor);
+    if (status != napi_ok) {
+        ROSEN_LOGE("Failed to get the representation of constructor object");
         return nullptr;
     }
 
@@ -135,6 +157,16 @@ napi_value JsFont::CreatePathForText(napi_env env, napi_callback_info info)
 
 napi_value JsFont::CreateFont(napi_env env, napi_callback_info info)
 {
+    {
+        std::lock_guard<std::mutex> lock(g_constructorInitMutex);
+        if (!constructor_) {
+            if (!CreateConstructor(env)) {
+                ROSEN_LOGE("Failed to CreateConstructor");
+                return nullptr;
+            }
+        }
+    }
+
     napi_value result = nullptr;
     napi_value constructor = nullptr;
     napi_status status = napi_get_reference_value(env, constructor_, &constructor);

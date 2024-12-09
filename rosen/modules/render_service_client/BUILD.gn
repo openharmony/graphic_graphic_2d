@@ -205,6 +205,8 @@ template("render_service_client_source_set") {
       ]
 
       external_deps = [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
         "c_utils:utils",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",

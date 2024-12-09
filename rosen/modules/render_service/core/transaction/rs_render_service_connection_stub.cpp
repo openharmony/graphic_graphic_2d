@@ -45,6 +45,7 @@ constexpr size_t MAX_DATA_SIZE_FOR_UNMARSHALLING_IN_PLACE = 1024 * 15; // 15kB
 constexpr size_t FILE_DESCRIPTOR_LIMIT = 15;
 constexpr size_t MAX_OBJECTNUM = 512;
 constexpr size_t MAX_DATA_SIZE = 1024 * 1024; // 1MB
+static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
 #ifdef RES_SCHED_ENABLE
 const uint32_t RS_IPC_QOS_LEVEL = 7;
 constexpr const char* RS_BUNDLE_NAME = "render_service";
@@ -172,16 +173,12 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
 };
 
-bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
+void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
 {
     binder_size_t* object = reinterpret_cast<binder_size_t*>(old.GetObjectOffsets());
     binder_size_t* copiedObject = reinterpret_cast<binder_size_t*>(copied.GetObjectOffsets());
 
     size_t objectNum = old.GetOffsetsSize();
-    if (objectNum > MAX_OBJECTNUM) {
-        ROSEN_LOGW("CopyFileDescriptor failed, objectNum: %{public}zu is too large", objectNum);
-        return false;
-    }
 
     uintptr_t data = old.GetData();
     uintptr_t copiedData = copied.GetData();
@@ -199,7 +196,6 @@ bool CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
             copiedFlat->handle = static_cast<uint32_t>(val);
         }
     }
-    return true;
 }
 
 std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callingPid)
@@ -218,6 +214,13 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     if (dataSize == 0) {
         return nullptr;
     }
+
+    if (old.GetOffsetsSize() > MAX_OBJECTNUM) {
+        ROSEN_LOGW("RSRenderServiceConnectionStub::CopyParcelIfNeed failed, parcel fdCnt: %{public}zu is too large",
+            old.GetOffsetsSize());
+        return nullptr;
+    }
+
     RS_TRACE_NAME("CopyParcelForUnmarsh: size:" + std::to_string(dataSize));
     void* base = malloc(dataSize);
     if (base == nullptr) {
@@ -240,9 +243,7 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     auto objectNum = old.GetOffsetsSize();
     if (objectNum != 0) {
         parcelCopied->InjectOffsets(old.GetObjectOffsets(), objectNum);
-        if (!CopyFileDescriptor(old, *parcelCopied)) {
-            return nullptr;
-        }
+        CopyFileDescriptor(old, *parcelCopied);
     }
     if (parcelCopied->ReadInt32() != 0) {
         RS_LOGE("RSRenderServiceConnectionStub::CopyParcelIfNeed parcel data not match");
@@ -517,7 +518,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             ScreenId mirrorId = data.ReadUint64();
             int32_t flags = data.ReadInt32();
             std::vector<NodeId> whiteList;
-            data.ReadUInt64Vector(&whiteList);
+            if (!data.ReadUInt64Vector(&whiteList)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
             if (!reply.WriteUint64(id)) {
                 ret = ERR_INVALID_REPLY;
@@ -528,7 +532,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // read the parcel data.
             ScreenId id = data.ReadUint64();
             std::vector<NodeId> blackListVector;
-            data.ReadUInt64Vector(&blackListVector);
+            if (!data.ReadUInt64Vector(&blackListVector)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             int32_t status = SetVirtualScreenBlackList(id, blackListVector);
             if (!reply.WriteInt32(status)) {
                 ret = ERR_INVALID_REPLY;
@@ -570,6 +577,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             std::vector<NodeId> securityExemptionList;
             if (!data.ReadUInt64Vector(&securityExemptionList)) {
                 ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (securityExemptionList.size() > MAX_SECURITY_EXEMPTION_LIST_NUMBER) {
+                RS_LOGE("RSRenderServiceConnectionStub::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST"
+                    " failed: too many lists.");
+                ret = ERR_INVALID_DATA;
                 break;
             }
             int32_t status = SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
@@ -878,7 +891,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-            u_int32_t pid = GetCallingPid();
+            pid_t pid = GetCallingPid();
             RS_PROFILER_PATCH_PID(data, pid);
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -1823,7 +1836,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK) : {
             sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback = nullptr;
             sptr<IRemoteObject> remoteObject = nullptr;
-            uint32_t dstPid = data.ReadUint32();
+            int32_t dstPid = data.ReadInt32();
             if (data.ReadBool()) {
                 remoteObject = data.ReadRemoteObject();
             }

@@ -107,6 +107,7 @@ private:
     napi_value OnGetBounds(napi_env env, napi_callback_info info);
     napi_value OnCreatePathForText(napi_env env, napi_callback_info info);
 
+    static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;
     std::shared_ptr<Font> m_font = nullptr;
 };

@@ -185,7 +185,7 @@ public:
     }
 
     // only called by RSMainThread
-    void UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
+    bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
 
     static std::pair<bool, bool> MergeRangeByPriority(VoteRange& rangeRes, const VoteRange& curVoteRange);
 private:
@@ -287,6 +287,7 @@ private:
     // only called by RSMainThread
     // exp. <"AceAnimato", pid, FROM_SURFACE>
     std::vector<std::tuple<std::string, pid_t, UIFWKType>> surfaceData_;
+    uint64_t lastPostIdleDetectorTaskTimestamp_ = 0; // only called by RSMainThread
     bool needHighRefresh_ = false;
     int32_t lastTouchUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;

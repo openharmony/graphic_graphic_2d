@@ -61,6 +61,7 @@ if (current_os != "ohos") {
   }
 } else {
   ohos_shared_library("EGL") {
+    branch_protector_ret = "pac_ret"
     defines = [ "EGL_ERROR_ENABLE" ]
     sources = [
       "src/EGL/egl.cpp",
@@ -228,6 +229,7 @@ if (current_os != "ohos") {
   }
 } else {
   ohos_shared_library("GLESv3") {
+    branch_protector_ret = "pac_ret"
     sources = [ "src/GLES3/gles3.cpp" ]
     configs = [ ":glesv3_config" ]
 

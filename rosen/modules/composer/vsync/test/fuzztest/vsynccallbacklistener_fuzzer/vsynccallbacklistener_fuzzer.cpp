@@ -20,6 +20,10 @@
 #include <securec.h>
 #include <sstream>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <event_handler.h>
 #include <sys/types.h>
@@ -35,6 +39,9 @@ namespace OHOS {
         const uint8_t* g_data = nullptr;
         size_t g_size = 0;
         size_t g_pos;
+
+        constexpr size_t STR_LEN = 10;
+        void OnVSync(int64_t now, void* data) {}
     }
 
     /*
@@ -57,6 +64,20 @@ namespace OHOS {
         return object;
     }
 
+    /*
+    * get a string from g_data
+    */
+    std::string GetStringFromData(int strlen)
+    {
+        char cstr[strlen];
+        cstr[strlen - 1] = '\0';
+        for (int i = 0; i < strlen - 1; i++) {
+            cstr[i] = GetData<char>();
+        }
+        std::string str(cstr);
+        return str;
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr) {
@@ -69,7 +90,6 @@ namespace OHOS {
         g_pos = 0;
 
         // get data
-        int64_t offset = GetData<int64_t>();
         bool needCreateNewThread = GetData<bool>();
         int64_t now = GetData<int64_t>();
         int32_t fileDescriptor = GetData<int32_t>();
@@ -77,7 +97,7 @@ namespace OHOS {
 
         // test
         sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
-        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, 0);
         sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
         sptr<Rosen::VSyncConnection> vsyncConnection = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
         std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create(needCreateNewThread);
@@ -93,6 +113,33 @@ namespace OHOS {
         vsyncReceiver->listener_->CalculateExpectedEndLocked(now);
         vsyncReceiver->listener_->SetFdClosedFlagLocked(fdClosed);
         vsyncReceiver->listener_->RegisterFdShutDownCallback(nullptr);
+
+        vsyncReceiver->Init();
+        void* data1 = static_cast<void*>(GetStringFromData(STR_LEN).data());
+        Rosen::VSyncReceiver::FrameCallback fcb = {
+            .userData_ = data1,
+            .callback_ = OnVSync,
+        };
+        vsyncReceiver->RequestNextVSync(fcb);
+        vsyncReceiver->RequestNextVSyncWithMultiCallback(fcb);
+        int32_t rate = GetData<int32_t>();
+        vsyncReceiver->SetVSyncRate(fcb, rate);
+        int64_t period = GetData<int64_t>();
+        int64_t timestamp = GetData<int64_t>();
+        bool isThreadShared = GetData<bool>();
+        vsyncReceiver->GetVSyncPeriodAndLastTimeStamp(period, timestamp, isThreadShared);
+        vsyncReceiver->IsRequestedNextVSync();
+        bool uiDVSyncSwitch = GetData<bool>();
+        bool nativeDVSyncSwitch = GetData<bool>();
+        int32_t bufferCount = GetData<int32_t>();
+        vsyncReceiver->SetNativeDVSyncSwitch(nativeDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncSwitch(uiDVSyncSwitch);
+        vsyncReceiver->SetUiDvsyncConfig(bufferCount);
+
+        vsyncReceiver->fd_ = open("fuzztest", O_RDWR | O_CREAT);
+        int64_t dataTmp[3];
+        write(vsyncReceiver->fd_, dataTmp, sizeof(int64_t) * 3);
+        vsyncReceiver->listener_->OnReadable(vsyncReceiver->fd_);
         return true;
     }
 }

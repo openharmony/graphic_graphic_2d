@@ -234,7 +234,7 @@ void CacheData::WriteToFile()
     uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
     *crc = CrcGen(buffer + RS_CACHE_HEAD_LEN, cacheSize);
 
-    if (write(fd, buffer, cacheSize) == ERR_NUMBER) {
+    if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
         LOGD("abandon, because fail to write to disk");
         delete[] buffer;
         close(fd);

@@ -31,6 +31,7 @@
 #include "common/rs_background_thread.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "include/gpu/GrDirectContext.h"
+#include "info_collection/rs_hdr_collection.h"
 #ifdef RS_ENABLE_GPU
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #endif
@@ -461,7 +462,7 @@ sptr<IVSyncConnection> RSRenderServiceConnection::CreateVSyncConnection(const st
     if (ExtractPid(id) == remotePid_) {
         auto observer = [] (const RSRenderFrameRateLinker& linker) {
             if (auto mainThread = RSMainThread::Instance(); mainThread != nullptr) {
-                mainThread->UpdateFrameRateLinker(linker);
+                HgmCore::Instance().SetHgmTaskFlag(true);
             }
         };
         mainThread_->ScheduleTask([weakThis = wptr<RSRenderServiceConnection>(this), id, observer]() {
@@ -1367,9 +1368,7 @@ void RSRenderServiceConnection::RegisterBufferClearListener(
             }
             return false;
     };
-    if (!registerBufferClearListener()) {
-        mainThread_->PostTask(registerBufferClearListener);
-    }
+    mainThread_->PostTask(registerBufferClearListener);
 }
 
 void RSRenderServiceConnection::RegisterBufferAvailableListener(
@@ -1984,7 +1983,7 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     return StatusCode::SUCCESS;
 }
 
-int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
     if (!mainThread_ || dstPid == 0) {

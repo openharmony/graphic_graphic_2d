@@ -88,7 +88,7 @@ public:
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
-    static bool Is3DRotation(Drawing::Matrix matrix);
+    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -154,8 +154,15 @@ public:
     static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     static void MultiLayersPerf(size_t layerNum);
+    static Drawing::Matrix GetPreTransformMatrix(GraphicTransformType transformType,
+        Drawing::scalar dx, Drawing::scalar dy);
+    static Drawing::Matrix GetTransformMatrix(GraphicTransformType transformType,
+        Drawing::scalar dx, Drawing::scalar dy);
+    static GraphicTransformType GetConsumerTransform(RSSurfaceRenderNode& node,
+        const ScreenInfo& screenInfo);
 
 private:
+    static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);

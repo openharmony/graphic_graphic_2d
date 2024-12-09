@@ -718,7 +718,17 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    RSSurfaceRenderNodeConfig config1 = GetData<RSSurfaceRenderNodeConfig>();
+    NodeId id = GetData<NodeId>();
+    std::string name = GetData<std::string>();
+    RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
+    bool isTextureExportNode = GetData<bool>();
+    bool isSync = GetData<bool>();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = id;
+    config1.name = name;
+    config1.nodeType = type;
+    config1.isTextureExportNode = isTextureExportNode;
+    config1.isSync = isSync;
     surfaceNode->CreateNode(config1);
     return true;
 }
@@ -737,7 +747,17 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    RSSurfaceRenderNodeConfig config1 = GetData<RSSurfaceRenderNodeConfig>();
+    NodeId id = GetData<NodeId>();
+    std::string name = GetData<std::string>();
+    RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
+    bool isTextureExportNode = GetData<bool>();
+    bool isSync = GetData<bool>();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = id;
+    config1.name = name;
+    config1.nodeType = type;
+    config1.isTextureExportNode = isTextureExportNode;
+    config1.isSync = isSync;
     SurfaceId surfaceId = GetData<SurfaceId>();
     surfaceNode->CreateNodeAndSurface(config1, surfaceId);
     return true;

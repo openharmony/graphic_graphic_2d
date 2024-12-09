@@ -1400,7 +1400,7 @@ HWTEST_F(RSInterfacesTest, RegisterHgmRefreshRateModeChangeCallback001, Function
 HWTEST_F(RSInterfacesTest, RegisterFrameRateLinkerExpectedFpsUpdateCallbackTest, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    FrameRateLinkerExpectedFpsUpdateCallback cb = [](uint32_t pid, int32_t fps){};
+    FrameRateLinkerExpectedFpsUpdateCallback cb = [](int32_t pid, int32_t fps){};
     int32_t ret = rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(1, cb);
     ASSERT_EQ(ret, 0);
     ret = rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(1);
@@ -1955,6 +1955,23 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
     std::vector<NodeId> securityExemptionList = {};
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetVirtualScreenSecurityExemptionList_006
+ * @tc.desc: Test SetVirtualScreenSecurityExemptionList with securityExemptionList size more than 1024.
+ * @tc.type: FUNC
+ * @tc.require: issueIB8NPD
+ */
+HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_006, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::vector<NodeId> securityExemptionList = {};
+    for (NodeId i = 0; i <= 1024; i++) {  // 1024 is max securityExemptionList number
+        securityExemptionList.emplace_back(i);
+    }
+    int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
+    EXPECT_EQ(res, INVALID_ARGUMENTS);
 }
 
 /*

@@ -25,9 +25,13 @@
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "platform/common/rs_log.h"
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
+static constexpr int MAX_SAMPLE_POINTS = 300;
+static constexpr int MIN_SAMPLE_POINTS = 2;
+
 static pid_t pid_ = GetRealPid();
 
 const std::shared_ptr<RSInterpolator> RSInterpolator::DEFAULT =
@@ -172,7 +176,7 @@ bool RSCustomInterpolator::Marshalling(Parcel& parcel) const
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write id failed");
         return false;
     }
-    if (!parcel.WriteFloatVector(times_) || !parcel.WriteFloatVector(values_)) {
+    if (!RSMarshallingHelper::MarshallingVec(parcel, times_) || !RSMarshallingHelper::MarshallingVec(parcel, values_)) {
         ROSEN_LOGE("RSCustomInterpolator::Marshalling, Write value failed");
         return false;
     }
@@ -183,7 +187,8 @@ RSCustomInterpolator* RSCustomInterpolator::Unmarshalling(Parcel& parcel)
 {
     uint64_t id = parcel.ReadUint64();
     std::vector<float> times, values;
-    if (!(parcel.ReadFloatVector(&times) && parcel.ReadFloatVector(&values))) {
+    if (!(RSMarshallingHelper::UnmarshallingVec(parcel, times, MAX_SAMPLE_POINTS) &&
+        RSMarshallingHelper::UnmarshallingVec(parcel, values, MAX_SAMPLE_POINTS))) {
         ROSEN_LOGE("Unmarshalling CustomInterpolator failed");
         return nullptr;
     }
@@ -198,9 +203,7 @@ void RSCustomInterpolator::Convert(int duration)
     }
     constexpr uint64_t frameInterval = 16666667;
     int numAnim = static_cast<int>(std::ceil(static_cast<double>(duration * MS_TO_NS) / frameInterval));
-    const int maxSamplePoints = 300;
-    const int minSamplePoints = 2;
-    numAnim = std::min(std::max(minSamplePoints, numAnim), maxSamplePoints);
+    numAnim = std::clamp(numAnim, MIN_SAMPLE_POINTS, MAX_SAMPLE_POINTS);
     float lastAnimFrame = numAnim - 1;
     if (lastAnimFrame <= 0.0f) {
         ROSEN_LOGE("RSCustomInterpolator::Convert, lastAnimFrame is invalid.");

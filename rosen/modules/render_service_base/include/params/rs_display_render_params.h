@@ -215,7 +215,6 @@ private:
     bool isZoomed_ = false;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
-    
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrawables_;
     // vector of hardwareEnabled nodes above displayNodeSurface like pointer window

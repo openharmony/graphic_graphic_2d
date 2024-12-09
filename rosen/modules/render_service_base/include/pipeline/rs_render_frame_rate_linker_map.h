@@ -37,7 +37,7 @@ public:
     }
 
     bool RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
-        uint32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
+        int32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     void UnRegisterExpectedFpsUpdateCallbackByListener(pid_t listenerPid);
 private:
     explicit RSRenderFrameRateLinkerMap();

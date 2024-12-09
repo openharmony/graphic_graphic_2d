@@ -174,6 +174,7 @@ enum DrawAreaEnableState : uint8_t {
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread
     SUB_FOCUSNODE_PRIORITY, // node render in sub thread with the highest priority
+    SUB_VEDIO_PRIORITY, // node render in sub thread with the second highest priority
     SUB_HIGH_PRIORITY, // node render in sub thread with the second priority
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };

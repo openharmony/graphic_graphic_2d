@@ -505,7 +505,7 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
 }
 
 int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
-    uint32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+    int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
     return {};
 }

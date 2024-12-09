@@ -345,7 +345,15 @@ public:
     {
         return locked_;
     }
-
+    struct MultiAccessReportInfo {
+        bool drawableNotNull = false;
+        bool paramNotNull = false;
+        RSRenderNodeType nodeType = RSRenderNodeType::UNKNOW;
+        NodeId nodeId = INVALID_NODEID;
+        NodeId uifirstRootNodeId = INVALID_NODEID;
+        NodeId firstLevelNodeId = INVALID_NODEID;
+    };
+    void DrawableOnDrawMultiAccessEventReport(const std::string& func) const;
 private:
     RSRenderNodeDrawableAdapter* drawable_;
     const bool locked_;

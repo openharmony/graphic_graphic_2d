@@ -178,7 +178,8 @@ bool RSAnimationFraction::IsFinished() const
 {
     if (direction_ == ForwardDirection::NORMAL) {
         if (repeatCount_ == INFINITE) {
-            return false;
+            // When the animation scale is zero, the infinitely looping animation is considered to be finished
+            return ROSEN_EQ(RSAnimationFraction::GetAnimationScale(), 0.0f);
         }
         int64_t totalDuration = (static_cast<int64_t>(duration_) * repeatCount_ + startDelay_) * MS_TO_NS;
         return runningTime_ >= totalDuration;

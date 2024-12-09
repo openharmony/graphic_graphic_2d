@@ -35,7 +35,7 @@ struct FinishCallbackRet {
 #endif
     bool isUniRender;
 };
- 
+
 struct AfterAcquireBufferRet {
     uint64_t uid;
     bool isUniRender;
@@ -52,11 +52,11 @@ public:
     // when an application has multiple XComponent components, and it notifies ArkUI
     // which BufferQueue's Buffer can be released after it has been consumed.
     virtual void OnFinish(const FinishCallbackRet& ret) = 0;
- 
+
     // We send a callback to Arkui after Acquire-Buffer succeeds.
     virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
 };
- 
+
 struct DefaultSurfaceBufferCallbackFuncs {
     std::function<void(const FinishCallbackRet&)> OnFinish;
     std::function<void(const AfterAcquireBufferRet&)> OnAfterAcquireBuffer;
@@ -66,7 +66,7 @@ class RSB_EXPORT RSDefaultSurfaceBufferCallback : public RSISurfaceBufferCallbac
 public:
     RSDefaultSurfaceBufferCallback(DefaultSurfaceBufferCallbackFuncs funcs);
     ~RSDefaultSurfaceBufferCallback() noexcept override = default;
-    
+
     void OnFinish(const FinishCallbackRet& ret) override;
     void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override;
     sptr<IRemoteObject> AsObject() override;

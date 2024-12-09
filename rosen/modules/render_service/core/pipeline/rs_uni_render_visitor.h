@@ -300,6 +300,7 @@ private:
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);
+    void SetHDRParam(RSSurfaceRenderNode& node, bool flag);
 
     void UpdateVirtualScreenInfo(RSDisplayRenderNode& node);
     void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node, RSDisplayRenderNode& mirrorNode);

@@ -112,8 +112,21 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     }
     info.id = node->GetId();
     auto src = node->GetSrcRect();
-    info.srcRect = {src.left_, src.top_, src.width_, src.height_};
     auto dst = node->GetDstRect();
+    Rect crop{0, 0, 0, 0};
+    auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
+    if (buffer->GetCropMetadata(crop)) {
+        float scaleX = static_cast<float>(crop.w) / buffer->GetWidth();
+        float scaleY = static_cast<float>(crop.h) / buffer->GetHeight();
+        info.srcRect = {
+            static_cast<uint32_t>(std::ceil(src.left_ * scaleX)),
+            static_cast<uint32_t>(std::ceil(src.top_ * scaleY)),
+            static_cast<uint32_t>(std::floor(src.width_ * scaleX)),
+            static_cast<uint32_t>(std::floor(src.height_ * scaleY))
+        };
+    } else {
+        info.srcRect = {src.left_, src.top_, src.width_, src.height_};
+    }
     info.dstRect = {dst.left_, dst.top_, dst.width_, dst.height_};
     info.zOrder = zorder;
     auto usage = node->GetRSSurfaceHandler()->GetBuffer()->GetUsage();

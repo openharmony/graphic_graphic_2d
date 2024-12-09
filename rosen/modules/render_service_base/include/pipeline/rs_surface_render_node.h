@@ -133,12 +133,16 @@ public:
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
-        if (IsRosenWeb() && !(RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType())) {
+        if (IsRosenWeb() && !(RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType() ||
+            RSSystemProperties::IsPcType())) {
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
             IsLayerTop();
     }
+
+    void GetHwcChildrenState(bool& enabledType);
+    void SetPreSubHighPriorityType();
 
     bool IsDynamicHardwareEnable() const
     {
@@ -1281,6 +1285,7 @@ public:
     bool NeedDrawBehindWindow() const override;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
+    void SetUifirstStartingFlag(bool flag);
     void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
     {
         crossNodeSkippedDisplayOffsets_[displayId] = { offsetX, offsetY };
@@ -1289,6 +1294,22 @@ public:
     {
         crossNodeSkippedDisplayOffsets_.clear();
     }
+    bool GetHdrVideo() const
+    {
+        return hasHdrVideoSurface_;
+    }
+
+    void SetHdrVideo(bool hasHdrVideoSurface)
+    {
+        hasHdrVideoSurface_ = hasHdrVideoSurface;
+    }
+
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
+    uint32_t GetApiCompatibleVersion()
+    {
+        return apiCompatibleVersion_;
+    }
+
 protected:
     void OnSync() override;
 
@@ -1347,8 +1368,10 @@ private:
     bool isGlobalPositionEnabled_ = false;
 
     bool hasFingerprint_ = false;
-    bool hasHdrPresent_ = false;
+    // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
     int hdrNum_ = 0;
+    // hdr video
+    bool hasHdrVideoSurface_ = false;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
@@ -1594,6 +1617,9 @@ private:
     bool oldNeedDrawBehindWindow_ = false;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
     std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
+
+    uint32_t apiCompatibleVersion_ = 0;
+
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
     friend class SurfaceNodeCommandHelper;

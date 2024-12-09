@@ -53,6 +53,7 @@ constexpr int64_t errorThreshold = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 constexpr int64_t DEFAULT_SOFT_VSYNC_PERIOD = 16000000; // 16000000ns == 16ms
+constexpr int64_t REMAINING_TIME_THRESHOLD = 100000; // 100000ns == 0.1ms
 
 static void SetThreadHighPriority()
 {
@@ -219,6 +220,7 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
             RS_TRACE_NAME_FMT("WaitForTimeout occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
         }
         std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
+        nextTimeStamp_ = nextTimeStamp;
         auto err = waitForTimeoutCon_.wait_for(lck, std::chrono::nanoseconds(nextTimeStamp - occurTimestamp));
         if (err == std::cv_status::timeout) {
             isWakeup = true;
@@ -228,6 +230,18 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
         }
     }
     ListenerVsyncEventCB(occurTimestamp, nextTimeStamp, occurReferenceTime, isWakeup);
+}
+
+void VSyncGenerator::WaitForTimeoutConNotifyLocked()
+{
+    int64_t curTime = SystemTime();
+    if (curTime <= 0 || nextTimeStamp_ <= 0) {
+        return;
+    }
+    int64_t remainingTime = nextTimeStamp_ - curTime;
+    if (remainingTime > REMAINING_TIME_THRESHOLD) {
+        waitForTimeoutCon_.notify_all();
+    }
 }
 
 bool VSyncGenerator::ChangeListenerOffsetInternal()
@@ -556,7 +570,7 @@ VsyncError VSyncGenerator::AddListener(int64_t phase, const sptr<OHOS::Rosen::VS
         listenersRecord_.push_back(listener);
     }
     con_.notify_all();
-    waitForTimeoutCon_.notify_all();
+    WaitForTimeoutConNotifyLocked();
     return VSYNC_ERROR_OK;
 }
 
@@ -669,7 +683,7 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
             generatorRefreshRate, currRefreshRate_);
     }
 
-    waitForTimeoutCon_.notify_all();
+    WaitForTimeoutConNotifyLocked();
     return ret;
 }
 
@@ -858,7 +872,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
             UpdatePeriodLocked(pendingPeriod_);
         }
         if (needNotify) {
-            waitForTimeoutCon_.notify_all();
+            WaitForTimeoutConNotifyLocked();
         }
         pendingPeriod_ = 0;
         targetPeriod_ = 0;

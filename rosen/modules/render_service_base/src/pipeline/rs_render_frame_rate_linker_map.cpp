@@ -56,14 +56,19 @@ std::shared_ptr<RSRenderFrameRateLinker> RSRenderFrameRateLinkerMap::GetFrameRat
 }
 
 bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
-    uint32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+    int32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
 {
     bool success = false;
     for (auto& [id, linker] : frameRateLinkerMap_) {
-        if (static_cast<uint32_t>(ExtractPid(id)) == dstPid && linker != nullptr) {
+        if (ExtractPid(id) == dstPid && linker != nullptr) {
             linker->RegisterExpectedFpsUpdateCallback(listenerPid, callback);
             success = true;
         }
+    }
+
+    if (!success) {
+        ROSEN_LOGE("RegisterFrameRateLinkerExpectedFpsUpdateCallback failed: cannot register callback to any linker by"
+            " dstPid=%{public}d", dstPid);
     }
     return success;
 }

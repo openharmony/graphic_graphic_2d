@@ -679,6 +679,84 @@ bool DoGetPropertyType(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoRSPropertyBase002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    auto property = std::make_shared<RSPropertyBase>();
+    property->GetThreshold();
+    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>();
+    property->SetValueFromRender(rsRenderPropertyBase);
+    bool isCustom = property->GetIsCustom();
+    property->SetIsCustom(isCustom);
+    auto propertyBase = std::make_shared<RSPropertyBase>();
+    property->SetValue(propertyBase);
+    property->GetPropertyType();
+    property->UpdateOnAllAnimationFinish();
+    property->UpdateCustomAnimation();
+    property->AddPathAnimation();
+    property->RemovePathAnimation();
+    property->UpdateShowingValue(rsRenderPropertyBase);
+    property->GetRenderProperty();
+    property->GetShowingValueAndCancelAnimation();
+    property->IsEqual(propertyBase);
+    return true;
+}
+
+bool DoRSProperty(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float value = GetData<float>();
+    auto property = std::make_shared<RSProperty<float>>(value);
+    auto propertyBase = std::make_shared<RSPropertyBase>();
+    property->SetValue(propertyBase);
+    property->Clone();
+    return true;
+}
+
+bool DoRSAnimatableProperty(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    float value = GetData<float>();
+    auto property = std::make_shared<RSAnimatableProperty<float>>(value);
+    bool isDelta = GetData<bool>();
+    property->UpdateExtendedAnimatableProperty(value, isDelta);
+    property->RemovePathAnimation();
+    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>();
+    property->UpdateShowingValue(rsRenderPropertyBase);
+    property->NotifyPropertyChange();
+    property->Multiply(value);
+    auto propertyBase = std::make_shared<RSPropertyBase>();
+    property->IsEqual(propertyBase);
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS
 
@@ -714,6 +792,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoUpdateToRender003(data, size);
     OHOS::Rosen::DoIsValid(data, size);
     OHOS::Rosen::DoGetPropertyType(data, size);
+    OHOS::Rosen::DoRSPropertyBase002(data, size);
+    OHOS::Rosen::DoRSProperty(data, size);
+    OHOS::Rosen::DoRSAnimatableProperty(data, size);
     return 0;
 }
 

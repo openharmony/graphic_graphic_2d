@@ -15,6 +15,13 @@
 
 #include "rs_render_thread_util.h"
 
+#include "platform/common/rs_log.h"
+#ifdef ROSEN_OHOS
+#include "bundle_mgr_interface.h"
+#include "iservice_registry.h"
+#include "system_ability_definition.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 void RSRenderThreadUtil::SrcRectScaleDown(Drawing::Rect& srcRect, const Drawing::Rect& localBounds)
@@ -91,5 +98,31 @@ void RSRenderThreadUtil::SrcRectScaleFit(
             srcRect.GetTop() + halfdh + newHeight);
     }
 }
+
+#ifdef ROSEN_OHOS
+uint32_t RSRenderThreadUtil::GetApiCompatibleVersion()
+{
+    uint32_t apiCompatibleVersion = INVALID_API_COMPATIBLE_VERSION;
+    OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
+        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    OHOS::sptr<OHOS::IRemoteObject> remoteObject =
+        systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    sptr<AppExecFwk::IBundleMgr> iBundleMgr = OHOS::iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
+    if (iBundleMgr == nullptr) {
+        RS_LOGE("RSRenderThreadUtil::GetApiCompatibleVersion iBundleMgr is nullptr");
+        return apiCompatibleVersion;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    if (iBundleMgr->GetBundleInfoForSelf(0, bundleInfo) == ERR_OK) {
+        apiCompatibleVersion = bundleInfo.targetVersion % API_VERSION_MOD;
+        RS_LOGD("RSRenderThreadUtil::GetApiCompatibleVersion targetVersion: [%{public}u], apiCompatibleVersion: "
+                "[%{public}u]",
+            bundleInfo.targetVersion, apiCompatibleVersion);
+    } else {
+        RS_LOGE("RSRenderThreadUtil::GetApiCompatibleVersion failed");
+    }
+    return apiCompatibleVersion;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

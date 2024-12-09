@@ -1123,7 +1123,11 @@ bool RSSurfaceRenderNode::GetForceUIFirst() const
 
 void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 {
-    hasHdrPresent_ = hasHdrPresent;
+    auto surfaceParam = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParam) {
+        surfaceParam->SetHDRPresent(hasHdrPresent);
+        AddToPendingSyncList();
+    }
 }
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
@@ -1710,6 +1714,44 @@ void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform,
 #endif
 }
 
+void RSSurfaceRenderNode::GetHwcChildrenState(bool& enabledType)
+{
+    if (IsAppWindow()) {
+        auto hwcNodes = GetChildHardwareEnabledNodes();
+        if (hwcNodes.empty()) {
+            return;
+        }
+        for (auto hwcNode : hwcNodes) {
+            auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr || IsRosenWeb()) {
+                continue;
+            }
+            enabledType = true;
+        }
+    } else if (IsLeashWindow()) {
+        for (auto& child : *GetChildren()) {
+            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (surfaceNode == nullptr) {
+                continue;
+            }
+            surfaceNode->GetHwcChildrenState(enabledType);
+        }
+    }
+}
+
+void RSSurfaceRenderNode::SetPreSubHighPriorityType()
+{
+    if (!RSSystemProperties::IsPcType()) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    bool preSubHighPriority = false;
+    GetHwcChildrenState(preSubHighPriority);
+    RS_OPTIONAL_TRACE_NAME_FMT("SetPreSubHighPriorityType::name:[%s] preSub:%d", GetName().c_str(), preSubHighPriority);
+    surfaceParams->SetPreSubHighPriorityType(preSubHighPriority);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
 {
 #ifdef RS_ENABLE_GPU
@@ -1841,13 +1883,11 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
 {
 #ifdef RS_ENABLE_GPU
-    auto contentStatic = !IsSubTreeDirty() && !IsAccessibilityConfigChanged();
-    if (IsLeashWindow()) {
-        contentStatic = contentStatic && !HasRemovedChild();
-    } else if (IsAbilityComponent()) {
-        contentStatic = contentStatic && !IsContentDirty();
+    auto contentStatic = false;
+    if (IsLeashWindow() || IsAbilityComponent()) {
+        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty() && !HasRemovedChild();
     } else {
-        contentStatic = surfaceCacheContentStatic_ && !IsAccessibilityConfigChanged();
+        contentStatic = surfaceCacheContentStatic_;
     }
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
@@ -1856,10 +1896,9 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: [%d] name:[%s] "
-        "Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] removedChild:[%d] accessibilityChanged:[%d]",
-        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), HasRemovedChild(),
-        IsAccessibilityConfigChanged());
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
+        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] forceUpdate:[%d]",
+        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst());
 #endif
 }
 
@@ -2092,9 +2131,13 @@ RSSurfaceRenderNode::ContainerConfig RSSurfaceRenderNode::GetAbsContainerConfig(
     RSSurfaceRenderNode::ContainerConfig config;
     if (geoPtr) {
         auto& matrix = geoPtr->GetAbsMatrix();
-        float scale = std::min(matrix.Get(Drawing::Matrix::SCALE_X), matrix.Get(Drawing::Matrix::SCALE_Y));
-        config.inR_ = static_cast<int>(std::round(containerConfig_.inR_ * scale));
-        config.outR_ = static_cast<int>(std::round(containerConfig_.outR_ * scale));
+        Drawing::Rect innerRadiusRect(0, 0, containerConfig_.inR_, containerConfig_.inR_);
+        matrix.MapRect(innerRadiusRect, innerRadiusRect);
+        Drawing::Rect outerRadiusRect(0, 0, containerConfig_.outR_, containerConfig_.outR_);
+        matrix.MapRect(outerRadiusRect, outerRadiusRect);
+        config.inR_ = static_cast<int>(std::round(std::max(innerRadiusRect.GetWidth(), innerRadiusRect.GetHeight())));
+        config.outR_ = static_cast<int>(
+            std::round(std::max(outerRadiusRect.GetWidth(), outerRadiusRect.GetHeight())));
         RectF r = {
             containerConfig_.innerRect_.left_,
             containerConfig_.innerRect_.top_,
@@ -2341,7 +2384,8 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
     dirtyContentNodeNum_ = 0;
     dirtyGeoNodeNum_ = 0;
     dirtynodeNum_ = activeNodeIds.size();
-    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() && !IsCurFrameSwitchToPaint();
+    surfaceCacheContentStatic_ = (IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst()) &&
+        !IsCurFrameSwitchToPaint();
     if (dirtynodeNum_ == 0) {
         RS_LOGD("Clear surface %{public}" PRIu64 " dirtynodes surfaceCacheContentStatic_:%{public}d",
             GetId(), surfaceCacheContentStatic_);
@@ -2986,6 +3030,15 @@ void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 #endif
 }
 
+void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetUifirstStartingFlag(flag);
+        AddToPendingSyncList();
+    }
+}
+
 void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
 {
 #ifdef RS_ENABLE_GPU
@@ -3173,6 +3226,23 @@ bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
     bool changed = shouldPaint && !lastFrameShouldPaint_;
     lastFrameShouldPaint_ = shouldPaint;
     return changed;
+}
+
+void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetApiCompatibleVersion: stagingRenderPrams is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetApiCompatibleVersion: surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetApiCompatibleVersion(apiCompatibleVersion);
+    AddToPendingSyncList();
+
+    apiCompatibleVersion_ = apiCompatibleVersion;
 }
 } // namespace Rosen
 } // namespace OHOS
