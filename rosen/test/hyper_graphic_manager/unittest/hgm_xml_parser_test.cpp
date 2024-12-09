@@ -106,9 +106,9 @@ HWTEST_F(HgmXmlParserTest, StringToVector002, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     std::string spaceBetweenNumbersInput = "1 2   3  45 ";
-    std::vector<uint32_t> excepted = {1, 2, 3, 45};
+    std::vector<uint32_t> expected = {1, 2, 3, 45};
     std::vector<uint32_t> result = parser->StringToVector(spaceBetweenNumbersInput);
-    EXPECT_EQ(excepted, result);
+    EXPECT_EQ(expected, result);
 }
 
 /**

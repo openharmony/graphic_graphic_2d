@@ -599,9 +599,9 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
             !iter->second.optionalRefreshRateVec.empty()) {
             isAmbientEffect_ = true;
             lowBrightVec_ = iter->second.optionalRefreshRateVec;
+        } else {
+            isAmbientEffect_ = false;
         }
-    } else {
-        isAmbientEffect_ = false;
     }
 }
 

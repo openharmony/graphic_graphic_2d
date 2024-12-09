@@ -688,12 +688,12 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
     }
 
     {
-        std::vector<uint32_t> exceptedLowBrightVec = {30, 40, 50};
+        std::vector<uint32_t> expectedLowBrightVec = {30, 40, 50};
         auto& screenConfigRef = configData->screenConfigs_[screenConfig]["-1"].lowBrightList["LTPO"];
-        screenConfigRef.optionalRefreshRateVec = exceptedLowBrightVec;
+        screenConfigRef.optionalRefreshRateVec = expectedLowBrightVec;
         mgr.GetLowBrightVec(configData);
         EXPECT_TRUE(mgr.isAmbientEffect_);
-        EXPECT_EQ(mgr.lowBrightVec_, exceptedLowBrightVec);
+        EXPECT_EQ(mgr.lowBrightVec_, expectedLowBrightVec);
     }
 }
 /**
