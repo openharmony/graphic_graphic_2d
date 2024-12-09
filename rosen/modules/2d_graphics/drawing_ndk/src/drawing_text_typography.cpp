@@ -1581,7 +1581,6 @@ OH_Drawing_FontDescriptor* OH_Drawing_FontParserGetFontByName(OH_Drawing_FontPar
         }
         return descriptor;
     }
-    delete descriptor;
     return nullptr;
 }
 
