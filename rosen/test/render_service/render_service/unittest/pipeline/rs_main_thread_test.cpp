@@ -552,6 +552,42 @@ HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: StartSyncTransactionFallbackTask001
+ * @tc.desc: Test StartSyncTransactionFallbackTask
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, StartSyncTransactionFallbackTask001, TestSize.Level1)
+{
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    rsTransactionData->SetSyncId(1);
+
+    auto mainThread = RSMainThread::Instance();
+    auto syncData = std::make_unique<RSTransactionData>();
+    syncData->SetSyncId(0);
+    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->syncTransactionData_[0] = std::vector<std::unique_ptr<RSTransactionData>>();
+    mainThread->syncTransactionData_[0].push_back(std::move(syncData));
+    mainThread->StartSyncTransactionFallbackTask(rsTransactionData);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+    mainThread->runner_ = nullptr;
+    mainThread->handler_ = nullptr;
+
+    auto mainThread2 = RSMainThread::Instance();
+    auto syncData2 = std::make_unique<RSTransactionData>();
+    syncData2->SetSyncId(1);
+    mainThread2->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread2->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread2->runner_);
+    mainThread2->syncTransactionData_[0] = std::vector<std::unique_ptr<RSTransactionData>>();
+    mainThread2->syncTransactionData_[0].push_back(std::move(syncData2));
+    mainThread2->StartSyncTransactionFallbackTask(rsTransactionData);
+    ASSERT_EQ(mainThread2->syncTransactionData_.empty(), false);
+    mainThread2->runner_ = nullptr;
+    mainThread2->handler_ = nullptr;
+}
+
+/**
  * @tc.name: ProcessSyncTransactionCount
  * @tc.desc: Test ProcessSyncTransactionCount
  * @tc.type: FUNC
