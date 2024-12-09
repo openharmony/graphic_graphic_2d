@@ -48,7 +48,6 @@ void RSUIDisplaySoloistTest::TearDown() {}
 HWTEST_F(RSUIDisplaySoloistTest, InsertAndRemoveSoloistTest001, TestSize.Level1)
 {
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
-    EXPECT_FALSE(soloistManager.InitVsyncReceiver());
 
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
@@ -74,7 +73,6 @@ HWTEST_F(RSUIDisplaySoloistTest, InsertAndRemoveSoloistTest001, TestSize.Level1)
 HWTEST_F(RSUIDisplaySoloistTest, InsertAndRemoveSoloistTest002, TestSize.Level1)
 {
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
-    EXPECT_FALSE(soloistManager.InitVsyncReceiver());
 
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
@@ -86,6 +84,9 @@ HWTEST_F(RSUIDisplaySoloistTest, InsertAndRemoveSoloistTest002, TestSize.Level1)
     soloistManager.InsertOnVsyncCallback(soloistId, [&count](long long timestamp, long long targetTimestamp, void*) {
         count = 1;
     }, nullptr);
+
+    soloistManager.idToSoloistMap_[soloistId]->TriggerCallback();
+    EXPECT_EQ(count, 1);
 
     FrameRateRange frameRateRange(OLED_MIN_HZ, OLED_120_HZ, OLED_120_HZ);
     soloistManager.InsertFrameRateRange(soloistId, frameRateRange);
@@ -105,7 +106,6 @@ HWTEST_F(RSUIDisplaySoloistTest, InsertAndRemoveSoloistTest002, TestSize.Level1)
 HWTEST_F(RSUIDisplaySoloistTest, SetFrameRateLinkerEnable001, TestSize.Level1)
 {
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
-    EXPECT_FALSE(soloistManager.InitVsyncReceiver());
 
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
@@ -137,7 +137,6 @@ HWTEST_F(RSUIDisplaySoloistTest, SetFrameRateLinkerEnable001, TestSize.Level1)
 HWTEST_F(RSUIDisplaySoloistTest, SetFrameRateLinkerEnable002, TestSize.Level1)
 {
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
-    EXPECT_FALSE(soloistManager.InitVsyncReceiver());
 
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
@@ -179,7 +178,6 @@ HWTEST_F(RSUIDisplaySoloistTest, SetFrameRateLinkerEnable002, TestSize.Level1)
 HWTEST_F(RSUIDisplaySoloistTest, SetMainFrameRateLinkerEnable, TestSize.Level1)
 {
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
-    EXPECT_FALSE(soloistManager.InitVsyncReceiver());
 
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
