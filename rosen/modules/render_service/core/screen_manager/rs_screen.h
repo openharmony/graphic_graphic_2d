@@ -17,6 +17,7 @@
 #define RS_SCREEN
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <unordered_set>
 
@@ -91,6 +92,9 @@ public:
     virtual void SetScreenCorrection(ScreenRotation screenRotation) = 0;
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
+    virtual void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) = 0;
+    virtual uint32_t GetScreenExpectedRefreshRate() const = 0;
+    virtual SkipFrameStrategy GetScreenSkipFrameStrategy() const = 0;
     virtual void SetScreenVsyncEnabled(bool enabled) const = 0;
     virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
@@ -175,6 +179,9 @@ public:
     const RSScreenType& GetScreenType() const override;
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;
+    void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) override;
+    uint32_t GetScreenExpectedRefreshRate() const override;
+    SkipFrameStrategy GetScreenSkipFrameStrategy() const override;
     void SetScreenVsyncEnabled(bool enabled) const override;
     bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
@@ -249,6 +256,8 @@ private:
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
+    uint32_t expectedRefreshRate_ = INVALID_EXPECTED_REFRESH_RATE;
+    SkipFrameStrategy skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     bool canvasRotation_ = false; // just for virtual screen to use
     ScreenScaleMode scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
@@ -260,6 +269,7 @@ private:
     std::unordered_set<uint64_t> blackList_ = {};
     std::vector<uint64_t> securityExemptionList_ = {};
     std::atomic<bool> skipWindow_ = false;
+    mutable std::mutex mutex_;
 };
 } // namespace impl
 } // namespace Rosen

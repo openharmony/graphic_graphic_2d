@@ -581,8 +581,9 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += "mirrorId=";
         dumpString += (mirrorId_ == INVALID_SCREEN_ID) ? "INVALID_SCREEN_ID" : std::to_string(mirrorId_);
         dumpString += ", ";
-        AppendFormat(dumpString, ", render size: %dx%d, isvirtual=true, skipFrameInterval_:%d\n",
-            width_, height_, skipFrameInterval_);
+        AppendFormat(dumpString, ", render size: %dx%d, isvirtual=true, skipFrameInterval_:%d"
+            ", expectedRefreshRate_:%d, skipFrameStrategy_:%d\n",
+            width_, height_, skipFrameInterval_, expectedRefreshRate_, skipFrameStrategy_);
     } else {
         dumpString += "screen[" + std::to_string(screenIndex) + "]: ";
         dumpString += "id=";
@@ -594,8 +595,9 @@ void RSScreen::DisplayDump(int32_t screenIndex, std::string& dumpString)
         dumpString += ", ";
         ScreenTypeDump(dumpString);
         AppendFormat(dumpString,
-            ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false, skipFrameInterval_:%d\n",
-            width_, height_, phyWidth_, phyHeight_, skipFrameInterval_);
+            ", render size: %dx%d, physical screen resolution: %dx%d, isvirtual=false, skipFrameInterval_:%d"
+            ", expectedRefreshRate_:%d, skipFrameStrategy_:%d\n",
+            width_, height_, phyWidth_, phyHeight_, skipFrameInterval_, expectedRefreshRate_, skipFrameStrategy_);
         dumpString += "\n";
         ModeInfoDump(dumpString);
         CapabilityDump(dumpString);
@@ -855,12 +857,34 @@ const RSScreenType& RSScreen::GetScreenType() const
 
 void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     skipFrameInterval_ = skipFrameInterval;
+    skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
+}
+
+void RSScreen::SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    expectedRefreshRate_ = expectedRefreshRate;
+    skipFrameStrategy_ = SKIP_FRAME_BY_REFRESH_RATE;
 }
 
 uint32_t RSScreen::GetScreenSkipFrameInterval() const
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     return skipFrameInterval_;
+}
+
+uint32_t RSScreen::GetScreenExpectedRefreshRate() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return expectedRefreshRate_;
+}
+
+SkipFrameStrategy RSScreen::GetScreenSkipFrameStrategy() const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return skipFrameStrategy_;
 }
 
 void RSScreen::SetScreenVsyncEnabled(bool enabled) const
