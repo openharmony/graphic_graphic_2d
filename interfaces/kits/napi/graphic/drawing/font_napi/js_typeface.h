@@ -38,6 +38,7 @@ public:
 
     static napi_value GetFamilyName(napi_env env, napi_callback_info info);
     static napi_value MakeFromFile(napi_env env, napi_callback_info info);
+    static napi_value MakeFromRawFile(napi_env env, napi_callback_info info);
     // Default typeface does not support chinese characters, needs to load chinese character ttf file.
     static std::shared_ptr<Typeface> LoadZhCnTypeface();
 

@@ -105,6 +105,7 @@ if (is_arkui_x) {
 } else {
   ohos_shared_library("drawing_napi_impl") {
     sources = [
+      "tool_napi/js_tool.cpp",
       "brush_napi/js_brush.cpp",
       "canvas_napi/js_canvas.cpp",
       "color_filter_napi/js_color_filter.cpp",
@@ -136,7 +137,12 @@ if (is_arkui_x) {
       "../../../../../rosen/modules/render_service_base:librender_service_base",
     ]
 
-    external_deps = [ "napi:ace_napi" ]
+    external_deps = [
+      "napi:ace_napi",
+      "resource_management:global_resmgr",
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:app_context",
+    ]
 
     if (current_os == "ohos" || current_os == "ohos_ng") {
       sanitize = {
