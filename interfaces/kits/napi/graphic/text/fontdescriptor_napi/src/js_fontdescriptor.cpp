@@ -37,7 +37,6 @@ std::unordered_map<int, int> g_weightMap = {
 napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_STATIC_FUNCTION("matchFontDescriptors", JsFontDescriptor::MatchFontDescriptorsAsync),
         DECLARE_NAPI_STATIC_FUNCTION("getSystemFontFullNamesByType", JsFontDescriptor::GetSystemFontFullNamesByType),
         DECLARE_NAPI_STATIC_FUNCTION("getFontDescriptorByFullName", JsFontDescriptor::GetFontDescriptorByFullName),
     };
@@ -50,99 +49,6 @@ napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
 
 JsFontDescriptor::JsFontDescriptor() {}
 
-template <typename T>
-bool JsFontDescriptor::CheckAndConvertProperty(napi_env env, napi_value obj, const std::string& fieldName, T& out)
-{
-    bool hasValue = false;
-    TEXT_ERROR_CHECK(napi_has_named_property(env, obj, fieldName.c_str(), &hasValue) == napi_ok, return false,
-        "Failed to judge the existence of field %{public}s", fieldName.c_str());
-    if (hasValue) {
-        napi_value napiVal = nullptr;
-        TEXT_ERROR_CHECK(napi_get_named_property(env, obj, fieldName.c_str(), &napiVal) == napi_ok, return false,
-            "Failed to get the value of field %{public}s", fieldName.c_str());
-        return ConvertFromJsValue(env, napiVal, out);
-    }
-    return true;
-}
-
-bool JsFontDescriptor::ParseFontDescWeight(napi_env env, napi_value obj, int& weight)
-{
-    bool hasValue = false;
-    TEXT_ERROR_CHECK(napi_has_named_property(env, obj, "weight", &hasValue) == napi_ok, return false,
-        "Failed to judge the existence of field weight");
-    if (hasValue) {
-        napi_value napiVal = nullptr;
-        TEXT_ERROR_CHECK(napi_get_named_property(env, obj, "weight", &napiVal) == napi_ok, return false,
-            "Failed to get the value of field weight");
-        int weightEnum = 0;
-        if (!ConvertFromJsValue(env, napiVal, weightEnum)) {
-            return false;
-        }
-        for (auto& item : g_weightMap) {
-            if (item.second == weightEnum) {
-                weight = item.first;
-                return true;
-            }
-        }
-        return false;
-    }
-    return true;
-}
-
-napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callback_info info)
-{
-    struct MatchFontDescriptorsContext : public ContextBase {
-        FontDescSharedPtr matchDesc = nullptr;
-        std::set<FontDescSharedPtr> matchResult;
-    };
-    sptr<MatchFontDescriptorsContext> cb = sptr<MatchFontDescriptorsContext>::MakeSptr();
-    NAPI_CHECK_AND_THROW_ERROR(cb != nullptr, TextErrorCode::ERROR_NO_MEMORY, "Failed to make context");
-    auto inputParser = [env, cb](size_t argc, napi_value *argv) {
-        cb->status = napi_invalid_arg;
-        cb->errCode = static_cast<int32_t>(TextErrorCode::ERROR_INVALID_PARAM);
-        cb->errMessage = "Parameter error";
-        TEXT_ERROR_CHECK(argc == ARGC_ONE, return, "The number of parameters is not equal to 1");
-        napi_valuetype valueType = napi_undefined;
-        TEXT_ERROR_CHECK(napi_typeof(env, argv[0], &valueType) == napi_ok, return, "Failed to get type");
-        TEXT_ERROR_CHECK(valueType == napi_object, return, "Parameter type is not object");
-
-        cb->matchDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
-        std::vector<std::pair<const char*, std::variant<
-            std::reference_wrapper<std::string>,
-            std::reference_wrapper<int>,
-            std::reference_wrapper<bool>>>> properties = {
-                {"postScriptName", cb->matchDesc->postScriptName},
-                {"fullName", cb->matchDesc->fullName},
-                {"fontFamily", cb->matchDesc->fontFamily},
-                {"fontSubfamily", cb->matchDesc->fontSubfamily},
-                {"width", cb->matchDesc->width},
-                {"italic", cb->matchDesc->italic},
-                {"monoSpace", cb->matchDesc->monoSpace},
-                {"symbolic", cb->matchDesc->symbolic},
-            };
-
-        for (auto& item : properties) {
-            TEXT_CHECK(std::visit([&](auto& p) -> bool {
-                TEXT_ERROR_CHECK(CheckAndConvertProperty(env, argv[0], item.first, p.get()), return false,
-                    "Failed to convert %{public}s", item.first);
-                return true;
-            }, item.second), return);
-        }
-        TEXT_ERROR_CHECK(ParseFontDescWeight(env, argv[0], cb->matchDesc->weight), return, "Failed to parse weight");
-        cb->status = napi_ok;
-        cb->errCode = static_cast<int32_t>(TextErrorCode::OK);
-        cb->errMessage = "";
-    };
-    cb->GetCbInfo(env, info, inputParser);
-
-    auto executor = [cb]() {
-        FontDescriptorMgrInstance.MatchFontDescriptors(cb->matchDesc, cb->matchResult);
-    };
-    auto complete = [env, cb](napi_value& output) {
-        output = JsFontDescriptor::CreateFontDescriptorArray(env, cb->matchResult);
-    };
-    return NapiAsyncWork::Enqueue(env, cb, "MatchFontDescriptors", executor, complete);
-}
 
 bool JsFontDescriptor::SetProperty(napi_env env, napi_value object, const char* name, napi_value value)
 {
@@ -182,24 +88,6 @@ bool JsFontDescriptor::CreateAndSetProperties(napi_env env, napi_value fontDescr
         }, prop.second), return false);
     }
     return true;
-}
-
-napi_value JsFontDescriptor::CreateFontDescriptorArray(napi_env env, std::set<FontDescSharedPtr>& result)
-{
-    TEXT_ERROR_CHECK(env != nullptr, return nullptr, "env is nullptr");
-    napi_value descArray = nullptr;
-    TEXT_ERROR_CHECK(napi_create_array(env, &descArray) == napi_ok, return nullptr, "Failed to create array");
-    uint32_t index = 0;
-    for (const auto& item : result) {
-        napi_value fontDescriptor = nullptr;
-        TEXT_ERROR_CHECK(napi_create_object(env, &fontDescriptor) == napi_ok, return nullptr,
-            "Failed to create object");
-        TEXT_CHECK(CreateAndSetProperties(env, fontDescriptor, item), return nullptr);
-        TEXT_CHECK(ConvertFontDescWeight(env, fontDescriptor, item->weight), return nullptr);
-        TEXT_ERROR_CHECK(napi_set_element(env, descArray, index++, fontDescriptor) == napi_ok, return nullptr,
-            "Failed to set element");
-    }
-    return descArray;
 }
 
 napi_value JsFontDescriptor::CreateFontDescriptor(napi_env env, FontDescSharedPtr& result)
