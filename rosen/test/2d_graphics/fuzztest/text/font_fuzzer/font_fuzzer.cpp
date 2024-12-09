@@ -290,7 +290,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::FontFuzzTest006(data, size);
     OHOS::Rosen::Drawing::FontFuzzTest007(data, size);
     OHOS::Rosen::Drawing::FontFuzzTest008(data, size);
-    OHOS::Rosen::Drawing::FontFuzzTest009(data, size);
-    OHOS::Rosen::Drawing::FontFuzzTest010(data, size);
     return 0;
 }
