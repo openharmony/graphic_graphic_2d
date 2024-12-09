@@ -175,12 +175,28 @@ void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect
             } else if (HDRConvert(samplingOptions, canvas)) {
                 canvas.DrawRect(dst_);
             } else {
-                canvas.DrawImageRect(*image_, src_, dst_, samplingOptions,
-                    Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+                DrawImageRect(canvas, rect, samplingOptions);
             }
         }
     }
     lastRect_ = rect;
+}
+
+void RSImage::DrawImageRect(
+    Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions)
+{
+    if (rotateDegree_ != 0) {
+        canvas.Save();
+        canvas.Rotate(rotateDegree_);
+        auto axis = CalculateByDegree(rect);
+        canvas.Translate(axis.first, axis.second);
+        canvas.DrawImageRect(
+            *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+        canvas.Restore();
+    } else {
+        canvas.DrawImageRect(
+            *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    }
 }
 
 struct ImageParameter {
@@ -386,7 +402,7 @@ void RSImage::ApplyCanvasClip(Drawing::Canvas& canvas)
     }
     auto dstRect = dstRect_;
     if (rotateDegree_ == DEGREE_NINETY || rotateDegree_ == -DEGREE_NINETY) {
-        dstRect = RectF(dstRect_.GetLeft(), dstRect_.GetTop(), dstRect_.GetHeight(), dstRect_.GetWidth());
+        dstRect = RectF(dstRect_.GetTop(), dstRect_.GetLeft(), dstRect_.GetHeight(), dstRect_.GetWidth());
     }
     auto rect = (imageRepeat_ == ImageRepeat::NO_REPEAT) ? dstRect.IntersectRect(frameRect_) : frameRect_;
     Drawing::RoundRect rrect(RSPropertiesPainter::Rect2DrawingRect(rect), radius_);
@@ -507,7 +523,13 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
     float bottom = frameRect_.GetBottom();
     // calculate REPEAT_XY
     float eps = 0.01; // set epsilon
-    if (ImageRepeat::REPEAT_X == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
+    auto repeat_x = ImageRepeat::REPEAT_X;
+    auto repeat_y = ImageRepeat::REPEAT_Y;
+    if (rotateDegree_ == DEGREE_NINETY || rotateDegree_ == -DEGREE_NINETY) {
+        std::swap(right, bottom);
+        std::swap(repeat_x, repeat_y);
+    }
+    if (repeat_x == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
         while (dstRect_.left_ + minX * dstRect_.width_ > left + eps) {
             --minX;
         }
@@ -515,7 +537,7 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
             ++maxX;
         }
     }
-    if (ImageRepeat::REPEAT_Y == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
+    if (repeat_y == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
         while (dstRect_.top_ + minY * dstRect_.height_ > top + eps) {
             --minY;
         }
