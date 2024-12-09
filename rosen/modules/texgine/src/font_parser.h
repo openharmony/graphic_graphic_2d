@@ -76,7 +76,6 @@ public:
     };
 
     struct FontDescriptor {
-        FontDescriptor();
         std::string path;
         std::string postScriptName;
         std::string fullName;
