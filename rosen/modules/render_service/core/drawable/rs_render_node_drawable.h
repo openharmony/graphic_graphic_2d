@@ -221,7 +221,7 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
-    bool OpincGetCachedMark() const
+    bool OpincGetCachedMark()
     {
         return isOpincMarkCached_;
     }

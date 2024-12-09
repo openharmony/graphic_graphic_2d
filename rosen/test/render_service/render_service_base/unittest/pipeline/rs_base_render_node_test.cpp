@@ -1528,6 +1528,56 @@ HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode03, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OpincQuickMarkStableNode04
+ * @tc.desc: test OpincQuickMarkStableNode when content dirty
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode04, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetContentDirty();
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode05
+ * @tc.desc: test OpincQuickMarkStableNode when subtree dirty
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode05, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetSubTreeDirty(true);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode06
+ * @tc.desc: test OpincQuickMarkStableNode default
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E9A
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode06, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, true);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_INIT);
+}
+
+/**
  * @tc.name: OpincUpdateRootFlag
  * @tc.desc: test OpincUpdateRootFlag
  * @tc.type: FUNC
