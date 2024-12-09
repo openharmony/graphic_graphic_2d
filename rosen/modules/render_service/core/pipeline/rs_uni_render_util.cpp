@@ -881,9 +881,9 @@ bool RSUniRenderUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
         return true;
     }
     int rotation = static_cast<int>(round(value[Drawing::Matrix::Index::SCALE_X] *
-        value[Drawing::Matrix::Index::SKEW_Y] +
-        value[Drawing::Matrix::Index::SCALE_Y] *
-        value[Drawing::Matrix::Index::SKEW_X]));
+        value[Drawing::Matrix::Index::SKEW_X] +
+        value[Drawing::Matrix::Index::SKEW_Y] *
+        value[Drawing::Matrix::Index::SCALE_Y]));
     if (rotation != 0) {
         return true;
     }
