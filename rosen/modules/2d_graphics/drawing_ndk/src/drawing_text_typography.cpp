@@ -32,6 +32,9 @@
 #include "rosen_text/typography_create.h"
 #include "unicode/putil.h"
 
+#include "utils/log.h"
+#include "utils/object_mgr.h"
+#include "utils/string_util.h"
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
 #else
