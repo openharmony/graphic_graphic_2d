@@ -541,6 +541,27 @@ HWTEST_F(HgmMultiAppStrategyTest, LightFactor, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: HandleLowAmbientStatus
+ * @tc.desc: Verify the result of HandleLowAmbientStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmMultiAppStrategyTest, HandleLowAmbientStatus, Function | SmallTest | Level1)
+｛
+    for (bool status : ｛false, true｝) ｛
+        multiAppStrategy_->lowAmbientStatus_.store(status);
+        multiAppStrategy_->HandleLowAmbientStatus(true);
+        ASSERT_EQ(multiAppStrategy_->lowAmbientStatus_.load(), true);
+    ｝
+
+    for (bool status : ｛false, true｝) ｛
+        multiAppStrategy_->lowAmbientStatus_.store(status);
+        multiAppStrategy_->HandleLowAmbientStatus(false);
+        ASSERT_EQ(multiAppStrategy_->lowAmbientStatus_.load(), false);
+    ｝
+｝
+
+/**
  * @tc.name: BackgroundApp
  * @tc.desc: Verify the result of BackgroundApp
  * @tc.type: FUNC

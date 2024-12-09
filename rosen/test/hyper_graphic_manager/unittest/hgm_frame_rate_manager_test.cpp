@@ -669,6 +669,34 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
 }
 
 /**
+ * @tc.name: GetLowBrightVec
+ * @tc.desc: Verify the result of GetLowBrightVec
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateManager, GetLowBrightVec, Function | SmallTest | Level2)
+｛
+    HgmFrameRateManager mgr;
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    std::string screenConfig = ｛"LTPO-DEFAULT"｝;
+    ｛
+        configData->screenConfigs_［screenConfig］［"-1"］.lowBrightList［"LTPO"］.optionalRefreshRateVec.clear();
+        mgr.GetLowBrightVec(configData);
+        EXPECT_FALSE(mgr.isAmbientEffect_);
+        EXPECT_EQ(mgr.lowBrightVec_.empty(), true);
+    ｝
+
+    ｛
+        std::vector<uint32_t> exceptedLowBrightVec = ｛30, 40, 50｝;
+        auto& screenConfigRef = configData->screenConfigs_［screenConfig］［"-1"］.lowBrightList［"LTPO"］;
+        screenConfigRef.optionalRefreshRateVec = exceptedLowBrightVec;
+        mgr.GetLowBrightVec(configData);
+        EXPECT_TRUE(mgr.isAmbientEffect_);
+        EXPECT_EQ(mgr.lowBrightVec_, exceptedLowBrightVec);
+    ｝
+｝
+/**
  * @tc.name: GetDrawingFrameRate
  * @tc.desc: Verify the result of HandleFrameRateChangeForLTPO
  * @tc.type: FUNC

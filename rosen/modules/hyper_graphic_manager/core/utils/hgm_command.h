@@ -122,7 +122,7 @@ public:
     struct LowBrightConfig {
         std::vector<uint32_t> optionalRefreshRateVec;
     };
-    // <"LTPO1", LowBrightConfig>
+    // <"LTPO", LowBrightConfig>
     using LowBrightConfigMap = std::unordered_map<std::string, LowBrightConfig>;
 
     struct DynamicConfig {

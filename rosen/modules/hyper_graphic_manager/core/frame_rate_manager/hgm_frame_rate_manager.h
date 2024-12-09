@@ -211,8 +211,8 @@ private:
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
 
+    void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& PolicyConfigData);
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
-    void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
     void MarkVoteChange(const std::string& voter = "");
     static bool IsCurrentScreenSupportAS();
     void ProcessAdaptiveSync(const std::string& voterName);
