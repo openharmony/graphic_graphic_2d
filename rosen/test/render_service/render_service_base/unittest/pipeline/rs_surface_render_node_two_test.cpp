@@ -919,14 +919,16 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, QuerySubAssignable, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     bool isRotation = true;
     bool res = node->QuerySubAssignable(isRotation);
-    ASSERT_TRUE(res);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    ASSERT_TRUE(node->QuerySubAssignable(isRotation));
+    res = node->QuerySubAssignable(isRotation);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     std::shared_ptr<RSSurfaceRenderNode> rssNode = std::make_shared<RSSurfaceRenderNode>(0);
     std::vector<std::shared_ptr<RSRenderNode>> children;
     children.push_back(rssNode);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    ASSERT_TRUE(node->QuerySubAssignable(isRotation));
+    res = node->QuerySubAssignable(isRotation);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     std::shared_ptr<RSSurfaceRenderNode> nodeF = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_FALSE(nodeF->QuerySubAssignable(isRotation));
 }

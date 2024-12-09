@@ -1790,40 +1790,45 @@ HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize.Level1)
 {
-    RSRenderNode node(0);
-
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
     // CheckDrawingCacheType test
-    node.nodeGroupType_ = RSRenderNode::NONE;
-    node.CheckDrawingCacheType();
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
-    EXPECT_NE(stagingRenderParams, nullptr);
-    node.stagingRenderParams_ = std::move(stagingRenderParams);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-    node.nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
-    node.CheckDrawingCacheType();
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-    node.nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    node.CheckDrawingCacheType();
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 
     // UpdateDrawingCacheInfoBeforeChildren test
     // shouldPaint_ is false
-    node.shouldPaint_ = false;
-    node.UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->shouldPaint_ = false;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
     // shouldPaint_ is true
-    node.shouldPaint_ = true;
-    node.UpdateDrawingCacheInfoBeforeChildren(true);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    nodeTest->shouldPaint_ = true;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true);
+    if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    } else {
+        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    }
     // isScreenRotation is true
-    node.nodeGroupType_ = RSRenderNode::NONE;
-    node.UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 
     // isScreenRotation is false
-    node.nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    node.UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_FALSE(node.stagingRenderParams_->needSync_);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_FALSE(nodeTest->stagingRenderParams_->needSync_);
 }
 
 /**
