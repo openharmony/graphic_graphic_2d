@@ -600,9 +600,9 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
             isAmbientEffect_ = true;
             lowBrightVec_ = iter->second.optionalRefreshRateVec;
         }
-    } else ｛
+    } else {
         isAmbientEffect_ = false;
-    ｝
+    }
 }
 
 uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
