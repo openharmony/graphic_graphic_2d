@@ -141,7 +141,7 @@ public:
     template<typename T>
     static bool MarshallingVec(Parcel& parcel, const std::vector<T>& val)
     {
-        int size = val.size();
+        int size = static_cast<int>(val.size());
         Marshalling(parcel, size);
         for (int i = 0; i < size; i++) {
             if (!Marshalling(parcel, val[i])) {
@@ -174,7 +174,7 @@ public:
     template<typename T>
     static bool MarshallingVec2(Parcel& parcel, const std::vector<std::vector<T>>& val)
     {
-        int size = val.size();
+        int size = static_cast<int>(val.size());
         Marshalling(parcel, size);
         for (int i = 0; i < size; i++) {
             if (!MarshallingVec(parcel, val[i])) {
