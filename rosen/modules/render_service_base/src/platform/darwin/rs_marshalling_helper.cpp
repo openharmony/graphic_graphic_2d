@@ -546,6 +546,7 @@ bool RSMarshallingHelper::CheckReadPosition(Parcel& parcel)
 {
     return true;
 }
+void RSMarshallingHelper::SetCallingPid(pid_t callingPid) {}
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val)
 {
     return true;
