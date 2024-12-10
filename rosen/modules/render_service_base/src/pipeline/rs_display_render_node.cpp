@@ -459,6 +459,10 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
 {
 #ifdef RS_ENABLE_GPU
     auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
     displayParams->SetBrightnessRatio(brightnessRatio);
     if (stagingRenderParams_->NeedSync()) {
         AddToPendingSyncList();
