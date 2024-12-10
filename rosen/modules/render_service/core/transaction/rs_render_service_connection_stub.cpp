@@ -1692,8 +1692,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK): {
-            auto type = data.ReadInt16();
-            auto subType = data.ReadInt16();
+            int16_t type{0};
+            int16_t subType{0};
+            if (!data.ReadInt16(type) || !data.ReadInt16(subType)) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             if (type != RS_NODE_SYNCHRONOUS_READ_PROPERTY && type != RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION) {
                 ret = ERR_INVALID_STATE;
                 break;
@@ -1705,6 +1709,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             auto command = static_cast<RSSyncTask*>((*func)(data));
             if (command == nullptr) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            const NodeId nodeId = command->GetNodeId();
+            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+            if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest, "
+                    "callingPid [%{public}d] no permission EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                    callingPid, nodeId);
                 ret = ERR_INVALID_STATE;
                 break;
             }
