@@ -3784,7 +3784,7 @@ const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
 void RSRenderNode::UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent)
 {
     uint32_t subSurfaceCnt = GetType() == RSRenderNodeType::SURFACE_NODE ?
-        subSurfaceCnt_ + 1 : subSurfaceCnt;
+        subSurfaceCnt_ + 1 : subSurfaceCnt_;
     if (subSurfaceCnt == 0) {
         return;
     }
