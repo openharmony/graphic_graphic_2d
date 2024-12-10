@@ -101,6 +101,9 @@ namespace OHOS {
         auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
         node->modifiers_[propertyId] = modifier;
         task->Process(context);
+
+        delete copy;
+        copy = nullptr;
     }
 
     void RSNodeGetShowingPropertiesAndCancelAnimationFuzzerTest()
@@ -146,6 +149,9 @@ namespace OHOS {
         auto modifier = std::make_shared<RSGeometryTransRenderModifier>(property);
         node->modifiers_[propertyId] = modifier;
         task->Process(context);
+
+        delete copy;
+        copy = nullptr;
     }
 
     void RSNodeGetAnimationsValueFractionFuzzerTest()
@@ -188,6 +194,9 @@ namespace OHOS {
             animationId, GetData<PropertyId>(), property, property1, property2);
         node->GetAnimationManager().AddAnimation(renderCurveAnimation);
         task->Process(context);
+
+        delete copy;
+        copy = nullptr;
     }
 
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
