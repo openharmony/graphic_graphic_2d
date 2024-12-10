@@ -30,6 +30,8 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
+#include <iservice_registry.h>
+#include <system_ability_definition.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -1816,12 +1818,10 @@ bool DoGetTotalAppMemSize(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
-    // float cpuMemSize = GetData<float>();
-    // float gpuMemSize = GetData<float>();
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
@@ -1861,7 +1861,7 @@ bool DoRegisterBufferClearListener(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -1892,7 +1892,7 @@ bool DoGetPixelmap(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -1920,7 +1920,7 @@ bool DoSetWatermark(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -1965,7 +1965,7 @@ bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -1996,7 +1996,7 @@ bool DoNotifyLightFactorStatus(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -2024,7 +2024,7 @@ bool DoNotifyPackageEvent(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -2054,7 +2054,7 @@ bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
@@ -2091,7 +2091,7 @@ bool DoSetDefaultDeviceRotationOffset(const uint8_t* data, size_t size)
     }
 
     // initialize
-    DATA = data;
+    g_data = data;
     g_size = size;
     g_pos = 0;
 
