@@ -1521,15 +1521,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         UpdateSurfaceNodeNit((*surfaceNode).GetRSSurfaceHandler()->GetBuffer(),
             *surfaceNode, isHdrSurface);
-        bool isDimmingOn = RSLuminanceControl::Get().IsDimmingOn(0);
-        if (isDimmingOn) {
-            bool hasHdrPresent = surfaceNode->GetHDRPresent();
-            RS_LOGD("HDRDiming IsDimmingOn: %{public}d, GetHDRPresent: %{public}d, CheckIsHdrSurface: %{public}d",
-                isDimmingOn, hasHdrPresent, isHdrSurface);
-            if (hasHdrPresent || isHdrSurface) {
-                surfaceNode->SetContentDirty(); // HDR content is dirty on Dimming status.
-            }
-        }
     });
     RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, hdrType);
     if (needRequestNextVsync) {
