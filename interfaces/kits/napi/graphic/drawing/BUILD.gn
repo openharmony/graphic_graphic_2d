@@ -95,9 +95,6 @@ if (is_arkui_x) {
     deps = [
       "../../../../../rosen/modules/2d_graphics:2d_graphics",
       "../../../../../rosen/modules/render_service_base:librender_service_base_static",
-      "//base/global/resource_management/frameworks/resmgr:global_resmgr",
-      "//foundation/ability/ability_runtime/frameworks/native/ability/native:abilitykit_native",
-      "//foundation/ability/ability_runtime/frameworks/native/appkit:app_context",
       "//foundation/arkui/napi:ace_napi",
     ]
     defines += [ "MODULE_DRAWING" ]
