@@ -1194,45 +1194,6 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessEffectRenderNode001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CacRotationFromTransformType001
- * @tc.desc: test results of CacRotationFromTransformType
- * @tc.type: FUNC
- * @tc.require: issueI5HRIF
- */
-HWTEST_F(RSRenderThreadVisitorTest, CacRotationFromTransformType001, TestSize.Level1)
-{
-    RSRenderThreadVisitor visitor;
-    RectF bounds(1.f, 1.f, 1.f, 1.f); // for test
-    GraphicTransformType transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT90;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT90;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT270;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT270;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_H;
-    visitor.CacRotationFromTransformType(transform, bounds);
-    EXPECT_EQ(bounds.IsEmpty(), false);
-}
-
-/**
  * @tc.name: ProcessSurfaceViewInRT001
  * @tc.desc: test results of ProcessSurfaceViewInRT
  * @tc.type: FUNC
@@ -1315,67 +1276,5 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessOtherSurfaceRenderNode001, TestSize.L
     visitor.canvas_ = std::make_shared<RSPaintFilterCanvas>(&canvas);
     visitor.ProcessSurfaceRenderNode(node);
     EXPECT_EQ(visitor.childSurfaceNodeIds_.size(), 0);
-}
-
-/**
- * @tc.name: GetFlipTransform001
- * @tc.desc: test results of GetFlipTransform
- * @tc.type: FUNC
- * @tc.require: issueIAJ76O
- */
-HWTEST_F(RSRenderThreadVisitorTest, GetFlipTransform001, TestSize.Level1)
-{
-    RSRenderThreadVisitor visitor;
-    GraphicTransformType transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT90;
-    auto res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_H);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT180;
-    res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_H);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_H_ROT270;
-    res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_H);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT90;
-    res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_V);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT180;
-    res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_V);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V_ROT270;
-    res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_FLIP_V);
-
-    transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    res = visitor.GetFlipTransform(transform);
-    EXPECT_TRUE(res == GraphicTransformType::GRAPHIC_ROTATE_NONE);
-}
-
-/**
- * @tc.name: FlipMatrix001
- * @tc.desc: test results of FlipMatrix
- * @tc.type: FUNC
- * @tc.require: issueIAJ76O
- */
-HWTEST_F(RSRenderThreadVisitorTest, FlipMatrix001, TestSize.Level1)
-{
-    RSRenderThreadVisitor visitor;
-    GraphicTransformType transform = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    Drawing::Matrix matrix;
-    RectF bounds;
-    visitor.FlipMatrix(transform, matrix, bounds);
-    EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_ROTATE_NONE);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_H;
-    visitor.FlipMatrix(transform, matrix, bounds);
-    EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_FLIP_H);
-
-    transform = GraphicTransformType::GRAPHIC_FLIP_V;
-    visitor.FlipMatrix(transform, matrix, bounds);
-    EXPECT_TRUE(transform == GraphicTransformType::GRAPHIC_FLIP_V);
 }
 } // namespace OHOS::Rosen
