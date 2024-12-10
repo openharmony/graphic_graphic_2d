@@ -353,9 +353,14 @@ void RSRenderThread::RenderLoop()
 
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().SetRepaintCallback([this]() { this->RequestNextVSync(); });
-
     auto delegate = RSFunctionalDelegate::Create();
-    delegate->SetRepaintCallback([this]() { this->RequestNextVSync(); });
+    delegate->SetRepaintCallback([this]() {
+        bool isOverDrawEnabled = RSOverdrawController::GetInstance().IsEnabled();
+        PostTask([this, isOverDrawEnabled]() {
+            isOverDrawEnabledOfCurFrame_ = isOverDrawEnabled;
+            RequestNextVSync();
+        });
+    });
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 #endif
 
@@ -523,10 +528,12 @@ void RSRenderThread::Render()
     }
     // get latest partial render status from system properties and set it to RTvisitor_
     visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(),
-        isRTRenderForced_ || IsHighContrastChanged());
+        isRTRenderForced_ || (isOverDrawEnabledOfLastFrame_ != isOverDrawEnabledOfCurFrame_) ||
+        IsHighContrastChanged());
     ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
+    isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
 
