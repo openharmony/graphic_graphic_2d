@@ -141,9 +141,9 @@ public:
     template<typename T>
     static bool MarshallingVec(Parcel& parcel, const std::vector<T>& val)
     {
-        int size = static_cast<int>(val.size());
+        size_t size = val.size();
         Marshalling(parcel, size);
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             if (!Marshalling(parcel, val[i])) {
                 return false;
             }
@@ -154,14 +154,17 @@ public:
     template<typename T>
     static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val, int maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
     {
-        int size = 0;
+        if (maxSize < 0) {
+            return false;
+        }
+        size_t size = 0;
         Unmarshalling(parcel, size);
-        if (size < 0 || size > maxSize) {
+        if (size > static_cast<size_t>(maxSize)) {
             return false;
         }
         val.clear();
         val.reserve(size);
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             T tmp;
             if (!Unmarshalling(parcel, tmp)) {
                 return false;
@@ -174,9 +177,9 @@ public:
     template<typename T>
     static bool MarshallingVec2(Parcel& parcel, const std::vector<std::vector<T>>& val)
     {
-        int size = static_cast<int>(val.size());
+        size_t size = val.size();
         Marshalling(parcel, size);
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             if (!MarshallingVec(parcel, val[i])) {
                 return false;
             }
@@ -187,13 +190,10 @@ public:
     template<typename T>
     static bool UnmarshallingVec2(Parcel& parcel, std::vector<std::vector<T>>& val)
     {
-        int size = 0;
+        size_t size = 0;
         Unmarshalling(parcel, size);
-        if (size < 0) {
-            return false;
-        }
         val.clear();
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             std::vector<T> tmp;
             if (!UnmarshallingVec(parcel, tmp)) {
                 return false;
