@@ -732,35 +732,56 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE): {
-            ScreenId id = data.ReadUint64();
-            int32_t sceneId = data.ReadInt32();
-            int32_t rate = data.ReadInt32();
+            ScreenId id{INVALID_SCREEN_ID};
+            int32_t sceneId{0};
+            int32_t rate{0};
+            if (!data.ReadUint64(id) || !data.ReadInt32(sceneId) || !data.ReadInt32(rate)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetScreenRefreshRate(id, sceneId, rate);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE): {
-            int32_t mode = data.ReadInt32();
+            int32_t mode{0};
+            if (!data.ReadInt32(mode)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetRefreshRateMode(mode);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE): {
-            FrameRateLinkerId id = data.ReadUint64();
+            FrameRateLinkerId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (ExtractPid(id) != callingPid) {
                 RS_LOGW("The SyncFrameRateRange isn't legal, frameRateLinkerId: %{public}" PRIu64
                     ", callingPid:%{public}d", id, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            uint32_t min = data.ReadUint32();
-            uint32_t max = data.ReadUint32();
-            uint32_t preferred = data.ReadUint32();
-            uint32_t type = data.ReadUint32();
-            int32_t animatorExpectedFrameRate = data.ReadInt32();
+            uint32_t min{0}
+            uint32_t max{0};
+            uint32_t preferred{0};
+            uint32_t type{0};
+            int32_t animatorExpectedFrameRate{0};
+            if (!data.ReadUint32(min) || !data.ReadUint32(max) || !data.ReadUint32(preferred) ||
+                !data.ReadUint32(type) || !data.ReadInt32(animatorExpectedFrameRate)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SyncFrameRateRange(id, {min, max, preferred, type}, animatorExpectedFrameRate);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER): {
-            FrameRateLinkerId id = data.ReadUint64();
+            FrameRateLinkerId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (ExtractPid(id) != callingPid) {
                 RS_LOGW("The UnregisterFrameRateLinker isn't legal, frameRateLinkerId: %{public}" PRIu64
                     ", callingPid:%{public}d", id, callingPid);
@@ -771,7 +792,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             uint32_t refreshRate = GetScreenCurrentRefreshRate(id);
             if (!reply.WriteUint32(refreshRate)) {
                 ret = ERR_INVALID_REPLY;
@@ -786,7 +811,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             std::vector<int32_t> rates = GetScreenSupportedRefreshRates(id);
             if (!reply.WriteUint64(static_cast<uint64_t>(rates.size()))) {
                 ret = ERR_INVALID_REPLY;
@@ -808,7 +837,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED): {
-            bool enable = data.ReadBool();
+            bool enable{false};
+            if (data.ReadBool(enable)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetShowRefreshRateEnabled(enable);
             break;
         }
@@ -1754,44 +1787,84 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
-            auto isSafe = data.ReadBool();
+            bool isSafe{false};
+            if (!data.ReadBool(isSafe)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             NotifyLightFactorStatus(isSafe);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
-            auto listSize = data.ReadUint32();
+            uint32_t listSize{0};
+            if (!data.ReadUint32(listSize)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;
             }
             std::vector<std::string> packageList;
+            bool errFlag{false};
             for (uint32_t i = 0; i < listSize; i++) {
-                packageList.push_back(data.ReadString());
+                std::string package;
+                if (!data.ReadString(package)) {
+                    errFlag = true;
+                    break;
+                }
+                packageList.push_back(package);
+            }
+            if (errFalg) {
+                ret = ERR_INVALID_DATA;
+                break;
             }
             NotifyPackageEvent(listSize, packageList);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT) : {
+            std::string eventName;
+            bool eventStatus{false};
+            uint32_t minRefreshRate{0};
+            uint32_t maxRefreshRate{0};
+            std::string description;
+            if (!data.ReadString(eventName) || !data.ReadBool(eventStatus) || !data.ReadUint32(minRefreshRate) ||
+                !data.ReadUint32(maxRefreshRate) || !data.ReadString(description)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             EventInfo eventInfo = {
-                data.ReadString(), data.ReadBool(), data.ReadUint32(), data.ReadUint32(), data.ReadString(),
+                eventName, eventStatus, minRefreshRate, maxRefreshRate, description
             };
             NotifyRefreshRateEvent(eventInfo);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT) : {
-            auto enableDynamicMode = data.ReadBool();
+            bool enableDynamicMode{false};
+            if (!data.ReadBool(enableDynamicMode)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             NotifyDynamicModeEvent(enableDynamicMode);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
-            auto touchStatus = data.ReadInt32();
-            auto touchCnt = data.ReadInt32();
+            int32_t touchStatus{0};
+            int32_t touchCnt{0};
+            if (!data.ReadInt32(touchStatus) || !data.ReadInt32(touchCnt)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             NotifyTouchEvent(touchStatus, touchCnt);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK) : {
-            auto remoteObject = data.ReadRemoteObject();
+            sptr<IRemoteObject> remoteObject = nullptr;
+            if (!data.ReadRemoteObject(remoteObject)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -1808,7 +1881,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK) : {
-            auto remoteObject = data.ReadRemoteObject();
+            sptr<IRemoteObject> remoteObject = nullptr;
+            if (!data.ReadRemoteObject(remoteObject)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -1828,8 +1905,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK) : {
             sptr<RSIHgmConfigChangeCallback> callback = nullptr;
             sptr<IRemoteObject> remoteObject = nullptr;
-            if (data.ReadBool()) {
-                remoteObject = data.ReadRemoteObject();
+            bool readRemoteObject{false};
+            if (!data.ReadBool(readRemoteObject)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (readRemoteObject && !data.ReadRemoteObject(remoteObject)) {
+                ret = ERR_INVALID_DATA;
+                break;
             }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
@@ -1844,9 +1927,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK) : {
             sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback = nullptr;
             sptr<IRemoteObject> remoteObject = nullptr;
-            int32_t dstPid = data.ReadInt32();
-            if (data.ReadBool()) {
-                remoteObject = data.ReadRemoteObject();
+            int32_t dstPid{0};
+            bool readRemoteObject{false};
+            if (!data.ReadInt32(dstPid) || !data.ReadBool(readRemoteObject)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (readRemoteObject && !data.ReadRemoteObject(remoteObject)) {
+                ret = ERR_INVALID_DATA;
+                break;
             }
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
