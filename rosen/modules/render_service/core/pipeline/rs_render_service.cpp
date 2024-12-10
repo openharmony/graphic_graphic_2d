@@ -30,6 +30,7 @@
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
+#include "rs_trace.h"
 
 #include "common/rs_singleton.h"
 #include "graphic_2d_configure.h"
@@ -368,15 +369,16 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
     if (iter == argSets.end()) {
         return ;
     }
-    std::string layerArg;
     argSets.erase(iter);
     if (argSets.empty()) {
         RS_LOGE("RSRenderService::FPSDUMPProcess layer name is not specified");
         return ;
     }
+    RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
+    std::string layerArg;
     layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    std::unordered_set<std::string> layersName{"DisplayNode", "composer", "UniRender"};
-    if (layersName.find(layerArg) != layersName.end()) {
+    std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
+    if (args.find(layerArg) != args.end()) {
         DumpFps(dumpString, layerArg);
     } else {
         DumpSurfaceNodeFps(dumpString, layerArg);
@@ -420,15 +422,16 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
     if (iter == argSets.end()) {
         return ;
     }
-    std::string layerArg;
     argSets.erase(iter);
     if (argSets.empty()) {
         RS_LOGE("RSRenderService::FPSDUMPClearProcess layer name is not specified");
         return ;
     }
-    std::unordered_set<std::string> layersName{"DisplayNode", "composer"};
+    RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
+    std::string layerArg;
     layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-    if (layersName.find(layerArg) != layersName.end()) {
+    std::unordered_set<std::string> args{"DisplayNode", "composer"};
+    if (args.find(layerArg) != args.end()) {
         ClearFps(dumpString, layerArg);
     } else {
         ClearSurfaceNodeFps(dumpString, layerArg);

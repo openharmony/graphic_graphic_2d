@@ -1631,7 +1631,7 @@ private:
     uint32_t apiCompatibleVersion_ = 0;
 
     // Record the drawing timestamp, which is used to collect statistics on the transmission and display frame rate.
-    static constexpr int FRAME_RECORDS_NUM = 288;
+    static constexpr int FRAME_RECORDS_NUM = 384;
     std::array<FPSStat, FRAME_RECORDS_NUM> presentTimeRecords_ {};
     uint32_t count_ = 0;
 

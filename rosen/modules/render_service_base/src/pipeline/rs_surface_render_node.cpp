@@ -3231,8 +3231,9 @@ bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
 bool RSSurfaceRenderNode::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (seqNum == presentTimeRecords_[(count_ - 1 + FRAME_RECORDS_NUM) % FRAME_RECORDS_NUM].seqNum)
+    if (seqNum == presentTimeRecords_[(count_ - 1 + FRAME_RECORDS_NUM) % FRAME_RECORDS_NUM].seqNum) {
         return false;
+    }
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode::RecordPresentTime timestamp:%llu", timestamp);
     presentTimeRecords_[count_].presentTime = timestamp;
     presentTimeRecords_[count_].seqNum = seqNum;
