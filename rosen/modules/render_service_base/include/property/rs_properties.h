@@ -107,6 +107,8 @@ public:
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
+    void SetPositionZApplicableCamera3D(bool isApplicable);
+    bool GetPositionZApplicableCamera3D() const;
 
     void SetPivot(Vector2f pivot);
     void SetPivotX(float pivotX);

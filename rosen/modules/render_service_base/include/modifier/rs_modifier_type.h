@@ -32,6 +32,7 @@ enum class RSModifierType : int16_t {
     BOUNDS,
     FRAME,
     POSITION_Z,
+    POSITION_Z_APPLICABLE_CAMERA3D,
     PIVOT,
     PIVOT_Z,
     QUATERNION,
@@ -221,6 +222,7 @@ public:
             case RSModifierType::BOUNDS: return "Bounds";
             case RSModifierType::FRAME: return "Frame";
             case RSModifierType::POSITION_Z: return "PositionZ";
+            case RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D: return "PositionZApplicableCamera3D";
             case RSModifierType::PIVOT: return "Pivot";
             case RSModifierType::PIVOT_Z: return "PivotZ";
             case RSModifierType::QUATERNION: return "Quaternion";
