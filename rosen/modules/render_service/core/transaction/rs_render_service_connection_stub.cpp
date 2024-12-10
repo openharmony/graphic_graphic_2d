@@ -423,7 +423,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool isTokenTypeValid = true;
             RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
             if (isNonSystemCalling && !IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-                RS_LOGW("CREATE_NODE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
+                RS_LOGW("CREATE_NODE invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]", nodeId, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -2008,7 +2008,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             bool isTokenTypeValid = true;
             RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
             if (isNonSystemCalling && !IsValidCallingPid(ExtractPid(id), callingPid)) {
-                RS_LOGW("CREATE_DISPLAY_NODE invalid nodeId[%" PRIu64 "] pid[%d]", id, callingPid);
+                RS_LOGW("CREATE_DISPLAY_NODE invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]", id, callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
