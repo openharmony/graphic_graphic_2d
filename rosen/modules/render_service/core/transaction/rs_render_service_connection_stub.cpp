@@ -1713,6 +1713,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             std::shared_ptr<RSSyncTask> task(command);
+            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+            if (!task->IsCallingPidValid(callingPid, nodeMap)) {
+                ret = ERR_INVALID_STATE;
+                break;
+            }
             ExecuteSynchronousTask(task);
             if (!task->Marshalling(reply)) {
                 ret = ERR_INVALID_STATE;

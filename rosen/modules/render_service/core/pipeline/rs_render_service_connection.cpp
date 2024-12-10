@@ -316,7 +316,6 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
         RS_LOGW("RSRenderServiceConnection::ExecuteSynchronousTask, task or main thread is null!");
         return;
     }
-    pid_t callingPid = GetCallingPid();
     // After a synchronous task times out, it will no longer be executed.
     auto isTimeout = std::make_shared<bool>(0);
     std::weak_ptr<bool> isTimeoutWeak = isTimeout;
@@ -325,7 +324,6 @@ void RSRenderServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSS
         if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
             return;
         }
-        task->SetCallingPid(callingPid);
         task->Process(mainThread->GetContext());
     }).wait_for(span);
     isTimeout.reset();
