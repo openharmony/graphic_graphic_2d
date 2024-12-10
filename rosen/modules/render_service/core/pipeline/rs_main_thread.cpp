@@ -1955,9 +1955,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
         RS_TRACE_NAME_FMT("rsCurrRange = (%d, %d, %d)", rsCurrRange.min_, rsCurrRange.max_, rsCurrRange.preferred_);
     }
 
+    bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_);
     if (!HgmCore::Instance().SetHgmTaskFlag(false) &&
         HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate() &&
-        !frameRateMgr->UpdateUIFrameworkDirtyNodes(GetContext().GetUiFrameworkDirtyNodes(), timestamp_)) {
+        !needRefresh) {
         return;
     }
 
