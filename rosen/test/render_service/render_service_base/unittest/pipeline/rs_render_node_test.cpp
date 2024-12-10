@@ -134,6 +134,7 @@ void RSRenderNodeTest::TearDown() {}
 HWTEST_F(RSRenderNodeTest, UpdateRenderStatus001, TestSize.Level1)
 {
     RSSurfaceRenderNode node(id, context);
+    ASSERT_TRUE(node.isNodeDirty());
     RectI dirtyRegion;
     bool isPartialRenderEnabled = false;
     node.UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
@@ -190,7 +191,7 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, InitCacheSurfaceTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    ASSERT_TRUE(node != nullptr);
+    ASSERT_NE(node.GetRenderContent(), nullptr);
     CacheType type = CacheType::ANIMATE_PROPERTY;
     node.SetCacheType(type);
     node.InitCacheSurface(canvas_->GetGPUContext().get());
