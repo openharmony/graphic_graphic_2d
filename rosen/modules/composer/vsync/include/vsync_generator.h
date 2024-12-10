@@ -199,7 +199,6 @@ private:
     bool expectTimeFlag_ = false;
     int64_t targetPeriod_ = 0;
     bool clearAllSamplesFlag_ = false;
-    uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
     int64_t vsyncOffset_ = 0;
 };
 } // impl

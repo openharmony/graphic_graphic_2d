@@ -832,7 +832,7 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         uint32_t periodRefreshRate = CalculateRefreshRate(period_);
         uint32_t pendingPeriodRefreshRate = CalculateRefreshRate(pendingPeriod_);
         if (pendingPeriodRefreshRate != 0) {
-            int32_t periodPulseNum = vsyncMaxRefreshRate_ / pendingPeriodRefreshRate;
+            int32_t periodPulseNum = VSYNC_MAX_REFRESHRATE / pendingPeriodRefreshRate;
             vsyncOffset_ = (referenceTimeOffsetPulseNum_ % periodPulseNum) * pulse_;
             RS_TRACE_NAME_FMT("vsyncOffset_:%ld", vsyncOffset_);
         }
