@@ -369,7 +369,7 @@ int32_t XMLParser::ParseSubScreenConfig(xmlNode &node, PolicyConfigData::ScreenS
         setResult = ParseSimplex(*thresholdNode, screenSetting.uiPowerConfig);
     } else if (name == "component_power_config") {
         setResult = ParsePowerStrategy(*thresholdNode, screenSetting.componentPowerConfig);
-    } else if (name == "low_bright_config") {
+    } else if (name == "supported_mode") {
         setResult = ParseLowBrightList(*thresholdNode, screenSetting.lowBrightList);
     } else {
         setResult = EXEC_SUCCESS;

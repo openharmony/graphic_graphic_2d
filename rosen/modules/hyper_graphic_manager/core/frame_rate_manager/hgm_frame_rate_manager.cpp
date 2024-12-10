@@ -602,6 +602,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
         } else {
             isAmbientEffect_ = false;
         }
+        multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
     }
 }
 
@@ -614,7 +615,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
-    if (isSafe_ && isAmbientEffect_) {
+    if (isAmbientSafe_ && isAmbientEffect_) {
         supportRefreshRateVec = lowBrightVec_;
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
@@ -778,7 +779,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
     auto isEffect = isAmbientEffect_;
     multiAppStrategy_.HandleLowAmbientStatus(isEffect);
     multiAppStrategy_.HandleLightFactorStatus(isSafe);
-    isSafe_ = isSafe;
+    isAmbientSafe_ = isSafe;
 }
 
 void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList)
