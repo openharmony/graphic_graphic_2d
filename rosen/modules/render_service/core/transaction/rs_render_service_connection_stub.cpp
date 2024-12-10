@@ -2004,6 +2004,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
             auto id = data.ReadUint64();
+            bool isNonSystemCalling = false;
+            bool isTokenTypeValid = true;
+            RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
+            if (isNonSystemCalling && !IsValidCallingPid(ExtractPid(id), callingPid)) {
+                RS_LOGW("CREATE_DISPLAY_NODE invalid nodeId[%" PRIu64 "] pid[%d]", id, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto mirrorId = data.ReadUint64();
             auto screenId = data.ReadUint64();
             auto isMirrored = data.ReadBool();
