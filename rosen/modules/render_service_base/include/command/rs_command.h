@@ -113,9 +113,19 @@ public:
         return isCallingPidValid_.load();
     }
 
+    void SetCallingPid(pid_t callingPid)
+    {
+        callingPid_ = callingPid;
+    }
+
+    pid_t GetCallingPid() const
+    {
+        return callingPid_;
+    }
 private:
     size_t indexVerifier_ = 0;
     std::atomic_bool isCallingPidValid_ = true;
+    pid_t callingPid_ = 0;
     friend class RSTransactionData;
 #ifdef RS_PROFILER_ENABLED
 protected:

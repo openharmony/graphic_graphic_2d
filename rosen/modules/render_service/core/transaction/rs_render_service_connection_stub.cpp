@@ -1712,15 +1712,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_STATE;
                 break;
             }
-            const NodeId nodeId = command->GetNodeId();
-            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-            if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest, "
-                    "callingPid [%{public}d] no permission EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
-                    callingPid, nodeId);
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             std::shared_ptr<RSSyncTask> task(command);
             ExecuteSynchronousTask(task);
             if (!task->Marshalling(reply)) {
