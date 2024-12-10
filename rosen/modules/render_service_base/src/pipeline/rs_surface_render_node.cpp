@@ -3246,7 +3246,7 @@ void RSSurfaceRenderNode::Dump(std::string& result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
     }
 }

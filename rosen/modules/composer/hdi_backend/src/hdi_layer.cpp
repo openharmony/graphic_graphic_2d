@@ -646,7 +646,7 @@ void HdiLayer::SelectHitchsInfo(std::string windowName, std::string &result)
         std::unique_lock<std::mutex> lock(mutex_);
         const uint32_t offset = count_;
         for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-            uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+            uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
             auto windowsName = presentTimeRecords_[order].windowsName;
             auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
             int64_t lastFlushTimestamp = 0;
@@ -730,7 +730,7 @@ void HdiLayer::Dump(std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(presentTimeRecords_[order].presentTime) + "\n";
     }
 }
@@ -740,7 +740,7 @@ void HdiLayer::DumpByName(std::string windowName, std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = count_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         auto windowsName = presentTimeRecords_[order].windowsName;
         auto iter = std::find(windowsName.begin(), windowsName.end(), windowName);
         if (iter != windowsName.end()) {
@@ -754,7 +754,7 @@ void HdiLayer::DumpMergedResult(std::string &result)
     std::unique_lock<std::mutex> lock(mutex_);
     const uint32_t offset = mergedCount_;
     for (uint32_t i = 0; i < FRAME_RECORDS_NUM; i++) {
-        uint32_t order = (offset + i) % FRAME_RECORDS_NUM;
+        uint32_t order = (offset + FRAME_RECORDS_NUM - i - 1) % FRAME_RECORDS_NUM;
         result += std::to_string(mergedPresentTimeRecords_[order]) + "\n";
     }
 }
