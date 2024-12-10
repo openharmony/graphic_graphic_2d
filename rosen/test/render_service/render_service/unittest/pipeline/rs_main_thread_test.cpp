@@ -4404,17 +4404,16 @@ HWTEST_F(RSMainThreadTest, ProcessHgmFrameRate, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
 
     uint64_t timestamp = 0;
+    FrameRateLinkerId id = 0;
+    mainThread->rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
     mainThread->ProcessHgmFrameRate(timestamp);
 
     auto vsyncGenerator = CreateVSyncGenerator();
     auto vsyncController = new VSyncController(vsyncGenerator, 0);
     mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    FrameRateLinkerId id = 0;
-    mainThread->rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
     mainThread->ProcessHgmFrameRate(timestamp);
 
     mainThread->rsVSyncDistributor_ = nullptr;
-    mainThread->rsFrameRateLinker_ = nullptr;
     mainThread->ProcessHgmFrameRate(timestamp);
     sleep(1);
 }
