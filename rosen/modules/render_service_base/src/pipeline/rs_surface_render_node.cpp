@@ -3255,6 +3255,8 @@ void RSSurfaceRenderNode::ClearDump(std::string& result)
     std::unique_lock<std::mutex> lock(mutex_);
     FPSStat defaultFPSStat = {0, 0};
     presentTimeRecords_.fill(defaultFPSStat);
+}
+
 void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
 {
     if (stagingRenderParams_ == nullptr) {

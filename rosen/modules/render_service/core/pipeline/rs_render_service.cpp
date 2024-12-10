@@ -469,8 +469,6 @@ void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& 
     });
 }
 
-
-
 void RSRenderService::DumpRSEvenParam(std::string& dumpString) const
 {
     dumpString.append("\n");
