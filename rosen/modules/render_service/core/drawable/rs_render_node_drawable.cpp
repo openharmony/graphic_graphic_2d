@@ -593,10 +593,27 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     return cachedImage_;
 }
 
+void RSRenderNodeDrawable::SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image)
+{
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    cachedImageByCapture_ = image;
+}
+
+std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCacheImageByCapture() const
+{
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    return cachedImageByCapture_;
+}
+
 void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     const std::shared_ptr<RSFilter>& rsFilter)
 {
     auto cacheImage = GetCachedImage(canvas);
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    if (cachedImageByCapture_) {
+        // node has freezed, and to draw surfaceCapture image
+        cacheImage = cachedImageByCapture_;
+    }
     if (cacheImage == nullptr) {
         RS_LOGE("RSRenderNodeDrawable::DrawCachedImage image null");
         return;

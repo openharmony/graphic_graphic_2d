@@ -92,8 +92,8 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
     RSUniRenderThread::Instance().PostSyncTask(syncTask);
 }
 
-void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
-    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling)
+void RSSurfaceCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+    const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling, bool isFreeze)
 {
     if (callback == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::Capture nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
@@ -111,13 +111,30 @@ void RSSurfaceCaptureTaskParallel::Capture(NodeId id,
         return;
     }
 
-    std::function<void()> captureTask = [captureHandle, id, callback, isSystemCalling]() -> void {
+    std::function<void()> captureTask = [captureHandle, id, callback, isSystemCalling, isFreeze]() -> void {
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::TakeSurfaceCapture");
-        if (!captureHandle->Run(callback, isSystemCalling)) {
+        if (!captureHandle->Run(callback, isSystemCalling, isFreeze)) {
             callback->OnSurfaceCapture(id, nullptr);
         }
     };
     RSUniRenderThread::Instance().PostSyncTask(captureTask);
+}
+
+void RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(NodeId id)
+{
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+    if (node == nullptr) {
+        RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Invalid nodeId:[%{public}" PRIu64 "]", id);
+        return;
+    }
+    if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        std::function<void()> clearCacheTask = [id, surfaceNodeDrawable]() -> void {
+            surfaceNodeDrawable->SetCacheImageByCapture(nullptr);
+        };
+        RSUniRenderThread::Instance().PostTask(clearCacheTask);
+    }
 }
 
 bool RSSurfaceCaptureTaskParallel::CreateResources()
@@ -167,7 +184,8 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     return true;
 }
 
-bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling)
+bool RSSurfaceCaptureTaskParallel::Run(
+    sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling, bool isFreeze)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     SetupGpuContext();
@@ -197,6 +215,9 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
         RSUniRenderThread::SetCaptureParam(
             CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY, true, isSystemCalling));
         surfaceNodeDrawable_->OnCapture(canvas);
+        if (isFreeze) {
+            surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
+        }
     } else if (displayNodeDrawable_) {
         RSUniRenderThread::SetCaptureParam(
             CaptureParam(true, false, false, captureConfig_.scaleX, captureConfig_.scaleY));
