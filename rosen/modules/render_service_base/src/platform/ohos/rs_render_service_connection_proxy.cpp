@@ -2677,9 +2677,6 @@ bool RSRenderServiceConnectionProxy::SetWatermark(const std::string& name, std::
     if (!data.WriteString(name)) {
         return false;
     }
-    if (!watermark) {
-        return false;
-    }
     if (!data.WriteParcelable(watermark.get())) {
         return false;
     }
