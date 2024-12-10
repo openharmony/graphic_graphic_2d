@@ -1471,15 +1471,15 @@ Drawing::Matrix RSUniRenderUtil::GetPreTransformMatrix(GraphicTransformType tran
     Drawing::Matrix matrix;
     switch (transformType) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.PostRotate(-90, dx, dy);
+            matrix.PostRotate(-90, dx, dy); // rotate 90 degree
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.PostRotate(-180, dx, dy);
+            matrix.PostRotate(-180, dx, dy); // rotate 180 degree
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            matrix.PostRotate(-270, dx, dy);
+            matrix.PostRotate(-270, dx, dy); // rotate 270 degree
             break;
         }
         default:
@@ -1494,15 +1494,15 @@ Drawing::Matrix RSUniRenderUtil::GetTransformMatrix(GraphicTransformType transfo
     Drawing::Matrix matrix;
     switch (transformType) {
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            matrix.PostRotate(90, dx, dy);
+            matrix.PostRotate(90, dx, dy); // rotate 90 degree
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            matrix.PostRotate(180, dx, dy);
+            matrix.PostRotate(180, dx, dy); // rotate 180 degree
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            matrix.PostRotate(270, dx, dy);
+            matrix.PostRotate(270, dx, dy); // rotate 270 degree
             break;
         }
         default:
@@ -1562,8 +1562,8 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     Drawing::Rect bounds = Drawing::Rect(0, 0, boundsWidth, boundsHeight);
     Drawing::Rect absRect = Drawing::Rect(0, 0, 0, 0);
     node.GetTotalMatrix().MapRect(absRect, bounds);
-    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90
-        || consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(frameWidth, frameHeight);
     }
     // Create canvas to calculate aimed dstRect and corresponding srcRect
@@ -1628,8 +1628,8 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
     int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
     int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
-    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90
-        || consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
+    if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(frameWidth, frameHeight);
         std::swap(width, height);
     }
