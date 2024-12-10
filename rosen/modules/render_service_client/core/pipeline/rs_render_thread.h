@@ -90,10 +90,19 @@ public:
     void SetHighContrast(bool enabled)
     {
         isHighContrastEnabled_  = enabled;
+        isHighContrastChanged_ = true;
     }
-    bool isHighContrastEnabled() const
+    bool IsHighContrastEnabled() const
     {
         return isHighContrastEnabled_;
+    }
+    bool IsHighContrastChanged() const
+    {
+        return isHighContrastChanged_;
+    }
+    void ResetHighContrastChanged()
+    {
+        isHighContrastChanged_ = false;
     }
     void SetCacheDir(const std::string& filePath)
     {
@@ -182,6 +191,7 @@ private:
 #endif
     std::shared_ptr<HighContrastObserver> highContrastObserver_;
     std::atomic_bool isHighContrastEnabled_ = false;
+    std::atomic_bool isHighContrastChanged_ = false;
 
     std::string cacheDir_;
     bool isRTRenderForced_ = false;

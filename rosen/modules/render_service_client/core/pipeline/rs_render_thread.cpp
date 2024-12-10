@@ -522,7 +522,9 @@ void RSRenderThread::Render()
         visitor_ = std::make_shared<RSRenderThreadVisitor>();
     }
     // get latest partial render status from system properties and set it to RTvisitor_
-    visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), isRTRenderForced_);
+    visitor_->SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(),
+        isRTRenderForced_ || IsHighContrastChanged());
+    ResetHighContrastChanged();
     rootNode->Prepare(visitor_);
     rootNode->Process(visitor_);
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
