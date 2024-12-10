@@ -1854,5 +1854,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetVirtualScreenUsingStatus();
     OHOS::Rosen::DoCreatePixelMapFromSurface(data, size);
     OHOS::Rosen::DoNotifyTouchEvent();
+    OHOS::Rosen::DoNotifyTouchEvent();
+
     return 0;
 }
