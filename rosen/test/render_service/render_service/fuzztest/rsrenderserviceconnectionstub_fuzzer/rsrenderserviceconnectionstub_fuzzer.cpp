@@ -2185,7 +2185,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
     OHOS::Rosen::DoSetDefaultDeviceRotationOffset(data, size);
-    
+    OHOS::Rosen::DoReportJankStats();
+    OHOS::Rosen::DoReportEventResponse();
+    OHOS::Rosen::DoReportEventComplete();
+    OHOS::Rosen::DoReportEventJankFrame();
+    OHOS::Rosen::DoRegisterSurfaceBufferCallback(data, size);
+    OHOS::Rosen::DoUnregisterSurfaceBufferCallback(data, size);
 
     return 0;
 }
