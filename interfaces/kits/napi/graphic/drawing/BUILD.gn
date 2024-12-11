@@ -141,7 +141,6 @@ if (is_arkui_x) {
       "ability_runtime:abilitykit_native",
       "ability_runtime:app_context",
       "napi:ace_napi",
-      "resource_management:global_resmgr",
     ]
 
     if (current_os == "ohos" || current_os == "ohos_ng") {
@@ -154,6 +153,7 @@ if (is_arkui_x) {
         "hilog:libhilog",
         "image_framework:image_native",
         "init:libbegetutil",
+        "resource_management:global_resmgr",
       ]
       deps += [ "../../../../../utils:libgraphic_utils" ]
       defines += [ "ROSEN_OHOS" ]
@@ -163,6 +163,15 @@ if (is_arkui_x) {
         "-std=c++17",
       ]
     } else {
+      if (current_os == "win" || current_os == "mingw") {
+        external_deps += [ "resource_management:win_resmgr" ]
+      }
+      if (current_os == "mac") {
+        external_deps += [ "resource_management:mac_resmgr" ]
+      }
+      if (current_os == "linux") {
+        external_deps += [ "resource_management:linux_resmgr" ]
+      }
       defines += [ "MODULE_DRAWING" ]
       cflags_cc = [ "-std=c++17" ]
     }
