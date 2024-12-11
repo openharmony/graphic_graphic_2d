@@ -16,6 +16,7 @@
 #ifndef RS_MEMORY_FLOW_CONTROL_H
 #define RS_MEMORY_FLOW_CONTROL_H
 
+#include <memory>
 #include <mutex>
 #include <unistd.h>
 #include <unordered_map>
