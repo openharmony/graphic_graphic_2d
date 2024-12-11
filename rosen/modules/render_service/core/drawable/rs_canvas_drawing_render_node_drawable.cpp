@@ -259,25 +259,26 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
     RS_OPTIONAL_TRACE_NAME_FMT("post playback task node[%llu]", GetId());
     auto task = [this, canvasDrawingPtr, threadId]() {
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
+        auto nodeId = GetId();
         // default in unirenderthread
         if (!IsNeedDraw()) {
             return;
         }
 
         if (!renderParams_) {
-            RS_LOGE("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] renderParams null", GetId());
+            RS_LOGE("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] renderParams null", nodeId);
             return;
         }
 
         if (threadId != threadId_) {
             RS_LOGE("PostPlaybackInCorrespondThread ThreadId Error NodeId[%{public}" PRIu64 "],"
-                "threadId[%{public}d], threadId_[%{public}d]", GetId(), threadId, threadId_.load());
+                "threadId[%{public}d], threadId_[%{public}d]", nodeId, threadId, threadId_.load());
             return;
         }
 
         if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
             ResetSurface();
-            RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", GetId());
+            RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", nodeId);
             renderParams_->SetCanvasDrawingSurfaceChanged(false);
         }
 
@@ -285,7 +286,7 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         if (!surface_ || !canvas_) {
             if (!ResetSurfaceforPlayback(surfaceParams.width, surfaceParams.height)) {
                 RS_LOGE("PostPlaybackInCorrespondThread Reset Surface Error NodeId[%{public}" PRIu64
-                    "], width[%{public}d], height[%{public}d]", GetId(), surfaceParams.width, surfaceParams.height);
+                    "], width[%{public}d], height[%{public}d]", nodeId, surfaceParams.width, surfaceParams.height);
                 return;
             }
 
@@ -297,8 +298,8 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             };
             SetSurfaceClearFunc({ threadIdx, clearFunc }, threadId);
         }
-        RS_OPTIONAL_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%llu]", GetId());
-        RS_LOGI("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", GetId());
+        RS_OPTIONAL_TRACE_NAME_FMT("PostPlaybackInCorrespondThread NodeId[%llu]", nodeId);
+        RS_LOGI("CanvasDrawing PostPlayback NodeId[%{public}" PRIu64 "] finish draw", nodeId);
         auto rect = GetRenderParams()->GetBounds();
         DrawContent(*canvas_, rect);
         SetNeedDraw(false);

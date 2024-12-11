@@ -40,6 +40,7 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -2646,7 +2647,8 @@ void RSRenderNode::ApplyModifiers()
     // Temporary code, copy matrix into render params
     if (LIKELY(RSUniRenderJudgement::IsUniRender() && !isTextureExportNode_)) {
         if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-            CheckCanvasDrawingPostPlaybacked();
+            auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+            canvasdrawingnode->CheckCanvasDrawingPostPlaybacked();
         }
         UpdateDrawableVecV2();
     } else {
@@ -2716,6 +2718,10 @@ void RSRenderNode::UpdateDrawableVecV2()
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
+    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto canvasdrawingnode = ReinterpretCastTo<RSCanvasDrawingRenderNode>();
+        drawableChanged |= canvasdrawingnode->GetIsPostPlaybacked();
+    }
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
@@ -4456,7 +4462,8 @@ void RSRenderNode::OnSync()
     foregroundFilterInteractWithDirty_ = false;
 
     // Reset Sync Flag
-    if (waitSync_) {
+    // only canvas drawing node use SetNeedDraw function
+    if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && waitSync_) {
         renderDrawable_->SetNeedDraw(true);
     }
     waitSync_ = false;
