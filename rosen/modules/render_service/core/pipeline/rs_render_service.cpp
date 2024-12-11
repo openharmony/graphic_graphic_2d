@@ -375,8 +375,8 @@ void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
-    std::string fpsArg("");
-    fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+        .to_bytes(*argSets.begin());
     std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
     if (args.find(fpsArg) != args.end()) {
         DumpFps(dumpString, fpsArg);
@@ -428,8 +428,8 @@ void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& ar
         return ;
     }
     RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
-    std::string fpsArg("");
-    fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+        .to_bytes(*argSets.begin());
     std::unordered_set<std::string> args{"DisplayNode", "composer"};
     if (args.find(fpsArg) != args.end()) {
         ClearFps(dumpString, fpsArg);
