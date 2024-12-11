@@ -38,6 +38,8 @@ public:
     void GetFontDescSharedPtrByFullName(const std::string& fullName,
         const int32_t& systemFontType, FontDescSharedPtr& result);
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
+    void cacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface);
+    void deleteDynamicTypefaceFromCache(std::shared_ptr<Drawing::Typeface> typeface);
 
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
@@ -47,6 +49,7 @@ private:
     std::unordered_set<std::string> GetInstallFontList();
     std::unordered_set<std::string> GetStylishFontList();
     std::unordered_set<std::string> GetGenericFontList();
+    std::unordered_set<std::string> GetDynamicFontList();
     bool HandleMapIntersection(std::set<FontDescSharedPtr>& finishRet, const std::string& name,
         std::unordered_map<std::string, std::set<FontDescSharedPtr>>& map);
     bool FilterBoldCache(int weight, std::set<FontDescSharedPtr>& finishRet);
@@ -74,6 +77,8 @@ private:
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> fullNameMap_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> postScriptNameMap_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> fontSubfamilyNameMap_;
+    // cache dynamic ttf, key is fullName
+    std::unordered_map<std::string, FontDescSharedPtr> dynamicFullNameMap_;
     std::set<FontDescSharedPtr> boldCache_;
     std::set<FontDescSharedPtr> italicCache_;
     std::set<FontDescSharedPtr> monoSpaceCache_;

@@ -148,6 +148,7 @@ static const std::vector<struct JsEnumInt> g_systemFontType = {
     { "GENERIC", static_cast<size_t>(TextEngine::FontParser::SystemFontType::GENERIC) },
     { "STYLISH", static_cast<size_t>(TextEngine::FontParser::SystemFontType::STYLISH) },
     { "INSTALLED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::INSTALLED) },
+    { "CUSTOMIZED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::CUSTOMIZED) },
 };
 
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {

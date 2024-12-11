@@ -65,3 +65,21 @@ void FontDescriptorMgr::GetSystemFontFullNamesByType(
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
 }
 } // namespace OHOS::Rosen
+
+void cacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface)
+{
+    if (typeface == nullptr) {
+        return;
+    }
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.cacheDynamicTypeface(typeface);
+}
+
+void deleteDynamicTypefaceFromCache(std::shared_ptr<Drawing::Typeface> typeface)
+{
+    if (typeface == nullptr) {
+        return;
+    }
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.deleteDynamicTypefaceFromCache(typeface);
+}
