@@ -18,7 +18,9 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#ifdef ROSEN_OHOS
 #include "tool_napi/js_tool.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -198,6 +200,7 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
 
 napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
 {
+#ifdef ROSEN_OHOS
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_ONE);
@@ -248,6 +251,9 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     };
     napi_define_properties(env, jsObj, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return jsObj;
+#else
+    return nullptr;
+#endif
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

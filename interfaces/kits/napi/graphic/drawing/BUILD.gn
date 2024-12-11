@@ -126,7 +126,6 @@ if (is_arkui_x) {
       "shader_effect_napi/js_shader_effect.cpp",
       "shadow_layer_napi/js_shadow_layer.cpp",
       "text_blob_napi/js_text_blob.cpp",
-      "tool_napi/js_tool.cpp",
     ]
     defines = []
     configs = [ ":local_drawing_config" ]
@@ -137,11 +136,7 @@ if (is_arkui_x) {
       "../../../../../rosen/modules/render_service_base:librender_service_base",
     ]
 
-    external_deps = [
-      "ability_runtime:abilitykit_native",
-      "ability_runtime:app_context",
-      "napi:ace_napi",
-    ]
+    external_deps = [ "napi:ace_napi" ]
 
     if (current_os == "ohos" || current_os == "ohos_ng") {
       sanitize = {
@@ -149,7 +144,10 @@ if (is_arkui_x) {
         integer_overflow = true
         ubsan = true
       }
+      sources += [ "tool_napi/js_tool.cpp" ]
       external_deps += [
+        "ability_runtime:abilitykit_native",
+        "ability_runtime:app_context",
         "hilog:libhilog",
         "image_framework:image_native",
         "init:libbegetutil",
@@ -163,15 +161,6 @@ if (is_arkui_x) {
         "-std=c++17",
       ]
     } else {
-      if (current_os == "win" || current_os == "mingw") {
-        external_deps += [ "resource_management:win_resmgr" ]
-      }
-      if (current_os == "mac") {
-        external_deps += [ "resource_management:mac_resmgr" ]
-      }
-      if (current_os == "linux") {
-        external_deps += [ "resource_management:linux_resmgr" ]
-      }
       defines += [ "MODULE_DRAWING" ]
       cflags_cc = [ "-std=c++17" ]
     }
