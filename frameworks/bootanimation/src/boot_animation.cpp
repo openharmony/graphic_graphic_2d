@@ -154,7 +154,7 @@ void BootAnimation::Run(Rosen::ScreenId id, int screenWidth, int screenHeight)
     LOGI("Run enter");
     animationConfig_.ParserCustomCfgFile();
     Rosen::RSInterfaces& interface = Rosen::RSInterfaces::GetInstance();
-    if (animationConfig_.GetRotateScreenId() >= 0) {
+    if (animationConfig_.GetRotateScreenId() >= 0 && interface.GetActiveScreenId() != OHOS::Rosen::INVALID_SCREEN_ID) {
         id = interface.GetActiveScreenId();
         LOGI("GetActiveScreenId: " BPUBU64 "", id);
         Rosen::RSScreenModeInfo modeinfo = interface.GetScreenActiveMode(id);
