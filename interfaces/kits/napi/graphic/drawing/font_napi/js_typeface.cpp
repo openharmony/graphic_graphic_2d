@@ -209,7 +209,7 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
         || !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer),
         &(rawFileArrayBufferSize), resourceInfo)) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFile fail to get RawFile buffer");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
     auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()),
@@ -218,7 +218,7 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream));
     if (rawTypeface == nullptr) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFile create rawTypeface failed!");
-        return nullptr;
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     auto typeface = new JsTypeface(rawTypeface);
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
