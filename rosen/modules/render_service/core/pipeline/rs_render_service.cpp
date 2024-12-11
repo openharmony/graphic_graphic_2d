@@ -44,6 +44,8 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
 
+#include "gfx_info/rs_surface_fps_manager.h"
+
 #include "text/font_mgr.h"
 
 #ifdef TP_FEATURE_ENABLE
@@ -402,17 +404,8 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& fpsArg) cons
 void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
 {
     dumpString += "\n-- The recently fps records info of screens:\n";
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode == nullptr) {
-            return ;
-        }
-        if (surfaceNode->GetName() != fpsArg || !surfaceNode->IsOnTheTree()) {
-            return ;
-        }
-        dumpString += "\n surface [" + fpsArg + "]:\n";
-        surfaceNode->Dump(dumpString);
-    });
+    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.Dump(dumpString, fpsArg);
 }
 
 void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
@@ -459,17 +452,8 @@ void RSRenderService::ClearFps(std::string& dumpString, std::string& fpsArg) con
 void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
 {
     dumpString += "\n-- Clear fps records info of screens:\n";
-    const auto& nodeMap = mainThread_->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode == nullptr) {
-            return ;
-        }
-        if (surfaceNode->GetName() != fpsArg || !surfaceNode->IsOnTheTree()) {
-            return ;
-        }
-        dumpString += "\n The fps info of surface [" + fpsArg + "] is cleared.\n";
-        surfaceNode->ClearDump(dumpString);
-    });
+    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager->ClearDump(fpsArg);
 }
 
 void RSRenderService::DumpRSEvenParam(std::string& dumpString) const

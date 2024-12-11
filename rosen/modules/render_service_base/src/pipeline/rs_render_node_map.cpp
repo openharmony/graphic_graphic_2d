@@ -21,6 +21,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "gfx_info.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -166,6 +167,7 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
+        RSSurfaceFpsManager::GetInstance().Register(id, surfaceNode->GetName());
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
@@ -201,6 +203,7 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     if (it != surfaceNodeMap_.end()) {
         RemoveUIExtensionSurfaceNode(it->second);
         surfaceNodeMap_.erase(id);
+        RSSurfaceFpsManager::GetInstance().Unregister(id);
     }
     residentSurfaceNodeMap_.erase(id);
     displayNodeMap_.erase(id);
@@ -221,6 +224,9 @@ void RSRenderNodeMap::MoveRenderNodeMap(
         for (auto subIter = subMap.begin(); subIter != subMap.end();) {
             subIter->second->RemoveFromTree(false);
             subRenderNodeMap->emplace(subIter->first, subIter->second);
+            if (subIter->second->GetType() == RSRenderNodeType::SURFACE_NODE) {
+                RSSurfaceFpsManager::GetInstance().Unregister(subIter->first);
+            }
             subIter = subMap.erase(subIter);
         }
         renderNodeMap_.erase(iter);
@@ -258,6 +264,7 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid)
     EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
         if (shouldErase) {
+            RSSurfaceFpsManager::GetInstance().Unregister(pair.first);
             RemoveUIExtensionSurfaceNode(pair.second);
         }
         if (shouldErase && pair.second && useBatchRemoving) {

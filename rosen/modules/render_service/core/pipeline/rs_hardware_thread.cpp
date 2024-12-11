@@ -40,6 +40,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "gfx_info/rs_surface_fps_manager.h"
 
 #ifdef RS_ENABLE_EGLIMAGE
 #include "src/gpu/gl/GrGLDefines.h"
@@ -294,12 +295,8 @@ void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
                 continue;
             }
             uint64_t id = layer->GetNodeId();
-            const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-            const auto& surfaceNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(id);
-            if (surfaceNode == nullptr) {
-                continue;
-            }
-            surfaceNode->RecordPresentTime(currentTime, layer->GetBuffer()->GetSeqNum());
+            const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+            surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
     }
 }
 
