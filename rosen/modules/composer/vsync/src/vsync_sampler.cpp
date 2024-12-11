@@ -77,25 +77,9 @@ void VSyncSampler::ResetErrorLocked()
     }
 }
 
-void VSyncSampler::SetVsyncSamplerEnabled(bool enabled)
-{
-    RS_TRACE_NAME_FMT("HdiOutput::SetVsyncSamplerEnabled, enableVsyncSample_:%d", enabled);
-    VLOGI("Change enableVsyncSample_, value is %{public}d", enabled);
-    enableVsyncSample_.store(enabled);
-}
-
-bool VSyncSampler::GetVsyncSamplerEnabled()
-{
-    return enableVsyncSample_.load();
-}
-
 int32_t VSyncSampler::StartSample(bool forceReSample)
 {
-    RS_TRACE_NAME_FMT("HdiOutput::StartVsyncSampler, forcewReSample:%d", forceReSample);
-    if (!enableVsyncSample_.load()) {
-        RS_TRACE_NAME_FMT("disabled vsyncSample");
-        return VSYNC_ERROR_API_FAILED;
-    }
+    RS_TRACE_NAME_FMT("HdiOutput::StartVSyncSampler, forceReSample:%d", forceReSample);
     bool alreadyStartSample = GetHardwareVSyncStatus();
     if (!forceReSample && alreadyStartSample) {
         VLOGD("Already Start Sample.");

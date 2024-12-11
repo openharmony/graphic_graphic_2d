@@ -483,7 +483,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(timestamp);
+        startSample = sampler_->AddPresentFenceTime(timestamp);
         RecordCompositionTime(timestamp);
         bool presentTimeUpdated = false;
         LayerPtr uniRenderLayer = nullptr;
@@ -513,22 +513,6 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         historicalPresentfences_.push_back(fbFence);
     }
     return ret;
-}
-
-void HdiOutput::SetVsyncSamplerEnabled(bool enabled)
-{
-    if (sampler_ == nullptr) {
-        sampler_ = CreateVSyncSampler();
-    }
-    sampler_->SetVsyncSamplerEnabled(enabled);
-}
-
-bool HdiOutput::GetVsyncSamplerEnabled()
-{
-    if (sampler_ == nullptr) {
-        sampler_ = CreateVSyncSampler();
-    }
-    return sampler_->GetVsyncSamplerEnabled();
 }
 
 int32_t HdiOutput::ReleaseFramebuffer(const sptr<SyncFence>& releaseFence)
