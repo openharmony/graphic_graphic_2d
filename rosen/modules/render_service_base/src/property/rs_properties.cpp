@@ -72,6 +72,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     nullptr,                                                             // BOUNDS
     nullptr,                                                             // FRAME
     [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
+    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
     [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
     [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
@@ -559,6 +560,19 @@ void RSProperties::SetPositionZ(float positionZ)
 float RSProperties::GetPositionZ() const
 {
     return boundsGeo_->GetZ();
+}
+
+void RSProperties::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    boundsGeo_->SetZApplicableCamera3D(isApplicable);
+    frameGeo_.SetZApplicableCamera3D(isApplicable);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+bool RSProperties::GetPositionZApplicableCamera3D() const
+{
+    return boundsGeo_->GetZApplicableCamera3D();
 }
 
 void RSProperties::SetPivot(Vector2f pivot)
