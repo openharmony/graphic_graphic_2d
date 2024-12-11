@@ -140,7 +140,6 @@ if (is_arkui_x) {
     external_deps = [
       "ability_runtime:abilitykit_native",
       "ability_runtime:app_context",
-      "hilog:libhilog",
       "napi:ace_napi",
       "resource_management:global_resmgr",
     ]
