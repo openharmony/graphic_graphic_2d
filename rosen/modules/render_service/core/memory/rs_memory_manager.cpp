@@ -19,6 +19,7 @@
 #include <malloc.h>
 #include <sstream>
 #include <string>
+#include <sys/prctl.h>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 #include "third_party/cJSON/cJSON.h"
@@ -28,6 +29,7 @@
 #include "skia_adapter/skia_graphics.h"
 #include "memory/rs_memory_graphic.h"
 #include "include/gpu/GrDirectContext.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 
 #include "common/rs_background_thread.h"
@@ -52,6 +54,16 @@
 #include "res_sched_client.h"
 #include "res_sched_kill_reason.h"
 #endif
+static inline const char* GetThreadName()
+{
+    static constexpr int nameLen = 16;
+    static thread_local char threadName[nameLen + 1] = "";
+    if (threadName[0] == 0) {
+        prctl(PR_GET_NAME, threadName);
+        threadName[nameLen] = 0;
+    }
+    return threadName;
+}
 
 namespace OHOS::Rosen {
 namespace {
@@ -482,6 +494,18 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
         log.AppendFormat("%s", statSubStr.c_str());
     }
     log.AppendFormat("\ndumpGpuStats end\n---------------\n");
+#if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_RECORD_VKIMAGE)
+    if (ParallelDebug::IsVkImageDfxEnabled()) {
+        static thread_local int tid = gettid();
+        log.AppendFormat("\n------------------\n[%s:%d] dumpAllResource:\n", GetThreadName(), tid);
+        std::stringstream allResources;
+        gpuContext->DumpAllResource(allResources);
+        std::string s;
+        while (std::getline(allResources, s, '\n')) {
+            log.AppendFormat("%s\n", s.c_str());
+        }
+    }
+#endif
 }
 
 void MemoryManager::DumpMallocStat(std::string& log)

@@ -27,6 +27,7 @@
 #include "pipeline/sk_resource_manager.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "platform/common/rs_log.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
@@ -91,6 +92,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         ResetSurface();
         params->SetCanvasDrawingSurfaceChanged(false);
     }
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     if (!canvas.GetRecordingState()) {
@@ -445,6 +447,7 @@ void RSCanvasDrawingRenderNodeDrawable::ProcessCPURenderInBackgroundThread(std::
         if (!cmds || cmds->IsEmpty() || !surface || !ctx || !drawable) {
             return;
         }
+        RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
         auto canvasDrawingDrawable = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawable);
         if (surface != canvasDrawingDrawable->surface_) {
             return;
@@ -520,6 +523,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
         return bitmap;
     }
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     auto image = std::make_shared<Drawing::Image>();
@@ -563,6 +567,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetPixelmap(const std::shared_ptr<Media:
     std::shared_ptr<Drawing::Image> image;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::shared_ptr<Drawing::GPUContext> grContext;
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     if (!GetCurrentContextAndImage(grContext, image, tid)) {
         RS_LOGE("RSCanvasDrawingRenderNodeDrawable::GetPixelmap: GetCurrentContextAndImage failed");
         return false;

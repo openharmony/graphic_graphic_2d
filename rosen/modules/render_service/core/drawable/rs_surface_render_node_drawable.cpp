@@ -24,6 +24,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "draw/brush.h"
 #include "drawable/rs_display_render_node_drawable.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
@@ -365,7 +366,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (vmaCacheOff_) {
         Drawing::StaticFactory::SetVmaCacheStatus(false); // render this frame with vma cache off
     }
-
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     auto rscanvas = reinterpret_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rscanvas) {
         SetDrawSkipType(DrawSkipType::CANVAS_NULL);
