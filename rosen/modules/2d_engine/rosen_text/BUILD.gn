@@ -70,7 +70,11 @@ ohos_source_set("rosen_text_skia") {
     "$rosen_root/modules/2d_engine/rosen_text/skia_txt/txt/src",
   ]
 
-  public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+  if (!is_arkui_x) {
+    public_external_deps = [ "bounds_checking_function:libsec_shared" ]
+  } else {
+    include_dirs += [ "//third_party/bounds_checking_function/include" ]
+  }
 
   defines += [
     "USE_GRAPHIC_TEXT_GINE",
