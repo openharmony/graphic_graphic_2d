@@ -36,58 +36,41 @@ public:
     HMSymbolRun(uint64_t symbolId,
         const HMSymbolTxt& symbolTxt,
         const std::shared_ptr<RSTextBlob>& textBlob,
-        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc)
-    {
-        symbolId_ = symbolId;
-        symbolTxt_ = symbolTxt;
-        textBlob_  = textBlob;
-        animationFunc_ = animationFunc;
-    }
+        std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)>& animationFunc);
 
     static RSSymbolLayers GetSymbolLayers(uint16_t glyphId, const HMSymbolTxt& symbolText);
 
     static void SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMode,
         const std::vector<RSSColor>& colors, RSSymbolLayers& symbolInfo);
 
-    static bool GetAnimationGroups(uint16_t glyphid, const RSEffectStrategy effectStrategy,
+    static bool GetAnimationGroups(uint16_t glyphId, const RSEffectStrategy effectStrategy,
         RSAnimationSetting& animationOut);
 
-    bool SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphid, const std::pair<float, float>& offset);
+    bool SymbolAnimation(const RSHMSymbolData& symbol, uint16_t glyphId, const std::pair<float, float>& offset);
 
     void ClearSymbolAnimation(const RSHMSymbolData& symbol, const std::pair<float, float>& offset);
 
     void DrawSymbol(RSCanvas* canvas, const RSPoint& offset);
 
-    void SetAnimationRenderColor(const std::vector<RSSColor>& colorList)
-    {
-        symbolTxt_.SetRenderColor(colorList);
-    }
+    void SetRenderColor(const std::vector<RSSColor>& colorList);
 
-    void SetRenderMode(RSSymbolRenderingStrategy renderMode)
-    {
-        symbolTxt_.SetRenderMode(renderMode);
-    }
+    void SetRenderMode(RSSymbolRenderingStrategy renderMode);
 
-    void SetAnimationStart(const bool animationStart)
-    {
-        symbolTxt_.SetAnimationStart(animationStart);
-    }
+    void SetSymbolEffect(const RSEffectStrategy& effectStrategy);
+
+    void SetAnimationMode(uint16_t animationMode);
+
+    void SetAnimationStart(bool animationStart);
+
+    void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType);
 
     void SetTextBlob(const std::shared_ptr<RSTextBlob>& textBlob);
 
     void SetAnimation(
         const std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>&
-        animationFunc)
-    {
-        if (animationFunc) {
-            animationFunc_ = animationFunc;
-        }
-    }
+        animationFunc);
 
-    void SetSymbolId(const uint64_t& symbolId)
-    {
-        symbolId_ = symbolId;
-    }
+    void SetSymbolId(uint64_t symbolId);
 
 private:
     void OnDrawSymbol(RSCanvas* canvas, const RSHMSymbolData& symbolData, RSPoint locate);
@@ -95,9 +78,9 @@ private:
     HMSymbolTxt symbolTxt_;
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
-    std::shared_ptr<RSTextBlob> textBlob_;
+    std::shared_ptr<RSTextBlob> textBlob_ = nullptr;
     uint64_t symbolId_ = 0;
-    bool animationReset_ = true;
+    bool currentAnimationHasPlayed_ = false;
 };
 }
 }
