@@ -22,7 +22,7 @@
 #include "include/core/SkSurface.h"
 #include "include/gpu/GrDirectContext.h"
 #ifdef RS_ENABLE_VK
-#include"include/gpu/vk/GrVkBackendContext.h"
+#include "include/gpu/vk/GrVkBackendContext.h"
 #endif
 #include "pipeline/parallel_render/rs_render_task.h"
 #include "render_context/render_context.h"
