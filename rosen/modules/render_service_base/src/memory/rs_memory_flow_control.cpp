@@ -53,15 +53,6 @@ bool MemoryFlowControl::AddAshmemStatistic(pid_t callingPid, uint32_t bufferSize
     return true;
 }
 
-bool MemoryFlowControl::AddAshmemStatistic(std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
-{
-    if (ashmemFlowControlUnit == nullptr || ashmemFlowControlUnit->inProgress) {
-        return true;
-    }
-    ashmemFlowControlUnit->inProgress = true;
-    return AddAshmemStatistic(ashmemFlowControlUnit->callingPid, ashmemFlowControlUnit->bufferSize);
-}
-
 void MemoryFlowControl::RemoveAshmemStatistic(pid_t callingPid, uint32_t bufferSize)
 {
     if (callingPid == 0) {
@@ -83,13 +74,25 @@ void MemoryFlowControl::RemoveAshmemStatistic(pid_t callingPid, uint32_t bufferS
     it->second -= bufferSize;
 }
 
-void MemoryFlowControl::RemoveAshmemStatistic(std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
+std::shared_ptr<AshmemFlowControlUnit> AshmemFlowControlUnit::CheckOverflowAndCreateInstance(pid_t pid, uint32_t size)
 {
-    if (ashmemFlowControlUnit == nullptr || !ashmemFlowControlUnit->inProgress) {
+    bool success = MemoryFlowControl::Instance().AddAshmemStatistic(pid, size);
+    if (!success) {
+        return nullptr;
+    }
+    auto instance = std::make_shared<AshmemFlowControlUnit>(pid, size);
+    instance->needStatistic_ = true;
+    return instance;
+}
+
+AshmemFlowControlUnit::AshmemFlowControlUnit(pid_t pid, uint32_t size) : callingPid_(pid), bufferSize_(size) {}
+
+AshmemFlowControlUnit::~AshmemFlowControlUnit()
+{
+    if (!needStatistic_) {
         return;
     }
-    ashmemFlowControlUnit->inProgress = false;
-    RemoveAshmemStatistic(ashmemFlowControlUnit->callingPid, ashmemFlowControlUnit->bufferSize);
+    MemoryFlowControl::Instance().RemoveAshmemStatistic(callingPid_, bufferSize_);
 }
 } // namespace Rosen
 } // namespace OHOS

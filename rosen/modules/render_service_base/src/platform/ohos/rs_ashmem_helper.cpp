@@ -257,23 +257,18 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
 }
 
 std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParcel* ashmemParcel,
-    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
+    std::shared_ptr<AshmemFlowControlUnit> &ashmemFlowControlUnit, pid_t callingPid)
 {
     uint32_t dataSize = ashmemParcel->ReadUint32();
     RS_TRACE_NAME("ParseFromAshmemParcel data size:" + std::to_string(dataSize));
-    if (ashmemFlowControlUnit != nullptr) {
-        ashmemFlowControlUnit->bufferSize = dataSize;
-        // ParseFromAshmemParcel flow control begin
-        bool success = MemoryFlowControl::Instance().AddAshmemStatistic(ashmemFlowControlUnit);
-        if (!success) {
-            // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
-            pid_t callingPid = ashmemFlowControlUnit->callingPid;
-            RS_TRACE_NAME_FMT("RSAshmemHelper::ParseFromAshmemParcel callingPid %d is submitting too many data, "
-                "discard parcel with bufferSize %" PRIu32, static_cast<int>(callingPid), dataSize);
-            ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel callingPid %{public}d is submitting too many data, "
-                "discard parcel with bufferSize %{public}" PRIu32, static_cast<int>(callingPid), dataSize);
-            return nullptr;
-        }
+    ashmemFlowControlUnit = AshmemFlowControlUnit::CheckOverflowAndCreateInstance(callingPid, dataSize);
+    if (ashmemFlowControlUnit == nullptr) {
+        // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
+        RS_TRACE_NAME_FMT("RSAshmemHelper::ParseFromAshmemParcel callingPid %d is submitting too many data, "
+            "discard parcel with bufferSize %" PRIu32, static_cast<int>(callingPid), dataSize);
+        ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel callingPid %{public}d is submitting too many data, "
+            "discard parcel with bufferSize %{public}" PRIu32, static_cast<int>(callingPid), dataSize);
+        return nullptr;
     }
 
     int fd = ashmemParcel->ReadFileDescriptor();

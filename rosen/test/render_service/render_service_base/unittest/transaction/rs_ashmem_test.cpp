@@ -267,7 +267,8 @@ HWTEST_F(RSAshmemTest, CreateAshmemParcel001, Function | MediumTest | Level2)
 HWTEST_F(RSAshmemTest, ParseFromAshmemParcel001, Function | MediumTest | Level2)
 {
     MessageParcel ashmemParcel;
-    ASSERT_TRUE(RSAshmemHelper::ParseFromAshmemParcel(&ashmemParcel) == nullptr);
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+    ASSERT_TRUE(RSAshmemHelper::ParseFromAshmemParcel(&ashmemParcel, ashmemFlowControlUnit) == nullptr);
     ashmemParcel.WriteInt32(0);
     ashmemParcel.WriteBool(true);   
     size_t size = 1024;
@@ -276,6 +277,6 @@ HWTEST_F(RSAshmemTest, ParseFromAshmemParcel001, Function | MediumTest | Level2)
     std::cout << fd << std::endl;
     ASSERT_TRUE(fd > 0);
     ASSERT_TRUE(ashmemParcel.WriteFileDescriptor(fd));
-    ASSERT_TRUE(RSAshmemHelper::ParseFromAshmemParcel(&ashmemParcel) == nullptr);
+    ASSERT_TRUE(RSAshmemHelper::ParseFromAshmemParcel(&ashmemParcel, ashmemFlowControlUnit) == nullptr);
 }
 } // namespace OHOS::Rosen

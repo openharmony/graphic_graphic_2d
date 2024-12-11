@@ -369,7 +369,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
             std::shared_ptr<MessageParcel> parsedParcel;
-            auto ashmemFlowControlUnit = std::make_shared<AshmemFlowControlUnit>(callingPid);
+            std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
             if (data.ReadInt32() == 0) { // indicate normal parcel
                 if (isUniRender) {
                     // in uni render mode, if parcel size over threshold,
@@ -393,12 +393,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             } else {
                 // indicate ashmem parcel
                 // should be parsed to normal parcel before Unmarshalling
-                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFlowControlUnit);
+                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFlowControlUnit, callingPid);
             }
             if (parsedParcel == nullptr) {
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed: parsed parcel is nullptr");
-                // ParseFromAshmemParcel flow control end
-                MemoryFlowControl::Instance().RemoveAshmemStatistic(ashmemFlowControlUnit);
                 return ERR_INVALID_DATA;
             }
             if (isUniRender) {
@@ -415,8 +413,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     }
                 }
                 CommitTransaction(transactionData);
-                // ParseFromAshmemParcel flow control end
-                MemoryFlowControl::Instance().RemoveAshmemStatistic(ashmemFlowControlUnit);
             }
             break;
         }

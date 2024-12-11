@@ -96,7 +96,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
 }
 
 std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParcel* ashmemParcel,
-    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
+    std::shared_ptr<AshmemFlowControlUnit> &ashmemFlowControlUnit, pid_t callingPid)
 {
     return {};
 }

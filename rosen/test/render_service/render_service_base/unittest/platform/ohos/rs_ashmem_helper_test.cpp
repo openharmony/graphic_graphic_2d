@@ -312,7 +312,8 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelTest, TestSize.Level1)
 {
     RSAshmemHelper rsAshmemHelper;
     MessageParcel ashmemParcel;
-    EXPECT_EQ(rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel), nullptr);
+    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
+    EXPECT_EQ(rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFlowControlUnit), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

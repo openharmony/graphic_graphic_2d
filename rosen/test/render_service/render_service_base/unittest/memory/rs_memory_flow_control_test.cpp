@@ -59,27 +59,6 @@ HWTEST_F(RSMemoryFlowControlTest, AddAshmemStatisticTest001, testing::ext::TestS
 }
 
 /**
- * @tc.name: AddAshmemStatisticTest002
- * @tc.desc: test MemoryFlowControl functions
- * @tc.type: FUNC
- * @tc.require: issue#IB97OM
- */
-HWTEST_F(RSMemoryFlowControlTest, AddAshmemStatisticTest002, testing::ext::TestSize.Level1)
-{
-    MemoryFlowControl& instance = MemoryFlowControl::Instance();
-    pid_t callingPid = 1;
-    const uint32_t ashmemFlowControlThreshold = MemoryFlowControl::GetAshmemFlowControlThreshold();
-    EXPECT_TRUE(ashmemFlowControlThreshold >= 12u);
-    uint32_t bufferSize = ashmemFlowControlThreshold / 4u;
-    auto ashmemFlowControlUnit = std::make_shared<AshmemFlowControlUnit>(callingPid, bufferSize);
-    EXPECT_TRUE(instance.AddAshmemStatistic(ashmemFlowControlUnit));
-    ashmemFlowControlUnit->bufferSize = ashmemFlowControlThreshold / 3u;
-    EXPECT_TRUE(instance.AddAshmemStatistic(ashmemFlowControlUnit));
-    ashmemFlowControlUnit = nullptr;
-    EXPECT_TRUE(instance.AddAshmemStatistic(ashmemFlowControlUnit));
-}
-
-/**
  * @tc.name: RemoveAshmemStatisticTest001
  * @tc.desc: test MemoryFlowControl functions
  * @tc.type: FUNC
@@ -106,24 +85,30 @@ HWTEST_F(RSMemoryFlowControlTest, RemoveAshmemStatisticTest001, testing::ext::Te
 }
 
 /**
- * @tc.name: RemoveAshmemStatisticTest002
- * @tc.desc: test MemoryFlowControl functions
+ * @tc.name: CheckOverflowAndCreateInstanceTest001
+ * @tc.desc: test AshmemFlowControlUnit functions
  * @tc.type: FUNC
- * @tc.require: issue#IB97OM
+ * @tc.require: issue#IBABHE
  */
-HWTEST_F(RSMemoryFlowControlTest, RemoveAshmemStatisticTest002, testing::ext::TestSize.Level1)
+HWTEST_F(RSMemoryFlowControlTest, CheckOverflowAndCreateInstanceTest001, testing::ext::TestSize.Level1)
 {
-    MemoryFlowControl& instance = MemoryFlowControl::Instance();
+    pid_t callingPid = 0;
+    uint32_t bufferSize = 0;
+    auto ashmemFlowControlUnit = AshmemFlowControlUnit::CheckOverflowAndCreateInstance(callingPid, bufferSize);
+    EXPECT_TRUE(ashmemFlowControlUnit);
+}
+
+/**
+ * @tc.name: CheckOverflowAndCreateInstanceTest002
+ * @tc.desc: test AshmemFlowControlUnit functions
+ * @tc.type: FUNC
+ * @tc.require: issue#IBABHE
+ */
+HWTEST_F(RSMemoryFlowControlTest, CheckOverflowAndCreateInstanceTest002, testing::ext::TestSize.Level1)
+{
     pid_t callingPid = 1;
-    const uint32_t ashmemFlowControlThreshold = MemoryFlowControl::GetAshmemFlowControlThreshold();
-    EXPECT_TRUE(ashmemFlowControlThreshold >= 12u);
-    uint32_t bufferSize = ashmemFlowControlThreshold / 4u;
-    auto ashmemFlowControlUnit = std::make_shared<AshmemFlowControlUnit>(callingPid, bufferSize);
-    EXPECT_TRUE(instance.AddAshmemStatistic(ashmemFlowControlUnit));
-    instance.RemoveAshmemStatistic(ashmemFlowControlUnit);
-    ashmemFlowControlUnit->bufferSize = ashmemFlowControlThreshold / 3u;
-    instance.RemoveAshmemStatistic(ashmemFlowControlUnit);
-    ashmemFlowControlUnit = nullptr;
-    instance.RemoveAshmemStatistic(ashmemFlowControlUnit);
+    uint32_t bufferSize = std::numeric_limits<uint32_t>::max();
+    auto ashmemFlowControlUnit = AshmemFlowControlUnit::CheckOverflowAndCreateInstance(callingPid, bufferSize);
+    EXPECT_FALSE(ashmemFlowControlUnit);
 }
 } // namespace OHOS::Rosen
