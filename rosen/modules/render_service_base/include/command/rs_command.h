@@ -133,6 +133,10 @@ public:
 
     virtual bool CheckHeader(Parcel& parcel) const = 0;
     virtual bool ReadFromParcel(Parcel& parcel) = 0;
+    virtual bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
+    {
+        return true;
+    }
 
     inline uint64_t GetTimeout() const
     {
