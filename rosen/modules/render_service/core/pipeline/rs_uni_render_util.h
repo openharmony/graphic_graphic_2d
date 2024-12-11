@@ -92,7 +92,7 @@ public:
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
-    static bool Is3DRotation(Drawing::Matrix matrix);
+    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,

@@ -477,33 +477,33 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest 
 }
 
 /*
- * @tc.name: Is3DRotation_001
- * @tc.desc: test Is3DRotation with ScaleX and ScaleY have same sign
+ * @tc.name: HasNonZRotationTransform_001
+ * @tc.desc: test HasNonZRotationTransform with ScaleX and ScaleY have same sign
  * @tc.type: FUNC
  * @tc.require: #IANH95
  */
-HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, HasNonZRotationTransform_001, Function | SmallTest | Level2)
 {
-    bool is3DRotation;
+    bool hasNonZRotationTransform;
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_FALSE(is3DRotation);
+    hasNonZRotationTransform = RSUniRenderUtil::HasNonZRotationTransform(matrix);
+    ASSERT_FALSE(hasNonZRotationTransform);
 }
 
 /*
- * @tc.name: Is3DRotation_002
+ * @tc.name: HasNonZRotationTransform_002
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, HasNonZRotationTransform_002, Function | SmallTest | Level2)
 {
-    bool is3DRotation;
+    bool hasNonZRotationTransform;
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
-    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_FALSE(is3DRotation);
+    hasNonZRotationTransform = RSUniRenderUtil::HasNonZRotationTransform(matrix);
+    ASSERT_FALSE(hasNonZRotationTransform);
 }
 
 /*
