@@ -601,7 +601,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
     if (lowBrightMap.empty()) {
         return;
     }
-    if (auto iter = lowBrightMap.find("LTPO"); iter != lowBrightMap.end() &&
+    if (auto iter = lowBrightMap.find(SUPPORTED_MODE_LTPO); iter != lowBrightMap.end() &&
         !iter->second.empty()) {
         isAmbientEffect_ = true;
         lowBrightVec_ = iter->second;
