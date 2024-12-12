@@ -78,7 +78,7 @@ bool JsTool::GetResourceInfo(napi_env env, napi_value value, ResourceInfo& info)
     }
     napi_get_value_int32(env, typeNApi, &info.type);
 
-    return GetResourceInfoParams(env, info, paramsNApi, bundleNameNApi, moduleNameNApi);
+    return GetResourceInfoParams(env, info, paramsNApi);
 }
 
 bool JsTool::GetResourceInfoParams(napi_env env, ResourceInfo& info, napi_value paramsNApi)
