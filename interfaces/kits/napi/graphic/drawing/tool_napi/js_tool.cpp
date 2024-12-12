@@ -72,7 +72,7 @@ bool JsTool::GetResourceInfo(napi_env env, napi_value value, ResourceInfo& info)
     napi_get_value_int32(env, idNApi, &info.resId);
 
     napi_typeof(env, typeNApi, &valueType);
-    if (valueType == napi_number) {
+    if (valueType != napi_number) {
         ROSEN_LOGE("JsTool::GetResourceInfo type is not number!");
         return false;
     }
