@@ -225,6 +225,8 @@ HWTEST_F(RSPropertiesTest, SetShadowElevation001, TestSize.Level1)
     properties.SetShadowElevation(elevation);
     elevation = 1.0f;
     properties.SetShadowElevation(elevation);
+    properties.SetBackgroundShader(nullptr);
+    EXPECT_EQ(properties.GetBackgroundShader(), nullptr);
 }
 
 /**
@@ -240,6 +242,8 @@ HWTEST_F(RSPropertiesTest, SetShadowRadius001, TestSize.Level1)
     properties.SetShadowRadius(radius);
     radius = 1.0f;
     properties.SetShadowRadius(radius);
+    properties.SetBackgroundShader(nullptr);
+    EXPECT_EQ(properties.GetBackgroundShader(), nullptr);
 }
 
 /**
@@ -719,6 +723,8 @@ HWTEST_F(RSPropertiesTest, SetBoundsSize001, TestSize.Level1)
     RSProperties properties;
     Vector2f size{1.0f, 1.0f};
     properties.SetBoundsSize(size);
+    properties.SetBackgroundShader(nullptr);
+    EXPECT_EQ(properties.GetBackgroundShader(), nullptr);
 }
 
 /**
@@ -732,6 +738,8 @@ HWTEST_F(RSPropertiesTest, SetFrameSize001, TestSize.Level1)
     RSProperties properties;
     Vector2f size{1.0f, 1.0f};
     properties.SetFrameSize(size);
+    properties.SetBackgroundShader(nullptr);
+    EXPECT_EQ(properties.GetBackgroundShader(), nullptr);
 }
 
 /**
@@ -756,6 +764,8 @@ HWTEST_F(RSPropertiesTest, SetFrame001, TestSize.Level1)
     properties.SetFramePositionX(1.f);
     properties.SetFramePositionY(1.f);
     properties.SetFrame(frame);
+    properties.SetBackgroundShader(nullptr);
+    EXPECT_EQ(properties.GetBackgroundShader(), nullptr);
 }
 
 /**

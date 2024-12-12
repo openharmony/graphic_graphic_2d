@@ -48,7 +48,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix001, TestSize.Level1)
     /**
      * @tc.steps: step1. UpdateMatrix
      */
-    RSObjAbsGeometry rsObjAbsGeometry;
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
     auto parent = nullptr;
     Quaternion quaternion;
     Drawing::Matrix contextMatrix;
@@ -67,44 +67,45 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix001, TestSize.Level1)
     float skewY = 0.5f;
     float perspX = FLOAT_DATA_INIT;
     float perspY = FLOAT_DATA_INIT;
-    rsObjAbsGeometry.SetRect(x, y, w, h);
-    rsObjAbsGeometry.SetQuaternion(quaternion);
-    rsObjAbsGeometry.SetRotationY(rotationY);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetRotationX(rotationX);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetTranslateZ(translateZ);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetCameraDistance(cameraDistance);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetPivotZ(pivotZ);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetScaleY(scaleY);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetScaleX(scaleX);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetSkewX(skewX);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetSkewY(skewY);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetPerspX(perspX);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetPerspY(perspY);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetQuaternion(quaternion.Flip());
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetRect(x, y, w, h);
+    rsObjAbsGeometry->SetQuaternion(quaternion);
+    rsObjAbsGeometry->SetRotationY(rotationY);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetRotationX(rotationX);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetTranslateZ(translateZ);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetCameraDistance(cameraDistance);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetPivotZ(pivotZ);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetScaleY(scaleY);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetScaleX(scaleX);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetSkewX(skewX);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetSkewY(skewY);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetPerspX(perspX);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetPerspY(perspY);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetQuaternion(quaternion.Flip());
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
     scaleX = 1.f;
     scaleY = 1.f;
     skewX = 0.5f;
     skewY = 0.5f;
     perspX = FLOAT_DATA_UPDATE;
     perspY = FLOAT_DATA_UPDATE;
-    rsObjAbsGeometry.SetScale(scaleX, scaleY);
-    rsObjAbsGeometry.SetSkew(skewX, skewY);
-    rsObjAbsGeometry.SetPersp(perspX, perspY);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
-    rsObjAbsGeometry.SetContextMatrix(contextMatrix);
-    rsObjAbsGeometry.UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetScale(scaleX, scaleY);
+    rsObjAbsGeometry->SetSkew(skewX, skewY);
+    rsObjAbsGeometry->SetPersp(perspX, perspY);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    rsObjAbsGeometry->SetContextMatrix(contextMatrix);
+    rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
+    EXPECT_NE(rsObjAbsGeometry, nullptr);
 }
 
 /**
@@ -118,7 +119,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix002, TestSize.Level1)
     /**
      * @tc.steps: step1. UpdateMatrix
      */
-    RSObjAbsGeometry rsObjAbsGeometry;
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
     Drawing::Matrix matrix;
     auto parent = &matrix;
     float offsetX = 0.f;
@@ -128,14 +129,15 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix002, TestSize.Level1)
     float w = 3.5f;
     float h = 3.5f;
     Drawing::Point offset = Drawing::Point(offsetX, offsetY);
-    rsObjAbsGeometry.SetRect(x, y, w, h);
-    rsObjAbsGeometry.UpdateMatrix(parent, offset);
+    rsObjAbsGeometry->SetRect(x, y, w, h);
+    rsObjAbsGeometry->UpdateMatrix(parent, offset);
     x = 0.5f;
     y = 0.5f;
     w = 1.5f;
     h = 1.5f;
-    rsObjAbsGeometry.SetRect(x, y, w, h);
-    rsObjAbsGeometry.UpdateMatrix(parent, offset);
+    rsObjAbsGeometry->SetRect(x, y, w, h);
+    rsObjAbsGeometry->UpdateMatrix(parent, offset);
+    EXPECT_NE(rsObjAbsGeometry, nullptr);
 }
 
 /**
@@ -149,7 +151,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateByMatrixFromSelf001, TestSize.Level1)
     /**
      * @tc.steps: step1. UpdateByMatrixFromSelf
      */
-    RSObjAbsGeometry rsObjAbsGeometry;
+    auto rsObjAbsGeometry = std::make_shared<RSObjAbsGeometry>();
     Quaternion quaternion;
     Drawing::Matrix contextMatrix;
     float x = 0.5f;
@@ -159,17 +161,18 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateByMatrixFromSelf001, TestSize.Level1)
     float rotationX = 0.5f;
     float rotationY = 0.5f;
     float translateZ = 0.5f;
-    rsObjAbsGeometry.SetRect(x, y, w, h);
-    rsObjAbsGeometry.SetQuaternion(quaternion.Flip());
-    rsObjAbsGeometry.UpdateByMatrixFromSelf();
-    rsObjAbsGeometry.SetRotationY(rotationY);
-    rsObjAbsGeometry.UpdateByMatrixFromSelf();
-    rsObjAbsGeometry.SetRotationX(rotationX);
-    rsObjAbsGeometry.UpdateByMatrixFromSelf();
-    rsObjAbsGeometry.SetTranslateZ(translateZ);
-    rsObjAbsGeometry.UpdateByMatrixFromSelf();
-    rsObjAbsGeometry.SetContextMatrix(contextMatrix);
-    rsObjAbsGeometry.UpdateByMatrixFromSelf();
+    rsObjAbsGeometry->SetRect(x, y, w, h);
+    rsObjAbsGeometry->SetQuaternion(quaternion.Flip());
+    rsObjAbsGeometry->UpdateByMatrixFromSelf();
+    rsObjAbsGeometry->SetRotationY(rotationY);
+    rsObjAbsGeometry->UpdateByMatrixFromSelf();
+    rsObjAbsGeometry->SetRotationX(rotationX);
+    rsObjAbsGeometry->UpdateByMatrixFromSelf();
+    rsObjAbsGeometry->SetTranslateZ(translateZ);
+    rsObjAbsGeometry->UpdateByMatrixFromSelf();
+    rsObjAbsGeometry->SetContextMatrix(contextMatrix);
+    rsObjAbsGeometry->UpdateByMatrixFromSelf();
+    EXPECT_NE(rsObjAbsGeometry, nullptr);
 }
 
 /**

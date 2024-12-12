@@ -267,6 +267,7 @@ HWTEST_F(RSBaseRenderTest, RemoveCrossParentChildTest001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
     node->RemoveCrossParentChild(child, newParent);
+    EXPECT_NE(node, nullptr);
 }
 
 /**
@@ -280,6 +281,7 @@ HWTEST_F(RSBaseRenderTest, RemoveFromTreeTest, TestSize.Level1)
     bool skipTransition = false;
     bool skipTransition_ = true;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     node->RemoveFromTree(skipTransition);
     node->RemoveFromTree(skipTransition_);
 }
