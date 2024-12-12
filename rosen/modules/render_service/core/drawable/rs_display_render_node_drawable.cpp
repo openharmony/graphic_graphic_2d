@@ -694,6 +694,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             uniParam->SetOpDropped(isOpDropped);
         }
+        DrawCurtainScreen();
         processor->PostProcess();
         SetDrawSkipType(DrawSkipType::MIRROR_DRAWABLE_SKIP);
         return;
