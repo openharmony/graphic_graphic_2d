@@ -116,6 +116,7 @@ void RSCanvasParagraphPainter::DrawSymbolSkiaTxt(const std::shared_ptr<RSTextBlo
     } else {
         Drawing::Brush brush;
         brush.SetColor(pr.color);
+        brush.SetAntiAlias(true);
         canvas_->AttachBrush(brush);
         hmSymbolRun.DrawSymbol(canvas_, offset);
         canvas_->DetachBrush();
