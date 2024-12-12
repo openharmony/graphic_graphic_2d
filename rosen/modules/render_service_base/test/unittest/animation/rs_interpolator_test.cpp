@@ -165,8 +165,8 @@ HWTEST_F(RSInterpolatorTest, Interpolate001, TestSize.Level1)
     std::vector<float> values = { 1.0f, 3.0f };
     Parcel parcel;
     parcel.WriteUint64(123125);
-    parcel.WriteFloatVector(times);
-    parcel.WriteFloatVector(values);
+    RSMarshallingHelper::MarshallingVec(parcel, times);
+    RSMarshallingHelper::MarshallingVec(parcel, values);
     std::shared_ptr<RSInterpolator> interpolator(RSCustomInterpolator::Unmarshalling(parcel));
     EXPECT_TRUE(interpolator != nullptr);
     if (interpolator != nullptr) {
