@@ -56,11 +56,13 @@ constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+#ifdef RS_ENABLE_GPU
 static const int INT_INIT_VAL = 0;
 static const int CREAT_NUM_ONE = 1;
 static const int INIT_EGL_VERSION = 3;
 static EGLDisplay g_tmpDisplay = EGL_NO_DISPLAY;
 static EGLContext g_tmpContext = EGL_NO_CONTEXT;
+#endif
 
 uint32_t GenerateTaskId()
 {
@@ -585,6 +587,7 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
     dumpString.append("flush done\n");
 }
 
+#ifdef RS_ENABLE_GPU
 static void InitGLES()
 {
     g_tmpDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -651,6 +654,7 @@ void RSRenderService::DumpGpuInfo(std::string& dumpString) const
     dumpString.append("\n");
     DestroyGLES();
 }
+#endif
 
 #ifdef RS_ENABLE_VK
 void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
@@ -794,9 +798,11 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             }).wait();
         mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     }
+#ifdef RS_ENABLE_GPU
     if (argSets.count(arg23) != 0) {
         mainThread_->ScheduleTask([this, &dumpString]() { DumpGpuInfo(dumpString); }).wait();
     }
+#endif
 #ifdef RS_ENABLE_VK
     if (argSets.count(arg22) != 0) {
         mainThread_->ScheduleTask(
