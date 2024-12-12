@@ -28,8 +28,6 @@ struct ResourceInfo {
     int32_t resId = 0;
     int32_t type = 0;
     std::vector<std::string> params;
-    std::string bundleName;
-    std::string moduleName;
 };
 
 enum class ResourceType {
@@ -40,11 +38,10 @@ class JsTool final {
 public:
     static size_t GetParamLen(napi_env env, napi_value param);
     static std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager();
-    static bool GetResourceType(napi_env env, napi_value value, ResourceInfo& info);
-    static bool GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
-        napi_value bundleNameNApi, napi_value moduleNameNApi);
+    static bool GetResourceInfo(napi_env env, napi_value value, ResourceInfo& info);
+    static bool GetResourceInfoParams(napi_env env, ResourceInfo& info, napi_value paramsNApi);
     static bool GetResourceRawFileDataBuffer(std::unique_ptr<uint8_t[]>&& buffer,
-        size_t* len, ResourceInfo& info);
+        size_t& len, ResourceInfo& info);
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

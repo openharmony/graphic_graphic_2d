@@ -48,43 +48,40 @@ std::shared_ptr<Global::Resource::ResourceManager> JsTool::GetResourceManager()
     return resourceManager;
 }
 
-bool JsTool::GetResourceType(napi_env env, napi_value value, ResourceInfo& info)
+bool JsTool::GetResourceInfo(napi_env env, napi_value value, ResourceInfo& info)
 {
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, value, &valueType);
+    if (valueType != napi_object) {
+        ROSEN_LOGE("JsTool::GetResourceInfo param is not object!");
+        return false;
+    }
+
     napi_value idNApi = nullptr;
     napi_value typeNApi = nullptr;
     napi_value paramsNApi = nullptr;
-    napi_value bundleNameNApi = nullptr;
-    napi_value moduleNameNApi = nullptr;
-    napi_valuetype valueType = napi_undefined;
-    napi_typeof(env, value, &valueType);
-    if (valueType == napi_object) {
-        napi_get_named_property(env, value, "id", &idNApi);
-        napi_get_named_property(env, value, "type", &typeNApi);
-        napi_get_named_property(env, value, "params", &paramsNApi);
-        napi_get_named_property(env, value, "bundleName", &bundleNameNApi);
-        napi_get_named_property(env, value, "moduleName", &moduleNameNApi);
-    } else {
-        return false;
-    }
+    napi_get_named_property(env, value, "id", &idNApi);
+    napi_get_named_property(env, value, "type", &typeNApi);
+    napi_get_named_property(env, value, "params", &paramsNApi);
 
     napi_typeof(env, idNApi, &valueType);
-    if (valueType == napi_number) {
-        napi_get_value_int32(env, idNApi, &info.resId);
+    if (valueType != napi_number) {
+        ROSEN_LOGE("JsTool::GetResourceInfo id is not number!");
+        return false;
     }
+    napi_get_value_int32(env, idNApi, &info.resId);
 
     napi_typeof(env, typeNApi, &valueType);
     if (valueType == napi_number) {
-        napi_get_value_int32(env, typeNApi, &info.type);
-    }
-    if (!GetResourcePartData(env, info, paramsNApi, bundleNameNApi, moduleNameNApi)) {
+        ROSEN_LOGE("JsTool::GetResourceInfo type is not number!");
         return false;
     }
+    napi_get_value_int32(env, typeNApi, &info.type);
 
-    return true;
+    return GetResourceInfoParams(env, info, paramsNApi, bundleNameNApi, moduleNameNApi);
 }
 
-bool JsTool::GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
-    napi_value bundleNameNApi, napi_value moduleNameNApi)
+bool JsTool::GetResourceInfoParams(napi_env env, ResourceInfo& info, napi_value paramsNApi)
 {
     napi_valuetype valueType = napi_undefined;
     bool isArray = false;
@@ -97,6 +94,7 @@ bool JsTool::GetResourcePartData(napi_env env, ResourceInfo& info, napi_value pa
         return false;
     }
 
+    // Here we use 'for' to get all params
     uint32_t arrayLength = 0;
     napi_get_array_length(env, paramsNApi, &arrayLength);
     for (uint32_t i = 0; i < arrayLength; i++) {
@@ -119,53 +117,34 @@ bool JsTool::GetResourcePartData(napi_env env, ResourceInfo& info, napi_value pa
         }
     }
 
-    napi_typeof(env, bundleNameNApi, &valueType);
-    if (valueType == napi_string) {
-        size_t ret = 0;
-        size_t strlen = GetParamLen(env, bundleNameNApi) + 1;
-        std::unique_ptr<char[]> bundleNameStr = std::make_unique<char[]>(strlen);
-        napi_get_value_string_utf8(env, bundleNameNApi, bundleNameStr.get(), strlen, &ret);
-        info.bundleName = bundleNameStr.get();
-    }
-
-    napi_typeof(env, moduleNameNApi, &valueType);
-    if (valueType == napi_string) {
-        size_t ret = 0;
-        size_t strlen = GetParamLen(env, moduleNameNApi) + 1;
-        std::unique_ptr<char[]> moduleNameStr = std::make_unique<char[]>(strlen);
-        napi_get_value_string_utf8(env, moduleNameNApi, moduleNameStr.get(), strlen, &ret);
-        info.moduleName = moduleNameStr.get();
-    }
-
     return true;
 }
 
-bool JsTool::GetResourceRawFileDataBuffer(std::unique_ptr<uint8_t[]>&& buffer, size_t* len, ResourceInfo& info)
+bool JsTool::GetResourceRawFileDataBuffer(std::unique_ptr<uint8_t[]>&& buffer, size_t& len, ResourceInfo& info)
 {
     auto resourceManager = GetResourceManager();
     if (resourceManager == nullptr) {
         ROSEN_LOGE("JsTool::Failed to get resourceManager, resourceManager is nullptr");
         return false;
     }
-
-    if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
-        int32_t state = 0;
-
-        if (info.params.empty()) {
-            ROSEN_LOGE("JsTool::Failed to get RawFile resource, RawFile is null");
-            return false;
-        }
-
-        state = resourceManager->GetRawFileFromHap(info.params[0], *len, buffer);
-        if (state >= GLOBAL_ERROR || state < 0) {
-            ROSEN_LOGE("JsTool::Failed to get Rawfile buffer");
-            return false;
-        }
-        return true;
-    } else {
+    if (info.type != static_cast<int32_t>(ResourceType::RAWFILE)) {
         ROSEN_LOGE("JsTool::Invalid resource type %{public}d", info.type);
         return false;
     }
+
+    int32_t state = 0;
+
+    if (info.params.empty()) {
+        ROSEN_LOGE("JsTool::Failed to get RawFile resource, RawFile is null");
+        return false;
+    }
+
+    state = resourceManager->GetRawFileFromHap(info.params[0], len, buffer);
+    if (state >= GLOBAL_ERROR || state < 0) {
+        ROSEN_LOGE("JsTool::Failed to get Rawfile buffer");
+        return false;
+    }
+    return true;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen
