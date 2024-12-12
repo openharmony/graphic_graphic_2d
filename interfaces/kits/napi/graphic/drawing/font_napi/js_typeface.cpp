@@ -214,11 +214,11 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()),
-        rawFileArrayBufferSize);
+    auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
     auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream));
     if (rawTypeface == nullptr) {
-        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile Create rawTypeface failed!");
+        return nullptr;
     }
     auto typeface = new JsTypeface(rawTypeface);
     if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
@@ -233,13 +233,13 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     napi_create_object(env, &jsObj);
     if (jsObj == nullptr) {
         delete typeface;
-        ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile Create Typeface failed!");
         return nullptr;
     }
     napi_status status = napi_wrap(env, jsObj, typeface, JsTypeface::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
         delete typeface;
-        ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile failed to wrap native instance");
         return nullptr;
     }
     napi_property_descriptor resultFuncs[] = {
