@@ -285,10 +285,6 @@ bool RSRenderServiceConnection::CreateNode(const RSSurfaceRenderNodeConfig& conf
 
 sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config)
 {
-    if (auto preNode = mainThread_->GetContext().GetNodeMap().GetRenderNode(config.id)) {
-        RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", type:%d", config.id, preNode->GetType());
-        usleep(SLEEP_TIME_US);
-    }
     std::shared_ptr<RSSurfaceRenderNode> node =
         std::make_shared<RSSurfaceRenderNode>(config, mainThread_->GetContext().weak_from_this());
     if (node == nullptr) {
@@ -306,8 +302,14 @@ sptr<Surface> RSRenderServiceConnection::CreateNodeAndSurface(const RSSurfaceRen
         node->GetId(), node->GetName().c_str(), node->GetBundleName().c_str(),
         surface->GetUniqueId(), surfaceName.c_str());
     node->SetConsumer(surface);
-    std::function<void()> registerNode = [node, this]() -> void {
-        this->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+    RSMainThread* mainThread = mainThread_;
+    std::function<void()> registerNode = [node, mainThread]() -> void {
+        if (auto preNode = mainThread->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {
+            RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", type:%d",
+                node->GetId(), preNode->GetType());
+            usleep(SLEEP_TIME_US);
+        }
+        mainThread->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     };
     if (config.isSync) {
         mainThread_->PostSyncTask(registerNode);
