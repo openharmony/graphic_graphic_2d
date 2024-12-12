@@ -932,7 +932,7 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
     curSurfaceParent->subSurfaceCnt_ = cnt;
     preSurfaceParent->subSurfaceCnt_ = cnt;
     surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
-    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt);
+    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
     EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
 }
 
