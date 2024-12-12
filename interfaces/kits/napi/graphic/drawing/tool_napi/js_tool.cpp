@@ -53,7 +53,7 @@ bool JsTool::GetResourceInfo(napi_env env, napi_value value, ResourceInfo& info)
     napi_valuetype valueType = napi_undefined;
     napi_typeof(env, value, &valueType);
     if (valueType != napi_object) {
-        ROSEN_LOGE("JsTool::GetResourceInfo param is not object!");
+        ROSEN_LOGE("JsTool::GetResourceInfo the value is not object!");
         return false;
     }
 
