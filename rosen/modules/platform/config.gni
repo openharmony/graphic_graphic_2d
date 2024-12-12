@@ -28,7 +28,7 @@ if (platform == "ohos") {
   image_deps = [
     "//foundation/multimedia/image_framework/interfaces/innerkits:image_native",
   ]
-  utils_deps = [ "//commonlibrary/c_utils/base:utils" ]
+  utils_deps = [ "c_utils:utils" ]
 } else {
   hilog_deps = [
     "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
