@@ -129,7 +129,6 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_WIDTH
     RSDrawableSlot::OUTLINE,                       // OUTLINE_DASH_GAP
     RSDrawableSlot::OUTLINE,                       // OUTLINE_RADIUS
-    RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING
     RSDrawableSlot::INVALID,                       // GREY_COEF
     RSDrawableSlot::POINT_LIGHT,                   // LIGHT_INTENSITY
     RSDrawableSlot::POINT_LIGHT,                   // LIGHT_COLOR
@@ -137,29 +136,30 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_BORDER_WIDTH
     RSDrawableSlot::POINT_LIGHT,                   // ILLUMINATED_TYPE
     RSDrawableSlot::POINT_LIGHT,                   // BLOOM
+    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
+    RSDrawableSlot::CHILDREN,                      // USE_SHADOW_BATCHING,
+    RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_EMITTER_UPDATER
     RSDrawableSlot::PARTICLE_EFFECT,               // PARTICLE_NOISE_FIELD
-    RSDrawableSlot::FOREGROUND_FILTER,             // FOREGROUND_EFFECT_RADIUS
-    RSDrawableSlot::FOREGROUND_FILTER,             // MOTION_BLUR_PARA
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_DEGREE
     RSDrawableSlot::FOREGROUND_FILTER,             // FLY_OUT_PARAMS
     RSDrawableSlot::FOREGROUND_FILTER,             // DISTORTION_K
-    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM
+    RSDrawableSlot::DYNAMIC_DIM,                   // DYNAMIC_DIM_DEGREE,
     RSDrawableSlot::BACKGROUND_FILTER,             // MAGNIFIER_PARA,
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_BRIGHTNESS
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_MASK_COLOR
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_COLOR_MODE
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_X
-    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_Y
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_SATURATION
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_BRIGHTNESS
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_MASK_COLOR
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X
-    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_SATURATION,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_BRIGHTNESS,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_MASK_COLOR,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_COLOR_MODE,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_X,
+    RSDrawableSlot::BACKGROUND_FILTER,             // BACKGROUND_BLUR_RADIUS_Y,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_SATURATION,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_BRIGHTNESS,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_MASK_COLOR,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_COLOR_MODE,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_X,
+    RSDrawableSlot::COMPOSITING_FILTER,            // FOREGROUND_BLUR_RADIUS_Y,
     RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_FRACTION
     RSDrawableSlot::FOREGROUND_FILTER,             // ATTRACTION_DSTPOINT
     RSDrawableSlot::INVALID,                       // CUSTOM
