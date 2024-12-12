@@ -261,13 +261,14 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
 {
     uint32_t dataSize = ashmemParcel->ReadUint32();
     RS_TRACE_NAME("ParseFromAshmemParcel data size:" + std::to_string(dataSize));
+    // ashmem parcel flow control begins
     ashmemFlowControlUnit = AshmemFlowControlUnit::CheckOverflowAndCreateInstance(callingPid, dataSize);
     if (ashmemFlowControlUnit == nullptr) {
         // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
-        RS_TRACE_NAME_FMT("RSAshmemHelper::ParseFromAshmemParcel callingPid %d is submitting too many data, "
-            "discard parcel with bufferSize %" PRIu32, static_cast<int>(callingPid), dataSize);
-        ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel callingPid %{public}d is submitting too many data, "
-            "discard parcel with bufferSize %{public}" PRIu32, static_cast<int>(callingPid), dataSize);
+        RS_TRACE_NAME_FMT("RSAshmemHelper::ParseFromAshmemParcel reject ashmem buffer size %" PRIu32
+            " from pid %d", dataSize, static_cast<int>(callingPid));
+        ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel reject ashmem buffer size %{public}" PRIu32
+            " from pid %{public}d", dataSize, static_cast<int>(callingPid));
         return nullptr;
     }
 
