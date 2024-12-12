@@ -219,7 +219,7 @@ napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
     std::unique_ptr<uint8_t[]> rawFileArrayBuffer;
     size_t rawFileArrayBufferSize = 0;
     ResourceInfo resourceInfo;
-    if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) || 
+    if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) ||
         !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
         ROSEN_LOGE("JsTypeface::MakeFromRawFile get rawfilebuffer failed!");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
