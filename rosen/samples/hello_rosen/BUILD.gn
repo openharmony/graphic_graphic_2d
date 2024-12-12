@@ -34,10 +34,7 @@ ohos_executable("hello_rosen") {
 
   configs = [ ":config" ]
 
-  public_configs = [
-    ":public_config",
-    "//commonlibrary/c_utils/base:utils_config",
-  ]
+  public_configs = [ ":public_config" ]
 
   external_deps = [
     "hilog:libhilog",
@@ -45,9 +42,10 @@ ohos_executable("hello_rosen") {
   ]
 
   public_deps = [
-    "//commonlibrary/c_utils/base:utils",
     "//foundation/communication/ipc/interfaces/innerkits/ipc_core:ipc_core",
   ]
+
+  public_external_deps = [ "c_utils:utils" ]
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
