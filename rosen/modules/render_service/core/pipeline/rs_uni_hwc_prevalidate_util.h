@@ -96,6 +96,7 @@ private:
     static void EmplaceSurfaceNodeLayer(
         std::vector<RequestLayerInfo>& prevalidLayers, RSSurfaceRenderNode::SharedPtr node,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
+    void ClearCldInfo(std::vector<RequestLayerInfo>& infos);
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
