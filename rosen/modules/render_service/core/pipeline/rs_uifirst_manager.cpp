@@ -1258,7 +1258,7 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 {
-    if (node.isForceFlag_ && node.IsLeashWindow()) {
+    if (node.isForceFlag_ && node.IsLeashWindow() && !node.GetHasProtectedLayer()) {
         RS_OPTIONAL_TRACE_NAME_FMT("ForceUpdateUifirstNodes: isUifirstEnable: %d", node.isUifirstEnable_);
         if (!node.isUifirstEnable_) {
             UifirstStateChange(node, MultiThreadCacheType::NONE);
