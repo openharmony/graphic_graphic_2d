@@ -389,9 +389,8 @@ void OHDrawingTextLineArray(OH_Drawing_Array* linesArray, const uint8_t* data, s
     OH_Drawing_TextLine* truncatedLine =
         OH_Drawing_TextLineCreateTruncatedLine(line, DATA_MAX_LAYOUT_WIDTH, 0, ellipsis);
     OH_Drawing_DestroyTextLine(truncatedLine);
-    uint32_t pointX = GetObject<uint32_t>() % DATA_MAX_RANDOM;
-    uint32_t pointY = GetObject<uint32_t>() % DATA_MAX_RANDOM;
-    OH_Drawing_Point* point = OH_Drawing_PointCreate(pointX, pointY);
+    OH_Drawing_Point* point = OH_Drawing_PointCreate(GetObject<uint32_t>() % DATA_MAX_RANDOM,
+        GetObject<uint32_t>() % DATA_MAX_RANDOM);
     int32_t index = OH_Drawing_TextLineGetStringIndexForPosition(line, point);
     int32_t index1 = OH_Drawing_TextLineGetStringIndexForPosition(nullptr, point);
     OH_Drawing_PointDestroy(point);

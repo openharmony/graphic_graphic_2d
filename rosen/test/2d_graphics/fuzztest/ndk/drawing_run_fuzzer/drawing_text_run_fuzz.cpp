@@ -37,7 +37,7 @@ void OHDrawingRunTest(OH_Drawing_Array* runs, OH_Drawing_Canvas* canvas)
     uint64_t indices = OH_Drawing_GetRunStringIndicesByIndex(stringIndicesArr, 0);
     OH_Drawing_DestroyRunStringIndices(stringIndicesArr);
     float myAscent = -1;
-    float myDescent = DATA_MYDescent;
+    float myDescent = DATA_MAX_ENUM_MYDESENT;
     float myLeading = 0;
     OH_Drawing_GetRunTypographicBounds(run, nullptr, nullptr, nullptr);
     OH_Drawing_GetRunTypographicBounds(run, &myAscent, &myDescent, &myLeading);

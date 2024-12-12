@@ -38,7 +38,7 @@ void SetTypographyStyle(OH_Drawing_TypographyStyle* typoStyle)
 
     OH_Drawing_SetTypographyTextDirection(typoStyle, GetObject<uint32_t>() % DATA_MAX_ENUM_SIZE1);
     OH_Drawing_SetTypographyTextAlign(typoStyle, GetObject<uint32_t>() % DATA_MAX_ENUM_SIZE4);
-    OH_Drawing_SetTypographyTextMaxLines(typoStyle, 5);
+    OH_Drawing_SetTypographyTextMaxLines(typoStyle, DATA_MAX_ENUM_SIZE3);
     OH_Drawing_SetTypographyTextBreakStrategy(typoStyle, GetObject<uint32_t>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTypographyTextWordBreakType(typoStyle, GetObject<uint32_t>() % DATA_MAX_ENUM_SIZE2);
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, GetObject<uint32_t>() % DATA_MAX_RANDOM);

@@ -47,7 +47,7 @@ constexpr inline size_t DATA_MAX_ENUM_SIZE4 = 8;
 constexpr inline size_t DATA_MAX_ENUM_SIZE5 = 11;
 constexpr inline size_t DATA_MAX_ENUM_FONTSIZE = 40;
 constexpr inline size_t DATA_MAX_LAYOUT_WIDTH = 100;
-constexpr inline size_t DATA_MYDescent = 60;
+constexpr inline size_t DATA_MAX_ENUM_MYDESENT = 60;
 constexpr inline size_t DATA_MAX_RANDOM = 500;
 
 namespace OHOS::Rosen::Drawing {
