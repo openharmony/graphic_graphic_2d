@@ -35,6 +35,7 @@ public:
     virtual VsyncError Destroy() override;
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) override;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) override;
+    virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) override;
 
 private:
     static inline BrokerDelegator<VSyncConnectionProxy> delegator_;
