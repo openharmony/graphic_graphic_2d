@@ -343,6 +343,12 @@ enum class RSSurfaceNodeAbilityState : uint8_t {
     FOREGROUND,
 };
 
+struct SubSurfaceCntUpdateInfo {
+    int updateCnt_ = 0;
+    NodeId preParentId_ = INVALID_NODEID;
+    NodeId curParentId_ = INVALID_NODEID;
+};
+
 constexpr int64_t NS_TO_S = 1000000000;
 constexpr int64_t NS_PER_MS = 1000000;
 constexpr uint32_t SIZE_UPPER_LIMIT = 1000;

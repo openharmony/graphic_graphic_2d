@@ -847,20 +847,6 @@ HWTEST_F(RSBaseRenderNodeTest, SetStaticCached, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSubSurfaceCnt
- * @tc.desc: test results of UpdateSubSurfaceCnt
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, UpdateSubSurfaceCnt, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto preParent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->UpdateSubSurfaceCnt(node, preParent);
-    ASSERT_TRUE(true);
-}
-
-/**
  * @tc.name: GetNodeGroupType
  * @tc.desc: test results of GetNodeGroupType
  * @tc.type:FUNC

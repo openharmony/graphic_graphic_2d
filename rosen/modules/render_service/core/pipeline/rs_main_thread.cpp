@@ -461,6 +461,7 @@ void RSMainThread::Init()
         ClearNeedDropframePidList();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
+        UpdateSubSurfaceCnt();
         Animate(timestamp_);
         DvsyncCheckRequestNextVsync();
         CollectInfoForHardwareComposer();
@@ -930,6 +931,29 @@ void RSMainThread::ProcessCommand()
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();
     }
+}
+
+void RSMainThread::UpdateSubSurfaceCnt()
+{
+    auto& updateInfo = context_->subSurfaceCntUpdateInfo_;
+    if (updateInfo.empty()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("UpdateSubSurfaceCnt size: %zu", updateInfo.size());
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto& iter : updateInfo) {
+        if (iter.curParentId_ != INVALID_NODEID) {
+            if (auto curParent = nodeMap.GetRenderNode(iter.curParentId_)) {
+                curParent->UpdateSubSurfaceCnt(iter.updateCnt_);
+            }
+        }
+        if (iter.preParentId_ != INVALID_NODEID) {
+            if (auto preParent = nodeMap.GetRenderNode(iter.preParentId_)) {
+                preParent->UpdateSubSurfaceCnt(-iter.updateCnt_);
+            }
+        }
+    }
+    context_->subSurfaceCntUpdateInfo_.clear();
 }
 
 void RSMainThread::PrintCurrentStatus()
