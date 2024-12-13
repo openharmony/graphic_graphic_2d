@@ -264,6 +264,7 @@ HWTEST_F(RSBlurFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     blurFilter->SetGreyCoef(greyCoef);
     blurFilter->GetDetailedDescription();
+    EXPECT_NE(blurFilter, nullptr);
 }
 
 /**

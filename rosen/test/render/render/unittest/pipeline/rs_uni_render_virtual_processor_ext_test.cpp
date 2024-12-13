@@ -172,6 +172,7 @@ HWTEST_F(RSUniRenderVirtualProcessorExtTest, CanvasInit_001, TestSize.Level2)
 {
     displayDrawable_->isFirstTimeToProcessor_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
+    EXPECT_NE(displayDrawable_, nullptr);
 }
 
 /**
@@ -185,6 +186,7 @@ HWTEST_F(RSUniRenderVirtualProcessorExtTest, CanvasInit_002, TestSize.Level2)
     displayDrawable_->isFirstTimeToProcessor_ = false;
     virtualProcessor_->canvasRotation_ = true;
     virtualProcessor_->CanvasInit(*displayDrawable_);
+    EXPECT_NE(displayDrawable_, nullptr);
 }
 
 /**
@@ -315,6 +317,7 @@ HWTEST_F(RSUniRenderVirtualProcessorExtTest, SetDirtyInfo_001, TestSize.Level2)
     virtualProcessor_->renderFrame_ = nullptr;
     std::vector<RectI> damageRegion {};
     virtualProcessor_->SetDirtyInfo(damageRegion);
+    EXPECT_NE(virtualProcessor_, nullptr);
 }
 
 /**
