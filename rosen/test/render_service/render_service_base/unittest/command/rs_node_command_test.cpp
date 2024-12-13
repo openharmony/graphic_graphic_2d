@@ -124,6 +124,7 @@ HWTEST_F(RSNodeCommandTest, SetDrawRegionTest, TestSize.Level1)
     NodeId nodeId = static_cast<NodeId>(1);
     std::shared_ptr<RectF> rect = nullptr;
     RSNodeCommandHelper::SetDrawRegion(context, nodeId, rect);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId), nullptr);
 }
 
 /**
@@ -137,6 +138,7 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPairTest, TestSize.Level1)
     NodeId inNodeId = static_cast<NodeId>(1);
     NodeId outNodeId = static_cast<NodeId>(1);
     RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId), nullptr);
 }
 
 /**

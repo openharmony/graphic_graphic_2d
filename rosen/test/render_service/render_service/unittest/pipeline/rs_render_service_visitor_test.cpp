@@ -100,6 +100,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode001, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -115,6 +116,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode002, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -130,6 +132,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode003, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -145,6 +148,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode004, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -160,6 +164,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode005, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -175,6 +180,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode006, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -190,6 +196,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode007, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 
@@ -205,6 +212,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode008, TestSize.Level
     auto rsRenderServiceVisitor = GetRenderServiceVisitor();
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(node, nullptr);
     rsRenderServiceVisitor->PrepareDisplayRenderNode(*node);
 }
 

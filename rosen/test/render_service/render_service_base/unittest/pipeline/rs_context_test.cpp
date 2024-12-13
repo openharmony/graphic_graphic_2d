@@ -134,6 +134,8 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
 {
     RSContext rSContext;
     rSContext.Initialize();
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(INVALID_NODEID);
+    EXPECT_NE(nodePtr, nullptr);
 }
 
 /**

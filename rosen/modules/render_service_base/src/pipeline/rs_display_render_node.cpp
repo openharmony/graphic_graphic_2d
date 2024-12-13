@@ -472,6 +472,7 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
 
 void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
 {
+#ifdef RS_ENABLE_GPU
     if (pixelFormat_ == pixelFormat) {
         return;
     }
@@ -485,6 +486,7 @@ void RSDisplayRenderNode::SetPixelFormat(const GraphicPixelFormat& pixelFormat)
         AddToPendingSyncList();
     }
     pixelFormat_ = pixelFormat;
+#endif
 }
 
 GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
@@ -494,6 +496,7 @@ GraphicPixelFormat RSDisplayRenderNode::GetPixelFormat() const
 
 void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
 {
+#ifdef RS_ENABLE_GPU
     if (colorSpace_ == colorSpace) {
         return;
     }
@@ -507,6 +510,7 @@ void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
         AddToPendingSyncList();
     }
     colorSpace_ = colorSpace;
+#endif
 }
 
 GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const
