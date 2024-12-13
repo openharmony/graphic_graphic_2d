@@ -565,7 +565,6 @@ float RSProperties::GetPositionZ() const
 void RSProperties::SetPositionZApplicableCamera3D(bool isApplicable)
 {
     boundsGeo_->SetZApplicableCamera3D(isApplicable);
-    frameGeo_.SetZApplicableCamera3D(isApplicable);
     geoDirty_ = true;
     SetDirty();
 }
