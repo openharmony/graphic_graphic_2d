@@ -454,7 +454,10 @@ bool DoGetDefaultScreenId()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
     auto newPid = getpid();
@@ -477,7 +480,10 @@ bool DoGetActiveScreenId()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID);
     auto newPid = getpid();
@@ -500,7 +506,10 @@ bool DoGetAllScreenIds()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
     auto newPid = getpid();
@@ -2369,9 +2378,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
     OHOS::Rosen::DoCreateVirtualScreen(data, size);
     OHOS::Rosen::DoRemoveVirtualScreen(data, size);
-    OHOS::Rosen::DoGetDefaultScreenId();
-    OHOS::Rosen::DoGetActiveScreenId();
-    OHOS::Rosen::DoGetAllScreenIds();
     if (!OHOS::Rosen::Init(data, size)) {
         return 0;
     }
@@ -2415,6 +2421,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoReportEventJankFrame();
     OHOS::Rosen::DoRegisterSurfaceBufferCallback(data, size);
     OHOS::Rosen::DoUnregisterSurfaceBufferCallback(data, size);
+    OHOS::Rosen::DoGetDefaultScreenId();
+    OHOS::Rosen::DoGetActiveScreenId();
+    OHOS::Rosen::DoGetAllScreenIds();
 
     return 0;
 }
