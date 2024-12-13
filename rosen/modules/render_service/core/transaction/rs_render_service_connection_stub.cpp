@@ -873,7 +873,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED): {
             bool enable{false};
-            if (data.ReadBool(enable)) {
+            if (!data.ReadBool(enable)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
