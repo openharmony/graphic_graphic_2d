@@ -117,6 +117,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (isPendingUnmarshal) {
             RSMainThread::Instance()->RequestNextVSync();
         }
+        // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
         ffrt::task_handle handle;
