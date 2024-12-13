@@ -1872,7 +1872,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
             uint32_t num{0};
-            if (!data.ReadUint64(num)) {
+            if (!data.ReadUint32(num)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
