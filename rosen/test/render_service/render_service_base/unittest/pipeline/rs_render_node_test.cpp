@@ -581,6 +581,103 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest05, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateDirtyRegionTest06
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest06, TestSize.Level1)
+{
+    //test RSRenderNode
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    //set dirty surfacesize
+    rsDirtyManager->SetSurfaceSize(500, 500);
+    rsDirtyManager->MarkAsTargetForDfx();
+    //create clip 500*500
+    RectI clipRect{0, 0, 500, 500};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 50, 50};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    //set border width 5
+    properties.SetOutlineWidth(5.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest07
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest07, TestSize.Level1)
+{
+    //test RSCanvasRenderNode
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    canvasNode->InitRenderParams();
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    //set dirty surfacesize
+    rsDirtyManager->SetSurfaceSize(800, 800);
+    rsDirtyManager->MarkAsTargetForDfx();
+    //create clip 800*800
+    RectI clipRect{0, 0, 800, 800};
+    canvasNode->SetDirty();
+    canvasNode->shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = canvasNode->GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    //set border width 8
+    properties.SetOutlineWidth(8.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    canvasNode->UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest08
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest08, TestSize.Level1)
+{
+    //test RSSurfaceRenderNode
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    //set dirty surfacesize
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    rsDirtyManager->MarkAsTargetForDfx();
+    //create clip 1000*1000
+    RectI clipRect{0, 0, 1000, 1000};
+    surfaceNode->SetDirty();
+    surfaceNode->shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = surfaceNode->GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    //set border width 10
+    properties.SetOutlineWidth(10.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    surfaceNode->UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
  * @tc.name: GetFilterRectsInCacheTest
  * @tc.desc:
  * @tc.type: FUNC

@@ -649,4 +649,35 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, CheckCanvasDrawingPostPlaybackedTest, Te
     rsCanvasDrawingRenderNode->isPostPlaybacked_ = true;
     rsCanvasDrawingRenderNode->CheckCanvasDrawingPostPlaybacked();
 }
+
+/**
+ * @tc.name: ContentStyleSlotUpdateTest
+ * @tc.desc: Test ContentStyleSlotUpdateTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB8OVD
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, ContentStyleSlotUpdateTest, TestSize.Level1)
+{
+    NodeId nodeId = 7;
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
+
+    node->waitSync_ = true;
+    node->ContentStyleSlotUpdate();
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = true;
+    node->ContentStyleSlotUpdate();
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->isNeverOnTree_ = true;
+    node->ContentStyleSlotUpdate();
+
+    node->waitSync_ = false;
+    node->isOnTheTree_ = false;
+    node->isNeverOnTree_ = false;
+    node->isTextureExportNode_ = true;
+    node->ContentStyleSlotUpdate();
+}
 } // namespace OHOS::Rosen
