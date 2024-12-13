@@ -736,7 +736,9 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
           handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
           handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
           handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.transform_,
-          handle->surfaceBufferInfo.srcRect_)
+          handle->surfaceBufferInfo.srcRect_),
+      isNeedDrawDirectly_(!IsValidRemoteAddress(handle->surfaceBufferInfo.pid_,
+          handle->surfaceBufferInfo.uid_))
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
@@ -803,7 +805,7 @@ void DrawSurfaceBufferOpItem::OnBeforeDraw()
 void DrawSurfaceBufferOpItem::OnAfterDraw()
 {
     isRendered_ = true;
-    if (contextIsUniRender) {
+    if (contextIsUniRender || IsNeedDrawDirectly()) {
         return;
     }
     rootNodeId_ = getRootNodeIdForRT ? std::invoke(getRootNodeIdForRT) : INVALID_NODEID;
@@ -832,6 +834,9 @@ void DrawSurfaceBufferOpItem::OnAfterDraw()
 
 void DrawSurfaceBufferOpItem::ReleaseBuffer()
 {
+    if (IsNeedDrawDirectly()) {
+        return;
+    }
     if (surfaceBufferFinishCb && surfaceBufferInfo_.surfaceBuffer_) {
         RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release, isNeedTriggerCbDirectly = %d",
             std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str(),
@@ -850,6 +855,9 @@ void DrawSurfaceBufferOpItem::ReleaseBuffer()
 
 void DrawSurfaceBufferOpItem::OnAfterAcquireBuffer()
 {
+    if (IsNeedDrawDirectly()) {
+        return;
+    }
     if (surfaceBufferAfterAcquireCb && surfaceBufferInfo_.surfaceBuffer_) {
         std::invoke(surfaceBufferAfterAcquireCb, DrawSurfaceBufferAfterAcquireCbData {
             .uid = surfaceBufferInfo_.uid_,
@@ -1106,6 +1114,16 @@ GraphicTransformType DrawSurfaceBufferOpItem::MapGraphicTransformType(GraphicTra
             break;
     }
     return rotation;
+}
+
+bool DrawSurfaceBufferOpItem::IsNeedDrawDirectly() const
+{
+    return isNeedDrawDirectly_;
+}
+
+bool DrawSurfaceBufferOpItem::IsValidRemoteAddress(pid_t pid, uint64_t uid)
+{
+    return pid != 0 && uid != 0ull;
 }
 
 bool DrawSurfaceBufferOpItem::CreateEglTextureId()

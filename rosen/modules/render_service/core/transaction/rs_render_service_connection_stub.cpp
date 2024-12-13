@@ -2371,6 +2371,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK) : {
             auto pid = data.ReadInt32();
+            if (!IsValidCallingPid(pid, callingPid)) {
+                RS_LOGW("REGISTER_SURFACE_BUFFER_CALLBACK invalid pid[%{public}d]", callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto uid = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -2389,6 +2394,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK) : {
             auto pid = data.ReadInt32();
+            if (!IsValidCallingPid(pid, callingPid)) {
+                RS_LOGW("UNREGISTER_SURFACE_BUFFER_CALLBACK invalid pid[%{public}d]", callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto uid = data.ReadUint64();
             UnregisterSurfaceBufferCallback(pid, uid);
             break;
