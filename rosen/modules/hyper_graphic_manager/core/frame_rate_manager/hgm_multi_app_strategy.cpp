@@ -156,7 +156,7 @@ void HgmMultiAppStrategy::RegisterStrategyChangeCallback(const StrategyChangeCal
 bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 {
     auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData != nullptr && !configData->safeVoteEnabled) {
+    if ((configData != nullptr && !configData->safeVoteEnabled) || disableSafeVote_) {
         // disable safe vote
         return true;
     }

@@ -74,6 +74,7 @@ public:
 
     // use in temporary scheme with background alpha
     void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
+    void SetDisableSafeVoteValue(bool disableSafeVote) { disableSafeVote_ = disableSafeVote; }
 private:
     void UseStrategyNum();
     void FollowFocus();
@@ -104,6 +105,7 @@ private:
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;
     PolicyConfigData::StrategyConfigMap& strategyConfigMapCache_;
+    bool disableSafeVote_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

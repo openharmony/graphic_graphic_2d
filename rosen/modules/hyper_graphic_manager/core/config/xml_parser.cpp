@@ -489,10 +489,13 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
         sceneConfig.strategy = ExtractPropertyValue("strategy", *currNode);
         sceneConfig.priority = ExtractPropertyValue("priority", *currNode);
         sceneConfig.doNotAutoClear = ExtractPropertyValue("doNotAutoClear", *currNode) == "1";
-
+        sceneConfig.disableSafeVote = ExtractPropertyValue("disableSafeVote", *currNode) == "1";
         sceneList[name] = sceneConfig;
-        HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s",
-                 name.c_str(), sceneList[name].strategy.c_str(), sceneList[name].priority.c_str());
+        HGM_LOGI("HgmXMLParser ParseSceneList name=%{public}s strategy=%{public}s priority=%{public}s \
+                 doNotAutoClear=%{public}s disableSafeVote=%{public}s", name.c_str(),
+                 sceneList[name].strategy.c_str(), sceneList[name].priority.c_str(),
+                 sceneList[name].doNotAutoClear ? "true" : "false",
+                 sceneList[name].disableSafeVote ? "true" : "false");
     }
 
     return EXEC_SUCCESS;

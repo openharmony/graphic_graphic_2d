@@ -801,5 +801,42 @@ HWTEST_F(HgmFrameRateMgrTest, HandlePackageEvent, Function | SmallTest | Level1)
     frameRateMgr->HandlePackageEvent(DEFAULT_PID, {pkgName1});
     checkFunc(false, true, false, false);
 }
-} // namespace Rosen
-} // namespace OHOS
+
+/**
+ * @tc.name: ChangePriority
+ * @tc.desc: Verify the result of ChangePriority
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, ChangePriority, Function | SmallTest | Level1)
+{
+    constexpr uint32_t DEFAULT_PRIORITY = 0;
+    constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
+    constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    
+    frameRateMgr->ChangePriority(DEFAULT_PRIORITY);
+    auto packagesPos = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_PACKAGES");
+    auto ltpoPos = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_LTPO");
+    auto scenePos = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_SCENE");
+    ASSERT_LT(packagesPos, ltpoPos);
+    ASSERT_LT(ltpoPos, scenePos);
+    frameRateMgr->ChangePriority(VOTER_SCENE_PRIORITY_BEFORE_PACKAGES);
+    auto packagesPos1 = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_PACKAGES");
+    auto ltpoPos1 = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_LTPO");
+    auto scenePos1 = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_SCENE");
+    ASSERT_LT(scenePos1, packagesPos1);
+    ASSERT_LT(packagesPos1, ltpoPos1);
+    frameRateMgr->ChangePriority(VOTER_LTPO_PRIORITY_BEFORE_PACKAGES);
+    auto packagesPos2 = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_PACKAGES");
+    auto ltpoPos2 = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_LTPO");
+    auto scenePos2 = find(frameRateMgr->voters_.begin(), frameRateMgr->voters_.end(), "VOTER_SCENE");
+    ASSERT_LT(scenePos2, ltpoPos2);
+    ASSERT_LT(ltpoPos2, packagesPos2);
+}
+} // namesace Rosen
+} // namesppace OHOS

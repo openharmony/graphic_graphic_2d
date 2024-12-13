@@ -115,6 +115,7 @@ public:
         std::string strategy;
         std::string priority;
         bool doNotAutoClear;
+        bool disableSafeVote;
     };
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;
