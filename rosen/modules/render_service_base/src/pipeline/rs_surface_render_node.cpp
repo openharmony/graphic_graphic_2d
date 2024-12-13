@@ -3201,7 +3201,7 @@ void RSSurfaceRenderNode::SetNeedCacheSurface(bool needCacheSurface)
 
 bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
 {
-    bool needDrawBehindWindow = !childrenBlurBehindWindow_.empty();
+    bool needDrawBehindWindow = NeedDrawBehindWindow();
     GetMutableRenderProperties().SetNeedDrawBehindWindow(needDrawBehindWindow);
     return needDrawBehindWindow != oldNeedDrawBehindWindow_;
 }
@@ -3213,7 +3213,20 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
-    return !childrenBlurBehindWindow_.empty();
+    return GetBehindWindowFilterEnabled() && !childrenBlurBehindWindow_.empty();
+}
+
+bool RSSurfaceRenderNode::GetBehindWindowFilterEnabled() const
+{
+    auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(GetDrawCmdModifiers());
+    auto itr = drawCmdModifiers.find(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED);
+    if (itr == drawCmdModifiers.end() || itr->second.empty()) {
+        RS_LOGD("RSSurfaceRenderNode::GetBehindWindowFilterEnabled drawCmdModifiers find failed");
+        return true; // default value
+    }
+    const auto& modifier = itr->second.back();
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier->GetProperty());
+    return renderProperty->GetRef();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)

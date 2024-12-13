@@ -1283,6 +1283,7 @@ public:
     bool NeedUpdateDrawableBehindWindow();
     void SetOldNeedDrawBehindWindow(bool val);
     bool NeedDrawBehindWindow() const override;
+    bool GetBehindWindowFilterEnabled() const;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
     void SetUifirstStartingFlag(bool flag);
