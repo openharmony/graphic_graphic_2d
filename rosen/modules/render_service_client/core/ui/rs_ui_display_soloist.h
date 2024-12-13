@@ -103,7 +103,9 @@ private:
         .userData_ = this,
         .callback_ = OnVsync,
     };
+#ifdef RS_ENABLE_GPU
     bool hasInitVsyncReceiver_ = false;
+#endif
 
     int32_t sourceVsyncRate_ = 0;
     int32_t drawFPS_ = 0;

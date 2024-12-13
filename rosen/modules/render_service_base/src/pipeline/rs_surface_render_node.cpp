@@ -1741,6 +1741,7 @@ void RSSurfaceRenderNode::GetHwcChildrenState(bool& enabledType)
 
 void RSSurfaceRenderNode::SetPreSubHighPriorityType()
 {
+#ifdef RS_ENABLE_GPU
     if (!RSSystemProperties::IsPcType()) {
         return;
     }
@@ -1750,6 +1751,7 @@ void RSSurfaceRenderNode::SetPreSubHighPriorityType()
     RS_OPTIONAL_TRACE_NAME_FMT("SetPreSubHighPriorityType::name:[%s] preSub:%d", GetName().c_str(), preSubHighPriority);
     surfaceParams->SetPreSubHighPriorityType(preSubHighPriority);
     AddToPendingSyncList();
+#endif
 }
 
 void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
@@ -3034,11 +3036,13 @@ void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 
 void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)
 {
+#ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetUifirstStartingFlag(flag);
         AddToPendingSyncList();
     }
+#endif
 }
 
 void RSSurfaceRenderNode::SetIsParentUifirstNodeEnableParam(bool b)
