@@ -638,4 +638,33 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
 }
+
+/**
+ * @tc.name: GetColorSpaceTest
+ * @tc.desc: test results of GetColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    auto colorSpace = node->GetColorSpace();
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, colorSpace);
+}
+
+/**
+ * @tc.name: SetColorSpaceTest
+ * @tc.desc: test results of SetColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    node->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto colorSpace = node->GetColorSpace();
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpace);
+}
 } // namespace OHOS::Rosen
