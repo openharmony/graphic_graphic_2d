@@ -99,8 +99,8 @@ std::shared_ptr<Drawing::Image> ScaleAndAddRandomColorFuzzTest(const uint8_t *da
         fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
     Drawing::Rect dst{fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
         fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
-    int width = fdp.ConsumeIntegral<int32_t>;
-    int height = fdp.ConsumeIntegral<int32_t>;
+    int width = fdp.ConsumeIntegral<int32_t>();
+    int height = fdp.ConsumeIntegral<int32_t>();
 
     auto res = shaderFilter->ScaleAndAddRandomColor(canvas, image, imageBlur, src, dst, width, height);
     return res;
