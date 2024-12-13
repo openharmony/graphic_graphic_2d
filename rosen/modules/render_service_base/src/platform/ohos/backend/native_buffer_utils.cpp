@@ -218,7 +218,7 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         return false;
     }
 
-    auto skColorSpace = RenderContext::ConvertColorGamutToSkColorSpace(nativeSurface.graphicColorGamut);
+    auto colorSpace = RenderContext::ConvertColorGamutToColorSpace(nativeSurface.graphicColorGamut);
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
     texture_info.SetHeight(height);
@@ -238,9 +238,6 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
         colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102;
     }
 
-    auto skiaColorSpace = std::make_shared<Drawing::SkiaColorSpace>();
-    skiaColorSpace->SetColorSpace(skColorSpace);
-    auto colorSpace = Drawing::ColorSpace::CreateFromImpl(skiaColorSpace);
     nativeSurface.drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         skContext.get(),
         texture_info,
