@@ -32,7 +32,7 @@
 #include "image/gpu_context.h"
 #include "memory_handler.h"
 #include "surface_type.h"
-#include "effect/color_space.h""
+#include "effect/color_space.h"
 
 #define GLES_VERSION 2
 namespace OHOS {

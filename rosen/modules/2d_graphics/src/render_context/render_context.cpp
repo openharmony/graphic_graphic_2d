@@ -488,20 +488,23 @@ std::shared_ptr<Drawing::ColorSpace> RenderContext::ConvertColorGamutToColorSpac
         // GRAPHIC_COLOR_GAMUT_SRGB to let the branch to default, then skColorSpace is set to nullptr
         case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
 
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB,
+                Drawing::CMSMatrixType::DCIP3);
             break;
         case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, 
+                Drawing::CMSMatrixType::ADOBE_RGB);
             break;
         case GRAPHIC_COLOR_GAMUT_BT2020:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, 
+                Drawing::CMSMatrixType::REC2020);
             break;
         default:
             colorSpace = Drawing::ColorSpace::CreateSRGB();
             break;
     }
 
-    return skColorSpace;
+    return colorSpace;
 }
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
