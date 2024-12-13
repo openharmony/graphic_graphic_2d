@@ -218,6 +218,8 @@ HWTEST_F(RSOcclusionRegionTest, RegionOp001, Function | MediumTest | Level2)
     /**
      * @tc.steps: step1. RegionOp
      */
+    Rect rect;
+    EXPECT_TRUE(rect.left_ == 0);
     Region region;
     Region region1;
     Region region2;
@@ -490,6 +492,8 @@ HWTEST_F(RSOcclusionRegionTest, UpdateRectsTest, Function | MediumTest | Level2)
  */
 HWTEST_F(RSOcclusionRegionTest, RegionOpTest, Function | MediumTest | Level2)
 {
+    Rect rect;
+    EXPECT_TRUE(rect.left_ == 0);
     Region emptyRegion(Rect { 0, 0, 0, 0 });
     Region baseRegion;
     Region resultRegion;

@@ -815,6 +815,9 @@ public:
         return displayNodeId_;
     }
 
+    // recursive update subSurfaceCnt
+    void UpdateSubSurfaceCnt(int updateCnt);
+
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
     virtual bool NeedDrawBehindWindow() const { return false; }
@@ -842,8 +845,7 @@ protected:
     void DumpModifiers(std::string& out) const;
 
     virtual void OnTreeStateChanged();
-    // recursive update subSurfaceCnt
-    void UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent);
+    void AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent);
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
@@ -1037,7 +1039,9 @@ private:
     bool drawingCacheNeedUpdate_ = false;
     std::atomic<bool> commandExecuted_ = false;
     // collect subtree's surfaceNode including itself
-    uint32_t subSurfaceCnt_ = 0;
+    int subSurfaceCnt_ = 0;
+    bool selfAddForSubSurfaceCnt_ = false;
+    bool visited_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;

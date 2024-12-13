@@ -310,13 +310,16 @@ private:
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
+    bool IsNeedDrawDirectly() const;
     Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
     static GraphicTransformType MapGraphicTransformType(GraphicTransformType origin);
+    static bool IsValidRemoteAddress(pid_t pid, uint64_t uid);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
     NodeId rootNodeId_ = INVALID_NODEID;
     sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
     bool isRendered_ = false;
     bool isNeedRotateDstRect_ = false;
+    bool isNeedDrawDirectly_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     OHNativeWindowBuffer* nativeWindowBuffer_ = nullptr;

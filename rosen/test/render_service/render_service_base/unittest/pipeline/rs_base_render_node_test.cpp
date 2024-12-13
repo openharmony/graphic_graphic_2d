@@ -251,6 +251,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::shared_ptr<RSBaseRenderNode> child_;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     node->AddCrossParentChild(child, index);
     node->AddCrossParentChild(child_, index_);
 }
@@ -264,6 +265,7 @@ HWTEST_F(RSBaseRenderNodeTest, AddCrossParentChildTest001, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, RemoveCrossParentChildTest001, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
     node->RemoveCrossParentChild(child, newParent);
@@ -280,6 +282,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveFromTreeTest, TestSize.Level1)
     bool skipTransition = false;
     bool skipTransition_ = true;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     node->RemoveFromTree(skipTransition);
     node->RemoveFromTree(skipTransition_);
 }
@@ -844,20 +847,6 @@ HWTEST_F(RSBaseRenderNodeTest, SetStaticCached, TestSize.Level1)
     isStaticCached = false;
     node->SetStaticCached(isStaticCached);
     ASSERT_FALSE(node->isStaticCached_);
-}
-
-/**
- * @tc.name: UpdateSubSurfaceCnt
- * @tc.desc: test results of UpdateSubSurfaceCnt
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSBaseRenderNodeTest, UpdateSubSurfaceCnt, TestSize.Level1)
-{
-    auto node = std::make_shared<RSBaseRenderNode>(id, context);
-    auto preParent = std::make_shared<RSBaseRenderNode>(id + 1, context);
-    node->UpdateSubSurfaceCnt(node, preParent);
-    ASSERT_TRUE(true);
 }
 
 /**

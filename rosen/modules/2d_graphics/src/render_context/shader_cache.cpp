@@ -144,6 +144,8 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
     if (valueSize >= zeroPatternSize_ &&
         !memcmp(valueBufferCheck + valueSize - zeroPatternSize_, zeroPattern_, zeroPatternSize_)) {
         LOGE("abandon, because value is not well format");
+        free(valueBuffer);
+        valueBuffer = nullptr;
         return nullptr;
     }
 

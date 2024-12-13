@@ -2278,20 +2278,20 @@ const void* RSMarshallingHelper::ReadFromParcel(Parcel& parcel, size_t size, boo
         isMalloc = false;
         return parcel.ReadUnpadBuffer(size);
     }
-    // ReadFromAshmem flow control begin
+    // read from ashmem flow control begins
     bool success = MemoryFlowControl::Instance().AddAshmemStatistic(g_callingPid, bufferSize);
     if (!success) {
         // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
         isMalloc = false;
-        RS_TRACE_NAME_FMT("RSMarshallingHelper::ReadFromParcel callingPid %d is submitting too many data, "
-            "discard parcel with bufferSize %" PRIu32, static_cast<int>(g_callingPid), bufferSize);
-        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel callingPid %{public}d is submitting too many data, "
-            "discard parcel with bufferSize %{public}" PRIu32, static_cast<int>(g_callingPid), bufferSize);
+        RS_TRACE_NAME_FMT("RSMarshallingHelper::ReadFromParcel reject ashmem buffer size %" PRIu32
+            " from pid %d", bufferSize, static_cast<int>(g_callingPid));
+        ROSEN_LOGE("RSMarshallingHelper::ReadFromParcel reject ashmem buffer size %{public}" PRIu32
+            " from pid %{public}d", bufferSize, static_cast<int>(g_callingPid));
         return nullptr;
     }
     // read from ashmem
     const void* data = RS_PROFILER_READ_PARCEL_DATA(parcel, size, isMalloc);
-    // ReadFromAshmem flow control end
+    // read from ashmem flow control ends
     MemoryFlowControl::Instance().RemoveAshmemStatistic(g_callingPid, bufferSize);
     return data;
 }

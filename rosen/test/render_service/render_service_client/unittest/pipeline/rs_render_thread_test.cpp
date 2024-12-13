@@ -50,6 +50,8 @@ HWTEST_F(RSRenderThreadTest, Detach001, TestSize.Level1)
     /**
      * @tc.steps: step1. Detach
      */
+    RSRenderThread::Instance().PostPreTask();
+    EXPECT_EQ(RSRenderThread::Instance().handler_, nullptr);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderThread::Instance().Detach(nodeId);
 }
@@ -65,6 +67,8 @@ HWTEST_F(RSRenderThreadTest, Detach002, TestSize.Level1)
     /**
      * @tc.steps: step1. Detach
      */
+    RSRenderThread::Instance().PostPreTask();
+    EXPECT_EQ(RSRenderThread::Instance().handler_, nullptr);
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSCanvasRenderNode node(nodeId);
     RSRenderThread::Instance().Detach(node.GetId());

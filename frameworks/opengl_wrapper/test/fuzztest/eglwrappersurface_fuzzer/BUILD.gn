@@ -32,11 +32,11 @@ ohos_fuzztest("EGLWrapperSurfaceFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [ "eglwrappersurface_fuzzer.cpp" ]
-  deps = [
-    "//commonlibrary/c_utils/base:utils",
-    "//foundation/graphic/graphic_2d/frameworks/opengl_wrapper:EGL",
+  deps = [ "../../../../opengl_wrapper:EGL" ]
+  external_deps = [
+    "c_utils:utils",
+    "graphic_surface:surface",
   ]
-  external_deps = [ "graphic_surface:surface" ]
 }
 
 ###############################################################################

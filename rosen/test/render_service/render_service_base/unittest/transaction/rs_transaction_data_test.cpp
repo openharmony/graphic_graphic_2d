@@ -343,6 +343,7 @@ HWTEST_F(RSTransactionDataTest, ProcessBySingleFrameComposer, TestSize.Level1)
     RSTransactionData rsTransactionData;
     Parcel parcel;
     std::unique_ptr<RSCommand> command;
+    EXPECT_EQ(command, nullptr);
     rsTransactionData.AddCommand(command, 1, FollowType::FOLLOW_TO_PARENT);
     RSContext context;
     rsTransactionData.ProcessBySingleFrameComposer(context);

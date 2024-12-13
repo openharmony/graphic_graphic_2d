@@ -65,8 +65,7 @@ void SkiaImage::PostSkImgToTargetThread()
     auto context = as_IB(skiaImage_.get())->directContext();
     auto func = SkiaGPUContext::GetPostFunc(sk_ref_sp(context));
     if (func) {
-        auto image = skiaImage_;
-        func([image]() {});
+        func([image = std::move(skiaImage_)]() {});
     }
 #endif
 }

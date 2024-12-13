@@ -181,5 +181,8 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
 
     dumpResult = GetDumpResult(renderService, u"client");
     ASSERT_TRUE(dumpResult.find("ClientNodeTreeDump") != std::string::npos);
+
+    dumpResult = GetDumpResult(renderService, u"gles");
+    ASSERT_TRUE(dumpResult.find("DumpGpuInfo") != std::string::npos);
 }
 } // namespace OHOS::Rosen

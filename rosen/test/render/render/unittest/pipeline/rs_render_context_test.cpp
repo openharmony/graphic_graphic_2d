@@ -133,6 +133,7 @@ HWTEST_F(RSRenderContextTest, TaskRunnerTest004, TestSize.Level1)
 HWTEST_F(RSRenderContextTest, InitializeTest005, TestSize.Level1)
 {
     RSContext rSContext;
+    EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
     rSContext.Initialize();
 }
 
