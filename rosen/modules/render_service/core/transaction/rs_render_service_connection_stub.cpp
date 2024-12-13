@@ -1485,7 +1485,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXEL_FORMAT): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             GraphicPixelFormat pixelFormat;
             int32_t result = GetPixelFormat(id, pixelFormat);
             if (!reply.WriteInt32(result)) {
@@ -1501,7 +1505,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PIXEL_FORMAT): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(data.ReadInt32());
             int32_t result = SetPixelFormat(id, pixelFormat);
             if (!reply.WriteInt32(result)) {
@@ -1565,7 +1573,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             std::vector<uint32_t> colorSpacesSend;
             std::vector<GraphicCM_ColorSpaceType> colorSpaces;
             int32_t result = GetScreenSupportedColorSpaces(id, colorSpaces);
@@ -1583,7 +1595,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             GraphicCM_ColorSpaceType colorSpace;
             int32_t result = GetScreenColorSpace(id, colorSpace);
             if (!reply.WriteInt32(result)) {
@@ -1599,7 +1615,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE): {
-            ScreenId id = data.ReadUint64();
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             GraphicCM_ColorSpaceType colorSpace = static_cast<GraphicCM_ColorSpaceType>(data.ReadInt32());
             int32_t result = SetScreenColorSpace(id, colorSpace);
             if (!reply.WriteInt32(result)) {
@@ -1851,7 +1871,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
-            uint32_t num = data.ReadUint32();
+            uint32_t num{0};
+            if (!data.ReadUint64(num)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetAppWindowNum(num);
             break;
         }
