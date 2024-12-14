@@ -35,7 +35,14 @@ config("libhyper_graphic_manager_config") {
     "$graphic_2d_root/utils/sandbox",
   ]
 
-  cflags = [ "-g3" ]
+  cflags = [
+    "-g3",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fno-asynchronous-unwind-tables",
+    "-fno-unwind-tables",
+    "-Os",
+  ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
