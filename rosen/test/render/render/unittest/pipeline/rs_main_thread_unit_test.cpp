@@ -130,6 +130,585 @@ HWTEST_F(RsMainThreadTest, Start02, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessCommandForDividedRender
+ * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    int dataIndex = 1;
+    rsTransactionData->SetIndex(dataIndex);
+    int dataPayloadSize = 3;
+    rsTransactionData->payload_.resize(dataPayloadSize);
+    NodeId id = 0;
+    rsTransactionData->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::NONE, std::make_unique<RSBaseNodeAddChild>(0, 1, 3));
+    id = 1;
+    rsTransactionData->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_SELF, nullptr);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+
+    auto node = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->nodeMap.RegisterRenderNode(node);
+    node->SetIsOnTheTree(true, 0, 1, 2);
+    mainThread->ConsumeAndUpdateAllNodes();
+
+    mainThread->ProcessCommandForDividedRender();
+}
+
+/**
+ * @tc.name: Start001
+ * @tc.desc: Test RSMainThreadTest.Start
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, Start001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->Start();
+}
+
+/**
+ * @tc.name: Start002
+ * @tc.desc: Test RSMainThreadTest.Start
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, Start002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->runner_ = nullptr;
+    mainThread->Start();
+}
+
+/**
+ * @tc.name: ProcessCommand
+ * @tc.desc: Test RSMainThreadTest.ProcessCommand
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommand, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    mainThread->ProcessCommand();
+    mainThread->isUniRender_ = true;
+    mainThread->lastAnimateTimestamp_ = 0;
+    mainThread->timestamp_ = REFRESH_PERIOD + 1;
+    mainThread->context_->purgeType_ = RSContext::PurgeType::GENTLY;
+    mainThread->ProcessCommand();
+    mainThread->context_->purgeType_ = RSContext::PurgeType::STRONGLY;
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: RsEventParamDump
+ * @tc.desc: Test RSMainThreadTest.RsEventParamDump
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, RsEventParamDump, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::string str = "";
+    mainThread->RsEventParamDump(str);
+    ASSERT_TRUE(str.empty());
+}
+
+/**
+ * @tc.name: RemoveRSEventDetector001
+ * @tc.desc: Test RSMainThreadTest.RemoveRSEventDetector, with init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, RemoveRSEventDetector001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->InitRSEventDetector();
+    mainThread->RemoveRSEventDetector();
+}
+
+/**
+ * @tc.name: RemoveRSEventDetector002
+ * @tc.desc: Test RSMainThreadTest.RemoveRSEventDetector, without init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, RemoveRSEventDetector002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->RemoveRSEventDetector();
+}
+
+/**
+ * @tc.name: InitRSEventDetector
+ * @tc.desc: Test RSMainThreadTest.InitRSEventDetector, without init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, InitRSEventDetector, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->rsCompositionTimeoutDetector_ = nullptr;
+    mainThread->InitRSEventDetector();
+}
+
+/**
+ * @tc.name: SetRSEventDetectorLoopStartTag001
+ * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopStartTag, with init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->InitRSEventDetector();
+    mainThread->SetRSEventDetectorLoopStartTag();
+}
+
+/**
+ * @tc.name: SetRSEventDetectorLoopStartTag002
+ * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopStartTag, without init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopStartTag002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->rsCompositionTimeoutDetector_ = nullptr;
+    mainThread->SetRSEventDetectorLoopStartTag();
+}
+
+/**
+ * @tc.name: SetRSEventDetectorLoopFinishTag001
+ * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopFinishTag, with init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->InitRSEventDetector();
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    mainThread->SetRSEventDetectorLoopFinishTag();
+    mainThread->isUniRender_ = true;
+    mainThread->SetRSEventDetectorLoopFinishTag();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: SetRSEventDetectorLoopFinishTag002
+ * @tc.desc: Test RSMainThreadTest.SetRSEventDetectorLoopFinishTag, without init
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, SetRSEventDetectorLoopFinishTag002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->rsCompositionTimeoutDetector_ = nullptr;
+    mainThread->SetRSEventDetectorLoopFinishTag();
+}
+
+/**
+ * @tc.name: ProcessCommandForDividedRender001
+ * @tc.desc: Test RSMainThreadTest.ProcessCommandForDividedRender
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, ProcessCommandForDividedRender001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->ProcessCommandForDividedRender();
+}
+
+/**
+ * @tc.name: CalcOcclusion
+ * @tc.desc: Test RSMainThreadTest.CalcOcclusion, doWindowAnimate_ is false, isUniRender_ is true
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, CalcOcclusion, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->doWindowAnimate_ = false;
+    mainThread->isUniRender_ = true;
+    mainThread->CalcOcclusion();
+}
+
+/**
+ * @tc.name: Animate001
+ * @tc.desc: Test RSMainThreadTest.Animate, doWindowAnimate_ is false
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, Animate001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->doWindowAnimate_ = false;
+    mainThread->Animate(0);
+}
+
+/**
+ * @tc.name: Animate002
+ * @tc.desc: Test RSMainThreadTest.Animate, doWindowAnimate_ is true
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, Animate002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->doWindowAnimate_ = true;
+    mainThread->Animate(0);
+}
+
+/**
+ * @tc.name: UnRegisterOcclusionChangeCallback
+ * @tc.desc: Test RSMainThreadTest.Animate
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->UnRegisterOcclusionChangeCallback(0);
+}
+
+/**
+ * @tc.name: RenderServiceTreeDump
+ * @tc.desc: Test RSMainThreadTest.RenderServiceTreeDump, str is an empty string
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    std::string str = "";
+    mainThread->RenderServiceTreeDump(str);
+    ASSERT_FALSE(str.size() == 0);
+}
+
+/**
+ * @tc.name: ProcessSyncRSTransactionData001
+ * @tc.desc: Test ProcessSyncRSTransactionData when TransactionData do not need sync
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData001, TestSize.Level1)
+{
+    // when IsNeedSync() is false
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    pid_t pid = 0;
+    rsTransactionData->SetSyncId(1);
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+
+    // when syncTransactionData_ is not empty and SyncId is larger
+    rsTransactionData = std::make_unique<RSTransactionData>();
+    rsTransactionData->MarkNeedSync();
+    rsTransactionData->SetSyncId(0);
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+
+    // when syncTransactionData_ is not empty and SyncId is equal or smaller
+    rsTransactionData->SetSyncTransactionNum(1);
+    rsTransactionData->SetSyncId(1);
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+}
+
+/**
+ * @tc.name: ProcessSyncRSTransactionData002
+ * @tc.desc: Test ProcessSyncRSTransactionData when TransactionData do not need sync
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncRSTransactionData002, TestSize.Level1)
+{
+    // when IsNeedSync() is true & syncTransactionData_ is empty & isNeedCloseSync is true
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    pid_t pid = 0;
+    rsTransactionData->MarkNeedSync();
+    rsTransactionData->MarkNeedCloseSync();
+    rsTransactionData->SetSyncTransactionNum(1);
+    mainThread->ProcessSyncRSTransactionData(rsTransactionData, pid);
+    ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
+}
+
+/**
+ * @tc.name: ProcessSyncTransactionCount
+ * @tc.desc: Test ProcessSyncTransactionCount
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ProcessSyncTransactionCount, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+
+    rsTransactionData->SetParentPid(-1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    auto parentPid = rsTransactionData->GetParentPid();
+    ASSERT_EQ(parentPid, -1);
+
+    rsTransactionData->SetSyncTransactionNum(1);
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    ASSERT_EQ(rsTransactionData->GetSyncTransactionNum(), 1);
+
+    rsTransactionData->MarkNeedCloseSync();
+    mainThread->ProcessSyncTransactionCount(rsTransactionData);
+    mainThread->StartSyncTransactionFallbackTask(rsTransactionData);
+    ASSERT_EQ(rsTransactionData->IsNeedCloseSync(), true);
+}
+
+/**
+ * @tc.name: GetContext
+ * @tc.desc: Test if context has been initialized
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, GetContext, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto& context = mainThread->GetContext();
+    uint64_t time = 0;
+    ASSERT_EQ(context.GetTransactionTimestamp(), time);
+}
+
+/**
+ * @tc.name: AddPidNeedDropFrame
+ * @tc.desc: Test AddPidNeedDropFrame
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+}
+
+/**
+ * @tc.name: ClearNeedDropframePidList
+ * @tc.desc: Test ClearNeedDropframePidList
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
+}
+
+/**
+ * @tc.name: IsNeedDropFrameByPid001
+ * @tc.desc: Test IsNeedDropFrameByPid while pid satisfy
+ * @tc.type: FUNC
+ * @tc.require: issueIB7PH1
+ */
+HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    mainThread->ClearNeedDropframePidList();
+}
+
+/**
+ * @tc.name: IsNeedDropFrameByPid002
+ * @tc.desc: Test IsNeedDropFrameByPid while pid not satisfy
+ * @tc.type: FUNC
+ * @tc.require: issueIB7PH1
+ */
+HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({});
+    ASSERT_FALSE(mainThread->IsNeedDropFrameByPid(surfaceNode->GetId()));
+
+    mainThread->ClearNeedDropframePidList();
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData001
+ * @tc.desc: Test ClassifyRSTransactionData when nodeId is 0
+ * @tc.type: FUNC
+ * @tc.require: issueI6Q9A2
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->pendingEffectiveCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    NodeId nodeId = 0;
+    FollowType followType = FollowType::NONE;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
+}
+
+/**
+ * @tc.name: SetFocusAppInfo
+ * @tc.desc: Test RSMainThreadTest.SetFocusAppInfo, input pid, uid is -1, str is an empty string
+ * @tc.type: FUNC
+ * @tc.require: issueI60QXK
+ */
+HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    std::string str = "";
+    int32_t pid = INVALID_VALUE;
+    int32_t uid = INVALID_VALUE;
+    mainThread->SetFocusAppInfo(pid, uid, str, str, 0);
+    ASSERT_EQ(mainThread->focusAppPid_, pid);
+}
+
+/**
+ * @tc.name: SetFocusAppInfo002
+ * @tc.desc: Test SetFocusAppInfo while change focus node
+ * @tc.type: FUNC
+ * @tc.require: issueI9LOXQ
+ */
+HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto oldFocusNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    auto newFocusNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
+    mainThread->focusNodeId_ = oldFocusNode->GetId();
+
+    std::string str = "";
+    int32_t pid = INVALID_VALUE;
+    int32_t uid = INVALID_VALUE;
+    mainThread->SetFocusAppInfo(pid, uid, str, str, newFocusNode->GetId());
+    ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData002
+ * @tc.desc: Test ClassifyRSTransactionData when nodeId is 1
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->pendingEffectiveCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    NodeId nodeId = 1;
+    FollowType followType = FollowType::NONE;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->pendingEffectiveCommands_.empty(), true);
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData003
+ * @tc.desc: Test ClassifyRSTransactionData when followType is FOLLOW_TO_PARENT
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    mainThread->pendingEffectiveCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    NodeId nodeId = 1;
+    FollowType followType = FollowType::FOLLOW_TO_PARENT;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData004
+ * @tc.desc: Test ClassifyRSTransactionData when followType is FOLLOW_TO_PARENT
+ * @tc.type: FUNC
+ * @tc.require: issueI6R34I
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    // build the NodeTree
+    NodeId nodeId = 1;
+    std::weak_ptr<RSContext> context = {};
+    auto node = std::make_shared<RSBaseRenderNode>(nodeId, context);
+    auto childNode = std::make_shared<RSBaseRenderNode>(nodeId + 1, context);
+    int index = 0;
+    node->SetIsOnTheTree(true);
+    node->AddChild(node, index);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 0);
+    node->AddChild(childNode, index);
+    ASSERT_EQ(static_cast<int>(node->GetChildrenCount()), 1);
+    ASSERT_TRUE(childNode->IsOnTheTree());
+
+    mainThread->cachedCommands_.clear();
+    auto rsTransactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command = nullptr;
+    FollowType followType = FollowType::FOLLOW_TO_SELF;
+    rsTransactionData->AddCommand(command, nodeId, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId].empty(), true);
+
+    mainThread->cachedCommands_.clear();
+    rsTransactionData = std::make_unique<RSTransactionData>();
+    command = nullptr;
+    followType = FollowType::FOLLOW_TO_PARENT;
+    rsTransactionData->AddCommand(command, nodeId + 1, followType);
+    mainThread->ClassifyRSTransactionData(rsTransactionData);
+    ASSERT_EQ(mainThread->cachedCommands_[nodeId + 1].empty(), true);
+}
+
+/**
  * @tc.name: ProcessCommand01
  * @tc.desc: Test RsMainThreadTest.ProcessCommand
  * @tc.type: FUNC
