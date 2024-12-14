@@ -1214,5 +1214,13 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
 }
+
+bool RSSystemProperties::GetDisableHebcEnabled()
+{
+    // Dynamically disable unified rendering layer hecb if persist.sys.graphic.anco.disableHebc equal 1
+    static bool enable =
+        std::atoi((system::GetParameter("persist.sys.graphic.anco.disableHebc", "0")).c_str()) != 0;
+    return enable;
+}
 } // namespace Rosen
 } // namespace OHOS

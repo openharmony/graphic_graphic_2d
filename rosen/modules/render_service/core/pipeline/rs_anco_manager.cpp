@@ -27,6 +27,9 @@ RSAncoManager* RSAncoManager::Instance()
 
 AncoHebcStatus RSAncoManager::GetAncoHebcStatus() const
 {
+    if (!RSSystemProperties::GetDisableHebcEnabled()) {
+        return AncoHebcStatus::INITIAL;
+    }
     return static_cast<AncoHebcStatus>(ancoHebcStatus_.load());
 }
 
@@ -58,8 +61,8 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
     ScreenRotation rotation, uint32_t width, uint32_t height)
 {
     SetAncoHebcStatus(AncoHebcStatus::INITIAL);
-    if (!RSSurfaceRenderNode::GetOriAncoForceDoDirect() || !RSSystemProperties::IsTabletType() ||
-        rotation != ScreenRotation::ROTATION_0) {
+    if (!RSSystemProperties::GetDisableHebcEnabled() || !RSSurfaceRenderNode::GetOriAncoForceDoDirect() ||
+        !RSSystemProperties::IsTabletType() || rotation != ScreenRotation::ROTATION_0) {
         return false;
     }
 

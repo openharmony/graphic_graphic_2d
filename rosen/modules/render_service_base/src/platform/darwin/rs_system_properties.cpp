@@ -582,5 +582,10 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 {
     return false;
 }
+
+bool RSSystemProperties::GetDisableHebcEnabled()
+{
+	return false;
+}
 } // namespace Rosen
 } // namespace OHOS
