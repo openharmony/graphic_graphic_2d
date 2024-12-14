@@ -5417,4 +5417,21 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeDisplayDirtyByRoundCornerDisplay002, 
     rcdInstance.rcdMap_[id]->hardInfo_.resourceChanged = true;
     rsUniRenderVisitor->CheckMergeDisplayDirtyByRoundCornerDisplay();
 }
+
+/*
+ * @tc.name: UpdateAncoNodeHWCDisabledState
+ * @tc.desc: Test RSUniRenderVisitorTest.UpdateAncoNodeHWCDisabledState
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateAncoNodeHWCDisabledState, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    rsUniRenderVisitor->ancoNodes_insert(hwcNodePtr);
+    rsUniRenderVisitor->UpdateAncoNodeHWCDisabledState();
+}
 } // OHOS::Rosen
