@@ -276,6 +276,12 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
 
 void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
 {
+    if (hasHdrPresent_ == hasHdrPresent) {
+        return;
+    }
+    if (IsOnTheTree()) {
+        SetHdrNum(hasHdrPresent, GetInstanceRootNodeId());
+    }
     hasHdrPresent_ = hasHdrPresent;
 }
 
