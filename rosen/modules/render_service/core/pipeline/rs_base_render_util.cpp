@@ -1191,6 +1191,52 @@ Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
     return matrix;
 }
 
+Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(
+    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
+{
+    Drawing::Matrix matrix;
+    const float boundsWidth = bounds.GetWidth();
+    const float boundsHeight = bounds.GetHeight();
+    const float bufferHeight = bufferBounds.GetHeight();
+    float heightAdjust = boundsHeight;
+
+    static std::unordered_set<Gravity> resizeGravities = {Gravity::RESIZE,
+        Gravity::RESIZE_ASPECT,
+        Gravity::RESIZE_ASPECT_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_BOTTOM_RIGHT,
+        Gravity::RESIZE_ASPECT_FILL,
+        Gravity::RESIZE_ASPECT_FILL_TOP_LEFT,
+        Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT};
+    if (resizeGravities.find(gravity) != resizeGravities.end()) {
+        heightAdjust = boundsHeight;
+    } else if (bufferHeight > 0) {
+        heightAdjust = std::min(bufferHeight, boundsHeight);
+    }
+
+    switch (rotationTransform) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            matrix.PreTranslate(0, heightAdjust);
+            matrix.PreRotate(-90);  // rotate 90 degrees anti-clockwise at last.
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            matrix.PreTranslate(boundsWidth, heightAdjust);
+            matrix.PreRotate(-180);  // rotate 180 degrees anti-clockwise at last.
+
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            matrix.PreTranslate(boundsWidth, 0);
+            matrix.PreRotate(-270); // rotate 270 degrees anti-clockwise at last.
+            break;
+        }
+        default:
+            break;
+    }
+
+    return matrix;
+}
+
 Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     Gravity gravity, const RectF& bufferSize, const RectF& bounds)
 {
