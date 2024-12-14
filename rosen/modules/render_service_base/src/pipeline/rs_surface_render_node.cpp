@@ -3221,11 +3221,10 @@ bool RSSurfaceRenderNode::GetBehindWindowFilterEnabled() const
     auto& drawCmdModifiers = const_cast<RSRenderContent::DrawCmdContainer&>(GetDrawCmdModifiers());
     auto itr = drawCmdModifiers.find(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED);
     if (itr == drawCmdModifiers.end() || itr->second.empty()) {
-        RS_LOGD("RSSurfaceRenderNode::GetBehindWindowFilterEnabled drawCmdModifiers find failed");
         return true; // default value
     }
     const auto& modifier = itr->second.back();
-    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(modifier->GetProperty());
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<bool>>(modifier->GetProperty());
     return renderProperty->GetRef();
 }
 
