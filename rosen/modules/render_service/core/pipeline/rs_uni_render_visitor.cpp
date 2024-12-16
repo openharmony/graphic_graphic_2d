@@ -3308,16 +3308,11 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
     if (RS_PROFILER_SHOULD_BLOCK_HWCNODE()) {
         return;
     }
-
-    if (!curSurfaceNode_) {
-        return;
-    }
-    const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
+    const auto& hwcNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
     if (hwcNodes.empty()) {
         return;
     }
-    for (auto hwcNode : hwcNodes) {
-        auto hwcNodePtr = hwcNode.lock();
+    for (auto hwcNodePtr : hwcNodes) {
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree() || hwcNodePtr->GetCalcRectInPrepare()) {
             continue;
         }
