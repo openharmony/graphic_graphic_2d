@@ -725,8 +725,8 @@ bool DoRSProperty(const uint8_t* data, size_t size)
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSProperty<float>>(value);
-    auto propertyBase = std::make_shared<RSPropertyBase>();
-    property->SetValue(propertyBase);
+    auto property2 = std::make_shared<RSProperty<float>>(value);
+    property->SetValue(property2);
     property->Clone();
     return true;
 }
@@ -744,16 +744,17 @@ bool DoRSAnimatableProperty(const uint8_t* data, size_t size)
 
     // test
     float value = GetData<float>();
+    uint64_t id = GetData<uint64_t>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
     bool isDelta = GetData<bool>();
     property->UpdateExtendedAnimatableProperty(value, isDelta);
     property->RemovePathAnimation();
-    auto rsRenderPropertyBase = std::make_shared<RSRenderPropertyBase>();
-    property->UpdateShowingValue(rsRenderPropertyBase);
+    auto rsRenderProperty = std::make_shared<RSRenderProperty<float>>(value, id);
+    property->UpdateShowingValue(rsRenderProperty);
     property->NotifyPropertyChange();
     property->Multiply(value);
-    auto propertyBase = std::make_shared<RSPropertyBase>();
-    property->IsEqual(propertyBase);
+    auto property2 = std::make_shared<RSAnimatableProperty<float>>(value);
+    property->IsEqual(property2);
     return true;
 }
 
