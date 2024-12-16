@@ -756,7 +756,7 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
     }
-    if (!node.GetIsTextureExportNode()) {
+    if (!RSUniRenderJudgement::IsUniRender() && !node.GetIsTextureExportNode()) {
         node.SetContextMatrix(contextMatrix);
         node.SetContextAlpha(canvas_->GetAlpha());
     }
