@@ -78,6 +78,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareChildren001, TestSize.Level1)
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsSurfaceRenderNode.stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(rsSurfaceRenderNode.GetId());
+    ASSERT_NE(rsSurfaceRenderNode.stagingRenderParams_, nullptr);
     RSRenderServiceVisitor rsRenderServiceVisitor;
     rsRenderServiceVisitor.PrepareChildren(rsSurfaceRenderNode);
 }
@@ -94,6 +95,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode001, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -109,6 +111,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode002, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -124,6 +127,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode003, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -139,6 +143,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode004, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -154,6 +159,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode005, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -169,6 +175,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode006, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -184,6 +191,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode007, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -199,6 +207,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode008, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -236,6 +245,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode010, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     auto& property = node->GetMutableRenderProperties();
     EXPECT_NE(&property, nullptr);
     property.SetBounds({ 0, 0, 400, 600 });
@@ -259,6 +269,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode011, TestSize.Level
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -275,6 +286,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode012, TestSize.Level
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*node);
 }
 
@@ -291,8 +303,10 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareDisplayRenderNode013, TestSize.Level
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto mirroredNode = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(mirroredNode, nullptr);
     RSDisplayNodeConfig config1;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(TestSrc::limitNumber::Uint64[6], config1);
+    ASSERT_NE(displayNode, nullptr);
     mirroredNode->SetMirrorSource(displayNode);
     rsRenderServiceVisitor.PrepareDisplayRenderNode(*mirroredNode);
 }
@@ -340,6 +354,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSCanvasRenderNode node(nodeId);
     node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
+    ASSERT_NE(node.stagingRenderParams_, nullptr);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
 
@@ -593,7 +608,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode001, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -609,7 +626,9 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode002, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     node->stagingRenderParams_ = std::make_unique<RSRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -625,6 +644,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode003, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -640,6 +660,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode004, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -655,6 +676,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode005, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -670,6 +692,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode006, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -685,6 +708,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode007, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -700,6 +724,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode008, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -714,11 +739,15 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode009, TestSize.Level
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
     auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
 
     auto rsScreen = std::make_unique<impl::RSScreen>(0, false, HdiOutput::CreateHdiOutput(0), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
     auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
     rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
     screenManager->MockHdiScreenConnected(rsScreen);
@@ -726,6 +755,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode009, TestSize.Level
     RSDisplayNodeConfig config;
     config.screenId = 0;
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*node);
 }
 
@@ -740,12 +770,16 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode010, TestSize.Level
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
     auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
 
 
     auto rsScreen = std::make_unique<impl::RSScreen>(0, false, HdiOutput::CreateHdiOutput(0), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
     auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
     rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
     screenManager->MockHdiScreenConnected(rsScreen);
@@ -753,8 +787,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode010, TestSize.Level
     RSDisplayNodeConfig config;
     config.isMirrored = true;
     auto mirroredNode = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(mirroredNode, nullptr);
     RSDisplayNodeConfig config1;
     auto displayNode = std::make_shared<RSDisplayRenderNode>(TestSrc::limitNumber::Uint64[6], config1);
+    ASSERT_NE(displayNode, nullptr);
     mirroredNode->SetMirrorSource(displayNode);
     rsRenderServiceVisitor.ProcessDisplayRenderNode(*mirroredNode);
 }
@@ -784,8 +820,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    ASSERT_NE(rsRenderServiceVisitor.processor_, nullptr);
     rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 
@@ -800,8 +838,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    ASSERT_NE(rsRenderServiceVisitor.processor_, nullptr);
     rsRenderServiceVisitor.isSecurityDisplay_ = true;
     rsSurfaceRenderNode->SetSecurityLayer(true);
     rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
@@ -818,8 +858,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode004, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    ASSERT_NE(rsRenderServiceVisitor.processor_, nullptr);
     rsSurfaceRenderNode->GetMutableRenderProperties().SetAlpha(0.0f);
     rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
@@ -835,8 +877,10 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
     RSRenderServiceVisitor rsRenderServiceVisitor;
     RSSurfaceRenderNodeConfig config;
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsRenderServiceVisitor.processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
+    ASSERT_NE(rsRenderServiceVisitor.processor_, nullptr);
     rsSurfaceRenderNode->SetSkipLayer(true);
     ASSERT_EQ(true, rsSurfaceRenderNode->GetSkipLayer());
     rsRenderServiceVisitor.ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
