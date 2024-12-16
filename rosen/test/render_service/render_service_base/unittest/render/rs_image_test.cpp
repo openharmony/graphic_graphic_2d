@@ -128,6 +128,7 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     rsImage.SetImageFit(8);
     rsImage.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
+    EXPECT_EQ(rsImage.GetImageFit(), ImageFit::TOP);
 }
 
 /**
@@ -153,6 +154,7 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
     // for test
     rsImage.innerRect_ = Drawing::RectI { 0, 0, 10, 10 };
     rsImage.CanvasDrawImage(canvas, rect, samplingOptions, false);
+    EXPECT_NE(&rsImage, nullptr);
 }
 
 /**
@@ -409,6 +411,7 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
     isBackground = true;
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
+    EXPECT_NE(&canvas, nullptr);
 }
 
 /**
@@ -444,6 +447,7 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.SetImageFit(8);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
+    EXPECT_EQ(image.GetImageFit(), ImageFit::TOP);
 }
 
 /**
@@ -468,6 +472,7 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     image.SetImageRepeat(3);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     canvas.DetachBrush();
+    EXPECT_NE(&image, nullptr);
 }
 
 /**

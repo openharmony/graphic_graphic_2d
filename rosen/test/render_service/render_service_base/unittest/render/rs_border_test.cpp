@@ -92,7 +92,8 @@ HWTEST_F(RSBorderTest, LifeCycle002, TestSize.Level1)
     border->SetStyleFour(vectorStyle);
     border->GetStyleFour();
     border->SetStyle(BorderStyle::DOTTED);
-    border->ToString();
+    EXPECT_EQ(
+        border->ToString(), "colors: 4278255873, 4278321666, 4278387459, 4278453252, widths: 1, 2, 3, 4, styles: 2, ");
 }
 
 /**
@@ -674,6 +675,7 @@ HWTEST_F(RSBorderTest, DrawBordersTest001, TestSize.Level1)
     Vector4<Color> vectorColor5(color1, color1, color1, color1);
     border->SetColorFour(vectorColor5);
     border->DrawBorders(canvas, pen, borderGeo);
+    EXPECT_NE(&pen, nullptr);
 }
 
 /**
@@ -737,6 +739,7 @@ HWTEST_F(RSBorderTest, DrawBordersTest002, TestSize.Level1)
     Vector4<Color> vectorColor5(color1, color1, color1, color1);
     border->SetColorFour(vectorColor5);
     border->DrawBorders(canvas, pen, borderGeo);
+    EXPECT_NE(&pen, nullptr);
 }
 
 /**

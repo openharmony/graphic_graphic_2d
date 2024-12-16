@@ -260,11 +260,13 @@ HWTEST_F(RSBlurFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
     float blurRadiusY = 26.0f;
     auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     blurFilter->GetDetailedDescription();
+    EXPECT_EQ(blurFilter->GetDetailedDescription(),
+        "RSBlurFilterBlur, radius: 27.000000 sigma, greyCoef1: 0.000000, greyCoef2: 0.000000");
 
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     blurFilter->SetGreyCoef(greyCoef);
-    blurFilter->GetDetailedDescription();
-    EXPECT_NE(blurFilter, nullptr);
+    EXPECT_EQ(blurFilter->GetDetailedDescription(),
+        "RSBlurFilterBlur, radius: 27.000000 sigma, greyCoef1: 1.000000, greyCoef2: 1.000000");
 }
 
 /**
@@ -328,5 +330,6 @@ HWTEST_F(RSBlurFilterTest, DrawImageRect, TestSize.Level1)
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     rsBlurFilter.SetGreyCoef(greyCoef);
     rsBlurFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_NE(&rsBlurFilter, nullptr);
 }
 } // namespace OHOS::Rosen
