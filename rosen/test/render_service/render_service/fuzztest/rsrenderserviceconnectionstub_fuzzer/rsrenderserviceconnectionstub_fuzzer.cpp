@@ -2580,6 +2580,285 @@ bool DoSetScreenColorSpace(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoSyncFrameRateRange(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoUnregisterFrameRateLinker(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetCurrentRefreshRateMode(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoGetShowRefreshRateEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetShowRefreshRateEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoRegisterHgmRefreshRateModeChangeCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoSetHardwareEnabled(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
+
+bool DoNotifyDynamicModeEvent(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    FuzzedDataProvider fdp(data, size);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
+    auto newPid = getpid();
+
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    std::vector<uint8_t> subData =
+        fdp.ConsumeBytes<uint8_t>(fdp.ConsumeIntegralInRange<size_t>(0, fdp.remaining_bytes()));
+    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteBuffer(subData.data(), subData.size());
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -2596,6 +2875,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetAppWindowNum(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
     OHOS::Rosen::DoSetScreenPowerStatus(data, size);
+    OHOS::Rosen::DoSyncFrameRateRange(data, size);
+    OHOS::Rosen::DoUnregisterFrameRateLinker(data, size);
+    OHOS::Rosen::DoGetCurrentRefreshRateMode(data, size);
+    OHOS::Rosen::DoGetShowRefreshRateEnabled(data, size);
+    OHOS::Rosen::DoSetShowRefreshRateEnabled(data, size);
+    OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
+    OHOS::Rosen::DoRegisterHgmRefreshRateModeChangeCallback(data, size);
+    OHOS::Rosen::DoSetHardwareEnabled(data, size);
+    OHOS::Rosen::DoNotifyDynamicModeEvent(data, size);
     OHOS::Rosen::DoSetHwcNodeBounds(data, size);
     OHOS::Rosen::DoSetScreenActiveMode(data, size);
     OHOS::Rosen::DoSetScreenActiveRect(data, size);
