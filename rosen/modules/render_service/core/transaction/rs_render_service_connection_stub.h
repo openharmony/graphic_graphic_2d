@@ -41,8 +41,8 @@ public:
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
 
-    void ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
-    void ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
+    bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
+    bool ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
     bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
     void SetQos();
     RSRenderServiceSecurityUtils securityUtils_;

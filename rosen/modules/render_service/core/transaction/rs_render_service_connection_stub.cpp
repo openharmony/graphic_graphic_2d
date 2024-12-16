@@ -1077,7 +1077,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC): {
-            auto pid = data.ReadInt32();
+            int32_t pid{0};
+            if (!data.ReadInt32(pid)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RS_PROFILER_PATCH_PID(data, pid);
             if (!IsValidCallingPid(pid, callingPid)) {
                 RS_LOGW("GET_MEMORY_GRAPHIC invalid pid[%{public}d]", callingPid);
@@ -1172,7 +1176,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER): {
-            NodeId id = data.ReadUint64();
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!accessible && (ExtractPid(id) != callingPid)) {
                 RS_LOGW("The SetBufferAvailableListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1194,7 +1202,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER): {
-            NodeId id = data.ReadUint64();
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!accessible && (ExtractPid(id) != callingPid)) {
                 RS_LOGW("The SetBufferClearListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1653,7 +1665,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
-            NodeId id = data.ReadUint64();
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetBitmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1672,7 +1688,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
-            NodeId id = data.ReadUint64();
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The GetPixelmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
@@ -1905,8 +1925,17 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 RS_LOGI("Current disenable water mark");
                 break;
             }
-            std::string name = data.ReadString();
+            std::string name;
+            if (!data.ReadString(name)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto watermark = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            if (watermark == nullptr) {
+                ret = ERR_NULL_OBJECT;
+                RS_LOGE("RSRenderServiceConnectionStub::std::shared_ptr<Media::PixelMap> watermark == nullptr");
+                break;
+            }
             SetWatermark(name, watermark);
             break;
         }
@@ -1941,25 +1970,37 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE): {
             DataBaseRs info;
-            ReadDataBaseRs(info, data);
+            if (!ReadDataBaseRs(info, data)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ReportEventResponse(info);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE): {
             DataBaseRs info;
-            ReadDataBaseRs(info, data);
+            if (!ReadDataBaseRs(info, data)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ReportEventComplete(info);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME): {
             DataBaseRs info;
-            ReadDataBaseRs(info, data);
+            if (!ReadDataBaseRs(info, data)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ReportEventJankFrame(info);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE): {
             GameStateData info;
-            ReadGameStateDataRs(info, data);
+            if (!ReadGameStateDataRs(info, data)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             ReportGameStateData(info);
             break;
         }
@@ -1997,20 +2038,34 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED) : {
-            auto id = data.ReadUint64();
+            uint64_t id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_LOGW("The SetHardwareEnabled isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
                     id, callingPid);
                 break;
             }
-            auto isEnabled = data.ReadBool();
-            auto selfDrawingType = static_cast<SelfDrawingNodeType>(data.ReadUint8());
-            auto dynamicHardwareEnable = data.ReadBool();
-            SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
+            bool isEnabled{false};
+            uint8_t selfDrawingType{static_cast<uint8_t>(SelfDrawingNodeType::DEFAULT)};
+            bool dynamicHardwareEnable{false};
+            if (!data.ReadBool(isEnabled) ||
+                !data.ReadUint8(selfDrawingType) ||
+                !data.ReadBool(dynamicHardwareEnable)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetHardwareEnabled(id, isEnabled, static_cast<SelfDrawingNodeType>(selfDrawingType), dynamicHardwareEnable);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {
-            auto id = data.ReadUint64();
+            uint64_t id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
                 "::SET_HIDE_PRIVACY_CONTENT");
@@ -2203,7 +2258,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET) : {
-            uint32_t offset = data.ReadUint32();
+            uint32_t offset{0};
+            if (!data.ReadUint32(offset)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetDefaultDeviceRotationOffset(offset);
             break;
         }
@@ -2365,13 +2424,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT) : {
-            bool direct = data.ReadBool();
+            bool direct{false};
+            if (!data.ReadBool(direct)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool result = SetAncoForceDoDirect(direct);
             reply.WriteBool(result);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
-            auto id = data.ReadUint64();
+            uint64_t id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             bool isNonSystemCalling = false;
             bool isTokenTypeValid = true;
             RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
@@ -2380,9 +2447,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto mirrorId = data.ReadUint64();
-            auto screenId = data.ReadUint64();
-            auto isMirrored = data.ReadBool();
+            uint64_t mirrorId{0};
+            uint64_t screenId{0};
+            bool isMirrored{false};
+            if (!data.ReadUint64(mirrorId) ||
+                !data.ReadUint64(screenId) ||
+                !data.ReadBool(isMirrored)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             RSDisplayNodeConfig config = {
                 .screenId = screenId,
                 .isMirrored = isMirrored,
@@ -2402,13 +2475,18 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK) : {
-            auto pid = data.ReadInt32();
+            int32_t pid{0};
+            uint64_t uid{0};
+            if (!data.ReadInt32(pid) ||
+                !data.ReadUint64(uid)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!IsValidCallingPid(pid, callingPid)) {
                 RS_LOGW("REGISTER_SURFACE_BUFFER_CALLBACK invalid pid[%{public}d]", callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto uid = data.ReadUint64();
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 ret = ERR_NULL_OBJECT;
@@ -2425,19 +2503,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK) : {
-            auto pid = data.ReadInt32();
+            int32_t pid{0};
+            uint64_t uid{0};
+            if (!data.ReadInt32(pid) ||
+                !data.ReadUint64(uid)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             if (!IsValidCallingPid(pid, callingPid)) {
                 RS_LOGW("UNREGISTER_SURFACE_BUFFER_CALLBACK invalid pid[%{public}d]", callingPid);
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            auto uid = data.ReadUint64();
             UnregisterSurfaceBufferCallback(pid, uid);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP) : {
-            std::string nodeIdStr = data.ReadString();
-            bool isTop = data.ReadBool();
+            std::string nodeIdStr;
+            bool isTop{false};
+            if (!data.ReadString(nodeIdStr) ||
+                !data.ReadBool(isTop)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
@@ -2449,33 +2537,29 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
     return ret;
 }
 
-void RSRenderServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data)
+bool RSRenderServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParcel& data)
 {
-    info.appPid = data.ReadInt32();
-    info.eventType =  data.ReadInt32();
-    info.versionCode = data.ReadInt32();
-    info.uniqueId = data.ReadInt64();
-    info.inputTime = data.ReadInt64();
-    info.beginVsyncTime = data.ReadInt64();
-    info.endVsyncTime = data.ReadInt64();
-    info.isDisplayAnimator = data.ReadBool();
-    info.sceneId = data.ReadString();
-    info.versionName = data.ReadString();
-    info.bundleName = data.ReadString();
-    info.processName = data.ReadString();
-    info.abilityName = data.ReadString();
-    info.pageUrl = data.ReadString();
-    info.sourceType = data.ReadString();
-    info.note = data.ReadString();
+    if (!data.ReadInt32(info.appPid) || !data.ReadInt32(info.eventType) ||
+        !data.ReadInt32(info.versionCode) || !data.ReadInt64(info.uniqueId) ||
+        !data.ReadInt64(info.inputTime) || !data.ReadInt64(info.beginVsyncTime) ||
+        !data.ReadInt64(info.endVsyncTime) || !data.ReadBool(info.isDisplayAnimator) ||
+        !data.ReadString(info.sceneId) || !data.ReadString(info.versionName) ||
+        !data.ReadString(info.bundleName) || !data.ReadString(info.processName) ||
+        !data.ReadString(info.abilityName) ||!data.ReadString(info.pageUrl) ||
+        !data.ReadString(info.sourceType) || !data.ReadString(info.note)) {
+        return false;
+    }
+    return true;
 }
 
-void RSRenderServiceConnectionStub::ReadGameStateDataRs(GameStateData& info, MessageParcel& data)
+bool RSRenderServiceConnectionStub::ReadGameStateDataRs(GameStateData& info, MessageParcel& data)
 {
-    info.pid = data.ReadInt32();
-    info.uid =  data.ReadInt32();
-    info.state = data.ReadInt32();
-    info.renderTid = data.ReadInt32();
-    info.bundleName = data.ReadString();
+    if (!data.ReadInt32(info.pid) || !data.ReadInt32(info.uid) ||
+        !data.ReadInt32(info.state) || !data.ReadInt32(info.renderTid) ||
+        !data.ReadString(info.bundleName)) {
+        return false;
+    }
+    return true;
 }
 
 bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
