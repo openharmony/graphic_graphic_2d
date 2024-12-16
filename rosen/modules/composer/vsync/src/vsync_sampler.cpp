@@ -77,6 +77,20 @@ void VSyncSampler::ResetErrorLocked()
     }
 }
 
+int32_t VSyncSampler::StartSample(bool forceReSample)
+{
+    RS_TRACE_NAME_FMT("HdiOutput::StartVSyncSampler, forceReSample:%d", forceReSample);
+    bool alreadyStartSample = GetHardwareVSyncStatus();
+    if (!forceReSample && alreadyStartSample) {
+        VLOGD("Already Start Sample.");
+        return VSYNC_ERROR_OK;
+    }
+    VLOGD("Enable Screen Vsync");
+    SetScreenVsyncEnabledInRSMainThread(true);
+    BeginSample();
+    return VSYNC_ERROR_OK;
+}
+
 void VSyncSampler::BeginSample()
 {
     ScopedBytrace func("BeginSample");
