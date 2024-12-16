@@ -12,7 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#ifndef RS_MEMORY_MANAGER_H
+#define RS_MEMORY_MANAGER_H
 #include <vector>
 
 #include "image/gpu_context.h"
@@ -82,3 +83,4 @@ private:
     static uint64_t totalMemoryReportTime_;
 };
 } // namespace OHOS::Rosen
+#endif
