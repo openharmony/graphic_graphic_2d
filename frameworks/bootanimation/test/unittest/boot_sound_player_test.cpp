@@ -56,6 +56,7 @@ HWTEST_F(BootSoundPlayerTest, BootSoundPlayerTest_001, TestSize.Level1)
     params3.soundEnabled = true;
     std::shared_ptr<BootSoundPlayer> player3 = std::make_shared<BootSoundPlayer>(params3);
     BootAnimationUtils::SetBootAnimationSoundEnabled(false);
+    EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), false);
     player3->Play();
 
     PlayerParams params4;
