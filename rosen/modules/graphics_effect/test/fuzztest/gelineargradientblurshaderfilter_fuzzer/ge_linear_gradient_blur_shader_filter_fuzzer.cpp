@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +16,7 @@
 #include "ge_linear_gradient_blur_shader_filter_fuzzer.h"
 #include "ge_linear_gradient_blur_shader_filter.h"
 #include "get_object.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -79,13 +79,9 @@ std::shared_ptr<Drawing::Image> ProcessImageDDGRFuzzTest(const uint8_t *data, si
     if (data == nullptr) {
         return nullptr;
     }
-    // initialize
-    GETest::g_data = data;
-    GETest::g_size = size;
-    GETest::g_pos = 0;
-
-    float blurDegree = GETest::GetPlainData<float>();
-    float positionScale = GETest::GetPlainData<float>();
+    FuzzedDataProvider fdp(data, size);
+    float blurDegree = fdp.ConsumeFloatingPoint<float>();
+    float positionScale = fdp.ConsumeFloatingPoint<float>();
     std::vector<std::pair<float, float>> fractionStops = {{blurDegree, positionScale}};
     Drawing::Matrix mat;
     Drawing::GELinearGradientBlurShaderFilterParams params = {5.0, fractionStops, 2, 10.0, 10.0, mat, 1.0, 1.0, false};
