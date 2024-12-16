@@ -110,7 +110,8 @@ bool HgmCore::Init()
     SetLtpoConfig();
 
     isInit_.store(true);
-    HGM_LOGI("HgmCore initialization success!!!");
+    isDelayMode_ = RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType();
+    HGM_LOGI("HgmCore initialization success!!! delayMode: %{public}d", isDelayMode_);
     return isInit_;
 }
 
