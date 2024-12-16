@@ -207,6 +207,7 @@ private:
     bool castScreenEnableSkipWindow_ = false;
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;
+    bool littleScreenRedraw_ = false;
     Drawing::Matrix lastMatrix_;
     Drawing::Matrix lastMirrorMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
