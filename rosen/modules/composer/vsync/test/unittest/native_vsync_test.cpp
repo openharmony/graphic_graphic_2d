@@ -226,6 +226,34 @@ HWTEST_F(NativeVsyncTest, OH_NativeVSync_RequestFrameWithMultiCallback008, Funct
 }
 
 /*
+* Function: OH_NativeVSync_DVSyncSwitch
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_DVSyncSwitch with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch001, Function | MediumTest | Level2)
+{
+    ASSERT_NE(OH_NativeVSync_DVSyncSwitch(nullptr, true), 0);
+    ASSERT_NE(OH_NativeVSync_DVSyncSwitch(nullptr, false), 0);
+}
+
+/*
+* Function: OH_NativeVSync_DVSyncSwitch
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call OH_NativeVSync_DVSyncSwitch with abnormal parameters
+*                  2. check ret
+ */
+HWTEST_F(NativeVsyncTest, OH_NativeVSync_DVSyncSwitch002, Function | MediumTest | Level2)
+{
+    ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, true), 0);
+    ASSERT_EQ(OH_NativeVSync_DVSyncSwitch(native_vsync, false), 0);
+}
+
+/*
 * Function: OH_NativeVSync_Destroy
 * Type: Function
 * Rank: Important(2)
