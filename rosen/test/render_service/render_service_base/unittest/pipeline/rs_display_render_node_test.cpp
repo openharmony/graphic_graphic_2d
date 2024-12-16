@@ -20,6 +20,7 @@
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_thread_visitor.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -736,5 +737,28 @@ HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
     node->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     auto colorSpace = node->GetColorSpace();
     ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpace);
+}
+
+/**
+ * @tc.name: HdrVideoTest
+ * @tc.desc: test results of SetHdrVideo, GetHdrVideo and GetHdrVideoType
+ * @tc.type: FUNC
+ * @tc.require: issuesIBANP9
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HdrVideoTest, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->SetHdrVideo(true, HDR_TYPE::VIDEO);
+    EXPECT_EQ(displayNode->GetHdrVideo(), true);
+    EXPECT_EQ(displayNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
+    displayNode->SetHdrVideo(false, HDR_TYPE::VIDEO);
+    EXPECT_EQ(displayNode->GetHdrVideo(), false);
+    EXPECT_EQ(displayNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
+    displayNode->SetHdrVideo(true, HDR_TYPE::AIHDR_VIDEO);
+    EXPECT_EQ(displayNode->GetHdrVideo(), true);
+    EXPECT_EQ(displayNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
+    displayNode->SetHdrVideo(false, HDR_TYPE::AIHDR_VIDEO);
+    EXPECT_EQ(displayNode->GetHdrVideo(), false);
+    EXPECT_EQ(displayNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
 }
 } // namespace OHOS::Rosen

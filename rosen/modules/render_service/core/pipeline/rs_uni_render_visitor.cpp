@@ -70,6 +70,9 @@ constexpr float EPSILON_SCALE = 0.00001f;
 static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* RELIABLE_GESTURE_BACK_SURFACE_NAME = "SCBGestureBack";
 constexpr int MIN_OVERLAP = 2;
+constexpr float DEFAULT_HDR_RATIO = 1.0f;
+constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
+constexpr float GAMMA2_2 = 2.2f;
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -127,6 +130,53 @@ std::string VisibleDataToString(const VisibleData& val)
         ss << "[" << name << ", " << v.first << ", " << v.second << "], ";
     }
     return ss.str();
+}
+
+void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRenderNode& surfaceNode,
+    ScreenId screenId)
+{
+    if (surfaceBuffer == nullptr) {
+        RS_LOGE("surfaceNode.GetRSSurfaceHandler is NULL");
+        return;
+    }
+
+    if (!surfaceNode.GetHdrVideo()) {
+        auto& rsLuminance = RSLuminanceControl::Get();
+        surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
+        surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
+        surfaceNode.SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
+        return;
+    }
+
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    std::vector<uint8_t> hdrStaticMetadataVec;
+    if (MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec) != GSERROR_OK) {
+        RS_LOGD("MetadataHelper GetHDRStaticMetadata failed");
+    }
+    float scaler = DEFAULT_SCALER;
+    auto& rsLuminance = RSLuminanceControl::Get();
+    if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
+        RS_LOGD("hdrStaticMetadataVec is invalid");
+        scaler = surfaceNode.GetHDRBrightness() * (scaler - 1.0f) + 1.0f;
+    } else {
+        const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, surfaceNode.GetHDRBrightness());
+    }
+
+    float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
+    float displayNits = rsLuminance.GetDisplayNits(screenId);
+
+    float layerNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
+    surfaceNode.SetDisplayNit(layerNits);
+    surfaceNode.SetSdrNit(sdrNits);
+    if (ROSEN_LNE(displayNits, 0.0f)) {
+        surfaceNode.SetBrightnessRatio(DEFAULT_HDR_RATIO);
+    } else {
+        surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
+    }
+    RS_LOGD("RSUniRenderVisitor UpdateSurfaceNodeNit layerNits: %{public}f, displayNits: %{public}f,"
+        " sdrNits: %{public}f, scaler: %{public}f, HDRBrightness: %{public}f", layerNits, displayNits, sdrNits,
+        scaler, surfaceNode.GetHDRBrightness());
 }
 } // namespace
 
@@ -350,7 +400,10 @@ void RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode
             node.GetName().c_str());
         return;
     }
+    auto screenId = curDisplayNode_->GetScreenId();
+    UpdateSurfaceNodeNit(node.GetRSSurfaceHandler()->GetBuffer(), node, screenId);
     if (node.GetHdrVideo()) {
+        curDisplayNode_->SetHdrVideo(true, node.GetHdrVideoType());
         SetHDRParam(node, true);
         pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode HDRService pixelformat is set to 1010102");
@@ -429,12 +482,14 @@ void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr
     }
     ScreenId screenId = node.GetScreenId();
     RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface_);
+    RSLuminanceControl::Get().SetHdrStatus(screenId, node.GetHdrVideo(), node.GetHdrVideoType());
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     rsHdrCollection_->HandleHdrState(isHdrOn);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
     RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
     RS_LOGD("RSUniRenderVisitor::HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
-        "brightnessRatio:%{public}f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
+        "brightnessRatio:%{public}f screenId: %{public}" PRIu64 "", isHdrOn, hasUniRenderHdrSurface_,
+        brightnessRatio, screenId);
     if (!hasUniRenderHdrSurface_) {
         isHdrOn = false;
     }
@@ -1427,6 +1482,8 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
             return false;
     }
 
+    // init hdr video status
+    node.SetHdrVideo(false, HDR_TYPE::VIDEO);
     return true;
 }
 

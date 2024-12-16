@@ -39,6 +39,7 @@
 #include "property/rs_properties_painter.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_occlusion_data.h"
+#include "luminance/rs_luminance_control.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "surface_buffer.h"
@@ -1300,9 +1301,15 @@ public:
         return hasHdrVideoSurface_;
     }
 
-    void SetHdrVideo(bool hasHdrVideoSurface)
+    HDR_TYPE GetHdrVideoType() const
+    {
+        return hdrVideoType_;
+    }
+
+    void SetHdrVideo(bool hasHdrVideoSurface, HDR_TYPE hdrVideoType)
     {
         hasHdrVideoSurface_ = hasHdrVideoSurface;
+        hdrVideoType_ = hdrVideoType;
     }
 
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
@@ -1373,6 +1380,7 @@ private:
     int hdrNum_ = 0;
     // hdr video
     bool hasHdrVideoSurface_ = false;
+    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;

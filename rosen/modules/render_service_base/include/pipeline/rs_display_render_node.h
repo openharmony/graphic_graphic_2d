@@ -35,6 +35,7 @@
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #include "platform/drawing/rs_surface.h"
+#include "luminance/rs_luminance_control.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -488,6 +489,21 @@ public:
     bool IsZoomStateChange() const;
     void HandleCurMainAndLeashSurfaceNodes();
 
+    // HDR Video
+    void SetHdrVideo(bool hasHdrVideo, HDR_TYPE hdrVideoType) {
+        hasHdrVideo_ = hasHdrVideo;
+        hdrVideoType_ = hdrVideoType;
+    }
+
+    HDR_TYPE GetHdrVideoType() const
+    {
+        return hdrVideoType_;
+    }
+
+    bool GetHdrVideo() const
+    {
+        return hasHdrVideo_;
+    }
 protected:
     void OnSync() override;
 private:
@@ -572,6 +588,10 @@ private:
     bool curZoomState_ = false;
     bool preZoomState_ = false;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
+
+    // HDR Video
+    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
+    bool hasHdrVideo_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
