@@ -105,8 +105,7 @@ public:
         // Does this game app require Adaptive Sync?
         bool supportAS;
         // <bufferName, fps>
-        std::vector<std::pair<std::string, int32_t>> appBufferList;
-        std::vector<std::string> appBufferBlackList;
+        std::unordered_map<std::string, int32_t> bufferFpsMap;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;

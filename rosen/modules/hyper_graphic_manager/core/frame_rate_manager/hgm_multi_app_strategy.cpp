@@ -76,10 +76,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
 void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
 {
-    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState);
-    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState);
+    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d, upExpectFps:%d",
+        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
+    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d, upExpectFps:%{public}d",
+        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
     touchInfo_ = { touchInfo.pkgName, touchInfo.touchState, touchInfo.upExpectFps };
     if (touchInfo.pkgName == "" && !pkgs_.empty()) {
         auto [focusPkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());

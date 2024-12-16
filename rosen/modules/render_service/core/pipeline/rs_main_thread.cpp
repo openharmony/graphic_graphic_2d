@@ -1964,8 +1964,8 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     }
 
     static std::once_flag initUIFwkTableFlag;
-    std::call_once(initUIFwkTableFlag, [this, &frameRateMgr]() {
-        GetContext().SetUiFrameworkTypeTable(frameRateMgr->GetIdleDetector().GetUiFrameworkTypeTable());
+    std::call_once(initUIFwkTableFlag, [this]() {
+        GetContext().SetUiFrameworkTypeTable(HgmCore::Instance().GetPolicyConfigData()->appBufferList_);
     });
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();

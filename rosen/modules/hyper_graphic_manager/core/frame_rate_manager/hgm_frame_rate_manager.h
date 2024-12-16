@@ -194,7 +194,7 @@ private:
     void UpdateGuaranteedPlanVote(uint64_t timestamp);
 
     void ProcessLtpoVote(const FrameRateRange& finalRange);
-    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker, bool& needCheckAceAnimatorStatus);
+    void SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker);
     bool CollectFrameRateChange(FrameRateRange finalRange, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers);
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
@@ -288,7 +288,6 @@ private:
     // exp. <"AceAnimato", pid, FROM_SURFACE>
     std::vector<std::tuple<std::string, pid_t, UIFWKType>> surfaceData_;
     uint64_t lastPostIdleDetectorTaskTimestamp_ = 0; // only called by RSMainThread
-    bool needHighRefresh_ = false;
     int32_t lastTouchUpExpectFps_ = 0;
     bool isNeedUpdateAppOffset_ = false;
     uint32_t schedulePreferredFps_ = 60;
