@@ -449,9 +449,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeByTransform_001, TestSize.Level2)
     node->surfaceHandler_->consumer_ = nullptr;
     ASSERT_EQ(node->GetRSSurfaceHandler()->GetConsumer(), nullptr);
 
-    Drawing::Matrix matrix = Drawing::Matrix();
-    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    rsUniRenderVisitor->UpdateHwcNodeByTransform(*node, matrix);
+    rsUniRenderVisitor->UpdateHwcNodeByTransform(*node);
 }
 
 /**
@@ -475,9 +473,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeByTransform_002, TestSize.Level2)
     ASSERT_NE(node->GetRSSurfaceHandler()->GetConsumer(), nullptr);
 
     const auto& buffer = node->GetRSSurfaceHandler()->GetBuffer();
-    Drawing::Matrix matrix = Drawing::Matrix();
-    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    rsUniRenderVisitor->UpdateHwcNodeByTransform(*node, matrix);
+    rsUniRenderVisitor->UpdateHwcNodeByTransform(*node);
     ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer()->GetSurfaceBufferScalingMode(), SCALING_MODE_SCALE_TO_WINDOW);
 }
 
@@ -510,9 +506,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeByTransform_003, TestSize.Level2)
     surface->consumer_ = nullptr;
     ASSERT_EQ(surface->GetScalingMode(buffer->GetSeqNum(), scalingMode), GSERROR_INVALID_ARGUMENTS);
 
-    Drawing::Matrix matrix = Drawing::Matrix();
-    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
-    rsUniRenderVisitor->UpdateHwcNodeByTransform(*node, matrix);
+    rsUniRenderVisitor->UpdateHwcNodeByTransform(*node);
 }
 
 /*
