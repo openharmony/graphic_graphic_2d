@@ -1519,7 +1519,7 @@ RectI RSUniRenderUtil::CalcSrcRectByBufferRotation(const sptr<SurfaceBuffer>& bu
 }
 
 Drawing::Matrix RSUniRenderUtil::GetCurrentTotalMatrix(const RSSurfaceRenderNode& node,
-    const std::shard_ptr<RSObjAbsGeometry>& hwcNodeGeo)
+    const std::shared_ptr<RSObjAbsGeometry>& hwcNodeGeo)
 {
     Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
     auto parent = node.GetParent().lock();
@@ -1541,7 +1541,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
         return;
     }
     const auto& property = node.GetRenderProperties();
-    const std::shard_ptr<RSObjAbsGeometry>& hwcNodeGeo = property.GetBoundsGeometry();
+    const std::shared_ptr<RSObjAbsGeometry>& hwcNodeGeo = property.GetBoundsGeometry();
     if (!hwcNodeGeo) {
         RS_LOGE("hwcNode Geometry is not prepared");
         return;
