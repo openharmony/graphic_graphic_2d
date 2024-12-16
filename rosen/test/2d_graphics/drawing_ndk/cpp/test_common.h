@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,13 @@
 #ifndef TEST_COMMON_H
 #define TEST_COMMON_H
 
-#include "napi/native_api.h"
+#include <bits/alltypes.h>
 #include <native_drawing/drawing_types.h>
 #include <string>
-#include <bits/alltypes.h>
 
-#define TMUL  1664525
+#include "napi/native_api.h"
+
+#define TMUL 1664525
 #define TADD 1013904223
 
 #define DRAW_COLORWHITE 0xFFFFFFFF
@@ -34,18 +35,32 @@
 #define DRAW_COLORGRAY 0xFF888888
 #define DRAW_COLORTRANSPARENT 0x00000000
 
+template<typename ENUM>
+ENUM DrawGetEnum(ENUM start, ENUM end, int index)
+{
+    return static_cast<ENUM>(start + index % (end - start + 1));
+}
+
 class TestRend {
 public:
-    TestRend() { init(0); }
-    explicit TestRend(uint32_t seed) { init(seed); }
+    TestRend()
+    {
+        init(0);
+    }
+    explicit TestRend(uint32_t seed)
+    {
+        init(seed);
+    }
     ~TestRend() = default;
-    
+
     uint32_t nextU();
+    uint32_t nextRangeU(uint32_t min, uint32_t max);
     float_t nextUScalar1();
     uint32_t nextULessThan(uint32_t count);
     float_t nextF();
     float_t nextRangeF(float_t min, float_t max);
     uint32_t nextBits(unsigned bitCount);
+
 protected:
     void init(uint32_t seed);
     uint32_t next(uint32_t seed);
@@ -55,17 +70,33 @@ protected:
 };
 
 uint32_t color_to_565(uint32_t color);
+uint32_t CreateRandomNum(uint32_t min, uint32_t max);
 
 struct DrawRect {
     float left;
     float top;
     float right;
     float bottom;
-    bool Contains(float x, float y) const { return x >= left && x < right && y >= top && y < bottom; }
-    float Width(){ return (right - left); }
-    float Height(){ return (bottom - top); }
-    float CenterX(){ return (right - left) / 2; } // 2 for mid
-    float CenterY(){ return (bottom - top) / 2; } // 2 for mid
+    bool Contains(float x, float y) const
+    {
+        return x >= left && x < right && y >= top && y < bottom;
+    }
+    float Width()
+    {
+        return (right - left);
+    }
+    float Height()
+    {
+        return (bottom - top);
+    }
+    float CenterX()
+    {
+        return (right - left) / 2; // 2 for test
+    }
+    float CenterY()
+    {
+        return (bottom - top) / 2; // 2 for test
+    }
     bool Inset(float dx, float dy)
     {
         float l = left + dx;
@@ -104,8 +135,9 @@ uint8_t* DrawBitmapGetAddr8(OH_Drawing_Bitmap* bitmap, int x, int y);
 uint16_t* DrawBitmapGetAddr16(OH_Drawing_Bitmap* bitmap, int x, int y);
 uint32_t* DrawBitmapGetAddr32(OH_Drawing_Bitmap* bitmap, int x, int y);
 
+void DrawingFunc(OH_Drawing_Canvas* canvas);
 void DrawPathGetBound(DrawRect& r, float x, float y);
 
-bool ConvertStringFromJsValue(napi_env env, napi_value jsValue, std::string &value);
-bool ConvertIntFromJsValue(napi_env env, napi_value jsValue, uint32_t &value);
+bool ConvertStringFromJsValue(napi_env env, napi_value jsValue, std::string& value);
+bool ConvertIntFromJsValue(napi_env env, napi_value jsValue, uint32_t& value);
 #endif // TEST_COMMON_H
