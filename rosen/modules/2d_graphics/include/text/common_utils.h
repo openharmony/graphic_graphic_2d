@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-const int BYTE_SHIFT = 8;
 
 [[maybe_unused]] static bool IsUtf8(const char* text, uint32_t len)
 {
