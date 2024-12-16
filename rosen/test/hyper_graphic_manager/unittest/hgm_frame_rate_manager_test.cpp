@@ -538,9 +538,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
 HWTEST_F(HgmFrameRateMgrTest, HgmRsIdleTimerTest, Function | SmallTest | Level2)
 {
     int32_t interval = 700; // 700ms waiting time
-    ASSERT_NE(timer.handler_, nullptr);
     HgmFrameRateManager mgr;
     mgr.InitRsIdleTimer();
+    ASSERT_NE(mgr.rsIdleTimer_, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     mgr.HandleRsFrame();
     mgr.minIdleFps_ = OLED_30_HZ;
