@@ -75,6 +75,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
     [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
     [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
+    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
     [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION
     [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X
@@ -550,7 +551,6 @@ std::optional<Drawing::Matrix> RSProperties::GetSandBoxMatrix() const
 void RSProperties::SetPositionZ(float positionZ)
 {
     boundsGeo_->SetZ(positionZ);
-    frameGeo_->SetZ(positionZ);
     geoDirty_ = true;
     SetDirty();
 }
@@ -558,6 +558,18 @@ void RSProperties::SetPositionZ(float positionZ)
 float RSProperties::GetPositionZ() const
 {
     return boundsGeo_->GetZ();
+}
+
+void RSProperties::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    boundsGeo_->SetZApplicableCamera3D(isApplicable);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+bool RSProperties::GetPositionZApplicableCamera3D() const
+{
+    return boundsGeo_->GetZApplicableCamera3D();
 }
 
 void RSProperties::SetPivot(Vector2f pivot)
