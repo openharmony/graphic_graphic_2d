@@ -542,7 +542,7 @@ void RSImage::SetPaint(Drawing::Paint paint)
     paint_ = paint;
 }
 
-void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
+void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 {
     dynamicRangeMode_ = dynamicRangeMode;
 }

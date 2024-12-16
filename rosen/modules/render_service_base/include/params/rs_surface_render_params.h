@@ -494,7 +494,6 @@ public:
     {
         return allSubSurfaceNodeIds_;
     }
-    
     bool GetIsHwcEnabledBySolidLayer()
     {
         return isHwcEnabledBySolidLayer_;
@@ -504,6 +503,7 @@ public:
     {
         isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
     }
+
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;

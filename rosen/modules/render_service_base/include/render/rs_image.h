@@ -101,7 +101,7 @@ public:
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
     void SetPaint(Drawing::Paint paint);
-    void SetDyamicRangeMode(uint32_t dynamicRangeMode);
+    void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
     

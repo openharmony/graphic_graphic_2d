@@ -370,7 +370,7 @@ public:
         return isOverDrawEnabled_;
     }
 
-    bool isDrawingCacheDfxEnabled() const
+    bool IsDrawingCacheDfxEnabled() const
     {
         return isDrawingCacheDfxEnabled_;
     }

@@ -212,7 +212,7 @@ private:
 #define RS_LOGE_LIMIT(func, line, format, ...)                                                                   \
 {                                                                                                                \
     static constexpr uint64_t LOG_PRINT_INTERVAL_IN_SECOND = 20;                                                 \
-    static std::atomic isFirstTime##func##line = true;                                                           \
+    static std::atomic<bool> isFirstTime##func##line = true;                                                     \
     static std::atomic<uint64_t> prePrintTime##func##line = std::chrono::duration_cast<std::chrono::seconds>(    \
         std::chrono::system_clock::now().time_since_epoch()).count();                                            \
     uint64_t currTime = std::chrono::duration_cast<std::chrono::seconds>(                                        \
