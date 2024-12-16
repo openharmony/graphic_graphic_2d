@@ -1302,7 +1302,11 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
     params.matrix.PreConcat(
         RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds, gravity));
-
+    if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
+        // after rotate, we should swap dstRect and bound's width and height.
+        std::swap(localBounds.width_, localBounds.height_);
+    }
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
     if (UNLIKELY(params.hasCropMetadata)) {
