@@ -1435,10 +1435,14 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_NULL_OBJECT;
                 break;
             }
-            auto x = data.ReadInt32();
-            auto y = data.ReadInt32();
-            auto w = data.ReadInt32();
-            auto h = data.ReadInt32();
+            int32_t x = 0;
+            int32_t y = 0;
+            int32_t w = 0;
+            int32_t h = 0;
+            if (!data.ReadInt32(x) || !data.ReadInt32(y) || !data.ReadInt32(w) || !data.ReadInt32(h)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             auto srcRect = Rect {
                 .x = x,
                 .y = y,
@@ -1762,8 +1766,12 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE): {
-            ScreenId id = data.ReadUint64();
-            uint32_t maxRefreshRate = data.ReadUint32();
+            ScreenId id = 0;
+            uint32_t maxRefreshRate = 0;
+            if (!data.ReadUint64(id) || !data.ReadUint32(maxRefreshRate)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
             uint32_t actualRefreshRate = 0;
             int32_t result = SetVirtualScreenRefreshRate(id, maxRefreshRate, actualRefreshRate);
             if (!reply.WriteInt32(result)) {
