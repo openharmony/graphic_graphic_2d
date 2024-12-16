@@ -1132,11 +1132,7 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
 {
-    if (hdrNum_ > 0) {
-        return true;
-    } else {
-        return false;
-    }
+    return hdrNum_ > 0;
 }
 
 void RSSurfaceRenderNode::IncreaseHDRNum()
