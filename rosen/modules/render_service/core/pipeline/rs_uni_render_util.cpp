@@ -1582,7 +1582,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const RectI& dstRect = node.GetDstRect();
     Drawing::Rect newDstRect(dstRect.left_, dstRect.top_, dstRect.GetRight(), dstRect.GetBottom());
     newDstRect.Intersect(absIntersectRect);
-    node.SetDstRect({newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()})
+    node.SetDstRect({newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()});
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(intersectRect.left_, intersectRect.top_);
