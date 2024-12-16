@@ -585,7 +585,7 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 
 bool RSSystemProperties::GetDisableHebcEnabled()
 {
-	return false;
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
