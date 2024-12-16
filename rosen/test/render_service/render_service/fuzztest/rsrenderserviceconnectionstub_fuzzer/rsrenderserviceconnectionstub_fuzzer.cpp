@@ -65,6 +65,19 @@ T GetData()
     return object;
 }
 
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+
 bool DoOnRemoteRequest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2859,6 +2872,165 @@ bool DoNotifyDynamicModeEvent(const uint8_t* data, size_t size)
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
 }
+
+bool DoSetFocusAppInfo()
+{
+    int32_t pid = GetData<int32_t>();
+    int32_t uid = GetData<int32_t>();
+    std::string bundleName = GetData<std::string>();
+    std::string abilityName = GetData<std::string>();
+    uint64_t focusNodeId = GetData<uint64_t>();
+    
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!dataP.WriteInt32(pid)) {
+        return false;
+    }
+    if (!dataP.WriteInt32(uid)) {
+        return false;
+    }
+    if (!dataP.WriteString(bundleName)) {
+        return false;
+    }
+    if (!dataP.WriteString(abilityName)) {
+        return false;
+    }
+    if (!dataP.WriteUint64(focusNodeId)) {
+        return false;
+    }
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO);
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoGetScreenSupportedColorGamuts()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint64_t id = GetData<uint64_t>();
+    if (!dataP.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoSetGlobalDarkColorMode()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    bool isDark = GetData<bool>();
+    if (!dataP.WriteBool(isDark)) {
+        return false;
+    }
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE);
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoSetSystemAnimatedScenes()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t systemAnimatedScenes = GetData<uint32_t>();
+    if (!dataP.WriteUint32(systemAnimatedScenes)) {
+        return false;
+    }
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoRegisterSurfaceOcclusionChangeCallback()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    auto id = GetData<uint64_t>();
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSIOcclusionChangeCallback> callback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
+    if (!dataP.WriteRemoteObject(callback->AsObject())) {
+        return false;
+    }
+    std::vector<float> partitionPoints;
+    float partitionPoint = GetData<float>();
+    partitionPoints.push_back(partitionPoint);
+    if (!dataP.WriteFloatVector(partitionPoints)) {
+        return false;
+    }
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
+
+bool DoUnRegisterSurfaceOcclusionChangeCallback()
+{
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option;
+    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    auto id = GetData<uint64_t>();
+    if (!dataP.WriteUint64(id)) {
+        return false;
+    }
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
+    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -2960,6 +3132,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetScreenSupportedColorSpaces(data, size);
     OHOS::Rosen::DoGetScreenColorSpace(data, size);
     OHOS::Rosen::DoSetScreenColorSpace(data, size);
+    OHOS::Rosen::DoSetFocusAppInfo();
+    OHOS::Rosen::DoGetScreenSupportedColorGamuts();
+    OHOS::Rosen::DoSetGlobalDarkColorMode();
+    OHOS::Rosen::DoSetSystemAnimatedScenes();
+    OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback();
+    OHOS::Rosen::DoUnRegisterSurfaceOcclusionChangeCallback();
 
     return 0;
 }
