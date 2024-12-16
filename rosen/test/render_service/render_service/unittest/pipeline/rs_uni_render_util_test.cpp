@@ -914,23 +914,25 @@ HWTEST_F(RSUniRenderUtilTest, DrawRectForDfxTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest, Function | SmallTest | Level2)
 {
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     ScreenInfo screenInfo;
     node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::DEFAULT;
     node.renderContent_->renderProperties_.boundsGeo_->SetHeight(-1.0f);
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     node.renderContent_->renderProperties_.boundsGeo_->SetWidth(-1.0f);
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_90;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_270;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
@@ -942,11 +944,13 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest, Function | SmallTest | Le
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest002, Function | SmallTest | Level2)
 {
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     ScreenInfo screenInfo;
     node.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
@@ -958,16 +962,18 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest002, Function | SmallTest |
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest003, Function | SmallTest | Level2)
 {
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     NodeId id = 1;
     RSSurfaceRenderNode node(id);
     node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     ScreenInfo screenInfo;
     screenInfo.rotation = ScreenRotation::ROTATION_90;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_270;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_180;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
 }
 

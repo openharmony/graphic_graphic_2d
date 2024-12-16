@@ -336,14 +336,15 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity001, TestSize.Level1
     ASSERT_NE(info.buffer, nullptr);
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::RESIZE;
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 
     surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH_1K);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 }
 
 /**
@@ -366,13 +367,14 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity002, TestSize.Level1
     ASSERT_NE(info.buffer, nullptr);
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 
     surfaceNode->GetMutableRenderProperties().SetBoundsWidth(DEFAULT_CANVAS_WIDTH);
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 }
 
 /**
@@ -395,11 +397,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity003, TestSize.Level1
     ASSERT_NE(info.buffer, nullptr);
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_90;
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 }
 
 /**
@@ -422,11 +425,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity004, TestSize.Level1
     ASSERT_NE(info.buffer, nullptr);
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_270;
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 }
 
 /**
@@ -449,11 +453,12 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity005, TestSize.Level1
     ASSERT_NE(info.buffer, nullptr);
     info.buffer->SetSurfaceBufferWidth(DEFAULT_CANVAS_WIDTH);
     info.buffer->SetSurfaceBufferHeight(DEFAULT_CANVAS_HEIGHT);
-
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     surfaceNode->GetMutableRenderProperties().frameGravity_ = Gravity::TOP;
     surfaceNode->GetMutableRenderProperties().SetBoundsHeight(DEFAULT_CANVAS_HEIGHT_1K);
     composerAdapter_->screenInfo_.rotation = ScreenRotation::ROTATION_180;
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 }
 
 /**
@@ -476,10 +481,11 @@ HWTEST_F(RSUniRenderComposerAdapterTest, DealWithNodeGravity006, TestSize.Level1
     sptr<IConsumerSurface> csurf = IConsumerSurface::Create(config.name);
     ASSERT_NE(csurf, nullptr);
     surfaceNode->GetRSSurfaceHandler()->SetConsumer(csurf);
-
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode);
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*surfaceNode);
-    composerAdapter_->DealWithNodeGravity(*surfaceNode, info);
+    composerAdapter_->DealWithNodeGravity(*surfaceNode, info, matrix);
 }
 
 /**
