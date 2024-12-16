@@ -161,6 +161,7 @@ public:
     virtual std::unique_ptr<Typography> CloneSelf() = 0;
     virtual double GetLongestLineWithIndent() const = 0;
     virtual void UpdateColor(size_t from, size_t to, const Drawing::Color& color) = 0;
+    virtual Drawing::RectI GeneratePaintRegion(double x, double y) const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
