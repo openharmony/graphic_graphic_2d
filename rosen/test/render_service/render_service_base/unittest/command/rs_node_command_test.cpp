@@ -322,6 +322,48 @@ HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterGeometryTransitionPair002
+ * @tc.desc: test results of RegisterGeometryTransitionPair
+ * @tc.type: FUNC
+ * @tc.require: issueI9P2KH
+ */
+HWTEST_F(RSNodeCommandTest, RegisterGeometryTransitionPair002, TestSize.Level1)
+{
+    RSContext context;
+    NodeId inNodeId = 0;
+    NodeId outNodeId = 1;
+
+    auto inNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(inNodeId);
+    auto outNode = std::make_shared<RSRenderNode>(outNodeId);
+    context.GetMutableNodeMap().RegisterRenderNode(outNode);
+    ASSERT_NE(inNode, nullptr);
+    ASSERT_NE(inNode, outNode);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    inNode->instanceRootNodeId_ = 1;
+    outNode->instanceRootNodeId_ = 0;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    inNode->instanceRootNodeId_ = 0;
+    outNode->instanceRootNodeId_ = 1;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_EQ(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_EQ(outNode->sharedTransitionParam_, nullptr);
+
+    inNode->instanceRootNodeId_ = 1;
+    RSNodeCommandHelper::RegisterGeometryTransitionPair(context, inNodeId, outNodeId);
+    ASSERT_NE(inNode->sharedTransitionParam_, nullptr);
+    ASSERT_NE(outNode->sharedTransitionParam_, nullptr);
+}
+
+/**
  * @tc.name: UnregisterGeometryTransitionPair001
  * @tc.desc: test results of UnregisterGeometryTransitionPair
  * @tc.type: FUNC
