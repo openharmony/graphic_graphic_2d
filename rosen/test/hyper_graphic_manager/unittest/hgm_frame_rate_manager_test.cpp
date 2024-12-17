@@ -693,7 +693,7 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
         std::vector<uint32_t> expectedLowBrightVec = {30, 40, 50};
         configData->supportedModeConfigs_[screenConfig] = expectedLowBrightVec;
         mgr.GetLowBrightVec(configData);
-        EXPECT_FALSE(mgr.isAmbientEffect_);
+        EXPECT_TRUE(mgr.isAmbientEffect_);
         EXPECT_NE(mgr.lowBrightVec_, expectedLowBrightVec);
     }
 
