@@ -81,12 +81,60 @@ void* AshmemAllocator::Realloc(void* data, size_t newSize)
     return {};
 }
 
+AshmemFdContainer& AshmemFdContainer::Instance()
+{
+    static AshmemFdContainer instance;
+    return instance;
+}
+
+void AshmemFdContainer::SetIsUnmarshalThread(bool isUnmarshalThread)
+{
+}
+
+int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> readFdDefaultFunc)
+{
+    if (readFdDefaultFunc == nullptr) {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    }
+    return readFdDefaultFunc(parcel);
+}
+
+void AshmemFdContainer::Init(const std::unordered_map<binder_size_t, int>& fds)
+{
+}
+
+void AshmemFdContainer::Clear()
+{
+    isUseFdContainer_ = false;
+    fds_.clear();
+}
+
+std::string AshmemFdContainer::PrintFds() const
+{
+    return "";
+}
+
+AshmemFdWorker::~AshmemFdWorker()
+{
+    isFdContainerUpdated_ = false;
+    fds_.clear();
+}
+
+void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset)
+{
+}
+
+void AshmemFdWorker::PushFdsToContainer()
+{
+}
+
 void RSAshmemHelper::CopyFileDescriptor(
     MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
 {
 }
 
-void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel)
+void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker)
 {
 }
 
@@ -96,6 +144,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
 }
 
 std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParcel* ashmemParcel,
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker,
     std::shared_ptr<AshmemFlowControlUnit> &ashmemFlowControlUnit, pid_t callingPid)
 {
     return {};
