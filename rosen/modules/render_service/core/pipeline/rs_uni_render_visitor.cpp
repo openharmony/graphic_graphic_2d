@@ -1032,8 +1032,8 @@ void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
         !node.IsHardwareForcedDisabled()) {
         if (auto& geo = node.GetRenderProperties().GetBoundsGeometry()) {
             UpdateSrcRect(node, geo->GetAbsMatrix(), geo->GetAbsRect());
+            UpdateHwcNodeByTransform(node, geo->GetAbsMatrix());
         }
-        UpdateHwcNodeByTransform(node, node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
     }
     if (RSUifirstManager::Instance().GetUseDmaBuffer(node.GetName()) && curSurfaceDirtyManager_ &&
         (node.GetLastFrameUifirstFlag() != lastFlag ||
