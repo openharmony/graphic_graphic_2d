@@ -80,7 +80,7 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
 
     // test
     auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-    
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
     renderThreadClient->ExecuteSynchronousTask(task);
     return true;
 }

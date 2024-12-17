@@ -1309,8 +1309,9 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(GetDescriptor());
     std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderPropertyBase>();
-
-
+    uint32_t currentId = 0;
+    NodeId targetId = ((NodeId)newPid << 32) | (currentId);
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
     task->Marshalling(dataParcel);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
@@ -3032,6 +3033,50 @@ bool DoUnRegisterSurfaceOcclusionChangeCallback()
     rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
     return true;
 }
+
+bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    auto newPid = getpid();
+    auto nodeId = static_cast<NodeId>(newPid) << 32;
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSRenderServiceConnectionStub> connectionStub_ =
+        new RSRenderServiceConnection(newPid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    MessageOption option;
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSISurfaceCaptureCallback> surfaceCaptureCallback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+
+    float scaleX = GetData<float>();
+    float scaleY = GetData<float>();
+    bool useDma = GetData<bool>();
+    bool useCurWindow = GetData<bool>();
+    bool isSync = GetData<bool>();
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.WriteRemoteObject(surfaceCaptureCallback->AsObject());
+    dataParcel.WriteFloat(scaleX);
+    dataParcel.WriteFloat(scaleY);
+    dataParcel.WriteBool(useDma);
+    dataParcel.WriteBool(useCurWindow);
+    dataParcel.WriteUint8(0);
+    dataParcel.WriteBool(isSync);
+    dataParcel.RewindRead(0);
+    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    return true;
+}
 } // Rosen
 } // OHOS
 
@@ -3139,6 +3184,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetSystemAnimatedScenes();
     OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback();
     OHOS::Rosen::DoUnRegisterSurfaceOcclusionChangeCallback();
+    OHOS::Rosen::DoTakeSurfaceCapture(data, size);
 
     return 0;
 }
