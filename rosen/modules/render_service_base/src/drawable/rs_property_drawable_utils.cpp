@@ -1080,7 +1080,6 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
 
     // save layer mode
     Drawing::Brush blendBrush_;
-    blendBrush_.SetAlphaF(canvas.GetAlpha());
     blendBrush_.SetBlender(blender);
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);
