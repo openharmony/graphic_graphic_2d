@@ -230,6 +230,7 @@ HWTEST_F(RSScreenTest, SetPowerStatus_002, testing::ext::TestSize.Level1)
 {
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
     uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     virtualScreen->SetPowerStatus(status);
 }
@@ -918,6 +919,40 @@ HWTEST_F(RSScreenTest, SetPowerStatus_006, testing::ext::TestSize.Level1)
     rsScreen->isVirtual_ = false;
     uint32_t powerStatus = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     rsScreen->SetPowerStatus(powerStatus);
+}
+
+/*
+ * @tc.name: SetPowerStatus_007
+ * @tc.desc: SetPowerStatus Test, test POWER_STATUS_DOZE with mock HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueIBB3WT
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_007, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_DOZE;
+    rsScreen->SetPowerStatus(status);
+    ASSERT_EQ(rsScreen->GetPowerStatus(), status);
+}
+
+/*
+ * @tc.name: SetPowerStatus_008
+ * @tc.desc: SetPowerStatus Test, test POWER_STATUS_DOZE_SUSPEND with mock HDI device
+ * @tc.type: FUNC
+ * @tc.require: issueIBB3WT
+ */
+HWTEST_F(RSScreenTest, SetPowerStatus_008, testing::ext::TestSize.Level1)
+{
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_unique<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_DOZE_SUSPEND;
+    rsScreen->SetPowerStatus(status);
+    ASSERT_EQ(rsScreen->GetPowerStatus(), status);
 }
 
 /*
