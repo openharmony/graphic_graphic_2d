@@ -591,7 +591,8 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
 
 void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
 {
-    if (configData == nullptr || !isLtpo_) {
+    if (!configData || !isLtpo_) {
+        isAmbientEffect_ = false;
         return;
     }
 
@@ -602,10 +603,10 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
         return;
     }
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
-    auto iter = supportedModeVector.begin();
-    for (; iter != supportedModeVector.end(); iter++) {
-        if (supportRefreshRateVec.find(iter) != supportRefreshRateVec.end()) {
-            lowBrightVec_.push_back(iter);
+    for (const auto& iter : supportedModeVector) {
+        auto iterInVec = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), iter);
+        if (iterInVec != supportRefreshRateVec.end()) {
+            lowBrightVec_.push_back(iterInVec);
         }
     }
     if (lowBrightVec_.empty()) {
