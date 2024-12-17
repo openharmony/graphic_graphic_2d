@@ -540,25 +540,6 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimation001, TestSize.Level1)
     hmSymbolRun.SetAnimation(animationFunc);
     EXPECT_NE(hmSymbolRun.animationFunc_, nullptr);
 }
-
-/*
- * @tc.name: SetSymbolId001
- * @tc.desc: test SetSymbolId with symbolId
- * @tc.type: FUNC
- */
-HWTEST_F(OHHmSymbolRunTest, SetSymbolId001, TestSize.Level1)
-{
-    const char* str = "A";
-    Drawing::Font font;
-    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
-    HMSymbolTxt symbolTxt;
-    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
-        animationFunc = nullptr;
-    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
-    EXPECT_EQ(hmSymbolRun.symbolId_, 0);
-    hmSymbolRun.SetSymbolId(1);
-    EXPECT_EQ(hmSymbolRun.symbolId_, 1);
-}
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

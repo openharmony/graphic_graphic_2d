@@ -120,33 +120,33 @@ void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 
     std::vector<uint16_t> glyphIds;
     RSTextBlob::GetDrawingGlyphIDforTextBlob(textBlob_.get(), glyphIds);
-    if (glyphIds.size() == 1) {
-        TEXT_LOGD("HmSymbol: DrawSymbol");
-        uint16_t glyphId = glyphIds[0];
-        OHOS::Rosen::Drawing::Path path = RSTextBlob::GetDrawingPathforTextBlob(glyphId, textBlob_.get());
-        RSHMSymbolData symbolData;
-
-        symbolData.symbolInfo_ = GetSymbolLayers(glyphId, symbolTxt_);
-        if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
-            path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, textBlob_.get());
-        }
-        symbolData.path_ = path;
-        symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
-        RSEffectStrategy symbolEffect = symbolTxt_.GetEffectStrategy();
-        std::pair<float, float> offsetXY(offset.GetX(), offset.GetY());
-        if (symbolEffect > 0 && symbolTxt_.GetAnimationStart()) { // 0 > has animation
-            if (SymbolAnimation(symbolData, glyphId, offsetXY)) {
-                currentAnimationHasPlayed_ = true;
-                return;
-            }
-        }
-        ClearSymbolAnimation(symbolData, offsetXY);
-        OnDrawSymbol(canvas, symbolData, offset);
-        currentAnimationHasPlayed_ = false;
-    } else {
-        TEXT_LOGD("HmSymbol: the glyphIds is > 1");
+    if (glyphIds.size() != 1) {
+        TEXT_LOGD("HmSymbol: the size of glyphIds is not equal to 1");
         canvas->DrawTextBlob(textBlob_.get(), offset.GetX(), offset.GetY());
+        return;
     }
+    TEXT_LOGD("HmSymbol: DrawSymbol");
+    uint16_t glyphId = glyphIds[0];
+    OHOS::Rosen::Drawing::Path path = RSTextBlob::GetDrawingPathforTextBlob(glyphId, textBlob_.get());
+    RSHMSymbolData symbolData;
+
+    symbolData.symbolInfo_ = GetSymbolLayers(glyphId, symbolTxt_);
+    if (symbolData.symbolInfo_.symbolGlyphId != glyphId) {
+        path = RSTextBlob::GetDrawingPathforTextBlob(symbolData.symbolInfo_.symbolGlyphId, textBlob_.get());
+    }
+    symbolData.path_ = path;
+    symbolData.symbolId = symbolId_; // symbolspan Id in paragraph
+    RSEffectStrategy symbolEffect = symbolTxt_.GetEffectStrategy();
+    std::pair<float, float> offsetXY(offset.GetX(), offset.GetY());
+    if (symbolEffect > 0 && symbolTxt_.GetAnimationStart()) { // 0 > has animation
+        if (SymbolAnimation(symbolData, glyphId, offsetXY)) {
+            currentAnimationHasPlayed_ = true;
+            return;
+        }
+    }
+    ClearSymbolAnimation(symbolData, offsetXY);
+    OnDrawSymbol(canvas, symbolData, offset);
+    currentAnimationHasPlayed_ = false;
 }
 
 void HMSymbolRun::SetRenderColor(const std::vector<RSSColor>& colorList)
@@ -189,11 +189,6 @@ void HMSymbolRun::SetAnimation(
     if (animationFunc) {
         animationFunc_ = animationFunc;
     }
-}
-
-void HMSymbolRun::SetSymbolId(uint64_t symbolId)
-{
-    symbolId_ = symbolId;
 }
 
 void HMSymbolRun::SetTextBlob(const std::shared_ptr<RSTextBlob>& textBlob)
