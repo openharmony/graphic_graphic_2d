@@ -117,6 +117,8 @@ int OH_NativeVSync_RequestFrameWithMultiCallback(
 
 /**
  * @brief Get vsync period.
+ * This interface uses a prerequisite that the OH_NativeVSync object in the input parameter
+ * has called OH_NativeVSync_RequestFrame() and received a signal callback.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param nativeVsync Indicates the pointer to a NativeVsync.
