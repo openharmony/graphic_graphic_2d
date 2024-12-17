@@ -606,7 +606,7 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
     for (const auto& iter : supportedModeVector) {
         auto iterInVec = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), iter);
         if (iterInVec != supportRefreshRateVec.end()) {
-            lowBrightVec_.push_back(iterInVec);
+            lowBrightVec_.push_back(*iterInVec);
         }
     }
     if (lowBrightVec_.empty()) {
