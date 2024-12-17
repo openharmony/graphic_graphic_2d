@@ -184,17 +184,17 @@ public:
     static bool GetFilterCacheEnabled();
     static int GetFilterCacheUpdateInterval();
     static int GetFilterCacheSizeThreshold();
+    static bool GetDynamicBrightnessEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
+    static bool GetDrmEnabled();
     static bool GetMagnifierEnabled();
-    static bool GetDynamicBrightnessEnabled();
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
     static bool GetHpsBlurEnabled();
     static bool GetMESABlurFuzedEnabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
-    static bool GetImageReleaseUsingPostTask();
     static bool GetKawaseOriginalEnabled();
     static bool GetBlurEnabled();
     static bool GetForegroundFilterEnabled();
@@ -219,6 +219,7 @@ public:
     static bool GetUIFirstDebugEnabled();
     static bool GetSurfaceOffscreenEnadbled();
     static bool GetDebugTraceEnabled();
+    static bool GetImageReleaseUsingPostTask();
     static int GetDebugTraceLevel();
     static bool FindNodeInTargetList(std::string node);
     static bool IsFoldScreenFlag();
@@ -227,7 +228,6 @@ public:
     static bool GetCachedBlurPartialRenderEnabled();
     static bool GetImageGpuResourceCacheEnable(int width, int height);
     static bool GetSnapshotWithDMAEnabled();
-    static bool GetDrmEnabled();
     static bool IsPhoneType();
     static bool IsTabletType();
     static bool IsPcType();
@@ -240,8 +240,8 @@ public:
     static bool GetParallelUploadTexture();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
-    static bool GetHDRImageEnable();
     static bool IsForceClient();
+    static bool GetHDRImageEnable();
     static bool GetGpuOverDrawBufferOptimizeEnabled();
 
     static bool GetDrmMarkedFilterEnabled();
@@ -253,29 +253,29 @@ public:
     static bool IsOpincRealDrawCacheEnable();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();
+
 #ifdef RS_ENABLE_STACK_CULLING
     static bool GetViewOcclusionCullingEnabled();
 #endif
 
     static bool GetDumpUICaptureEnabled();
     static bool GetDumpUIPixelmapEnabled();
+    static int GetVirtualScreenScaleModeDFX();
     static bool GetDumpImgEnabled();
 
     static bool GetTransactionTerminateEnabled();
-
-    static int GetVirtualScreenScaleModeDFX();
     static bool GetTextBlobAsPixelMap();
     static inline GpuApiType GetGpuApiType()
     {
         return RSSystemProperties::systemGpuApiType_;
     }
 
+    static int GetRSNodeLimit();
     static inline bool IsUseVulkan()
     {
         return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
     }
 
-    static int GetRSNodeLimit();
     static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
 
@@ -291,7 +291,6 @@ private:
     static const DdgrOpincType ddgrOpincType_;
     static const DdgrOpincDfxType ddgrOpincDfxType_;
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

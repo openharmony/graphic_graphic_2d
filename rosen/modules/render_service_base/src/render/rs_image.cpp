@@ -74,6 +74,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         return false;
     }
     if (!pixelMap_->IsHdr()) {
+        RS_LOGD("bhdr pixelMap_ is not hdr");
         return false;
     }
 
