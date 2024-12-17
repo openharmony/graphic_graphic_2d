@@ -49,24 +49,6 @@ T GetData()
     return object;
 }
 
-class DerivedSyncTask : public RSSyncTask {
-public:
-    using RSSyncTask::RSSyncTask;
-    bool CheckHeader(Parcel& parcel) const override
-    {
-        return true;
-    }
-    bool ReadFromParcel(Parcel& parcel) override
-    {
-        return true;
-    }
-    bool Marshalling(Parcel& parcel) const override
-    {
-        return true;
-    }
-    void Process(RSContext& context) override {}
-};
-
 bool DoCommitTransaction(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -98,8 +80,7 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
 
     // test
     auto renderThreadClient = RSIRenderClient::CreateRenderThreadClient();
-    uint64_t timeoutNS = GetData<uint64_t>();
-    auto task = std::make_shared<DerivedSyncTask>(timeoutNS);
+    
     renderThreadClient->ExecuteSynchronousTask(task);
     return true;
 }

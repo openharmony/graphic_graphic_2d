@@ -1309,7 +1309,8 @@ bool DoExecuteSynchronousTask(const uint8_t* data, size_t size)
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(GetDescriptor());
     std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderPropertyBase>();
-    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(4e8, property);
+
+
     task->Marshalling(dataParcel);
     connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     return true;
