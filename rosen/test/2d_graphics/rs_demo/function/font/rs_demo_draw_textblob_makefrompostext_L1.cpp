@@ -529,5 +529,455 @@ DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 16)
     DrawTexts(infoTextBlob1, playbackCanvas_);
 }
 
+//对应用例makefrompostext_3017
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 17)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "1234567890";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(1000-50 * i);
+        p[i].SetY(-100+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        textInfo.size(),
+        p,
+        font,
+        Drawing::TextEncoding::UTF32
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3018
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 18)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "1234567890";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(10);
+        p[i].SetY(20+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        10,
+        p,
+        font,
+        Drawing::TextEncoding::UTF32
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3019
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 19)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "1234567890";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100+50 * i);
+        p[i].SetY(1000-50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        textInfo.size()-1,
+        p,
+        font,
+        Drawing::TextEncoding::UTF16
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3020
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 20)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "1234567890";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(10);
+        p[i].SetY(20+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        textInfo.size()+1,
+        p,
+        font,
+        Drawing::TextEncoding::UTF8
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3021
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 21)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "1234567890";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100+50 * i);
+        p[i].SetY(1000-50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        0,
+        p,
+        font,
+        Drawing::TextEncoding::GLYPH_ID
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3022
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 22)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100+50 * i);
+        p[i].SetY(1000-50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        nullptr,
+        textInfo.size(),
+        p,
+        font,
+        Drawing::TextEncoding::UTF32
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3023
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 23)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(1000-50 * i);
+        p[i].SetY(-100+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        nullptr,
+        10,
+        p,
+        font,
+        Drawing::TextEncoding::GLYPH_ID
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3024
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 24)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(10);
+        p[i].SetY(20+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        nullptr,
+        textInfo.size()-1,
+        p,
+        font,
+        Drawing::TextEncoding::UTF8
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3025
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 25)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(1000-50 * i);
+        p[i].SetY(-100+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        nullptr,
+        textInfo.size()+1,
+        p,
+        font,
+        Drawing::TextEncoding::UTF16
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3026
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 26)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HarmonyOS Sans SC";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "harmony_os";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(10);
+        p[i].SetY(20+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        nullptr,
+        0,
+        p,
+        font,
+        Drawing::TextEncoding::UTF8
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3027
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 27)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(10);
+        p[i].SetY(20+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        textInfo.size(),
+        p,
+        font,
+        Drawing::TextEncoding::GLYPH_ID
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3028
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 28)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100+50 * i);
+        p[i].SetY(1000-50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        10,
+        p,
+        font,
+        Drawing::TextEncoding::UTF8
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3029
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 29)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(1000-50 * i);
+        p[i].SetY(-100+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        textInfo.size()-1,
+        p,
+        font,
+        Drawing::TextEncoding::UTF16
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3030
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 30)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(-100+50 * i);
+        p[i].SetY(1000-50 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        textInfo.size()+1,
+        p,
+        font,
+        Drawing::TextEncoding::UTF32
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
+//对应用例makefrompostext_3031
+DEF_RSDEMO(textblob_makefrompostext, TestLevel::L1, 31)
+{
+    Drawing::Brush brush;
+    Drawing::Pen pen;
+    std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
+    std::string name = "HMOS Color Emoji";
+    std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
+    auto typeface = Drawing::Typeface::MakeDefault();
+    typeface = std::shared_ptr<Drawing::Typeface>(fontStyleSet->CreateTypeface(0));
+    auto font = Drawing::Font();
+    font.SetTypeface(typeface);
+    font.SetSize(48.f);
+    std::string textInfo = "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99";
+    int cont = textInfo.size();
+    Drawing::Point p[cont];
+    for (int i = 0; i < cont; i++) {
+        p[i].SetX(1000-50 * i);
+        p[i].SetY(-100+100 * i);
+    }
+    std::shared_ptr<Drawing::TextBlob> infoTextBlob1 = Drawing::TextBlob::MakeFromPosText(
+        textInfo.c_str(),
+        0,
+        p,
+        font,
+        Drawing::TextEncoding::UTF16
+    );
+    DrawTexts(infoTextBlob1, playbackCanvas_);
+}
+
 }
 }
