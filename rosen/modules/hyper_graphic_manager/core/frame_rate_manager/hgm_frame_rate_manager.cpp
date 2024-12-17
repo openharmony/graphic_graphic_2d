@@ -427,8 +427,8 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             }
             SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
             auto expectedRange = linker.second->GetExpectedRange();
-            HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
-            if ((expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
+            if (!HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange) &&
+                (expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
                 expectedRange.preferred_ < static_cast<int32_t>(currRefreshRate_)) {
                 expectedRange.Set(currRefreshRate_, currRefreshRate_, currRefreshRate_);
             }

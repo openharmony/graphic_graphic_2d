@@ -38,7 +38,7 @@ public:
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     
-    void GetUiIdleFps(FrameRateRange& rsRange);
+    bool GetUiIdleFps(FrameRateRange& rsRange);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
     void PrintEnergyConsumptionLog(const FrameRateRange &rsRange);
 
