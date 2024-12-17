@@ -2938,7 +2938,6 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
         matrix.MapRect(absRect, bounds);
-        hwcNodePtr->SetTotalMatrix(matrix);
         RectI rect = {std::round(absRect.left_), std::round(absRect.top_),
             std::round(absRect.GetWidth()), std::round(absRect.GetHeight())};
         UpdateDstRect(*hwcNodePtr, rect, prepareClipRect_);
@@ -2947,6 +2946,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         UpdateHwcNodeEnableByBackgroundAlpha(*hwcNodePtr);
         UpdateHwcNodeEnableBySrcRect(*hwcNodePtr);
         UpdateHwcNodeEnableByBufferSize(*hwcNodePtr);
+        hwcNodePtr->SetTotalMatrix(matrix);
         hwcNodePtr->SetOldDirtyInSurface(geoPtr->MapRect(hwcNodePtr->GetSelfDrawRect(), matrix));
     }
 }
