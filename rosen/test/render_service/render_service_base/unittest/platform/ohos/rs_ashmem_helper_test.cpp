@@ -283,7 +283,8 @@ HWTEST_F(RSAshmemHelperTest, InjectFileDescriptorTest, TestSize.Level1)
     RSAshmemHelper rsAshmemHelper;
     MessageParcel ashmemParcel;
     auto dataParcel = CreateMessageParcel();
-    rsAshmemHelper.InjectFileDescriptor(dataParcel, &ashmemParcel);
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
+    rsAshmemHelper.InjectFileDescriptor(dataParcel, &ashmemParcel, ashmemFdWorker);
     EXPECT_NE(dataParcel->GetOffsetsSize(), 0);
 }
 
@@ -312,8 +313,9 @@ HWTEST_F(RSAshmemHelperTest, ParseFromAshmemParcelTest, TestSize.Level1)
 {
     RSAshmemHelper rsAshmemHelper;
     MessageParcel ashmemParcel;
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
     std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
-    EXPECT_EQ(rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFlowControlUnit), nullptr);
+    EXPECT_EQ(rsAshmemHelper.ParseFromAshmemParcel(&ashmemParcel, ashmemFdWorker, ashmemFlowControlUnit), nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -326,6 +326,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
 {
     RS_PROFILER_ON_REMOTE_REQUEST(this, code, data, reply, option);
 
+    AshmemFdContainer::SetIsUnmarshalThread(false);
     pid_t callingPid = GetCallingPid();
     RSMarshallingHelper::SetCallingPid(callingPid);
     auto tid = gettid();
@@ -373,6 +374,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
             std::shared_ptr<MessageParcel> parsedParcel;
+            std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr;
             std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr;
             if (data.ReadInt32() == 0) { // indicate normal parcel
                 if (isUniRender) {
@@ -397,7 +399,8 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             } else {
                 // indicate ashmem parcel
                 // should be parsed to normal parcel before Unmarshalling
-                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFlowControlUnit, callingPid);
+                parsedParcel = RSAshmemHelper::ParseFromAshmemParcel(&data, ashmemFdWorker, ashmemFlowControlUnit,
+                    callingPid);
             }
             if (parsedParcel == nullptr) {
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION failed: parsed parcel is nullptr");
@@ -406,7 +409,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (isUniRender) {
                 // post Unmarshalling task to RSUnmarshalThread
                 RSUnmarshalThread::Instance().RecvParcel(parsedParcel, isNonSystemAppCalling, callingPid,
-                    ashmemFlowControlUnit);
+                    std::move(ashmemFdWorker), ashmemFlowControlUnit);
             } else {
                 // execute Unmarshalling immediately
                 auto transactionData = RSBaseRenderUtil::ParseTransactionData(*parsedParcel);
