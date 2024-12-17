@@ -1466,8 +1466,7 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     node.SetSrcRect(newSrcRect);
 }
 
-GraphicTransformType RSUniRenderUtil::GetConsumerTransform(const RSSurfaceRenderNode& node,
-    const ScreenInfo& screenInfo)
+GraphicTransformType RSUniRenderUtil::GetConsumerTransform(const RSSurfaceRenderNode& node)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();
     if (!surfaceHandler) {
@@ -1533,7 +1532,7 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const float boundsWidth = property.GetBoundsWidth();
     const float boundsHeight = property.GetBoundsHeight();
     const Gravity frameGravity = property.GetFrameGravity();
-    const GraphicTransformType consumerTransformType = GetConsumerTransform(node, screenInfo);
+    const GraphicTransformType consumerTransformType = GetConsumerTransform(node);
     CheckForceHardwareAndUpdateDstRect(node);
     // We don't have to do additional works when renderfit mode is Gravity::RESIZE or frameSize == boundsSize.
     if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {

@@ -907,6 +907,44 @@ HWTEST_F(RSUniRenderUtilTest, DrawRectForDfxTest, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: GetConsumerTransformTest
+ * @tc.desc: Verify function GetConsumerTransform
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, GetConsumerTransformTest, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    auto consumerTransform = RSUniRenderUtil::GetConsumerTransform(node);
+    ASSERT_EQ(consumerTransform, GRAPHIC_ROTATE_NONE);
+}
+
+/*
+ * @tc.name: CalcSrcRectByBufferRotationTest
+ * @tc.desc: Verify function CalcSrcRectByBufferRotation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CalcSrcRectByBufferRotationTest, Function | SmallTest | Level2)
+{
+    constexpr uint32_t default_frame_width = 800;
+    constexpr uint32_t default_frame_height = 600;
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    surfaceBuffer->SetSurfaceBufferWidth(default_frame_width);
+    surfaceBuffer->SetSurfaceBufferHeight(default_frame_height);
+    GraphicTransformType consumerTransformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    int left = 1;
+    int top = 1;
+    int width = 1;
+    int height = 1;
+    RectI srcRect(left, top, width, height);
+    RectI newSrcRect = CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
+    ASSERT_EQ(newSrcRect, srcRect);
+}
+
+/*
  * @tc.name: DealWithNodeGravityTest
  * @tc.desc: Verify function DealWithNodeGravity
  * @tc.type: FUNC
