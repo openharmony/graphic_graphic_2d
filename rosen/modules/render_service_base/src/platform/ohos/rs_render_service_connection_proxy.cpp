@@ -3154,9 +3154,11 @@ void RSRenderServiceConnectionProxy::SetScreenSwitchStatus(bool flag)
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchStatus: Write InterfaceToken val err.");
         return;
     }
     if (!data.WriteBool(flag)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchStatus: Write Bool val err.");
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

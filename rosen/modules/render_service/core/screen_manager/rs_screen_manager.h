@@ -211,6 +211,8 @@ public:
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
 
+    virtual bool SetScreenSwitchStatus(bool flag) = 0;
+
     virtual bool IsAllScreensPowerOff() const = 0;
 
     // used to skip render frame or render only one frame when screen power is off.
@@ -433,6 +435,8 @@ public:
         }
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
+
+    bool SetScreenSwitchStatus(bool flag) override;
 
     bool IsAllScreensPowerOff() const override;
 

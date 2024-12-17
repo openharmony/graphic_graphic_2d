@@ -244,6 +244,17 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
+void RSScreenManager::SetScreenSwitchStatus(bool flag)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto mainThread = RSMainThread::Instance();
+    if (mainThread == nullptr) {
+        RS_LOGE("RSScreenManager %{public}s: get RSmainThread filed.", __func__);
+        return;
+    }
+    mainThread->GetContext().SetScreenSwitchStatus(flag);
+}
+
 bool RSScreenManager::IsAllScreensPowerOff() const
 {
     std::lock_guard<std::mutex> lock(mutex_);

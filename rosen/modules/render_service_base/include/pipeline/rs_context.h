@@ -195,6 +195,16 @@ public:
     {
         subSurfaceCntUpdateInfo_.emplace_back(info);
     }
+
+    void SetScreenSwitchStatus(bool flag)
+    {
+        isScreenSwitching_ = flag;
+    }
+
+    bool GetScreenSwitchStatus()
+    {
+        return isScreenSwitching_;
+    }
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -222,6 +232,7 @@ private:
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;
+    std::atomic<bool> isScreenSwitching_ = false;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;

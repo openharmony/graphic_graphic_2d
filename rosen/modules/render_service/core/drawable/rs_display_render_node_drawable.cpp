@@ -574,9 +574,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     PostClearMemoryTask();
 
-    if (RSSystemProperties::IsFoldScreenFlag() && RSSystemProperties::GetScreenSwitchStatus()) {
+    if (RSSystemProperties::IsFoldScreenFlag() && RSMainThread::Instance()->GetContext().GetScreenSwitchStatus()) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_SWITCHING);
-        RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw FoldScreenNodeSwitching is true, do not drawframe");
+        RS_LOGI("RSDisplayRenderNodeDrawable::OnDraw FoldScreenNodeSwitching is true, do not drawframe");
         RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable FoldScreenNodeSwitching is true");
         return;
     }

@@ -2266,7 +2266,7 @@ void RSRenderServiceConnection::SetScreenSwitchStatus(bool flag)
 {
     RS_LOGD("RSRenderServiceConnection::SetScreenSwitchStatus %{public}d", flag);
     RS_TRACE_NAME_FMT("SetScreenSwitchStatus %d", flag);
-    RSSystemProperties::SetScreenSwitchStatus(flag);
+    screenManager_->SetScreenSwitchStatus(flag);
 }
 
 void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
