@@ -70,7 +70,7 @@ if (is_arkui_x) {
           [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
 
       if (ace_enable_gpu) {
-        defines = gpu_defines
+        defines += gpu_defines
         public_deps += [
           "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
           "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
