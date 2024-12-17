@@ -53,9 +53,6 @@ void DrawText(Drawing::TextBlobBuilder& builder, TestPlaybackCanvas* playbackCan
 //对应用例allocrunpos_3041
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 41)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -78,9 +75,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 41)
 //对应用例allocrunpos_3042
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 42)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -103,9 +97,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 42)
 //对应用例allocrunpos_3043
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 43)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -128,9 +119,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 43)
 //对应用例allocrunpos_3044
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 44)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -153,9 +141,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 44)
 //对应用例allocrunpos_3045
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 45)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -178,9 +163,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 45)
 //对应用例allocrunpos_3046
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 46)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -203,9 +185,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 46)
 //对应用例allocrunpos_3047
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 47)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -228,9 +207,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 47)
 //对应用例allocrunpos_3048
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 48)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -253,9 +229,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 48)
 //对应用例allocrunpos_3049
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 49)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -278,9 +251,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 49)
 //对应用例allocrunpos_3050
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 50)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -303,9 +273,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 50)
 //对应用例allocrunpos_3051
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 51)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -328,9 +295,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 51)
 //对应用例allocrunpos_3052
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 52)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -353,9 +317,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 52)
 //对应用例allocrunpos_3053
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 53)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -378,9 +339,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 53)
 //对应用例allocrunpos_3054
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 54)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -403,9 +361,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 54)
 //对应用例allocrunpos_3055
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 55)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -428,9 +383,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 55)
 //对应用例allocrunpos_3056
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 56)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -453,9 +405,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 56)
 //对应用例allocrunpos_3057
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 57)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -478,9 +427,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 57)
 //对应用例allocrunpos_3058
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 58)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -503,9 +449,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 58)
 //对应用例allocrunpos_3059
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 59)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -528,9 +471,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 59)
 //对应用例allocrunpos_3060
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 60)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -553,9 +493,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 60)
 //对应用例allocrunpos_3061
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 61)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -578,9 +515,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 61)
 //对应用例allocrunpos_3062
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 62)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -603,9 +537,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 62)
 //对应用例allocrunpos_3063
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 63)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -628,9 +559,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 63)
 //对应用例allocrunpos_3064
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 64)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -653,9 +581,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 64)
 //对应用例allocrunpos_3065
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 65)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -678,9 +603,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 65)
 //对应用例allocrunpos_3066
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 66)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -703,9 +625,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 66)
 //对应用例allocrunpos_3067
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 67)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -728,9 +647,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 67)
 //对应用例allocrunpos_3068
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 68)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -753,9 +669,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 68)
 //对应用例allocrunpos_3069
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 69)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -778,9 +691,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 69)
 //对应用例allocrunpos_3070
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 70)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -803,9 +713,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 70)
 //对应用例allocrunpos_3071
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 71)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -828,9 +735,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 71)
 //对应用例allocrunpos_3072
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 72)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -853,9 +757,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 72)
 //对应用例allocrunpos_3073
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 73)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -878,9 +779,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 73)
 //对应用例allocrunpos_3074
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 74)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -903,9 +801,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 74)
 //对应用例allocrunpos_3075
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 75)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -928,9 +823,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 75)
 //对应用例allocrunpos_3076
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 76)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -953,9 +845,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 76)
 //对应用例allocrunpos_3077
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 77)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -978,9 +867,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 77)
 //对应用例allocrunpos_3078
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 78)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -1003,9 +889,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 78)
 //对应用例allocrunpos_3079
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 79)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
@@ -1028,9 +911,6 @@ DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 79)
 //对应用例allocrunpos_3080
 DEF_RSDEMO(textblobbuilder_allocrunpos, TestLevel::L1, 80)
 {
-    Drawing::Brush brush;
-    Drawing::Pen pen;
-    playbackCanvas_->AttachBrush(brush);
     std::shared_ptr<Drawing::FontMgr> font_mgr(Drawing::FontMgr::CreateDefaultFontMgr());
     std::string name = "HarmonyOS Sans SC";
     std::shared_ptr<Drawing::FontStyle> fontStyleSet(font_mgr->MatchFamily(name.c_str()));
