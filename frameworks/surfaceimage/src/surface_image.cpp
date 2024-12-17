@@ -38,8 +38,8 @@ namespace {
 // Get a uniqueID in a process
 static int GetProcessUniqueId()
 {
-    static std::atomic<int> g_counter { 0 };
-    return g_counter.fetch_add(1);
+    static std::atomic<int> counter { 0 };
+    return counter.fetch_add(1);
 }
 }
 

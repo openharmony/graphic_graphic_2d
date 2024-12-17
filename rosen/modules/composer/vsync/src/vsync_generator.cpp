@@ -46,10 +46,10 @@ static int64_t SystemTime()
 }
 
 // 1.5ms
-constexpr int64_t maxWaleupDelay = 1500000;
+constexpr int64_t MAX_WALEUP_DELAY = 1500000;
 constexpr int32_t THREAD_PRIORTY = -6;
 constexpr int32_t SCHED_PRIORITY = 2;
-constexpr int64_t errorThreshold = 500000;
+constexpr int64_t ERROR_THRESHOLD = 500000;
 constexpr int32_t MAX_REFRESHRATE_DEVIATION = 5; // ±5Hz
 constexpr int64_t PERIOD_CHECK_THRESHOLD = 1000000; // 1000000ns == 1.0ms
 constexpr int64_t REFRESH_PERIOD = 16666667; // 16666667ns == 16.666667ms
@@ -295,7 +295,7 @@ void VSyncGenerator::UpdateWakeupDelay(int64_t occurTimestamp, int64_t nextTimeS
 {
     // 63, 1 / 64
     wakeupDelay_ = ((wakeupDelay_ * 63) + (occurTimestamp - nextTimeStamp)) / 64;
-    wakeupDelay_ = wakeupDelay_ > maxWaleupDelay ? maxWaleupDelay : wakeupDelay_;
+    wakeupDelay_ = wakeupDelay_ > MAX_WALEUP_DELAY ? MAX_WALEUP_DELAY : wakeupDelay_;
 }
 
 int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now, int64_t referenceTime)
@@ -316,7 +316,7 @@ bool VSyncGenerator::CheckTimingCorrect(int64_t now, int64_t referenceTime, int6
     bool isTimingCorrect = false;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
-        if ((t - nextVSyncTime < errorThreshold) && (listeners_[i].phase_ == 0)) {
+        if ((t - nextVSyncTime < ERROR_THRESHOLD) && (listeners_[i].phase_ == 0)) {
             isTimingCorrect = true;
         }
     }
@@ -440,7 +440,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeouted(
     std::vector<VSyncGenerator::Listener> ret;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], occurTimestamp, referenceTime);
-        if (t < now || (t - now < errorThreshold)) {
+        if (t < now || (t - now < ERROR_THRESHOLD)) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
@@ -453,7 +453,7 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
     std::vector<VSyncGenerator::Listener> ret;
     for (uint32_t i = 0; i < listeners_.size(); i++) {
         int64_t t = ComputeListenerNextVSyncTimeStamp(listeners_[i], now, referenceTime);
-        if (t - SystemTime() < errorThreshold) {
+        if (t - SystemTime() < ERROR_THRESHOLD) {
             listeners_[i].lastTime_ = t;
             ret.push_back(listeners_[i]);
         }
