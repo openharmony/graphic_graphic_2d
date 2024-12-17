@@ -99,6 +99,15 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
     CalcVote();
 }
 
+void HgmMultiAppStrategy::HandleLowAmbientStatus(bool isEffect)
+{
+    RS_TRACE_NAME_FMT("[HandleLowAmbientStatus] isEffect: %d", isEffect);
+    if (lowAmbientStatus_ == isEffect) {
+        return;
+    }
+    lowAmbientStatus_ = isEffect;
+}
+
 void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
@@ -369,7 +378,9 @@ std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(con
 
 void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const
 {
-    if (lightFactorStatus_ && strategyRes.isFactor) {
+    HGM_LOGD("lightFactorStatus:%{public}u, isFactor:%{public}u, lowAmbientStatus:%{public}u",
+        lightFactorStatus_.load(), strategyRes.isFactor, lowAmbientStatus_);
+    if (lightFactorStatus_ && strategyRes.isFactor && !lowAmbientStatus_) {
         RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
         strategyRes.min = strategyRes.max;
     }

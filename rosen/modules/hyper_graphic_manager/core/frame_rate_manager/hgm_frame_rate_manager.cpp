@@ -115,6 +115,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        GetLowBrightVec(configData);
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -601,6 +602,34 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     changeGeneratorRateValid_.store(false);
 }
 
+void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (!configData || !isLtpo_) {
+        isAmbientEffect_ = false;
+        return;
+    }
+
+    // obtain the refresh rate supported in low ambient light
+    auto supportedModeVector = configData->supportedModeConfigs_[curScreenStrategyId_];
+    if (supportedModeVector.empty()) {
+        isAmbientEffect_ = false;
+        return;
+    }
+    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
+    for (const auto& iter : supportedModeVector) {
+        auto iterInVec = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), iter);
+        if (iterInVec != supportRefreshRateVec.end()) {
+            lowBrightVec_.push_back(*iterInVec);
+        }
+    }
+    if (lowBrightVec_.empty()) {
+        isAmbientEffect_ = false;
+        return;
+    }
+    isAmbientEffect_ = true;
+    multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
+}
+
 uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
 {
     // Find current refreshRate by FrameRateRange. For example:
@@ -609,7 +638,12 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
-    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    std::vector<uint32_t> supportRefreshRateVec;
+    if (isAmbientSafe_ && isAmbientEffect_) {
+        supportRefreshRateVec = lowBrightVec_;
+    } else {
+        supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    }
     if (supportRefreshRateVec.empty()) {
         return refreshRate;
     }
@@ -767,6 +801,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
     multiAppStrategy_.HandleLightFactorStatus(isSafe);
+    isAmbientSafe_ = isSafe;
 }
 
 void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList)
@@ -931,6 +966,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
 
     multiAppStrategy_.UpdateXmlConfigCache();
+    GetLowBrightVec(configData);
     UpdateEnergyConsumptionConfig();
 
     multiAppStrategy_.CalcVote();

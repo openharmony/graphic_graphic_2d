@@ -119,6 +119,9 @@ public:
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;
 
+    // <"LTPO-DEAULT", <30, 60, 120>>
+    using SupportedModeMap = std::unordered_map<std::string, std::vector<uint32_t>>;
+
     struct DynamicConfig {
         int32_t min;
         int32_t max;
@@ -173,6 +176,7 @@ public:
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
+    SupportedModeMap supportedModeConfigs_;
     bool videoFrameRateVoteSwitch_ = false;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> videoFrameRateList_;

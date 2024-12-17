@@ -14,6 +14,8 @@
  */
 #include "xml_parser.h"
 #include <algorithm>
+#include <sstream>
+#include <regex>
 
 #include "config_policy_utils.h"
 
@@ -324,6 +326,14 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
+        auto name = ExtractPropertyValue("name", *currNode);
+        if (name == "supported_mode") {
+            std::vector<uint32_t> supportedModeVector;
+            auto value = ExtractPropertyValue("value", *currNode);
+            supportedModeVector = StringToVector(value);
+            mParsedData_->supportedModeConfigs_[type] = supportedModeVector;
+            continue;
+        }
         PolicyConfigData::ScreenSetting screenSetting;
         auto id = ExtractPropertyValue("id", *currNode);
         screenSetting.strategy = ExtractPropertyValue("strategy", *currNode);
@@ -571,6 +581,24 @@ bool XMLParser::IsNumber(const std::string& str)
         return std::isdigit(c);
     }));
     return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
+}
+
+std::vector<uint32_t> XMLParser::StringToVector(const std::string &str)
+{
+    // valid format: string consisting of only numbers and spaces
+    if (!std::regex_match(str, std::regex("^\\s*(\\d+(\\s+\\d+)*)\\s*$"))) {
+        HGM_LOGD("Input invalid format.");
+        return {};
+    }
+
+    std::istringstream isstr(str);
+    std::vector<uint32_t> vec;
+    uint32_t num;
+    while (isstr >> num) {
+        vec.push_back(num);
+    }
+
+    return vec;
 }
 
 } // namespace OHOS::Rosen

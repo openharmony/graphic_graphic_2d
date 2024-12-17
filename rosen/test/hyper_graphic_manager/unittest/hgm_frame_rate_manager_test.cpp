@@ -569,6 +569,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
     timer.Reset();
     timer.Stop();
     sleep(1); // wait for timer stop
+    ASSERT_EQ(timer.stopFlag_.load(), true);
 }
 
 /**
@@ -584,6 +585,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
     timer.Reset();
     timer.Stop();
     sleep(1); // wait for timer stop
+    ASSERT_EQ(timer.running_.load(), false);
 }
 
 /**
@@ -667,6 +669,42 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false);
     EXPECT_EQ(frameRateMgr->GetPreferredFps("translate", errorVelocity), 0);
+}
+
+/**
+ * @tc.name: GetLowBrightVec
+ * @tc.desc: Verify the result of GetLowBrightVec
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+
+    std::string screenConfig = {"LTPO-DEFAULT"};
+    {
+        configData->supportedModeConfigs_[screenConfig].clear();
+        mgr.GetLowBrightVec(configData);
+        EXPECT_FALSE(mgr.isAmbientEffect_);
+        EXPECT_EQ(mgr.lowBrightVec_.empty(), true);
+    }
+
+    {
+        std::vector<uint32_t> expectedLowBrightVec = {30, 40, 50};
+        configData->supportedModeConfigs_[screenConfig] = expectedLowBrightVec;
+        mgr.GetLowBrightVec(configData);
+        EXPECT_TRUE(mgr.isAmbientEffect_);
+        EXPECT_NE(mgr.lowBrightVec_, expectedLowBrightVec);
+    }
+
+    {
+        std::vector<uint32_t> expectedLowBrightVec = {30, 60, 90};
+        configData->supportedModeConfigs_[screenConfig] = expectedLowBrightVec;
+        mgr.GetLowBrightVec(configData);
+        EXPECT_TRUE(mgr.isAmbientEffect_);
+        EXPECT_EQ(mgr.lowBrightVec_, expectedLowBrightVec);
+    }
 }
 
 /**
