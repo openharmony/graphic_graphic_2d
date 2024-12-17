@@ -261,17 +261,17 @@ int RSSystemProperties::GetFilterCacheUpdateInterval()
     return 0;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
     return true;
 }
 
 bool RSSystemProperties::GetMotionBlurEnabled()
-{
-    return true;
-}
-
-bool RSSystemProperties::GetDynamicBrightnessEnabled()
 {
     return true;
 }
@@ -457,11 +457,6 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetTransactionTerminateEnabled()
-{
-    return false;
-}
-
 int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
@@ -492,12 +487,12 @@ bool RSSystemProperties::IsForceClient()
     return false;
 }
 
-bool RSSystemProperties::GetTextBlobAsPixelMap()
+bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
 
-bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+bool RSSystemProperties::GetTextBlobAsPixelMap()
 {
     return false;
 }
@@ -508,6 +503,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 }
 
 bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     return false;
 }

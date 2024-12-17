@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
@@ -266,17 +267,17 @@ int RSSystemProperties::GetFilterCacheSizeThreshold()
     return 0;
 }
 
+bool RSSystemProperties::GetDynamicBrightnessEnabled()
+{
+    return true;
+}
+
 bool RSSystemProperties::GetMaskLinearBlurEnabled()
 {
     return true;
 }
 
 bool RSSystemProperties::GetMotionBlurEnabled()
-{
-    return true;
-}
-
-bool RSSystemProperties::GetDynamicBrightnessEnabled()
 {
     return true;
 }
@@ -457,11 +458,6 @@ bool RSSystemProperties::GetDumpUIPixelmapEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetTransactionTerminateEnabled()
-{
-    return false;
-}
-
 int RSSystemProperties::GetVirtualScreenScaleModeDFX()
 {
     return {};
@@ -487,7 +483,7 @@ bool RSSystemProperties::GetRenderParallelEnabled()
     return false;
 }
 
-bool RSSystemProperties::IsForceClient()
+bool RSSystemProperties::GetTransactionTerminateEnabled()
 {
     return false;
 }
@@ -502,7 +498,7 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return false;
 }
 
-bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
+bool RSSystemProperties::IsForceClient()
 {
     return false;
 }
@@ -513,6 +509,11 @@ bool RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()
 }
 
 bool RSSystemProperties::GetBatchRemovingOnRemoteDiedEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetGpuOverDrawBufferOptimizeEnabled()
 {
     return false;
 }
