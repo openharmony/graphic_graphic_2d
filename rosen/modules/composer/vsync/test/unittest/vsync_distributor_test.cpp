@@ -253,7 +253,6 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
 }
 
 /*
-/*
 * Function: SetFrameIsRender001
 * Type: Function
 * Rank: Important(2)
