@@ -121,7 +121,7 @@ std::shared_ptr<RSPropertyBase> operator+(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    const auto& clone = a->Clone();
+    const auto clone = a->Clone();
     if (clone == nullptr) {
         return {};
     }
@@ -135,7 +135,7 @@ std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    const auto& clone = a->Clone();
+    const auto clone = a->Clone();
     if (clone == nullptr) {
         return {};
     }
@@ -148,7 +148,7 @@ std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    const auto& clone = value->Clone();
+    const auto clone = value->Clone();
     if (clone == nullptr) {
         return {};
     }
