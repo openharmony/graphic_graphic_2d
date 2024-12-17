@@ -940,7 +940,7 @@ HWTEST_F(RSUniRenderUtilTest, CalcSrcRectByBufferRotationTest, Function | SmallT
     int width = 1;
     int height = 1;
     RectI srcRect(left, top, width, height);
-    RectI newSrcRect = CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
+    RectI newSrcRect = RSUniRenderUtil::CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
     ASSERT_EQ(newSrcRect, srcRect);
 }
 
