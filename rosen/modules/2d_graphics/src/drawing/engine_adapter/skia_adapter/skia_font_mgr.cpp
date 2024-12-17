@@ -192,6 +192,7 @@ Typeface* SkiaFontMgr::LoadThemeFont(const std::string& familyName, const std::s
         } else {
             dynamicFontMgr->font_provider().RegisterTypeface(typeface, themeName);
             typeface->setIsCustomTypeface(true);
+            typeface->setIsThemeTypeface(true);
             std::shared_ptr<TypefaceImpl> typefaceImpl = std::make_shared<SkiaTypeface>(typeface);
             return new Typeface(typefaceImpl);
         }
