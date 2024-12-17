@@ -2350,7 +2350,7 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
 #ifdef RS_ENABLE_GPU
-    if (!doDirectComposition_ && needDrawFrame_ && !RSSystemProperties::GetScreenSwitchStatus()) {
+    if (!doDirectComposition_ && needDrawFrame_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
