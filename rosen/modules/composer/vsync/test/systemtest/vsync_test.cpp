@@ -34,12 +34,12 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-int32_t g_appVSyncFlag = 0;
+int32_t appVSyncFlag = 0;
 constexpr int32_t SAMPLER_NUMBER = 6;
 static void OnVSyncApp(int64_t time, void *data)
 {
     std::cout << "OnVSyncApp in\n";
-    g_appVSyncFlag = 1;
+    appVSyncFlag = 1;
 }
 }
 class VSyncTest : public testing::Test {
@@ -131,8 +131,8 @@ void VSyncTest::Process2()
     std::cout << "RequestNextVSync\n";
     receiver->RequestNextVSync(fcb);
     sleep(1);
-    std::cout << "ChildProcessMain g_appVSyncFlag is " << g_appVSyncFlag << std::endl;
-    EXPECT_EQ(g_appVSyncFlag, 1);
+    std::cout << "ChildProcessMain appVSyncFlag is " << appVSyncFlag << std::endl;
+    EXPECT_EQ(appVSyncFlag, 1);
     int64_t period;
     int64_t timeStamp;
     EXPECT_EQ(receiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);
