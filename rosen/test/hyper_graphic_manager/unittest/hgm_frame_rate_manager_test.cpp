@@ -331,6 +331,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
 {
     int64_t offset = 0;
     int32_t testThreadNum = 100;
+    int32_t touchCnt = 1;
     std::string pkg0 = "com.pkg.other:0:-1";
     std::string pkg1 = "com.ss.hm.ugc.aweme:1001:10067";
     std::string pkg2 = "com.wedobest.fivechess.harm:1002:10110";
@@ -340,7 +341,10 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
     frameRateMgr.Init(rsController, appController, vsyncGenerator);
-    
+
+    ASSERT_NE(vsyncGenerator, nullptr);
+    ASSERT_NE(rsController, nullptr);
+    ASSERT_NE(appController, nullptr);
     for (int i = 0; i < testThreadNum; i++) {
         // HandleLightFactorStatus
         frameRateMgr.HandleLightFactorStatus(i, true);
@@ -348,17 +352,20 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
 
         // HandlePackageEvent
         frameRateMgr.HandlePackageEvent(i, {pkg0});
+        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg0}), EXEC_SUCCESS);
         frameRateMgr.HandlePackageEvent(i, {pkg1});
+        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg1}), EXEC_SUCCESS);
         frameRateMgr.HandlePackageEvent(i, {pkg2});
+        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg2}), EXEC_SUCCESS);
         frameRateMgr.HandlePackageEvent(i, {pkg0, pkg1});
+        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg0, pkg1}), EXEC_SUCCESS);
 
         // HandleRefreshRateEvent
         frameRateMgr.HandleRefreshRateEvent(i, {});
 
         // HandleTouchEvent
-        // param 1: touchCnt
-        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, 1);
-        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, 1);
+        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, touchCnt);
+        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, touchCnt);
 
         // HandleRefreshRateMode
         // param -1、0、1、2、3：refresh rate mode
@@ -564,7 +571,11 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
  */
 HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
 {
-    auto timer = HgmOneShotTimer("HgmOneShotTimer", std::chrono::milliseconds(20), nullptr, nullptr);
+    auto timer = HgmOneShotTimer("HgmOneShotTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
+    ASSERT_EQ(timer.name_, "HgmOneShotTimer");
+    ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
+    ASSERT_EQ(timer.resetCallback_, nullptr);
+    ASSERT_EQ(timer.expiredCallback_, nullptr);
     timer.Start();
     timer.Reset();
     timer.Stop();
@@ -579,7 +590,11 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
  */
 HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
 {
-    auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(20), nullptr, nullptr);
+    auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
+    ASSERT_EQ(timer.name_, "HgmSimpleTimer");
+    ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
+    ASSERT_EQ(timer.startCallback_, nullptr);
+    ASSERT_EQ(timer.expiredCallback_, nullptr);
     timer.Start();
     timer.Reset();
     timer.Stop();
