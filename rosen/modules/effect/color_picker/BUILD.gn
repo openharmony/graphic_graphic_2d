@@ -30,36 +30,59 @@ config("graphic_napi_color_picker_config") {
     "-Wno-c++11-narrowing",
   ]
 
-  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
-}
+  cflags_cc = [ "-std=c++17" ]
 
-ohos_shared_library("color_picker") {
+  defines = [ "EGL_EGLEXT_PROTOTYPES" ]
+
   include_dirs = [
     "include",
     "$graphic_2d_root/interfaces/kits/napi/graphic/effect/include",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/log",
   ]
+}
 
-  configs = [ ":graphic_napi_color_picker_config" ]
+if (is_arkui_x) {
+  ohos_source_set("color_picker") {
+    configs = [ ":graphic_napi_color_picker_config" ]
 
-  sources = [
-    "src/color_extract.cpp",
-    "src/color_picker.cpp",
-  ]
+    include_dirs = [
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
+    ]
 
-  deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
+    sources = [
+      "src/color_extract.cpp",
+      "src/color_picker.cpp",
+    ]
 
-  external_deps = [
-    "c_utils:utils",
-    "graphic_surface:surface_headers",
-    "hilog:libhilog",
-    "image_framework:image_native",
-  ]
+    deps = [
+      "$graphic_2d_root/utils/color_manager:color_manager",
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//foundation/arkui/ace_engine/adapter/${target_os}/build:libarkui_${target_os}",
+    ]
 
-  cflags_cc = [ "-std=c++17" ]
+    public_external_deps = [ "c_utils:utilsbase" ]
 
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+} else {
+  ohos_shared_library("color_picker") {
+    configs = [ ":graphic_napi_color_picker_config" ]
+    sources = [
+      "src/color_extract.cpp",
+      "src/color_picker.cpp",
+    ]
+    deps = [ "$graphic_2d_root/utils/color_manager:color_manager" ]
+    external_deps = [
+      "c_utils:utils",
+      "graphic_surface:surface_headers",
+      "hilog:libhilog",
+      "image_framework:image_native",
+    ]
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }
 ## Build color_picker.so

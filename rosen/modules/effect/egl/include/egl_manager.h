@@ -61,7 +61,9 @@ private:
     EGLConfig EGLConfig_;
     EGLContext EGLContext_;
     EGLSurface currentSurface_;
+#ifndef ANDROID_PLATFORM
     NativeWindow *EGLWindow_ = nullptr;
+#endif
     bool initialized_ = false;
     int EGLWidth_ = 0;
     int EGLHeight_ = 0;
