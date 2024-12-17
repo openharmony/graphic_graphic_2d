@@ -41,9 +41,9 @@ public:
         return appSupported_;
     }
 
-    void SetBufferFpsMap(std::unordered_map<std::string, int32_t>& bufferFpsMap)
+    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap)
     {
-        bufferFpsMap_ = bufferFpsMap;
+        bufferFpsMap_ = std::move(bufferFpsMap);
     }
 
     int32_t GetTouchUpExpectedFPS();

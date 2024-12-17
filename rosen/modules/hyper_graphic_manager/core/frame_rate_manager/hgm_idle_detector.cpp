@@ -57,9 +57,7 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
     }
 
     if (!GetAppSupportedState() || surfaceTimeMap_.size() > MAX_CACHED_VALID_SURFACE_NAME_COUNT) {
-        if (!surfaceTimeMap_.empty()) {
-            surfaceTimeMap_.clear();
-        }
+        surfaceTimeMap_.clear();
         return;
     }
 
@@ -116,7 +114,7 @@ bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
 void HgmIdleDetector::UpdateSurfaceState(uint64_t timestamp)
 {
     for (auto iter = surfaceTimeMap_.begin(); iter != surfaceTimeMap_.end();) {
-        if ((timestamp - iter->second) > BUFFER_IDLE_TIME_OUT) {
+        if (timestamp > iter->second && (timestamp - iter->second) > BUFFER_IDLE_TIME_OUT) {
             iter = surfaceTimeMap_.erase(iter);
         } else {
             ++iter;

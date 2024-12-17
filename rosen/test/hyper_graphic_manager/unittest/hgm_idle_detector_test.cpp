@@ -86,20 +86,24 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetAceAnimatorIdleState, Function | SmallTes
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
+    // fail case: when AppSupportedState false && bufferFpsMap_ not contains
     ASSERT_NE(idleDetector, nullptr);
     idleDetector->SetAceAnimatorIdleState(false);
     ASSERT_TRUE(idleDetector->GetAceAnimatorIdleState());
 
+    // fail case: when AppSupportedState false
     idleDetector->SetAppSupportedState(false);
     idleDetector->bufferFpsMap_[aceAnimator] = fps120HZ;
     idleDetector->SetAceAnimatorIdleState(false);
     ASSERT_TRUE(idleDetector->GetAceAnimatorIdleState());
 
+    // fail case: when bufferFpsMap_ not contains
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_.clear();
     idleDetector->SetAceAnimatorIdleState(false);
     ASSERT_TRUE(idleDetector->GetAceAnimatorIdleState());
 
+    // success case: fits all
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_[aceAnimator] = fps120HZ;
     idleDetector->SetAceAnimatorIdleState(false);
@@ -116,28 +120,33 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
+    // fail case: when AppSupportedState false && bufferFpsMap_ not contains
     ASSERT_NE(idleDetector, nullptr);
     idleDetector->surfaceTimeMap_.clear();
     ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
 
+    // fail case: when AppSupportedState false
     idleDetector->SetAppSupportedState(false);
     idleDetector->bufferFpsMap_[bufferName] = fps120HZ;
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
     ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
     idleDetector->surfaceTimeMap_.clear();
 
+    // fail case: when bufferFpsMap_ not contains
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_.clear();
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
     ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
     idleDetector->surfaceTimeMap_.clear();
 
+    // success case: fits all && match bufferName
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_[bufferName] = fps120HZ;
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
     ASSERT_FALSE(idleDetector->GetSurfaceIdleState());
     idleDetector->surfaceTimeMap_.clear();
 
+    // success case: fits all && match otherSurface
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_.clear();
     idleDetector->bufferFpsMap_[otherSurface] = fps120HZ;
@@ -145,6 +154,7 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
     ASSERT_FALSE(idleDetector->GetSurfaceIdleState());
     idleDetector->surfaceTimeMap_.clear();
 
+    // fail case: not match otherSurface
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_.clear();
     idleDetector->bufferFpsMap_[otherSurface] = fps120HZ;
@@ -162,26 +172,31 @@ HWTEST_F(HgmIdleDetectorTest, ThirdFrameNeedHighRefresh, Function | SmallTest | 
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
+    // bufferFpsMap_ not contains
     idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_.clear();
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), 0);
 
+    // bufferFpsMap_ contains && check AceAnimatorIdleState
     idleDetector->bufferFpsMap_[aceAnimator] = fps90HZ;
     idleDetector->SetAceAnimatorIdleState(true);
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), 0);
     idleDetector->SetAceAnimatorIdleState(false);
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps90HZ);
 
+    // bufferFpsMap_ contains && check bufferName
     idleDetector->bufferFpsMap_[bufferName] = fps60HZ;
     idleDetector->surfaceTimeMap_[bufferName] = currTime;
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps90HZ);
     idleDetector->bufferFpsMap_[bufferName] = fps120HZ;
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps120HZ);
 
+    // decide max
     idleDetector->bufferFpsMap_[flutterBuffer] = fps90HZ;
     idleDetector->surfaceTimeMap_[flutterBuffer] = currTime;
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps120HZ);
 
+    // decide max
     idleDetector->surfaceTimeMap_[rosenWeb] = currTime;
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps120HZ);
 }
@@ -204,13 +219,16 @@ HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS, Function | SmallTest | Leve
     idleDetector->bufferFpsMap_[bufferName] = fps60HZ;
     idleDetector->surfaceTimeMap_.clear();
 
+    // max of rosenWeb & bufferName
     idleDetector->surfaceTimeMap_[rosenWeb] = currTime;
     idleDetector->surfaceTimeMap_[bufferName] = currTime;
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps90HZ);
 
+    // check effective: aceAnimator
     idleDetector->SetAceAnimatorIdleState(false);
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps120HZ);
 
+    // check aceAnimator ineffective
     idleDetector->SetAceAnimatorIdleState(true);
     ASSERT_EQ(idleDetector->GetTouchUpExpectedFPS(), fps90HZ);
 }
