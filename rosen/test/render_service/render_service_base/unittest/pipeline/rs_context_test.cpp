@@ -114,6 +114,7 @@ HWTEST_F(RSContextTest, TaskRunnerTest004, TestSize.Level1)
 
     // Set Task Runner
     auto taskRunner = [](const std::function<void()>& task, bool isSyncTask) {};
+    ASSERT_NE(taskRunner, nullptr);
     rSContext.SetTaskRunner(taskRunner);
     auto taskRunnerTest = []() {};
     rSContext.PostTask(taskRunnerTest, true);
