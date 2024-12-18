@@ -71,6 +71,7 @@ public:
     {
         return static_cast<TypefaceFontAssetProvider&>(*fontProvider_);
     }
+    int ParseInstallFontConfig(const std::string& configPath, std::vector<std::string>& fontPathVec);
 };
 
 class TestFontManager : public AssetFontManager {

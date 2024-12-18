@@ -60,11 +60,13 @@ enum class ResourceType {
 };
 
 enum class TextErrorCode : int32_t {
+    ERROR = -1,
     OK = 0,
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
     ERROR_INVALID_PARAM = 401, // the value do not change. It is defined on all system
     ERROR_DEVICE_NOT_SUPPORT = 801, // the value do not change. It is defined on all system
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
+    ERROR_NO_MEMORY = 8800100, // no memory
 };
 
 #define GET_UNWRAP_PARAM(argc, value)                                                                                  \
@@ -534,7 +536,7 @@ void ScanShadowValue(napi_env env, napi_value allShadowValue, uint32_t arrayLeng
 
 void SetTextShadowProperty(napi_env env, napi_value argValue, TextStyle& textStyle);
 
-void SetStrutStyleFromJS(napi_env env, napi_value argValue, TypographyStyle& pographyStyle);
+bool SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle);
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle);
 } // namespace OHOS::Rosen

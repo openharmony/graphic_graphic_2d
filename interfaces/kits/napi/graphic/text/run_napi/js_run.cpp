@@ -145,8 +145,8 @@ napi_value JsRun::GetGlyphs(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetGlyphs(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("JsRun::OnGetGlyphs run is nullptr");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetGlyphs run is nullptr.");
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr");
     }
 
     std::vector<uint16_t> glyphs = run_->GetGlyphs();
@@ -169,8 +169,8 @@ napi_value JsRun::GetPositions(napi_env env, napi_callback_info info)
 napi_value JsRun::OnGetPositions(napi_env env, napi_callback_info info)
 {
     if (!run_) {
-        TEXT_LOGE("JsRun::OnGetPositions run is nullptr");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "JsRun::OnGetPositions run is nullptr.");
+        TEXT_LOGE("Failed run is nullptr");
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed run is nullptr.");
     }
 
     std::vector<Drawing::Point> positions = run_->GetPositions();

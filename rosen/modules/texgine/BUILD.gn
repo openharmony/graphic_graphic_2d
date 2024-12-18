@@ -49,6 +49,8 @@ ohos_source_set("libtexgine_source") {
   if (is_ok) {
     sources = [
       "src/font_config.cpp",
+      "src/font_descriptor_cache.cpp",
+      "src/font_descriptor_mgr.cpp",
       "src/font_parser.cpp",
       "src/opentype_parser/cmap_table_parser.cpp",
       "src/opentype_parser/name_table_parser.cpp",
@@ -87,7 +89,10 @@ ohos_source_set("libtexgine_source") {
     external_deps = [ "bounds_checking_function:libsec_static" ]
 
     if (platform == "ohos") {
-      defines += [ "BUILD_NON_SDK_VER" ]
+      defines += [
+        "BUILD_NON_SDK_VER",
+        "OHOS_TEXT_ENABLE",
+      ]
 
       if (logger_enable_scope) {
         defines += [ "LOGGER_ENABLE_SCOPE" ]
