@@ -34,6 +34,7 @@
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 #include "text_blob_napi/js_text_blob.h"
+#include "tool_napi/js_tool.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -58,6 +59,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsShaderEffect::Init(env, exportObj);
     JsShadowLayer::Init(env, exportObj);
     JsMatrix::Init(env, exportObj);
+    JsTool::Init(env, exportObj);
     return exportObj;
 }
 } // namespace Drawing
