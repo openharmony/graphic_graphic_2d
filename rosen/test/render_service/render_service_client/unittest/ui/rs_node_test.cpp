@@ -4316,10 +4316,12 @@ template<typename ModifierName, typename PropertyName, typename T>
 void SetPropertyTest(RSModifierType modifierType, T value1, T value2)
 {
     auto node = RSCanvasNode::Create();
-    ASSERT_NE(node, nullptr);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value2);
+
+    auto iter = node->propertyModifiers_.find(modifierType);
+    ASSERT_TRUE(iter != node->propertyModifiers_.end());
 };
 
 /**
@@ -4846,6 +4848,7 @@ HWTEST_F(RSNodeTest, GetFrameNodeTag, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
     rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
@@ -4861,6 +4864,7 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
     rsNode->AddDurationKeyFrame(1, timingCurve, propertyCallback);
@@ -5028,6 +5032,7 @@ HWTEST_F(RSNodeTest, CancelAnimationByProperty, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetShowingProperties, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetShowingProperties();
 }
 
@@ -6803,6 +6808,7 @@ HWTEST_F(RSNodeTest, SetAiInvert, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetSystemBarEffect, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetSystemBarEffect();
 }
 
@@ -6882,6 +6888,7 @@ HWTEST_F(RSNodeTest, GenerateId, TestSize.Level1)
 HWTEST_F(RSNodeTest, InitUniRenderEnabled, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->InitUniRenderEnabled();
 }
 
