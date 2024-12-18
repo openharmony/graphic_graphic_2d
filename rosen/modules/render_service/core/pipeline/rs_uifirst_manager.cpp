@@ -208,6 +208,7 @@ void RSUifirstManager::ProcessForceUpdateNode()
         if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
             continue;
         }
+        bool isChildForceUpdate = false;
         for (auto& child : *node->GetChildren()) {
             if (!child) {
                 continue;
@@ -220,7 +221,14 @@ void RSUifirstManager::ProcessForceUpdateNode()
             if (!child->IsDirty() && !child->IsSubTreeDirty()) {
                 markForceUpdateByUifirst_.push_back(child);
                 child->SetForceUpdateByUifirst(true);
+                isChildForceUpdate = true;
             }
+        }
+        if (isChildForceUpdate && !node->GetForceUpdateByUifirst()) {
+            // if the child's forceupdate flag is true, the parent flag must also be true,
+            // otherwise subtreedirty flag is unreliable.
+            markForceUpdateByUifirst_.push_back(node);
+            node->SetForceUpdateByUifirst(true);
         }
     }
     for (auto& node : toDirtyNodes) {
