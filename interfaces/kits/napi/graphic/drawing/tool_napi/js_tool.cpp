@@ -28,9 +28,9 @@ thread_local napi_ref JsTool::constructor_ = nullptr;
 const std::string CLASS_NAME = "Tool";
 #ifdef ROSEN_OHOS
 const int32_t GLOBAL_ERROR = 10000;
-// The expectLength of regex match of "rgb(255,0,0)". The elementa:0 is the string, 1 is r, 2 is g, 3 is b.
+// The expectLength of regex match of "rgb(255,0,0)". The elements:0 is the string, 1 is r, 2 is g, 3 is b.
 constexpr uint32_t RGB_SUB_MATCH_SIZE = 4;
-// The expectLength of regex match of "rgba(255,0,0,0.5)". The elementa:0 is the string, 1 is r, 2 is g, 3 is b, 4 is a.
+// The expectLength of regex match of "rgba(255,0,0,0.5)". The elements:0 is the string, 1 is r, 2 is g, 3 is b, 4 is a.
 constexpr uint32_t RGBA_SUB_MATCH_SIZE = 5;
 // The length of standard color, the length of str is must like "FF00FF00" which length is 8.
 constexpr uint32_t COLOR_STRING_SIZE_STANDARD = 8;
