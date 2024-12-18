@@ -732,7 +732,7 @@ HWTEST_F(HgmFrameRateMgrTest, GetDrawingFrameRate, Function | SmallTest | Level2
 {
     std::vector<std::pair<std::pair<uint32_t, FrameRateRange>, uint32_t>> inputAndOutput = {
         {{0, {0, 120, 60}}, 0},
-        {{60, {0, 120, 0}}, 60},
+        {{60, {0, 120, 0}}, 0},
         {{60, {0, 90, 120}}, 60},
         {{60, {0, 120, 120}}, 60},
         {{90, {0, 120, 30}}, 30},

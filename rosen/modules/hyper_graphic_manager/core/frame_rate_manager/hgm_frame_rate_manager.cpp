@@ -661,11 +661,12 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
 
 uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range)
 {
-    if (refreshRate == 0) {
+    uint32_t preferredFps = static_cast<uint32_t>(range.preferred_);
+
+    if (refreshRate == 0 || preferredFps == 0) {
         return 0;
     }
 
-    uint32_t preferredFps = static_cast<uint32_t>(range.preferred_);
     if (!range.IsValid() || preferredFps > refreshRate) {
         return refreshRate;
     }
