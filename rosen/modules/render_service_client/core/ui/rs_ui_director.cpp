@@ -460,6 +460,7 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
             if (director->instanceId_ == instanceId) {
                 out.append("transactionFlags:[ ").append(std::to_string(pid).append(", ")
                     .append(std::to_string(director->index_)).append("]\r"));
+                break;
             }
         }
     }
