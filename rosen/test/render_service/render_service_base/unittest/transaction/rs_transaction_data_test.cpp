@@ -347,6 +347,7 @@ HWTEST_F(RSTransactionDataTest, ProcessBySingleFrameComposer, TestSize.Level1)
     rsTransactionData.AddCommand(command, 1, FollowType::FOLLOW_TO_PARENT);
     RSContext context;
     rsTransactionData.ProcessBySingleFrameComposer(context);
+    ASSERT_TRUE(rsTransactionData.payload_.size() == 0);
 }
 
 /**

@@ -57,6 +57,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer001, TestSize.Level1)
     sptr<Surface> producer = nullptr;
     RSSurfaceOhosVulkan rsSurface(producer);
     rsSurface.ClearBuffer();
+    ASSERT_FALSE(rsSurface.IsValid());
 }
 
 /**
@@ -94,6 +95,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge001, TestSize.Level1)
     sptr<Surface> producer = nullptr;
     RSSurfaceOhosVulkan rsSurface(producer);
     rsSurface.ResetBufferAge();
+    ASSERT_FALSE(rsSurface.IsValid());
 }
 
 /**

@@ -1061,7 +1061,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     proxy->SetLayerTop(nodeIdStr, true);
     proxy->SetLayerTop(nodeIdStr, false);
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(proxy);
 }
 
 /**
@@ -1074,7 +1074,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.
 {
     proxy->SetFreeMultiWindowStatus(true);
     proxy->SetFreeMultiWindowStatus(false);
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(proxy);
 }
 } // namespace Rosen
 } // namespace OHOS
