@@ -18,6 +18,9 @@
 #include "native_value.h"
 
 #include "js_drawing_utils.h"
+#ifdef ROSEN_OHOS
+#include "tool_napi/js_tool.h"
+#endif
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -29,6 +32,7 @@ napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromFile", JsTypeface::MakeFromFile),
+        DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFile", JsTypeface::MakeFromRawFile),
     };
 
     napi_value constructor = nullptr;
@@ -148,6 +152,28 @@ napi_value JsTypeface::OnGetFamilyName(napi_env env, napi_callback_info info)
     return GetStringAndConvertToJsValue(env, name);
 }
 
+napi_value JsTypeface::ConvertTypefaceToJsValue(napi_env env, JsTypeface* typeface)
+{
+    napi_value jsObj = nullptr;
+    napi_create_object(env, &jsObj);
+    if (jsObj == nullptr) {
+        delete typeface;
+        ROSEN_LOGE("JsTypeface::ConvertTypefaceToJsValue Create Typeface failed!");
+        return nullptr;
+    }
+    napi_status status = napi_wrap(env, jsObj, typeface, JsTypeface::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete typeface;
+        ROSEN_LOGE("JsTypeface::ConvertTypefaceToJsValue failed to wrap native instance");
+        return nullptr;
+    }
+    napi_property_descriptor resultFuncs[] = {
+        DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
+    };
+    napi_define_properties(env, jsObj, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
+    return jsObj;
+}
+
 napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_ONE;
@@ -174,25 +200,57 @@ napi_value JsTypeface::MakeFromFile(napi_env env, napi_callback_info info)
         }
     }
 
-    napi_value jsObj = nullptr;
-    napi_create_object(env, &jsObj);
+    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
     if (jsObj == nullptr) {
         delete typeface;
-        ROSEN_LOGE("JsTypeface::MakeFromFile Create Typeface failed!");
+        ROSEN_LOGE("JsTypeface::MakeFromFile Convert typeface to napivalue failed!");
         return nullptr;
     }
-    napi_status status = napi_wrap(env, jsObj, typeface, JsTypeface::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete typeface;
-        ROSEN_LOGE("JsTypeface::MakeFromFile failed to wrap native instance");
-        return nullptr;
-    }
-    napi_property_descriptor resultFuncs[] = {
-        DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
-    };
-    napi_define_properties(env, jsObj, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return jsObj;
 }
 
+napi_value JsTypeface::MakeFromRawFile(napi_env env, napi_callback_info info)
+{
+#ifdef ROSEN_OHOS
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_ONE);
+
+    std::unique_ptr<uint8_t[]> rawFileArrayBuffer;
+    size_t rawFileArrayBufferSize = 0;
+    ResourceInfo resourceInfo;
+    if (!JsTool::GetResourceInfo(env, argv[ARGC_ZERO], resourceInfo) ||
+        !JsTool::GetResourceRawFileDataBuffer(std::move(rawFileArrayBuffer), rawFileArrayBufferSize, resourceInfo)) {
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile get rawfilebuffer failed!");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    auto memory_stream = std::make_unique<MemoryStream>((rawFileArrayBuffer.get()), rawFileArrayBufferSize, true);
+    auto rawTypeface = Typeface::MakeFromStream(std::move(memory_stream));
+    if (rawTypeface == nullptr) {
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile Create rawTypeface failed!");
+        return nullptr;
+    }
+    auto typeface = new JsTypeface(rawTypeface);
+    if (Drawing::Typeface::GetTypefaceRegisterCallBack() != nullptr) {
+        bool ret = Drawing::Typeface::GetTypefaceRegisterCallBack()(rawTypeface);
+        if (!ret) {
+            delete typeface;
+            ROSEN_LOGE("JsTypeface::MakeFromRawFile MakeRegister Typeface failed!");
+            return nullptr;
+        }
+    }
+
+    napi_value jsObj = ConvertTypefaceToJsValue(env, typeface);
+    if (jsObj == nullptr) {
+        delete typeface;
+        ROSEN_LOGE("JsTypeface::MakeFromRawFile Convert typeface to napivalue failed!");
+        return nullptr;
+    }
+    return jsObj;
+#else
+    return nullptr;
+#endif
+}
 } // namespace Drawing
 } // namespace OHOS::Rosen

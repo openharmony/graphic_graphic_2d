@@ -325,17 +325,21 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         return StatusCode::HDI_ERROR;
     }
     if (hdiScreen_ == nullptr) {
-        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr",  __func__);
+        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
     
     if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
-        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed",  __func__);
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, "
+            "activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+            __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
         return StatusCode::HDI_ERROR;
-    } else {
-        activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-        return StatusCode::SUCCESS;
     }
+
+    activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    RS_LOGI("RSScreen %{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
+        "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    return StatusCode::SUCCESS;
 }
 
 void RSScreen::SetRogResolution(uint32_t width, uint32_t height)

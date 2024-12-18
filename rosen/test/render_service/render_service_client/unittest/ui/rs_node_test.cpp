@@ -248,6 +248,7 @@ HWTEST_F(RSNodeTest, SetPaintOrder001, TestSize.Level1)
      * @tc.steps: step1. create RSNode and RSUIDirector
      */
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetPaintOrder(true);
 }
 
@@ -789,6 +790,7 @@ HWTEST_F(RSNodeTest, SetandGetOutlineRadius005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetRotationThree001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetRotation(floatData[1], floatData[2], floatData[3]);
 }
 
@@ -3771,6 +3773,7 @@ HWTEST_F(RSNodeTest, SetandGetOutlineColor003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetRotationVector001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector4f quaternion(std::numeric_limits<float>::min(), 2.f, 3.f, 4.f);
     rsNode->SetRotation(quaternion);
 }
@@ -3867,6 +3870,7 @@ HWTEST_F(RSNodeTest, SetVisualEffect, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetTranslateVector001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector2f quaternion(std::numeric_limits<float>::max(), 2.f);
     rsNode->SetTranslate(quaternion);
 }
@@ -4078,6 +4082,7 @@ HWTEST_F(RSNodeTest, SetandGetClipBounds001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetId001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetId();
 }
 
@@ -4089,6 +4094,7 @@ HWTEST_F(RSNodeTest, GetId001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetChildren001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto c = rsNode->GetChildren();
 }
 
@@ -4100,6 +4106,7 @@ HWTEST_F(RSNodeTest, GetChildren001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetChildren002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     const auto c = rsNode->GetChildren();
 }
 
@@ -4111,6 +4118,7 @@ HWTEST_F(RSNodeTest, GetChildren002, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetStagingProperties001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetStagingProperties();
 }
 
@@ -4122,6 +4130,7 @@ HWTEST_F(RSNodeTest, GetStagingProperties001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetMotionPathOption002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetMotionPathOption();
 }
 
@@ -4133,6 +4142,7 @@ HWTEST_F(RSNodeTest, GetMotionPathOption002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetBgImage001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto image = std::make_shared<RSImage>();
     rsNode->SetBgImage(image);
 }
@@ -4145,6 +4155,7 @@ HWTEST_F(RSNodeTest, SetBgImage001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto shader = RSShader::CreateRSShader();
     rsNode->SetBackgroundShader(shader);
 }
@@ -4157,6 +4168,7 @@ HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector2f greyCoef = { 0.5, 0.5 };
     rsNode->SetGreyCoef(greyCoef);
 }
@@ -4169,6 +4181,7 @@ HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetAiInvertTest, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
     auto value = Vector4f(10.f);
     rootNode->SetAiInvert(value);
 }
@@ -4272,6 +4285,7 @@ HWTEST_F(RSNodeTest, SetandGetForegroundEffectRadius001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto compositingFilter = RSFilter::CreateBlurFilter(0.0f, 0.0f);
     rsNode->SetCompositingFilter(compositingFilter);
 }
@@ -4284,6 +4298,7 @@ HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetShadowPath001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto shadowpath = RSPath::CreateRSPath();
     rsNode->SetShadowPath(shadowpath);
 }
@@ -4309,6 +4324,9 @@ void SetPropertyTest(RSModifierType modifierType, T value1, T value2)
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value2);
+
+    auto iter = node->propertyModifiers_.find(modifierType);
+    ASSERT_TRUE(iter != node->propertyModifiers_.end());
 };
 
 /**
@@ -4616,6 +4634,7 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
     rsNode->SetColorBlendMode(blendModeType);
     blendModeType = RSColorBlendMode::DST_IN;
@@ -4835,6 +4854,7 @@ HWTEST_F(RSNodeTest, GetFrameNodeTag, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
     rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
@@ -4850,6 +4870,7 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
     rsNode->AddDurationKeyFrame(1, timingCurve, propertyCallback);
@@ -5017,6 +5038,7 @@ HWTEST_F(RSNodeTest, CancelAnimationByProperty, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetShowingProperties, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetShowingProperties();
 }
 
@@ -5216,6 +5238,7 @@ HWTEST_F(RSNodeTest, SetPivotZ, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetCornerRadius, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector4f cornerRadius = { 1.f, 1.f, 1.f, 1.f }; // for test
     rsNode->SetCornerRadius(cornerRadius);
 }
@@ -5850,6 +5873,7 @@ HWTEST_F(RSNodeTest, SetUseEffect, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetUseEffectType, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetUseEffectType(UseEffectType::EFFECT_COMPONENT);
     rsNode->SetUseEffectType(UseEffectType::BEHIND_WINDOW);
 }
@@ -6792,6 +6816,7 @@ HWTEST_F(RSNodeTest, SetAiInvert, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetSystemBarEffect, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetSystemBarEffect();
 }
 
@@ -6871,6 +6896,7 @@ HWTEST_F(RSNodeTest, GenerateId, TestSize.Level1)
 HWTEST_F(RSNodeTest, InitUniRenderEnabled, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->InitUniRenderEnabled();
 }
 

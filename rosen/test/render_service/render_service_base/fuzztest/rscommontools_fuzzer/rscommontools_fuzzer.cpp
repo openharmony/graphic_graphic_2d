@@ -73,7 +73,10 @@ bool DoSavePixelmapToFile(const uint8_t* data, size_t size)
     opts.scaleMode = static_cast<Media::ScaleMode>(GetData<int32_t>());
     opts.editable = GetData<bool>();
     opts.useSourceIfMatch = GetData<bool>();
-    std::shared_ptr<Media::PixelMap>  pixelmap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    if (!pixelmap) {
+        return false;
+    }
     std::string dst = "/path/";
     CommonTools::SavePixelmapToFile(pixelmap, dst);
     return true;

@@ -257,7 +257,7 @@ HWTEST_F(RSPaintFilterCanvasTest, onFilterTest, TestSize.Level1)
     Drawing::Color color { 1 };
     Drawing::Brush brush;
     brush.SetColor(color);
-    paintFilterCanvas_->OnFilterWithBrush(brush);
+    ASSERT_TRUE(paintFilterCanvas_->OnFilterWithBrush(brush));
 }
 
 /**

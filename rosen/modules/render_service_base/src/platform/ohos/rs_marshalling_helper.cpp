@@ -2312,7 +2312,10 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
         return true;
     }
     // read from ashmem
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto readFdDefaultFunc = [](Parcel& parcel) -> int {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    };
+    int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     return ashmemAllocator != nullptr;
 }
@@ -2320,7 +2323,10 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc)
 {
     isMalloc = false;
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto readFdDefaultFunc = [](Parcel& parcel) -> int {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    };
+    int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     if (!ashmemAllocator) {
         ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CreateAshmemAllocator fail");

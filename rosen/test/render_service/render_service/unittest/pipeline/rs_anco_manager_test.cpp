@@ -67,6 +67,14 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode, TestSize.Level2)
         ScreenRotation::ROTATION_90, 0, 0), false);
     ASSERT_EQ(ancoManager->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
         ScreenRotation::ROTATION_90, 10, 10), false);
+
+    auto hebc = system::GetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    ASSERT_EQ(ancoManager->AncoOptimizeDisplayNode(surfaceHandler, hardwareEnabledNodes,
+        ScreenRotation::ROTATION_90, 10, 10), false);
+
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", hebc);
+
     system::SetParameter("const.product.devicetype", deviceTypeStr);
 }
 
@@ -78,10 +86,13 @@ HWTEST_F(RSAncoManagerTest, AncoOptimizeDisplayNode, TestSize.Level2)
  */
 HWTEST_F(RSAncoManagerTest, SetAncoHebcStatus, TestSize.Level2)
 {
+    auto hebc = system::GetParameter("persist.sys.graphic.anco.disableHebc", "0");
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
     auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
     ancoManager->SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
     ASSERT_EQ(ancoManager->GetAncoHebcStatus(), AncoHebcStatus::USE_HEBC);
+    system::SetParameter("persist.sys.graphic.anco.disableHebc", hebc);
 }
 
 /**

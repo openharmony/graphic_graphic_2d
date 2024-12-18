@@ -17,6 +17,7 @@
 #include "ge_render_fuzzer.h"
 #include "get_object.h"
 #include "ge_render.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace GraphicsEffectEngine {
@@ -90,10 +91,7 @@ std::shared_ptr<Drawing::Image> GERenderFuzzTest003(const uint8_t *data, size_t 
     if (data == nullptr) {
         return nullptr;
     }
-    // initialize
-    GETest::g_data = data;
-    GETest::g_size = size;
-    GETest::g_pos = 0;
+    FuzzedDataProvider fdp(data, size);
 
     auto geRender = std::make_shared<GERender>();
     Drawing::Canvas canvas;

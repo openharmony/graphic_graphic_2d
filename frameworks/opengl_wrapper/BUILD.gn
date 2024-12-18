@@ -85,6 +85,9 @@ if (current_os != "ohos") {
       sources += aps_client_sources
       sources += gameservice_render_slice_report_sources
     }
+    if (graphic_2d_feature_product == "wearable") {
+      defines += [ "PRELOAD_BLOB_CACHE" ]
+    }
     configs = [ ":egl_config" ]
 
     public_configs = [ ":egl_public_config" ]

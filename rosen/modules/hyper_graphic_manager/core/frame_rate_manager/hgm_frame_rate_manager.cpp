@@ -48,7 +48,9 @@ namespace {
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
     constexpr uint32_t FIRST_FRAME_TIME_OUT = 100; // 100ms
+    constexpr uint32_t DEFAULT_PRIORITY = 0;
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
+    constexpr uint32_t VOTER_LTPO_PRIORITY_BEFORE_PACKAGES = 2;
     constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
@@ -114,6 +116,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        GetLowBrightVec(configData);
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -404,8 +407,8 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
             }
             SetAceAnimatorVote(linker.second);
             auto expectedRange = linker.second->GetExpectedRange();
-            HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange);
-            if ((expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
+            if (!HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange) &&
+                (expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
                 expectedRange.preferred_ < static_cast<int32_t>(currRefreshRate_)) {
                 expectedRange.Set(currRefreshRate_, currRefreshRate_, currRefreshRate_);
             }
@@ -579,6 +582,34 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
     changeGeneratorRateValid_.store(false);
 }
 
+void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (!configData || !isLtpo_) {
+        isAmbientEffect_ = false;
+        return;
+    }
+
+    // obtain the refresh rate supported in low ambient light
+    auto supportedModeVector = configData->supportedModeConfigs_[curScreenStrategyId_];
+    if (supportedModeVector.empty()) {
+        isAmbientEffect_ = false;
+        return;
+    }
+    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
+    for (const auto& iter : supportedModeVector) {
+        auto iterInVec = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), iter);
+        if (iterInVec != supportRefreshRateVec.end()) {
+            lowBrightVec_.push_back(*iterInVec);
+        }
+    }
+    if (lowBrightVec_.empty()) {
+        isAmbientEffect_ = false;
+        return;
+    }
+    isAmbientEffect_ = true;
+    multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
+}
+
 uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
 {
     // Find current refreshRate by FrameRateRange. For example:
@@ -587,7 +618,12 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
-    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    std::vector<uint32_t> supportRefreshRateVec;
+    if (isAmbientSafe_ && isAmbientEffect_) {
+        supportRefreshRateVec = lowBrightVec_;
+    } else {
+        supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    }
     if (supportRefreshRateVec.empty()) {
         return refreshRate;
     }
@@ -745,6 +781,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, bool isSafe)
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
     multiAppStrategy_.HandleLightFactorStatus(isSafe);
+    isAmbientSafe_ = isSafe;
 }
 
 void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList)
@@ -765,6 +802,7 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
             scenePid = sceneStack_.erase(scenePid);
         }
     }
+    MarkVoteChange("VOTER_SCENE");
     UpdateAppSupportedState();
 }
 
@@ -909,6 +947,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     HGM_LOGD("curScreen change:%{public}d", static_cast<int>(curScreenId_.load()));
 
     multiAppStrategy_.UpdateXmlConfigCache();
+    GetLowBrightVec(configData);
     UpdateEnergyConsumptionConfig();
 
     multiAppStrategy_.CalcVote();
@@ -1379,8 +1418,39 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
     return resultVoteInfo;
 }
 
+void HgmFrameRateManager::ChangePriority(uint32_t curScenePriority)
+{
+    // restore
+    voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
+    switch (curScenePriority) {
+        case VOTER_SCENE_PRIORITY_BEFORE_PACKAGES: {
+            auto scenePos1 = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
+            voters_.erase(scenePos1);
+            auto packagesPos1 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
+            voters_.insert(packagesPos1, "VOTER_SCENE");
+            break;
+        }
+        case VOTER_LTPO_PRIORITY_BEFORE_PACKAGES: {
+            auto scenePos2 = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
+            voters_.erase(scenePos2);
+            auto packagesPos2 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
+            voters_.insert(packagesPos2, "VOTER_SCENE");
+            auto ltpoPos2 = find(voters_.begin(), voters_.end(), "VOTER_LTPO");
+            voters_.erase(ltpoPos2);
+            auto packagesPos3 = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
+            voters_.insert(packagesPos3, "VOTER_LTPO");
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void HgmFrameRateManager::UpdateVoteRule()
 {
+    // restore
+    ChangePriority(DEFAULT_PRIORITY);
+    multiAppStrategy_.SetDisableSafeVoteValue(false);
     // dynamic priority for scene
     if (sceneStack_.empty()) {
         // no active scene
@@ -1426,15 +1496,8 @@ void HgmFrameRateManager::UpdateVoteRule()
     HGM_LOGD("UpdateVoteRule: SceneName:%{public}s", lastScene.c_str());
     DeliverRefreshRateVote({"VOTER_SCENE", min, max, (*scenePos).second, lastScene}, ADD_VOTE);
 
-    // restore
-    voters_ = std::vector<std::string>(std::begin(VOTER_NAME), std::end(VOTER_NAME));
-
-    if (curScenePriority == VOTER_SCENE_PRIORITY_BEFORE_PACKAGES) {
-        auto srcPos = find(voters_.begin(), voters_.end(), "VOTER_SCENE");
-        voters_.erase(srcPos);
-        auto dstPos = find(voters_.begin(), voters_.end(), "VOTER_PACKAGES");
-        voters_.insert(dstPos, "VOTER_SCENE");
-    }
+    ChangePriority(curScenePriority);
+    multiAppStrategy_.SetDisableSafeVoteValue(curSceneConfig.disableSafeVote);
 }
 
 void HgmFrameRateManager::CleanVote(pid_t pid)

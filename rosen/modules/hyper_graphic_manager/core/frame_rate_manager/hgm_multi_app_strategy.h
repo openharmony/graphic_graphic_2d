@@ -48,6 +48,7 @@ public:
     HgmErrCode HandlePkgsEvent(const std::vector<std::string>& pkgs);
     void HandleTouchInfo(const TouchInfo& touchInfo);
     void HandleLightFactorStatus(bool isSafe);
+    void HandleLowAmbientStatus(bool isEffect);
 
     void CalcVote();
     HgmErrCode GetVoteRes(PolicyConfigData::StrategyConfig& strategyRes) const;
@@ -74,6 +75,7 @@ public:
 
     // use in temporary scheme with background alpha
     void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
+    void SetDisableSafeVoteValue(bool disableSafeVote) { disableSafeVote_ = disableSafeVote; }
 private:
     void UseStrategyNum();
     void FollowFocus();
@@ -100,10 +102,12 @@ private:
     TouchInfo touchInfo_ = { "", TouchState::IDLE_STATE, OLED_120_HZ }; // pkgName, touchState
     std::unique_ptr<TouchInfo> uniqueTouchInfo_ = nullptr;
     std::atomic<bool> lightFactorStatus_{ false };
+    bool lowAmbientStatus_ = false;
     std::vector<StrategyChangeCallback> strategyChangeCallbacks_;
 
     PolicyConfigData::ScreenSetting& screenSettingCache_;
     PolicyConfigData::StrategyConfigMap& strategyConfigMapCache_;
+    bool disableSafeVote_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

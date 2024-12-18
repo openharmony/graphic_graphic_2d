@@ -31,11 +31,13 @@ using ImageData = std::vector<uint8_t>;
 class PixelMapStorage final {
 public:
     static bool Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
-    static void Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
+    static bool Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
 
-    static void Push(uint64_t id, const PixelMap& map);
+    static bool Push(uint64_t id, const PixelMap& map);
 
 private:
+    static bool Fits(size_t size);
+
     static bool PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes);
     static void PushSharedMemory(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
     static void PushSharedMemory(uint64_t id, const PixelMap& map);

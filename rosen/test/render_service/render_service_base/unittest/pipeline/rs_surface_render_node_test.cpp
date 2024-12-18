@@ -29,6 +29,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1344,17 +1345,25 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaTest, TestSize.Level1)
 
 /**
  * @tc.name: HdrVideoTest
- * @tc.desc: test results of SetHdrVideo and GetHdrVideo
+ * @tc.desc: test results of SetHdrVideo, GetHdrVideo and GetHdrVideoType
  * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
+ * @tc.require: issuesIBANP9
  */
 HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->SetHdrVideo(true);
+    testNode->SetHdrVideo(true, HDR_TYPE::VIDEO);
     EXPECT_EQ(testNode->GetHdrVideo(), true);
-    testNode->SetHdrVideo(false);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
+    testNode->SetHdrVideo(false, HDR_TYPE::VIDEO);
     EXPECT_EQ(testNode->GetHdrVideo(), false);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
+    testNode->SetHdrVideo(true, HDR_TYPE::AIHDR_VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), true);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
+    testNode->SetHdrVideo(false, HDR_TYPE::AIHDR_VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), false);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
 }
 
 /**

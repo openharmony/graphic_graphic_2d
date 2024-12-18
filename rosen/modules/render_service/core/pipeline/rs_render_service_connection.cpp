@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
@@ -168,6 +169,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
     }
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
     RS_TRACE_NAME("RSRenderServiceConnection CleanAll begin, remotePid: " + std::to_string(remotePid_));
+    RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(remotePid_);
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
@@ -2264,13 +2266,9 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
 
 void RSRenderServiceConnection::SetScreenSwitchStatus(bool flag)
 {
-    if (!mainThread_) {
-        return;
-    }
-    auto task = [flag]() {
-        RSSystemProperties::SetScreenSwitchStatus(flag);
-    };
-    mainThread_->PostTask(task);
+    RS_LOGD("RSRenderServiceConnection::SetScreenSwitchStatus %{public}d", flag);
+    RS_TRACE_NAME_FMT("SetScreenSwitchStatus %d", flag);
+    RSSystemProperties::SetScreenSwitchStatus(flag);
 }
 
 void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)

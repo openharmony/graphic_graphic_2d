@@ -296,6 +296,7 @@ HWTEST_F(RSBaseRenderNodeTest, RemoveFromTreeTest, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, PrepareTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     std::shared_ptr<RSNodeVisitor> visitor = nullptr;
     node->Prepare(visitor);
 }

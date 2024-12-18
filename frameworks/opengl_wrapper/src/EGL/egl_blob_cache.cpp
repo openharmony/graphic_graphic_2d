@@ -346,12 +346,12 @@ void BlobCache::WriteToDisk()
     close(fd);
 }
 
-void BlobCache::ReadFromDisk()
+void BlobCache::BlobCacheReadFromDisk(const std::string filePath)
 {
-    readStatus_ = true;
-    std::string storefile = cacheDir_ + fileName_;
-    int fd = open(storefile.c_str(), O_RDONLY, 0);
+    WLOGI("filePath:%{public}s", filePath.c_str());
+    int fd = open(filePath.c_str(), O_RDONLY, 0);
     if (fd == -1) {
+        WLOGE("open failed, errno:%{public}d", errno);
         close(fd);
         return;
     }
@@ -395,6 +395,16 @@ void BlobCache::ReadFromDisk()
     }
     munmap(buf, filesize);
     close(fd);
+}
+
+void BlobCache::ReadFromDisk()
+{
+    readStatus_ = true;
+#ifdef PRELOAD_BLOB_CACHE
+    BlobCacheReadFromDisk(PRESET_BLOB_CACHE_PATH);
+#endif
+    std::string storefile = cacheDir_ + fileName_;
+    BlobCacheReadFromDisk(storefile);
 }
 
 //CRC standard function

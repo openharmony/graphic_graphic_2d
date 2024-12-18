@@ -107,8 +107,8 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_003, TestSize.Level1)
     std::shared_ptr<BootVideoPlayer> player3 = std::make_shared<BootVideoPlayer>(params3);
     player3->mediaPlayer_ = Media::PlayerFactory::CreatePlayer();
     BootAnimationUtils::SetBootAnimationSoundEnabled(false);
-    player3->SetVideoSound();
     EXPECT_EQ(BootAnimationUtils::GetBootAnimationSoundEnabled(), false);
+    player3->SetVideoSound();
 
     PlayerParams params4;
     params4.soundEnabled = true;
@@ -186,5 +186,6 @@ HWTEST_F(BootVideoPlayerTest, BootVideoPlayerTest_005, TestSize.Level1)
     params.callback = &callback_;
     std::shared_ptr<BootVideoPlayer> player = std::make_shared<BootVideoPlayer>(params);
     player->Play();
+    ASSERT_NE(nullptr, player->mediaPlayer_);
 }
 }

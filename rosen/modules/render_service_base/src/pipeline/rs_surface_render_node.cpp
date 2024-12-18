@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
@@ -117,6 +118,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
 #endif
     MemorySnapshot::Instance().AddCpuMemory(ExtractPid(config.id), sizeof(*this));
+    RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
 }
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -133,6 +135,7 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
 #endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this));
+    RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -2779,11 +2782,13 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
         hasTransparentSurface_ = IsTransparent();
     }
     RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, "
-        "hasFilter: %d, isRotation: %d & %d globalAlpha[%f]", GetId(), hasTransparentSurface_, ChildHasVisibleFilter(),
-        HasFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(), GetGlobalAlpha());
+        "hasFilter: %d, isRotation: %d & %d globalAlpha[%f], hasProtectedLayer: %d", GetId(), hasTransparentSurface_,
+        ChildHasVisibleFilter(), HasFilter(), isRotation, RSSystemProperties::GetCacheOptimizeRotateEnable(),
+        GetGlobalAlpha(), GetHasProtectedLayer());
     bool rotateOptimize = RSSystemProperties::GetCacheOptimizeRotateEnable() ?
         !(isRotation && ROSEN_EQ(GetGlobalAlpha(), 0.0f)) : !isRotation;
-    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && rotateOptimize;
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && rotateOptimize &&
+        !GetHasProtectedLayer();
 }
 
 bool RSSurfaceRenderNode::GetHasTransparentSurface() const

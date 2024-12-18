@@ -120,6 +120,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_canvas_drawing_node_command.cpp",
     "src/command/rs_canvas_node_command.cpp",
     "src/command/rs_command_factory.cpp",
+    "src/command/rs_command_verify_helper.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_effect_node_command.cpp",
     "src/command/rs_frame_rate_linker_command.cpp",

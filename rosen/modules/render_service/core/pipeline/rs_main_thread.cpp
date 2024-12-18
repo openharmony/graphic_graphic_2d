@@ -177,9 +177,6 @@ constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
-constexpr float DEFAULT_HDR_RATIO = 1.0f;
-constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
-constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -254,54 +251,6 @@ void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::un
     }
 }
 #endif
-
-void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRenderNode& surfaceNode, bool isHdrSurface)
-{
-    std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
-    auto ancestorDisplayNodeMap = surfaceNode.GetAncestorDisplayNode();
-    if (ancestorDisplayNodeMap.empty()) {
-        return;
-    }
-    auto screenId = ancestorDisplayNodeMap.begin()->first;
-
-    if (!isHdrSurface) {
-        auto& rsLuminance = RSLuminanceControl::Get();
-        surfaceNode.SetDisplayNit(rsLuminance.GetSdrDisplayNits(screenId));
-        surfaceNode.SetSdrNit(rsLuminance.GetSdrDisplayNits(screenId));
-        surfaceNode.SetBrightnessRatio(rsLuminance.GetHdrBrightnessRatio(screenId, 0));
-        return;
-    }
-
-    using namespace HDI::Display::Graphic::Common::V1_0;
-    std::vector<uint8_t> hdrStaticMetadataVec;
-    if (MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadataVec) != GSERROR_OK) {
-        RS_LOGD("MetadataHelper GetHDRStaticMetadata failed");
-    }
-    float scaler = DEFAULT_SCALER;
-    auto& rsLuminance = RSLuminanceControl::Get();
-    if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
-        RS_LOGD("hdrStaticMetadataVec is invalid");
-        scaler = surfaceNode.GetHDRBrightness() * (scaler - 1.0f) + 1.0f;
-    } else {
-        const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
-        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel, surfaceNode.GetHDRBrightness());
-    }
-
-    float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
-    float displayNits = rsLuminance.GetDisplayNits(screenId);
-
-    float layerNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
-    surfaceNode.SetDisplayNit(layerNits);
-    surfaceNode.SetSdrNit(sdrNits);
-    if (ROSEN_LNE(displayNits, 0.0f)) {
-        surfaceNode.SetBrightnessRatio(DEFAULT_HDR_RATIO);
-    } else {
-        surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
-    }
-    RS_LOGD("RSMainThread UpdateSurfaceNodeNit layerNits: %{public}f, displayNits: %{public}f, sdrNits: %{public}f,"
-        " scaler: %{public}f, HDRBrightness: %{public}f", layerNits, displayNits, sdrNits, scaler,
-        surfaceNode.GetHDRBrightness());
-}
 
 std::string g_dumpStr = "";
 std::mutex g_dumpMutex;
@@ -1417,14 +1366,12 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     ResetHardwareEnabledState(isUniRender_);
     RS_OPTIONAL_TRACE_BEGIN("RSMainThread::ConsumeAndUpdateAllNodes");
     bool needRequestNextVsync = false;
-    bool hasHdrVideo = false;
-    int hdrType = HDR_TYPE::VIDEO;
     if (!isUniRender_) {
         dividedRenderbufferTimestamps_.clear();
     }
     const auto& nodeMap = GetContext().GetNodeMap();
     nodeMap.TraverseSurfaceNodes(
-        [this, &needRequestNextVsync, &hasHdrVideo, &hdrType](
+        [this, &needRequestNextVsync](
             const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
         if (surfaceNode == nullptr) {
             return;
@@ -1534,19 +1481,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             needRequestNextVsync = true;
         }
         bool isHdrSurface = CheckIsHdrSurface(*surfaceNode);
-        if (!hasHdrVideo) {
-            hasHdrVideo = isHdrSurface;
-            hdrType = CheckIsAihdrSurface(*surfaceNode) ? HDR_TYPE::AIHDR_VIDEO : hdrType;
-        }
-        surfaceNode->SetHdrVideo(isHdrSurface);
-        if ((*surfaceNode).GetRSSurfaceHandler() == nullptr) {
-            RS_LOGE("surfaceNode.GetRSSurfaceHandler is NULL");
-            return;
-        }
-        UpdateSurfaceNodeNit((*surfaceNode).GetRSSurfaceHandler()->GetBuffer(),
-            *surfaceNode, isHdrSurface);
+        surfaceNode->SetHdrVideo(isHdrSurface,
+            CheckIsAihdrSurface(*surfaceNode) ? HDR_TYPE::AIHDR_VIDEO : HDR_TYPE::VIDEO);
     });
-    RSLuminanceControl::Get().SetHdrStatus(0, hasHdrVideo, hdrType);
     if (needRequestNextVsync) {
         RequestNextVSync();
     }
@@ -1606,6 +1543,13 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 surfaceNode->SetDoDirectComposition(true);
             }
 
+            if (surfaceNode->GetHdrVideo()) {
+                doDirectComposition_ = false;
+                RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", node GetDoDirectComposition is false",
+                    surfaceNode->GetName().c_str(), surfaceNode->GetId());
+                surfaceNode->SetDoDirectComposition(false);
+            }
+            
             if (!surfaceNode->IsOnTheTree()) {
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);
@@ -2408,7 +2352,7 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
 #ifdef RS_ENABLE_GPU
-    if (!doDirectComposition_ && needDrawFrame_ && !RSSystemProperties::GetScreenSwitchStatus()) {
+    if (!doDirectComposition_ && needDrawFrame_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
