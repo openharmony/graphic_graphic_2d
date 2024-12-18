@@ -133,10 +133,10 @@ napi_value JsTool::makeColorFromResourceColor(napi_env env, napi_callback_info i
         return nullptr;
     }
 
-    napi_set_named_property(env, objColor, "alpha", CreateJsNumber(env, objColor >> COLOR_OFFSET_ALPHA));
-    napi_set_named_property(env, objColor, "red", CreateJsNumber(env, objColor >> COLOR_OFFSET_RED));
-    napi_set_named_property(env, objColor, "green", CreateJsNumber(env, objColor >> COLOR_OFFSET_GREEN));
-    napi_set_named_property(env, objColor, "blue", CreateJsNumber(env, objColor & 0xFF));
+    napi_set_named_property(env, objColor, "alpha", CreateJsNumber(env, (colorNumber >> COLOR_OFFSET_ALPHA) & 0xFF));
+    napi_set_named_property(env, objColor, "red", CreateJsNumber(env, (colorNumber >> COLOR_OFFSET_RED) & 0xFF));
+    napi_set_named_property(env, objColor, "green", CreateJsNumber(env, (colorNumber >> COLOR_OFFSET_GREEN) & 0xFF));
+    napi_set_named_property(env, objColor, "blue", CreateJsNumber(env, colorNumber & 0xFF));
 
     return objColor;
 #else
