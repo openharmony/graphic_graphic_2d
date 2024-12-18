@@ -1214,7 +1214,12 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         CalculateVirtualDirtyForWiredScreen(renderFrame, params, curCanvas_->GetTotalMatrix());
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
     // HDR does not support wired screen
-    if (littleScreenRedraw_ || (params.GetHDRPresent() && RSSystemParameters::GetWiredScreenOndrawEnabled())) {
+    if (!mirroredDrawable->GetRenderParams()) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection mirroredDrawable GetRenderParams is null");
+        return;
+    }
+    auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
+    if (littleScreenRedraw_ || (mirroredParams.GetHDRPresent() && RSSystemParameters::GetWiredScreenOndrawEnabled())) {
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
     } else {
         DrawWiredMirrorCopy(*mirroredDrawable);
