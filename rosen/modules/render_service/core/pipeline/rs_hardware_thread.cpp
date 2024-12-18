@@ -76,6 +76,7 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
+constexpr int64_t PERIOD_60_HZ = 16666666;
 }
 
 static int64_t SystemTime()
@@ -328,7 +329,9 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         // 2 period for draw and composition, pipelineOffset = 2 * period
         frameOffset = 2 * period + vsyncOffset;
     } else {
-        vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
+        if (idealPeriod == PERIOD_60_HZ) {
+            vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
+        }
         pipelineOffset = hgmCore.GetPipelineOffset();
         frameOffset = pipelineOffset + vsyncOffset + static_cast<int64_t>(dvsyncOffset);
     }
