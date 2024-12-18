@@ -61,13 +61,24 @@ bool PixelMapStorage::IsDmaMemory(AllocatorType type)
     return type == AllocatorType::DMA_ALLOC;
 }
 
-void PixelMapStorage::Push(uint64_t id, const PixelMap& map)
+bool PixelMapStorage::Fits(size_t size)
 {
+    constexpr size_t maxConsumption = 1024u * 1024u * 1024u;
+    return (ImageCache::Consumption() + size) <= maxConsumption;
+}
+
+bool PixelMapStorage::Push(uint64_t id, const PixelMap& map)
+{
+    if (!Fits(static_cast<size_t>(const_cast<PixelMap&>(map).GetCapacity()))) {
+        return false;
+    }
+
     if (IsDmaMemory(map)) {
         PushDmaMemory(id, map);
     } else if (IsSharedMemory(map)) {
         PushSharedMemory(id, map);
     }
+    return true;
 }
 
 bool PixelMapStorage::Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
@@ -81,13 +92,18 @@ bool PixelMapStorage::Pull(uint64_t id, const ImageInfo& info, PixelMemInfo& mem
     return false;
 }
 
-void PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
+bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes)
 {
+    if (!Fits(static_cast<size_t>(memory.bufferSize))) {
+        return false;
+    }
+
     if (IsSharedMemory(memory)) {
         PushSharedMemory(id, info, memory, skipBytes);
     } else if (IsDmaMemory(memory)) {
         PushDmaMemory(id, info, memory, skipBytes);
     }
+    return true;
 }
 
 bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
@@ -130,7 +146,7 @@ void PixelMapStorage::PushSharedMemory(uint64_t id, const PixelMap& map)
     }
 
     constexpr size_t skipBytes = 24u;
-    const size_t size = const_cast<PixelMap&>(map).GetByteCount();
+    const auto size = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
     if (auto image = MapImage(*reinterpret_cast<const int32_t*>(map.GetFd()), size, PROT_READ)) {
         PushImage(id, GenerateImageData(image, size, map), skipBytes);
         UnmapImage(image, size);
@@ -337,13 +353,14 @@ ImageData PixelMapStorage::GenerateMiniature(const uint8_t* data, size_t size, u
 
 ImageData PixelMapStorage::GenerateImageData(const uint8_t* data, size_t size, const PixelMap& map)
 {
-    return GenerateImageData(
-        data, size, const_cast<PixelMap&>(map).IsAstc(), const_cast<PixelMap&>(map).GetPixelBytes());
+    const auto bytesPerPixel = static_cast<uint32_t>(const_cast<PixelMap&>(map).GetPixelBytes());
+    return GenerateImageData(data, size, const_cast<PixelMap&>(map).IsAstc(), bytesPerPixel);
 }
 
 ImageData PixelMapStorage::GenerateImageData(const ImageInfo& info, const PixelMemInfo& memory)
 {
-    return GenerateImageData(memory.base, memory.bufferSize, memory.isAstc, GetBytesPerPixel(info));
+    return GenerateImageData(
+        memory.base, static_cast<size_t>(memory.bufferSize), memory.isAstc, GetBytesPerPixel(info));
 }
 
 ImageData PixelMapStorage::GenerateImageData(const uint8_t* data, size_t size, bool isAstc, uint32_t pixelBytes)
@@ -354,6 +371,8 @@ ImageData PixelMapStorage::GenerateImageData(const uint8_t* data, size_t size, b
 
     return isAstc ? GenerateMiniatureAstc(data, size) : GenerateMiniature(data, size, pixelBytes);
 }
+
+// Profiler
 
 bool RSProfiler::SkipPixelMap(Parcel& parcel)
 {
@@ -386,8 +405,14 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return false;
     }
 
-    if (!IsSharedMemoryEnabled() && (IsWriteMode() || IsWriteEmulationMode())) {
-        PixelMapStorage::Push(id, *map);
+    if (IsSharedMemoryEnabled()) {
+        return true;
+    }
+
+    if (!IsRecordAbortRequested() && (IsWriteMode() || IsWriteEmulationMode())) {
+        if (!PixelMapStorage::Push(id, *map)) {
+            RequestRecordAbort();
+        }
     }
     return true;
 }
@@ -406,15 +431,21 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
 
     const uint64_t id = parcel.ReadUint64();
 
+    if (IsRecordAbortRequested()) {
+        return PixelMap::Unmarshalling(parcel);
+    }
+
     ImageInfo info;
     PixelMemInfo memory;
     PIXEL_MAP_ERR error;
     auto map = PixelMap::StartUnmarshalling(parcel, info, memory, error);
 
     size_t skipBytes = 0u;
-    if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
-        parcel.SkipBytes(skipBytes);
-        return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
+    if (IsReadMode() || IsReadEmulationMode()) {
+        if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
+            parcel.SkipBytes(skipBytes);
+            return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
+        }
     }
 
     const auto parcelPosition = parcel.GetReadPosition();
@@ -424,7 +455,9 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel)
     }
 
     if (IsWriteMode() || IsWriteEmulationMode()) {
-        PixelMapStorage::Push(id, info, memory, parcel.GetReadPosition() - parcelPosition);
+        if (!PixelMapStorage::Push(id, info, memory, parcel.GetReadPosition() - parcelPosition)) {
+            RequestRecordAbort();
+        }
     }
     return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);
 }

@@ -133,7 +133,7 @@ class ArgList;
 class JsonWriter;
 class RSFile;
 
-enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
+enum class Mode : uint32_t { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4, SAVING = 5 };
 
 class RSProfiler final {
 public:
@@ -209,7 +209,14 @@ public:
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
+
     RSB_EXPORT static Mode GetMode();
+    RSB_EXPORT static bool IsNoneMode();
+    RSB_EXPORT static bool IsReadMode();
+    RSB_EXPORT static bool IsReadEmulationMode();
+    RSB_EXPORT static bool IsWriteMode();
+    RSB_EXPORT static bool IsWriteEmulationMode();
+    RSB_EXPORT static bool IsSavingMode();
 
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
@@ -232,7 +239,6 @@ private:
     static void RequestVSyncOnBetaRecordInactivity();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
-    static void WriteBetaRecordFileThread(RSFile& file, const std::string& path);
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
@@ -333,12 +339,6 @@ private:
     static uint64_t NowNano();
     static double Now();
 
-    static bool IsNoneMode();
-    static bool IsReadMode();
-    static bool IsReadEmulationMode();
-    static bool IsWriteMode();
-    static bool IsWriteEmulationMode();
-
     static bool IsRecording();
     static bool IsPlaying();
 
@@ -417,10 +417,14 @@ private:
     static void RecordStart(const ArgList& args);
     static void RecordStop(const ArgList& args);
     static void RecordUpdate();
+    static void RecordSave();
+    RSB_EXPORT static void RequestRecordAbort();
+    RSB_EXPORT static bool IsRecordAbortRequested();
 
     static void PlaybackStart(const ArgList& args);
     static void PlaybackStop(const ArgList& args);
     static double PlaybackUpdate(double deltaTime);
+    static double PlaybackDeltaTime();
 
     static void RecordSendBinary(const ArgList& args);
 
@@ -447,6 +451,7 @@ private:
 
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
+    RSB_EXPORT static std::atomic_uint32_t mode_;
     // flag for enabling profiler beta recording feature
     RSB_EXPORT static bool betaRecordingEnabled_;
     // flag to start network thread
@@ -456,6 +461,7 @@ private:
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
     // flag for enabling DRAWING_CANVAS_NODE redrawing
     RSB_EXPORT static std::atomic_bool dcnRedraw_;
+    RSB_EXPORT static std::atomic_bool recordAbortRequested_;
 };
 
 } // namespace OHOS::Rosen
