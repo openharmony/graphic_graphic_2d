@@ -2565,6 +2565,28 @@ HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetMirrorScreenVisibleRect003
+ * @tc.desc: Test SetMirrorScreenVisibleRect with zero rect.
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E4C
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id]->SetEnableVisibleRect(true);
+    Rect rect = {0, 0, 0, 0};
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    ASSERT_EQ(screenManagerImpl.screens_[id]->GetEnableVisibleRect(), false);
+}
+
+/*
  * @tc.name: GetMirrorScreenVisibleRect001
  * @tc.desc: Test GetMirrorScreenVisibleRect with abnormal params.
  * @tc.type: FUNC
