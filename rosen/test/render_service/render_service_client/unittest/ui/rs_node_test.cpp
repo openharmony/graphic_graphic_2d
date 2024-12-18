@@ -4078,6 +4078,7 @@ HWTEST_F(RSNodeTest, SetandGetClipBounds001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetId001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetId();
 }
 
@@ -4089,6 +4090,7 @@ HWTEST_F(RSNodeTest, GetId001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetChildren001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto c = rsNode->GetChildren();
 }
 
@@ -4100,6 +4102,7 @@ HWTEST_F(RSNodeTest, GetChildren001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetChildren002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     const auto c = rsNode->GetChildren();
 }
 
@@ -4111,6 +4114,7 @@ HWTEST_F(RSNodeTest, GetChildren002, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetStagingProperties001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetStagingProperties();
 }
 
@@ -4122,6 +4126,7 @@ HWTEST_F(RSNodeTest, GetStagingProperties001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetMotionPathOption002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetMotionPathOption();
 }
 
@@ -4133,6 +4138,7 @@ HWTEST_F(RSNodeTest, GetMotionPathOption002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetBgImage001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto image = std::make_shared<RSImage>();
     rsNode->SetBgImage(image);
 }
@@ -4145,6 +4151,7 @@ HWTEST_F(RSNodeTest, SetBgImage001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto shader = RSShader::CreateRSShader();
     rsNode->SetBackgroundShader(shader);
 }
@@ -4157,6 +4164,7 @@ HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector2f greyCoef = { 0.5, 0.5 };
     rsNode->SetGreyCoef(greyCoef);
 }
@@ -4169,6 +4177,7 @@ HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetAiInvertTest, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto value = Vector4f(10.f);
     rootNode->SetAiInvert(value);
 }
@@ -4284,6 +4293,7 @@ HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetShadowPath001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto shadowpath = RSPath::CreateRSPath();
     rsNode->SetShadowPath(shadowpath);
 }
@@ -4306,6 +4316,7 @@ template<typename ModifierName, typename PropertyName, typename T>
 void SetPropertyTest(RSModifierType modifierType, T value1, T value2)
 {
     auto node = RSCanvasNode::Create();
+    ASSERT_NE(node, nullptr);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value2);
