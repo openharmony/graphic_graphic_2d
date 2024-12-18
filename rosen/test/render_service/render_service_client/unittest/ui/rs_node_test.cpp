@@ -248,6 +248,7 @@ HWTEST_F(RSNodeTest, SetPaintOrder001, TestSize.Level1)
      * @tc.steps: step1. create RSNode and RSUIDirector
      */
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetPaintOrder(true);
 }
 
@@ -789,6 +790,7 @@ HWTEST_F(RSNodeTest, SetandGetOutlineRadius005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetRotationThree001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetRotation(floatData[1], floatData[2], floatData[3]);
 }
 
@@ -3771,6 +3773,7 @@ HWTEST_F(RSNodeTest, SetandGetOutlineColor003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetRotationVector001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector4f quaternion(std::numeric_limits<float>::min(), 2.f, 3.f, 4.f);
     rsNode->SetRotation(quaternion);
 }
@@ -3867,6 +3870,7 @@ HWTEST_F(RSNodeTest, SetVisualEffect, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetTranslateVector001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector2f quaternion(std::numeric_limits<float>::max(), 2.f);
     rsNode->SetTranslate(quaternion);
 }
@@ -4281,6 +4285,7 @@ HWTEST_F(RSNodeTest, SetandGetForegroundEffectRadius001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto compositingFilter = RSFilter::CreateBlurFilter(0.0f, 0.0f);
     rsNode->SetCompositingFilter(compositingFilter);
 }
@@ -4629,6 +4634,7 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
     rsNode->SetColorBlendMode(blendModeType);
     blendModeType = RSColorBlendMode::DST_IN;
@@ -5232,6 +5238,7 @@ HWTEST_F(RSNodeTest, SetPivotZ, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetCornerRadius, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector4f cornerRadius = { 1.f, 1.f, 1.f, 1.f }; // for test
     rsNode->SetCornerRadius(cornerRadius);
 }
@@ -5866,6 +5873,7 @@ HWTEST_F(RSNodeTest, SetUseEffect, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetUseEffectType, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetUseEffectType(UseEffectType::EFFECT_COMPONENT);
     rsNode->SetUseEffectType(UseEffectType::BEHIND_WINDOW);
 }
