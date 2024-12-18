@@ -189,6 +189,7 @@ constexpr size_t ARGC_SEVEN = 7;
 constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
+extern const char* const JSCOLOR[4];
 
 enum class DrawingErrorCode : int32_t {
     OK = 0,
@@ -350,6 +351,8 @@ bool ConvertFromJsValue(napi_env env, napi_value jsValue, T& value)
 }
 
 bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t size);
+
+bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor);
 
 bool ConvertFromJsRect(napi_env env, napi_value jsValue, double* ltrb, size_t size);
 

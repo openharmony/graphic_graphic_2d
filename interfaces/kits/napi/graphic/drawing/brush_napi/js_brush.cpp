@@ -33,6 +33,7 @@ napi_value JsBrush::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("setColor", SetColor),
         DECLARE_NAPI_FUNCTION("getColor", GetColor),
+        DECLARE_NAPI_FUNCTION("getHexColor", GetHexColor),
         DECLARE_NAPI_FUNCTION("setAntiAlias", SetAntiAlias),
         DECLARE_NAPI_FUNCTION("isAntiAlias", IsAntiAlias),
         DECLARE_NAPI_FUNCTION("setAlpha", SetAlpha),
@@ -148,13 +149,13 @@ napi_value JsBrush::SetColor(napi_env env, napi_callback_info info)
 
     Drawing::Color drawingColor;
     if (argc == ARGC_ONE) {
-        int32_t argb[ARGC_FOUR] = {0};
-        if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+        ColorQuad color;
+        if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
             ROSEN_LOGE("JsBrush::SetColor Argv[0] is invalid");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "Parameter verification failed. The range of color channels must be [0, 255].");
         }
-        drawingColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+        drawingColor.SetColorQuad(color);
     } else if (argc == ARGC_FOUR) {
         int32_t alpha = 0;
         GET_COLOR_PARAM(ARGC_ZERO, alpha);
@@ -187,6 +188,23 @@ napi_value JsBrush::GetColor(napi_env env, napi_callback_info info)
 
     const Color& color = brush->GetColor();
     return GetColorAndConvertToJsValue(env, color);
+}
+
+napi_value JsBrush::GetHexColor(napi_env env, napi_callback_info info)
+{
+    JsBrush* jsBrush = CheckParamsAndGetThis<JsBrush>(env, info);
+    if (jsBrush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetHexColor jsBrush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    Brush* brush = jsBrush->GetBrush();
+    if (brush == nullptr) {
+        ROSEN_LOGE("JsBrush::GetHexColor brush is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    const Color& color = brush->GetColor();
+    return CreateJsNumber(env, color.CastToColorQuad());
 }
 
 napi_value JsBrush::SetAntiAlias(napi_env env, napi_callback_info info)

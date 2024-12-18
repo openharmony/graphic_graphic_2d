@@ -480,13 +480,12 @@ napi_value JsCanvas::OnClear(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_ONE] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
 
-    int32_t argb[ARGC_FOUR] = {0};
-    if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+    ColorQuad color;
+    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
         ROSEN_LOGE("JsCanvas::OnClear Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "Parameter verification failed. The range of color channels must be [0, 255].");
     }
-    auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
 
     JS_CALL_DRAWING_FUNC(m_canvas->Clear(color));
 #ifdef ROSEN_OHOS
@@ -514,8 +513,7 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
     JsPath* jsPath = nullptr;
     GET_UNWRAP_PARAM(ARGC_ZERO, jsPath);
 
-    Point3 offset;
-    Point3 lightPos;
+    Point3 offset, lightPos;
     if (!ConvertFromJsPoint3d(env, argv[ARGC_ONE], offset) || !ConvertFromJsPoint3d(env, argv[ARGC_TWO], lightPos)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_ONE] or argv[ARGC_TWO] is invalid.");
         return nullptr;
@@ -523,10 +521,10 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
 
     double lightRadius = 0.0f;
     GET_DOUBLE_PARAM(ARGC_THREE, lightRadius);
-    int32_t ambientColor[ARGC_FOUR] = {0};
-    int32_t spotColor[ARGC_FOUR] = {0};
-    if (!ConvertFromJsColor(env, argv[ARGC_FOUR], ambientColor, ARGC_FOUR) ||
-        !ConvertFromJsColor(env, argv[ARGC_FIVE], spotColor, ARGC_FOUR)) {
+
+    ColorQuad ambientColor, spotColor;
+    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_FOUR], ambientColor) ||
+        !ConvertFromAdaptHexJsColor(env, argv[ARGC_FIVE], spotColor)) {
         ROSEN_LOGE("JsCanvas::OnDrawShadow argv[ARGC_FOUR] or argv[ARGC_FIVE] is invalid.");
         return nullptr;
     }
@@ -543,11 +541,7 @@ napi_value JsCanvas::OnDrawShadow(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    auto ambientColorPara = Color::ColorQuadSetARGB(ambientColor[ARGC_ZERO], ambientColor[ARGC_ONE],
-        ambientColor[ARGC_TWO], ambientColor[ARGC_THREE]);
-    auto spotColorPara = Color::ColorQuadSetARGB(spotColor[ARGC_ZERO], spotColor[ARGC_ONE],
-        spotColor[ARGC_TWO], spotColor[ARGC_THREE]);
-    m_canvas->DrawShadow(*jsPath->GetPath(), offset, lightPos, lightRadius, ambientColorPara, spotColorPara,
+    m_canvas->DrawShadow(*jsPath->GetPath(), offset, lightPos, lightRadius, ambientColor, spotColor,
         static_cast<ShadowFlags>(shadowFlag));
 #ifdef ROSEN_OHOS
     if (mPixelMap_ != nullptr) {
@@ -772,13 +766,12 @@ napi_value JsCanvas::OnDrawColor(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITH_OPTIONAL_PARAMS(argv, argc, ARGC_ONE, ARGC_FIVE);
 
     if (argc == ARGC_ONE || argc == ARGC_TWO) {
-        int32_t argb[ARGC_FOUR] = {0};
-        if (!ConvertFromJsColor(env, argv[ARGC_ZERO], argb, ARGC_FOUR)) {
+        ColorQuad color;
+        if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
             ROSEN_LOGE("JsCanvas::OnDrawColor Argv[0] is invalid");
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "Parameter verification failed. The range of color channels must be [0, 255].");
         }
-        auto color = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
         if (argc == ARGC_ONE) {
             DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
             m_canvas->DrawColor(color);

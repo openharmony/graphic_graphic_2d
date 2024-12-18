@@ -31,6 +31,8 @@ bool JsDrawingTestUtils::closeDrawingTest_ = true;
 #endif
 
 namespace Drawing {
+const char* const JSCOLOR[4] = {"alpha", "red", "green", "blue"};
+
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func)
 {
     std::string fullName;
@@ -100,6 +102,22 @@ bool ConvertFromJsColor(napi_env env, napi_value jsValue, int32_t* argb, size_t 
             *curChannel < 0 || *curChannel > Color::RGB_MAX) {
             return false;
         }
+    }
+    return true;
+}
+
+bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::ColorQuad& jsColor)
+{
+    bool isJsColor = false;
+    napi_has_named_property(env, jsValue, JSCOLOR[0], &isJsColor);
+    if (isJsColor) {
+        int32_t argb[ARGC_FOUR] = {0};
+        if (!ConvertFromJsColor(env, jsValue, argb, ARGC_FOUR)) {
+            return false;
+        }
+        jsColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+    } else {
+        napi_get_value_uint32(env, jsValue, &jsColor);
     }
     return true;
 }
