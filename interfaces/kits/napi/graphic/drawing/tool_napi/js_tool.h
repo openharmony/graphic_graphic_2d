@@ -61,20 +61,19 @@ public:
     static bool GetResourceRawFileDataBuffer(std::unique_ptr<uint8_t[]>&& buffer,
         size_t& len, ResourceInfo& info);
 
-    static unsigned int HandleIncorrectColor(const std::string& newColorStr);
-    static bool GetResourceColor(napi_env env, napi_value res, Color& result);
-    static unsigned int GetColorNumberResult(unsigned int origin);
-    static bool GetColorStringResult(std::string colorStr, unsigned int& result);
-    static bool MatchColorWithMagic(std::string& colorStr, uint32_t maskAlpha, unsigned int& result);
-    static bool MatchColorWithMagicMini(std::string& colorStr, uint32_t maskAlpha, unsigned int& result);
-    static bool MatchColorWithRGB(const std::string& colorStr, unsigned int& result);
-    static bool MatchColorWithRGBA(const std::string& colorStr, unsigned int& result);
+    static uint32_t HandleIncorrectColor(const std::string& newColorStr);
+    static bool GetResourceColor(napi_env env, napi_value res, uint32_t& result);
+    static uint32_t GetColorNumberResult(uint32_t origin);
+    static bool GetColorStringResult(std::string colorStr, uint32_t& result);
+    static bool MatchColorWithMagic(std::string& colorStr, uint32_t& result);
+    static bool MatchColorWithMagicMini(std::string& colorStr, uint32_t& result);
+    static bool MatchColorWithRGB(const std::string& colorStr, uint32_t& result);
+    static bool MatchColorWithRGBA(const std::string& colorStr, uint32_t& result);
     static bool FastCheckColorType(const std::string& colorStr, const std::string& expectPrefix,
         const std::vector<size_t>& expectLengths);
-    static bool IsHexNumber(std::string& colorStr);
     static bool HandleRGBValue(int value, int& result);
     static bool IsOpacityValid(double value);
-    static bool GetColorObjectResult(napi_env env, napi_value value, unsigned int& result);
+    static bool GetColorObjectResult(napi_env env, napi_value value, uint32_t& result);
 #endif
 
 private:
