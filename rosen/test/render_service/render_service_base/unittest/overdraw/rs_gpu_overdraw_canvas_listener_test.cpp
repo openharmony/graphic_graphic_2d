@@ -73,6 +73,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRect001, TestSize.Level1)
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     EXPECT_NE(listener, nullptr);
     listener->DrawRect(rect);
+    EXPECT_TRUE(listener);
     delete listener;
 }
 
@@ -89,6 +90,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawOval001, TestSize.Level1)
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     EXPECT_NE(listener, nullptr);
     listener->DrawOval(rect);
+    EXPECT_TRUE(listener);
     delete listener;
 }
 
@@ -107,6 +109,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc001, TestSize.Level1)
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     EXPECT_NE(listener, nullptr);
     listener->DrawArc(rect, startAngle, sweepAngle);
+    EXPECT_TRUE(listener);
     delete listener;
 }
 
@@ -125,6 +128,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc002, TestSize.Level1)
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     EXPECT_NE(listener, nullptr);
     listener->DrawArc(rect, startAngle, sweepAngle);
+    EXPECT_TRUE(listener);
     delete listener;
 }
 
@@ -141,6 +145,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPath001, TestSize.Level1)
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     EXPECT_NE(listener, nullptr);
     listener->DrawPath(path);
+    EXPECT_TRUE(listener);
     delete listener;
 }
 
@@ -157,6 +162,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRegion001, TestSize.Level1)
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
     EXPECT_NE(listener, nullptr);
     listener->DrawRegion(region);
+    EXPECT_TRUE(listener);
     delete listener;
 }
 
@@ -286,6 +292,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest003, 
     listener.DrawPicture(picture);
 
     listener.Clear(Drawing::Color::COLOR_BLACK);
+    EXPECT_TRUE(listener.overdrawCanvas_);
 }
 
 /**
