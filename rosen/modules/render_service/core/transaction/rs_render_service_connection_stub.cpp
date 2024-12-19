@@ -924,7 +924,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             MarkPowerOffNeedProcessOneFrame();
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME): {
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING): {
             RS_LOGI("call RepaintEverything");
             RepaintEverything();
             break;
