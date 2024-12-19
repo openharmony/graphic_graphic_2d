@@ -2831,7 +2831,7 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         auto& properties = hwcNodePtr->GetMutableRenderProperties();
         auto offset = std::nullopt;
         properties.UpdateGeometryByParent(&matrix, offset);
-        matrix.PrteConcat(geoPtr->GetMatrix());
+        matrix.PreConcat(geoPtr->GetMatrix());
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
         matrix.MapRect(absRect, bounds);
