@@ -51,6 +51,7 @@ namespace {
     constexpr uint32_t VOTER_SCENE_PRIORITY_BEFORE_PACKAGES = 1;
     constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
+    const static std::string LOW_BRIGHT = "LowBright";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -597,18 +598,25 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
     }
 
     // obtain the refresh rate supported in low ambient light
-    auto supportedModeVector = configData->supportedModeConfigs_[curScreenStrategyId_];
-    if (supportedModeVector.empty()) {
+    if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
+        isAmbientEffect_ = false;
+        return;
+    }
+    auto supportedModeConfig = configData->supportedModeConfigs_[curScreenStrategyId_];
+    auto iter = supportedModeConfig.find(LOW_BRIGHT);
+    if (iter == supportedModeConfig.end() || iter->second.empty()) {
         isAmbientEffect_ = false;
         return;
     }
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
-    for (const auto& iter : supportedModeVector) {
-        auto iterInVec = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), iter);
-        if (iterInVec != supportRefreshRateVec.end()) {
-            lowBrightVec_.push_back(*iterInVec);
+    lowBrightVec_.clear();
+    for (auto rate : supportRefreshRateVec) {
+        auto it = std::find(iter->second.begin(), iter->second.end(), rate);
+        if (it != iter->second.end()) {
+            lowBrightVec_.push_back(*it);
         }
     }
+
     if (lowBrightVec_.empty()) {
         isAmbientEffect_ = false;
         return;
