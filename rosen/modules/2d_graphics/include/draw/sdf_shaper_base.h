@@ -18,6 +18,7 @@
 #include "common/rs_macros.h"
 #include "utils/drawing_macros.h"
 #include "utils/rect.h"
+#include "include/effects/SkRuntimeEffect.h"
 #include <memory>
 #include <vector>
 
@@ -54,6 +55,8 @@ public:
 
     virtual void UpdateTime(float time) = 0;
     virtual void BuildShader() = 0;
+    virtual SkRuntimeShaderBuilder GetSkiaBuilder(SkRuntimeEffect::Result result) const = 0;
+    virtual SkRuntimeEffect::Result GetSkiaResult(int shapeId, std::string shaderStr) const = 0;
 
 private:
 

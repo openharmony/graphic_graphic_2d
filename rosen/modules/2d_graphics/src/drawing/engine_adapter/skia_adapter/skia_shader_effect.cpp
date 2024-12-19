@@ -17,10 +17,6 @@
 
 #include <vector>
 #include <unordered_map>
-#ifdef RS_ENABLE_SDF
-#include "cache/sdf_cache_manager.h"
-#endif
-
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkTileMode.h"
@@ -288,22 +284,6 @@ SkRuntimeEffect::Result SkiaShaderEffect::GetShaderResultInstance(int shapeId, s
     return result;
 }
 
-#ifdef RS_ENABLE_SDF
-SkRuntimeEffect::Result GetShaderResultFromCache(int shapeId, const std::string& shaderStr)
-{
-    SkRuntimeEffect::Result result;
-    std::shared_ptr<SDFCacheManager<SkRuntimeEffect::Result>> mgr =
-                    SDFCacheManager<SkRuntimeEffect::Result>::GetInstance();
-    bool succ = mgr->GetCache(shapeId, result);
-    if (succ) {
-        return result;
-    }
-    auto shaderResult = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderStr));
-    mgr->SetCache(shapeId, shaderResult);
-    return shaderResult;
-}
-#endif
-
 void BuildPara(SkRuntimeShaderBuilder& builder, const std::vector<float>& para, std::string paraName,
     int startIndex)
 {
@@ -325,47 +305,11 @@ void SkiaShaderEffect::InitWithSdf(const SDFShapeBase& shape)
         LOGE("sdf shape is empty. return on line %{public}d", __LINE__);
         return;
     }
-
-    #ifdef RS_ENABLE_SDF
-    auto [effect, err] = GetShaderResultFromCache(shape.GetShapeId(), shaderString);
-    #else
-    auto [effect, err] = SkRuntimeEffect::MakeForShader(static_cast<SkString>(shaderString));
-    #endif
-    if (effect == nullptr) {
-        LOGE("sdf make shader fail : %{public}s", err.c_str());
+    SkRuntimeEffect::Result result = shape.GetSkiaResult(shape.GetShapeId(), shaderString);
+    if (result.effect == nullptr) {
         return;
     }
-    SkRuntimeShaderBuilder builder(effect);
- 
-    std::vector<float> para = shape.GetPara();
-    std::vector<float> transPara = shape.GetTransPara();
-    std::vector<float> paintPara = shape.GetPaintPara();
-    std::vector<float> colorParam = shape.GetPointAndColorPara();
-    
-    BuildPara(builder, colorParam, "pColorPara%lu", 0); // 0 is start index
-    BuildPara(builder, para, "para%lu", 1); // 1 is start index
-    BuildPara(builder, paintPara, "paintPara%lu", 0); // 0 is start index
-    BuildPara(builder, transPara, "transpara%lu", 1); // 1 is start index
-    std::vector<float> color = shape.GetColorPara();
-    builder.uniform("sdfalpha") = color[0]; // color_[0] is color alpha channel.
-    for (uint64_t i = 1; i < color.size(); i++) {
-        char buf[15] = {0}; // maximum length of string needed is 15.
-        if (sprintf_s(buf, sizeof(buf), "colpara%lu", i) != -1) {
-            builder.uniform(buf) = color[i];
-        } else {
-            LOGE("sdf splicing para error.");
-            return;
-        }
-    }
-    
-    SkV2 size = SkV2{shape.GetBoundsRect().GetWidth(), shape.GetBoundsRect().GetHeight()};
-    builder.uniform("size") = size;
-    builder.uniform("sdfsize") = shape.GetSize();
-    builder.uniform("filltype") = shape.GetFillType();
-    builder.uniform("translatex") = shape.GetTranslateX();
-    builder.uniform("translatey") = shape.GetTranslateY();
-    builder.uniform("width") = shape.GetBoundsRect().GetWidth();
-    builder.uniform("transparent") = shape.GetTransparent();
+    SkRuntimeShaderBuilder builder = shape.GetSkiaBuilder(result);
     shader_ = builder.makeShader(nullptr, false);
 }
 
