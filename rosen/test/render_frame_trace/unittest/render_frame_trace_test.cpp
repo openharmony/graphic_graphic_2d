@@ -93,6 +93,7 @@ HWTEST_F(RenderFrameTraceTest, ui, TestSize.Level1)
 {
     const std::string traceTag = "ui";
     RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
+    EXPECT_NE(RenderFrameTrace::implInstance_, nullptr);
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
 }
@@ -107,6 +108,7 @@ HWTEST_F(RenderFrameTraceTest, renderthread, TestSize.Level1)
 {
     const std::string traceTag = "renderthread";
     RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
+    EXPECT_NE(RenderFrameTrace::implInstance_, nullptr);
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
 }
@@ -121,6 +123,7 @@ HWTEST_F(RenderFrameTraceTest, renderservice, TestSize.Level1)
 {
     const std::string traceTag = "renderservice";
     RenderFrameTrace::implInstance_ = &RenderFrameTrace::GetInstance();
+    EXPECT_NE(RenderFrameTrace::implInstance_, nullptr);
     RenderFrameTrace::implInstance_->RenderStartFrameTrace(traceTag);
     RenderFrameTrace::implInstance_->RenderEndFrameTrace(traceTag);
 }

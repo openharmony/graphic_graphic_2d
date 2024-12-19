@@ -101,6 +101,8 @@ HWTEST_F(RenderFrameTraceImplTest, RenderFrameTraceClose, TestSize.Level1)
 HWTEST_F(RenderFrameTraceImplTest, ui, TestSize.Level1)
 {
     const std::string traceTag = "ui";
+    bool ret = RenderFrameTraceImpl::instance_->AccessFrameTrace();
+    EXPECT_EQ(ret, true);
     RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
     RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
@@ -114,6 +116,8 @@ HWTEST_F(RenderFrameTraceImplTest, ui, TestSize.Level1)
 HWTEST_F(RenderFrameTraceImplTest, renderthread, TestSize.Level1)
 {
     const std::string traceTag = "renderthread";
+    bool ret = RenderFrameTraceImpl::instance_->AccessFrameTrace();
+    EXPECT_EQ(ret, true);
     RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
     RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
@@ -127,6 +131,8 @@ HWTEST_F(RenderFrameTraceImplTest, renderthread, TestSize.Level1)
 HWTEST_F(RenderFrameTraceImplTest, renderservice, TestSize.Level1)
 {
     const std::string traceTag = "renderservice";
+    bool ret = RenderFrameTraceImpl::instance_->AccessFrameTrace();
+    EXPECT_EQ(ret, true);
     RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
     RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
@@ -140,6 +146,8 @@ HWTEST_F(RenderFrameTraceImplTest, renderservice, TestSize.Level1)
 HWTEST_F(RenderFrameTraceImplTest, test, TestSize.Level1)
 {
     const std::string traceTag = "test";
+    bool ret = RenderFrameTraceImpl::instance_->AccessFrameTrace();
+    EXPECT_EQ(ret, true);
     RenderFrameTraceImpl::instance_->RenderStartFrameTrace(traceTag);
     RenderFrameTraceImpl::instance_->RenderEndFrameTrace(traceTag);
 }
