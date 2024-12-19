@@ -20,6 +20,7 @@
 #include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
+    constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
     HGM_LOGI("XMLParser opening xml file");
@@ -577,7 +578,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
 
 bool XMLParser::IsNumber(const std::string& str)
 {
-    if (str.length() == 0) {
+    if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH) {
         return false;
     }
     auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {
