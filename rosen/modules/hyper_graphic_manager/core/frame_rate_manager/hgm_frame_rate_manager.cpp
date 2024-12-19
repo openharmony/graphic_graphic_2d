@@ -131,6 +131,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
     });
     InitRsIdleTimer();
     InitTouchManager();
+    hgmCore.SetLtpoConfig();
     multiAppStrategy_.CalcVote();
 }
 
