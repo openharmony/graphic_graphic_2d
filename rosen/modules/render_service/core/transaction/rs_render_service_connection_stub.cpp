@@ -962,9 +962,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RSSurfaceCaptureConfig captureConfig;
+            RSSurfaceCaptureBlurParam blurParam;
             if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
                 ret = ERR_INVALID_DATA;
-                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture write captureConfig failed");
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read captureConfig failed");
+                break;
+            }
+            if (!ReadSurfaceCaptureBlurParam(blurParam, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read blurParam failed");
                 break;
             }
             RSSurfaceCapturePermissions permissions;
@@ -975,7 +981,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // we temporarily add a white list to avoid abnormal functionality or abnormal display.
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
-            TakeSurfaceCapture(id, cb, captureConfig, permissions);
+            TakeSurfaceCapture(id, cb, captureConfig, blurParam, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY): {
@@ -2578,6 +2584,15 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    return true;
+}
+
+bool RSRenderServiceConnectionStub::ReadSurfaceCaptureBlurParam(
+    RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data)
+{
+    if (!data.ReadBool(blurParam.isNeedBlur) || !data.ReadFloat(blurParam.blurRadius)) {
+        return false;
+    }
     return true;
 }
 

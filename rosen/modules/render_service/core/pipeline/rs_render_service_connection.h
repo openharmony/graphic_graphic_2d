@@ -158,7 +158,7 @@ private:
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,

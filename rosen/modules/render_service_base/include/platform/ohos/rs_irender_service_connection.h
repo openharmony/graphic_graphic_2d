@@ -157,7 +157,7 @@ public:
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,

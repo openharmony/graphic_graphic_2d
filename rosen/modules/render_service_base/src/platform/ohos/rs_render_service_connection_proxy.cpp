@@ -1300,7 +1300,8 @@ void RSRenderServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr
 }
 
 void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions /* permissions */)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    RSSurfaceCapturePermissions /* permissions */)
 {
     if (callback == nullptr) {
         ROSEN_LOGE("%{public}s callback == nullptr", __func__);
@@ -1321,6 +1322,10 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
     if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
         ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return;
+    }
+    if (!WriteSurfaceCaptureBlurParam(blurParam, data)) {
+        ROSEN_LOGE("%{public}s write blurParam failed", __func__);
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
@@ -1375,6 +1380,15 @@ bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
     if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
         !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync)) {
+        return false;
+    }
+    return true;
+}
+
+bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureBlurParam(
+    const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data)
+{
+    if (!data.WriteBool(blurParam.isNeedBlur) || !data.WriteFloat(blurParam.blurRadius)) {
         return false;
     }
     return true;

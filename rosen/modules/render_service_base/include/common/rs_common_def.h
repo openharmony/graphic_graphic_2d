@@ -220,6 +220,11 @@ struct RSSurfaceCaptureConfig {
     bool isSync = false;
 };
 
+struct RSSurfaceCaptureBlurParam {
+    bool isNeedBlur = false;
+    float blurRadius = 1E-6;
+};
+
 struct RSSurfaceCapturePermissions {
     bool screenCapturePermission = false;
     bool isSystemCalling = false;
