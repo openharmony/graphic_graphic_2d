@@ -20,7 +20,9 @@
 #include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
-    constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+namespace {
+constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+}
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
     HGM_LOGI("XMLParser opening xml file");
