@@ -348,6 +348,7 @@ HWTEST_F(RSMainThreadTest, UnRegisterOcclusionChangeCallback, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::string str = "";
     mainThread->RenderServiceTreeDump(str);
 }
@@ -361,6 +362,7 @@ HWTEST_F(RSMainThreadTest, RenderServiceTreeDump, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetFocusAppInfo, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     std::string str = "";
     int32_t pid = INVALID_VALUE;
     int32_t uid = INVALID_VALUE;
@@ -813,6 +815,7 @@ HWTEST_F(RSMainThreadTest, RecvRSTransactionData, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, PostSyncTask, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     RSTaskMessage::RSTask task = []() -> void { return; };
     mainThread->PostSyncTask(task);
 }
@@ -912,6 +915,7 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRender, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->GetWatermarkImg();
 }
 
@@ -962,6 +966,7 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, SetIdleTimerExpiredFlag, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     mainThread->SetIdleTimerExpiredFlag(true);
 }
 
@@ -1461,6 +1466,7 @@ HWTEST_F(RSMainThreadTest, CheckIfHardwareForcedDisabled, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, WaitUntilUnmarshallingTaskFinished001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     bool isUniRender = mainThread->isUniRender_;
     mainThread->isUniRender_ = false;
     mainThread->WaitUntilUnmarshallingTaskFinished();
@@ -1476,6 +1482,7 @@ HWTEST_F(RSMainThreadTest, WaitUntilUnmarshallingTaskFinished001, TestSize.Level
 HWTEST_F(RSMainThreadTest, MergeToEffectiveTransactionDataMap, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
     TransactionDataMap tsDataMap;
     tsDataMap.emplace(0, std::vector<std::unique_ptr<RSTransactionData>>());
     auto data = std::make_unique<RSTransactionData>();

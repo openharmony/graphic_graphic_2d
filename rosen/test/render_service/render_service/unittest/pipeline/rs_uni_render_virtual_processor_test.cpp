@@ -99,6 +99,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ProcessSurface, TestSize.Level2)
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
+    ASSERT_NE(processor, nullptr);
     processor->ProcessSurface(rsSurfaceRenderNode);
 }
 
@@ -131,6 +132,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, PostProcess, TestSize.Level2)
 {
     auto processor = RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
+    ASSERT_NE(processor, nullptr);
     processor->PostProcess();
 }
 

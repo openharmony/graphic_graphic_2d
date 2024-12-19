@@ -291,8 +291,10 @@ HWTEST_F(RSUniUiCaptureTest, SetPaintFilterCanvas, TestSize.Level1)
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
         std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
+    ASSERT_NE(rsUniUICaptureVisitor, nullptr);
 
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    ASSERT_NE(drawingCanvas, nullptr);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     EXPECT_NE(recordingCanvas, nullptr);
     rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
@@ -341,9 +343,12 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeWithUni, TestSize.Level1)
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
     std::shared_ptr<RSUniUICapture::RSUniUICaptureVisitor> rsUniUICaptureVisitor =
         std::make_shared<RSUniUICapture::RSUniUICaptureVisitor>(nodeId, captureConfig);
+    ASSERT_NE(rsUniUICaptureVisitor, nullptr);
 
     std::unique_ptr<Drawing::Canvas> drawingCanvas = std::make_unique<Drawing::Canvas>(10, 10);
+    ASSERT_NE(drawingCanvas, nullptr);
     std::shared_ptr<RSPaintFilterCanvas> recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
+    ASSERT_NE(recordingCanvas, nullptr);
     rsUniUICaptureVisitor->SetPaintFilterCanvas(recordingCanvas);
     
     std::weak_ptr<RSContext> context;

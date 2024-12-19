@@ -96,7 +96,7 @@ constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* RELIABLE_GESTURE_BACK_SURFACE_NAME = "SCBGestureBack";
 constexpr int MIN_OVERLAP = 2;
 static std::map<NodeId, uint32_t> cacheRenderNodeMap = {};
-static uint32_t cacheReuseTimes = 0;
+static uint32_t g_cacheReuseTimes = 0;
 static std::mutex cacheRenderNodeMapMutex;
 static const std::map<DirtyRegionType, std::string> DIRTY_REGION_TYPE_MAP {
     { DirtyRegionType::UPDATE_DIRTY_REGION, "UPDATE_DIRTY_REGION" },
@@ -5431,7 +5431,7 @@ bool RSUniRenderVisitor::InitNodeCache(RSRenderNode& node)
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
                 node.cacheCnt_++;
-                cacheReuseTimes = 0;
+                g_cacheReuseTimes = 0;
                 node.ResetDrawingCacheNeedUpdate();
             }
             curGroupedNodes_.pop();
@@ -5486,7 +5486,7 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
                 node.cacheCnt_++;
-                cacheReuseTimes = 0;
+                g_cacheReuseTimes = 0;
                 node.ResetDrawingCacheNeedUpdate();
             }
             curGroupedNodes_.pop();
@@ -5504,13 +5504,13 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
                 node.MarkNodeGroup(RSRenderNode::GROUPED_BY_ANIM, false, false);
                 RSUniRenderUtil::ClearCacheSurface(node, threadIndex_);
                 node.cacheCnt_ = -1;
-                cacheReuseTimes = 0;
+                g_cacheReuseTimes = 0;
                 return;
             }
             node.SetCacheType(CacheType::CONTENT);
             if (UpdateCacheSurface(node)) {
                 node.UpdateCompletedCacheSurface();
-                cacheReuseTimes = 0;
+                g_cacheReuseTimes = 0;
                 node.ResetDrawingCacheNeedUpdate();
             }
             curGroupedNodes_.pop();
@@ -5519,9 +5519,9 @@ void RSUniRenderVisitor::UpdateCacheRenderNodeMap(RSRenderNode& node)
     }
     // The cache is not refreshed continuously.
     node.cacheCnt_ = 0;
-    cacheReuseTimes++;
+    g_cacheReuseTimes++;
     RS_OPTIONAL_TRACE_NAME("RSUniRenderVisitor::UpdateCacheRenderNodeMap ,NodeId: " + std::to_string(node.GetId()) +
-        " ,CacheRenderNodeMapCnt: " + std::to_string(cacheReuseTimes));
+        " ,CacheRenderNodeMapCnt: " + std::to_string(g_cacheReuseTimes));
 }
 
 void RSUniRenderVisitor::ProcessCanvasRenderNode(RSCanvasRenderNode& node)
