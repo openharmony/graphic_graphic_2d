@@ -3743,7 +3743,7 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 
 void RSMainThread::ForceRefreshForUni()
 {
-    RS_LOGI("RSMainThread::ForceRefreshForUni call")
+    RS_LOGI("RSMainThread::ForceRefreshForUni call");
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         PostTask([=]() {
