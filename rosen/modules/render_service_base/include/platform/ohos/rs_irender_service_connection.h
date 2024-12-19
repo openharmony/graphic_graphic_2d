@@ -280,6 +280,8 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
+
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;

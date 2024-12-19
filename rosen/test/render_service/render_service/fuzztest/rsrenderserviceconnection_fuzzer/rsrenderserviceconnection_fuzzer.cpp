@@ -1224,6 +1224,18 @@ bool DOSetFreeMultiWindowStatus()
     return true;
 }
 
+bool DoNotifySoftVsyncEvent()
+{
+    auto rsConn  = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+    uint32_t pid = GetData<uint32_t>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    rsConn->NotifySoftVsyncEvent(pid, rateDiscount);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1322,6 +1334,11 @@ void DoFuzzerTest2()
     DOSetLayerTop();
     DOSetFreeMultiWindowStatus();
 }
+
+void DoFuzzerTest3()
+{
+    DoNotifySoftVsyncEvent();
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -1334,5 +1351,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoFuzzerTest1();
     OHOS::Rosen::DoFuzzerTest2();
+    OHOS::Rosen::DoFuzzerTest3();
     return 0;
 }
