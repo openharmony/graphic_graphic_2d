@@ -70,6 +70,7 @@ public:
     static bool GetRenderStop();
     static bool GetOcclusionCallBackToWMSDebugType();
     static bool GetPrevalidateHwcNodeEnabled();
+    static bool GetSolidLayerHwcEnabled();
     static bool GetControlBufferConsumeEnabled();
     static bool GetHideNotchStatus();
     static bool GetUIFirstDmaBufferEnabled();
