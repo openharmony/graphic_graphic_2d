@@ -165,6 +165,7 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR,
     ENV_FOREGROUND_COLOR_STRATEGY,
     GEOMETRYTRANS,
+    CUSTOM_CLIP_TO_FRAME,
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
@@ -349,6 +350,7 @@ private:
         { RSModifierType::ENV_FOREGROUND_COLOR, "EnvForegroundColor" },
         { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, "EnvForegroundColorStrategy" },
         { RSModifierType::GEOMETRYTRANS, "Geometrytrans" },
+        { RSModifierType::CUSTOM_CLIP_TO_FRAME, "CustomClipToFrame" },
         { RSModifierType::CHILDREN, "Children" },
         { RSModifierType::MAX_RS_MODIFIER_TYPE, "MaxRsModifierType" },
     };

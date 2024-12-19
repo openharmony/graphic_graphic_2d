@@ -20,7 +20,7 @@
 #include <securec.h>
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-tag.h"
-
+#include "common/rs_vector4.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_recording_canvas.h"
 
@@ -478,5 +478,41 @@ HWTEST_F(RSRenderModifierTest, CalculateInvertColor, TestSize.Level1)
     modifier->CalculateInvertColor(backgroundColor);
     bool ret = true;
     ASSERT_TRUE(ret == true);
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameRenderModifier001
+ * @tc.desc: Test Apply and Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSRenderModifierTest, RSCustomClipToFrameRenderModifier001, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>();
+    auto modifier = std::make_shared<RSCustomClipToFrameRenderModifier>(property);
+    RSProperties properties;
+    ExtendRecordingCanvas canvas(100, 100);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSModifierContext context(properties, &paintFilterCanvas);
+    modifier->Apply(context);
+    ASSERT_NE(nullptr, context.canvas_);
+
+    Parcel parcel;
+    ASSERT_TRUE(modifier->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: RSCustomClipToFrameRenderModifier002
+ * @tc.desc:Update
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderModifierTest, RSCustomClipToFrameRenderModifier002, TestSize.Level1)
+{
+    auto prop = std::make_shared<RSRenderAnimatableProperty<Vector4f>>();
+    bool isDelta = false;
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector4f>>();
+    auto RSEFC = std::make_shared<RSCustomClipToFrameRenderModifier>(property);
+    RSEFC->Update(prop, isDelta);
+    ASSERT_NE(nullptr, RSEFC->property_);
 }
 }
