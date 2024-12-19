@@ -676,7 +676,7 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
         supportRefreshRateVec = lowBrightVec_;
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
-        HGM_LOGD("stylusVec size = %{public}lu", stylusVec_.size());
+        HGM_LOGD("stylusVec size = %{public}u", stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
     }
