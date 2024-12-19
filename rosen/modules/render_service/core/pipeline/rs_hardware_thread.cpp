@@ -113,7 +113,7 @@ void RSHardwareThread::Start()
                 SubScribeSystemAbility();
 #endif
                 uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
-#ifdef RS_ENABLE_VK
+#if define (RS_ENABLE_VK) && (IS_ENABLE_DRM)
                 if (RSSystemProperties::IsUseVulkan()) {
                     RsVulkanContext::GetSingleton().SetIsProtected(true);
                 }
