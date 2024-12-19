@@ -100,35 +100,35 @@ public:
     {
         return 0.0f;
     };
-    void SetBoundsRect(const Rosen::Drawing::Rect& rect)
+    void SetBoundsRect(const Rosen::Drawing::Rect& rect) override
     {
         return;
-    }
-    Rect GetBoundsRect()
+    };
+    Rosen::Drawing::Rect GetBoundsRect() const override
     {
         Rosen::Drawing::Rect temp;
         return temp;
-    }
-    int GetShapeId()
+    };
+    int GetShapeId() const override
     {
         return 0;
-    }
-    void SetTransparent(int transparent)
+    };
+    void SetTransparent(int transparent) override
     {
         return;
-    }
-    int GetTransparent()
+    };
+    int GetTransparent() const override
     {
         return 0;
-    }
-    std::vector<float> GetPaintPara()
+    };
+    std::vector<float> GetPaintPara() const override
     {
         return {};
-    }
-    std::vector<float> GetPointAndColorPara()
+    };
+    std::vector<float> GetPointAndColorPara() const override
     {
         return {};
-    }
+    };
     int GetParaNum() const override
     {
         return 0;
