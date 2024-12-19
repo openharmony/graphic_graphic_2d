@@ -386,7 +386,7 @@ public:
     {
         return hasWiredMirrorDisplay_;
     }
-    uint64_t GetCurrentVsyncTime()
+    uint64_t GetCurrentVsyncTime() const
     {
         return curTime_;
     }
