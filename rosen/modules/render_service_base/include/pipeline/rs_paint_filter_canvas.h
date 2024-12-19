@@ -288,8 +288,8 @@ public:
     {
         return Drawing::DrawingType::PAINT_FILTER;
     }
-    bool IsCapture() const;
-    void SetCapture(bool isCapture);
+    bool IsOnMultipleScreen() const;
+    void SetOnMultipleScreen(bool multipleScreen);
     ScreenId GetScreenId() const;
     void SetScreenId(ScreenId screenId);
     GraphicColorGamut GetTargetColorGamut() const;
@@ -366,7 +366,7 @@ private:
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
-    bool isCapture_ = false;
+    bool multipleScreen_ = false;
     bool isHdrOn_ = false;
 };
 

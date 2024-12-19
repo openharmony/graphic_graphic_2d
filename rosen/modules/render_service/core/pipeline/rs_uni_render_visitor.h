@@ -381,7 +381,6 @@ private:
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     std::vector<RectI> globalSurfaceBounds_;
-    bool hasUniRenderHdrSurface_ = false;
     // record container nodes which need filter
     FilterRectISet containerFilter_;
     // record nodes in surface which has filter may influence globalDirty
