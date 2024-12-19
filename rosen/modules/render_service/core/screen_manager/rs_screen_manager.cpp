@@ -1186,7 +1186,9 @@ int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mai
         RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    mirrorScreen->second->SetEnableVisibleRect(true);
+    // zero Rect means disable visible rect
+    static Rect ZERO = {0, 0, 0, 0};
+    mirrorScreen->second->SetEnableVisibleRect(mainScreenRect != ZERO);
     mirrorScreen->second->SetMainScreenVisibleRect(mainScreenRect);
     RS_LOGD("RSScreenManager %{public}s: mirror screen(id %{public}" PRIu64 "), "
         "visible rect[%{public}d, %{public}d, %{public}d, %{public}d].",
