@@ -212,6 +212,7 @@ private:
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
 
     void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
+    void GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData);
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange(const std::string& voter = "");
     static bool IsCurrentScreenSupportAS();
@@ -250,6 +251,7 @@ private:
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
     std::vector<uint32_t> lowBrightVec_;
+    std::vector<uint32_t> stylusVec_;
 
     std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
     HgmSimpleTimer voterLtpoTimer_;
@@ -274,6 +276,7 @@ private:
     bool isLtpo_ = true;
     bool isAmbientSafe_ = false;
     bool isAmbientEffect_ = false;
+    int32_t stylusMode_ = -1;
     int32_t idleFps_ = OLED_60_HZ;
     int32_t minIdleFps_ = OLED_60_HZ;
     // rsIdleTimer_ skip rsFrame(see in SetShowRefreshRateEnabled), default value is 1 while ShowRefreshRate disabled
