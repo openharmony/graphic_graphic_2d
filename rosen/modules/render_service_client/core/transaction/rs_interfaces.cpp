@@ -403,7 +403,6 @@ void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
 
 void RSInterfaces::RepaintEverything()
 {
-    RS_LOGD("[UL_POWER]RSInterfaces::RepaintEverything.");
     renderServiceClient_->RepaintEverything();
 }
 
