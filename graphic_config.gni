@@ -167,7 +167,7 @@ if (graphic_2d_feature_rs_enable_uni_render) {
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 } else {
   graphic_2d_feature_enable_dvsync = false
-   graphic_2d_feature_enable_sdf = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_chipset_vsync = false
 }
 
