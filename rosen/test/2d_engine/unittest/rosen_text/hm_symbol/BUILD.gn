@@ -41,7 +41,10 @@ ohos_unittest("hm_symbol_engine_test") {
     "USE_GRAPHIC_TEXT_GINE",
     "WINDOWS_PLATFORM",
   ]
-  cflags = [ "-std=c++17" ]
+  cflags = [
+    "-Dprivate=public",
+    "-std=c++17",
+  ]
 
   platform = current_os
   if (platform == "mingw") {
