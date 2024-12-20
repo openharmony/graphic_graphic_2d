@@ -415,7 +415,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
-    RS_LOGI("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPower Status: %{public}" PRIu64 ".", id_, powerStatus_);
+    RS_LOGI("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPower Status: %{public}u.", id_, powerStatus_);
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
