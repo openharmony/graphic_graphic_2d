@@ -299,7 +299,7 @@ void RSUniRenderVisitor::CheckColorSpace(RSSurfaceRenderNode& node)
     // currently, P3 is the only supported wide color gamut, this may be modified later.
     if (node.IsAppWindow() && node.GetColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
         if (!curDisplayNode_) {
-            RS_LOGD("RSUniRenderVisitor::CheckColorSpace curDisplayNode_ is nullptr");
+            RS_LOGD("RSUniRenderVisitor::CheckColorSpace: curDisplayNode_ is nullptr");
             return;
         }
         curDisplayNode_->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
@@ -342,27 +342,35 @@ void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node)
             RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc selfDrawingNode is nullptr");
             continue;
         }
-        auto ancestorDisplayNodeMap = selfDrawingNode->GetAncestorDisplayNode();
-        if (ancestorDisplayNodeMap.empty()) {
-            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: ancestorDisplayNodeMap is empty.");
+        auto ancestorNode = selfDrawingNode->GetAncestorDisplayNode().lock();
+        if (!ancestorNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc ancestorNode is nullptr");
+            continue;
+        }
+        auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
+            CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
+        }
+        if (colorSpace == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
+            RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: newColorSpace is already DISPLAY_P3.");
+            node.SetColorSpace(colorSpace);
             return;
         }
-        for (auto iter = ancestorDisplayNodeMap.begin(); iter != ancestorDisplayNodeMap.end(); iter++) {
-            auto ancestorNode = iter->second.lock();
-            if (!ancestorNode) {
-                continue;
-            }
-            auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
-            if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
-                CheckColorSpaceWithSelfDrawingNode(*selfDrawingNode, colorSpace);
-            }
-            if (colorSpace == GRAPHIC_COLOR_GAMUT_DISPLAY_P3) {
-                RS_LOGD("RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc: newColorSpace is already DISPLAY_P3.");
-                node.SetColorSpace(colorSpace);
-                return;
-            }
+    }
+}
+
+bool IsScreenSupportedWideColorGamut(ScreenId id, const sptr<RSScreenManager>& screenManager)
+{
+    std::vector<ScreenColorGamut> supportedColorGamut;
+    if (screenManager->GetScreenSupportedColorGamuts(id, supportedColorGamut) != SUCCESS) {
+        return false;
+    }
+    for (auto item : supportedColorGamut) {
+        if (item == ScreenColorGamut::COLOR_GAMUT_DCI_P3 || item == ScreenColorGamut::COLOR_GAMUT_DISPLAY_P3) {
+            return true;
         }
     }
+    return false;
 }
 
 void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
@@ -380,6 +388,11 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
+    } else if (node.GetScreenId() != 0) {
+        if (!IsScreenSupportedWideColorGamut(node.GetScreenId(), screenManager)) {
+            node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
+            RS_LOGD("RSUniRenderVisitor::HandleColorGamuts physical extended screen not support wide color gamut.");
+        }
     }
 }
 
@@ -423,25 +436,19 @@ void RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc(RSDisplayRenderNode& node
             RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc selfDrawingNode is nullptr");
             continue;
         }
-        auto ancestorDisplayNodeMap = selfDrawingNode->GetAncestorDisplayNode();
-        if (ancestorDisplayNodeMap.empty()) {
-            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc ancestorDisplayNodeMap is empty");
+        auto ancestorNode = selfDrawingNode->GetAncestorDisplayNode().lock();
+        if (!ancestorNode) {
+            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc ancestorNode is nullptr");
             continue;
         }
-        for (auto iter = ancestorDisplayNodeMap.begin(); iter != ancestorDisplayNodeMap.end(); iter++) {
-            auto ancestorNode = iter->second.lock();
-            if (!ancestorNode) {
-                continue;
-            }
-            auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
-            if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
-                CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
-            }
-            if (pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-                RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc newPixelFormat is already 1010102.");
-                node.SetPixelFormat(pixelFormat);
-                return;
-            }
+        auto ancestorDisplayNode = ancestorNode->ReinterpretCastTo<RSDisplayRenderNode>();
+        if (ancestorDisplayNode != nullptr && node.GetId() == ancestorDisplayNode->GetId()) {
+            CheckPixelFormatWithSelfDrawingNode(*selfDrawingNode, pixelFormat);
+        }
+        if (pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
+            RS_LOGD("RSUniRenderVisitor::UpdatePixelFormatAfterHwcCalc newPixelFormat is already 1010102.");
+            node.SetPixelFormat(pixelFormat);
+            return;
         }
     }
 }
@@ -1522,7 +1529,7 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         }
     }
     // 2. update surface info and CheckIfOcclusionReusable
-    node.SetAncestorDisplayNode(curDisplayNode_->GetScreenId(), curDisplayNode_); // set for boot animation
+    node.SetAncestorDisplayNode(curDisplayNode_); // set for boot animation
     node.UpdateAncestorDisplayNodeInRenderParams();
     node.CleanDstRectChanged();
     // [planning] check node isDirty can be optimized.
