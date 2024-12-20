@@ -262,6 +262,10 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 {
 }
 
+void RSRenderServiceClient::RepaintEverything()
+{
+}
+
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
 }

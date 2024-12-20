@@ -222,6 +222,8 @@ public:
 
     void MarkPowerOffNeedProcessOneFrame();
 
+    void RepaintEverything();
+
     void DisablePowerOffRenderControl(ScreenId id);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);

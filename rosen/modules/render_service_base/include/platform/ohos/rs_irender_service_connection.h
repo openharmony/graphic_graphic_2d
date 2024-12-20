@@ -152,6 +152,8 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
+    virtual void RepaintEverything() = 0;
+
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;

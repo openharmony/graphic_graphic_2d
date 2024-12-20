@@ -715,6 +715,17 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
     renderService->MarkPowerOffNeedProcessOneFrame();
 }
 
+void RSRenderServiceClient::RepaintEverything()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RepaintEverything renderService is null, return");
+        return;
+    }
+
+    renderService->RepaintEverything();
+}
+
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();

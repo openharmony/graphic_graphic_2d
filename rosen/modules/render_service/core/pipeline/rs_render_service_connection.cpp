@@ -924,6 +924,13 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
     }
 }
 
+void RSRenderServiceConnection::RepaintEverything()
+{
+    RS_LOGI("RepaintEverything, call SetDirtyflag, ForceRefreshForUni");
+    RSMainThread::Instance()->SetDirtyFlag();
+    RSMainThread::Instance()->ForceRefreshForUni();
+}
+
 void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();

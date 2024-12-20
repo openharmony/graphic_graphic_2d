@@ -105,6 +105,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPAINT_EVERYTHING): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPAINT_EVERYTHING");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
