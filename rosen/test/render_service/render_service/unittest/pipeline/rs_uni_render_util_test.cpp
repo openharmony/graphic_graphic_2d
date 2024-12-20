@@ -1401,10 +1401,12 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 {
     RSUniRenderUtil rsUniRenderUtil;
     auto nodesTest1 = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_NE(nodesTest1, nullptr);
     nodesTest1->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     rsUniRenderUtil.LayerScaleDown(*nodesTest1);
 
     auto nodesTest2 = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(nodesTest2, nullptr);
     nodesTest2->GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     nodesTest2->GetRSSurfaceHandler()->consumer_ = nullptr;
     rsUniRenderUtil.LayerScaleDown(*nodesTest2);
