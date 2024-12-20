@@ -240,6 +240,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     auto savedirtyTypes = dirtyTypes_;
     dirtyTypes_.reset();
     dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
+    isPostPlaybacked_ = true;
 
     UpdateDrawableVecV2();
 
@@ -259,7 +260,6 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
         contentCmdList->second.clear();
     }
     savedirtyTypes.set(static_cast<int>(RSModifierType::CONTENT_STYLE), false);
-    isPostPlaybacked_ = true;
     dirtyTypes_ = savedirtyTypes;
 
     AddToPendingSyncList();
@@ -639,6 +639,11 @@ void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
         }
         isPostPlaybacked_ = false;
     }
+}
+
+bool RSCanvasDrawingRenderNode::GetIsPostPlaybacked()
+{
+    return isPostPlaybacked_;
 }
 
 } // namespace Rosen
