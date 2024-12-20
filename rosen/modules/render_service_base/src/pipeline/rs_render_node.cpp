@@ -4116,13 +4116,13 @@ void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr prePar
 void RSRenderNode::UpdateSubSurfaceCnt(int updateCnt)
 {
     // avoid loop
-    if (visited_) {
+    if (visitedForSubSurfaceCnt_) {
         RS_LOGE("RSRenderNode::UpdateSubSurfaceCnt: %{public}" PRIu64" has loop tree", GetId());
         return;
     }
-    visited_ = true;
+    visitedForSubSurfaceCnt_ = true;
     if (updateCnt == 0) {
-        visited_ = false;
+        visitedForSubSurfaceCnt_ = false;
         return;
     }
     int cnt = subSurfaceCnt_ + updateCnt;
@@ -4130,7 +4130,7 @@ void RSRenderNode::UpdateSubSurfaceCnt(int updateCnt)
     if (auto parent = GetParent().lock()) {
         parent->UpdateSubSurfaceCnt(updateCnt);
     }
-    visited_ = false;
+    visitedForSubSurfaceCnt_ = false;
 }
 bool RSRenderNode::HasSubSurface() const
 {

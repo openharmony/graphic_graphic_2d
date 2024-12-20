@@ -1041,7 +1041,7 @@ private:
     // collect subtree's surfaceNode including itself
     int subSurfaceCnt_ = 0;
     bool selfAddForSubSurfaceCnt_ = false;
-    bool visited_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;
