@@ -178,7 +178,7 @@ bool RSCustomModifierDrawable::OnUpdate(const RSRenderNode& node)
     // regenerate stagingDrawCmdList_
     needSync_ = true;
     stagingDrawCmdListVec_.clear();
-    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+    if (node.GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE && type_ == RSModifierType::CONTENT_STYLE) {
         auto& drawingNode = static_cast<const RSCanvasDrawingRenderNode&>(node);
         auto& cmdLists = drawingNode.GetDrawCmdLists();
         auto itr = cmdLists.find(type_);

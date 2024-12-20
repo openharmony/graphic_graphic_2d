@@ -553,39 +553,39 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
     dirtyTypes_.set(static_cast<int>(modifierType), true);
+    if (modifierType != RSModifierType::CONTENT_STYLE) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    for (auto& [type, list]: GetDrawCmdModifiers()) {
-        if (modifierType != type || list.empty()) {
+    const auto itr = GetDrawCmdModifiers().find(modifierType);
+    if (itr == GetDrawCmdModifiers().end()) {
+        return;
+    }
+
+    for (const auto& modifier : itr->second) {
+        if (modifier == nullptr) {
             continue;
         }
-        for (const auto& modifier : list) {
-            if (modifier == nullptr) {
-                continue;
-            }
-            auto prop = modifier->GetProperty();
-            if (prop == nullptr) {
-                continue;
-            }
-            auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
-            if (cmd == nullptr) {
-                continue;
-            }
-            
-            if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
-                RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
-                    " Add DrawOpSize [%{public}zu]", GetId(), cmd->GetOpItemSize());
-                continue;
-            }
-
-            //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
-            if (type != RSModifierType::CONTENT_STYLE) {
-                drawCmdLists_[type].clear();
-            }
-            drawCmdLists_[type].emplace_back(cmd);
-            SetNeedProcess(true);
+        auto prop = modifier->GetProperty();
+        if (prop == nullptr) {
+            continue;
         }
-        CheckDrawCmdListSize(type);
+        auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
+        if (cmd == nullptr) {
+            continue;
+        }
+
+        if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
+            RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
+                    " Add DrawOpSize [%{public}zu]",
+                GetId(), cmd->GetOpItemSize());
+            continue;
+        }
+
+        drawCmdLists_[modifierType].emplace_back(cmd);
+        SetNeedProcess(true);
     }
+    CheckDrawCmdListSize(modifierType);
 }
 
 void RSCanvasDrawingRenderNode::ClearOp()
