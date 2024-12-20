@@ -95,6 +95,10 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     RSImage rsImage;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     float fLeft = 1.0f;
     float ftop = 1.0f;
     float fRight = 1.0f;
@@ -141,6 +145,10 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
 {
     RSImage rsImage;
     Drawing::Canvas canvas;
+    ASSERT_FALSE(rsImage.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.recordingState_ = true;
     Drawing::Rect rect { 1.0f, 1.0f, 1.0f, 1.0f };
     Drawing::Brush brush;
@@ -406,6 +414,10 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
     Drawing::Rect rect;
     Drawing::Brush brush;
     bool isBackground = false;
+    ASSERT_FALSE(image.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     isBackground = true;
@@ -428,6 +440,10 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     Drawing::Brush brush;
     bool isBackground = false;
     image.SetImageFit(0);
+    ASSERT_FALSE(image.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     image.SetImageFit(5);
@@ -465,6 +481,10 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     Drawing::Brush brush;
     image.SetDstRect(dstRect);
     image.SetImageRepeat(1);
+    ASSERT_FALSE(image.HasRadius());
+    ASSERT_FALSE(canvas.GetOffscreen());
+    ASSERT_FALSE(canvas.recordingState_);
+
     canvas.AttachBrush(brush);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     image.SetImageRepeat(2);

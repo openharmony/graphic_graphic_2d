@@ -931,6 +931,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceforPlayback(int width, int h
     }
     recordingCanvas_ = nullptr;
     canvas_ = std::make_shared<RSPaintFilterCanvas>(surface_.get());
+    canvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
     return true;
 }
 

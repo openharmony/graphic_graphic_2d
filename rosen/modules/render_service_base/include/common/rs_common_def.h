@@ -174,7 +174,7 @@ enum DrawAreaEnableState : uint8_t {
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread
     SUB_FOCUSNODE_PRIORITY, // node render in sub thread with the highest priority
-    SUB_VEDIO_PRIORITY, // node render in sub thread with the second highest priority
+    SUB_VIDEO_PRIORITY, // node render in sub thread with the second highest priority
     SUB_HIGH_PRIORITY, // node render in sub thread with the second priority
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
@@ -302,6 +302,12 @@ enum class SelfDrawingNodeType : uint8_t {
 enum class SurfaceWindowType : uint8_t {
     DEFAULT_WINDOW = 0,
     SYSTEM_SCB_WINDOW = 1,
+};
+
+enum class SurfaceHwcNodeType : uint8_t {
+    DEFAULT_HWC_TYPE = 0,
+    DEFAULT_HWC_VIDEO = 1,
+    DEFAULT_HWC_ROSENWEB = 2,
 };
 
 struct RSSurfaceRenderNodeConfig {

@@ -117,6 +117,8 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     nodePtr->SetUifirstUseStarting(false);
     SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE);
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
+    RS_OPTIONAL_TRACE_NAME_FMT("ResetUifirstNode %" PRIu64", IsOnTheTree:%d, IsNodeToBeCaptured:%d",
+        nodePtr->GetId(), nodePtr->IsOnTheTree(), nodePtr->IsNodeToBeCaptured());
     auto drawable = GetSurfaceDrawableByID(nodePtr->GetId());
     if (!drawable) {
         return;
@@ -789,7 +791,7 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         if (surfaceParams && surfaceParams->GetPreSubHighPriorityType()) {
-            drawable->SetRenderCachePriority(NodePriorityType::SUB_VEDIO_PRIORITY);
+            drawable->SetRenderCachePriority(NodePriorityType::SUB_VIDEO_PRIORITY);
         }
         sortedSubThreadNodeIds_.emplace_back(id);
     }
@@ -1196,7 +1198,7 @@ bool RSUifirstManager::IsLeashWindowCache(RSSurfaceRenderNode& node, bool animat
         if (RSUifirstManager::Instance().IsRecentTaskScene()) {
             isNeedAssignToSubThread = node.IsScale() && LeashWindowContainMainWindow(node);
         } else {
-            isNeedAssignToSubThread = animation;
+            isNeedAssignToSubThread = animation && LeashWindowContainMainWindow(node);
         }
         // 1: Planning: support multi appwindows
         isNeedAssignToSubThread = (isNeedAssignToSubThread || ROSEN_EQ(node.GetGlobalAlpha(), 0.0f) ||

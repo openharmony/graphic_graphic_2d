@@ -608,7 +608,7 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     }
     if (params.isHdrRedraw) {
         parameter.disableHdrFloatHeadRoom = true;
-    } else if (RSUniRenderThread::GetCaptureParam().isSnapshot_ || RSUniRenderThread::GetCaptureParam().isMirror_) {
+    } else if (params.isHdrToSdr) {
         parameter.tmoNits = parameter.sdrNits;
     }
 
@@ -765,6 +765,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
+
+    // HDR to SDR, tmoNits equal sdrNits
+    params.isHdrToSdr = canvas.IsOnMultipleScreen() || !canvas.GetHdrOn();
+
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
     auto srcHeight = params.srcRect.GetHeight();

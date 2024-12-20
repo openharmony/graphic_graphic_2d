@@ -118,6 +118,7 @@ public:
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
+        drawWindowCache_.ClearCache();
         if (isNotClearCompleteCacheSurface) {
             ClearCacheSurfaceOnly();
         } else {

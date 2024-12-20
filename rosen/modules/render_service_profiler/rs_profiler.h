@@ -47,7 +47,7 @@
 #define RS_PROFILER_PATCH_COMMAND(parcel, command) RSProfiler::PatchCommand(parcel, command)
 #define RS_PROFILER_EXECUTE_COMMAND(command) RSProfiler::ExecuteCommand(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) RSProfiler::MarshalPixelMap(parcel, map)
-#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) RSProfiler::UnmarshalPixelMap(parcel)
+#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) RSProfiler::UnmarshalPixelMap(parcel, readSafeFdFunc)
 #define RS_PROFILER_SKIP_PIXELMAP(parcel) RSProfiler::SkipPixelMap(parcel)
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData) RSProfiler::MarshalDrawingImage(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
@@ -82,7 +82,7 @@
 #define RS_PROFILER_PATCH_COMMAND(parcel, command)
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
-#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) Media::PixelMap::Unmarshalling(parcel)
+#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) Media::PixelMap::Unmarshalling(parcel, readSafeFdFunc)
 #define RS_PROFILER_SKIP_PIXELMAP(parcel) false
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
@@ -181,7 +181,8 @@ public:
     RSB_EXPORT static void PatchCommand(const Parcel& parcel, RSCommand* command);
     RSB_EXPORT static void ExecuteCommand(const RSCommand* command);
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
-    RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
+    RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel,
+        std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc = nullptr);
     RSB_EXPORT static bool SkipPixelMap(Parcel& parcel);
     RSB_EXPORT static void MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
         std::shared_ptr<Drawing::Data>& compressData);

@@ -21,7 +21,8 @@
 
 namespace OHOS::Rosen {
 namespace {
-    constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework
+constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework
+constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
 }
 
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
@@ -566,7 +567,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
 
 bool XMLParser::IsNumber(const std::string& str)
 {
-    if (str.length() == 0) {
+    if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH) {
         return false;
     }
     auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {

@@ -1483,7 +1483,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         return true;
     }
     auto readPosition = parcel.GetReadPosition();
-    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel));
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         if (readPosition > PIXELMAP_UNMARSHALLING_DEBUG_OFFSET &&
@@ -1868,7 +1871,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             sptr<SyncFence> acquireFence = nullptr;
             bool hasAcquireFence = parcel.ReadBool();
             if (hasAcquireFence) {
-                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer);
+                auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+                    return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+                };
+                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer, readSafeFdFunc);
             }
             std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry =
                 std::make_shared<Drawing::SurfaceBufferEntry>(surfaceBuffer, acquireFence);

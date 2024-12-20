@@ -126,6 +126,7 @@ if (is_arkui_x) {
       "shader_effect_napi/js_shader_effect.cpp",
       "shadow_layer_napi/js_shadow_layer.cpp",
       "text_blob_napi/js_text_blob.cpp",
+      "tool_napi/js_tool.cpp",
     ]
     defines = []
     configs = [ ":local_drawing_config" ]
@@ -144,7 +145,6 @@ if (is_arkui_x) {
         integer_overflow = true
         ubsan = true
       }
-      sources += [ "tool_napi/js_tool.cpp" ]
       external_deps += [
         "ability_runtime:abilitykit_native",
         "ability_runtime:app_context",

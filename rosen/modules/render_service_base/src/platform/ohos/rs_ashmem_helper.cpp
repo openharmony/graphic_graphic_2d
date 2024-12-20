@@ -238,7 +238,7 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
     return safeFd;
 }
 
-void AshmemFdContainer::Init(const std::unordered_map<binder_size_t, int>& fds)
+void AshmemFdContainer::Merge(const std::unordered_map<binder_size_t, int>& fds)
 {
     if (!g_isUnmarshalThread) {
         return;
@@ -299,7 +299,7 @@ void AshmemFdWorker::PushFdsToContainer()
     if (isFdContainerUpdated_) {
         return;
     }
-    AshmemFdContainer::Instance().Init(fds_);
+    AshmemFdContainer::Instance().Merge(fds_);
     isFdContainerUpdated_ = true;
 }
 

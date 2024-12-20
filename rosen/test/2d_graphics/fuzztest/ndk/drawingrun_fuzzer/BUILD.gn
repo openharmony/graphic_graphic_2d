@@ -20,8 +20,7 @@ module_out_path = "graphic_2d/graphic_2d"
 ##############################fuzztest##########################################
 ohos_fuzztest("DrawingRunFuzzTest") {
   module_out_path = module_out_path
-  fuzz_config_file =
-      "$graphic_2d_root/rosen/test/2d_graphics/fuzztest/ndk/drawing_run_fuzzer"
+  fuzz_config_file = "."
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export",

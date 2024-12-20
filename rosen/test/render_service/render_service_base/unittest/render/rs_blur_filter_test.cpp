@@ -327,6 +327,8 @@ HWTEST_F(RSBlurFilterTest, DrawImageRect, TestSize.Level1)
     Drawing::Rect dst;
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     rsBlurFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(rsBlurFilter.greyCoef_.has_value());
+
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     rsBlurFilter.SetGreyCoef(greyCoef);
     rsBlurFilter.DrawImageRect(canvas, image, src, dst);

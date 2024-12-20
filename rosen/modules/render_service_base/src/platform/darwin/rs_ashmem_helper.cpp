@@ -99,7 +99,7 @@ int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> re
     return readFdDefaultFunc(parcel);
 }
 
-void AshmemFdContainer::Init(const std::unordered_map<binder_size_t, int>& fds)
+void AshmemFdContainer::Merge(const std::unordered_map<binder_size_t, int>& fds)
 {
 }
 

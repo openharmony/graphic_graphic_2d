@@ -367,6 +367,16 @@ public:
         offScreenCacheImgForCapture_ = offScreenCacheImgForCapture;
     }
 
+    void SetHasUniRenderHdrSurface(bool hasUniRenderHdrSurface)
+    {
+        hasUniRenderHdrSurface_ = hasUniRenderHdrSurface;
+    }
+
+    bool GetHasUniRenderHdrSurface() const
+    {
+        return hasUniRenderHdrSurface_;
+    }
+
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     void SetHDRPresent(bool hdrPresent);
@@ -526,6 +536,7 @@ private:
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
+    bool hasUniRenderHdrSurface_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
     bool preRotationStatus_ = false;

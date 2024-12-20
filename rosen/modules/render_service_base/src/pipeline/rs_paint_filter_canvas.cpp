@@ -1507,13 +1507,13 @@ void RSPaintFilterCanvas::SaveLayer(const Drawing::SaveLayerOps& saveLayerOps)
     RSPaintFilterCanvasBase::SaveLayer(saveLayerOps);
 }
 
-bool RSPaintFilterCanvas::IsCapture() const
+bool RSPaintFilterCanvas::IsOnMultipleScreen() const
 {
-    return isCapture_;
+    return multipleScreen_;
 }
-void RSPaintFilterCanvas::SetCapture(bool isCapture)
+void RSPaintFilterCanvas::SetOnMultipleScreen(bool multipleScreen)
 {
-    isCapture_ = isCapture;
+    multipleScreen_ = multipleScreen;
 }
 
 ScreenId RSPaintFilterCanvas::GetScreenId() const

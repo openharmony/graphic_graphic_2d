@@ -4458,4 +4458,64 @@ HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
     mainThread->CountMem(memoryGraphic);
     mainThread->context_ = context;
 }
+
+/**
+ * @tc.name: ClearMemoryCache
+ * @tc.desc: test ClearMemoryCache
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, ClearMemoryCache, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->ClearMemoryCache(PROCESS_EXIT, true, -1);
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+
+    bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(doDirectComposition);
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+
+    bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(doDirectComposition);
+}
 } // namespace OHOS::Rosen

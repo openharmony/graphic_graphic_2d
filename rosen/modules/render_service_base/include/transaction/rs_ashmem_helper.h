@@ -59,7 +59,7 @@ private:
     AshmemFdContainer() = default;
     DISALLOW_COPY_AND_MOVE(AshmemFdContainer);
 
-    void Init(const std::unordered_map<binder_size_t, int>& fds);
+    void Merge(const std::unordered_map<binder_size_t, int>& fds);
     void Clear();
     std::string PrintFds() const;
 

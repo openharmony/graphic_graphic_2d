@@ -71,7 +71,7 @@ constexpr int32_t HAS_SPECIAL_LAYER = 1;
 constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being deleted
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 constexpr const float HALF = 2.0f;
-constexpr const float LITTLE_SCREEN_PIXEL = 2000.0f;
+constexpr const float LITTLE_SCREEN_SCALE = 0.6f;
 static std::once_flag g_initTranslateForWallpaperFlag;
 
 std::string RectVectorToString(std::vector<RectI>& regionRects)
@@ -707,6 +707,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             uniParam->SetOpDropped(isOpDropped);
         }
+        DrawCurtainScreen();
         processor->PostProcess();
         SetDrawSkipType(DrawSkipType::MIRROR_DRAWABLE_SKIP);
         return;
@@ -1064,7 +1065,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         return;
     }
     // for HDR
-    curCanvas_->SetCapture(true);
+    curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
     auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
     auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
@@ -1178,6 +1179,8 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& 
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, false, scaleX, scaleY));
     RSRenderNodeDrawable::OnCapture(*curCanvas_);
     RSUniRenderThread::ResetCaptureParam();
+    // for HDR
+    curCanvas_->SetOnMultipleScreen(true);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
 }
@@ -1214,7 +1217,12 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         CalculateVirtualDirtyForWiredScreen(renderFrame, params, curCanvas_->GetTotalMatrix());
     rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
     // HDR does not support wired screen
-    if (littleScreenRedraw_ || (params.GetHDRPresent() && RSSystemParameters::GetWiredScreenOndrawEnabled())) {
+    if (!mirroredDrawable->GetRenderParams()) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection mirroredDrawable GetRenderParams is null");
+        return;
+    }
+    auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
+    if (littleScreenRedraw_ || (mirroredParams.GetHDRPresent() && RSSystemParameters::GetWiredScreenOndrawEnabled())) {
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
     } else {
         DrawWiredMirrorCopy(*mirroredDrawable);
@@ -1262,7 +1270,8 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     if (uniParam == nullptr) {
         return;
     }
-    curCanvas_->SetCapture(true);
+    // for HDR
+    curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
     curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     bool isOpDropped = uniParam->IsOpDropped();
@@ -1358,7 +1367,6 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     auto mirrorScreenInfo = nodeParams->GetScreenInfo();
     auto mirrorWidth = static_cast<float>(mirrorScreenInfo.width);
     auto mirrorHeight = static_cast<float>(mirrorScreenInfo.height);
-    littleScreenRedraw_ = mirrorWidth <= LITTLE_SCREEN_PIXEL && mirrorHeight <= LITTLE_SCREEN_PIXEL;
     auto rotation = mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager) {
@@ -1379,6 +1387,7 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     // Scale
     if (mainWidth > 0 && mainHeight > 0) {
         auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
+        littleScreenRedraw_ = scaleNum <= LITTLE_SCREEN_SCALE;
         // 2 for calc X and Y
         curCanvas_->Translate((mirrorWidth - (scaleNum * mainWidth)) / 2, (mirrorHeight - (scaleNum * mainHeight)) / 2);
         curCanvas_->Scale(scaleNum, scaleNum);

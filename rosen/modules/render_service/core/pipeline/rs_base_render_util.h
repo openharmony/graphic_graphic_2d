@@ -96,6 +96,7 @@ struct BufferDrawParam {
     float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
     float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
     bool isHdrRedraw = false;
+    bool isHdrToSdr = false;
 #endif
     bool preRotation = false;
 };

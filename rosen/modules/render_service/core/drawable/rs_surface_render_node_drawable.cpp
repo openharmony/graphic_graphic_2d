@@ -465,14 +465,15 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams)) {
-        SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
-        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
-        return;
-    }
-
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
         SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+        return;
+    }
+    auto cacheState = GetCacheSurfaceProcessedStatus();
+    auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
+    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*surfaceParams, useNodeMatchOptimize)) {
+        SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
+        RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw CheckMatchAndWaitNotify failed");
         return;
     }
 
@@ -1026,8 +1027,8 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         (RSUniRenderThread::GetCaptureParam().isSnapshot_ && !HasCachedTexture())) && !drawWindowCache_.HasCache()) {
         return false;
     }
-    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d",
-        name_.c_str(), surfaceParams.GetId(), enableType);
+    RS_TRACE_NAME_FMT("DrawUIFirstCache [%s] %" PRIu64 ", type %d, cacheState:%d, HasCache:%d",
+        name_.c_str(), surfaceParams.GetId(), enableType, cacheState, drawWindowCache_.HasCache());
     RSUifirstManager::Instance().AddReuseNode(surfaceParams.GetId());
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetBounds() : Drawing::Rect(0, 0, 0, 0);
     RSAutoCanvasRestore acr(&canvas);
