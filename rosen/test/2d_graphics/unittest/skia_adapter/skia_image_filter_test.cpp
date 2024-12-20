@@ -52,6 +52,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur001, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::REPEAT, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
 }
 
 /**
@@ -69,6 +70,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur002, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::MIRROR, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
 }
 
 /**
@@ -86,6 +88,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur003, TestSize.Level1)
     };
     skiaImageFilter->InitWithBlur(
         5.0f, 5.0f, TileMode::DECAL, nullptr, ImageBlurType::GAUSS, noCropRect); // 5.0f: sigmaX and sigmaY
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() != nullptr);
 }
 
 /**
@@ -97,6 +100,7 @@ HWTEST_F(SkiaImageFilterTest, InitWithBlur003, TestSize.Level1)
 HWTEST_F(SkiaImageFilterTest, Serialize001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
     skiaImageFilter->Serialize();
     sk_sp<SkImageFilter> blur(SkImageFilters::Blur(20.0f, 20.0f, nullptr)); // 20.0f: sigmaX and sigmaY
     skiaImageFilter->SetSkImageFilter(blur);
@@ -112,6 +116,7 @@ HWTEST_F(SkiaImageFilterTest, Serialize001, TestSize.Level1)
 HWTEST_F(SkiaImageFilterTest, Deserialize001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImageFilter> skiaImageFilter = std::make_shared<SkiaImageFilter>();
+    EXPECT_TRUE(skiaImageFilter->GetImageFilter() == nullptr);
     skiaImageFilter->Deserialize(nullptr);
     std::shared_ptr<Data> data = std::make_shared<Data>();
     skiaImageFilter->Deserialize(data);
