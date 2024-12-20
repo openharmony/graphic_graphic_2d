@@ -592,20 +592,19 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
 
 void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
 {
+    isAmbientEffect_ = false;
+    multiAppStrategy_.HandleLowBrightStrategyStatus(isAmbientEffect_);
     if (!configData || !isLtpo_) {
-        isAmbientEffect_ = false;
         return;
     }
 
     // obtain the refresh rate supported in low ambient light
     if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
-        isAmbientEffect_ = false;
         return;
     }
     auto supportedModeConfig = configData->supportedModeConfigs_[curScreenStrategyId_];
     auto iter = supportedModeConfig.find(LOW_BRIGHT);
     if (iter == supportedModeConfig.end() || iter->second.empty()) {
-        isAmbientEffect_ = false;
         return;
     }
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
@@ -618,7 +617,6 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
     }
 
     if (lowBrightVec_.empty()) {
-        isAmbientEffect_ = false;
         return;
     }
     isAmbientEffect_ = true;
