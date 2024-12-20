@@ -1935,10 +1935,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     UpdateRogSizeIfNeeded();
     UpdateAceDebugBoundaryEnabled();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-    uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
-    uniVisitor->SetForceUpdateFlag(forceUpdateUniRenderFlag_);
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
@@ -1984,13 +1982,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             uniVisitor->GetIsPartialRenderEnabled() && !uniVisitor->GetIsRegionDebugEnabled();
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
-        if (RSSystemProperties::GetQuickPrepareEnabled()) {
-            //planning:the QuickPrepare will be replaced by Prepare
-            rootNode->QuickPrepare(uniVisitor);
-            uniVisitor->SurfaceOcclusionCallbackToWMS();
-        } else {
-            rootNode->Prepare(uniVisitor);
-        }
+        rootNode->QuickPrepare(uniVisitor);
+        uniVisitor->SurfaceOcclusionCallbackToWMS();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
@@ -1999,9 +1992,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        if (!RSSystemProperties::GetQuickPrepareEnabled()) {
-            CalcOcclusion();
-        }
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
