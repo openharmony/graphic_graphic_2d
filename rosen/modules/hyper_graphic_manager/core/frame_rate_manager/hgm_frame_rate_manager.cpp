@@ -323,7 +323,7 @@ void HgmFrameRateManager::UpdateAppSupportedState()
     } else {
         idleDetector_.SetAppSupportedState(false);
     }
-    idleDetector_.SetBufferFpsMap(config.bufferFpsMap);
+    idleDetector_.SetBufferFpsMap(std::move(config.bufferFpsMap));
 }
 
 void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker)
