@@ -4184,11 +4184,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
-    if (hasProtectedLayer_) {
-        isUiFirstOn_ = false;
-    } else {
-        isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
-    }
+    isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
     RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 #endif
 }

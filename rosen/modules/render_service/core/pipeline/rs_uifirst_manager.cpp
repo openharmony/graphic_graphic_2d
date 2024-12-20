@@ -1294,12 +1294,13 @@ void RSUifirstManager::UifirstFirstFrameCacheState(RSSurfaceRenderNode& node)
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
     RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isForceFlag:[%d]", node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_);
+        " isForceFlag:[%d], hasProtectedLayer:[%d]", node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_,
+        node.GetHasProtectedLayer());
     if (ForceUpdateUifirstNodes(node)) {
         return;
     }
-    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || node.GetHasProtectedLayer()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         if (GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
             if (ancestorNodeHasAnimation && !node.isUifirstNode_) {
