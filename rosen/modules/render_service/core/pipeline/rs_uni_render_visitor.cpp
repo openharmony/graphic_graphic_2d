@@ -313,10 +313,7 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
         newColorSpace_ = static_cast<GraphicColorGamut>(screenColorGamut);
     }
 
-    auto stagingDisplayParams = static_cast<RSDisplayRenderParams*>(node.GetStagingRenderParams().get());
-    if (stagingDisplayParams) {
-        stagingDisplayParams->SetNewColorSpace(newColorSpace_);
-    }
+    node.SetColorSpace(newColorSpace_);
     newColorSpace_ = GRAPHIC_COLOR_GAMUT_SRGB;
 }
 
