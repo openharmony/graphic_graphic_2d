@@ -1019,6 +1019,10 @@ bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& s
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
+    bool useDmaBuffer = UseDmaBuffer();
+    if (!useDmaBuffer && drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, uniParams)) {
+        return true;
+    }
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
     auto cacheState = GetCacheSurfaceProcessedStatus();
     if (((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
@@ -1037,7 +1041,6 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
-    bool useDmaBuffer = UseDmaBuffer();
     if (surfaceParams.GetGlobalPositionEnabled() &&
         surfaceParams.GetUifirstUseStarting() == INVALID_NODEID && !useDmaBuffer) {
         auto matrix = surfaceParams.GetTotalMatrix();
@@ -1045,10 +1048,6 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         canvas.ConcatMatrix(matrix);
         RS_LOGD("RSSurfaceRenderNodeDrawable::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
             "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
-    }
-
-    if (!useDmaBuffer && drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, uniParams)) {
-        return true;
     }
     DrawBackground(canvas, bounds);
     bool drawCacheSuccess = true;
