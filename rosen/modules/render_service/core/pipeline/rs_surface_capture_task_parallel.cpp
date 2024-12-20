@@ -39,6 +39,7 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
+#include "rs_base_render_engine.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 
@@ -55,8 +56,9 @@ inline void DrawCapturedImg(Drawing::Image& image,
         RS_LOGE("DrawCapturedImg failed: gpuContext is nullptr");
         return;
     }
+    auto colorSpace = surface.GetImageInfo().GetColorSpace();
     image.BuildFromTexture(*gpuContext, backendTexture.GetTextureInfo(),
-        textureOrigin, bitmapFormat, nullptr);
+        textureOrigin, bitmapFormat, colorSpace);
     canvas.DrawImage(image, 0.f, 0.f, Drawing::SamplingOptions());
     surface.FlushAndSubmit(true);
 }
@@ -226,7 +228,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
             RS_LOGE("RSSurfaceCaptureTaskParallel::Run: img is nullptr");
             return false;
         }
-        if (!CopyDataToPixelMap(img, pixelMap_)) {
+        if (!CopyDataToPixelMap(img, pixelMap_, colorSpace_)) {
             RS_LOGE("RSSurfaceCaptureTaskParallel::Run: CopyDataToPixelMap failed");
             return false;
         }
@@ -311,8 +313,15 @@ std::shared_ptr<Drawing::Surface> RSSurfaceCaptureTaskParallel::CreateSurface(
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateSurface: address == nullptr");
         return nullptr;
     }
+    GraphicColorGamut colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    RSDisplayRenderParams* curNodeParams = nullptr;
+    if (displayNodeDrawable_) {
+        curNodeParams = static_cast<RSDisplayRenderParams*>(displayNodeDrawable_->GetRenderParams().get());
+        colorGamut = curNodeParams->GetNewColorSpace();
+    }
+    colorSpace_ = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
     Drawing::ImageInfo info = Drawing::ImageInfo{pixelmap->GetWidth(), pixelmap->GetHeight(),
-        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL};
+        Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL, colorSpace_};
 
 #if (defined RS_ENABLE_GL) && (defined RS_ENABLE_EGLIMAGE)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
@@ -388,6 +397,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             RS_LOGE("RSSurfaceCaptureTaskParallel: nodeId:[%{public}" PRIu64 "], callback is nullptr", id);
             return;
         }
+        auto colorSpace = std::get<0>(*wrapperSf)->GetImageInfo().GetColorSpace();
         if (!backendTexture.IsValid()) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Surface bind Image failed: BackendTexture is invalid");
             callback->OnSurfaceCapture(id, nullptr);
@@ -405,7 +415,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
         }
 
         Drawing::ImageInfo info = Drawing::ImageInfo{ pixelmap->GetWidth(), pixelmap->GetHeight(),
-            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+            Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL, colorSpace};
         Drawing::TextureOrigin textureOrigin = Drawing::TextureOrigin::BOTTOM_LEFT;
         Drawing::BitmapFormat bitmapFormat =
             Drawing::BitmapFormat{ Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
@@ -417,6 +427,9 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
             (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
             RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             sptr<SurfaceBuffer> surfaceBuffer = dmaMem.DmaMemAlloc(info, pixelmap);
+            if (surfaceBuffer != nullptr && colorSpace != nullptr && !colorSpace->IsSRGB()) {
+                surfaceBuffer->SetSurfaceBufferColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+            }
             surface = dmaMem.GetSurfaceFromSurfaceBuffer(surfaceBuffer, grContext);
             if (surface == nullptr) {
                 RS_LOGE("RSSurfaceCaptureTaskParallel: GetSurfaceFromSurfaceBuffer fail.");
@@ -433,8 +446,8 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTask(
 #endif
             auto tmpImg = std::make_shared<Drawing::Image>();
             tmpImg->BuildFromTexture(*grContext, backendTexture.GetTextureInfo(),
-                textureOrigin, bitmapFormat, nullptr);
-            if (!CopyDataToPixelMap(tmpImg, pixelmap)) {
+                textureOrigin, bitmapFormat, colorSpace);
+            if (!CopyDataToPixelMap(tmpImg, pixelmap, colorSpace)) {
                 RS_LOGE("RSSurfaceCaptureTaskParallel: CopyDataToPixelMap failed");
                 callback->OnSurfaceCapture(id, nullptr);
                 RSUniRenderUtil::ClearNodeCacheSurface(
@@ -553,11 +566,13 @@ std::shared_ptr<Drawing::Surface> DmaMem::GetSurfaceFromSurfaceBuffer(
         return nullptr;
     }
     // attention: cleanUpHelper will be delete by NativeBufferUtils::DeleteVkImage, don't delete again
+    auto colorSpace =
+        RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(surfaceBuffer->GetSurfaceBufferColorGamut());
     auto drawingSurface = Drawing::Surface::MakeFromBackendTexture(
         gpuContext.get(),
         backendTextureTmp.GetTextureInfo(),
         Drawing::TextureOrigin::TOP_LEFT,
-        1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+        1, Drawing::ColorType::COLORTYPE_RGBA_8888, colorSpace,
         NativeBufferUtils::DeleteVkImage, cleanUpHelper);
     return drawingSurface;
 }

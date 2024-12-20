@@ -35,17 +35,26 @@ namespace Rosen {
 namespace Drawing {
 SkiaBitmap::SkiaBitmap() : skiaBitmap_() {}
 
-static inline SkImageInfo MakeSkImageInfo(const int width, const int height, const BitmapFormat& format)
+static inline SkImageInfo MakeSkImageInfo(const int width, const int height,
+    const BitmapFormat& format, std::shared_ptr<Drawing::ColorSpace> colorSpace)
 {
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : nullptr;
+    }
+
     auto imageInfo = SkImageInfo::Make(width, height,
                                        SkiaImageInfo::ConvertToSkColorType(format.colorType),
-                                       SkiaImageInfo::ConvertToSkAlphaType(format.alphaType));
+                                       SkiaImageInfo::ConvertToSkAlphaType(format.alphaType),
+                                       skColorSpace);
     return imageInfo;
 }
 
-bool SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride)
+bool SkiaBitmap::Build(int32_t width, int32_t height, const BitmapFormat& format,
+    int32_t stride, std::shared_ptr<Drawing::ColorSpace> colorSpace)
 {
-    auto imageInfo = MakeSkImageInfo(width, height, format);
+    auto imageInfo = MakeSkImageInfo(width, height, format, colorSpace);
     bool isBuildSuccess = skiaBitmap_.setInfo(imageInfo, stride) && skiaBitmap_.tryAllocPixels();
     if (!isBuildSuccess) {
         LOGE("SkiaBitmap::Build failed, the format is incorrect");
