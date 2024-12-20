@@ -3251,6 +3251,31 @@ void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
     childrenBlurBehindWindow_.erase(id);
 }
 
+void RSSurfaceRenderNode::SetDrawBehindWindowRegion()
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        RS_LOGE("RSSurfaceRenderNode::SetDrawBehindWindowRegion, invalid context");
+    }
+    RectI region;
+    for (auto& id : childrenBlurBehindWindow_) {
+        if (auto child = context->GetNodeMap().GetRenderNode<RSRenderNode>(id)) {
+            auto childRect = child->GetMutableRenderProperties().GetBoundsGeometry()->GetAbsRect();
+            region = region.JoinRect(childRect);
+        } else {
+            RS_LOGE("RSSurfaceRenderNode::RSSurfaceRenderNode, get child failed");
+            return;
+        }
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::SetDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
+        GetId(), region.ToString().c_str());
+    auto filterDrawable = GetFilterDrawable(false);
+    if (!filterDrawable) {
+        return;
+    }
+    filterDrawable->SetDrawBehindWindowRegion(region);
+}
+
 bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
 {
     bool shouldPaint = ShouldPaint();

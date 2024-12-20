@@ -1034,6 +1034,9 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     parentSurfaceNodeMatrix_ = parentSurfaceNodeMatrix;
     node.RenderTraceDebug();
     node.SetNeedOffscreen(isScreenRotationAnimating_);
+    if (node.NeedDrawBehindWindow()) {
+        node.SetDrawBehindWindowRegion();
+    }
     if (node.NeedUpdateDrawableBehindWindow()) {
         RSMainThread::Instance()->RequestNextVSync("drawBehindWindow");
     }

@@ -457,4 +457,19 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest012, TestSize.Level1)
     drawFunc(&canvas, &rect);
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSFilterDrawableTest013
+ * @tc.desc: Test RSFilterDrawable SetDrawBehindWindowRegion
+ * @tc.type: FUNC
+ * @tc.require: issueIBCIDQ
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest013, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    ASSERT_NE(drawable, nullptr);
+    RectI region(0, 0, 1, 1);
+    drawable->SetDrawBehindWindowRegion(region);
+    ASSERT_TRUE(drawable->stagingDrawBehindWindowRegion_ == region);
+}
 } // namespace OHOS::Rosen
