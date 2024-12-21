@@ -61,7 +61,7 @@ HWTEST_F(SkFontMgrOhosTest, GetFontFullName001, TestSize.Level1)
     if (fd == -1) {
         ASSERT_TRUE(false);
     }
-    std::Vector<SkByteArray> fullnameVec;
+    std::vector<SkByteArray> fullnameVec;
     int ret = m_fontMgrOhosImpl->GetFontFullName(fd, fullnameVec);
     close(fd);
     EXPECT_EQ(ret, SUCCESSED);
@@ -69,7 +69,7 @@ HWTEST_F(SkFontMgrOhosTest, GetFontFullName001, TestSize.Level1)
     std::string testRes = "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC";
     ASSERT_EQ(fullnameVec.size(), 1);
     ASSERT_NE(fullnameVec[0].strData, nullptr);
-    ASSERT_EQ(fullnameVec[0].strlen, testRes.size() * 2);
+    ASSERT_EQ(fullnameVec[0].strLen, testRes.size() * 2);
 }
 
 /**
@@ -181,7 +181,7 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyle001, TestSize.Level1)
     SkSafeUnref(tp1);
 
     SkTypeface* tp2 = m_fontMgrOhosImpl->matchFamilyStyle("TestNoFound", style);
-    ASSERT_NE(tp2, nullptr);
+    ASSERT_EQ(tp2, nullptr);
 
     SkTypeface* tp3 = m_fontMgrOhosImpl->matchFamilyStyle("0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC", style);
     ASSERT_NE(tp3, nullptr);
