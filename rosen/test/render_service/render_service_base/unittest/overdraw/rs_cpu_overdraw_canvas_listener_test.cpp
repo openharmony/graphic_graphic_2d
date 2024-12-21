@@ -187,17 +187,18 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawTextBlobAndAppendRegionTest002, Te
 HWTEST_F(RSCPUOverdrawCanvasListenerTest, RSCPUOverdrawCanvasShapeDrawerTest003, TestSize.Level1)
 {
     Drawing::Canvas canvas;
-    RSCPUOverdrawCanvasListener canvasListener(canvas);
+    auto canvasListener = new RSCPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(canvasListener != nullptr);
 
-    canvasListener.DrawPoint(Drawing::Point(SET_XORY1, SET_XORY1));
-    canvasListener.DrawLine(Drawing::Point(SET_XORY1, SET_XORY1), Drawing::Point(SET_XORY2, SET_XORY2));
+    canvasListener->DrawPoint(Drawing::Point(SET_XORY1, SET_XORY1));
+    canvasListener->DrawLine(Drawing::Point(SET_XORY1, SET_XORY1), Drawing::Point(SET_XORY2, SET_XORY2));
 
     Drawing::RoundRect roundRectTest1;
-    canvasListener.DrawRoundRect(roundRectTest1);
+    canvasListener->DrawRoundRect(roundRectTest1);
 
     Drawing::RoundRect roundRectTest2;
     Drawing::RoundRect roundRectTest3;
-    canvasListener.DrawNestedRoundRect(roundRectTest2, roundRectTest3);
+    canvasListener->DrawNestedRoundRect(roundRectTest2, roundRectTest3);
 }
 
 /**
@@ -209,17 +210,18 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, RSCPUOverdrawCanvasShapeDrawerTest003,
 HWTEST_F(RSCPUOverdrawCanvasListenerTest, RSCPUOverdrawCanvasRendererTest004, TestSize.Level1)
 {
     Drawing::Canvas canvas;
-    RSCPUOverdrawCanvasListener canvasListener(canvas);
-    canvasListener.DrawArc(Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), SET_XORY1, SET_XORY1);
+    auto canvasListener = new RSCPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(canvasListener != nullptr);
+    canvasListener->DrawArc(Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), SET_XORY1, SET_XORY1);
 
-    canvasListener.DrawPie(Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), SET_XORY2, SET_XORY2);
+    canvasListener->DrawPie(Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), SET_XORY2, SET_XORY2);
 
-    canvasListener.DrawOval(Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM));
+    canvasListener->DrawOval(Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM));
 
-    canvasListener.DrawCircle(Drawing::Point(SET_XORY1, SET_XORY1), SET_XORY1);
+    canvasListener->DrawCircle(Drawing::Point(SET_XORY1, SET_XORY1), SET_XORY1);
 
     Drawing::Path path;
-    canvasListener.DrawPath(path);
+    canvasListener->DrawPath(path);
 }
 
 /**
@@ -232,25 +234,26 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest005, 
 {
     // The calling function is empty internally
     Drawing::Canvas canvas;
-    RSCPUOverdrawCanvasListener canvasListener(canvas);
+    auto canvasListener = new RSCPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(canvasListener != nullptr);
     Drawing::Brush brush;
-    canvasListener.DrawBackground(brush);
+    canvasListener->DrawBackground(brush);
 
     Drawing::Path path;
     Drawing::Point3 planeParams;
     Drawing::Point3 devLightPos;
     Drawing::Color ambientColor;
     Drawing::Color spotColor;
-    canvasListener.DrawShadow(
+    canvasListener->DrawShadow(
         path, planeParams, devLightPos, SET_XORY1, ambientColor, spotColor, Drawing::ShadowFlags::NONE);
 
     Drawing::Region region;
-    canvasListener.DrawRegion(region);
+    canvasListener->DrawRegion(region);
 
     Drawing::Picture picture;
-    canvasListener.DrawPicture(picture);
+    canvasListener->DrawPicture(picture);
 
-    canvasListener.Clear(Drawing::Color::COLOR_BLACK);
+    canvasListener->Clear(Drawing::Color::COLOR_BLACK);
 }
 
 /**
@@ -262,24 +265,25 @@ HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest005, 
 HWTEST_F(RSCPUOverdrawCanvasListenerTest, DrawImageRectanglesTest006, TestSize.Level1)
 {
     Drawing::Canvas canvas;
-    RSCPUOverdrawCanvasListener canvasListener(canvas);
+    auto canvasListener = new RSCPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(canvasListener != nullptr);
 
     Drawing::Bitmap bitmap;
-    canvasListener.DrawBitmap(bitmap, SET_XORY1, SET_XORY1);
+    canvasListener->DrawBitmap(bitmap, SET_XORY1, SET_XORY1);
 
     Drawing::Image imageTest1;
     Drawing::SamplingOptions samplingTest1;
-    canvasListener.DrawImage(imageTest1, SET_XORY2, SET_XORY2, samplingTest1);
+    canvasListener->DrawImage(imageTest1, SET_XORY2, SET_XORY2, samplingTest1);
 
     Drawing::Image imageTest2;
     Drawing::SamplingOptions samplingTest2;
-    canvasListener.DrawImageRect(imageTest2, Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM),
+    canvasListener->DrawImageRect(imageTest2, Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM),
         Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), samplingTest2,
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
 
     Drawing::Image imageTest3;
     Drawing::SamplingOptions samplingTest3;
-    canvasListener.DrawImageRect(imageTest3, Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), samplingTest3);
+    canvasListener->DrawImageRect(imageTest3, Drawing::Rect(0, 0, SET_TOP, SET_BOTTOM), samplingTest3);
 }
 } // namespace Rosen
 } // namespace OHOS

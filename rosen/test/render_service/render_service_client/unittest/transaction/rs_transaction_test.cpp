@@ -46,6 +46,9 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
     //      which constructor is privated.
     //      Only use its static function.
     RSTransaction::FlushImplicitTransaction();
+    RSTransaction rsTransaction;
+    Parcel parcel;
+    EXPECT_NE(rsTransaction.Unmarshalling(parcel), nullptr);
 }
 
 /**

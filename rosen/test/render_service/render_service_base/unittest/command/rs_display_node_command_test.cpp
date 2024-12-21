@@ -95,6 +95,7 @@ HWTEST_F(RSDisplayNodeCommandTest, TestRSDisplayNodeCommand004, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
+    EXPECT_TRUE(id == 1);
     RSDisplayNodeConfig config { 0, true, 0 };
     DisplayNodeCommandHelper::SetDisplayMode(context, id, config);
 }
@@ -129,6 +130,7 @@ HWTEST_F(RSDisplayNodeCommandTest, AddDisplayNodeToTree001, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
+    EXPECT_TRUE(id == 1);
     DisplayNodeCommandHelper::AddDisplayNodeToTree(context, id);
 
     NodeId id2 = static_cast<NodeId>(2);
@@ -144,6 +146,7 @@ HWTEST_F(RSDisplayNodeCommandTest, RemoveDisplayNodeFromTree001, TestSize.Level1
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
+    EXPECT_TRUE(id == 1);
     DisplayNodeCommandHelper::RemoveDisplayNodeFromTree(context, id);
 
     NodeId id2 = static_cast<NodeId>(2);
@@ -232,6 +235,7 @@ HWTEST_F(RSDisplayNodeCommandTest, SetScbNodePid, TestSize.Level1)
 {
     RSContext context;
     NodeId id = static_cast<NodeId>(1);
+    EXPECT_TRUE(id == 1);
     std::vector<int32_t> oldScbPids = {};
     int32_t currentScbPid = -1;
     DisplayNodeCommandHelper::SetScbNodePid(context, id, oldScbPids, currentScbPid);

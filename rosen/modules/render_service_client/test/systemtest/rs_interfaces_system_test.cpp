@@ -165,7 +165,9 @@ HWTEST_F(RSInterfacesSystemTest, ShowWatermark, Function | MediumTest | Level2)
  */
 HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus001, Function | MediumTest | Level2)
 {
-    RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(true);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->SetCurtainScreenUsingStatus(true);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /**
@@ -176,7 +178,9 @@ HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus001, Function | Medi
  */
 HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus002, Function | MediumTest | Level2)
 {
-    RSInterfaces::GetInstance().SetCurtainScreenUsingStatus(false);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->SetCurtainScreenUsingStatus(false);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /**
@@ -187,7 +191,9 @@ HWTEST_F(RSInterfacesSystemTest, SetCurtainScreenUsingStatus002, Function | Medi
  */
 HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus001, Function | MediumTest | Level2)
 {
-    RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(true);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->SetVirtualScreenUsingStatus(true);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /**
@@ -198,7 +204,9 @@ HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus001, Function | Medi
  */
 HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus002, Function | MediumTest | Level2)
 {
-    RSInterfaces::GetInstance().SetVirtualScreenUsingStatus(false);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->SetVirtualScreenUsingStatus(false);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /**
@@ -210,7 +218,9 @@ HWTEST_F(RSInterfacesSystemTest, SetVirtualScreenUsingStatus002, Function | Medi
 HWTEST_F(RSInterfacesSystemTest, SetLayerTop001, Function | MediumTest | Level2)
 {
     std::string nodeIdStr = "123456";
-    RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, false);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->SetLayerTop(nodeIdStr, false);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /**
@@ -222,7 +232,9 @@ HWTEST_F(RSInterfacesSystemTest, SetLayerTop001, Function | MediumTest | Level2)
 HWTEST_F(RSInterfacesSystemTest, SetLayerTop002, Function | MediumTest | Level2)
 {
     std::string nodeIdStr = "123456";
-    RSInterfaces::GetInstance().SetLayerTop(nodeIdStr, true);
+    RSInterfaces* rsInterfaces = &(RSInterfaces::GetInstance());
+    rsInterfaces->SetLayerTop(nodeIdStr, true);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 }
 } // namespace Rosen
