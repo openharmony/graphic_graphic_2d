@@ -1293,10 +1293,10 @@ void RSUifirstManager::UifirstFirstFrameCacheState(RSSurfaceRenderNode& node)
 
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isForceFlag:[%d], hasProtectedLayer:[%d]", node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_,
-        node.GetHasProtectedLayer());
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] ForceFlag:[%d] FLId[%llu] Ani[%d] Support[%d] HdrVid[%d]"
+        " HDRPres[%d] SglDis[%d] UiFstOn[%d] HasProtLay:[%d]", node.GetId(), node.GetName().c_str(), node.isForceFlag_,
+        node.GetFirstLevelNodeId(), ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), node.GetHdrVideo(),
+        node.GetHDRPresent(), RSMainThread::Instance()->IsSingleDisplay(), isUiFirstOn_, node.GetHasProtectedLayer());
     if (ForceUpdateUifirstNodes(node)) {
         return;
     }
@@ -1319,6 +1319,10 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
             return;
         }
     }
+    if (RSMainThread::Instance()->IsSingleDisplay() && (node.GetHDRPresent() || node.GetHdrVideo())) {
+        UifirstStateChange(node, MultiThreadCacheType::NONE);
+        return;
+    }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
         UifirstFirstFrameCacheState(node);
         return;
@@ -1326,9 +1330,8 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
     if (RSUifirstManager::IsNonFocusWindowCache(node, ancestorNodeHasAnimation)) {
         // purpose: to avoid that RT waits uifirst cache long time when switching to uifirst first frame,
         // draw and cache win in RT on first frame, then use RT thread cache to draw until uifirst cache ready.
-        if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE &&
-            !node.GetSubThreadAssignable() &&
-            node.GetSurfaceWindowType() != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
+        if (node.GetLastFrameUifirstFlag() == MultiThreadCacheType::NONE && !node.GetSubThreadAssignable()
+            && node.GetSurfaceWindowType() != SurfaceWindowType::SYSTEM_SCB_WINDOW) {
             UifirstStateChange(node, MultiThreadCacheType::NONE);   // mark as draw win in RT thread
             node.SetSubThreadAssignable(true);                      // mark as assignable to uifirst next frame
             node.SetNeedCacheSurface(true);                         // mark as that needs cache win in RT
