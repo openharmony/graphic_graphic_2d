@@ -48,7 +48,7 @@ void SkFontMgrOhosTest::TearDownTestCase()
 void SkFontMgrOhosTest::SetUp() {}
 void SkFontMgrOhosTest::TearDown() {}
 
-const char* TTF_FILE_PATH = "/system/fonts/HarmonyOS_Sans_SC.ttf";
+const char* TTF_FILE_PATH = "/system/fonts/0x480x610x720x6D0x6F0x6E0x790x4F0x53_Sans_SC.ttf";
 
 /**
  * @tc.name: GetFontFullName001
@@ -66,7 +66,7 @@ HWTEST_F(SkFontMgrOhosTest, GetFontFullName001, TestSize.Level1)
     close(fd);
     EXPECT_EQ(ret, SUCCESSED);
 
-    std::string testRes = "HarmonyOS Sans SC";
+    std::string testRes = "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC";
     ASSERT_EQ(fullnameVec.size(), 1);
     ASSERT_NE(fullnameVec[0].strData, nullptr);
     ASSERT_EQ(fullnameVec[0].strlen, testRes.size() * 2);
@@ -92,11 +92,11 @@ HWTEST_F(SkFontMgrOhosTest, GetFamilyName001, TestSize.Level1)
 {
     SkString str;
     m_fontMgrOhosImpl->getFamilyName(0, &str);
-    EXPECT_STREQ(str.c_str(), "HarmonyOS-Sans");
+    EXPECT_STREQ(str.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans");
     m_fontMgrOhosImpl->getFamilyName(5, &str);
-    EXPECT_STREQ(str.c_str(), "HarmonyOS-Sans-Condensed");
+    EXPECT_STREQ(str.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans-Condensed");
     m_fontMgrOhosImpl->getFamilyName(6, &str);
-    EXPECT_STREQ(str.c_str(), "HarmonyOS-Sans-Digit");
+    EXPECT_STREQ(str.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans-Digit");
     m_fontMgrOhosImpl->getFamilyName(7, &str);
     EXPECT_STREQ(str.c_str(), "serif");
     m_fontMgrOhosImpl->getFamilyName(8, &str);
@@ -143,14 +143,14 @@ HWTEST_F(SkFontMgrOhosTest, CreateStyleSet001, TestSize.Level1)
  */
 HWTEST_F(SkFontMgrOhosTest, MatchFamily001, TestSize.Level1)
 {
-    SkFontStyleSet* styleSet1 = m_fontMgrOhosImpl->matchFamily("HarmonyOS Sans");
+    SkFontStyleSet* styleSet1 = m_fontMgrOhosImpl->matchFamily("0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans");
     ASSERT_NE(styleSet1, nullptr);
     ASSERT_EQ(styleSet1->count(), 0);
 
-    SkFontStyleSet* styleSet2 = m_fontMgrOhosImpl->matchFamily("HarmonyOS-Sans");
+    SkFontStyleSet* styleSet2 = m_fontMgrOhosImpl->matchFamily("0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans");
     ASSERT_NE(styleSet2, nullptr);
     ASSERT_EQ(styleSet2->count(), 2);
-    SkFontStyleSet* styleSet3 = m_fontMgrOhosImpl->matchFamily("HarmonyOS Sans SC");
+    SkFontStyleSet* styleSet3 = m_fontMgrOhosImpl->matchFamily("0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC");
     ASSERT_NE(styleSet3, nullptr);
     ASSERT_EQ(styleSet3->count(), 1);
     delete styleSet1;
@@ -170,24 +170,24 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyle001, TestSize.Level1)
     ASSERT_NE(tp, nullptr);
     SkString familyName;
     tp->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS-Sans");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans");
     SkSafeUnref(tp);
 
-    SkTypeface* tp1 = m_fontMgrOhosImpl->matchFamilyStyle("HarmonyOS-Sans", style);
+    SkTypeface* tp1 = m_fontMgrOhosImpl->matchFamilyStyle("0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans", style);
     ASSERT_NE(tp1, nullptr);
     SkString familyName1;
     tp1->getFamilyName(&familyName1);
-    ASSERT_STREQ(familyName1.c_str(), "HarmonyOS-Sans");
+    ASSERT_STREQ(familyName1.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans");
     SkSafeUnref(tp1);
 
     SkTypeface* tp2 = m_fontMgrOhosImpl->matchFamilyStyle("TestNoFound", style);
     ASSERT_NE(tp2, nullptr);
 
-    SkTypeface* tp3 = m_fontMgrOhosImpl->matchFamilyStyle("HarmonyOS Sans SC", style);
+    SkTypeface* tp3 = m_fontMgrOhosImpl->matchFamilyStyle("0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC", style);
     ASSERT_NE(tp3, nullptr);
     SkString familyName3;
     tp3->getFamilyName(&familyName3);
-    ASSERT_STREQ(familyName3.c_str(), "HarmonyOS Sans SC");
+    ASSERT_STREQ(familyName3.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC");
     SkSafeUnref(tp3);
 }
 
@@ -203,19 +203,19 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyleCharacter001, TestSize.Level1)
     ASSERT_NE(tp, nullptr);
     SkString familyName;
     tp->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS Sans Naskh Arabic UI");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans Naskh Arabic UI");
 
     std::vector<const char*> bcp47;
     SkTypeface* tp1 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(), bcp47.size(), 0x63CF);
     ASSERT_NE(tp1, nullptr);
     tp1->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS Sans SC");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC");
 
     bcp47.push_back("zh-Hant");
     SkTypeface* tp2 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(), bcp47.size(), 0x63CF);
     ASSERT_NE(tp2, nullptr);
     tp2->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS Sans TC");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans TC");
    
     SkSafeUnref(tp);
     SkSafeUnref(tp1);
@@ -233,7 +233,7 @@ HWTEST_F(SkFontMgrOhosTest, MakeFromStreamIndex001, TestSize.Level1)
     sk_sp<SkTypeface> sktp = m_fontMgrOhosImpl->makeFromStream(std::move(skStream), 0);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS Sans SC");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC");
 }
 
 /**
@@ -248,7 +248,7 @@ HWTEST_F(SkFontMgrOhosTest, MakeFromStreamArgs001, TestSize.Level1)
     sk_sp<SkTypeface> sktp = m_fontMgrOhosImpl->makeFromStream(std::move(skStream), skFontArguments);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS Sans SC");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC");
 }
 
 /**
@@ -262,7 +262,7 @@ HWTEST_F(SkFontMgrOhosTest, MakeFromFile001, TestSize.Level1)
     ASSERT_NE(sktp, nullptr);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS Sans SC");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53 Sans SC");
 }
 
 /**
@@ -277,10 +277,11 @@ HWTEST_F(SkFontMgrOhosTest, LegacyMakeTypeface001, TestSize.Level1)
     ASSERT_NE(sktp, nullptr);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS-Sans");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans");
 
-    sk_sp<SkTypeface> sktp1 = m_fontMgrOhosImpl->legacyMakeTypeface("HarmonyOS-Sans-Condensed", style);
+    sk_sp<SkTypeface> sktp1 = m_fontMgrOhosImpl->legacyMakeTypeface("0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans-Condensed",
+        style);
     ASSERT_NE(sktp1, nullptr);
     sktp1->getFamilyName(&familyName);
-    ASSERT_STREQ(familyName.c_str(), "HarmonyOS-Sans-Condensed");
+    ASSERT_STREQ(familyName.c_str(), "0x480x610x720x6D0x6F0x6E0x790x4F0x53-Sans-Condensed");
 }
