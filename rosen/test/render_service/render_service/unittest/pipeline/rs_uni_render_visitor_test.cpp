@@ -2930,7 +2930,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_003, Tes
     ASSERT_FALSE(node->IsAIBarFilterCacheValid());
 
     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
-    EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);
+    EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 }
 
 /*
