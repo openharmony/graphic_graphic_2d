@@ -45,6 +45,7 @@ void SkiaMatrix44Test::TearDown() {}
 HWTEST_F(SkiaMatrix44Test, SkiaMatrix44001, TestSize.Level1)
 {
     std::shared_ptr<SkiaMatrix44> skiaMatrix44 = std::make_shared<SkiaMatrix44>();
+    EXPECT_TRUE(skiaMatrix44 != nullptr);
     skiaMatrix44->Translate(2, 2, 2); // 2: dx, dy and dz
     skiaMatrix44->PreTranslate(2, 2, 2); // 2: dx, dy and dz
     skiaMatrix44->PostTranslate(2, 2, 2); // 2: dx, dy and dz
