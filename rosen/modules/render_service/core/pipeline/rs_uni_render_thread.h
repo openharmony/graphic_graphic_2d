@@ -102,7 +102,7 @@ public:
         frameCount_++;
     }
     bool GetWatermarkFlag() const;
-    
+
     bool IsCurtainScreenOn() const;
     bool IsColorFilterModeOn() const;
     bool IsHighContrastTextModeOn() const;
