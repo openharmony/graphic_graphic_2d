@@ -1059,6 +1059,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             auto remoteObj = data.ReadRemoteObject();
             uint64_t id = data.ReadUint64();
             NodeId windowNodeID = data.ReadUint64();
+            bool fromXcomponent = data.ReadBool();
             if (remoteObj == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;
@@ -1072,7 +1073,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_UNKNOWN_OBJECT;
                 break;
             }
-            sptr<IVSyncConnection> conn = CreateVSyncConnection(name, token, id, windowNodeID);
+            sptr<IVSyncConnection> conn = CreateVSyncConnection(name, token, id, windowNodeID, fromXcomponent);
             if (conn == nullptr) {
                 ret = ERR_NULL_OBJECT;
                 break;

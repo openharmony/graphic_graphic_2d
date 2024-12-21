@@ -433,9 +433,10 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     const std::string& name,
     uint64_t id,
     const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper,
-    NodeId windowNodeId)
+    NodeId windowNodeId,
+    bool fromXcomponent)
 {
-    return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId);
+    return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId, fromXcomponent);
 }
 
 std::shared_ptr<Media::PixelMap> RSInterfaces::CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect)
