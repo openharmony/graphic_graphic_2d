@@ -942,7 +942,7 @@ void OH_Drawing_SetTypographyTextWordBreakType(OH_Drawing_TypographyStyle* style
             break;
         }
         case WORD_BREAK_TYPE_HYPHEN: {
-            rosenWordBreakType = WordBreakType::HYPHEN;
+            rosenWordBreakType = WordBreakType::BREAK_HYPHEN;
             break;
         }
         default: {

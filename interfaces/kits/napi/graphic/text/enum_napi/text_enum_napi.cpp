@@ -75,7 +75,7 @@ const std::vector<struct JsEnumInt> WORD_BREAK_TYPE = {
     { "NORMAL", static_cast<size_t>(WordBreakType::NORMAL) },
     { "BREAK_ALL", static_cast<size_t>(WordBreakType::BREAK_ALL) },
     { "BREAK_WORD", static_cast<size_t>(WordBreakType::BREAK_WORD) },
-    { "HYPHEN", static_cast<size_t>(WordBreakType::HYPHEN) },
+    { "BREAK_HYPHEN", static_cast<size_t>(WordBreakType::BREAK_HYPHEN) },
 };
 
 const std::vector<struct JsEnumInt> BREAK_STRATEGY = {
