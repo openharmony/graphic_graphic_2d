@@ -32,7 +32,7 @@ public:
     void SetUp() override;
     void TearDown() override;
 private:
-    static sk_sp<SkFontMgr>m_fontMgrOhosImpl;
+    static sk_sp<SkFontMgr> m_fontMgrOhosImpl;
 };
 
 sk_sp<SkFontMgr> SkFontMgrOhosTest::m_fontMgrOhosImpl = nullptr;
@@ -44,7 +44,6 @@ void SkFontMgrOhosTest::SetUpTestCase()
 void SkFontMgrOhosTest::TearDownTestCase()
 {
     m_fontMgrOhosImpl = nullptr;
-
 }
 void SkFontMgrOhosTest::SetUp() {}
 void SkFontMgrOhosTest::TearDown() {}

@@ -25,8 +25,8 @@ ohos_unittest("2d_graphics_text_test") {
   ]
 
   sources = [
-    "skfontmgr_test.cpp",
     "font_mgr_test.cpp",
+    "skfontmgr_test.cpp",
     "typeface_test.cpp",
   ]
 
