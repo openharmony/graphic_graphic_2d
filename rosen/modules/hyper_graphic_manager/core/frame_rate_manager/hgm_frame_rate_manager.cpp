@@ -110,7 +110,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
             curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
         }
-        idleDetector_.UpdateSupportAppBufferList(configData->appBufferList_);
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
@@ -318,39 +317,28 @@ void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, pid_
 
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
-    bool appNeedHighRefresh = false;
-    idleDetector_.ClearAppBufferList();
-    idleDetector_.ClearAppBufferBlackList();
     PolicyConfigData::StrategyConfig config;
-    if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS) {
-        if (config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
-            appNeedHighRefresh = true;
-        }
+    if (multiAppStrategy_.GetFocusAppStrategyConfig(config) == EXEC_SUCCESS &&
+        config.dynamicMode == DynamicModeType::TOUCH_EXT_ENABLED) {
+        idleDetector_.SetAppSupportedState(true);
+    } else {
+        idleDetector_.SetAppSupportedState(false);
     }
-    idleDetector_.UpdateAppBufferList(config.appBufferList);
-    idleDetector_.UpdateAppBufferBlackList(config.appBufferBlackList);
-    idleDetector_.SetAppSupportedState(appNeedHighRefresh);
+    idleDetector_.SetBufferFpsMap(std::move(config.bufferFpsMap));
 }
 
-void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker,
-    bool& needCheckAceAnimatorStatus)
+void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrameRateLinker>& linker)
 {
-    if (!needCheckAceAnimatorStatus || linker == nullptr) {
+    if (linker == nullptr) {
         return;
     }
     if (linker->GetAceAnimatorExpectedFrameRate() >= 0) {
-        needCheckAceAnimatorStatus = false;
         RS_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "]  SetAceAnimatorIdleState[false] "
             "AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()), linker->GetId(),
             linker->GetAceAnimatorExpectedFrameRate());
         idleDetector_.SetAceAnimatorIdleState(false);
         idleDetector_.UpdateAceAnimatorExpectedFrameRate(linker->GetAceAnimatorExpectedFrameRate());
-        return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "] "
-        "SetAceAnimatorIdleState[true] AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()),
-        linker->GetId(), linker->GetAceAnimatorExpectedFrameRate());
-    idleDetector_.SetAceAnimatorIdleState(true);
 }
 
 void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
@@ -358,29 +346,19 @@ void HgmFrameRateManager::UpdateGuaranteedPlanVote(uint64_t timestamp)
     if (!idleDetector_.GetAppSupportedState()) {
         return;
     }
+    idleDetector_.UpdateSurfaceState(timestamp);
     RS_TRACE_NAME_FMT("HgmFrameRateManager:: TouchState = [%d]  SurFaceIdleState = [%d]  AceAnimatorIdleState = [%d]",
-        touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(timestamp),
+        touchManager_.GetState(), idleDetector_.GetSurfaceIdleState(),
         idleDetector_.GetAceAnimatorIdleState());
 
     // After touch up, wait FIRST_FRAME_TIME_OUT ms
     if (!startCheck_.load() || touchManager_.GetState() == TouchState::IDLE_STATE) {
-        needHighRefresh_ = false;
         lastTouchUpExpectFps_ = 0;
         return;
     }
 
-    // Check if third framework need high refresh
-    if (!needHighRefresh_) {
-        needHighRefresh_ = true;
-        if (!idleDetector_.ThirdFrameNeedHighRefresh()) {
-            DeliverRefreshRateVote({"VOTER_TOUCH"}, REMOVE_VOTE);
-            lastTouchUpExpectFps_ = 0;
-            return;
-        }
-    }
-
-    // Third frame need high refresh vote
-    if (idleDetector_.GetSurfaceIdleState(timestamp) && idleDetector_.GetAceAnimatorIdleState()) {
+    // remove the touch vote if third framework idle, otherwise vote the touch up fps
+    if (idleDetector_.GetSurfaceIdleState() && idleDetector_.GetAceAnimatorIdleState()) {
         RS_TRACE_NAME_FMT("UpdateGuaranteedPlanVote:: Surface And Animator Idle, remove touch vote");
         DeliverRefreshRateVote({"VOTER_TOUCH"}, REMOVE_VOTE);
         lastTouchUpExpectFps_ = 0;
@@ -424,12 +402,12 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     FrameRateRange finalRange;
     if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
         finalRange = rsFrameRateLinker->GetExpectedRange();
-        bool needCheckAceAnimatorStatus = true;
+        idleDetector_.SetAceAnimatorIdleState(true);
         for (auto linker : appFrameRateLinkers) {
             if (!multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
                 continue;
             }
-            SetAceAnimatorVote(linker.second, needCheckAceAnimatorStatus);
+            SetAceAnimatorVote(linker.second);
             auto expectedRange = linker.second->GetExpectedRange();
             if (!HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange) &&
                 (expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
