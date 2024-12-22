@@ -29,6 +29,7 @@ enum RSBaseNodeCommandType : uint16_t {
     BASE_NODE_ADD_CROSS_PARENT_CHILD,
     BASE_NODE_REMOVE_CHILD,
     BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
+    BASE_NODE_SET_IS_CROSS_NODE,
     BASE_NODE_REMOVE_FROM_TREE,
     BASE_NODE_CLEAR_CHILDREN,
 };
@@ -41,6 +42,7 @@ public:
     static void RemoveChild(RSContext& context, NodeId nodeId, NodeId childNodeId);
     static void AddCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId, int32_t index);
     static void RemoveCrossParentChild(RSContext& context, NodeId nodeId, NodeId childNodeId, NodeId newParentId);
+    static void SetIsCrossNode(RSContext& context, NodeId nodeId, bool isCrossNode);
     static void RemoveFromTree(RSContext& context, NodeId nodeId);
     static void ClearChildren(RSContext& context, NodeId nodeId);
 };
@@ -63,6 +65,9 @@ ADD_COMMAND(RSBaseNodeAddCrossParentChild,
 ADD_COMMAND(RSBaseNodeRemoveCrossParentChild,
     ARG(PERMISSION_APP, BASE_NODE, BASE_NODE_REMOVE_CROSS_PARENT_CHILD,
         BaseNodeCommandHelper::RemoveCrossParentChild, NodeId, NodeId, NodeId))
+ADD_COMMAND(RSBaseNodeSetIsCrossNode,
+    ARG(PERMISSION_APP, BASE_NODE, BASE_NODE_SET_IS_CROSS_NODE,
+        BaseNodeCommandHelper::SetIsCrossNode, NodeId, bool))
 ADD_COMMAND(RSBaseNodeRemoveFromTree,
     ARG(PERMISSION_APP, BASE_NODE, BASE_NODE_REMOVE_FROM_TREE,
         BaseNodeCommandHelper::RemoveFromTree, NodeId))

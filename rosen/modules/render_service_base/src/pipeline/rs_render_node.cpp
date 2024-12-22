@@ -481,6 +481,12 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
     oldAbsMatrix_ = geoPtr->GetAbsMatrix();
 }
 
+
+void RSRenderNode::SetIsCrossNode(bool isCrossNode)
+{
+    isCrossNode_ = isCrossNode;
+}
+
 bool RSRenderNode::IsCrossNode() const
 {
     if (!isCrossNode_) {
@@ -530,20 +536,6 @@ bool RSRenderNode::IsCrossNode() const
     return intersectCount > 1;
 }
 
-void RSRenderNode::IncreaseCrossScreenNum()
-{
-    if (++crossScreenNum_ > 0) {
-        isCrossNode_ = true;
-    }
-}
-
-void RSRenderNode::DecreaseCrossScreenNum()
-{
-    if (--crossScreenNum_ == 0) {
-        isCrossNode_ = false;
-    }
-}
-
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
 {
     // AddCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens),
@@ -551,7 +543,6 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     if (child == nullptr) {
         return;
     }
-    child->IncreaseCrossScreenNum();
     // Set parent-child relationship
     child->SetParent(weak_from_this());
     if (index < 0 || index >= static_cast<int32_t>(children_.size())) {
@@ -580,7 +571,6 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     if (child == nullptr) {
         return;
     }
-    child->DecreaseCrossScreenNum();
     // break parent-child relationship
     auto it = std::find_if(children_.begin(), children_.end(),
         [&](WeakPtr& ptr) -> bool { return ROSEN_EQ<RSRenderNode>(ptr, child); });
