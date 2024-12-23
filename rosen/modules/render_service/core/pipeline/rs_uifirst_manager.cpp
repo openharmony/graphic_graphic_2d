@@ -335,22 +335,14 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
-    if (!surfaceParams) {
+    if (!surfaceParams || !surfaceParams->GetAncestorDisplayNode().lock()) {
         return;
     }
-    auto ancestorDisplayNodeMap = surfaceParams->GetAncestorDisplayNode();
-    if (ancestorDisplayNodeMap.empty()) {
-        return;
-    }
-    auto ancestor = ancestorDisplayNodeMap.begin()->second.lock();
+    auto ancestor = surfaceParams->GetAncestorDisplayNode().lock()->ReinterpretCastTo<RSDisplayRenderNode>();
     if (!ancestor) {
         return;
     }
-    auto ancestorDisplayNode = ancestor->ReinterpretCastTo<RSDisplayRenderNode>();
-    if (!ancestorDisplayNode) {
-        return;
-    }
-    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestorDisplayNode->GetRenderParams().get());
+    auto displayParams = static_cast<RSDisplayRenderParams*>(ancestor->GetRenderParams().get());
     if (!displayParams) {
         return;
     }

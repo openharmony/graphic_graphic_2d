@@ -230,13 +230,8 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         return true;
     }
     bool forceClientForDRM = false;
-    auto ancestorDrawableMap = params.GetAncestorDisplayDrawable();
-    if (ancestorDrawableMap.empty()) {
-        RS_LOGE("ancestorDrawableMap return empty");
-        return false;
-    }
     auto ancestorDisplayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(ancestorDrawableMap.begin()->second.lock());
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
         uniParam == nullptr) {
