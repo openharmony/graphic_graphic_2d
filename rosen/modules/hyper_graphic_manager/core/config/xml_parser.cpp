@@ -329,9 +329,7 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         auto name = ExtractPropertyValue("name", *currNode);
         if (name == "supported_mode") {
             PolicyConfigData::SupportedModeConfig supportedModeConfig;
-            int32_t setResult = EXEC_SUCCESS;
-            setResult = ParseSupportedModeConfig(*currNode, supportedModeConfig);
-            if (setResult != EXEC_SUCCESS) {
+            if (ParseSupportedModeConfig(*currNode, supportedModeConfig) != EXEC_SUCCESS) {
                 HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
             }
             mParsedData_->supportedModeConfigs_[type] = supportedModeConfig;

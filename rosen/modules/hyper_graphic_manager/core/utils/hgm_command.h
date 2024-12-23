@@ -121,7 +121,7 @@ public:
 
     // <"LowBright", <30, 60, 120>>
     using SupportedModeConfig = std::unordered_map<std::string, std::vector<uint32_t>>;
-    // <"LTPO-DEAULT", SupportedModeConfig>
+    // <"LTPO-DEFAULT", SupportedModeConfig>
     using SupportedModeMap = std::unordered_map<std::string, SupportedModeConfig>;
 
     struct DynamicConfig {
