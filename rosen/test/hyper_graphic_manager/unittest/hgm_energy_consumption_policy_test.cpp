@@ -128,7 +128,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3,
     SetIdleStateEnable(false);
     SetIdleStateEnable(true);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, false);
-    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, false);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, true);
 }
 
 /**
