@@ -680,6 +680,7 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
             colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
             break;
         default:
+            colorSpace = Drawing::ColorSpace::CreateSRGB();
             break;
     }
 
