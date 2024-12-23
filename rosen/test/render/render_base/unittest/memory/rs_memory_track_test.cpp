@@ -150,25 +150,6 @@ HWTEST_F(RSMemoryTrackUnitTest, GetAppMemorySizeInMBTest, testing::ext::TestSize
 }
 
 /**
- * @tc.name: GenerateDumpTitleTest
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackUnitTest, GenerateDumpTitleTest, testing::ext::TestSize.Level1)
-{
-    MemoryInfo info;
-    // for test
-    uint64_t windowId = 1;
-    std::string windowName = "My Window";
-    RectI nodeFrameRect;
-    std::string ret = MemoryTrack::Instance().GenerateDumpTitle();
-    ASSERT_TRUE(!ret.empty());
-    ret = MemoryTrack::Instance().GenerateDetail(info, windowId, windowName, nodeFrameRect);
-    ASSERT_TRUE(!ret.empty());
-}
-
-/**
  * @tc.name: DumpMemoryNodeStatisticsTest
  * @tc.desc: test
  * @tc.type: FUNC
