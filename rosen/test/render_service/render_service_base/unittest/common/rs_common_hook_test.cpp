@@ -54,12 +54,10 @@ HWTEST_F(RsCommonHookTest, RegisterStartNewAnimationListenerTest, TestSize.Level
  */
 HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
 {
-    std::string result;
-    auto callback = [&result](const std::string& componentName) { result = componentName; };
+    auto callback = []() {};
     RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
-    std::string componentName = "SWIPER_FLING";
-    RsCommonHook::Instance().OnStartNewAnimation(componentName);
-    ASSERT_EQ(result, componentName);
+    RsCommonHook::Instance().OnStartNewAnimation();
+    ASSERT_EQ(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
 
 /**
@@ -71,8 +69,7 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
 HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest2, TestSize.Level1)
 {
     RsCommonHook::Instance().RegisterStartNewAnimationListener(nullptr);
-    std::string componentName = "SWIPER_FLING";
-    RsCommonHook::Instance().OnStartNewAnimation(componentName);
+    RsCommonHook::Instance().OnStartNewAnimation();
     ASSERT_EQ(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
 } // namespace OHOS::Rosen
