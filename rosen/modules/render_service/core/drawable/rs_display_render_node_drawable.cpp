@@ -72,6 +72,8 @@ constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 constexpr const float HALF = 2.0f;
 constexpr const float LITTLE_SCREEN_SCALE = 0.6f;
+constexpr char FOLDSCREEN_TYPE_SMALL_FOLD = '2';
+const std::string FOLDSCREEN_TYPE_KEY = "const.window.foldscreen.type";
 static std::once_flag g_initTranslateForWallpaperFlag;
 
 std::string RectVectorToString(std::vector<RectI>& regionRects)
@@ -601,7 +603,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RS_LOGD("RSDisplayRenderNodeDrawable::OnDraw curScreenId=[%{public}" PRIu64 "], "
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
 
-    if (RSSystemProperties::IsFoldScreenFlag() && paramScreenId == 0) {
+    static std::string foldScreenType = system::GetParameter(FOLDSCREEN_TYPE_KEY, "0,0,0,0");
+    if (RSSystemProperties::IsFoldScreenFlag() && foldScreenType[0] != FOLDSCREEN_TYPE_SMALL_FOLD &&
+        paramScreenId == 0) {
         screenRotation = static_cast<ScreenRotation>((static_cast<int>(screenRotation) + 1) % ROTATION_NUM);
     }
     RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
