@@ -311,7 +311,10 @@ private:
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
     bool IsNeedDrawDirectly() const;
-    Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+    static Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+#ifdef RS_ENABLE_GL
+    static GLenum GetGLTextureFormatByBitmapFormat(Drawing::ColorType colorType);
+#endif
     static GraphicTransformType MapGraphicTransformType(GraphicTransformType origin);
     static bool IsValidRemoteAddress(pid_t pid, uint64_t uid);
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
