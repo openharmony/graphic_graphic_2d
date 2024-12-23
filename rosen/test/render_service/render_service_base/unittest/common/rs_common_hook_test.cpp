@@ -57,7 +57,7 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
     auto callback = []() {};
     RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
     RsCommonHook::Instance().OnStartNewAnimation();
-    ASSERT_EQ(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
+    ASSERT_NE(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
 
 /**
