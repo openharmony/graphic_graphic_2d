@@ -205,6 +205,23 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
+bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
+{
+    if (blurRadius < 1) {
+        ROSEN_LOGW("%{public}s no blur effect", __func__);
+        return TakeSurfaceCapture(node, callback, captureConfig);
+    }
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    blurParam.blurRadius = blurRadius;
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
+}
+
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
@@ -399,6 +416,11 @@ void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
 {
     RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame.");
     renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
+}
+
+void RSInterfaces::RepaintEverything()
+{
+    renderServiceClient_->RepaintEverything();
 }
 
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)

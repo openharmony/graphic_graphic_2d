@@ -35,21 +35,20 @@ public:
     HgmIdleDetector() = default;
     ~HgmIdleDetector() = default;
 
-    void SetAppSupportedState(bool appSupported)
-    {
-        appSupported_ = appSupported;
-    }
-
+    void SetAppSupportedState(bool appSupported);
     bool GetAppSupportedState() const
     {
         return appSupported_;
     }
 
-    void SetAceAnimatorIdleState(bool aceAnimatorIdleState)
+    void SetBufferFpsMap(std::unordered_map<std::string, int32_t> bufferFpsMap)
     {
-        aceAnimatorIdleState_ = aceAnimatorIdleState;
+        bufferFpsMap_ = std::move(bufferFpsMap);
     }
 
+    int32_t GetTouchUpExpectedFPS();
+
+    void SetAceAnimatorIdleState(bool aceAnimatorIdleState);
     bool GetAceAnimatorIdleState() const
     {
         return aceAnimatorIdleState_;
@@ -62,11 +61,6 @@ public:
         }
     }
 
-    int32_t GetAceAnimatorExpectedFrameRate() const
-    {
-        return aceAnimatorExpectedFrameRate_;
-    }
-
     void ResetAceAnimatorExpectedFrameRate()
     {
         aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
@@ -74,33 +68,14 @@ public:
 
     void UpdateSurfaceTime(const std::string& surfaceName, uint64_t timestamp,
         pid_t pid, UIFWKType uiFwkType = UIFWKType::FROM_UNKNOWN);
-    bool GetSurfaceIdleState(uint64_t timestamp);
-    int32_t GetTouchUpExpectedFPS();
-    bool ThirdFrameNeedHighRefresh();
-    void ClearAppBufferList()
+
+    void UpdateSurfaceState(uint64_t timestamp);
+
+    bool GetSurfaceIdleState() const
     {
-        appBufferList_.clear();
+        return surfaceTimeMap_.empty();
     }
-    void ClearAppBufferBlackList()
-    {
-        appBufferBlackList_.clear();
-    }
-    void UpdateAppBufferList(std::vector<std::pair<std::string, int32_t>> &appBufferList)
-    {
-        appBufferList_ = appBufferList;
-    }
-    void UpdateAppBufferBlackList(std::vector<std::string> &appBufferBlackList)
-    {
-        appBufferBlackList_ = appBufferBlackList;
-    }
-    void UpdateSupportAppBufferList(std::vector<std::string> &supportAppBufferList)
-    {
-        supportAppBufferList_ = supportAppBufferList;
-    }
-    std::vector<std::string>& GetUiFrameworkTypeTable()
-    {
-        return supportAppBufferList_;
-    }
+
 private:
     bool GetUnknownFrameworkState(const std::string& surfaceName,
         std::string& uiFwkType);
@@ -109,13 +84,11 @@ private:
     bool appSupported_ = false;
     bool aceAnimatorIdleState_ = true;
     int32_t aceAnimatorExpectedFrameRate_ = ANIMATOR_NOT_RUNNING;
-    // FORMAT: <buffername>
-    std::vector<std::string> appBufferBlackList_;
-    std::vector<std::string> supportAppBufferList_;
+
     // FORMAT: <buffername, time>
-    std::unordered_map<std::string, uint64_t> frameTimeMap_;
+    std::unordered_map<std::string, uint64_t> surfaceTimeMap_;
     // FORMAT: <buffername, fps>
-    std::vector<std::pair<std::string, int32_t>> appBufferList_;
+    std::unordered_map<std::string, int32_t> bufferFpsMap_;
 };
 } // namespace Rosen
 } // namespace OHOS

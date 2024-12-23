@@ -20,6 +20,11 @@
 #include "config_policy_utils.h"
 
 namespace OHOS::Rosen {
+namespace {
+constexpr uint32_t FPS_MAX = 120;   // for hgm_idle_detector: default max fps of third framework
+constexpr uint32_t XML_STRING_MAX_LENGTH = 8;
+}
+
 int32_t XMLParser::LoadConfiguration(const char* fileDir)
 {
     HGM_LOGI("XMLParser opening xml file");
@@ -282,32 +287,17 @@ void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::Strateg
     if (mParsedData_->appBufferList_.empty()) {
         return;
     }
-    std::unordered_map<std::string, std::string> config;
-    for (auto &name : mParsedData_->appBufferList_) {
-        auto fps = ExtractPropertyValue(name, node);
-        if (IsNumber(fps)) {
-            config.insert(make_pair(name, fps));
+    for (auto& name : mParsedData_->appBufferList_) {
+        auto fpsStr = ExtractPropertyValue(name, node);
+        if (fpsStr == "") {
+            strategy.bufferFpsMap[name] = FPS_MAX;
+        } else if (IsNumber(fpsStr)) {
+            auto fpsNum = std::stoi(fpsStr);
+            if (fpsNum > 0) {
+                strategy.bufferFpsMap[name] = fpsNum;
+            }
         }
     }
-    if (config.empty()) {
-        return;
-    }
-    for (auto &it : config) {
-        if (std::stoi(it.second) == 0) {
-            strategy.appBufferBlackList.push_back(it.first);
-        } else {
-            strategy.appBufferList.push_back(make_pair(it.first, std::stoi(it.second)));
-        }
-    }
-    if (strategy.appBufferList.empty()) {
-        return;
-    }
-    std::sort(strategy.appBufferList.begin(), strategy.appBufferList.end(),
-        [](const std::pair<std::string, int32_t>& a, const std::pair<std::string, int32_t>& b) {
-        return a.second > b.second;
-    });
-
-    return;
 }
 
 int32_t XMLParser::ParseScreenConfig(xmlNode &node)
@@ -328,10 +318,11 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         }
         auto name = ExtractPropertyValue("name", *currNode);
         if (name == "supported_mode") {
-            std::vector<uint32_t> supportedModeVector;
-            auto value = ExtractPropertyValue("value", *currNode);
-            supportedModeVector = StringToVector(value);
-            mParsedData_->supportedModeConfigs_[type] = supportedModeVector;
+            PolicyConfigData::SupportedModeConfig supportedModeConfig;
+            if (ParseSupportedModeConfig(*currNode, supportedModeConfig) != EXEC_SUCCESS) {
+                HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+            }
+            mParsedData_->supportedModeConfigs_[type] = supportedModeConfig;
             continue;
         }
         PolicyConfigData::ScreenSetting screenSetting;
@@ -511,6 +502,34 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
     return EXEC_SUCCESS;
 }
 
+int32_t XMLParser::ParseSupportedModeConfig(xmlNode &node, PolicyConfigData::SupportedModeConfig &supportedModeConfig)
+{
+    HGM_LOGD("XMLParser parsing supportedModeConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing supportedModeConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    supportedModeConfig.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        std::vector<uint32_t> supportedModeVec;
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        supportedModeVec = StringToVector(value);
+
+        supportedModeConfig[name] = supportedModeVec;
+        HGM_LOGI("HgmXMLParser ParseSupportedModeConfig name=%{public}s value=%{public}s",
+            name.c_str(), value.c_str());
+    }
+    return EXEC_SUCCESS;
+}
+
 int32_t XMLParser::ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting)
 {
     auto multiAppStrategy = ExtractPropertyValue("multi_app_strategy", node);
@@ -577,7 +596,7 @@ std::string XMLParser::ExtractPropertyValue(const std::string &propName, xmlNode
 
 bool XMLParser::IsNumber(const std::string& str)
 {
-    if (str.length() == 0) {
+    if (str.length() == 0 || str.length() > XML_STRING_MAX_LENGTH) {
         return false;
     }
     auto number = static_cast<uint32_t>(std::count_if(str.begin(), str.end(), [](unsigned char c) {

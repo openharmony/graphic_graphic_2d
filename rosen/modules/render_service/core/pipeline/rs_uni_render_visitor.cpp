@@ -461,6 +461,10 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat hasFingerprint is true.");
         return;
     }
+    if (!curDisplayNode_) {
+        RS_LOGE("RSUniRenderVisitor::CheckPixelFormat curDisplayNode is null");
+        return;
+    }
     if (node.GetFingerprint()) {
         hasFingerprint_[currentVisitDisplay_] = true;
         curDisplayNode_->SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
@@ -470,27 +474,32 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
     if (node.GetHDRPresent()) {
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64 "",
             node.GetId());
-        hasUniRenderHdrSurface_ = true;
+        curDisplayNode_->SetHasUniRenderHdrSurface(true);
         SetHDRParam(node, true);
     }
 }
 
 void RSUniRenderVisitor::HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager)
 {
+    if (!curDisplayNode_) {
+        RS_LOGE("RSUniRenderVisitor::HandlePixelFormat curDisplayNode is null");
+        return;
+    }
     if (!RSSystemProperties::GetHDRImageEnable()) {
-        hasUniRenderHdrSurface_ = false;
+        curDisplayNode_->SetHasUniRenderHdrSurface(false);
     }
     ScreenId screenId = node.GetScreenId();
-    RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface_);
+    bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
+    RSLuminanceControl::Get().SetHdrStatus(screenId, hasUniRenderHdrSurface);
     RSLuminanceControl::Get().SetHdrStatus(screenId, node.GetHdrVideo(), node.GetHdrVideoType());
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     rsHdrCollection_->HandleHdrState(isHdrOn);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
-    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface_, brightnessRatio);
+    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d brightnessRatio:%f", isHdrOn, hasUniRenderHdrSurface, brightnessRatio);
     RS_LOGD("RSUniRenderVisitor::HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
-        "brightnessRatio:%{public}f screenId: %{public}" PRIu64 "", isHdrOn, hasUniRenderHdrSurface_,
+        "brightnessRatio:%{public}f screenId: %{public}" PRIu64 "", isHdrOn, hasUniRenderHdrSurface,
         brightnessRatio, screenId);
-    if (!hasUniRenderHdrSurface_) {
+    if (!hasUniRenderHdrSurface) {
         isHdrOn = false;
     }
     node.SetHDRPresent(isHdrOn);
@@ -1434,6 +1443,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     globalSurfaceBounds_.clear();
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
+    node.SetHasUniRenderHdrSurface(false);
     // 2 init screenManager info
     screenManager_ = CreateOrGetScreenManager();
     if (!screenManager_) {
@@ -1624,7 +1634,8 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
             curSurfaceNode_->AddChildHardwareEnabledNode(node.ReinterpretCastTo<RSSurfaceRenderNode>());
         }
         if (!node.GetHardWareDisabledByReverse()) {
-            node.SetHardwareForcedDisabledState(false);
+            node.SetHardwareForcedDisabledState(node.GetIsHwcPendingDisabled());
+            node.SetIsHwcPendingDisabled(false);
         }
         node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
         if (!IsHardwareComposerEnabled() || !node.IsDynamicHardwareEnable() ||
@@ -2100,7 +2111,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
 void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     const auto& hwcNodes = node->GetChildHardwareEnabledNodes();
-    if (hwcNodes.empty()) {
+    if (hwcNodes.empty() || !curDisplayNode_) {
         return;
     }
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
@@ -2114,11 +2125,14 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             topLayers.emplace_back(hwcNodePtr);
             continue;
         }
-        if ((hasUniRenderHdrSurface_ || !drmNodes_.empty()) && !hwcNodePtr->GetProtectedLayer()) {
+        if ((curDisplayNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty()) && !hwcNodePtr->GetProtectedLayer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
                 " disabled by having UniRenderHdrSurface/DRM nodes",
                 hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            // DRM will force HDR to use unirender
+            curDisplayNode_->SetHasUniRenderHdrSurface(curDisplayNode_->GetHasUniRenderHdrSurface() ||
+                RSMainThread::CheckIsHdrSurface(*hwcNodePtr));
             hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
                 HwcDisabledReasons::DISABLED_BY_RENDER_HDR_SURFACE, hwcNodePtr->GetName());
         }
@@ -2172,7 +2186,7 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
             topLayerSurfaceHandler->SetGlobalZOrder(globalZOrder_ + 1);
             topLayer->SetCalcRectInPrepare(false);
             topLayer->SetHardwareForcedDisabledState(!IsHardwareComposerEnabled() || !topLayer->ShouldPaint() ||
-                hasUniRenderHdrSurface_ || !drmNodes_.empty());
+                curDisplayNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty());
             auto transform = RSUniRenderUtil::GetLayerTransform(*topLayer, screenInfo_);
             topLayer->UpdateHwcNodeLayerInfo(transform);
         }
@@ -2373,9 +2387,13 @@ bool RSUniRenderVisitor::CheckIfRoundCornerIntersectDRM(const float& ratio, std:
 void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI>& hwcRects,
     std::shared_ptr<RSSurfaceRenderNode>& hwcNode, bool isIntersectWithRoundCorner)
 {
+    if (!curDisplayNode_) {
+        RS_LOGE("RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf curDisplayNode is null");
+        return;
+    }
     if (hwcNode->IsHardwareForcedDisabled()) {
         if (RSMainThread::CheckIsHdrSurface(*hwcNode)) {
-            hasUniRenderHdrSurface_ = true;
+            curDisplayNode_->SetHasUniRenderHdrSurface(true);
         }
         return;
     }
@@ -2408,7 +2426,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelf(std::vector<RectI
                 }
                 hwcNode->SetHardwareForcedDisabledState(true);
                 if (RSMainThread::CheckIsHdrSurface(*hwcNode)) {
-                    hasUniRenderHdrSurface_ = true;
+                    curDisplayNode_->SetHasUniRenderHdrSurface(true);
                 }
                 hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(hwcNode->GetId(),
                     HwcDisabledReasons::DISABLED_BY_HWC_NODE_ABOVE, hwcNode->GetName());
@@ -2860,6 +2878,9 @@ void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
             curSurfaceNode_, node.GetOldDirtyInSurface(), NeedPrepareChindrenInReverseOrder(node));
         auto globalFilterRect = (node.IsInstanceOf<RSEffectRenderNode>() && !node.FirstFrameHasEffectChildren()) ?
             GetVisibleEffectDirty(node) : node.GetOldDirtyInSurface();
+        if (node.NeedDrawBehindWindow()) {
+            node.CalDrawBehindWindowRegion();
+        }
         node.CalVisibleFilterRect(prepareClipRect_);
         node.MarkClearFilterCacheIfEffectChildrenChanged();
         CollectFilterInfoAndUpdateDirty(node, *curDirtyManager, globalFilterRect);
@@ -2972,7 +2993,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         if (geoPtr == nullptr) {
             return;
         }
-        auto matrix = geoPtr->GetMatrix();
+        auto originalMatrix = geoPtr->GetMatrix();
+        auto matrix = Drawing::Matrix();
         auto parent = hwcNodePtr->GetParent().lock();
         bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
         while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
@@ -2997,7 +3019,10 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             }
         }
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
-        const auto& properties = hwcNodePtr->GetRenderProperties();
+        auto& properties = hwcNodePtr->GetMutableRenderProperties();
+        auto offset = std::nullopt;
+        properties.UpdateGeometryByParent(&matrix, offset);
+        matrix.PreConcat(originalMatrix);
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
         matrix.MapRect(absRect, bounds);
@@ -3063,6 +3088,7 @@ void RSUniRenderVisitor::CalcHwcNodeEnableByFilterRect(
             node->GetSrcRect().GetLeft(), node->GetSrcRect().GetRight(),
             node->GetSrcRect().GetTop(), node->GetSrcRect().GetBottom());
 #endif
+        node->SetIsHwcPendingDisabled(true);
         node->SetHardwareForcedDisabledState(true);
         node->SetHardWareDisabledByReverse(isReverseOrder);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node->GetId(),
@@ -3159,7 +3185,11 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto filter = cleanFilter.begin(); filter != cleanFilter.end(); ++filter) {
-        if (!hwcNodePtr.GetDstRect().IntersectRect(filter->second).IsEmpty()) {
+        auto geo = hwcNodePtr.GetRenderProperties().GetBoundsGeometry();
+        if (!geo) {
+            return;
+        }
+        if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (rendernode == nullptr) {
                 ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: rendernode is null");

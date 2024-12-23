@@ -102,6 +102,7 @@ private:
     PreValidateFunc preValidateFunc_ = nullptr;
     bool loadSuccess_ = false;
     bool isPrevalidateHwcNodeEnable_ = false;
+    bool arsrPreEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

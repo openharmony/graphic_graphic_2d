@@ -621,7 +621,16 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(paramScreenId);
     ScreenId activeScreenId = HgmCore::Instance().GetActiveScreenId();
     uint32_t activeScreenRefreshRate = HgmCore::Instance().GetScreenCurrentRefreshRate(activeScreenId);
-    // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
+
+    // when set expectedRefreshRate, the activeScreenRefreshRate maybe change from 60 to 120
+    // so that need change whether equal vsync period and whether use virtual dirty
+    if (curScreenInfo.skipFrameStrategy == SKIP_FRAME_BY_REFRESH_RATE) {
+        bool isEqualVsyncPeriod = (activeScreenRefreshRate == curScreenInfo.expectedRefreshRate);
+        if (isEqualVsyncPeriod != curScreenInfo.isEqualVsyncPeriod) {
+            curScreenInfo.isEqualVsyncPeriod = isEqualVsyncPeriod;
+            screenManager->SetEqualVsyncPeriod(paramScreenId, isEqualVsyncPeriod);
+        }
+    }
     if (SkipFrame(activeScreenRefreshRate, curScreenInfo)) {
         SetDrawSkipType(DrawSkipType::SKIP_FRAME);
         RS_TRACE_NAME_FMT("SkipFrame, screenId:%lu, strategy:%d, interval:%u, refreshrate:%u", paramScreenId,
@@ -629,7 +638,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         screenManager->ForceRefreshOneFrameIfNoRNV();
         return;
     }
-    if (curScreenInfo.skipFrameInterval > 1) {
+    if (!curScreenInfo.isEqualVsyncPeriod) {
         virtualDirtyRefresh_ = true;
     }
 
@@ -687,9 +696,9 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
-            // disable expand screen dirty when skipFrameInterval > 1, because the dirty history is incorrect
+            // disable expand screen dirty when isEqualVsyncPeriod is false, because the dirty history is incorrect
             if (uniParam->IsExpandScreenDirtyEnabled() && uniParam->IsVirtualDirtyEnabled() &&
-                curScreenInfo.skipFrameInterval <= 1) {
+                curScreenInfo.isEqualVsyncPeriod) {
                 int32_t bufferAge = expandProcessor->GetBufferAge();
                 damageRegionRects = MergeDirtyHistory(*this, bufferAge, screenInfo, rsDirtyRectsDfx, *params);
                 uniParam->Reset();
@@ -1007,18 +1016,15 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirty(
         virtualProcesser->SetRoiRegionToCodec(mappedDamageRegionRects);
         return mappedDamageRegionRects;
     }
-    ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirrorParams->GetScreenId());
     ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(params.GetScreenId());
-    if (curScreenInfo.skipFrameInterval > 1) {
+    if (!curScreenInfo.isEqualVsyncPeriod) {
         RS_LOGD("RSDisplayRenderNodeDrawable::CalculateVirtualDirty frame rate is irregular");
         virtualProcesser->SetRoiRegionToCodec(mappedDamageRegionRects);
         return mappedDamageRegionRects;
     }
-
+    ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirrorParams->GetScreenId());
     int32_t bufferAge = virtualProcesser->GetBufferAge();
-    int32_t actualAge = curScreenInfo.skipFrameInterval ?
-        static_cast<int32_t>(curScreenInfo.skipFrameInterval) * bufferAge : bufferAge;
-    std::vector<RectI> damageRegionRects = MergeDirtyHistoryInVirtual(*mirroredDrawable, actualAge, mainScreenInfo);
+    std::vector<RectI> damageRegionRects = MergeDirtyHistoryInVirtual(*mirroredDrawable, bufferAge, mainScreenInfo);
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     for (auto& rect : damageRegionRects) {
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
@@ -1065,7 +1071,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         return;
     }
     // for HDR
-    curCanvas_->SetCapture(true);
+    curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
     auto mirroedDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
     auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
@@ -1106,7 +1112,6 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false); // disable partial render
     (mirroredDrawable.get()->*drawFunc)(*curCanvas_);
-    DrawCurtainScreen();
     uniParam.SetOpDropped(isOpDropped);
     RSUniRenderThread::ResetCaptureParam();
     FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST));
@@ -1179,6 +1184,8 @@ void RSDisplayRenderNodeDrawable::DrawExpandScreen(RSUniRenderVirtualProcessor& 
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, false, scaleX, scaleY));
     RSRenderNodeDrawable::OnCapture(*curCanvas_);
     RSUniRenderThread::ResetCaptureParam();
+    // for HDR
+    curCanvas_->SetOnMultipleScreen(true);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
 }
@@ -1268,7 +1275,8 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     if (uniParam == nullptr) {
         return;
     }
-    curCanvas_->SetCapture(true);
+    // for HDR
+    curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
     curCanvas_->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     bool isOpDropped = uniParam->IsOpDropped();
@@ -1300,7 +1308,6 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen mirroredNode is null");
         return damageRegionRects;
     }
-    const auto& mirroredParams = mirroredDrawable->GetRenderParams();
     const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (uniParam == nullptr || !uniParam->IsVirtualDirtyEnabled() ||
         (enableVisibleRect_ && curVisibleRect_.GetTop() > 0)) {
@@ -1312,14 +1319,17 @@ std::vector<RectI> RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScr
         RS_LOGE("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen screenManager is null");
         return damageRegionRects;
     }
-    int32_t bufferAge = renderFrame->GetBufferAge();
     auto curScreenInfo = params.GetScreenInfo();
-    int32_t actualAge = curScreenInfo.skipFrameInterval ?
-        static_cast<int32_t>(curScreenInfo.skipFrameInterval) * bufferAge : bufferAge;
+    if (!curScreenInfo.isEqualVsyncPeriod) {
+        RS_LOGD("RSDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen frame rate is irregular");
+        return damageRegionRects;
+    }
+    int32_t bufferAge = renderFrame->GetBufferAge();
+    const auto& mirroredParams = mirroredDrawable->GetRenderParams();
     ScreenInfo mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
     std::shared_ptr<RSObjAbsGeometry> tmpGeo = std::make_shared<RSObjAbsGeometry>();
     // merge history dirty and map to mirrored wired screen by matrix
-    auto tempDamageRegionRects = MergeDirtyHistoryInVirtual(*mirroredDrawable, actualAge, mainScreenInfo);
+    auto tempDamageRegionRects = MergeDirtyHistoryInVirtual(*mirroredDrawable, bufferAge, mainScreenInfo);
     for (auto& rect : tempDamageRegionRects) {
         RectI mappedRect = tmpGeo->MapRect(rect.ConvertTo<float>(), canvasMatrix);
         damageRegionRects.emplace_back(mappedRect);
@@ -1953,24 +1963,6 @@ bool RSDisplayRenderNodeDrawable::SkipFrameByInterval(uint32_t refreshRate, uint
     }
     int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
-    // when refreshRate % skipFrameInterval != 0 means the skipFrameInterval is the virtual screen refresh rate
-    if (refreshRate % skipFrameInterval != 0) {
-        int64_t minFrameInterval = 1000000000LL / skipFrameInterval;
-        if (minFrameInterval == 0) {
-            return false;
-        }
-        // lastRefreshTime_ is next frame expected refresh time for virtual display
-        if (lastRefreshTime_ <= 0) {
-            lastRefreshTime_ = currentTime + minFrameInterval;
-            return false;
-        }
-        if (currentTime < (lastRefreshTime_ - MAX_JITTER_NS)) {
-            return true;
-        }
-        int64_t intervalNums = (currentTime - lastRefreshTime_ + MAX_JITTER_NS) / minFrameInterval;
-        lastRefreshTime_ += (intervalNums + 1) * minFrameInterval;
-        return false;
-    }
     // the skipFrameInterval is equal to 60 divide the virtual screen refresh rate
     int64_t refreshInterval = currentTime - lastRefreshTime_;
     // 1000000000ns == 1s, 110/100 allows 10% over.
@@ -1981,14 +1973,13 @@ bool RSDisplayRenderNodeDrawable::SkipFrameByInterval(uint32_t refreshRate, uint
     return needSkip;
 }
 
-bool RSDisplayRenderNodeDrawable::SkipFrameByRefreshRate(uint32_t refreshRate)
+bool RSDisplayRenderNodeDrawable::SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate)
 {
-    if (refreshRate == 0) {
+    if (refreshRate == 0 || expectedRefreshRate == 0 || refreshRate == expectedRefreshRate) {
         return false;
     }
-    int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    int64_t minFrameInterval = 1000000000LL / refreshRate;
+    int64_t currentTime = RSMainThread::Instance()->GetCurrentVsyncTime();
+    int64_t minFrameInterval = 1000000000LL / expectedRefreshRate;
     if (minFrameInterval == 0) {
         return false;
     }
@@ -2013,7 +2004,7 @@ bool RSDisplayRenderNodeDrawable::SkipFrame(uint32_t refreshRate, ScreenInfo scr
             needSkip = SkipFrameByInterval(refreshRate, screenInfo.skipFrameInterval);
             break;
         case SKIP_FRAME_BY_REFRESH_RATE:
-            needSkip = SkipFrameByRefreshRate(screenInfo.expectedRefreshRate);
+            needSkip = SkipFrameByRefreshRate(refreshRate, screenInfo.expectedRefreshRate);
             break;
         default:
             break;

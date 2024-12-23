@@ -26,7 +26,6 @@
 #include "param/sys_param.h"
 #include "common/rs_optional_trace.h"
 #include "rs_trace.h"
-#include <mutex>
 
 namespace OHOS {
 namespace Rosen {
@@ -43,7 +42,7 @@ namespace {
     constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
     constexpr uint32_t MAX_VIRTUAL_SCREEN_HEIGHT = 65536;
-    constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 60;
+    constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
     void SensorPostureDataCallback(SensorEvent *event)
     {
         OHOS::Rosen::CreateOrGetScreenManager()->HandlePostureData(event);
@@ -1678,6 +1677,7 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
     info.skipFrameInterval = screen->GetScreenSkipFrameInterval();
     info.expectedRefreshRate = screen->GetScreenExpectedRefreshRate();
     info.skipFrameStrategy = screen->GetScreenSkipFrameStrategy();
+    info.isEqualVsyncPeriod = screen->GetEqualVsyncPeriod();
     screen->GetPixelFormat(info.pixelFormat);
     screen->GetScreenHDRFormat(info.hdrFormat);
     info.whiteList = screen->GetWhiteList();
@@ -2004,6 +2004,7 @@ int32_t RSScreenManager::SetScreenSkipFrameIntervalLocked(ScreenId id, uint32_t 
         return INVALID_ARGUMENTS;
     }
     screensIt->second->SetScreenSkipFrameInterval(skipFrameInterval);
+    screensIt->second->SetEqualVsyncPeriod(skipFrameInterval == 1);
     RS_LOGD("RSScreenManager %{public}s: screen(id %" PRIu64 "), skipFrameInterval(%d).",
         __func__, id, skipFrameInterval);
     return StatusCode::SUCCESS;
@@ -2028,14 +2029,23 @@ int32_t RSScreenManager::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRe
     if (maxRefreshRate > MAX_VIRTUAL_SCREEN_REFRESH_RATE) {
         maxRefreshRate = MAX_VIRTUAL_SCREEN_REFRESH_RATE;
     }
-    while (MAX_VIRTUAL_SCREEN_REFRESH_RATE % maxRefreshRate != 0) { // maxRefreshRate is greater than 0
-        maxRefreshRate--;
-    }
     screensIt->second->SetScreenExpectedRefreshRate(maxRefreshRate);
     RS_LOGI("RSScreenManager %{public}s: screen(id %" PRIu64 "), maxRefreshRate(%d).",
         __func__, id, maxRefreshRate);
     actualRefreshRate = maxRefreshRate;
     return StatusCode::SUCCESS;
+}
+
+void RSScreenManager::SetEqualVsyncPeriod(ScreenId id, bool isEqualVsyncPeriod)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return;
+    }
+    screensIt->second->SetEqualVsyncPeriod(isEqualVsyncPeriod);
+    return;
 }
 
 int32_t RSScreenManager::GetPixelFormatLocked(ScreenId id, GraphicPixelFormat& pixelFormat) const

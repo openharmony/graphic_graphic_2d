@@ -179,7 +179,7 @@ private:
     bool EnablescRGBForP3AndUiFirst(const GraphicColorGamut& currentGamut);
     void RenderOverDraw();
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
-    bool SkipFrameByRefreshRate(uint32_t refreshRate);
+    bool SkipFrameByRefreshRate(uint32_t refreshRate, uint32_t expectedRefreshRate);
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::DISPLAY_NODE, OnGenerate>;
     static Registrar instance_;

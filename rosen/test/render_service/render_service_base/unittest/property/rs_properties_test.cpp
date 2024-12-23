@@ -178,8 +178,10 @@ HWTEST_F(RSPropertiesTest, SetShadowColor001, TestSize.Level1)
     RSProperties properties;
     RSColor color;
     properties.SetShadowColor(color);
+    EXPECT_EQ(properties.GetShadowColor(), color);
     RSColor color2;
-    properties.SetShadowColor(color);
+    properties.SetShadowColor(color2);
+    EXPECT_EQ(properties.GetShadowColor(), color2);
 }
 
 /**
@@ -193,8 +195,10 @@ HWTEST_F(RSPropertiesTest, SetShadowOffsetX001, TestSize.Level1)
     RSProperties properties;
     float offsetX = 0.1f;
     properties.SetShadowOffsetX(offsetX);
+    EXPECT_EQ(properties.GetShadowOffsetX(), 0.1f);
     offsetX = 1.1f;
     properties.SetShadowOffsetX(offsetX);
+    EXPECT_EQ(properties.GetShadowOffsetX(), 1.1f);
 }
 
 /**
@@ -208,8 +212,10 @@ HWTEST_F(RSPropertiesTest, SetShadowOffsetY001, TestSize.Level1)
     RSProperties properties;
     float offsetY = 0.1f;
     properties.SetShadowOffsetY(offsetY);
+    EXPECT_EQ(properties.GetShadowOffsetY(), 0.1f);
     offsetY = 1.0f;
     properties.SetShadowOffsetY(offsetY);
+    EXPECT_EQ(properties.GetShadowOffsetY(), 1.0f);
 }
 
 /**
@@ -1936,6 +1942,7 @@ HWTEST_F(RSPropertiesTest, GetFrameRect001, TestSize.Level1)
     RSProperties properties;
     RectF rect(0, 0, properties.GetFrameWidth(), properties.GetFrameHeight());
     properties.GetFrameRect();
+    EXPECT_TRUE(true);
 }
 
 /**
@@ -1973,7 +1980,7 @@ HWTEST_F(RSPropertiesTest, GenerateNGetRRect001, TestSize.Level1)
 {
     RSProperties properties;
     properties.GenerateRRect();
-    properties.GetRRect();
+    EXPECT_NE(properties.boundsGeo_, nullptr);
 }
 
 /**

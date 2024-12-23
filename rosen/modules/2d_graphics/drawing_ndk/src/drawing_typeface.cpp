@@ -22,6 +22,7 @@
 #include "include/core/SkTypes.h"
 
 #include "drawing_canvas_utils.h"
+#include "drawing_font_utils.h"
 
 #include "text/typeface.h"
 #include "utils/log.h"
@@ -95,7 +96,7 @@ static OH_Drawing_Typeface* RegisterAndConvertTypeface(std::shared_ptr<Typeface>
 
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateDefault()
 {
-    std::shared_ptr<Typeface> typeface = g_LoadZhCnTypeface();
+    std::shared_ptr<Typeface> typeface = DrawingFontUtils::GetZhCnTypeface();
     if (typeface == nullptr) {
         LOGE("OH_Drawing_TypefaceCreateDefault: create failed.");
         return nullptr;

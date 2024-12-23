@@ -23,7 +23,6 @@
 #include <thread>
 #include <tuple>
 #include "rs_trace.h"
-#include <securec.h>
 #include "render_context_log.h"
 #ifdef PRELOAD_SHADER_CACHE
 #include "shader_cache_utils.h"
@@ -138,15 +137,6 @@ std::shared_ptr<Drawing::Data> ShaderCache::Load(const Drawing::Data& key)
         res = cacheData_->Get(key.GetData(), keySize, valueBuffer, valueSize);
         // update res after realloc and Get key
         errorCode = std::get<0>(res);
-        valueSize = std::get<1>(res);
-    }
-    const uint8_t* valueBufferCheck = static_cast<const uint8_t*>(valueBuffer);
-    if (valueSize >= zeroPatternSize_ &&
-        !memcmp(valueBufferCheck + valueSize - zeroPatternSize_, zeroPattern_, zeroPatternSize_)) {
-        LOGE("abandon, because value is not well format");
-        free(valueBuffer);
-        valueBuffer = nullptr;
-        return nullptr;
     }
 
     if (errorCode != CacheData::ErrorCode::NO_ERR) {
@@ -203,12 +193,6 @@ void ShaderCache::Store(const Drawing::Data& key, const Drawing::Data& data)
     }
 
     const void* value = data.GetData();
-    if (valueSize >= zeroPatternSize_ &&
-        !memcmp(static_cast<const uint8_t*>(value) + valueSize - zeroPatternSize_, zeroPattern_, zeroPatternSize_)) {
-        LOGE("abandon, because valueSize is not well format");
-        return;
-    }
-
     cacheDirty_ = true;
     if (!cacheData_) {
         LOGD("store: cachedata has been destructed");

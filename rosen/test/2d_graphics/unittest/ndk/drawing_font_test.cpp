@@ -794,6 +794,25 @@ HWTEST_F(NativeFontTest, NativeFontTest_FontGetTextPath006, TestSize.Level1)
     }
     OH_Drawing_FontDestroy(font);
 }
+
+/*
+ * @tc.name: NativeFontTest_FontThemeFont001
+ * @tc.desc: test for theme font.
+ * @tc.type: FUNC
+ * @tc.require: IAKP0I
+ */
+HWTEST_F(NativeFontTest, NativeFontTest_FontThemeFont001, TestSize.Level1)
+{
+    OH_Drawing_Font* font = OH_Drawing_FontCreate();
+    EXPECT_NE(font, nullptr);
+    bool followed = true;
+    OH_Drawing_FontIsThemeFontFollowed(font, &followed);
+    EXPECT_EQ(followed, false);
+    OH_Drawing_FontSetThemeFontFollowed(font, true);
+    OH_Drawing_FontIsThemeFontFollowed(font, &followed);
+    EXPECT_EQ(followed, true);
+    OH_Drawing_FontDestroy(font);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

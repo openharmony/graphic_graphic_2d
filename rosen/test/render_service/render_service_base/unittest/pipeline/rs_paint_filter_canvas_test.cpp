@@ -76,9 +76,9 @@ void RSPaintFilterCanvasTest::TearDown() {}
 
 class SDFShapeBaseTest : public Drawing::SDFShapeBase {
 public:
-    std::string Getshader() const override
+    const std::string& Getshader() const override
     {
-        return "";
+        return std::nullptr_t();
     };
     float GetSize() const override
     {
@@ -99,6 +99,35 @@ public:
     float GetTranslateY() const override
     {
         return 0.0f;
+    };
+    void SetBoundsRect(const Rosen::Drawing::Rect& rect) override
+    {
+        return;
+    };
+    Rosen::Drawing::Rect GetBoundsRect() const override
+    {
+        Rosen::Drawing::Rect temp;
+        return temp;
+    };
+    int GetShapeId() const override
+    {
+        return 0;
+    };
+    void SetTransparent(int transparent) override
+    {
+        return;
+    };
+    int GetTransparent() const override
+    {
+        return 0;
+    };
+    std::vector<float> GetPaintPara() const override
+    {
+        return {};
+    };
+    std::vector<float> GetPointAndColorPara() const override
+    {
+        return {};
     };
     int GetParaNum() const override
     {
@@ -901,6 +930,21 @@ HWTEST_F(RSPaintFilterCanvasTest, SaveTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnMultipleScreenTest
+ * @tc.desc: OnMultipleScreen Test
+ * @tc.type:FUNC
+ * @tc.require:issuesI9J2YE
+ */
+HWTEST_F(RSPaintFilterCanvasTest, OnMultipleScreenTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetOnMultipleScreen(true);
+    EXPECT_EQ(paintFilterCanvas_->IsOnMultipleScreen(), true);
+    paintFilterCanvas_->SetOnMultipleScreen(false);
+    EXPECT_EQ(paintFilterCanvas_->IsOnMultipleScreen(), false);
+}
+
+/**
  * @tc.name: SaveLayerTest
  * @tc.desc: SaveLayer Test
  * @tc.type:FUNC
@@ -1498,7 +1542,7 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPenTest004, TestSize.Level1)
     Drawing::Pen pen;
     Drawing::Canvas canvasTest;
     paintFilterCanvas->canvas_ = &canvasTest;
-    paintFilterCanvas->isCapture_ = false;
+    paintFilterCanvas->multipleScreen_ = false;
     paintFilterCanvas->alphaStack_.push(1.0f);
     pen.brush_.color_ = 0x00000001;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
@@ -1526,7 +1570,7 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachBrushTest005, TestSize.Level1)
     Drawing::Brush brush;
     Drawing::Canvas canvasTest;
     paintFilterCanvas->canvas_ = &canvasTest;
-    paintFilterCanvas->isCapture_ = false;
+    paintFilterCanvas->multipleScreen_ = false;
     paintFilterCanvas->alphaStack_.push(1.0f);
     brush.color_ = 0x00000001;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;
@@ -1555,7 +1599,7 @@ HWTEST_F(RSPaintFilterCanvasTest, AttachPaintTest006, TestSize.Level1)
     Drawing::Paint paint;
     Drawing::Canvas canvasTest;
     paintFilterCanvas->canvas_ = &canvasTest;
-    paintFilterCanvas->isCapture_ = false;
+    paintFilterCanvas->multipleScreen_ = false;
     paintFilterCanvas->alphaStack_.push(1.0f);
     paint.color_ = 0x00000001;
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = nullptr;

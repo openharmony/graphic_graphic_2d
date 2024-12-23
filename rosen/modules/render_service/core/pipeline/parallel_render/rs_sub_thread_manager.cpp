@@ -25,7 +25,7 @@
 
 namespace OHOS::Rosen {
 static constexpr uint32_t SUB_THREAD_NUM = 3;
-static constexpr uint32_t SUB_VEDIO_THREAD_TASKS_NUM_MAX = 2;
+static constexpr uint32_t SUB_VIDEO_THREAD_TASKS_NUM_MAX = 2;
 static constexpr uint32_t WAIT_NODE_TASK_TIMEOUT = 5 * 1000; // 5s
 constexpr const char* RELEASE_RESOURCE = "releaseResource";
 constexpr const char* RELEASE_TEXTURE = "releaseTexture";
@@ -404,7 +404,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     if (RSSystemProperties::IsPcType()) {
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
         if (surfaceParams && surfaceParams->GetPreSubHighPriorityType() &&
-            threadList_[0]->GetDoingCacheProcessNum() <= SUB_VEDIO_THREAD_TASKS_NUM_MAX) {
+            threadList_[0]->GetDoingCacheProcessNum() < SUB_VIDEO_THREAD_TASKS_NUM_MAX) {
             nowIdx = 0;
         }
     }

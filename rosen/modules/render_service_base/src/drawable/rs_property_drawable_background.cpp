@@ -571,6 +571,7 @@ void RSBackgroundFilterDrawable::OnSync()
     if (needSync_) {
         needDrawBehindWindow_ = stagingNeedDrawBehindWindow_;
     }
+    drawBehindWindowRegion_ = stagingDrawBehindWindowRegion_;
     RSFilterDrawable::OnSync();
 }
 

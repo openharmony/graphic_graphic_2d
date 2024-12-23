@@ -683,7 +683,7 @@ private:
     float foregroundBlurRadiusX_ = 0.f;
     float foregroundBlurRadiusY_ = 0.f;
     std::weak_ptr<RSRenderNode> backref_;
-    
+
     std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
     int pixelStretchTileMode_ = 0;

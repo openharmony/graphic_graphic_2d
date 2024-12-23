@@ -44,6 +44,7 @@ private:
     bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
     bool ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
     bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
+    bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
     void SetQos();
     RSRenderServiceSecurityUtils securityUtils_;
     std::unordered_set<int> tids_;

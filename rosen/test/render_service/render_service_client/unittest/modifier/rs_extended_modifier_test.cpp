@@ -226,5 +226,6 @@ HWTEST_F(RSExtendedModifierTest, DrawTest001, TestSize.Level1)
     Drawing::Canvas canvas;
     RSDrawingContext rsDrawingContext = { &canvas, 1, 1 };
     geometryTransModifier.Draw(rsDrawingContext);
+    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

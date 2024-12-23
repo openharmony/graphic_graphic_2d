@@ -41,7 +41,7 @@ public:
     static napi_value MakeFromFile(napi_env env, napi_callback_info info);
     static napi_value MakeFromRawFile(napi_env env, napi_callback_info info);
     // Default typeface does not support chinese characters, needs to load chinese character ttf file.
-    static std::shared_ptr<Typeface> LoadZhCnTypeface();
+    static std::shared_ptr<Typeface> GetZhCnTypeface();
 
     std::shared_ptr<Typeface> GetTypeface();
 
@@ -49,6 +49,7 @@ private:
     napi_value OnGetFamilyName(napi_env env, napi_callback_info info);
 
     static thread_local napi_ref constructor_;
+    static std::shared_ptr<Typeface> zhCnTypeface_;
     std::shared_ptr<Typeface> m_typeface = nullptr;
 };
 } // namespace Drawing

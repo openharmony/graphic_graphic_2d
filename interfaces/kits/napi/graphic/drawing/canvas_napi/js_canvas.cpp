@@ -1110,6 +1110,10 @@ napi_value JsCanvas::OnDrawSingleCharacter(napi_env env, napi_callback_info info
         ROSEN_LOGE("JsCanvas::OnDrawSingleCharacter font is nullptr");
         return nullptr;
     }
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont;
+    }
 
     const char* currentStr = str;
     int32_t unicode = SkUTF::NextUTF8(&currentStr, currentStr + len);

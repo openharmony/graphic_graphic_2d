@@ -227,101 +227,6 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest, Function | SmallTest
 }
 
 /**
- * @tc.name: HgmSetTouchUpFPS001
- * @tc.desc: Verify the result of HgmSetTouchUpFPS001 function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS001, Function | SmallTest | Level1)
-{
-    HgmFrameRateManager frameRateMgr;
-    InitHgmFrameRateManager(frameRateMgr);
-    PolicyConfigData::StrategyConfig strategyConfig;
-    std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
-    PART("CaseDescription") {
-        STEP("1. init") {
-            frameRateMgr.idleDetector_.SetAppSupportedState(true);
-            std::vector<std::string> supportedAppBufferList = { otherSurface };
-            frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, appPid, UIFWKType::FROM_SURFACE);
-            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, lastTime);
-            sleep(1);
-        }
-        STEP("2. handle touch up event") {
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
-            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            if (frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig) != EXEC_SUCCESS) {
-                return; // xml is empty, return
-            }
-
-            std::vector<std::pair<std::string, int32_t>> appBufferList;
-            appBufferList.push_back(std::make_pair(otherSurface, OLED_90_HZ));
-            frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
-            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
-
-            appBufferList.clear();
-            appBufferList.push_back(std::make_pair(otherSurface, OLED_120_HZ));
-            frameRateMgr.idleDetector_.ClearAppBufferList();
-            frameRateMgr.idleDetector_.UpdateAppBufferList(appBufferList);
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
-            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            ASSERT_EQ(frameRateMgr.multiAppStrategy_.GetVoteRes(strategyConfig), EXEC_SUCCESS);
-        }
-    }
-    frameRateMgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
-    sleep(1); // wait for handler task finished
-}
-
-/**
- * @tc.name: HgmSetTouchUpFPS002
- * @tc.desc: Verify the result of HgmSetTouchUpFPS002 function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, HgmSetTouchUpFPS002, Function | SmallTest | Level1)
-{
-    HgmFrameRateManager frameRateMgr;
-    InitHgmFrameRateManager(frameRateMgr);
-    PolicyConfigData::StrategyConfig strategyConfig;
-    std::vector<std::weak_ptr<RSRenderNode>> uiFwkDirtyNodes;
-    PART("CaseDescription") {
-        STEP("1. init") {
-            frameRateMgr.idleDetector_.SetAppSupportedState(true);
-            std::vector<std::string> supportedAppBufferList = { otherSurface };
-            frameRateMgr.idleDetector_.UpdateSupportAppBufferList(supportedAppBufferList);
-            frameRateMgr.UpdateSurfaceTime(otherSurface, appPid, UIFWKType::FROM_SURFACE);
-            frameRateMgr.UpdateUIFrameworkDirtyNodes(uiFwkDirtyNodes, lastTime);
-            sleep(1);
-        }
-        STEP("2. handle touch up event") {
-            std::vector<std::string> appBufferBlackList = { otherSurface };
-            frameRateMgr.idleDetector_.UpdateAppBufferBlackList(appBufferBlackList);
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
-            frameRateMgr.UpdateGuaranteedPlanVote(currTime);
-            ASSERT_EQ(frameRateMgr.idleDetector_.ThirdFrameNeedHighRefresh(), false);
-            std::this_thread::sleep_for(std::chrono::milliseconds(delay_60Ms));
-            ASSERT_EQ(frameRateMgr.touchManager_.GetState(), TouchState::IDLE_STATE);
-        }
-    }
-    frameRateMgr.touchManager_.ChangeState(TouchState::IDLE_STATE);
-    sleep(1); // wait for handler task finished
-}
-
-/**
  * @tc.name: MultiThread001
  * @tc.desc: Verify the result of MultiThread001 function
  * @tc.type: FUNC
@@ -339,47 +244,86 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     HgmFrameRateManager frameRateMgr;
     auto vsyncGenerator = CreateVSyncGenerator();
     sptr<Rosen::VSyncController> rsController = new VSyncController(vsyncGenerator, offset);
+    ASSERT_NE(rsController, nullptr);
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset);
+    ASSERT_NE(appController, nullptr);
     frameRateMgr.Init(rsController, appController, vsyncGenerator);
 
     ASSERT_NE(vsyncGenerator, nullptr);
     ASSERT_NE(rsController, nullptr);
     ASSERT_NE(appController, nullptr);
-    for (int i = 0; i < testThreadNum; i++) {
-        // HandleLightFactorStatus
-        frameRateMgr.HandleLightFactorStatus(i, true);
-        frameRateMgr.HandleLightFactorStatus(i, false);
+    HgmTaskHandleThread::Instance().PostTask([&]() {
+        for (int i = 0; i < testThreadNum; i++) {
+            // HandleLightFactorStatus
+            frameRateMgr.HandleLightFactorStatus(i, true);
+            frameRateMgr.HandleLightFactorStatus(i, false);
 
-        // HandlePackageEvent
-        frameRateMgr.HandlePackageEvent(i, {pkg0});
-        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg0}), EXEC_SUCCESS);
-        frameRateMgr.HandlePackageEvent(i, {pkg1});
-        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg1}), EXEC_SUCCESS);
-        frameRateMgr.HandlePackageEvent(i, {pkg2});
-        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg2}), EXEC_SUCCESS);
-        frameRateMgr.HandlePackageEvent(i, {pkg0, pkg1});
-        ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg0, pkg1}), EXEC_SUCCESS);
+            // HandlePackageEvent
+            frameRateMgr.HandlePackageEvent(i, {pkg0});
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg0}), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, {pkg1});
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg1}), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, {pkg2});
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg2}), EXEC_SUCCESS);
+            frameRateMgr.HandlePackageEvent(i, {pkg0, pkg1});
+            ASSERT_NE(frameRateMgr.multiAppStrategy_.HandlePkgsEvent({pkg0, pkg1}), EXEC_SUCCESS);
 
-        // HandleRefreshRateEvent
-        frameRateMgr.HandleRefreshRateEvent(i, {});
+            // HandleRefreshRateEvent
+            frameRateMgr.HandleRefreshRateEvent(i, {});
 
-        // HandleTouchEvent
-        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, touchCnt);
-        frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, touchCnt);
+            // HandleTouchEvent
+            frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_DOWN, touchCnt);
+            frameRateMgr.HandleTouchEvent(i, TouchStatus::TOUCH_UP, touchCnt);
 
-        // HandleRefreshRateMode
-        // param -1、0、1、2、3：refresh rate mode
-        frameRateMgr.HandleRefreshRateMode(-1);
-        frameRateMgr.HandleRefreshRateMode(0);
-        frameRateMgr.HandleRefreshRateMode(1);
-        frameRateMgr.HandleRefreshRateMode(2);
-        frameRateMgr.HandleRefreshRateMode(3);
+            // HandleRefreshRateMode
+            // param -1、0、1、2、3：refresh rate mode
+            frameRateMgr.HandleRefreshRateMode(-1);
+            frameRateMgr.HandleRefreshRateMode(0);
+            frameRateMgr.HandleRefreshRateMode(1);
+            frameRateMgr.HandleRefreshRateMode(2);
+            frameRateMgr.HandleRefreshRateMode(3);
 
-        // HandleScreenPowerStatus
-        frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
-        frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
-    }
+            // HandleScreenPowerStatus
+            frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
+            frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
+        }
+    });
     sleep(1); // wait for handler task finished
+}
+
+/**
+ * @tc.name: UpdateGuaranteedPlanVoteTest
+ * @tc.desc: Verify the result of UpdateGuaranteedPlanVote
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, UpdateGuaranteedPlanVoteTest, Function | SmallTest | Level1)
+{
+    std::unique_ptr<HgmFrameRateManager> mgr = std::make_unique<HgmFrameRateManager>();
+
+    mgr->idleDetector_.SetAppSupportedState(false);
+    mgr->UpdateGuaranteedPlanVote(currTime);
+
+    mgr->idleDetector_.SetAppSupportedState(true);
+    mgr->UpdateGuaranteedPlanVote(currTime);
+
+    mgr->HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+    mgr->HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    mgr->UpdateGuaranteedPlanVote(currTime);
+
+    mgr->idleDetector_.bufferFpsMap_["AceAnimato"] = 90;
+    mgr->HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+    mgr->HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    mgr->UpdateGuaranteedPlanVote(currTime);
+
+    mgr->idleDetector_.SetAceAnimatorIdleState(false);
+    mgr->HandleTouchEvent(appPid, TouchStatus::TOUCH_DOWN, touchCount);
+    mgr->HandleTouchEvent(appPid, TouchStatus::TOUCH_UP, touchCount);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
+    mgr->UpdateGuaranteedPlanVote(currTime);
+    EXPECT_FALSE(mgr->idleDetector_.GetAceAnimatorIdleState());
 }
 
 /**
@@ -551,15 +495,12 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessRefreshRateVoteTest, Function | SmallTest |
 HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Level2)
 {
     HgmFrameRateManager frameRateMgr;
-    auto needCheckAceAnimatorStatus = false;
-    frameRateMgr.SetAceAnimatorVote(nullptr, needCheckAceAnimatorStatus);
+    frameRateMgr.SetAceAnimatorVote(nullptr);
     std::shared_ptr<RSRenderFrameRateLinker> linker = std::make_shared<RSRenderFrameRateLinker>();
-    frameRateMgr.SetAceAnimatorVote(linker, needCheckAceAnimatorStatus);
-    EXPECT_EQ(needCheckAceAnimatorStatus, false);
+    ASSERT_NE(linker, nullptr);
+    frameRateMgr.SetAceAnimatorVote(linker);
     linker->SetAnimatorExpectedFrameRate(OLED_60_HZ);
-    needCheckAceAnimatorStatus = true;
-    frameRateMgr.SetAceAnimatorVote(linker, needCheckAceAnimatorStatus);
-    EXPECT_EQ(needCheckAceAnimatorStatus, false);
+    frameRateMgr.SetAceAnimatorVote(linker);
 }
 
 
@@ -572,6 +513,7 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
 HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
 {
     auto timer = HgmOneShotTimer("HgmOneShotTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
+    ASSERT_NE(timer.handler_, nullptr);
     ASSERT_EQ(timer.name_, "HgmOneShotTimer");
     ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
     ASSERT_EQ(timer.resetCallback_, nullptr);
@@ -591,6 +533,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2
 HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
 {
     auto timer = HgmSimpleTimer("HgmSimpleTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
+    ASSERT_NE(timer.handler_, nullptr);
     ASSERT_EQ(timer.name_, "HgmSimpleTimer");
     ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
     ASSERT_EQ(timer.startCallback_, nullptr);
@@ -610,9 +553,9 @@ HWTEST_F(HgmFrameRateMgrTest, HgmSimpleTimerTest, Function | SmallTest | Level2)
 HWTEST_F(HgmFrameRateMgrTest, HgmRsIdleTimerTest, Function | SmallTest | Level2)
 {
     int32_t interval = 700; // 700ms waiting time
-
     HgmFrameRateManager mgr;
     mgr.InitRsIdleTimer();
+    ASSERT_NE(mgr.rsIdleTimer_, nullptr);
     std::this_thread::sleep_for(std::chrono::milliseconds(interval));
     mgr.HandleRsFrame();
     mgr.minIdleFps_ = OLED_30_HZ;
@@ -698,20 +641,27 @@ HWTEST_F(HgmFrameRateMgrTest, GetLowBrightVec, Function | SmallTest | Level2)
     std::vector<std::string> screenConfigs = {"LTPO-DEFAULT", "LTPO-internal", "LTPO-external"};
     for (const auto& screenConfig : screenConfigs) {
         auto iter = configData->supportedModeConfigs_.find(screenConfig);
-        if (iter != configData-> supportedModeConfigs_.end()) {
-            auto& supportedModeConfig = iter->second;
-
-            supportedModeConfig.clear();
-            mgr.GetLowBrightVec(configData);
-            ASSERT_EQ(mgr.isAmbientEffect_, false);
-            ASSERT_TRUE(mgr.lowBrightVec_.empty());
-
-            std::vector<uint32_t> expectedLowBrightVec = {30, 60, 90};
-            supportedModeConfig = expectedLowBrightVec;
-            mgr.GetLowBrightVec(configData);
-            ASSERT_EQ(mgr.isAmbientEffect_, true);
-            ASSERT_EQ(mgr.lowBrightVec_, expectedLowBrightVec);
+        if (iter == configData-> supportedModeConfigs_.end()) {
+            continue;
         }
+
+        auto& supportedModeConfig = iter->second;
+        auto vec = supportedModeConfig.find("LowBright");
+
+        if (vec == supportedModeConfig.end()) {
+            continue;
+        }
+
+        supportedModeConfig["LowBright"].clear();
+        mgr.GetLowBrightVec(configData);
+        ASSERT_EQ(mgr.isAmbientEffect_, false);
+        ASSERT_TRUE(mgr.lowBrightVec_.empty());
+
+        std::vector<uint32_t> expectedLowBrightVec = {30, 60, 90};
+        supportedModeConfig["LowBright"] = expectedLowBrightVec;
+        mgr.GetLowBrightVec(configData);
+        ASSERT_EQ(mgr.isAmbientEffect_, true);
+        ASSERT_EQ(mgr.lowBrightVec_, expectedLowBrightVec);
     }
 }
 

@@ -128,7 +128,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam)
 {
     return false;
 }
@@ -259,6 +259,10 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
 }
 
 void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
+{
+}
+
+void RSRenderServiceClient::RepaintEverything()
 {
 }
 

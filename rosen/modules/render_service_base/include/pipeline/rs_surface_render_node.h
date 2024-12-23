@@ -142,7 +142,7 @@ public:
             IsLayerTop();
     }
 
-    void GetHwcChildrenState(bool& enabledType);
+    void CheckHwcChildrenType(SurfaceHwcNodeType& enabledType);
     void SetPreSubHighPriorityType();
 
     bool IsDynamicHardwareEnable() const
@@ -1287,6 +1287,8 @@ public:
     bool GetBehindWindowFilterEnabled() const;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
+    void CalDrawBehindWindowRegion() override;
+    RectI GetFilterRect() const override;
     void SetUifirstStartingFlag(bool flag);
     void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
     {
@@ -1316,6 +1318,16 @@ public:
     uint32_t GetApiCompatibleVersion()
     {
         return apiCompatibleVersion_;
+    }
+
+    bool GetIsHwcPendingDisabled() const
+    {
+        return isHwcPendingDisabled_;
+    }
+
+    void SetIsHwcPendingDisabled(bool isHwcPendingDisabled)
+    {
+        isHwcPendingDisabled_ = isHwcPendingDisabled;
     }
 
 protected:
@@ -1438,6 +1450,9 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     bool isUIHidden_ = false;
+
+    // is hwc node disabled by filter rect
+    bool isHwcPendingDisabled_ = false;
 
     // dirtyRegion caused by surfaceNode visible region after alignment
     Occlusion::Region extraDirtyRegionAfterAlignment_;
@@ -1625,6 +1640,7 @@ private:
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
+    RectI drawBehindWindowRegion_;
     std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
 
     uint32_t apiCompatibleVersion_ = 0;

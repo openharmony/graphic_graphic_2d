@@ -98,6 +98,8 @@ public:
     virtual void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) = 0;
     virtual uint32_t GetScreenExpectedRefreshRate() const = 0;
     virtual SkipFrameStrategy GetScreenSkipFrameStrategy() const = 0;
+    virtual void SetEqualVsyncPeriod(bool isEqualVsyncPeriod) = 0;
+    virtual bool GetEqualVsyncPeriod() const = 0;
     virtual void SetScreenVsyncEnabled(bool enabled) const = 0;
     virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
@@ -195,6 +197,8 @@ public:
     void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) override;
     uint32_t GetScreenExpectedRefreshRate() const override;
     SkipFrameStrategy GetScreenSkipFrameStrategy() const override;
+    void SetEqualVsyncPeriod(bool isEqualVsyncPeriod) override;
+    bool GetEqualVsyncPeriod() const override;
     void SetScreenVsyncEnabled(bool enabled) const override;
     bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
@@ -281,6 +285,7 @@ private:
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
     uint32_t expectedRefreshRate_ = INVALID_EXPECTED_REFRESH_RATE;
     SkipFrameStrategy skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
+    bool isEqualVsyncPeriod_ = true;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     bool canvasRotation_ = false; // just for virtual screen to use
     ScreenScaleMode scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
@@ -295,7 +300,7 @@ private:
     Rect mainScreenVisibleRect_ = {};
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
-    mutable std::mutex mutex_;
+    mutable std::mutex skipFrameMutex_;
 };
 } // namespace impl
 } // namespace Rosen

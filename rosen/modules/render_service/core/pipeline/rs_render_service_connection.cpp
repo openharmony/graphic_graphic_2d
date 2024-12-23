@@ -924,6 +924,13 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
     }
 }
 
+void RSRenderServiceConnection::RepaintEverything()
+{
+    RS_LOGI("RepaintEverything, call SetDirtyflag, ForceRefreshForUni");
+    RSMainThread::Instance()->SetDirtyFlag();
+    RSMainThread::Instance()->ForceRefreshForUni();
+}
+
 void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -1024,13 +1031,14 @@ void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> c
 }
 
 void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+    RSSurfaceCapturePermissions permissions)
 {
     if (!mainThread_) {
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
-    std::function<void()> captureTask = [id, callback, captureConfig,
+    std::function<void()> captureTask = [id, callback, captureConfig, blurParam,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
         selfCapture = permissions.selfCapture]() -> void {
@@ -1060,7 +1068,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             return;
         }
         auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
-        auto surfaceCaptureHasPermission = selfCapture || isSystemCalling;
+        auto surfaceCaptureHasPermission = blurParam.isNeedBlur ? isSystemCalling : (selfCapture || isSystemCalling);
         if ((node->GetType() == RSRenderNodeType::DISPLAY_NODE && !displayCaptureHasPermission) ||
             (node->GetType() == RSRenderNodeType::SURFACE_NODE && !surfaceCaptureHasPermission)) {
             RS_LOGE("RSRenderServiceConnection::TakeSurfaceCapture failed, node type: %{public}u, "
@@ -1080,7 +1088,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
         } else {
 #ifdef RS_ENABLE_GPU
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling, false, blurParam);
 #endif
         }
     };

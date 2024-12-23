@@ -308,13 +308,7 @@ bool RSPixelMapUtil::IsSupportZeroCopy(std::shared_ptr<Media::PixelMap> pixelMap
     if (!(pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC)) {
         return false;
     }
-    ImageInfo imageInfo;
-    pixelMap->GetImageInfo(imageInfo);
-    if (imageInfo.pixelFormat == Media::PixelFormat::RGBA_8888) {
-        return sampling.GetMipmapMode() != Drawing::MipmapMode::LINEAR &&
-            RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
-    }
-    return true;
+    return RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL;
 }
 } // namespace Rosen
 } // namespace OHOS

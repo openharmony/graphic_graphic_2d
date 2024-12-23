@@ -4458,4 +4458,145 @@ HWTEST_F(RSMainThreadTest, CountMem, TestSize.Level2)
     mainThread->CountMem(memoryGraphic);
     mainThread->context_ = context;
 }
+
+/**
+ * @tc.name: UpdateSubSurfaceCnt001
+ * @tc.desc: test UpdateSubSurfaceCnt when info empty
+ * @tc.type: FUNC
+ * @tc.require: issueIBBUDG
+ */
+HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->UpdateSubSurfaceCnt();
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCnt002
+ * @tc.desc: test UpdateSubSurfaceCnt when addChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBBUDG
+ */
+HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    ASSERT_NE(context, nullptr);
+    const int cnt = 0;
+    const int id = 100;
+    auto rootNode = std::make_shared<RSRenderNode>(id, context);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    leashNode->AddChild(appNode);
+
+    context->nodeMap.RegisterRenderNode(rootNode);
+    context->nodeMap.RegisterRenderNode(leashNode);
+    context->nodeMap.RegisterRenderNode(appNode);
+
+    mainThread->UpdateSubSurfaceCnt();
+    // cnt + 2: rootNode contain 2 subSurfaceNodes(leash and app)
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCnt003
+ * @tc.desc: test UpdateSubSurfaceCnt when removeChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBBUDG
+ */
+HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt003, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto context = mainThread->context_;
+    ASSERT_NE(context, nullptr);
+    const int cnt = 0;
+    const int id = 100;
+    auto rootNode = std::make_shared<RSRenderNode>(id, context);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    leashNode->AddChild(appNode);
+
+    leashNode->RemoveChild(appNode);
+    rootNode->RemoveChild(leashNode);
+
+    context->nodeMap.RegisterRenderNode(rootNode);
+    context->nodeMap.RegisterRenderNode(leashNode);
+    context->nodeMap.RegisterRenderNode(appNode);
+
+    mainThread->UpdateSubSurfaceCnt();
+    ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
+}
+
+/**
+ * @tc.name: ClearMemoryCache
+ * @tc.desc: test ClearMemoryCache
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, ClearMemoryCache, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    mainThread->ClearMemoryCache(PROCESS_EXIT, true, -1);
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+
+    bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(doDirectComposition);
+}
+
+/**
+ * @tc.name: DoDirectComposition
+ * @tc.desc: Test DoDirectComposition
+ * @tc.type: FUNC
+ * @tc.require: issueIB8HAQ
+ */
+HWTEST_F(RSMainThreadTest, DoDirectComposition002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(displayId, config);
+    rootNode->AddChild(displayNode);
+    rootNode->GenerateFullChildrenList();
+    auto childNode = RSRenderNode::ReinterpretCast<RSDisplayRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE);
+
+    bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
+    ASSERT_FALSE(doDirectComposition);
+}
 } // namespace OHOS::Rosen

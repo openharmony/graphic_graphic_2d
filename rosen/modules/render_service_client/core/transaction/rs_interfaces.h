@@ -97,6 +97,10 @@ public:
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
+    bool TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
@@ -137,6 +141,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 

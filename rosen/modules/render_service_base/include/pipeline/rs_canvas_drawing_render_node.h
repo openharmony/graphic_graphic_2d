@@ -76,7 +76,8 @@ public:
     const std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>>& GetDrawCmdLists() const;
     void ClearResource() override;
     void ClearNeverOnTree() override;
-    void CheckCanvasDrawingPostPlaybacked() override;
+    void CheckCanvasDrawingPostPlaybacked();
+    bool GetIsPostPlaybacked();
 private:
     explicit RSCanvasDrawingRenderNode(
         NodeId id, const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);

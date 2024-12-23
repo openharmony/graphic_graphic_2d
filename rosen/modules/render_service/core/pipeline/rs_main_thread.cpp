@@ -1908,8 +1908,10 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     }
 
     static std::once_flag initUIFwkTableFlag;
-    std::call_once(initUIFwkTableFlag, [this, &frameRateMgr]() {
-        GetContext().SetUiFrameworkTypeTable(frameRateMgr->GetIdleDetector().GetUiFrameworkTypeTable());
+    std::call_once(initUIFwkTableFlag, [this]() {
+        if (auto config = HgmCore::Instance().GetPolicyConfigData(); config != nullptr) {
+            GetContext().SetUiFrameworkTypeTable(config->appBufferList_);
+        }
     });
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
@@ -3743,6 +3745,7 @@ void RSMainThread::PerfAfterAnim(bool needRequestNextVsync)
 
 void RSMainThread::ForceRefreshForUni()
 {
+    RS_LOGI("RSMainThread::ForceRefreshForUni call");
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         PostTask([=]() {
@@ -4183,11 +4186,7 @@ void RSMainThread::UpdateUIFirstSwitch()
         RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
         return;
     }
-    if (hasProtectedLayer_) {
-        isUiFirstOn_ = false;
-    } else {
-        isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
-    }
+    isUiFirstOn_ = RSSystemProperties::GetUIFirstEnabled();
     RSUifirstManager::Instance().SetUiFirstSwitch(isUiFirstOn_);
 #endif
 }

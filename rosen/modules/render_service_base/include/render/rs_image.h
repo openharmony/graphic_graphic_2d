@@ -149,6 +149,11 @@ private:
     void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
     void DrawImageOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw);
+    bool CanDrawRectWithImageShader(const Drawing::Canvas& canvas) const;
+    std::shared_ptr<Drawing::ShaderEffect> GenerateImageShaderForDrawRect(
+        const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const;
+    void DrawImageShaderRectOnCanvas(
+        Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const;
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(

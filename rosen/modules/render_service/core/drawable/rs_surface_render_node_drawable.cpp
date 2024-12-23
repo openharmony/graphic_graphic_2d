@@ -800,16 +800,20 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     if ((UNLIKELY(isSecurityLayer)|| surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
         RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
-            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with security or skip layer.",
-            surfaceParams.GetId(), name_.c_str());
-        RS_TRACE_NAME("CaptureSurface with security or skip layer");
-        Drawing::Brush rectBrush;
-        rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
-        canvas.AttachBrush(rectBrush);
-        canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
-            surfaceParams.GetBounds().GetHeight()));
-        canvas.DetachBrush();
-        return;
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64
+                "] name:[%{public}s]) with security or skip layer, isNeedBlur:[%{public}s]",
+            surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
+        RS_TRACE_NAME_FMT("CaptureSurface with security or skip layer, isNeedBlur: %s",
+            RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
+        if (!(UNLIKELY(isSecurityLayer) && RSUniRenderThread::GetCaptureParam().isNeedBlur_)) {
+            Drawing::Brush rectBrush;
+            rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
+            canvas.AttachBrush(rectBrush);
+            canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
+                surfaceParams.GetBounds().GetHeight()));
+            canvas.DetachBrush();
+            return;
+        }
     }
 
     if (surfaceParams.GetIsProtectedLayer() || (RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
@@ -1019,6 +1023,10 @@ bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& s
 bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams)
 {
+    bool useDmaBuffer = UseDmaBuffer();
+    if (!useDmaBuffer && drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, uniParams)) {
+        return true;
+    }
     auto enableType = surfaceParams.GetUifirstNodeEnableParam();
     auto cacheState = GetCacheSurfaceProcessedStatus();
     if (((!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
@@ -1037,7 +1045,6 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         canvas.MultiplyAlpha(surfaceParams.GetAlpha());
         canvas.ConcatMatrix(surfaceParams.GetMatrix());
     }
-    bool useDmaBuffer = UseDmaBuffer();
     if (surfaceParams.GetGlobalPositionEnabled() &&
         surfaceParams.GetUifirstUseStarting() == INVALID_NODEID && !useDmaBuffer) {
         auto matrix = surfaceParams.GetTotalMatrix();
@@ -1045,10 +1052,6 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
         canvas.ConcatMatrix(matrix);
         RS_LOGD("RSSurfaceRenderNodeDrawable::DealWithUIFirstCache Translate screenId=[%{public}" PRIu64 "] "
             "offsetX=%{public}d offsetY=%{public}d", curDisplayScreenId_, offsetX_, offsetY_);
-    }
-
-    if (!useDmaBuffer && drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, uniParams)) {
-        return true;
     }
     DrawBackground(canvas, bounds);
     bool drawCacheSuccess = true;

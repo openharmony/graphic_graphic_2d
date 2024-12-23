@@ -1036,7 +1036,6 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
     leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
     EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
-
     rootNode->RemoveChild(leashNode);
     rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
     EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);

@@ -601,6 +601,22 @@ HWTEST_F(RSDisplayRenderNodeTest, HandleCurMainAndLeashSurfaceNodes005, TestSize
 }
 
 /**
+ * @tc.name: HasUniRenderHdrSurface
+ * @tc.desc: test results of Get and Set HasUniRenderHdrSurface
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, HasUniRenderHdrSurfaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    EXPECT_EQ(node->GetHasUniRenderHdrSurface(), false);
+    node->SetHasUniRenderHdrSurface(true);
+    EXPECT_EQ(node->GetHasUniRenderHdrSurface(), true);
+}
+
+/**
  * @tc.name: AddSecurityLayer001
  * @tc.desc: test results of AddSecurityLayer
  * @tc.type:FUNC

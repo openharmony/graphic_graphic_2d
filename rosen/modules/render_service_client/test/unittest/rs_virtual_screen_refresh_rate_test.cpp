@@ -68,7 +68,7 @@ HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate001, Functio
     uint32_t actualRefreshRate = 0;
     std::cout << "Set virtualScreenId:" << virtualScreenId << ", maxRefreshRate:" << maxRefreshRate << std::endl;
     int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, maxRefreshRate, actualRefreshRate);
-    EXPECT_EQ(actualRefreshRate, 60);
+    EXPECT_EQ(actualRefreshRate, 120);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 
     // recover
@@ -134,7 +134,7 @@ HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate003, Functio
     uint32_t actualRefreshRate = 0;
     std::cout << "Set virtualScreenId:" << virtualScreenId << ", maxRefreshRate:" << maxRefreshRate << std::endl;
     int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, maxRefreshRate, actualRefreshRate);
-    EXPECT_EQ(actualRefreshRate, 60);
+    EXPECT_EQ(actualRefreshRate, 61);
     EXPECT_EQ(ret, StatusCode::SUCCESS);
 
     // recover
@@ -169,8 +169,7 @@ HWTEST_F(RSVirtualScreenRefreshRateTest, SetVirtualScreenRefreshRate004, Functio
         std::cout << "Set virtualScreenId:" << virtualScreenId << ", maxRefreshRate:" << maxRefreshRate << std::endl;
         int32_t ret = rsInterfaces->SetVirtualScreenRefreshRate(virtualScreenId, maxRefreshRate, actualRefreshRate);
         EXPECT_EQ(ret, StatusCode::SUCCESS);
-        EXPECT_LE(actualRefreshRate, maxRefreshRate);
-        EXPECT_EQ(60 % actualRefreshRate, 0); // 60hz
+        EXPECT_EQ(actualRefreshRate, maxRefreshRate);
     }
 
     // recover

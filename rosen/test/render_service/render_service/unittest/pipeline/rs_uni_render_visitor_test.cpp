@@ -2930,7 +2930,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByGlobalCleanFilter_003, Tes
     ASSERT_FALSE(node->IsAIBarFilterCacheValid());
 
     rsUniRenderVisitor->UpdateHwcNodeEnableByGlobalCleanFilter(cleanFilter, *surfaceNode);
-    EXPECT_TRUE(surfaceNode->isHardwareForcedDisabled_);
+    EXPECT_FALSE(surfaceNode->isHardwareForcedDisabled_);
 }
 
 /*
@@ -4725,7 +4725,7 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionAndCreateLayer002, Test
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->hasUniRenderHdrSurface_ = true;
+    displayNode->SetHasUniRenderHdrSurface(true);
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
     rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node);
 }

@@ -386,6 +386,10 @@ public:
     {
         return hasWiredMirrorDisplay_;
     }
+    uint64_t GetCurrentVsyncTime() const
+    {
+        return curTime_;
+    }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
