@@ -227,7 +227,7 @@ void RSRenderKeyframeAnimation::InitValueEstimator()
         valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
     }
     if (valueEstimator_ == nullptr) {
-        ROSEN_LOGE("RSRenderKeyframeAnimation::InitValueEstimator, valueEstimator_ is nullptr");
+        ROSEN_LOGE("RSRenderKeyframeAnimation::InitValueEstimator, valueEstimator_ is nullptr.");
         return;
     }
 
