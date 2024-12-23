@@ -945,7 +945,7 @@ void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 void RSRenderServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     if (screenManager_ == nullptr || mainThread_ == nullptr) {
-        RS_LOGE("SetScreenPowerStatus screenmanager or mainthread is null. id: %{pubic}" PRIu64 ".", id);
+        RS_LOGE("%{pubic}s screenmanager or mainthread is null. id: %{pubic}" PRIu64 ".", __func__, id);
         return;
     }
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
