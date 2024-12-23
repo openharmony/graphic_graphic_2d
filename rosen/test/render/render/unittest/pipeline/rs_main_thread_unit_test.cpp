@@ -116,6 +116,642 @@ HWTEST_F(RsMainThreadTest, Start01, TestSize.Level1)
     mainThread->Start();
 }
 
+ * @tc.desc: CollectInfoForHardwareComposer003 Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, CollectInfoForHardwareComposer003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.emplace(1, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    config.id = 3;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
+    node3->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+    auto node4 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    node4->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node4);
+    auto node5 = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    node5->SetIsOnTheTree(true);
+    node5->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    node5->isHardwareEnabledNode_ = true;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node5);
+    mainThread->CollectInfoForHardwareComposer();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ClassifyRSTransactionData005
+ * @tc.desc: ClassifyRSTransactionData005 Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ClassifyRSTransactionData005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.emplace(1, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    // prepare transactionData
+    auto data = std::make_unique<RSTransactionData>();
+    int dataIndex = 1;
+    data->SetIndex(dataIndex);
+    int dataPayloadSize = 3;
+    data->payload_.resize(dataPayloadSize);
+    NodeId id = 0;
+    data->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::NONE, nullptr);
+    id = 1;
+    data->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_SELF, nullptr);
+    id = 2;
+    data->payload_[id] = std::tuple<NodeId,
+        FollowType, std::unique_ptr<RSCommand>>(id, FollowType::FOLLOW_TO_PARENT, nullptr);
+    mainThread->ClassifyRSTransactionData(data);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ReleaseAllNodesBuffer
+ * @tc.desc: ReleaseAllNodesBuffer Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ReleaseAllNodesBuffer, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.emplace(1, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    config.id = 3;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
+    node3->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    node3->isHardwareEnabledNode_ = true;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+    config.id = 4;
+    auto node4 = std::make_shared<RSSurfaceRenderNode>(config);
+    node4->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    node4->isHardwareEnabledNode_ = true;
+    node4->isLastFrameHardwareEnabled_ = true;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node4);
+    config.id = 5;
+    auto node5 = std::make_shared<RSSurfaceRenderNode>(config);
+    node5->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    node5->isHardwareEnabledNode_ = true;
+    node5->isLastFrameHardwareEnabled_ = true;
+    node5->isCurrentFrameHardwareEnabled_ = false;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node5);
+    mainThread->ReleaseAllNodesBuffer();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ReleaseAllNodesBuffer
+ * @tc.desc: ReleaseAllNodesBuffer002 Test preBuffer != nullptr;
+ * @tc.type: FUNC
+ * @tc.require: issueIAS924
+ */
+HWTEST_F(RSMainThreadTest, ReleaseAllNodesBuffer002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    // prepare nodemap
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    node1->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    node1->isHardwareEnabledNode_ = true;
+    node1->isLastFrameHardwareEnabled_ = true;
+    node1->isCurrentFrameHardwareEnabled_ = false;
+    sptr<SurfaceBuffer> preBuffer = OHOS::SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    Rect damageRect = {0, 0, 0, 0};
+    int64_t timestamp = 0;
+    ASSERT_NE(node1->surfaceHandler_, nullptr);
+    node1->surfaceHandler_->SetBuffer(preBuffer, acquireFence, damageRect, timestamp);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->ReleaseAllNodesBuffer();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: PostTask001
+ * @tc.desc: PostTask Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PostTask001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    RSTaskMessage::RSTask task = []() -> void { return; };
+    mainThread->PostTask(task);
+    mainThread->runner_ = nullptr;
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: PostTask002
+ * @tc.desc: PostTask Test with IMMEDIATE Priority
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PostTask002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    RSTaskMessage::RSTask task = []() -> void { return; };
+    std::string name = "test";
+    int64_t delayTime = 0;
+    AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IMMEDIATE;
+    mainThread->PostTask(task, name, delayTime, priority);
+    mainThread->runner_ = nullptr;
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: RemoveTask
+ * @tc.desc: RemoveTask Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, RemoveTask, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    std::string name = "test";
+    mainThread->RemoveTask(name);
+    mainThread->runner_ = nullptr;
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: PostSyncTask002
+ * @tc.desc: PostSyncTask Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PostSyncTask002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    RSTaskMessage::RSTask task = []() -> void { return; };
+    mainThread->PostSyncTask(task);
+    mainThread->runner_ = nullptr;
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallBack001
+ * @tc.desc: RegisterSurfaceOcclusionChangeCallBack001 Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 0;
+    pid_t pid = 0;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints = {};
+    mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    ASSERT_NE(mainThread->surfaceOcclusionListeners_.size(), 0);
+    mainThread->surfaceOcclusionListeners_.clear();
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallBack002
+ * @tc.desc: RegisterSurfaceOcclusionChangeCallBack002 Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 0;
+    pid_t pid = 0;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints = {1.0f};
+    mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    ASSERT_NE(mainThread->surfaceOcclusionListeners_.size(), 0);
+    mainThread->surfaceOcclusionListeners_.clear();
+}
+
+/**
+ * @tc.name: ClearSurfaceOcclusionChangeCallBack
+ * @tc.desc: RegisterSurfaceOcclusionChangeCallBack Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ClearSurfaceOcclusionChangeCallback, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    // prepare listeners
+    pid_t pid = 1;
+    int level = 0;
+    NodeId id = 1;
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
+        std::vector<float>, uint8_t> info1(pid, nullptr, {}, level);
+    mainThread->surfaceOcclusionListeners_.insert({id, info1});
+    id = 2;
+    pid = 2;
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
+        std::vector<float>, uint8_t> info2(pid, nullptr, {}, level);
+    mainThread->surfaceOcclusionListeners_.insert({id, info2});
+    mainThread->ClearSurfaceOcclusionChangeCallback(pid);
+    mainThread->surfaceOcclusionListeners_.clear();
+}
+
+/**
+ * @tc.name: SendCommands
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, SendCommands, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->SendCommands();
+}
+
+/**
+ * @tc.name: SendCommands001
+ * @tc.desc: SendCommands Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMainThreadTest, SendCommands001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    AnimationId animationId = 1;
+    mainThread->context_->AddSyncFinishAnimationList(id, animationId);
+    mainThread->SendCommands();
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo001
+ * @tc.desc: ClearTransactionDataPidInfo Test, remotePid = 0
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    int remotePid = 0;
+    mainThread->ClearTransactionDataPidInfo(remotePid);
+}
+
+/**
+ * @tc.name: ClearTransactionDataPidInfo002
+ * @tc.desc: ClearTransactionDataPidInfo Test, remotePid > 0
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ClearTransactionDataPidInfo002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    int remotePid = 1;
+    mainThread->ClearTransactionDataPidInfo(remotePid);
+}
+
+/**
+ * @tc.name: AddTransactionDataPidInfo001
+ * @tc.desc: AddTransactionDataPidInfo Test, no UniRender
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, AddTransactionDataPidInfo001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    pid_t pid = 0;
+    mainThread->AddTransactionDataPidInfo(pid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: AddTransactionDataPidInfo002
+ * @tc.desc: AddTransactionDataPidInfo Test, UniRender
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, AddTransactionDataPidInfo002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    pid_t pid = 0;
+    mainThread->AddTransactionDataPidInfo(pid);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: PerfAfterAnim001
+ * @tc.desc: PerfAfterAnim Test, not UniRender, needRequestNextVsync
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PerfAfterAnim001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    bool needRequestNextVsync = true;
+    mainThread->PerfAfterAnim(needRequestNextVsync);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: PerfAfterAnim002
+ * @tc.desc: PerfAfterAnim Test, UniRender, needRequestNextVsync
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PerfAfterAnim002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    bool needRequestNextVsync = true;
+    mainThread->PerfAfterAnim(needRequestNextVsync);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: PerfAfterAnim003
+ * @tc.desc: PerfAfterAnim Test, UniRender, not needRequestNextVsync
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PerfAfterAnim003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    bool needRequestNextVsync = false;
+    mainThread->PerfAfterAnim(needRequestNextVsync);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ForceRefreshForUni001
+ * @tc.desc: ForceRefreshForUni Test, UniRender
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ForceRefreshForUni001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->ForceRefreshForUni();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: ForceRefreshForUni002
+ * @tc.desc: ForceRefreshForUni Test, without UniRender
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, ForceRefreshForUni002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    mainThread->ForceRefreshForUni();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: PerfForBlurIfNeeded
+ * @tc.desc: PerfForBlurIfNeeded Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PerfForBlurIfNeeded, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->PerfForBlurIfNeeded();
+    mainThread->runner_ = nullptr;
+    mainThread->handler_ = nullptr;
+}
+
+/**
+ * @tc.name: PerfMultiWindow001
+ * @tc.desc: PerfMultiWindow Test, not unirender
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PerfMultiWindow001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = false;
+    mainThread->PerfMultiWindow();
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
+ * @tc.name: PerfMultiWindow002
+ * @tc.desc: PerfMultiWindow Test, unirender
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, PerfMultiWindow002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    auto appWindowNum = mainThread->appWindowNum_;
+    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM - 1;
+    mainThread->PerfMultiWindow();
+    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_START_NUM;
+    mainThread->PerfMultiWindow();
+    mainThread->appWindowNum_ = MULTI_WINDOW_PERF_END_NUM + 1;
+    mainThread->PerfMultiWindow();
+    mainThread->isUniRender_ = isUniRender;
+    mainThread->appWindowNum_ = appWindowNum;
+}
+
+/**
+ * @tc.name: RenderFrameStart
+ * @tc.desc: RenderFrameStart Test
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, RenderFrameStart, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->RenderFrameStart(mainThread->timestamp_);
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenes001
+ * @tc.desc: SetSystemAnimatedScenes Test, case set 1
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    SystemAnimatedScenes scenesInit = mainThread->systemAnimatedScenes_;
+    SystemAnimatedScenes scenes = SystemAnimatedScenes::ENTER_MISSION_CENTER;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::EXIT_MISSION_CENTER;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::ENTER_TFS_WINDOW;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::EXIT_TFU_WINDOW;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::ENTER_WINDOW_FULL_SCREEN;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::EXIT_WINDOW_FULL_SCREEN;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::ENTER_MAX_WINDOW;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::EXIT_MAX_WINDOW;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    mainThread->systemAnimatedScenes_ = scenesInit;
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenes002
+ * @tc.desc: SetSystemAnimatedScenes Test, case set 2
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    SystemAnimatedScenes scenesInit = mainThread->systemAnimatedScenes_;
+    SystemAnimatedScenes scenes = SystemAnimatedScenes::ENTER_SPLIT_SCREEN;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::EXIT_SPLIT_SCREEN;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::ENTER_APP_CENTER;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::EXIT_APP_CENTER;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::APPEAR_MISSION_CENTER;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::ENTER_WIND_CLEAR;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::ENTER_WIND_RECOVER;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    scenes = SystemAnimatedScenes::OTHERS;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(scenes));
+    mainThread->systemAnimatedScenes_ = scenesInit;
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenes003
+ * @tc.desc: SetSystemAnimatedScenes Test, System Animated Scenes Disabled
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto systemAnimatedScenesEnabled = mainThread->systemAnimatedScenesEnabled_;
+    mainThread->systemAnimatedScenesEnabled_ = false;
+    ASSERT_TRUE(mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::OTHERS));
+    mainThread->systemAnimatedScenesEnabled_ = systemAnimatedScenesEnabled;
+}
+
+/**
+ * @tc.name: CheckNodeHasToBePreparedByPid001
+ * @tc.desc: CheckNodeHasToBePreparedByPid Test, Classify By Root
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, CheckNodeHasToBePreparedByPid001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    bool isClassifyByRoot = true;
+    mainThread->CheckNodeHasToBePreparedByPid(id, isClassifyByRoot);
+}
+
+/**
+ * @tc.name: CheckNodeHasToBePreparedByPid002
+ * @tc.desc: CheckNodeHasToBePreparedByPid Test, not Classify By Root
+ * @tc.type: FUNC
+ * @tc.require: issueI7HDVG
+ */
+HWTEST_F(RSMainThreadTest, CheckNodeHasToBePreparedByPid002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId id = 1;
+    bool isClassifyByRoot = false;
+    mainThread->CheckNodeHasToBePreparedByPid(id, isClassifyByRoot);
+}
+
 /**
  * @tc.name: Start02
  * @tc.desc: Test RsMainThreadTest.Start
