@@ -318,10 +318,11 @@ int32_t XMLParser::ParseScreenConfig(xmlNode &node)
         }
         auto name = ExtractPropertyValue("name", *currNode);
         if (name == "supported_mode") {
-            std::vector<uint32_t> supportedModeVector;
-            auto value = ExtractPropertyValue("value", *currNode);
-            supportedModeVector = StringToVector(value);
-            mParsedData_->supportedModeConfigs_[type] = supportedModeVector;
+            PolicyConfigData::SupportedModeConfig supportedModeConfig;
+            if (ParseSupportedModeConfig(*currNode, supportedModeConfig) != EXEC_SUCCESS) {
+                HGM_LOGI("XMLParser failed to ParseScreenConfig %{public}s", name.c_str());
+            }
+            mParsedData_->supportedModeConfigs_[type] = supportedModeConfig;
             continue;
         }
         PolicyConfigData::ScreenSetting screenSetting;
@@ -498,6 +499,34 @@ int32_t XMLParser::ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMa
                  sceneList[name].disableSafeVote ? "true" : "false");
     }
 
+    return EXEC_SUCCESS;
+}
+
+int32_t XMLParser::ParseSupportedModeConfig(xmlNode &node, PolicyConfigData::SupportedModeConfig &supportedModeConfig)
+{
+    HGM_LOGD("XMLParser parsing supportedModeConfig");
+    xmlNode *currNode = &node;
+    if (currNode->xmlChildrenNode == nullptr) {
+        HGM_LOGD("XMLParser stop parsing supportedModeConfig, no children nodes");
+        return HGM_ERROR;
+    }
+
+    // re-parse
+    supportedModeConfig.clear();
+    currNode = currNode->xmlChildrenNode;
+    for (; currNode; currNode = currNode->next) {
+        if (currNode->type != XML_ELEMENT_NODE) {
+            continue;
+        }
+        std::vector<uint32_t> supportedModeVec;
+        auto name = ExtractPropertyValue("name", *currNode);
+        auto value = ExtractPropertyValue("value", *currNode);
+        supportedModeVec = StringToVector(value);
+
+        supportedModeConfig[name] = supportedModeVec;
+        HGM_LOGI("HgmXMLParser ParseSupportedModeConfig name=%{public}s value=%{public}s",
+            name.c_str(), value.c_str());
+    }
     return EXEC_SUCCESS;
 }
 

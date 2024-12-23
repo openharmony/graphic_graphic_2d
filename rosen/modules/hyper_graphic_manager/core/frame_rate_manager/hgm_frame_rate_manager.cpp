@@ -54,6 +54,7 @@ namespace {
     constexpr int32_t RS_IDLE_TIMEOUT_MS = 600; // ms
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
+    const static std::string LOW_BRIGHT = "LowBright";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -586,26 +587,31 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
 
 void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData)
 {
+    isAmbientEffect_ = false;
+    multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
     if (!configData || !isLtpo_) {
-        isAmbientEffect_ = false;
         return;
     }
 
     // obtain the refresh rate supported in low ambient light
-    auto supportedModeVector = configData->supportedModeConfigs_[curScreenStrategyId_];
-    if (supportedModeVector.empty()) {
-        isAmbientEffect_ = false;
+    if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
+        return;
+    }
+    auto supportedModeConfig = configData->supportedModeConfigs_[curScreenStrategyId_];
+    auto iter = supportedModeConfig.find(LOW_BRIGHT);
+    if (iter == supportedModeConfig.end() || iter->second.empty()) {
         return;
     }
     auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
-    for (const auto& iter : supportedModeVector) {
-        auto iterInVec = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), iter);
-        if (iterInVec != supportRefreshRateVec.end()) {
-            lowBrightVec_.push_back(*iterInVec);
+    lowBrightVec_.clear();
+    for (auto rate : iter->second) {
+        auto it = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), rate);
+        if (it != supportRefreshRateVec.end()) {
+            lowBrightVec_.push_back(*it);
         }
     }
+
     if (lowBrightVec_.empty()) {
-        isAmbientEffect_ = false;
         return;
     }
     isAmbientEffect_ = true;
