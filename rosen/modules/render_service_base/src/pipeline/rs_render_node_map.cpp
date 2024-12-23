@@ -21,7 +21,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
-#include "gfx_info/rs_surface_fps_manager.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 namespace OHOS {
 namespace Rosen {

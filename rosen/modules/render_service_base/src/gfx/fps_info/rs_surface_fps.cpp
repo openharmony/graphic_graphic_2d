@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "gfx_info/rs_surface_fps.h"
+#include "gfx/fps_info/rs_surface_fps.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {

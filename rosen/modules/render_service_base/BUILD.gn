@@ -275,9 +275,9 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
 
-    #gfx_info
-    "src/gfx_info/rs_surface_fps.cpp",
-    "src/gfx_info/rs_surface_fps_manager.cpp",
+    #gfx
+    "src/gfx/fps_info/rs_surface_fps.cpp",
+    "src/gfx/fps_info/rs_surface_fps_manager.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",

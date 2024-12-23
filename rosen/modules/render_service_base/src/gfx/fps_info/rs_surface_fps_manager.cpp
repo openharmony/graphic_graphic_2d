@@ -15,7 +15,7 @@
 
 #include <memory>
 
-#include "gfx_info/rs_surface_fps_manager.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {

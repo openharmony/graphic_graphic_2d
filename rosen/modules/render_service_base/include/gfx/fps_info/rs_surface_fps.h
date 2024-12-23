@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_GFX_INFO_RS_SURFACE_FPS_H
-#define RENDER_SERVICE_BASE_GFX_INFO_RS_SURFACE_FPS_H
+#ifndef RENDER_SERVICE_BASE_GFX_FPS_INFO_RS_SURFACE_FPS_H
+#define RENDER_SERVICE_BASE_GFX_FPS_INFO_RS_SURFACE_FPS_H
 
 #include <string>
 #include <mutex>

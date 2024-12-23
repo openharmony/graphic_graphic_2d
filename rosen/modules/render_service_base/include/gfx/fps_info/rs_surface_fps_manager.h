@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_GFX_INFO_RS_SURFACE_FPS_MANAGER_H
-#define RENDER_SERVICE_BASE_GFX_INFO_RS_SURFACE_FPS_MANAGER_H
+#ifndef RENDER_SERVICE_BASE_GFX_FPS_INFO_RS_SURFACE_FPS_MANAGER_H
+#define RENDER_SERVICE_BASE_GFX_FPS_INFO_RS_SURFACE_FPS_MANAGER_H
 
-#include "gfx_info/rs_surface_fps.h"
+#include "rs_surface_fps.h"
 #include "common/rs_common_def.h"
 
 namespace OHOS::Rosen {
