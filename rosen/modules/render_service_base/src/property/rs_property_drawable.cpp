@@ -63,6 +63,7 @@ static const std::unordered_map<RSModifierType, RSPropertyDrawableSlot> g_proper
     { RSModifierType::BOUNDS, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::FRAME, RSPropertyDrawableSlot::FRAME_OFFSET },
     { RSModifierType::POSITION_Z, RSPropertyDrawableSlot::BOUNDS_MATRIX },
+    { RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::PIVOT, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::PIVOT_Z, RSPropertyDrawableSlot::BOUNDS_MATRIX },
     { RSModifierType::QUATERNION, RSPropertyDrawableSlot::BOUNDS_MATRIX },

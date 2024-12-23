@@ -755,6 +755,12 @@ void RSNode::SetPositionZ(float positionZ)
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);
 }
 
+void RSNode::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    SetProperty<RSPositionZApplicableCamera3DModifier, RSProperty<bool>>(
+        RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D, isApplicable);
+}
+
 // pivot
 void RSNode::SetPivot(const Vector2f& pivot)
 {

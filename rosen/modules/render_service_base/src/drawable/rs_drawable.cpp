@@ -36,6 +36,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::CLIP_TO_BOUNDS,                // BOUNDS
     RSDrawableSlot::FRAME_OFFSET,                  // FRAME
     RSDrawableSlot::INVALID,                       // POSITION_Z
+    RSDrawableSlot::INVALID,                       // POSITION_Z_APPLICABLE_CAMERA3D
     RSDrawableSlot::INVALID,                       // PIVOT
     RSDrawableSlot::INVALID,                       // PIVOT_Z
     RSDrawableSlot::INVALID,                       // QUATERNION
