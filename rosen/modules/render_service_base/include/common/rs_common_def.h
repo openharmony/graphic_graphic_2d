@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#include <utils/rect.h>
 
 #include "common/rs_macros.h"
 
@@ -218,6 +219,7 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    Drawing::Rect mainScreenRect = {};
 };
 
 struct RSSurfaceCaptureBlurParam {

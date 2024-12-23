@@ -205,6 +205,13 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
+    const Drawing:Rect& rect = captureConfig_.mainScreenRect;
+    if ((float width = rect.right_ - rect.left_) > 0 &&
+        (float height = rect.bottom_ - rect.top_) > 0 &&
+        (!(rect.left_ < 0 || rect.top_ < 0))) {
+        canvas.ClipRect({0, 0, width, height});
+        canvas.Translate(0 - rect.left_, 0 - rect.top_);
+    }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     // Currently, capture do not support HDR display
@@ -317,6 +324,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
+    const Drawing:Rect& rect = captureConfig_.mainScreenRect;
+    if ((float width = rect.right_ - rect.left_) > 0 && (float height = rect.bottom_ - rect.top_) > 0) {
+        pixmapWidth = ceil(width);
+        pixmapHeight = ceil(height);
+    }
 
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
@@ -324,8 +336,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
+        " translate: [%{public}f, %{public}f],"
         " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.mainScreenRect.left_, captureConfig_.mainScreenRect.top_,
         captureConfig_.useDma, screenRotation_, screenCorrection_);
     return Media::PixelMap::Create(opts);
 }
