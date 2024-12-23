@@ -244,20 +244,6 @@ HWTEST_F(RsInterfaceTest, ReportEventJankFrame01, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDefaultDeviceRotationOffset01
- * @tc.desc: test results of SetDefaultDeviceRotationOffset
- * @tc.type: FUNC
- * @tc.require: issueIAS4B8
- */
-HWTEST_F(RsInterfaceTest, SetDefaultDeviceRotationOffset01, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.SetDefaultDeviceRotationOffset(90);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
-}
-
-/**
  * @tc.name: ReportGameStateData01
  * @tc.desc: test results of ReportGameStateData
  * @tc.type: FUNC

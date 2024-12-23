@@ -1555,9 +1555,7 @@ bool DoSetCacheEnabledForRotation(const uint8_t* data, size_t size)
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     bool isEnabled = GetData<bool>();
-    uint32_t offset = GetData<uint32_t>();
     client->SetCacheEnabledForRotation(isEnabled);
-    client->SetDefaultDeviceRotationOffset(offset);
     return true;
 }
 

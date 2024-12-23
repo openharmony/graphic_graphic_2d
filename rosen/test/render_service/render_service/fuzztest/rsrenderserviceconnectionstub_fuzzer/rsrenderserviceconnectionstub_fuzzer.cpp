@@ -2200,33 +2200,6 @@ bool DoNotifyRefreshRateEvent(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetDefaultDeviceRotationOffset(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    MessageParcel dataP;
-    MessageParcel reply;
-    MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        return false;
-    }
-    uint32_t offset = GetData<uint32_t>();
-    dataP.WriteUint32(offset);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET);
-    if (rsConnStub_ == nullptr) {
-        return false;
-    }
-    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
-    return true;
-}
-
 bool DoReportJankStats()
 {
     MessageParcel dataP;
@@ -3160,7 +3133,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoNotifyLightFactorStatus(data, size);
     OHOS::Rosen::DoNotifyPackageEvent(data, size);
     OHOS::Rosen::DoNotifyRefreshRateEvent(data, size);
-    OHOS::Rosen::DoSetDefaultDeviceRotationOffset(data, size);
     OHOS::Rosen::DoReportJankStats();
     OHOS::Rosen::DoReportEventResponse();
     OHOS::Rosen::DoReportEventComplete();

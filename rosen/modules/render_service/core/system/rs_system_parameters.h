@@ -80,6 +80,7 @@ public:
     static bool GetWiredScreenOndrawEnabled();
     static bool GetDFXMirrorScreenForceRedrawEnabled();
     static bool GetArsrPreEnabled();
+    static bool GetMultimediaEnableCameraRotationCompensation();
 };
 
 } // namespace Rosen

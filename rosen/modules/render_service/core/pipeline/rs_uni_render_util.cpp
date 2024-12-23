@@ -1361,7 +1361,10 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
     int extraRotation = 0;
     auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(geoPtr ? geoPtr->GetAbsMatrix() : Drawing::Matrix());
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
+    auto surfaceParams = node.GetStagingRenderParams() == nullptr
+                             ? nullptr
+                             : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
     extraRotation = degree - rotationDegree;
     transformType = static_cast<GraphicTransformType>(
         (transformType + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
@@ -1624,7 +1627,7 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     auto surfaceParams = node.GetStagingRenderParams() == nullptr
                              ? nullptr
                              : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
-    int32_t rotationDegree = RSBaseRenderUtil::GetDeviceRotation(surfaceParams);
+    int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
     int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;

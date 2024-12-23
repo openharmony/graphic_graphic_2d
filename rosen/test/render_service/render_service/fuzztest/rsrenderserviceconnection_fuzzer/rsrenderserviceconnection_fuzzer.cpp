@@ -1127,16 +1127,6 @@ bool DOSetCacheEnabledForRotation()
     return true;
 }
 
-bool DOSetDefaultDeviceRotationOffset()
-{
-    if (rsConn_ == nullptr) {
-        return false;
-    }
-    uint32_t offset = GetData<uint32_t>();
-    rsConn_->SetDefaultDeviceRotationOffset(offset);
-    return true;
-}
-
 bool DOSetOnRemoteDiedCallback()
 {
     if (rsConn_ == nullptr) {
@@ -1330,7 +1320,6 @@ void DoFuzzerTest2()
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
     DOSetCacheEnabledForRotation();
-    DOSetDefaultDeviceRotationOffset();
     DOSetOnRemoteDiedCallback();
     DOSetVmaCacheStatus();
 #ifdef TP_FEATURE_ENABLE

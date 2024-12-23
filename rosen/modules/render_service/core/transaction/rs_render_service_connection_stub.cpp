@@ -2276,15 +2276,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetScreenSwitchStatus(flag);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET) : {
-            uint32_t offset{0};
-            if (!data.ReadUint32(offset)) {
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetDefaultDeviceRotationOffset(offset);
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
