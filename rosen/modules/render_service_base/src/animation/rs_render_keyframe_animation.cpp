@@ -226,6 +226,11 @@ void RSRenderKeyframeAnimation::InitValueEstimator()
     if (valueEstimator_ == nullptr) {
         valueEstimator_ = property_->CreateRSValueEstimator(RSValueEstimatorType::KEYFRAME_VALUE_ESTIMATOR);
     }
+    if (valueEstimator_ == nullptr) {
+        ROSEN_LOGE("RSRenderKeyframeAnimation::InitValueEstimator, valueEstimator_ is nullptr");
+        return;
+    }
+
     if (isDurationKeyframe_) {
         valueEstimator_->InitDurationKeyframeAnimationValue(property_, durationKeyframes_, lastValue_);
     } else {

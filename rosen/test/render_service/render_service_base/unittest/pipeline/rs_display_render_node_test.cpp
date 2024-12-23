@@ -166,6 +166,54 @@ HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest007, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkipFrameTest008
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 55
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest008, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 55; // skipFrameInterval 55
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_FALSE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest009
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 45
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest009, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 45; // skipFrameInterval 45
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameTest010
+ * @tc.desc: test SkipFrame for time over skipFrameInterval 25
+ * @tc.type:FUNC
+ * @tc.require: issuesIAVK8D
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SkipFrameTest010, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 25; // skipFrameInterval 25
+    node->SkipFrame(refreshRate, skipFrameInterval);
+    usleep(16666); // 16666us == 16.666ms
+    ASSERT_TRUE(node->SkipFrame(refreshRate, skipFrameInterval));
+}
+
+/**
  * @tc.name: SetMirrorSourceTest
  * @tc.desc: test results of SetMirrorSource
  * @tc.type:FUNC
@@ -589,5 +637,34 @@ HWTEST_F(RSDisplayRenderNodeTest, SetSecurityExemption001, TestSize.Level1)
     ASSERT_NE(displayNode, nullptr);
     displayNode->SetSecurityExemption(true);
     EXPECT_EQ(displayNode->GetSecurityExemption(), true);
+}
+
+/**
+ * @tc.name: GetColorSpaceTest
+ * @tc.desc: test results of GetColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    auto colorSpace = node->GetColorSpace();
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB, colorSpace);
+}
+
+/**
+ * @tc.name: SetColorSpaceTest
+ * @tc.desc: test results of SetColorSpace
+ * @tc.type:FUNC
+ * @tc.require: issuesIB6QKS
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    node->InitRenderParams();
+    node->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    auto colorSpace = node->GetColorSpace();
+    ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpace);
 }
 } // namespace OHOS::Rosen

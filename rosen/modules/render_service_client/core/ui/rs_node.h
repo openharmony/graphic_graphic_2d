@@ -41,6 +41,7 @@
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
+#include "ui_effect/filter/include/filter_distort_para.h"
 
 #include "recording/recording_canvas.h"
 
@@ -49,6 +50,7 @@ namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+using ExportTypeChangedCallback = std::function<void(bool)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -126,6 +128,9 @@ public:
         return (IsInstanceOf<T>()) ? std::static_pointer_cast<const T>(shared_from_this()) : nullptr;
     }
 
+    void DumpTree(int depth, std::string& out) const;
+    virtual void Dump(std::string& out) const;
+
     virtual std::string DumpNode(int depth) const;
     SharedPtr GetParent();
 
@@ -199,6 +204,7 @@ public:
     void SetSandBox(std::optional<Vector2f> parentPosition);
 
     void SetPositionZ(float positionZ);
+    void SetPositionZApplicableCamera3D(bool isApplicable);
 
     void SetPivot(const Vector2f& pivot);
     void SetPivot(float pivotX, float pivotY);
@@ -343,9 +349,11 @@ public:
     void SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
     void SetPixelStretchPercent(const Vector4f& stretchPercent,
         Drawing::TileMode stretchTileMode = Drawing::TileMode::CLAMP);
-    
+
     void SetWaterRippleParams(const RSWaterRipplePara& params, float progress);
     void SetFlyOutParams(const RSFlyOutPara& params, float degree);
+
+    void SetDistortionK(const float distortionK);
 
     void SetPaintOrder(bool drawContentLast);
 
@@ -446,6 +454,7 @@ public:
     {
         return isTextureExportNode_;
     }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
 
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
@@ -485,6 +494,11 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
+
+    // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
+    bool hasCreateRenderNodeInRT_ = false;
+    bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
 
@@ -518,7 +532,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
-    virtual void CreateTextureExportRenderNodeInRT() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -535,7 +549,7 @@ private:
     void SetForegroundBlurColorMode(int colorMode);
     void SetForegroundBlurRadiusX(float blurRadiusX);
     void SetForegroundBlurRadiusY(float blurRadiusY);
-    
+
     bool AnimationCallback(AnimationId animationId, AnimationCallbackEvent event);
     bool HasPropertyAnimation(const PropertyId& id);
     std::vector<AnimationId> GetAnimationByPropertyId(const PropertyId& id);
@@ -588,7 +602,7 @@ private:
     std::shared_ptr<RSImplicitAnimator> implicitAnimator_;
     std::shared_ptr<const RSTransitionEffect> transitionEffect_;
 
-    std::mutex animationMutex_;
+    std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
 
     friend class RSUIDirector;

@@ -58,7 +58,7 @@ HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
 {
     auto& rtThread = RSUniRenderThread::Instance();
     if (!rtThread.GetRSRenderThreadParams()) {
-        rtThread.renderParamsManager_.renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+        RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     }
     rtThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
 

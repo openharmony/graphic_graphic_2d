@@ -97,18 +97,14 @@ public:
     {
         return hardwareEnabledTopDrawables_;
     }
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
     void SetSecurityDisplay(bool isSecurityDisplay);
     bool GetSecurityDisplay() const override
     {
         return isSecurityDisplay_;
-    }
-    void SetIsMouseDirty(bool mouseDirty)
-    {
-        isMouseDirty_ = mouseDirty;
-    }
-    bool GetIsMouseDirty() const
-    {
-        return isMouseDirty_;
     }
     void SetGlobalZOrder(float zOrder);
     float GetGlobalZOrder() const;
@@ -134,6 +130,9 @@ public:
     GraphicColorGamut GetNewColorSpace() const;
     void SetNewPixelFormat(const GraphicPixelFormat& newPixelFormat);
     GraphicPixelFormat GetNewPixelFormat() const;
+
+    void SetZoomed(bool isZoomed);
+    bool GetZoomed() const;
 
     bool IsSpecialLayerChanged() const
     {
@@ -165,19 +164,19 @@ private:
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
     bool isSecurityExemption_ = false;
-    std::weak_ptr<RSDisplayRenderNode> mirrorSource_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     NodeId mirrorSourceId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
     ScreenId mirroredId_ = INVALID_SCREEN_ID;
     RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMirrorScreen_ = false;
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needOffscreen_ = false;
     bool isRotationChanged_ = false;
     bool hasHdrPresent_ = false;
     float brightnessRatio_ = 1.0f;
-    bool isMouseDirty_ = false;
     float zOrder_ = 0.0f;
+    bool isZoomed_ = false;
     friend class RSUniRenderVisitor;
     friend class RSDisplayRenderNode;
 

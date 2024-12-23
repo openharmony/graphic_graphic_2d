@@ -50,9 +50,25 @@ public:
     void AddDelayDestroyQueue(uint64_t globalUniqueId);
     void HandleDelayDestroyQueue();
 
+    /**
+     * @brief    Remove patched typeface IDs (used for profiler replay).
+     */
+    void ReplayClear();
+
+    /**
+     * @brief    Serialize drawing typeface cache (used for profiler replay).
+     * @param ss String stream to write serialized data.
+     */
+    void ReplaySerialize(std::stringstream& ss);
+
+    /**
+     * @brief    Deserialize drawing typeface cache (used for profiler replay).
+     * @param ss Serialized data.
+     */
+    void ReplayDeserialize(std::stringstream& ss);
+
     RSTypefaceCache() = default;
     ~RSTypefaceCache() = default;
-
     class RSTypefaceRef {
     public:
         uint64_t globalUniqueId = 0;

@@ -64,6 +64,10 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
@@ -258,6 +262,8 @@ public:
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
 
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
@@ -277,6 +283,13 @@ public:
 
     bool SetAncoForceDoDirect(bool direct);
 
+    bool RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        std::shared_ptr<SurfaceBufferCallback> callback);
+
+    bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

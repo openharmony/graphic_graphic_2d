@@ -49,8 +49,16 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000;
+constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
+constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
+constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+
+uint32_t GenerateTaskId()
+{
+    static std::atomic<uint32_t> id;
+    return id.fetch_add(1, std::memory_order::memory_order_relaxed);
+}
 }
 RSRenderService::RSRenderService() {}
 
@@ -96,7 +104,7 @@ bool RSRenderService::Init()
     int64_t offset = 0;
     if (!HgmCore::Instance().GetLtpoEnabled()) {
         if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            offset = UNI_RENDER_VSYNC_OFFSET;
+            offset = HgmCore::Instance().IsDelayMode() ? UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
         }
         rsVSyncController_ = new VSyncController(generator, offset);
         appVSyncController_ = new VSyncController(generator, offset);
@@ -170,6 +178,9 @@ void RSRenderService::RegisterRcdMsg()
             msgBus.RegisterTopic<int>(
                 TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
                 &RoundCornerDisplay::UpdateNotchStatus);
+            msgBus.RegisterTopic<bool>(
+                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
+                &RoundCornerDisplay::UpdateHardwareResourcePrepared);
             isRcdServiceRegister_ = true;
             RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
             return;
@@ -314,6 +325,8 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump EventParamList info\n")
         .append("allInfo                        ")
         .append("|dump all info\n")
+        .append("client                         ")
+        .append("|dump client ui node trees\n")
         .append("dumpMem                        ")
         .append("|dump Cache\n")
         .append("trimMem cpu/gpu/shader         ")
@@ -324,6 +337,10 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump the refresh rate counts info\n")
         .append("clearFpsCount                  ")
         .append("|clear the refresh rate counts info\n")
+#ifdef RS_ENABLE_VK
+        .append("vktextureLimit                 ")
+        .append("|dump vk texture limit info\n")
+#endif
         .append("flushJankStatsRs")
         .append("|flush rs jank stats hisysevent\n");
 }
@@ -512,6 +529,23 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
     dumpString.append("flush done\n");
 }
 
+#ifdef RS_ENABLE_VK
+void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
+{
+    dumpString.append("\n");
+    dumpString.append("-- vktextureLimit:\n");
+    auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
+    VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
+    VkPhysicalDeviceProperties deviceProperties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+    uint32_t maxTextureWidth = deviceProperties.limits.maxImageDimension2D;
+    uint32_t maxTextureHeight = deviceProperties.limits.maxImageDimension2D;
+    dumpString.append(
+        "width: " + std::to_string(maxTextureWidth) + " height: " + std::to_string(maxTextureHeight) + "\n");
+}
+#endif
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!mainThread_ || !screenManager_) {
@@ -537,6 +571,10 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg17(u"hitchs");
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
+    std::u16string arg20(u"client");
+#ifdef RS_ENABLE_VK
+    std::u16string arg22(u"vktextureLimit");
+#endif
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -618,6 +656,20 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
     }
+    if (argSets.count(arg9) || argSets.count(arg20)) {
+        auto taskId = GenerateTaskId();
+        mainThread_->ScheduleTask(
+            [this, taskId]() {
+                mainThread_->SendClientDumpNodeTreeCommands(taskId);
+            }).wait();
+        mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
+    }
+#ifdef RS_ENABLE_VK
+    if (argSets.count(arg22) != 0) {
+        mainThread_->ScheduleTask(
+            [this, &dumpString]() { DumpVkTextureLimit(dumpString); }).wait();
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

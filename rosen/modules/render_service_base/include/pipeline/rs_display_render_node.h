@@ -133,6 +133,16 @@ public:
         return screenRotation_;
     }
 
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -314,6 +324,9 @@ public:
 
     void SetBrightnessRatio(float brightnessRatio);
 
+    void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetColorSpace() const;
+
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
         return dirtySurfaceNodeMap_;
@@ -434,6 +447,7 @@ private:
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
+    bool isMirrorScreen_ = false;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
     uint64_t screenId_ = 0;
@@ -452,6 +466,7 @@ private:
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;

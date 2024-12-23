@@ -52,7 +52,7 @@ public:
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
     static void SetAllSurfaceDrawableGlobalDityRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-        const RectI& globalDirtyRegion);
+        const Occlusion::Region& globalDirtyRegion);
     /* we want to set visible dirty region of each surfacenode into DamageRegionKHR interface, hence
      * occlusion is calculated.
      * make sure this function is called after merge dirty history
@@ -92,7 +92,7 @@ public:
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
-    static bool Is3DRotation(Drawing::Matrix matrix);
+    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -115,7 +115,7 @@ public:
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void DealWithScalingMode(RSSurfaceRenderNode& node);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
@@ -150,6 +150,10 @@ public:
             }
         }
     }
+    static std::optional<Drawing::Matrix> GetMatrix(std::shared_ptr<RSRenderNode> hwcNode);
+    // RTthread needs to draw one more frame when screen is turned off. For other threads, use extraframe default value.
+    static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
+
 private:
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -162,6 +166,7 @@ private:
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
     static inline int currentUIExtensionIndex_ = -1;
+    static inline std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };
 }
 }

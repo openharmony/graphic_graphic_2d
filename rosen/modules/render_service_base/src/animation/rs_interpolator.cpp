@@ -28,14 +28,23 @@
 
 namespace OHOS {
 namespace Rosen {
+static pid_t pid_ = GetRealPid();
+
 const std::shared_ptr<RSInterpolator> RSInterpolator::DEFAULT =
     std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
 
 RSInterpolator::RSInterpolator() : id_(GenerateId()) {}
 
+void RSInterpolator::Init()
+{
+    pid_ = GetRealPid();
+}
+
 uint64_t RSInterpolator::GenerateId()
 {
-    static pid_t pid_ = GetRealPid();
+    if (pid_ == 0) {
+        pid_ = GetRealPid();
+    }
     static std::atomic<uint32_t> currentId_ = 0;
 
     auto currentId = currentId_.fetch_add(1, std::memory_order_relaxed);
@@ -89,7 +98,7 @@ std::shared_ptr<RSInterpolator> RSInterpolator::Unmarshalling(Parcel& parcel)
     }
 
     static std::mutex cachedInterpolatorsMutex_;
-    static std::unordered_map<uint32_t, std::weak_ptr<RSInterpolator>> cachedInterpolators_;
+    static std::unordered_map<uint64_t, std::weak_ptr<RSInterpolator>> cachedInterpolators_;
     static const auto Destructor = [](RSInterpolator* ptr) {
         if (ptr == nullptr) {
             ROSEN_LOGE("RSInterpolator::Unmarshalling, sharePtr is nullptr.");

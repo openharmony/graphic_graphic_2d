@@ -125,6 +125,8 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.AddVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.RemoveVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     std::vector<NodeId> secExemptionList = {};
     secExemptionList.emplace_back(id);
     rsInterfaces.SetVirtualScreenSecurityExemptionList(static_cast<ScreenId>(id), secExemptionList);
@@ -166,6 +168,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterUIExtensionCallback(id, uiExtensionCallback);
     usleep(usleepTime);
 
+    std::string nodeIdStr = GetData<std::string>();
+    bool isTop = GetData<bool>();
+    rsInterfaces.SetLayerTop(nodeIdStr, isTop);
     return true;
 }
 
@@ -191,6 +196,30 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 #endif
+
+bool DoDropFrameByPid(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    };
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.DropFrameByPid(pidList);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -202,5 +231,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef TP_FEATURE_ENABLE
     OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoDropFrameByPid(data, size);
     return 0;
 }

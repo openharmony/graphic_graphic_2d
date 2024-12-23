@@ -59,14 +59,14 @@ struct ScreenInfo {
     }
     uint32_t GetRotatedPhyWidth() const
     {
-        return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? phyWidth
-                                                                                                    : phyHeight;
+        return (rotation == ScreenRotation::ROTATION_0 ||
+            rotation == ScreenRotation::ROTATION_180) ? phyWidth : phyHeight;
     }
 
     uint32_t GetRotatedPhyHeight() const
     {
-        return (rotation == ScreenRotation::ROTATION_0 || rotation == ScreenRotation::ROTATION_180) ? phyHeight
-                                                                                                    : phyWidth;
+        return (rotation == ScreenRotation::ROTATION_0 ||
+            rotation == ScreenRotation::ROTATION_180) ? phyHeight : phyWidth;
     }
 
     float GetRogWidthRatio() const

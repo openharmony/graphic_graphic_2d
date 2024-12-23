@@ -68,42 +68,37 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE ||
-            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR) {
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR ||
+            layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
             continue;
         }
+        GraphicLayerColor layerBlackColor = {
+            .r = 0,
+            .g = 0,
+            .b = 0,
+            .a = 0
+        };
         auto layerSurface = layer->GetSurface();
-        if (layerSurface != nullptr) {
-            if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
-                rcdLayersEnableMap[layerSurface->GetName()] = true;
-                continue;
+        if (layerSurface == nullptr) {
+            const auto& layerColor = layer->GetLayerColor();
+            if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
+                layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
+                Drawing::AutoCanvasRestore acr(canvas, true);
+                const auto& dstRect = layer->GetLayerSize();
+                auto color = Drawing::Color::ColorQuadSetARGB(layerColor.a, layerColor.r, layerColor.g, layerColor.b);
+                Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+                    static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
+                    static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
+                canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+                canvas.DrawColor(color);
             }
-        } else {
-            RS_LOGE("RSUniRenderEngine::DrawLayers layerSurface is nullptr");
+            continue;
+        } else if (rcdLayersEnableMap.count(layerSurface->GetName()) > 0) {
+            rcdLayersEnableMap[layerSurface->GetName()] = true;
             continue;
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
-        auto dstRect = layer->GetLayerSize();
-        // draw background color for DRM buffer and then draw layer size image when surface has scaling mode
-        if (layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED)) {
-            const auto& boundsRect = layer->GetBoundSize();
-            const auto& layerMatrix = layer->GetMatrix();
-            auto skMatrix = Drawing::Matrix();
-            skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
-                layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-            Drawing::AutoCanvasRestore acr(canvas, true);
-            canvas.ConcatMatrix(skMatrix);
-            Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,
-                static_cast<float>(boundsRect.w), static_cast<float>(boundsRect.h));
-            Drawing::Brush rectBrush;
-            rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
-            canvas.AttachBrush(rectBrush);
-            canvas.DrawRect(drawRect);
-            canvas.DetachBrush();
-        }
-        Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
-            static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
-            static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
-        canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
+        DrawLayerPreProcess(canvas, layer);
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
         params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
@@ -124,6 +119,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
 #endif
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region
+        auto dstRect = layer->GetLayerSize();
         if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
             RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
             RSUniRenderUtil::DrawRectForDfx(canvas, dst, Drawing::Color::COLOR_YELLOW, REDRAW_DFX_ALPHA,
@@ -140,6 +136,55 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
     if (rcdLayersEnableMap[RCD_BOTTOM_LAYER_NAME] && RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
         RSSingleton<RoundCornerDisplay>::GetInstance().DrawBottomRoundCorner(&canvas);
     }
+}
+
+void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer)
+{
+    const auto& dstRect = layer->GetLayerSize();
+    const auto& drmCornerRadiusInfo = layer->GetCornerRadiusInfoForDRM();
+    const auto& layerBackgroundColor = layer->GetBackgroundColor();
+    Color backgroundColor = {
+        layerBackgroundColor.r,
+        layerBackgroundColor.g,
+        layerBackgroundColor.b,
+        layerBackgroundColor.a
+    };
+    // clip round rect when drm has radius info
+    if (!drmCornerRadiusInfo.empty()) {
+        auto rect = RectF();
+        rect = {drmCornerRadiusInfo[0], drmCornerRadiusInfo[1], // 0 and 1 represent rect left and top
+            drmCornerRadiusInfo[2], drmCornerRadiusInfo[3]}; // 2 and 3 represent rect width and height
+        Vector4f radiusVector {drmCornerRadiusInfo[4], drmCornerRadiusInfo[5], // 4 and 5 represent corner radius
+            drmCornerRadiusInfo[6], drmCornerRadiusInfo[7]}; // 6 and 7 represent corner radius
+        RRect rrect = RRect(rect, radiusVector);
+        canvas.ClipRoundRect(RSPropertiesPainter::RRect2DrawingRRect(rrect), Drawing::ClipOp::INTERSECT, true);
+        if (backgroundColor != RgbPalette::Transparent()) {
+            canvas.DrawColor(backgroundColor.AsArgbInt());
+        }
+        return;
+    }
+    // draw background color for DRM buffer and then draw layer size image when surface has scaling mode
+    if (layer->GetBuffer() && (layer->GetBuffer()->GetUsage() & BUFFER_USAGE_PROTECTED) &&
+        backgroundColor != RgbPalette::Transparent()) {
+        const auto& boundsRect = layer->GetBoundSize();
+        const auto& layerMatrix = layer->GetMatrix();
+        auto skMatrix = Drawing::Matrix();
+        skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
+            layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
+        Drawing::AutoCanvasRestore acr(canvas, true);
+        canvas.ConcatMatrix(skMatrix);
+        Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,
+            static_cast<float>(boundsRect.w), static_cast<float>(boundsRect.h));
+        Drawing::Brush rectBrush;
+        rectBrush.SetColor(backgroundColor.AsArgbInt());
+        canvas.AttachBrush(rectBrush);
+        canvas.DrawRect(drawRect);
+        canvas.DetachBrush();
+    }
+    Drawing::Rect clipRect = Drawing::Rect(static_cast<float>(dstRect.x), static_cast<float>(dstRect.y),
+        static_cast<float>(dstRect.w) + static_cast<float>(dstRect.x),
+        static_cast<float>(dstRect.h) + static_cast<float>(dstRect.y));
+    canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
 }
 
 void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,

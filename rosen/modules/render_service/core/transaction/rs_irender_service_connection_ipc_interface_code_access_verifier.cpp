@@ -129,6 +129,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_CURTAIN_SCREEN_USING_STATUS");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::DROP_FRAME_BY_PID): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::DROP_FRAME_BY_PID");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_FOCUS_APP_INFO): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_FOCUS_APP_INFO");
             break;
@@ -179,6 +183,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_BLACKLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_BLACKLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_VIRTUAL_SCREEN_BLACKLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_BLACKLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN_BLACKLIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_BLACKLIST");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_VIRTUAL_SCREEN_RESOLUTION): {
@@ -337,6 +349,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_DISPLAY_NODE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_DISPLAY_NODE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_LAYER_TOP): {
+            hasPermission = IsStylusServiceCalling(codeEnumTypeName_ + "::SET_LAYER_TOP");
             break;
         }
         default: {

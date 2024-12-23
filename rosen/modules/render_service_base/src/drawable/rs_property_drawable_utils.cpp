@@ -319,6 +319,9 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (!paintFilterCanvas->GetDisableFilterCache() && cacheManager != nullptr && RSProperties::FilterCacheEnabled) {
+        if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
+            g_blurCnt--;
+        }
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
         filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
@@ -451,6 +454,9 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
     if (RSProperties::FilterCacheEnabled && cacheManager != nullptr && !canvas->GetDisableFilterCache()) {
+        if (cacheManager->GetCachedType() == FilterCacheType::FILTERED_SNAPSHOT) {
+            g_blurCnt--;
+        }
         auto&& data = cacheManager->GeneratedCachedEffectData(*canvas, filter, clipIBounds, clipIBounds);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
         canvas->SetEffectData(data);
@@ -784,7 +790,12 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
+        return;
+    }
+    if (std::isinf(pixelStretch->x_) || std::isinf(pixelStretch->y_) ||
+        std::isinf(pixelStretch->z_) || std::isinf(pixelStretch->w_)) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch skip original pixelStretch");
         return;
     }
     auto surface = canvas->GetSurface();
@@ -1023,8 +1034,6 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
     }
 
     // save layer mode
-    CeilMatrixTrans(&canvas);
-
     Drawing::Brush blendBrush_;
     blendBrush_.SetAlphaF(canvas.GetAlpha());
     blendBrush_.SetBlender(blender);

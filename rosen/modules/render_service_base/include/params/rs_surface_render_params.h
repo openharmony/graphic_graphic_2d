@@ -176,6 +176,11 @@ public:
         return privacyContentLayerIds_.size() != 0;
     }
 
+    LeashPersistentId GetLeashPersistentId() const
+    {
+        return leashPersistentId_;
+    }
+
     std::string GetName() const
     {
         return name_;
@@ -347,18 +352,9 @@ public:
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     bool GetHidePrivacyContent() const;
 
-    void SetPreScalingMode(ScalingMode scalingMode) override
-    {
-        if (preScalingMode_ == scalingMode) {
-            return;
-        }
-        preScalingMode_ = scalingMode;
-        needSync_ = true;
-    }
-    ScalingMode GetPreScalingMode() const override
-    {
-        return preScalingMode_;
-    }
+    void SetLayerTop(bool isTop);
+    bool IsLayerTop() const;
+
     bool IsVisibleDirtyRegionEmpty(const Drawing::Region curSurfaceDrawRegion) const;
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -369,6 +365,14 @@ public:
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    inline void SetBufferSynced(bool bufferSynced)
+    {
+        bufferSynced_ = bufferSynced;
+    }
+    bool IsBufferSynced() const
+    {
+        return bufferSynced_;
+    }
 #endif
 
     virtual void OnSync(const std::unique_ptr<RSRenderParams>& target) override;
@@ -426,6 +430,20 @@ public:
         return false;
     }
 
+    void SetCornerRadiusInfoForDRM(const std::vector<float>& drmCornerRadiusInfo)
+    {
+        if (drmCornerRadiusInfo_ == drmCornerRadiusInfo) {
+            return;
+        }
+        drmCornerRadiusInfo_ = drmCornerRadiusInfo;
+        needSync_ = true;
+    }
+
+    const std::vector<float>& GetCornerRadiusInfoForDRM() const
+    {
+        return drmCornerRadiusInfo_;
+    }
+
     void SetSdrNit(int32_t sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
@@ -468,6 +486,24 @@ public:
         return brightnessRatio_;
     }
 
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
+    
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -484,6 +520,7 @@ private:
     bool uiFirstParentFlag_ = false;
     NodeId uifirstUseStarting_ = INVALID_NODEID;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
@@ -492,6 +529,8 @@ private:
     RRect rrect_;
     Occlusion::Region transparentRegion_;
     Occlusion::Region opaqueRegion_;
+
+    LeashPersistentId leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
 
     bool surfaceCacheContentStatic_ = false;
     bool preSurfaceCacheContentStatic_ = false;
@@ -512,6 +551,7 @@ private:
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
+    bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
     bool isLastFrameHardwareEnabled_ = false;
@@ -534,11 +574,12 @@ private:
     Vector4f overDrawBufferNodeCornerRadius_;
     bool isGpuOverDrawBufferOptimizeNode_ = false;
     bool isSkipDraw_ = false;
-    ScalingMode preScalingMode_ = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
+    bool isLayerTop_ = false;
     bool needHidePrivacyContent_ = false;
     bool needOffscreen_ = false;
     bool layerCreated_ = false;
     int32_t layerSource_ = 0;
+    std::vector<float> drmCornerRadiusInfo_;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
@@ -547,6 +588,10 @@ private:
     int32_t sdrNit_ = 500; // default sdrNit
     int32_t displayNit_ = 500; // default displayNit_
     float brightnessRatio_ = 1.0; // 1.0f means no discount.
+
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

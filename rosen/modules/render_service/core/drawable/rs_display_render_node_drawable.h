@@ -155,6 +155,8 @@ private:
         Drawing::Canvas& canvas, RSDisplayRenderParams& params) const;
     void WiredScreenProjection(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
     void ScaleAndRotateMirrorForWiredScreen(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable);
+    void DrawWiredMirrorOnDraw(RSDisplayRenderNodeDrawable& mirroredDrawable, RSDisplayRenderParams& params);
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
         std::unique_ptr<RSRenderFrame>& renderFrame, RSDisplayRenderParams& params, Drawing::Matrix canvasMatrix);
     void DrawWatermarkIfNeed(RSDisplayRenderParams& params, RSPaintFilterCanvas& canvas) const;
@@ -182,7 +184,6 @@ private:
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio = 1.0f);
     void PrepareHdrDraw(int32_t offscreenWidth, int32_t offscreenHeight);
     void FinishHdrDraw(Drawing::Brush& paint, float hdrBrightnessRatio);
-    bool SkipDisplayIfScreenOff() const;
     int32_t GetSpecialLayerType(RSDisplayRenderParams& params);
     void SetDisplayNodeSkipFlag(RSRenderThreadParams& uniParam, bool flag);
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);

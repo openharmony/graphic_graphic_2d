@@ -227,7 +227,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
 
 void RSUniRenderUtil::SetAllSurfaceDrawableGlobalDityRegion(
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-    const RectI& globalDirtyRegion)
+    const Occlusion::Region& globalDirtyRegion)
 {
     // Set Surface Global Dirty Region
     for (auto it = allSurfaceDrawables.rbegin(); it != allSurfaceDrawables.rend(); ++it) {
@@ -486,10 +486,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = useRenderParams ? nodeParams->GetFrameGravity() : property.GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceParams->GetPreScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceParams->SetPreScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -539,10 +536,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     auto gravity = nodeParams->GetFrameGravity();
     RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(transform, gravity, localBounds, params, surfaceNodeParams);
     RSBaseRenderUtil::FlipMatrix(transform, params);
-    ScalingMode scalingMode = surfaceNodeParams->GetPreScalingMode();
-    if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        surfaceNodeParams->SetPreScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, consumer, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -599,7 +593,8 @@ void RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(GraphicTransfor
     RectF& localBounds, BufferDrawParam& params)
 {
     auto rotationTransform = RSBaseRenderUtil::GetRotateTransform(transform);
-    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
+    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(
+        rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
@@ -720,17 +715,13 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         // if rotation fixed, no need to calculate scaling mode, it is contained in dstRect
         return params;
     }
-    ScalingMode scalingMode = ScalingMode::SCALING_MODE_SCALE_TO_WINDOW;
     const auto& surface = layer->GetSurface();
     if (surface == nullptr) {
         RS_LOGE("buffer or surface is nullptr");
         return params;
     }
 
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) != GSERROR_OK) {
-        scalingMode = layer->GetScalingMode();
-    }
-
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         SrcRectScaleDown(params, buffer, surface, localBounds);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
@@ -847,21 +838,24 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
         value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
 }
 
-bool RSUniRenderUtil::Is3DRotation(Drawing::Matrix matrix)
+bool RSUniRenderUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
     matrix.GetAll(value);
-    // ScaleX and ScaleY must have different sign
-    if (!(std::signbit(value[Drawing::Matrix::Index::SCALE_X]) ^
-        std::signbit(value[Drawing::Matrix::Index::SCALE_Y]))) {
-        return false;
+    if (!ROSEN_EQ(value[Drawing::Matrix::Index::PERSP_0], 0.f) ||
+        !ROSEN_EQ(value[Drawing::Matrix::Index::PERSP_1], 0.f)) {
+        return true;
     }
-
-    int rotateX = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_1],
-        value[Drawing::Matrix::Index::SCALE_Y]) * (180 / PI)));
-    int rotateY = static_cast<int>(-round(atan2(value[Drawing::Matrix::Index::PERSP_0],
-        value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
-    return (rotateX != 0) || (rotateY != 0);
+    int rotation = static_cast<int>(round(value[Drawing::Matrix::Index::SCALE_X] *
+        value[Drawing::Matrix::Index::SKEW_X] +
+        value[Drawing::Matrix::Index::SKEW_Y] *
+        value[Drawing::Matrix::Index::SCALE_Y]));
+    if (rotation != 0) {
+        return true;
+    }
+    int vectorZ = value[Drawing::Matrix::Index::SCALE_X] * value[Drawing::Matrix::Index::SCALE_Y] -
+        value[Drawing::Matrix::Index::SKEW_Y] * value[Drawing::Matrix::Index::SKEW_X];
+    return vectorZ < 0;
 }
 
 bool RSUniRenderUtil::IsNodeAssignSubThread(std::shared_ptr<RSSurfaceRenderNode> node, bool isDisplayRotation)
@@ -1164,15 +1158,13 @@ void RSUniRenderUtil::PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&&
         if (RSUniRenderJudgement::IsUniRender()) {
             auto instance = &(RSUniRenderThread::Instance());
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         } else {
             auto instance = RSMainThread::Instance();
             instance->AddToReleaseQueue(std::move(surface));
-            instance->PostTask([instance] () {
-                instance->ReleaseSurface();
-            });
+            instance->PostTask(([instance] () { instance->ReleaseSurface(); }),
+                RELEASE_SURFACE_TASK, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
         }
     } else {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -1408,13 +1400,8 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
         node.GetRenderProperties().GetFrameGravity() != Gravity::TOP_LEFT) {
         float xScale = (ROSEN_EQ(boundsWidth, 0.0f) ? 1.0f : bufferWidth / boundsWidth);
         float yScale = (ROSEN_EQ(boundsHeight, 0.0f) ? 1.0f : bufferHeight / boundsHeight);
-        const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
         // If the scaling mode is SCALING_MODE_SCALE_TO_WINDOW, the scale should use smaller one.
-        ScalingMode scalingMode = nodeParams->GetPreScalingMode();
-        if (consumer->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-            nodeParams->SetPreScalingMode(scalingMode);
-        }
-        if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        if (buffer->GetSurfaceBufferScalingMode() == ScalingMode::SCALING_MODE_SCALE_CROP) {
             float scale = std::min(xScale, yScale);
             srcRect.left_ = srcRect.left_ * scale;
             srcRect.top_ = srcRect.top_ * scale;
@@ -1596,23 +1583,43 @@ void RSUniRenderUtil::LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& scr
     node.SetSrcRect(srcRect);
 }
 
-void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node)
+void RSUniRenderUtil::DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
 {
-    const auto nodeParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     const auto& buffer = node.GetRSSurfaceHandler()->GetBuffer();
     const auto& surface = node.GetRSSurfaceHandler()->GetConsumer();
-    if (nodeParams == nullptr || surface == nullptr || buffer == nullptr) {
-        RS_LOGE("nodeParams or surface or buffer is nullptr");
+    if (surface == nullptr || buffer == nullptr) {
+        RS_LOGE("surface or buffer is nullptr");
         return;
     }
 
-    ScalingMode scalingMode = nodeParams->GetPreScalingMode();
-    if (surface->GetScalingMode(buffer->GetSeqNum(), scalingMode) == GSERROR_OK) {
-        nodeParams->SetPreScalingMode(scalingMode);
-    }
+    ScalingMode scalingMode = buffer->GetSurfaceBufferScalingMode();
     if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
         RSUniRenderUtil::LayerScaleDown(node);
     } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        // For scale fit, when aspect ratios of buffer and bounds of node are "dramatically" different,
+        // moving node out of screen causes unexpected dstRect cropping problem. Disable HWC if this happens
+        float bufferAspectRatio = buffer->GetSurfaceBufferHeight() == 0 ? 0.f :
+            static_cast<float>(buffer->GetSurfaceBufferWidth()) / static_cast<float>(buffer->GetSurfaceBufferHeight());
+        float boundsAspectRatio = ROSEN_EQ(node.GetRenderProperties().GetBoundsHeight(), 0.f, 1e-6f) ? 0.f :
+            node.GetRenderProperties().GetBoundsWidth() / node.GetRenderProperties().GetBoundsHeight();
+        // Aspect ratios should be "dramatically" different
+        if (!ROSEN_EQ(bufferAspectRatio, boundsAspectRatio, 5e-3f)) {
+            Drawing::Rect bounds = Drawing::Rect(
+                0, 0, node.GetRenderProperties().GetBoundsWidth(), node.GetRenderProperties().GetBoundsHeight());
+            Drawing::Rect absBoundsRect;
+            node.GetTotalMatrix().MapRect(absBoundsRect, bounds);
+            // Detect if node is out of screen by testing bounds
+            if (absBoundsRect.GetLeft() < 0 || absBoundsRect.GetTop() < 0 ||
+                absBoundsRect.GetLeft() + absBoundsRect.GetWidth() > screenInfo.width ||
+                absBoundsRect.GetTop() + absBoundsRect.GetHeight() > screenInfo.height) {
+                node.SetHardwareForcedDisabledState(true);
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name %s id %llu disabled by scale fit bounds out of screen. "
+                    "bounds: %s, screenWidth: %u, screenHeight: %u bufferAspectRatio: %f, boundsAspectRatio: %f",
+                    node.GetName().c_str(), node.GetId(), absBoundsRect.ToString().c_str(), screenInfo.width,
+                    screenInfo.height, bufferAspectRatio, boundsAspectRatio);
+            }
+        }
+
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(node.GetTotalMatrix());
         if (degree % RS_ROTATION_90 == 0) {
             RSUniRenderUtil::LayerScaleFit(node);
@@ -1805,9 +1812,6 @@ void RSUniRenderUtil::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNo
         const auto& curProperty = parent->GetRenderProperties();
         alpha *= curProperty.GetAlpha();
         matrix.PostConcat(curProperty.GetBoundsGeometry()->GetMatrix());
-        if (ROSEN_EQ(alpha, 1.f)) {
-            parent->DisableDrawingCacheByHwcNode();
-        }
         parent = parent->GetParent().lock();
     }
     if (!parent) {
@@ -1918,6 +1922,63 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
+}
+
+std::optional<Drawing::Matrix> RSUniRenderUtil::GetMatrix(
+    std::shared_ptr<RSRenderNode> hwcNode)
+{
+    if (!hwcNode) {
+        return std::nullopt;
+    }
+    auto relativeMat = Drawing::Matrix();
+    auto& property = hwcNode->GetRenderProperties();
+    if (auto geo = property.GetBoundsGeometry()) {
+        if (LIKELY(!property.GetSandBox().has_value())) {
+            relativeMat = geo->GetMatrix();
+        } else {
+            auto parent = hwcNode->GetParent().lock();
+            if (!parent) {
+                return std::nullopt;
+            }
+            if (auto parentGeo = parent->GetRenderProperties().GetBoundsGeometry()) {
+                auto invertAbsParentMatrix = Drawing::Matrix();
+                parentGeo->GetAbsMatrix().Invert(invertAbsParentMatrix);
+                relativeMat = geo->GetAbsMatrix();
+                relativeMat.PostConcat(invertAbsParentMatrix);
+            }
+        }
+    } else {
+        return std::nullopt;
+    }
+    return relativeMat;
+}
+
+bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<ScreenId> screenId)
+{
+    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled() || RSSystemProperties::IsPcType()) {
+        return false;
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (!screenManager) {
+        RS_LOGE("RSUniRenderUtil::CheckRenderSkipIfScreenOff, failed to get screen manager!");
+        return false;
+    }
+    // in certain cases such as wireless display, render skipping may be disabled.
+    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
+    auto isScreenOff = screenId.has_value() ?
+        screenManager->IsScreenPowerOff(screenId.value()) : screenManager->IsAllScreensPowerOff();
+    RS_TRACE_NAME_FMT("CheckRenderSkipIfScreenOff disableRenderControl:[%d], PowerOff:[%d]",
+        disableRenderControlScreensCount, isScreenOff);
+    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
+        return false;
+    }
+    if (extraFrame && screenManager->GetPowerOffNeedProcessOneFrame()) {
+        RS_LOGI("RSUniRenderUtil::CheckRenderSkipIfScreenOff screen power off, one more frame.");
+        screenManager->ResetPowerOffNeedProcessOneFrame();
+        return false;
+    } else {
+        return !screenManager->GetPowerOffNeedProcessOneFrame();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

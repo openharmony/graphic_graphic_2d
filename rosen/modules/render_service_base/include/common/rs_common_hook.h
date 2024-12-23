@@ -36,6 +36,8 @@ public:
     void SetHardwareEnabledByBackgroundAlphaFlag(bool hardwareEnabledByBackgroundAlphaSkippedFlag);
     bool GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() const;
     bool GetHardwareEnabledByBackgroundAlphaFlag() const;
+    bool GetIsWhiteListForSolidColorLayerFlag() const;
+    void SetIsWhiteListForSolidColorLayerFlag(bool isWhiteListForSolidColorLayerFlag);
 
 private:
     std::function<void()> startNewAniamtionFunc_ = nullptr;
@@ -45,6 +47,7 @@ private:
     // use in updating hwcnode hardware state with background alpha
     std::atomic<bool> hardwareEnabledByHwcnodeSkippedFlag_{false};
     std::atomic<bool> hardwareEnabledByBackgroundAlphaSkippedFlag_{false};
+    std::atomic<bool> isWhiteListForSolidColorLayerFlag_{false};
 };
 } // namespace OHOS::Rosen
 #endif

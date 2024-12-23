@@ -15,6 +15,8 @@
 #ifndef UIEFFECT_FILTER_H
 #define UIEFFECT_FILTER_H
 
+#include <memory>
+#include <vector>
 #include "filter_para.h"
 
 namespace OHOS {

@@ -19,7 +19,6 @@
 #include <native_engine/native_engine.h>
 #include <native_engine/native_value.h>
 #include <memory>
-
 #include "font_collection.h"
 #include "napi_common.h"
 #include "resource_manager.h"
@@ -35,7 +34,6 @@ public:
     static napi_value LoadFontSync(napi_env env, napi_callback_info info);
     static napi_value GetGlobalInstance(napi_env env, napi_callback_info info);
     static napi_value ClearCaches(napi_env env, napi_callback_info info);
-    static napi_value LoadFontAsync(napi_env env, napi_callback_info info);
 
     std::shared_ptr<FontCollection> GetFontCollection();
 private:
@@ -44,13 +42,11 @@ private:
     napi_value OnClearCaches(napi_env env, napi_callback_info info);
     std::unique_ptr<Global::Resource::ResourceManager> GetResourManager(const std::string& moudleName);
     bool SpiltAbsoluteFontPath(std::string& absolutePath);
-    bool ParseResourcePath(const std::string familyName, ResourceInfo& info);
+    bool ParseResourcePath(napi_env env, napi_value value, const std::string familyName);
     bool ParseResourceType(napi_env env, napi_value value, ResourceInfo& info);
     bool GetResourcePartData(napi_env env, ResourceInfo& info, napi_value paramsNApi,
         napi_value bundleNameNApi, napi_value moduleNameNApi);
     bool GetFontFileProperties(const std::string path, const std::string familyName);
-    napi_value OnLoadFontAsync(napi_env env, napi_callback_info info);
-
     std::shared_ptr<FontCollection> fontcollection_ = nullptr;
 };
 } // namespace OHOS::Rosen

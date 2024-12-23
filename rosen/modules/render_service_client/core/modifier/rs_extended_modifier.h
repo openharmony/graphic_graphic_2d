@@ -92,6 +92,9 @@ protected:
         if (lastDrawCmdListEmpty_ && isEmpty) {
             return;
         }
+        if (drawCmdList) {
+            drawCmdList->SetIsNeedUnmarshalOnDestruct(!node->IsRenderServiceNode());
+        }
         lastDrawCmdListEmpty_ = isEmpty;
 
         std::unique_ptr<RSCommand> command = std::make_unique<RSUpdatePropertyDrawCmdList>(

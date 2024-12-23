@@ -43,7 +43,7 @@ const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0+1\n"
+    "Children list needs update, current count: 0 expected count: 0, disappearingChildren: 1\n"
     "  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], "
     "IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
@@ -1009,12 +1009,12 @@ HWTEST_F(RSRenderNodeTest, UpdateCurCornerRadiusTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateClipAbsDrawRectChangeStateTest
+ * @tc.name: UpdateSrcOrClipedAbsDrawRectChangeStateTest
  * @tc.desc:
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueIAZV18
  */
-HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateSrcOrClipedAbsDrawRectChangeStateTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSRenderNode>(id, context);
     auto left = 0;
@@ -1023,15 +1023,15 @@ HWTEST_F(RSRenderNodeTest, UpdateClipAbsDrawRectChangeStateTest, TestSize.Level1
     auto height = 1048;
     RectI rectI(left, top, width, height);
 
-    node->clipAbsDrawRectChange_ = true;
-    node->UpdateClipAbsDrawRectChangeState(rectI);
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
     EXPECT_FALSE(node->geometryChangeNotPerceived_);
 
     EXPECT_EQ(RSSystemProperties::GetSkipGeometryNotChangeEnabled(), true);
-    node->clipAbsDrawRectChange_ = true;
+    node->srcOrClipedAbsDrawRectChangeFlag_ = true;
     node->geometryChangeNotPerceived_ = true;
-    node->UpdateClipAbsDrawRectChangeState(rectI);
-    EXPECT_FALSE(node->clipAbsDrawRectChange_);
+    node->UpdateSrcOrClipedAbsDrawRectChangeState(rectI);
+    EXPECT_FALSE(node->srcOrClipedAbsDrawRectChangeFlag_);
 }
 
 /**
@@ -1219,6 +1219,25 @@ HWTEST_F(RSRenderNodeTest, UpdateHierarchyAndReturnIsLowerTest, TestSize.Level1)
     sharedTransitionParam->relation_ = SharedTransitionParam::NodeHierarchyRelation::UNKNOWN;
     ret = sharedTransitionParam->UpdateHierarchyAndReturnIsLower(inNodeId);
     EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::IN_NODE_BELOW_OUT_NODE);
+}
+
+/**
+ * @tc.name: ResetRelation
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, ResetRelationTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 2, context);
+    auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);
+
+    (void)sharedTransitionParam->UpdateHierarchyAndReturnIsLower(inNode->GetId());
+    EXPECT_NE(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
+
+    sharedTransitionParam->ResetRelation();
+    EXPECT_EQ(sharedTransitionParam->relation_, SharedTransitionParam::NodeHierarchyRelation::UNKNOWN);
 }
 
 /**

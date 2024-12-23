@@ -207,7 +207,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ReportEventComplete(info);
     rsRenderServiceConnectionProxy.ReportEventJankFrame(info);
     rsRenderServiceConnectionProxy.ReportGameStateData(gameStateDataInfo);
-    rsRenderServiceConnectionProxy.SetHardwareEnabled(id1, true, SelfDrawingNodeType::DEFAULT);
+    rsRenderServiceConnectionProxy.SetHardwareEnabled(id1, true, SelfDrawingNodeType::DEFAULT, true);
     rsRenderServiceConnectionProxy.SetCacheEnabledForRotation(true);
     rsRenderServiceConnectionProxy.SetOnRemoteDiedCallback(onRemoteDiedCallback);
     rsRenderServiceConnectionProxy.RunOnRemoteDiedCallback();

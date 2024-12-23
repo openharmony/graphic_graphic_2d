@@ -61,7 +61,8 @@ struct TypographyStyle {
     EllipsisModal ellipsisModal = EllipsisModal::TAIL;
     float textSplitRatio = 0.5f;
 
-    bool operator==(const TypographyStyle &rhs) const {
+    bool operator==(const TypographyStyle &rhs) const
+    {
         return
             this->ELLIPSIS == rhs.ELLIPSIS &&
             this->fontWeight == rhs.fontWeight &&
@@ -72,7 +73,6 @@ struct TypographyStyle {
             this->halfLeading == rhs.halfLeading &&
             this->heightOnly == rhs.heightOnly &&
             this->useLineStyle == rhs.useLineStyle &&
-            this->lineStyleFontWidth == rhs.lineStyleFontWidth &&
             this->lineStyleFontWeight == rhs.lineStyleFontWeight &&
             this->lineStyleFontStyle == rhs.lineStyleFontStyle &&
             this->lineStyleFontFamilies == rhs.lineStyleFontFamilies &&

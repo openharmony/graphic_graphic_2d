@@ -21,6 +21,7 @@
 #include <map>
 #include <thread>
 #include <mutex>
+#include <shared_mutex>
 #include <condition_variable>
 #include "render_context/render_context.h"
 #include "event_handler.h"
@@ -71,8 +72,11 @@ public:
     // update curOrientation_ and lastOrientation_
     void UpdateOrientationStatus(ScreenRotation orientation);
 
-    void DrawRoundCorner(RSPaintFilterCanvas* canvas);
+    // update hardInfo_.resourceChanged after hw resource applied
+    void UpdateHardwareResourcePrepared(bool prepared);
 
+    void DrawRoundCorner(RSPaintFilterCanvas *canvas);
+    
     void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
 
     void DrawBottomRoundCorner(RSPaintFilterCanvas* canvas);
@@ -90,9 +94,18 @@ public:
         UpdateParameter(updateFlag_);
         task(); // do task
     }
-    
-    rs_rcd::RoundCornerHardware GetHardwareInfo() const
+
+    rs_rcd::RoundCornerHardware GetHardwareInfo()
     {
+        std::shared_lock<std::shared_mutex> lock(resourceMut_);
+        return hardInfo_;
+    }
+
+    rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
+    {
+        std::unique_lock<std::shared_mutex> lock(resourceMut_);
+        if (hardInfo_.resourceChanged)
+            hardInfo_.resourcePreparing = true;
         return hardInfo_;
     }
 
@@ -103,7 +116,7 @@ public:
 
     bool IsNotchNeedUpdate(bool notchStatus)
     {
-        std::lock_guard<std::mutex> lock(resourceMut_);
+        std::shared_lock<std::shared_mutex> lock(resourceMut_);
         bool result = notchStatus != lastNotchStatus_;
         lastNotchStatus_ = notchStatus;
         return result;
@@ -157,7 +170,7 @@ private:
     std::shared_ptr<Drawing::Image> curTop_ = nullptr;
     std::shared_ptr<Drawing::Image> curBottom_ = nullptr;
 
-    std::mutex resourceMut_;
+    std::shared_mutex resourceMut_;
 
     rs_rcd::RoundCornerHardware hardInfo_;
 

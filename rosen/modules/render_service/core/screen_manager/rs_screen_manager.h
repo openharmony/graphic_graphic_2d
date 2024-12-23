@@ -72,6 +72,10 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
 
+    virtual int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
+
+    virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) = 0;
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) = 0;
 
@@ -272,6 +276,10 @@ public:
         std::vector<uint64_t> whiteList) override;
 
     int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
+
+    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList) override;
@@ -493,11 +501,14 @@ private:
     FoldState TransferAngleToScreenState(float angle);
 #endif
 
+    void RegSetScreenVsyncEnabledCallbackForMainThread(ScreenId vsyncEnabledScreenId);
+    void RegSetScreenVsyncEnabledCallbackForHardwareThread(ScreenId vsyncEnabledScreenId);
+
     mutable std::mutex mutex_;
     mutable std::mutex blackListMutex_;
     HdiBackend *composer_ = nullptr;
     ScreenId defaultScreenId_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, std::unique_ptr<OHOS::Rosen::RSScreen>> screens_;
+    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
     std::queue<ScreenId> freeVirtualScreenIds_;
     uint32_t virtualScreenCount_ = 0;
     uint32_t currentVirtualScreenNum_ = 0;

@@ -19,9 +19,11 @@
 #include <memory>
 #include <vector>
 #include "common/rs_occlusion_region.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_properties.h"
+#include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
 struct CaptureParam {
@@ -112,6 +114,36 @@ public:
     uint64_t GetCurrentTimestamp() const
     {
         return timestamp_;
+    }
+
+    void SetActualTimestamp(int64_t timestamp)
+    {
+        actualTimestamp_ = timestamp;
+    }
+
+    int64_t GetActualTimestamp() const
+    {
+        return actualTimestamp_;
+    }
+
+    void SetVsyncId(uint64_t vsyncId)
+    {
+        vsyncId_ = vsyncId;
+    }
+
+    uint64_t GetVsyncId() const
+    {
+        return vsyncId_;
+    }
+
+    void SetForceRefreshFlag(bool isForceRefresh)
+    {
+        isForceRefresh_ = isForceRefresh;
+    }
+
+    bool GetForceRefreshFlag() const
+    {
+        return isForceRefresh_;
     }
 
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
@@ -377,6 +409,35 @@ public:
     {
         return isAceDebugBoundaryEnabled_;
     }
+    const ScreenInfo& GetScreenInfo() const
+    {
+        return screenInfo_;
+    }
+
+    void SetScreenInfo(const ScreenInfo& info)
+    {
+        screenInfo_ = info;
+    }
+
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    RSDisplayRenderNode::CompositeType GetCompositeType() const
+    {
+        return compositeType_;
+    }
+
+    void SetCompositeType(RSDisplayRenderNode::CompositeType type)
+    {
+        compositeType_ = type;
+    }
 
 private:
     bool startVisit_ = false;     // To be deleted after captureWindow being deleted
@@ -384,6 +445,9 @@ private:
     NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
+    int64_t actualTimestamp_ = 0;
+    uint64_t vsyncId_ = 0;
+    bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     // RSDirtyRectsDfx dfx
@@ -426,12 +490,15 @@ private:
     std::weak_ptr<RSContext> context_;
     bool isCurtainScreenOn_ = false;
     bool isAceDebugBoundaryEnabled_ = false;
+    RSDisplayRenderNode::CompositeType compositeType_ = RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE;
+    bool isMirrorScreen_ = false;
 
     Drawing::Region clipRegion_;
     bool isImplicitAnimationEnd_ = false;
     bool discardJankFrames_ = false;
 
     bool isSecurityExemption_ = false;
+    ScreenInfo screenInfo_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
@@ -442,6 +509,12 @@ class RSRenderThreadParamsManager {
 public:
     RSRenderThreadParamsManager() = default;
     ~RSRenderThreadParamsManager() = default;
+
+    static RSRenderThreadParamsManager& Instance()
+    {
+        static RSRenderThreadParamsManager instance;
+        return instance;
+    }
 
     inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
     {

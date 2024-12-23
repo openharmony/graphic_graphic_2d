@@ -95,8 +95,8 @@ skt::TextShadow MakeTextShadow(const TextShadow& txtShadow)
 
 const char* DefaultLocale()
 {
-    static const char* localeZh = "zh-Hans";
-    return localeZh;
+    static const char* LOCALE_ZH = "zh-Hans";
+    return LOCALE_ZH;
 }
 } // anonymous namespace
 

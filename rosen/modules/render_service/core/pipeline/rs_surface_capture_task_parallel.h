@@ -46,7 +46,7 @@ public:
     ~RSSurfaceCaptureTaskParallel() = default;
 
     // Confirm whether the node is occlusive which should apply modifiers
-    static void CheckModifiers(NodeId id);
+    static void CheckModifiers(NodeId id, bool useCurWindow);
     // Do capture pipeline task
     static void Capture(NodeId id,
         sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling);
@@ -58,7 +58,7 @@ public:
 #endif
 
     bool CreateResources();
-    
+
     bool Run(sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling);
 
 private:
@@ -80,6 +80,7 @@ private:
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     int32_t finalRotationAngle_ = RS_ROTATION_0;
+    std::shared_ptr<Drawing::ColorSpace> colorSpace_ = nullptr;
 
     // only used for RSUniRenderThread
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;

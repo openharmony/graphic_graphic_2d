@@ -417,6 +417,9 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->canvasDrawingNodeSurfaceChanged_ = true;
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
+    if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
+        return;
+    }
     canvasDrawingNodeSurfaceChanged_ = false;
 }
 
@@ -496,7 +499,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->foregroundFilterCache_ = foregroundFilterCache_;
     OnCanvasDrawingSurfaceChange(target);
     target->isOpincRootFlag_ = isOpincRootFlag_;
-    target->isOpincStateChanged_ = OpincGetCacheChangeState();
+    target->isOpincStateChanged_ = target->isOpincStateChanged_ || isOpincStateChanged_;
     target->startingWindowFlag_ = startingWindowFlag_;
     target->freezeFlag_ = freezeFlag_;
     target->absDrawRect_ = absDrawRect_;

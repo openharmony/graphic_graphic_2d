@@ -253,56 +253,6 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool wait)
     }
 }
 
-void RSUifirstManager::CollectSkipSyncBuffer(std::vector<std::function<void()>>& tasks, NodeId id)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    auto& buffersToRelease = RSMainThread::Instance()->GetContext().GetMutableSkipSyncBuffer();
-    if (buffersToRelease.empty()) {
-        return;
-    }
-    for (auto item = buffersToRelease.begin(); item != buffersToRelease.end();) {
-        if (item->id == id) {
-            if (!item->buffer || !item->consumer) {
-                item = buffersToRelease.erase(item);
-                continue;
-            }
-            auto releaseTask = [buffer = item->buffer, consumer = item->consumer,
-                useReleaseFence = item->useFence]() mutable {
-                auto ret = consumer->ReleaseBuffer(buffer, RSHardwareThread::Instance().releaseFence_);
-                if (ret != OHOS::SURFACE_ERROR_OK) {
-                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
-                }
-            };
-            tasks.emplace_back(releaseTask);
-            item = buffersToRelease.erase(item);
-            RS_LOGD("ReleaseSkipSyncBuffer fId[%" PRIu64"]", id);
-        } else {
-            ++item;
-        }
-    }
-#endif
-}
-
-void RSUifirstManager::ReleaseSkipSyncBuffer(std::vector<std::function<void()>>& tasks)
-{
-#ifndef ROSEN_CROSS_PLATFORM
-    if (tasks.empty()) {
-        return;
-    }
-    auto releaseBufferTask = [tasks]() {
-        for (const auto& task : tasks) {
-            task();
-        }
-    };
-    auto delayTime = RSHardwareThread::Instance().delayTime_;
-    if (delayTime > 0) {
-        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
-    } else {
-        RSHardwareThread::Instance().PostTask(releaseBufferTask);
-    }
-#endif
-}
-
 void RSUifirstManager::ProcessDoneNodeInner()
 {
     std::vector<NodeId> tmp;
@@ -315,7 +265,6 @@ void RSUifirstManager::ProcessDoneNodeInner()
         subthreadProcessDoneNode_.clear();
     }
     RS_TRACE_NAME_FMT("ProcessDoneNode num%d", tmp.size());
-    std::vector<std::function<void()>> releaseTasks;
     for (auto& id : tmp) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
@@ -328,10 +277,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
         }
         NotifyUIStartingWindow(id, false);
         subthreadProcessingNode_.erase(id);
-        // Done node release prebuffer
-        CollectSkipSyncBuffer(releaseTasks, id);
     }
-    ReleaseSkipSyncBuffer(releaseTasks);
 }
 
 void RSUifirstManager::ProcessDoneNode()
@@ -471,8 +417,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
             continue;
         }
 
-        bool staticContent = node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD ?
-            node->GetForceUpdateByUifirst() : drawable->IsCurFrameStatic(deviceType);
+        bool staticContent = drawable->IsCurFrameStatic(deviceType);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
             (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
             !drawable->IsSubThreadSkip()) {
@@ -688,14 +633,6 @@ bool RSUifirstManager::CollectSkipSyncNode(const std::shared_ptr<RSRenderNode> &
         pendingPostCardNodes_.find(node->GetId()) != pendingPostCardNodes_.end()) {
         node->SetUifirstSyncFlag(true);
     }
-    // if node's UifirstRootNodeId is valid (e.g. ArkTsCard), use it first
-    auto uifirstRootNode = node->GetUifirstRootNodeId() != INVALID_NODEID ?
-        node->GetUifirstRootNode() : node->GetFirstLevelNode();
-    if (!uifirstRootNode) {
-        RS_TRACE_NAME_FMT("uifirstRootNode %" PRIu64 " null and curNodeId %" PRIu64 " skip sync",
-            node->GetFirstLevelNodeId(), node->GetId());
-        return false;
-    }
 
     auto ret = CollectSkipSyncNodeWithDrawableState(node);
     if (ret != SkipSyncState::STATE_NEED_CHECK) {
@@ -868,6 +805,10 @@ void RSUifirstManager::SortSubThreadNodesPriority()
 // post in drawframe sync time
 void RSUifirstManager::PostUifistSubTasks()
 {
+    // if screen is power-off, uifirst sub thread can be suspended.
+    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
+        return;
+    }
     PurgePendingPostNodes();
     SortSubThreadNodesPriority();
     if (sortedSubThreadNodeIds_.size() > 0) {
@@ -924,7 +865,6 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
     // process for uifirst node
     UpdateChildrenDirtyRect(*node);
     node->SetHwcChildrenDisabledStateByUifirst();
-    node->SetLeashWindowVisibleRegionEmptyParam();
     node->AddToPendingSyncList();
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||
@@ -1525,12 +1465,20 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     auto rootId = uifirstRootNodeId != INVALID_NODEID ? uifirstRootNodeId : firstLevelNodeId;
     if (rootId == INVALID_NODEID) {
         /* uifirst will not draw with no firstlevel node, and there's no need to check and wait for uifirst onDraw */
-        RS_LOGW("node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
+        RS_LOGW("uifirst node %{public}" PRIu64 " uifirstrootNodeId is INVALID_NODEID", params.GetId());
         return true;
     }
 
     auto uifirstRootNodeDrawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(rootId);
-    if (!uifirstRootNodeDrawable || uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
+    if (!uifirstRootNodeDrawable) {
+        // drawable may release when node off tree
+        // uifirst will not draw with null uifirstRootNodeDrawable
+        RS_LOGW("uifirstnode %{public}" PRIu64 " uifirstroot %{public}" PRIu64 " nullptr", params.GetId(), rootId);
+        return true;
+    }
+
+    if (UNLIKELY(uifirstRootNodeDrawable->GetNodeType() != RSRenderNodeType::SURFACE_NODE)) {
+        RS_LOGE("uifirst invalid uifirstrootNodeId %{public}" PRIu64, rootId);
         return false;
     }
     auto uifirstRootSurfaceNodeDrawable =
@@ -1569,6 +1517,13 @@ bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSRenderPara
         return true;
     }
     return false;
+}
+
+bool RSUifirstManager::IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node)
+{
+    return RSUifirstManager::Instance().IsRecentTaskScene() &&
+        (node.IsFocusedNode(RSMainThread::Instance()->GetFocusLeashWindowId()) ||
+        node.IsFocusedNode(RSMainThread::Instance()->GetFocusNodeId()));
 }
 } // namespace Rosen
 } // namespace OHOS

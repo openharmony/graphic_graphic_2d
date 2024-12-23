@@ -21,6 +21,7 @@
 
 #include "platform/common/rs_system_properties.h"
 #include "pipeline/rs_divided_ui_capture.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "ui/rs_frame_rate_policy.h"
 #include "ui/rs_proxy_node.h"
@@ -84,6 +85,16 @@ ScreenId RSInterfaces::CreateVirtualScreen(
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
 {
     return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    return renderServiceClient_->AddVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackListVector);
 }
 
 int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
@@ -240,6 +251,11 @@ bool RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface
                     typeface->GetUniqueID());
             uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
             RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
+        } else {
+            if (typeface != nullptr) {
+                RS_LOGD("RSInterfaces:Failed to reg typeface, family name:%{public}s, uniqueid:%{public}u",
+                    typeface->GetFamilyName().c_str(), typeface->GetUniqueID());
+            }
         }
         return result;
     }
@@ -670,6 +686,15 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
     renderServiceClient_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
 }
 
+void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    if (pidList.empty()) {
+        return;
+    }
+    RS_TRACE_NAME("DropFrameByPid");
+    renderServiceClient_->DropFrameByPid(pidList);
+}
+
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback)
 {
     return renderServiceClient_->RegisterUIExtensionCallback(userId, callback);
@@ -680,5 +705,35 @@ bool RSInterfaces::SetAncoForceDoDirect(bool direct)
     return renderServiceClient_->SetAncoForceDoDirect(direct);
 }
 
+bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    std::shared_ptr<SurfaceBufferCallback> callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
+        return false;
+    }
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
+        new (std::nothrow) RSDefaultSurfaceBufferCallback ({
+            .OnFinish = [callback](const FinishCallbackRet& ret) {
+                callback->OnFinish(ret);
+            },
+            .OnAfterAcquireBuffer = [callback](const AfterAcquireBufferRet& ret) {
+                callback->OnAfterAcquireBuffer(ret);
+            },
+        })
+    );
+    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
+    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+}
+
+void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
 } // namespace Rosen
 } // namespace OHOS

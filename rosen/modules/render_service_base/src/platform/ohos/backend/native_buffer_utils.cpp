@@ -21,7 +21,6 @@
 
 namespace OHOS::Rosen {
 namespace NativeBufferUtils {
-
 void DeleteVkImage(void* context)
 {
     VulkanCleanupHelper* cleanupHelper = static_cast<VulkanCleanupHelper*>(context);

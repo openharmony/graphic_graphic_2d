@@ -158,7 +158,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetRootIdOfCaptureWindow(1);
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
@@ -167,36 +167,5 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
     RSUniRenderThread::Instance().Sync(nullptr);
-}
-
-/**
- * @tc.name: EnableRecordingOptimizationeTest
- * @tc.desc: Test If EnableRecordingOptimization Can Run
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST(RSCanvasRenderNodeDrawableTest, EnableRecordingOptimizationTest, TestSize.Level1)
-{
-    NodeId nodeId = 0;
-    auto node = std::make_shared<RSRenderNode>(nodeId);
-    auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
-    ASSERT_NE(drawable, nullptr);
-    RSRenderParams params(nodeId);
-    bool res = drawable->EnableRecordingOptimization(params);
-    ASSERT_FALSE(res);
-
-    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
-    res = drawable->EnableRecordingOptimization(params);
-    ASSERT_FALSE(res);
-
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetRootIdOfCaptureWindow(1);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetStartVisit(false);
-    res = drawable->EnableRecordingOptimization(params);
-    ASSERT_TRUE(res);
-
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetStartVisit(true);
-    res = drawable->EnableRecordingOptimization(params);
-    ASSERT_FALSE(res);
 }
 }

@@ -150,6 +150,8 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode &node, std::string &paraName)
         setResult = ParseVideoFrameVoteConfig(node);
     } else if (paraName == "source_tuning_for_yuv420") {
         setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
+    } else if (paraName == "rs_solid_color_layer_config") {
+        setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
     } else {
         setResult = EXEC_SUCCESS;
     }

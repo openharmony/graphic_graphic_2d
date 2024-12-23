@@ -45,6 +45,7 @@ namespace Rosen {
 static std::mutex drawingMutex_;
 namespace {
 constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 50;
+constexpr uint32_t DRAWCMDLIST_OPSIZE_COUNT_LIMIT = 50000;
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -239,6 +240,9 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         Drawing::ImageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+#if (defined(ROSEN_IOS))
+    surface_ = Drawing::Surface::MakeRaster(info);
+#else
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
@@ -251,8 +255,8 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
         if (!surface_) {
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
-            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface, imagesize: [%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+            RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface [%{public}d, %{public}d] %{public}" PRIu64 "",
+                width, height, GetId());
             if (!surface_) {
                 RS_LOGE("RSCanvasDrawingRenderNode::ResetSurface surface is nullptr");
                 return false;
@@ -262,6 +266,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
             return true;
         }
     }
+#endif
 #else
     surface_ = Drawing::Surface::MakeRaster(info);
 #endif
@@ -474,6 +479,13 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             if (cmd == nullptr) {
                 continue;
             }
+
+            if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
+                RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
+                    " Add DrawOpSize [%{public}zu]", GetId(), cmd->GetOpItemSize());
+                continue;
+            }
+
             //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
             if (type != RSModifierType::CONTENT_STYLE) {
                 drawCmdLists_[type].clear();
@@ -481,6 +493,12 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
             drawCmdLists_[type].emplace_back(cmd);
             SetNeedProcess(true);
         }
+        bool overflow = drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT;
+        if (overflow && lastOverflowStatus_ != overflow) {
+            RS_LOGE("drawcmdlist overflow, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu", GetId(), type, drawCmdLists_[type].size());
+        }
+        lastOverflowStatus_ = overflow;
         // If such nodes are not drawn, The drawcmdlists don't clearOp during recording, As a result, there are
         // too many drawOp, so we need to add the limit of drawcmdlists.
         while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&

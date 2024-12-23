@@ -17,9 +17,12 @@
 
 #include "blender.h"
 #include "common/rs_vector3.h"
+#include "ui_effect/utils.h"
 
 namespace OHOS {
 namespace Rosen {
+constexpr std::pair<float, float> BRIGHTNESS_BLENDER_LIMITS {-20.f, 20.f}; // limits for brightness blender pamameters
+
 class BrightnessBlender : public Blender {
 public:
     BrightnessBlender()
@@ -30,7 +33,7 @@ public:
 
     void SetCubicRate(float cubicRate)
     {
-        cubicRate_ = cubicRate;
+        cubicRate_ = UIEffect::GetLimitedPara(cubicRate, BRIGHTNESS_BLENDER_LIMITS);
     }
 
     float GetCubicRate() const
@@ -40,7 +43,7 @@ public:
 
     void SetQuadRate(float quadRate)
     {
-        quadRate_ = quadRate;
+        quadRate_ = UIEffect::GetLimitedPara(quadRate, BRIGHTNESS_BLENDER_LIMITS);
     }
 
     float GetQuadRate() const
@@ -50,7 +53,7 @@ public:
 
     void SetLinearRate(float linearRate)
     {
-        linearRate_ = linearRate;
+        linearRate_ = UIEffect::GetLimitedPara(linearRate, BRIGHTNESS_BLENDER_LIMITS);
     }
 
     float GetLinearRate() const
@@ -60,7 +63,7 @@ public:
 
     void SetDegree(float degree)
     {
-        degree_ = degree;
+        degree_ = UIEffect::GetLimitedPara(degree, BRIGHTNESS_BLENDER_LIMITS);
     }
 
     float GetDegree() const
@@ -70,7 +73,7 @@ public:
 
     void SetSaturation(float saturation)
     {
-        saturation_ = saturation;
+        saturation_ = UIEffect::GetLimitedPara(saturation, {0.0f, BRIGHTNESS_BLENDER_LIMITS.second});
     }
 
     float GetSaturation() const
@@ -78,9 +81,9 @@ public:
         return saturation_;
     }
 
-    void SetPositiveCoeff(Vector3f positiveCoeff)
+    void SetPositiveCoeff(const Vector3f&  positiveCoeff)
     {
-        positiveCoeff_ = positiveCoeff;
+        positiveCoeff_ = UIEffect::GetLimitedPara(positiveCoeff, BRIGHTNESS_BLENDER_LIMITS);
     }
 
     const Vector3f& GetPositiveCoeff() const
@@ -88,9 +91,9 @@ public:
         return positiveCoeff_;
     }
 
-    void SetNegativeCoeff(Vector3f negativeCoeff)
+    void SetNegativeCoeff(const Vector3f& negativeCoeff)
     {
-        negativeCoeff_ = negativeCoeff;
+        negativeCoeff_ = UIEffect::GetLimitedPara(negativeCoeff, BRIGHTNESS_BLENDER_LIMITS);
     }
 
     const Vector3f& GetNegativeCoeff() const
@@ -100,7 +103,7 @@ public:
 
     void SetFraction(float fraction)
     {
-        fraction_ = fraction;
+        fraction_ = UIEffect::GetLimitedPara(fraction, {0.f, 1.f});
     }
 
     float GetFraction() const

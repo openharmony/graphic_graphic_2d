@@ -62,7 +62,7 @@ HWTEST_F(SKImageFilterFactoryUnittest, BlurTest003, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest003 start";
     // 0.5 blur radius for test
-    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, TileMode::CLAMP);
+    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, SkTileMode::kClamp);
     EXPECT_TRUE(filter != nullptr);
 }
 
@@ -77,7 +77,7 @@ HWTEST_F(SKImageFilterFactoryUnittest, BlurTest004, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest004 start";
     // 0.5 blur radius for test
-    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, TileMode::REPEAT);
+    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, SkTileMode::kRepeat);
     EXPECT_TRUE(filter != nullptr);
 }
 
@@ -92,7 +92,7 @@ HWTEST_F(SKImageFilterFactoryUnittest, BlurTest005, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BlurTest005 start";
     // 0.5 blur radius for test
-    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, TileMode::MIRROR);
+    auto filter = Rosen::SKImageFilterFactory::Blur(0.5, SkTileMode::kMirror);
     EXPECT_TRUE(filter != nullptr);
 }
 

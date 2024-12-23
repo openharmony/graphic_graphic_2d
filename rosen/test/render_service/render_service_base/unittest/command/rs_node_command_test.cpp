@@ -158,6 +158,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
 {
     RSContext context;
     NodeId nodeId = 1;
+    pid_t pid = ExtractPid(nodeId);
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     EXPECT_EQ(1, nodeId);
 
@@ -168,7 +169,7 @@ HWTEST_F(RSNodeCommandTest, SetFreeze001, TestSize.Level1)
     EXPECT_NE(renderNode, nullptr);
 
     renderNode->stagingRenderParams_ = std::move(stagingRenderParams);
-    context.nodeMap.renderNodeMap_.at(nodeId) = renderNode;
+    context.nodeMap.renderNodeMap_[pid][nodeId] = renderNode;
     RSNodeCommandHelper::SetFreeze(context, nodeId, true);
     EXPECT_EQ(0, nodeId);
 }
@@ -307,5 +308,22 @@ HWTEST_F(RSNodeCommandTest, UnregisterGeometryTransitionPair001, TestSize.Level1
     NodeId outNodeId = 0;
     RSNodeCommandHelper::UnregisterGeometryTransitionPair(context, inNodeId, outNodeId);
     EXPECT_EQ(0, inNodeId);
+}
+
+/**
+ * @tc.name: DumpClientNodeTree001
+ * @tc.desc: test results of DumpClientNodeTree
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
+{
+    RSContext context;
+    auto func = [] (NodeId, pid_t, uint32_t) {};
+    RSNodeCommandHelper::SetDumpNodeTreeProcessor(func);
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
+    RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
+    RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0);
+    SUCCEED();
 }
 } // namespace OHOS::Rosen

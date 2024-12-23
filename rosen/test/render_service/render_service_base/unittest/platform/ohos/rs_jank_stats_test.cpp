@@ -566,5 +566,54 @@ HWTEST_F(RSJankStatsTest, GetTraceIdInitTest009, TestSize.Level1)
     EXPECT_EQ(rsJankStats->ConvertTimeToSystime(0), 0);
     EXPECT_NE(rsJankStats->ConvertTimeToSystime(1), 0);
 }
+
+/**
+ * @tc.name: GetMaxJankInfoTest010
+ * @tc.desc: GetMaxJankInfo test
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSJankStatsTest, GetMaxJankInfoTest010, TestSize.Level1)
+{
+    std::shared_ptr<RSJankStats> rsJankStats = std::make_shared<RSJankStats>();
+    EXPECT_NE(rsJankStats, nullptr);
+
+    JankFrames jankFrames;
+    int64_t maxFrameTimeFromStart = 0;
+    int64_t maxHitchTimeFromStart = 0;
+    int64_t duration = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, false, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = -1;
+    jankFrames.endTimeSteady_ = -1;
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = -1;
+    jankFrames.endTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = 0;
+    jankFrames.endTimeSteady_ = -1;
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+    jankFrames.traceCreateTimeSteady_ = -1;
+    jankFrames.startTimeSteady_ = 0;
+    jankFrames.endTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+    jankFrames.traceCreateTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+
+    jankFrames.maxFrameOccurenceTimeSteady_ = 0;
+    jankFrames.maxHitchOccurenceTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, false, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+
+    jankFrames.lastMaxFrameOccurenceTimeSteady_ = 0;
+    jankFrames.lastMaxHitchOccurenceTimeSteady_ = 0;
+    rsJankStats->GetMaxJankInfo(jankFrames, true, maxFrameTimeFromStart, maxHitchTimeFromStart, duration);
+
+    jankFrames.isFrameRateRecorded_ = false;
+    EXPECT_FALSE(jankFrames.isFrameRateRecorded_);
+}
 } // namespace Rosen
 } // namespace OHOS

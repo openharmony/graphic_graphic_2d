@@ -41,6 +41,7 @@
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
+#include "render/rs_distortion_shader_filter.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -74,6 +75,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
     [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
     [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
+    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
     [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION
     [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X
@@ -178,6 +180,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
     [](RSProperties* prop) { prop->SetFlyOutDegree(0.0f); },              // FLY_OUT_DEGREE
     [](RSProperties* prop) { prop->SetFlyOutParams({}); },               // FLY_OUT_PARAMS
+    [](RSProperties* prop) { prop->SetDistortionK(0.0f); },              // DISTORTION_K
     [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
     [](RSProperties* prop) { prop->SetMagnifierParams({}); },            // MAGNIFIER_PARA
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
@@ -548,7 +551,6 @@ std::optional<Drawing::Matrix> RSProperties::GetSandBoxMatrix() const
 void RSProperties::SetPositionZ(float positionZ)
 {
     boundsGeo_->SetZ(positionZ);
-    frameGeo_->SetZ(positionZ);
     geoDirty_ = true;
     SetDirty();
 }
@@ -556,6 +558,18 @@ void RSProperties::SetPositionZ(float positionZ)
 float RSProperties::GetPositionZ() const
 {
     return boundsGeo_->GetZ();
+}
+
+void RSProperties::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    boundsGeo_->SetZApplicableCamera3D(isApplicable);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+bool RSProperties::GetPositionZApplicableCamera3D() const
+{
+    return boundsGeo_->GetZApplicableCamera3D();
 }
 
 void RSProperties::SetPivot(Vector2f pivot)
@@ -1441,6 +1455,38 @@ std::optional<RSFlyOutPara> RSProperties::GetFlyOutParams() const
 bool RSProperties::IsFlyOutValid() const
 {
     return ROSEN_GE(flyOutDegree_, 0.0f) && ROSEN_LE(flyOutDegree_, 1.0f) && flyOutParams_.has_value();
+}
+
+void RSProperties::SetDistortionK(const std::optional<float>& distortionK)
+{
+    distortionK_ = distortionK;
+    if (distortionK_.has_value()) {
+        isDrawn_ = true;
+        distortionEffectDirty_ = ROSEN_GNE(*distortionK_, 0.0f) && ROSEN_LE(*distortionK_, 1.0f);
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::optional<float>& RSProperties::GetDistortionK() const
+{
+    return distortionK_;
+}
+
+bool RSProperties::IsDistortionKValid() const
+{
+    return distortionK_.has_value() && ROSEN_GE(*distortionK_, -1.0f) && ROSEN_LE(*distortionK_, 1.0f);
+}
+
+void RSProperties::SetDistortionDirty(bool distortionEffectDirty)
+{
+    distortionEffectDirty_ = distortionEffectDirty;
+}
+
+bool RSProperties::GetDistortionDirty() const
+{
+    return distortionEffectDirty_;
 }
 
 void RSProperties::SetFgBrightnessRates(const Vector4f& rates)
@@ -4147,8 +4193,9 @@ void RSProperties::UpdateFilter()
     needFilter_ = backgroundFilter_ != nullptr || filter_ != nullptr || useEffect_ || IsLightUpEffectValid() ||
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
-                  foregroundFilter_ != nullptr || IsFgBrightnessValid() ||
-                  IsBgBrightnessValid() || foregroundFilterCache_ != nullptr || IsWaterRippleValid();
+                  foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
+                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
+                  mask_;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4187,6 +4234,8 @@ void RSProperties::UpdateForegroundFilter()
         } else {
             foregroundFilter_ = colorfulShadowFilter;
         }
+    } else if (IsDistortionKValid()) {
+        foregroundFilter_ = std::make_shared<RSDistortionFilter>(*distortionK_);
     } else {
         foregroundFilter_.reset();
         foregroundFilterCache_.reset();

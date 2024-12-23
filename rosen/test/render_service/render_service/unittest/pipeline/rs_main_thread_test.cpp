@@ -21,6 +21,7 @@
 
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_engine.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "platform/common/rs_innovation.h"
 #include "platform/common/rs_system_properties.h"
@@ -76,6 +77,17 @@ void* RSMainThreadTest::CreateParallelSyncSignal(uint32_t count)
     (void)(count);
     return nullptr;
 }
+
+class ApplicationAgentImpl : public IRemoteStub<IApplicationAgent> {
+public:
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override
+    {
+        return 0;
+    }
+    void OnTransaction(std::shared_ptr<RSTransactionData> transactionData) override
+    {
+    }
+};
 
 /**
  * @tc.name: Start001
@@ -376,6 +388,58 @@ HWTEST_F(RSMainThreadTest, SetFocusAppInfo002, TestSize.Level2)
     int32_t uid = INVALID_VALUE;
     mainThread->SetFocusAppInfo(pid, uid, str, str, newFocusNode->GetId());
     ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
+}
+
+/**
+ * @tc.name: AddPidNeedDropFrame
+ * @tc.desc: Test AddPidNeedDropFrame
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, AddPidNeedDropFrame, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 1);
+}
+
+/**
+ * @tc.name: ClearNeedDropframePidList
+ * @tc.desc: Test ClearNeedDropframePidList
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, ClearNeedDropframePidList, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    mainThread->ClearNeedDropframePidList();
+    ASSERT_EQ(mainThread->surfacePidNeedDropFrame_.size(), 0);
+}
+
+/**
+ * @tc.name: IsNeedDropFrameByPid
+ * @tc.desc: Test IsNeedDropFrameByPid
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSMainThreadTest, IsNeedDropFrameByPid, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    NodeId id = 0;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+    mainThread->AddPidNeedDropFrame({ExtractPid(surfaceNode->GetId())});
+    ASSERT_TRUE(mainThread->IsNeedDropFrameByPid(ExtractPid(surfaceNode->GetId())));
 }
 
 /**
@@ -922,7 +986,7 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId, TestSize.Level1)
     node2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
 
     mainThread->context_ = std::make_shared<RSContext>();
-    mainThread->context_->nodeMap.renderNodeMap_[0] = node1;
+    mainThread->context_->nodeMap.renderNodeMap_[0][0] = node1;
     mainThread->focusNodeId_ = 0;
     mainThread->SetFocusLeashWindowId();
 }
@@ -956,7 +1020,9 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId003, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, node->GetId());
     mainThread->SetFocusLeashWindowId();
@@ -982,8 +1048,12 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId004, TestSize.Level2)
     childNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
 
-    mainThread->context_->nodeMap.renderNodeMap_[childNode->GetId()] = childNode;
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId childNodeId = childNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[childNodePid][childNodeId] = childNode;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, childNode->GetId());
     mainThread->SetFocusLeashWindowId();
@@ -1009,8 +1079,12 @@ HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId005, TestSize.Level2)
     childNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
 
-    mainThread->context_->nodeMap.renderNodeMap_[childNode->GetId()] = childNode;
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId childNodeId = childNode->GetId();
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t childNodePid = ExtractPid(childNodeId);
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[childNodePid][childNodeId] = childNode;
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     std::string str = "";
     mainThread->SetFocusAppInfo(-1, -1, str, str, childNode->GetId());
     mainThread->SetFocusLeashWindowId();
@@ -1502,6 +1576,21 @@ HWTEST_F(RSMainThreadTest, IsFirstFrameOfOverdrawSwitch, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRealTimeOffsetOfDvsync
+ * @tc.desc: test GetRealTimeOffsetOfDvsync
+ * @tc.type: FUNC
+ * @tc.require: issueIAXG6P
+ */
+HWTEST_F(RSMainThreadTest, GetRealTimeOffsetOfDvsync, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    int64_t time = 1000;
+    uint64_t offset = mainThread->GetRealTimeOffsetOfDvsync(time);
+    ASSERT_EQ(offset, 0);
+}
+
+/**
  * @tc.name: Render
  * @tc.desc: Render test
  * @tc.type: FUNC
@@ -1891,7 +1980,6 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes004, TestSize.Level1)
     bufferEntry.timestamp = 0;
     ret = psurf->RequestBuffer(bufferEntry.buffer, requestFence, requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
-    rsSurfaceHandlerPtr_->CacheBuffer(bufferEntry);
     rsSurfaceHandlerPtr_->SetBufferTransformTypeChanged(true);
     ASSERT_TRUE(rsSurfaceHandlerPtr_->GetBufferTransformTypeChanged());
     mainThread->ConsumeAndUpdateAllNodes();
@@ -3339,7 +3427,10 @@ HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange001, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
     mainThread->UpdateNeedDrawFocusChange(id);
     ASSERT_TRUE(node->GetNeedDrawFocusChange());
 }
@@ -3364,8 +3455,12 @@ HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange002, TestSize.Level2)
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     mainThread->UpdateNeedDrawFocusChange(id);
     ASSERT_TRUE(node->GetNeedDrawFocusChange());
 }
@@ -3390,8 +3485,12 @@ HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange003, TestSize.Level2)
     parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
-    mainThread->context_->nodeMap.renderNodeMap_[parentNode->GetId()] = parentNode;
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
+    NodeId parentNodeId = parentNode->GetId();
+    pid_t parentNodePid = ExtractPid(parentNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
     mainThread->UpdateNeedDrawFocusChange(id);
     ASSERT_FALSE(node->GetNeedDrawFocusChange());
 }
@@ -3412,7 +3511,9 @@ HWTEST_F(RSMainThreadTest, UpdateFocusNodeId001, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
     mainThread->focusNodeId_ = id;
     mainThread->UpdateFocusNodeId(id);
     ASSERT_EQ(mainThread->GetFocusNodeId(), id);
@@ -3434,7 +3535,9 @@ HWTEST_F(RSMainThreadTest, UpdateFocusNodeId002, TestSize.Level2)
     ASSERT_NE(node, nullptr);
 
     ASSERT_NE(mainThread->context_, nullptr);
-    mainThread->context_->nodeMap.renderNodeMap_[node->GetId()] = node;
+    NodeId nodeId = node->GetId();
+    pid_t pid = ExtractPid(nodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
     mainThread->focusNodeId_ = id;
     mainThread->UpdateFocusNodeId(INVALID_NODEID);
     ASSERT_EQ(mainThread->GetFocusNodeId(), id);
@@ -3457,8 +3560,13 @@ HWTEST_F(RSMainThreadTest, UpdateFocusNodeId003, TestSize.Level2)
     ASSERT_NE(oldFocusNode, nullptr);
     ASSERT_NE(newFocusNode, nullptr);
 
-    mainThread->context_->nodeMap.renderNodeMap_[oldFocusNode->GetId()] = oldFocusNode;
-    mainThread->context_->nodeMap.renderNodeMap_[newFocusNode->GetId()] = newFocusNode;
+    NodeId oldFocusNodeId = oldFocusNode->GetId();
+    pid_t oldFocusNodePid = ExtractPid(oldFocusNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[oldFocusNodePid][oldFocusNodeId] = oldFocusNode;
+    NodeId newFocusNodeId = newFocusNode->GetId();
+    pid_t newFocusNodePid = ExtractPid(newFocusNodeId);
+    mainThread->context_->nodeMap.renderNodeMap_[newFocusNodePid][newFocusNodeId] = newFocusNode;
+    
     mainThread->focusNodeId_ = oldFocusNode->GetId();
     mainThread->UpdateFocusNodeId(newFocusNode->GetId());
     ASSERT_EQ(mainThread->GetFocusNodeId(), newFocusNode->GetId());
@@ -3567,5 +3675,94 @@ HWTEST_F(RSMainThreadTest, IsHardwareEnabledNodesNeedSync, TestSize.Level2)
     node3->SetDstRect(dstRect);
     mainThread->hardwareEnabledNodes_.emplace_back(node3);
     ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
+}
+
+/**
+ * @tc.name: SendClientDumpNodeTreeCommands
+ * @tc.desc: test SendClientDumpNodeTreeCommands
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, SendClientDumpNodeTreeCommands, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ASSERT_NE(mainThread->context_, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    NodeId testId = 1;
+    auto rootNode = mainThread->context_->globalRootRenderNode_;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(testId++, RSDisplayNodeConfig {});
+    rootNode->AddChild(displayNode);
+    auto node1 = std::make_shared<RSRenderNode>(testId++);
+    displayNode->AddChild(node1);
+    rootNode->GenerateFullChildrenList();
+    displayNode->GenerateFullChildrenList();
+
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(testId++, mainThread->context_);
+    node1->AddChild(node2);
+    auto node3 = std::make_shared<RSRootRenderNode>(testId++, mainThread->context_);
+    node2->AddChild(node3);
+    node3->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().FilterNodeByPid(0);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+
+    uint32_t taskId = 0;
+    sptr<ApplicationAgentImpl> agent = new ApplicationAgentImpl();
+    mainThread->RegisterApplicationAgent(0, agent);
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_[taskId].count > 0);
+
+    mainThread->SendClientDumpNodeTreeCommands(taskId);
+    rootNode->RemoveChild(displayNode);
+}
+
+/**
+ * @tc.name: CollectClientNodeTreeResult
+ * @tc.desc: test CollectClientNodeTreeResult
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, CollectClientNodeTreeResult, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.data[0] = "testData";
+    task.count++;
+
+    std::string out;
+    mainThread->CollectClientNodeTreeResult(taskId, out, 1);
+    ASSERT_TRUE(!out.empty());
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+}
+
+/**
+ * @tc.name: OnDumpClientNodeTree
+ * @tc.desc: test OnDumpClientNodeTree
+ * @tc.type: FUNC
+ * @tc.require: issueIAKME2
+ */
+HWTEST_F(RSMainThreadTest, OnCommitDumpClientNodeTree, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->nodeTreeDumpTasks_.clear();
+
+    uint32_t taskId = 0;
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(mainThread->nodeTreeDumpTasks_.empty());
+
+    auto& task = mainThread->nodeTreeDumpTasks_[taskId];
+    task.count++;
+
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    mainThread->OnCommitDumpClientNodeTree(0, 0, taskId, "testData");
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_.empty());
+    ASSERT_TRUE(!mainThread->nodeTreeDumpTasks_[taskId].data.empty());
 }
 } // namespace OHOS::Rosen

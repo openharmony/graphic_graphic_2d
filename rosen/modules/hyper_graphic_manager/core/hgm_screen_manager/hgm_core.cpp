@@ -110,7 +110,8 @@ bool HgmCore::Init()
     SetLtpoConfig();
 
     isInit_.store(true);
-    HGM_LOGI("HgmCore initialization success!!!");
+    isDelayMode_ = RSSystemProperties::IsPhoneType() || RSSystemProperties::IsTabletType();
+    HGM_LOGI("HgmCore initialization success!!! delayMode: %{public}d", isDelayMode_);
     return isInit_;
 }
 
@@ -336,7 +337,9 @@ int32_t HgmCore::SetRefreshRateMode(int32_t refreshRateMode)
 
 void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+    if (hgmFrameRateMgr_ != nullptr) {
+        hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+    }
 
     if (refreshRateModeChangeCallback_ != nullptr) {
         auto refreshRateModeName = GetCurrentRefreshRateModeName();
@@ -471,6 +474,7 @@ sptr<HgmScreen> HgmCore::GetScreen(ScreenId id) const
 
 std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
 {
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to find screen " PUBU64 "", id);

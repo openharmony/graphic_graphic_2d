@@ -62,6 +62,8 @@ public:
 
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
+
+    NodeId GetActiveSubtreeRootId();
 private:
     enum class RSPaintStyle {
         FILL,
@@ -98,12 +100,15 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
     uint32_t queueSize_ = 0;
     uint64_t uiTimestamp_ = 0;
+    NodeId activeSubtreeRootId_ = INVALID_NODEID;
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 
     RectF surfaceNodeParentBoundsRect_;
     std::vector<NodeId> childSurfaceNodeIds_;
     Drawing::Matrix parentSurfaceNodeMatrix_;
+    // record parent surfaceNode to update absMatrix
+    std::shared_ptr<RSRenderNode> parentSurfaceNode_ = nullptr;
     std::optional<Drawing::RectI> effectRegion_ = std::nullopt;
     std::vector<std::shared_ptr<Drawing::DrawCmdList>> drawCmdListVector_;
 

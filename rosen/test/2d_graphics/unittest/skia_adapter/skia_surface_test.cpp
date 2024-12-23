@@ -269,6 +269,35 @@ HWTEST_F(SkiaSurfaceTest, Flush001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: Flush002
+ * @tc.desc: Test Flush
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaSurfaceTest, Flush002, TestSize.Level1)
+{
+    auto surface = std::make_unique<SkiaSurface>();
+    ASSERT_TRUE(surface != nullptr);
+    FlushInfo drawingFlushInfo = { 0 };
+    int count1 = 0;
+    int count2 = 0;
+    drawingFlushInfo.finishedContext = &count1;
+    drawingFlushInfo.finishedProc = [](void *context) {
+        int* count = reinterpret_cast<int *>(context);
+        (*count)++;
+    };
+    drawingFlushInfo.submittedContext = &count2;
+    drawingFlushInfo.submittedProc = [](void *context, bool success) {
+        int* count = reinterpret_cast<int *>(context);
+        (*count)++;
+        ASSERT_TRUE(success == false);
+    };
+    surface->Flush(&drawingFlushInfo);
+    ASSERT_EQ(count1, 1); // finishedProc excute 1 time
+    ASSERT_EQ(count2, 1); // submittedProc excute 1 time
+}
+
+/**
  * @tc.name: Width001
  * @tc.desc: Test Width
  * @tc.type: FUNC

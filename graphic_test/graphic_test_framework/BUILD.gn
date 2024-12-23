@@ -1,0 +1,127 @@
+# Copyright (c) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("${graphic_2d_root}/rosen/modules/render_service_base/config.gni")
+
+config("rs_graphic_test_config") {
+  include_dirs = [
+    "include",
+    "$graphic_2d_root/rosen/modules",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/2d_engine/rosen_text/export/rosen_text",
+    "$graphic_2d_root/rosen/modules/2d_graphics",
+    "$graphic_2d_root/rosen/modules/2d_graphics/include",
+    "$graphic_2d_root/rosen/modules/utils",
+  ]
+
+  defines = rs_common_define
+}
+
+ohos_source_set("rs_graphic_test_src") {
+  defines = []
+  defines += gpu_defines
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  testonly = true
+
+  sources = [
+    "src/rs_graphic_rootnode.cpp",
+    "src/rs_graphic_test.cpp",
+    "src/rs_graphic_test_director.cpp",
+    "src/rs_graphic_test_ext.cpp",
+    "src/rs_graphic_test_utils.cpp",
+    "src/rs_parameter_parse.cpp",
+  ]
+
+  cflags = [
+    "-Wno-pointer-arith",
+    "-Wno-missing-field-initializers",
+    "-Wno-c++11-narrowing",
+  ]
+
+  cflags_cc = [
+    "-fvisibility-inlines-hidden",
+    "-std=c++17",
+  ]
+
+  public_configs = [ ":rs_graphic_test_config" ]
+
+  deps = [
+    "$rosen_root/modules/2d_graphics:2d_graphics",
+    "$rosen_root/modules/platform:eventhandler",
+    "$rosen_root/modules/platform:hilog",
+    "$rosen_root/modules/platform:ipc_core",
+  ]
+
+  public_deps = [
+    "$rosen_root/modules/render_service_base:librender_service_base",
+    "$rosen_root/modules/render_service_client:librender_service_client",
+    "//third_party/googletest:gtest",
+  ]
+
+  public_external_deps = [
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "image_framework:image_native",
+    "libpng:libpng",
+    "window_manager:libdm",
+    "zlib:libz",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_shared_library("rs_graphic_test") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  testonly = true
+
+  public_deps = [
+    ":rs_graphic_test_src",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+ohos_static_library("rs_graphic_test_main") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  testonly = true
+
+  sources = [ "src/rs_graphic_test_main.cpp" ]
+
+  public_deps = [ ":rs_graphic_test_src" ]
+
+  external_deps = [ "hilog:libhilog" ]
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}

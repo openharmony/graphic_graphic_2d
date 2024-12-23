@@ -243,8 +243,12 @@ void RSObjAbsGeometry::UpdateAbsMatrix3D()
         Drawing::Matrix matrix3D;
         Drawing::Camera3D camera;
         // Z Position
-        camera.Translate(0, 0, z_ + trans_->translateZ_);
-
+        if (isZApplicableCamera3D_) {
+            camera.Translate(0, 0, z_ + trans_->translateZ_);
+        } else {
+            camera.Translate(0, 0, trans_->translateZ_);
+        }
+        
         // Set camera distance
         if (trans_->cameraDistance_ == 0) {
             float zOffSet = sqrt(width_ * width_ + height_ * height_) / 2;

@@ -52,7 +52,6 @@ ohos_shared_library("libeffectchain") {
     sources += [
       "src/algo_filter.cpp",
       "src/brightness_filter.cpp",
-      "src/builder.cpp",
       "src/contrast_filter.cpp",
       "src/filter.cpp",
       "src/filter_factory.cpp",

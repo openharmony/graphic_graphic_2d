@@ -213,13 +213,19 @@ const std::set<RSModifierType> BASIC_GEOTRANSFORM_ANIMATION_TYPE = {
 };
 }
 
+static inline bool IsPurgeAble()
+{
+    return RSSystemProperties::GetRenderNodePurgeEnabled() && RSUniRenderJudgement::IsUniRender();
+}
+
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : id_(id), context_(context), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble())
 {}
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode)
+    : isOnTheTree_(isOnTheTree), id_(id), context_(context), isTextureExportNode_(isTextureExportNode),
+      isPurgeable_(IsPurgeAble())
 {}
 
 void RSRenderNode::AddChild(SharedPtr child, int index)
@@ -313,16 +319,6 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     if (child->GetBootAnimation()) {
         SetContainBootAnimation(false);
     }
-    // When a child node is deleted, if the parent node is not on the tree,
-    // then clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
-    if (!isOnTheTree_) {
-        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
-        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
-        stagingDrawCmdList_.clear();
-        drawCmdListNeedSync_ = true;
-        uifirstNeedSync_ = true;
-        AddToPendingSyncList();
-    }
     SetContentDirty();
     isFullChildrenListValid_ = false;
 }
@@ -334,6 +330,9 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     if (flag == isOnTheTree_) {
         return;
     }
+
+    SetPurgeStatus(flag);
+
     isNewOnTree_ = flag && !isOnTheTree_;
     isOnTheTree_ = flag;
     if (isOnTheTree_) {
@@ -521,7 +520,6 @@ void RSRenderNode::ClearChildren()
 
 void RSRenderNode::SetParent(WeakPtr parent)
 {
-    UpdateSubSurfaceCnt(parent.lock(), parent_.lock());
     parent_ = parent;
     if (isSubSurfaceEnabled_) {
         AddSubSurfaceNode(parent.lock());
@@ -540,7 +538,6 @@ void RSRenderNode::ResetParent()
         }
         parentNode->hasRemovedChild_ = true;
         parentNode->SetContentDirty();
-        UpdateSubSurfaceCnt(nullptr, parentNode);
     }
     SetIsOnTheTree(false);
     parent_.reset();
@@ -650,6 +647,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         if (surfaceNode->HasSubSurfaceNodes()) {
             out += surfaceNode->SubSurfaceNodesDump();
         }
+        out += ", abilityState: " +
+            std::string(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ?
+            "foreground" : "background");
     }
     if (sharedTransitionParam_) {
         out += sharedTransitionParam_->Dump();
@@ -703,16 +703,22 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
             out += ", drawRegion: " + drawRegion->ToString();
         }
     }
+    if (drawableVecStatus_ != 0) {
+        out += ", drawableVecStatus: " + std::to_string(drawableVecStatus_);
+    }
     DumpDrawCmdModifiers(out);
     DumpModifiers(out);
     animationManager_.DumpAnimations(out);
 
+    auto sortedChildren = GetSortedChildren();
     if (!isFullChildrenListValid_) {
         out += ", Children list needs update, current count: " + std::to_string(fullChildrenList_->size()) +
-               " expected count: " + std::to_string(GetSortedChildren()->size());
-        if (!disappearingChildren_.empty()) {
-            out += "+" + std::to_string(disappearingChildren_.size());
-        }
+               " expected count: " + std::to_string(sortedChildren->size());
+    } else if (!sortedChildren->empty()) {
+        out += ", sortedChildren: " + std::to_string(sortedChildren->size());
+    }
+    if (!disappearingChildren_.empty()) {
+        out += ", disappearingChildren: " + std::to_string(disappearingChildren_.size());
     }
 
     out += "\n";
@@ -879,6 +885,9 @@ void RSRenderNode::SubTreeSkipPrepare(
         dirtyRectClip = dirtyRectClip.JoinRect(oldDirtyRectClip);
         dirtyManager.MergeDirtyRect(dirtyRectClip);
         UpdateSubTreeSkipDirtyForDFX(dirtyManager, dirtyRectClip);
+    }
+    if (isDirty && GetChildrenCount() == 0) {
+        ResetChildRelevantFlags();
     }
     SetGeoUpdateDelay(accumGeoDirty);
     UpdateSubTreeInfo(clipRect);
@@ -1061,18 +1070,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
     AddToPendingSyncList();
 }
 
-void RSRenderNode::DisableDrawingCacheByHwcNode()
-{
-    if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
-        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("DisableDrawingCacheByHwcNode id:%llu", GetId());
-    SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
-    AddToPendingSyncList();
-}
-
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
@@ -1133,7 +1130,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
 
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::FallbackAnimationsToRoot: Invalid context");
         return;
     }
     auto target = context->GetNodeMap().GetAnimationFallbackNode();
@@ -1182,13 +1179,20 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
     }
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
     
+    // Animation on surfaceNode is always on foreground ability state.
     // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
-    if (auto instanceRootNode = GetInstanceRootNode()) {
-        abilityState = instanceRootNode->GetAbilityState();
-        RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate node id: [" + std::to_string(GetId()) +
-            "], instanceRootNode id: [" + std::to_string(instanceRootNode->GetId()) +
+    if (GetType() != RSRenderNodeType::SURFACE_NODE) {
+        if (auto instanceRootNode = GetInstanceRootNode()) {
+            abilityState = instanceRootNode->GetAbilityState();
+            RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate node id: [" + std::to_string(GetId()) +
+                "], instanceRootNode id: [" + std::to_string(instanceRootNode->GetId()) +
+                "], abilityState: " +
+                std::string(abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
+        }
+    } else {
+        RS_OPTIONAL_TRACE_NAME("RSRenderNode:Animate surfaceNode id: [" + std::to_string(GetId()) +
             "], abilityState: " +
-            std::string(abilityState == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
+            std::string(GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
     }
     
     RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");
@@ -1275,6 +1279,16 @@ void RSRenderNode::CollectAndUpdateLocalForegroundEffectRect()
     selfDrawRect_ = selfDrawRect_.JoinRect(localForegroundEffectRect_.ConvertTo<float>());
 }
 
+void RSRenderNode::CollectAndUpdateLocalDistortionEffectRect()
+{
+    // update distortion effect's dirty region if it changes
+    if (GetRenderProperties().GetDistortionDirty()) {
+        RSPropertiesPainter::GetDistortionEffectDirtyRect(localDistortionEffectRect_, GetRenderProperties());
+        GetMutableRenderProperties().SetDistortionDirty(false);
+    }
+    selfDrawRect_ = selfDrawRect_.JoinRect(localDistortionEffectRect_.ConvertTo<float>());
+}
+
 void RSRenderNode::UpdateBufferDirtyRegion()
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1318,6 +1332,7 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    CollectAndUpdateLocalDistortionEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
 
@@ -1347,10 +1362,12 @@ bool RSRenderNode::CheckAndUpdateGeoTrans(std::shared_ptr<RSObjAbsGeometry>& geo
 void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, const RectI& clipRect)
 {
     dirtyManager.MergeDirtyRect(oldDirty_);
-    if (isSelfDrawingNode_ && absDrawRect_ != oldAbsDrawRect_) {
-        // merge self drawing node last frame size and join current frame size to absDrawRect_ when changed
-        dirtyManager.MergeDirtyRect(oldAbsDrawRect_.IntersectRect(clipRect));
-        selfDrawingNodeAbsDirtyRect_.JoinRect(absDrawRect_);
+    if (absDrawRect_ != oldAbsDrawRect_) {
+        if (isSelfDrawingNode_) {
+            // merge self drawing node last frame size and join current frame size to absDrawRect_ when changed
+            dirtyManager.MergeDirtyRect(oldAbsDrawRect_.IntersectRect(clipRect));
+            selfDrawingNodeAbsDirtyRect_.JoinRect(absDrawRect_);
+        }
         oldAbsDrawRect_ = absDrawRect_;
     }
     // easily merge oldDirty if switch to invisible
@@ -1396,7 +1413,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
             if (isSelfDrawingNode_) {
                 selfDrawingNodeAbsDirtyRect_ = geoPtr->MapAbsRect(selfDrawingNodeDirtyRect_);
             }
-            UpdateClipAbsDrawRectChangeState(clipRect);
+            UpdateSrcOrClipedAbsDrawRectChangeState(clipRect);
         }
     }
     // 3. update dirtyRegion if needed
@@ -1407,7 +1424,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     isDirtyRegionUpdated_ = false; // todo make sure why windowDirty use it
     // Only when satisfy following conditions, absDirtyRegion should update:
     // 1.The node is dirty; 2.The clip absDrawRect change; 3.Parent clip property change or has GeoUpdateDelay dirty;
-    if ((IsDirty() || clipAbsDrawRectChange_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
+    if ((IsDirty() || srcOrClipedAbsDrawRectChangeFlag_ || (parent && (parent->GetAccumulatedClipFlagChange() ||
         parent->GetGeoUpdateDelay()))) && (shouldPaint_ || isLastVisible_)) {
         // update ForegroundFilterCache
         UpdateAbsDirtyRegion(dirtyManager, clipRect);
@@ -1736,21 +1753,24 @@ void RSRenderNode::MapAndUpdateChildrenRect()
         childRect = childRect.JoinRect(childrenRect_.ConvertTo<float>());
     }
     // map before update parent, if parent has clip property, use clipped children rect instead.
-    // node with sharedTransitionParam should recalculate childRelativeToParentMatrix due to sandbox.
+    // node with sharedTransitionParam should recalculate childRelativeToParentMatrix from absMatrix due to sandbox.
     if (auto parentNode = parent_.lock()) {
-        auto childRelativeToParentMatrix = Drawing::Matrix();
         const auto& parentProperties = parentNode->GetRenderProperties();
-        const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
         const auto& sandbox = GetRenderProperties().GetSandBox();
-        auto invertAbsParentMatrix = Drawing::Matrix();
-        if (sandbox.has_value() && sharedTransitionParam_ &&
-            parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
-            childRelativeToParentMatrix = geoPtr->GetAbsMatrix();
-            childRelativeToParentMatrix.PostConcat(invertAbsParentMatrix);
+        RectI childRectMapped;
+        if (LIKELY(!sandbox.has_value())) {
+            childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
         } else {
-            childRelativeToParentMatrix = geoPtr->GetMatrix();
+            Drawing::Matrix invertAbsParentMatrix;
+            const auto& parentGeoPtr = parentProperties.GetBoundsGeometry();
+            if (parentGeoPtr && parentGeoPtr->GetAbsMatrix().Invert(invertAbsParentMatrix)) {
+                auto childRelativeToParentMatrix = geoPtr->GetAbsMatrix();
+                childRelativeToParentMatrix.PostConcat(invertAbsParentMatrix);
+                childRectMapped = geoPtr->MapRect(childRect, childRelativeToParentMatrix);
+            } else {
+                childRectMapped = geoPtr->MapRect(childRect, geoPtr->GetMatrix());
+            }
         }
-        RectI childRectMapped = geoPtr->MapRect(childRect, childRelativeToParentMatrix);
         if (parentProperties.GetClipToBounds() || parentProperties.GetClipToFrame()) {
             childRectMapped = parentNode->GetSelfDrawRect().ConvertTo<int>().IntersectRect(childRectMapped);
         }
@@ -3325,6 +3345,16 @@ void RSRenderNode::OnTreeStateChanged()
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] off the tree", GetId());
         MarkForceClearFilterCacheWithInvisible();
     }
+    // Clear fullChildrenList_ and RSChildrenDrawable of the parent node; otherwise, it may cause a memory leak.
+    if (!isOnTheTree_) {
+        isFullChildrenListValid_ = false;
+        std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
+        drawableVec_[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
+        stagingDrawCmdList_.clear();
+        drawCmdListNeedSync_ = true;
+        uifirstNeedSync_ = true;
+        AddToPendingSyncList();
+    }
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -3542,7 +3572,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetInstanceRootNode() const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGD("RSRenderNode::GetInstanceRootNode: Invalid context");
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(instanceRootNodeId_);
@@ -3565,7 +3595,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetFirstLevelNode() const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::GetFirstLevelNode: Invalid context");
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(firstLevelNodeId_);
@@ -3575,7 +3605,7 @@ const std::shared_ptr<RSRenderNode> RSRenderNode::GetUifirstRootNode() const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("Invalid context");
+        ROSEN_LOGE("RSRenderNode::GetUifirstRootNode: Invalid context");
         return nullptr;
     }
     return context->GetNodeMap().GetRenderNode(uifirstRootNodeId_);
@@ -3999,20 +4029,21 @@ void RSRenderNode::UpdateCurCornerRadius(Vector4f& curCornerRadius)
 
 void RSRenderNode::ResetChangeState()
 {
-    clipAbsDrawRectChange_ = false;
+    srcOrClipedAbsDrawRectChangeFlag_ = false;
     geometryChangeNotPerceived_ = false;
 }
 
-void RSRenderNode::UpdateClipAbsDrawRectChangeState(const RectI& clipRect)
+void RSRenderNode::UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect)
 {
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         if (geometryChangeNotPerceived_) {
-            clipAbsDrawRectChange_ = false;
+            srcOrClipedAbsDrawRectChangeFlag_ = false;
             return;
         }
     }
-    auto clipAbsDrawRect = absDrawRect_.IntersectRect(clipRect);
-    clipAbsDrawRectChange_ = clipAbsDrawRect != oldDirtyInSurface_;
+    auto clipedAbsDrawRect = absDrawRect_.IntersectRect(clipRect);
+    // The old dirty In surface is equivalent to the old clipped absolute draw rectangle
+    srcOrClipedAbsDrawRectChangeFlag_ = (absDrawRect_ != oldAbsDrawRect_ || clipedAbsDrawRect != oldDirtyInSurface_);
 }
 
 void RSRenderNode::OnSync()
@@ -4023,10 +4054,20 @@ void RSRenderNode::OnSync()
     if (renderDrawable_ == nullptr) {
         return;
     }
+    // uifirstSkipPartialSync means don't need to trylock whether drawable is onDraw or not
+    DrawableV2::RSRenderNodeSingleDrawableLocker
+        singleLocker(uifirstSkipPartialSync_ ? nullptr : renderDrawable_.get());
+    if (!uifirstSkipPartialSync_ && UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     if (drawCmdListNeedSync_) {
         std::swap(stagingDrawCmdList_, renderDrawable_->drawCmdList_);
         stagingDrawCmdList_.clear();
         renderDrawable_->drawCmdIndex_ = stagingDrawCmdIndex_;
+        SyncPurgeFunc();
         drawCmdListNeedSync_ = false;
     }
 
@@ -4190,6 +4231,38 @@ void RSRenderNode::RemoveChildFromFulllist(NodeId id)
     std::atomic_store_explicit(&fullChildrenList_, constFullChildrenList, std::memory_order_release);
 }
 
+void RSRenderNode::SetPurgeStatus(bool flag)
+{
+    if (!isPurgeable_) {
+        return;
+    }
+    if (auto context = GetContext().lock()) {
+        if (flag) {
+            context->GetMutableNodeMap().RemoveOffTreeNode(id_);
+        } else {
+            context->GetMutableNodeMap().AddOffTreeNode(id_);
+        }
+    }
+}
+
+void RSRenderNode::SyncPurgeFunc()
+{
+    if (!isPurgeable_) {
+        return;
+    }
+    std::shared_ptr<RSDrawable> drawable = drawableVec_[static_cast<int32_t>(RSDrawableSlot::CONTENT_STYLE)];
+    if (!drawable) {
+        return;
+    }
+    std::weak_ptr<RSDrawable> drawableWeakPtr = drawable;
+    renderDrawable_->purgeFunc_ = [drawableWeakPtr]() {
+        auto drawable = drawableWeakPtr.lock();
+        if (drawable) {
+            drawable->OnPurge();
+        }
+    };
+}
+
 std::map<NodeId, std::weak_ptr<SharedTransitionParam>> SharedTransitionParam::unpairedShareTransitions_;
 
 SharedTransitionParam::SharedTransitionParam(RSRenderNode::SharedPtr inNode, RSRenderNode::SharedPtr outNode)
@@ -4240,6 +4313,11 @@ bool SharedTransitionParam::UpdateHierarchyAndReturnIsLower(const NodeId nodeId)
 std::string SharedTransitionParam::Dump() const
 {
     return ", SharedTransitionParam: [" + std::to_string(inNodeId_) + " -> " + std::to_string(outNodeId_) + "]";
+}
+
+void SharedTransitionParam::ResetRelation()
+{
+    relation_ = NodeHierarchyRelation::UNKNOWN;
 }
 
 void SharedTransitionParam::InternalUnregisterSelf()

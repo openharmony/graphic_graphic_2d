@@ -108,6 +108,7 @@ template("render_service_client_source_set") {
       "core/pipeline/rs_divided_ui_capture.cpp",
       "core/pipeline/rs_node_map.cpp",
       "core/pipeline/rs_render_thread.cpp",
+      "core/pipeline/rs_render_thread_util.cpp",
       "core/pipeline/rs_render_thread_visitor.cpp",
 
       #transaction
@@ -199,6 +200,11 @@ template("render_service_client_source_set") {
         defines += [ "WINDOWS_PLATFORM" ]
       }
     }
+
+    if (is_arkui_x) {
+      defines += [ "ARKUI_X_ENABLE" ]
+    }
+
     if (rosen_is_ohos) {
       deps += [
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",

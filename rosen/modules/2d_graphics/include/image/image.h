@@ -434,6 +434,8 @@ public:
      */
     void HintCacheGpuResource() const;
 
+    inline void Dump(std::string& out) const;
+
     template<typename T>
     T* GetImpl() const
     {
@@ -447,6 +449,16 @@ public:
 private:
     std::shared_ptr<ImageImpl> imageImplPtr;
 };
+
+inline void Image::Dump(std::string& out) const
+{
+    out += "[width:" + std::to_string(GetWidth());
+    out += " height:" + std::to_string(GetHeight());
+    out += " colorType:" + std::to_string(static_cast<int>(GetColorType()));
+    out += " alphaType:" + std::to_string(static_cast<int>(GetAlphaType()));
+    out += " uniqueID:" + std::to_string(static_cast<int>(GetUniqueID()));
+    out += ']';
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

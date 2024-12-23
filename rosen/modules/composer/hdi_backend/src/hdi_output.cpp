@@ -38,6 +38,7 @@ namespace OHOS {
 namespace Rosen {
 static constexpr uint32_t NUMBER_OF_HISTORICAL_FRAMES = 2;
 static const std::string GENERIC_METADATA_KEY_ARSR_PRE_NEEDED = "ArsrDoEnhance";
+static int32_t SOLID_SURFACE_COUNT = 0;
 
 std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 {
@@ -123,8 +124,15 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (auto &layerInfo : layerInfos) {
-        if (layerInfo == nullptr || layerInfo->GetSurface() == nullptr) {
-            HLOGE("current layerInfo or layerInfo's cSurface is null");
+        if (layerInfo == nullptr) {
+            HLOGE("current layerInfo is null");
+            continue;
+        }
+        if (layerInfo->GetSurface() == nullptr) {
+            if (layerInfo->GetCompositionType() ==
+                GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+                CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
+            }
             continue;
         }
 
@@ -261,18 +269,6 @@ uint32_t HdiOutput::GetScreenId() const
     return screenId_;
 }
 
-void HdiOutput::SetLayerCompCapacity(uint32_t layerCompositionCapacity)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    layerCompCapacity_ = layerCompositionCapacity;
-}
-
-uint32_t HdiOutput::GetLayerCompCapacity() const
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return layerCompCapacity_;
-}
-
 sptr<Surface> HdiOutput::GetFrameBufferSurface()
 {
     if (!CheckFbSurface()) {
@@ -307,52 +303,21 @@ void HdiOutput::RecordCompositionTime(int64_t timeStamp)
     compTimeRcdIndex_ = (compTimeRcdIndex_ + 1) % COMPOSITION_RECORDS_NUM;
 }
 
-void HdiOutput::SetDirectClientCompEnableStatus(bool enableStatus)
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    directClientCompositionEnabled_ = enableStatus;
-}
-
-bool HdiOutput::GetDirectClientCompEnableStatus() const
-{
-    std::unique_lock<std::mutex> lock(mutex_);
-    return directClientCompositionEnabled_;
-}
-
 int32_t HdiOutput::PreProcessLayersComp()
 {
     int32_t ret = GRAPHIC_DISPLAY_SUCCESS;
-    bool doClientCompositionDirectly;
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        if (layerIdMap_.empty()) {
-            HLOGI("layer map is empty, drop this frame");
-            return GRAPHIC_DISPLAY_PARAM_ERR;
-        }
-
-        uint32_t layersNum = layerIdMap_.size();
-        // If doClientCompositionDirectly is true then layer->SetHdiLayerInfo and UpdateLayerCompType is no need to run.
-        doClientCompositionDirectly = directClientCompositionEnabled_ &&
-            ((layerCompCapacity_ != LAYER_COMPOSITION_CAPACITY_INVALID) && (layersNum > layerCompCapacity_));
-
-        for (auto iter = layerIdMap_.begin(); iter != layerIdMap_.end(); ++iter) {
-            const LayerPtr &layer = iter->second;
-            if (doClientCompositionDirectly) {
-                layer->UpdateCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-                continue;
-            }
-            ret = layer->SetHdiLayerInfo();
-            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-                HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
-                return GRAPHIC_DISPLAY_FAILURE;
-            }
-        }
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (layerIdMap_.empty()) {
+        HLOGI("layer map is empty, drop this frame");
+        return GRAPHIC_DISPLAY_PARAM_ERR;
     }
 
-    if (doClientCompositionDirectly) {
-        ScopedBytrace doClientCompositionDirectlyTag("DoClientCompositionDirectly");
-        HLOGD("Direct client composition is enabled.");
-        return GRAPHIC_DISPLAY_SUCCESS;
+    for (const auto &[layerId, layer] : layerIdMap_) {
+        ret = layer->SetHdiLayerInfo();
+        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGE("Set hdi layer[id:%{public}d] info failed, ret %{public}d.", layer->GetLayerId(), ret);
+            return GRAPHIC_DISPLAY_FAILURE;
+        }
     }
 
     return ret;
@@ -426,6 +391,8 @@ bool HdiOutput::CheckIfDoArsrPre(const LayerInfoPtr &layerInfo)
         GRAPHIC_PIXEL_FMT_UYVY_422_PKG,
         GRAPHIC_PIXEL_FMT_YVYU_422_PKG,
         GRAPHIC_PIXEL_FMT_VYUY_422_PKG,
+        GRAPHIC_PIXEL_FMT_YCBCR_P010,
+        GRAPHIC_PIXEL_FMT_YCRCB_P010,
     };
 
     static const std::unordered_set<std::string> videoLayers {
@@ -676,19 +643,14 @@ std::map<LayerInfoPtr, sptr<SyncFence>> HdiOutput::GetLayersReleaseFenceLocked()
 
 int32_t HdiOutput::StartVSyncSampler(bool forceReSample)
 {
-    ScopedBytrace func("HdiOutput::StartVSyncSampler, forceReSample:" + std::to_string(forceReSample));
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
-    bool alreadyStartSample = sampler_->GetHardwareVSyncStatus();
-    if (!forceReSample && alreadyStartSample) {
-        HLOGD("Already Start Sample.");
+    if (sampler_->StartSample(forceReSample) == VSYNC_ERROR_OK) {
         return GRAPHIC_DISPLAY_SUCCESS;
+    } else {
+        return GRAPHIC_DISPLAY_FAILURE;
     }
-    HLOGD("Enable Screen Vsync");
-    sampler_->SetScreenVsyncEnabledInRSMainThread(true);
-    sampler_->BeginSample();
-    return GRAPHIC_DISPLAY_SUCCESS;
 }
 
 void HdiOutput::SetPendingMode(int64_t period, int64_t timestamp)
@@ -713,11 +675,12 @@ void HdiOutput::Dump(std::string &result) const
 
     for (const LayerDumpInfo &layerInfo : dumpLayerInfos) {
         const LayerPtr &layer = layerInfo.layer;
-        if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
-            layer->GetLayerInfo()->GetSurface() == nullptr) {
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
             continue;
         }
-        const std::string& name = layer->GetLayerInfo()->GetSurface()->GetName();
+        auto surface = layer->GetLayerInfo()->GetSurface();
+        const std::string& name = surface ? surface->GetName() :
+            "Layer Without Surface" + std::to_string(SOLID_SURFACE_COUNT);
         auto info = layer->GetLayerInfo();
         result += "\n surface [" + name + "] NodeId[" + std::to_string(layerInfo.nodeId) + "]";
         result +=  " LayerId[" + std::to_string(layer->GetLayerId()) + "]:\n";

@@ -169,6 +169,7 @@ template("graphics2d_source_set") {
       "$drawing_core_src_dir/utils/region.cpp",
       "$drawing_core_src_dir/utils/resource_holder.cpp",
       "$drawing_core_src_dir/utils/round_rect.cpp",
+      "$drawing_core_src_dir/utils/string_util.cpp",
       "$drawing_core_src_dir/utils/vertices.cpp",
     ]
 

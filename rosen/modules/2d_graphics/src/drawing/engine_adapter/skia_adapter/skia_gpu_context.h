@@ -115,6 +115,18 @@ public:
     static std::function<void(const std::function<void()>& task)> GetPostFunc(sk_sp<GrDirectContext> grContext);
 
     void VmaDefragment() override;
+
+    void BeginFrame() override;
+
+    void EndFrame() override;
+
+    void SetGpuCacheSuppressWindowSwitch(bool enabled) override;
+
+    void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) override;
+
+    void FlushGpuMemoryInWaitQueue() override;
+    
+    void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) override;
 private:
     sk_sp<GrDirectContext> grContext_;
     std::shared_ptr<SkiaPersistentCache> skiaPersistentCache_;

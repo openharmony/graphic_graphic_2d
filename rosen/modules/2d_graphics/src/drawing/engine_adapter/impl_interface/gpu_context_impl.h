@@ -93,6 +93,18 @@ public:
     virtual void RegisterPostFunc(const std::function<void(const std::function<void()>& task)>& func) = 0;
 
     virtual void VmaDefragment() = 0;
+
+    virtual void BeginFrame() = 0;
+
+    virtual void EndFrame() = 0;
+
+    virtual void SetGpuCacheSuppressWindowSwitch(bool enabled) = 0;
+
+    virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) = 0;
+
+    virtual void FlushGpuMemoryInWaitQueue() = 0;
+    
+    virtual void SuppressGpuCacheBelowCertainRatio(const std::function<bool(void)>& nextFrameHasArrived) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

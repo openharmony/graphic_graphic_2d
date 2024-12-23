@@ -59,7 +59,6 @@ private:
     mutable std::mutex collectionMutex_;
 
     std::vector<std::shared_ptr<RSFontMgr>> GetFontManagerOrder() const;
-
     DISALLOW_COPY_AND_ASSIGN(FontCollection);
 };
 } // namespace txt

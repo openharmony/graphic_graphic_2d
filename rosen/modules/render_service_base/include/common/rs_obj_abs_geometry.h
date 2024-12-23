@@ -49,6 +49,9 @@ public:
     static RectI MapRect(const RectF& rect, const Drawing::Matrix& matrix);
 
     // return transform matrix (context + self)
+    // warning: If the parent node does not have the SandBox attribute, this interface does
+    // NOT cause problems. Otherwise, you need to use the GetAbsMatrix interface to multiply
+    // the AbsMatrix of the parent node by the left to obtain the matrix of the parent node.
     const Drawing::Matrix& GetMatrix() const;
     // return transform matrix (parent + context + self)
     const Drawing::Matrix& GetAbsMatrix() const;

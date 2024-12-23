@@ -22,6 +22,7 @@
 #include "filter/include/filter_pixel_stretch_para.h"
 #include "filter/include/filter_water_ripple_para.h"
 #include "filter/include/filter_fly_out_para.h"
+#include "filter/include/filter_distort_para.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 
@@ -53,6 +54,7 @@ private:
     static napi_value SetPixelStretch(napi_env env, napi_callback_info info);
     static napi_value SetWaterRipple(napi_env env, napi_callback_info info);
     static napi_value SetFlyOut(napi_env env, napi_callback_info info);
+    static napi_value SetDistort(napi_env env, napi_callback_info info);
     static Drawing::TileMode ParserArgumentType(napi_env env, napi_value argv);
 
     static float GetSpecialValue(napi_env env, napi_value argValue);

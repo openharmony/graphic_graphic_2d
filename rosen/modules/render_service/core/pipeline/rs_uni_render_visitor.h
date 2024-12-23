@@ -193,7 +193,6 @@ private:
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
-    void MergeDirtySurfaceToDssOrDirty(RSSurfaceRenderNode& surfaceNode, const RectI& dirtyRect) const;
     void PartialRenderOptionInit();
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& visibleRegion,
         const Occlusion::Region& selfDrawRegion);
@@ -274,8 +273,9 @@ private:
     void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
-    void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
-        std::vector<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes, bool& ancoHasGpu);
+    void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr);
+    void InitAncoStatus();
+    void UpdateAncoNodeHWCDisabledState();
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
@@ -285,6 +285,10 @@ private:
     void UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<RSSurfaceRenderNode>& node);
     void AllSurfacesDrawnInUniRender(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
     void UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceRenderNode>& pointWindow);
+    void UpdateTopLayersDirtyStatus(const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& topLayers);
+    void UpdateCornerRadiusInfoForDRM(std::shared_ptr<RSSurfaceRenderNode> hwcNode, std::vector<RectI>& hwcRects);
+    bool CheckIfRoundCornerIntersectDRM(const float& ratio, std::vector<float>& ratioVector,
+        const Vector4f& instanceCornerRadius, const RectI& instanceAbsRect, const RectI& hwcAbsRect);
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
@@ -305,9 +309,7 @@ private:
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
-    void CheckMergeTopSurfaceForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
 
-    bool IfSkipInCalcGlobalDirty(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentFilter(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         Occlusion::Region& accumulatedDirtyRegion);
     void CheckMergeGlobalFilterForDisplay(Occlusion::Region& accumulatedDirtyRegion);
@@ -363,6 +365,8 @@ private:
     void DrawChildCanvasRenderNode(RSRenderNode& node);
 
     void CheckColorSpace(RSSurfaceRenderNode& node);
+    void CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode& node);
+    void UpdateColorSpaceAfterHwcCalc(RSDisplayRenderNode& node);
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
@@ -612,7 +616,6 @@ private:
     bool isSubNodeOfSurfaceInProcess_ = false;
 
     uint32_t appWindowNum_ = 0;
-    bool hasSkippedSpecialLayer_ = false;
 
     // displayNodeMatrix only used in offScreen render case to ensure correct composer layer info when with rotation,
     // displayNodeMatrix indicates display node's matrix info
@@ -700,6 +703,10 @@ private:
     HwcDisabledReasonCollection& hwcDisabledReasonCollection_ = HwcDisabledReasonCollection::GetInstance();
 
     bool zoomStateChange_ = false;
+
+    // anco RSSurfaceNode process
+    bool ancoHasGpu_ = false;
+    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
 };
 } // namespace Rosen
 } // namespace OHOS

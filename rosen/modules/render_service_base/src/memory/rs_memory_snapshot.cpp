@@ -105,5 +105,11 @@ void MemorySnapshot::InitMemoryLimit(MemoryOverflowCalllback callback,
         totalMemoryLimit_ = totalSize;
     }
 }
+
+void MemorySnapshot::GetMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& map)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    map = appMemorySnapshots_;
+}
 }
 } // namespace OHOS::Rosen

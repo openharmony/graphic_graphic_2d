@@ -136,6 +136,9 @@ public:
     static bool GetRenderNodeTraceEnabled();
     static bool GetDrawOpTraceEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetRenderNodePurgeEnabled();
+    static bool GetRSImagePurgeEnabled();
+    static bool GetClosePixelMapFdEnabled();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -146,7 +149,6 @@ public:
     static bool GetExpandScreenDirtyEnabled();
     static bool GetOcclusionEnabled();
     static std::string GetRSEventProperty(const std::string &paraName);
-    static bool GetDirectClientCompEnableStatus();
     static bool GetHighContrastStatus();
     static uint32_t GetCorrectionMode();
     static DumpSurfaceType GetDumpSurfaceType();
@@ -206,7 +208,8 @@ public:
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();
     static bool GetPurgeBetweenFramesEnabled();
-    static bool GetAsyncFreeVMAMemoryBetweenFramesEnabled();
+    static bool GetGpuMemoryAsyncReclaimerEnabled();
+    static bool GetGpuCacheSuppressWindowEnabled();
 
     static bool GetAnimationCacheEnabled();
 

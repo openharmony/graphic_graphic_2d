@@ -96,11 +96,15 @@ private:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
 
+    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-    
+
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
     void RemoveVirtualScreen(ScreenId id) override;
@@ -247,7 +251,8 @@ private:
 
     void ReportGameStateData(GameStateData info) override;
 
-    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType) override;
+    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) override;
 
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
@@ -284,7 +289,14 @@ private:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
+    void DropFrameByPid(const std::vector<int32_t> pidList) override;
+
     bool SetAncoForceDoDirect(bool direct) override;
+
+    void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback) override;
+    void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+    void SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

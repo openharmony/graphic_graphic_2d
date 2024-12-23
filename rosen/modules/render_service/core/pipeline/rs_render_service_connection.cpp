@@ -38,6 +38,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_ui_capture_task_parallel.h"
@@ -177,7 +178,9 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
                 return;
             }
             RS_TRACE_NAME_FMT("CleanHgmEvent %d", connection->remotePid_);
-            connection->mainThread_->GetFrameRateMgr()->CleanVote(connection->remotePid_);
+            if (connection->mainThread_->GetFrameRateMgr() != nullptr) {
+                connection->mainThread_->GetFrameRateMgr()->CleanVote(connection->remotePid_);
+            }
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -191,6 +194,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             connection->mainThread_->ClearSurfaceOcclusionChangeCallback(connection->remotePid_);
             connection->mainThread_->UnRegisterUIExtensionCallback(connection->remotePid_);
         }).wait();
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -535,6 +539,32 @@ int32_t RSRenderServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::v
         RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
     }
     return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSRenderServiceConnection::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    if (blackListVector.empty()) {
+        RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
+        return StatusCode::BLACKLIST_IS_EMPTY;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+}
+
+int32_t RSRenderServiceConnection::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+{
+    if (blackListVector.empty()) {
+        RS_LOGW("RemoveVirtualScreenBlackList blackList is empty.");
+        return StatusCode::BLACKLIST_IS_EMPTY;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
@@ -933,7 +963,7 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
                 captureTaskInner();
             }
         } else {
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id);
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
             RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
         }
     };
@@ -1189,10 +1219,7 @@ void RSRenderServiceConnection::RegisterBufferAvailableListener(
             }
             return false;
     };
-    if (!registerBufferAvailableListener()) {
-        RS_LOGD("RegisterBufferAvailableListener: node not found, post task to retry");
-        mainThread_->PostTask(registerBufferAvailableListener);
-    }
+    mainThread_->PostTask(registerBufferAvailableListener);
 }
 
 int32_t RSRenderServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
@@ -1513,7 +1540,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
     std::future<bool> future = result.get_future();
     RSMainThread* mainThread = mainThread_;
     RSUniRenderThread* renderThread = &renderThread_;
-    auto getPixelMapTask = [id, &pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
+    auto getPixelMapTask = [id, pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
         auto node = mainThread->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
         if (node == nullptr) {
             RS_LOGD("RSRenderServiceConnection::GetPixelmap: cannot find NodeId: [%{public}" PRIu64 "]", id);
@@ -1531,7 +1558,7 @@ bool RSRenderServiceConnection::GetPixelmap(NodeId id, const std::shared_ptr<Med
         if (drawableNode) {
             tid = std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->GetTid();
         }
-        auto getDrawablePixelmapTask = [drawableNode, &pixelmap, rect, &result, tid, drawCmdList]() {
+        auto getDrawablePixelmapTask = [drawableNode, pixelmap, rect, &result, tid, drawCmdList]() {
             result.set_value(std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(drawableNode)->
                 GetPixelmap(pixelmap, rect, tid, drawCmdList));
         };
@@ -1740,6 +1767,10 @@ void RSRenderServiceConnection::NotifyLightFactorStatus(bool isSafe)
     if (!mainThread_) {
         return;
     }
+    if (mainThread_->GetFrameRateMgr() == nullptr) {
+        RS_LOGW("RSRenderServiceConnection::NotifyLightFactorStatus: frameRateMgr is nullptr.");
+        return;
+    }
     mainThread_->GetFrameRateMgr()->HandleLightFactorStatus(remotePid_, isSafe);
 }
 
@@ -1827,12 +1858,14 @@ void RSRenderServiceConnection::ReportGameStateData(GameStateData info)
     FrameReport::GetInstance().SetGameScene(info.pid, info.state);
 }
 
-void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType)
+void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
 {
     if (!mainThread_) {
         return;
     }
-    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, isEnabled, selfDrawingType]() -> void {
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), id, isEnabled, selfDrawingType,
+        dynamicHardwareEnable]() -> void {
         sptr<RSRenderServiceConnection> connection = weakThis.promote();
         if (!connection) {
             return;
@@ -1840,7 +1873,7 @@ void RSRenderServiceConnection::SetHardwareEnabled(NodeId id, bool isEnabled, Se
         auto& context = connection->mainThread_->GetContext();
         auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
         if (node) {
-            node->SetHardwareEnabled(isEnabled, selfDrawingType);
+            node->SetHardwareEnabled(isEnabled, selfDrawingType, dynamicHardwareEnable);
         }
     };
     mainThread_->PostTask(task);
@@ -1954,6 +1987,23 @@ void RSRenderServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreen
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::DropFrameByPid(const std::vector<int32_t> pidList)
+{
+    if (!mainThread_) {
+        return;
+    }
+    mainThread_->ScheduleTask(
+        [weakThis = wptr<RSRenderServiceConnection>(this), pidList]() {
+            // don't use 'this' directly
+            sptr<RSRenderServiceConnection> connection = weakThis.promote();
+            if (connection == nullptr || connection->mainThread_ == nullptr) {
+                return;
+            }
+            connection->mainThread_->AddPidNeedDropFrame(pidList);
+        }
+    );
+}
+
 int32_t RSRenderServiceConnection::RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback)
 {
     if (!mainThread_) {
@@ -1973,6 +2023,43 @@ bool RSRenderServiceConnection::SetAncoForceDoDirect(bool direct)
     std::lock_guard<std::mutex> lock(mutex_);
     mainThread_->SetAncoForceDoDirect(direct);
     return true;
+}
+
+void RSRenderServiceConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+    sptr<RSISurfaceBufferCallback> callback)
+{
+    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid, callback);
+}
+
+void RSRenderServiceConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
+{
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
+}
+
+void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeIdStr, isTop]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection) {
+            return;
+        }
+        auto& context = connection->mainThread_->GetContext();
+        context.GetNodeMap().TraverseSurfaceNodes(
+            [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+            if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
+                (surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE)) {
+                surfaceNode->SetLayerTop(isTop);
+                return;
+            }
+        });
+        // It can be displayed immediately after layer-top changed.
+        connection->mainThread_->SetDirtyFlag();
+        connection->mainThread_->RequestNextVSync();
+    };
+    mainThread_->PostTask(task);
 }
 } // namespace Rosen
 } // namespace OHOS

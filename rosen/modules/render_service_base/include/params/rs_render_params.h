@@ -46,6 +46,15 @@ struct DirtyRegionInfoForDFX {
 };
 struct RSLayerInfo;
 struct ScreenInfo;
+
+typedef enum {
+    RS_PARAM_DEFAULT,
+    RS_PARAM_OWNED_BY_NODE,
+    RS_PARAM_OWNED_BY_DRAWABLE,
+    RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST,
+    RS_PARAM_INVALID,
+} RSRenderParamsType;
+
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id) {}
@@ -95,6 +104,16 @@ public:
     inline NodeId GetId() const
     {
         return id_;
+    }
+
+    void SetParamsType(RSRenderParamsType paramsType)
+    {
+        paramsType_ = paramsType;
+    }
+
+    inline RSRenderParamsType GetParamsType() const
+    {
+        return paramsType_;
     }
 
     Gravity GetFrameGravity() const
@@ -299,11 +318,6 @@ public:
     }
     virtual void SetTotalMatrix(const Drawing::Matrix& totalMatrix) {}
     virtual const Drawing::Matrix& GetTotalMatrix();
-    virtual void SetPreScalingMode(ScalingMode scalingMode) {}
-    virtual ScalingMode GetPreScalingMode() const
-    {
-        return ScalingMode::SCALING_MODE_FREEZE;
-    }
     virtual void SetNeedClient(bool needClient) {}
     virtual bool GetNeedClient() const { return false; }
     virtual bool GetFingerprint() { return false; }
@@ -320,6 +334,7 @@ protected:
 
 private:
     NodeId id_;
+    RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;

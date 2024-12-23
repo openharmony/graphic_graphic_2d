@@ -845,7 +845,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, NotifyLightFactorStatus, TestSize.L
     GameStateData info;
     proxy->ReportGameStateData(info);
     NodeId id = 1;
-    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT);
+    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
     proxy->NotifyLightFactorStatus(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
@@ -955,6 +955,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, RegisterUIExtensionCallback, TestSi
     uint64_t userId = 0;
     ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, nullptr), INVALID_ARGUMENTS);
     ASSERT_EQ(proxy->RegisterUIExtensionCallback(userId, callback), RS_CONNECTION_ERROR);
+}
+
+/**
+ * @tc.name: SetLayerTop Test
+ * @tc.desc: SetLayerTop Test
+ * @tc.type:FUNC
+ * @tc.require: issueIAOZFC
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
+{
+    const std::string nodeIdStr = "123456";
+    proxy->SetLayerTop(nodeIdStr, true);
+    proxy->SetLayerTop(nodeIdStr, false);
+    ASSERT_TRUE(true);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -40,6 +40,19 @@ enum class BorderStyle : uint32_t {
     NONE
 };
 
+#define MAX_BORDER_NUM 4
+
+class RSBorderGeo {
+public:
+    RSBorderGeo() {};
+    ~RSBorderGeo() {};
+
+    Drawing::RoundRect rrect;
+    Drawing::RoundRect innerRRect;
+    Drawing::Point center;
+    std::vector<Drawing::Path> pathVec { MAX_BORDER_NUM };
+};
+
 // also used for Outline
 class RSBorder final {
 public:
@@ -88,30 +101,28 @@ public:
     bool ApplyFourLine(Drawing::Pen& pen) const;
     bool ApplyLineStyle(Drawing::Pen& pen, int borderIdx, float length) const;
     bool ApplySimpleBorder(const RRect& rrect) const;
-
     void PaintFourLine(Drawing::Canvas& canvas, Drawing::Pen& pen, RectF rect) const;
-    void PaintTopPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const Drawing::Point& innerRectCenter) const;
-    void PaintRightPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const Drawing::Point& innerRectCenter) const;
-    void PaintBottomPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const Drawing::Point& innerRectCenter) const;
-    void PaintLeftPath(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const Drawing::Point& innerRectCenter) const;
+    void DrawBorders(Drawing::Canvas& canvas, Drawing::Pen& pen, RSBorderGeo& borderGeo) const;
 
 private:
+    void DrawBorderImpl(Drawing::Canvas& canvas, Drawing::Pen& pen, RSBorderGeo& borderGeo, int idx) const;
+    void DrawBorderImpl(Drawing::Canvas& canvas, Drawing::Pen& pen, RSBorderGeo& borderGeo, int idx1, int idx2) const;
+    void DrawBorderImpl(
+        Drawing::Canvas& canvas, Drawing::Pen& pen, RSBorderGeo& borderGeo, int idx1, int idx2, int idx3) const;
+    void DrawNestedRoundRect(Drawing::Canvas& canvas, const RSBorderGeo& borderGeo, uint32_t color) const;
+    void CalcBorderPath(RSBorderGeo& borderGeo) const;
+    bool CanBeCombined(int border1, int border2) const;
+
     Drawing::Point GetTLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetTRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetBLIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
     Drawing::Point GetBRIP(const Drawing::RoundRect& rrect, const Drawing::Point& innerRectCenter) const;
-    void DrawTopBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect, const float offsetX,
-        const float offsetY) const;
-    void DrawRightBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const float offsetX, const float offsetY) const;
-    void DrawBottomBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const float offsetX, const float offsetY) const;
-    void DrawLeftBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const Drawing::RoundRect& rrect,
-        const float offsetX, const float offsetY) const;
+
+    void DrawLeftBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const RSBorderGeo& borderGeo) const;
+    void DrawTopBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const RSBorderGeo& borderGeo) const;
+    void DrawRightBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const RSBorderGeo& borderGeo) const;
+    void DrawBottomBorder(Drawing::Canvas& canvas, Drawing::Pen& pen, const RSBorderGeo& borderGeo) const;
+
     // Vectors containing uniform or four-sided border attributes.
     // If four-sided, the order of contents is left, top, right, bottom.
     std::vector<Color> colors_;

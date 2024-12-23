@@ -23,18 +23,16 @@
 
 namespace OHOS {
 namespace Rosen {
-#define LOGD(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Debug( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "EffectChain" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define LOGI(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Info( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "EffectChain" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define LOGW(fmt, ...)              \
-    ::OHOS::HiviewDFX::HiLog::Warn( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "EffectChain" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
-#define LOGE(fmt, ...)               \
-    ::OHOS::HiviewDFX::HiLog::Error( \
-        ::OHOS::HiviewDFX::HiLogLabel { LOG_CORE, 0, "EffectChain" }, "%{public}s: " fmt, __func__, ##__VA_ARGS__)
+#undef LOG_DOMAIN
+#define LOG_DOMAIN 0xD001405
+
+#undef LOG_TAG
+#define LOG_TAG "EffectKit"
+
+#define LOGD(fmt, ...) HILOG_DEBUG(LOG_CORE, fmt, ##__VA_ARGS__)
+#define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
+#define LOGW(fmt, ...) HILOG_WARN(LOG_CORE, fmt, ##__VA_ARGS__)
+#define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
 } // namespace Rosen
 } // namespace OHOS
 #endif // EFFECT_LOG_H

@@ -27,7 +27,7 @@ std::vector<std::string> GetDefaultFontFamilies()
 #ifdef OHOS_STANDARD_SYSTEM
     return { "OhosThemeFont", "HarmonyOS-Sans" };
 #else
-    return "sans-serif";
+    return { "sans-serif" };
 #endif
 }
 

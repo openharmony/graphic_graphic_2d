@@ -99,6 +99,8 @@ private:
     sptr<LocalSocketPair> socketPair_;
     bool isDead_;
     std::mutex mutex_;
+    bool isFirstRequestVsync_ = true;
+    bool isFirstSendVsync_ = true;
 };
 
 class VSyncDistributor : public RefBase, public VSyncController::Callback {
@@ -135,6 +137,7 @@ public:
     int64_t GetUiCommandDelayTime();
     void UpdatePendingReferenceTime(int64_t &timeStamp);
     void SetHardwareTaskNum(uint32_t num);
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
 private:
 

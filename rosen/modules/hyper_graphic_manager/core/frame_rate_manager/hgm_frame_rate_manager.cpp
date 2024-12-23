@@ -40,7 +40,8 @@ namespace {
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
     constexpr float DIVISOR_TWO = 2.0f;
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
-    constexpr uint32_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
+    constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
+    constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
     constexpr uint32_t REPORT_VOTER_INFO_LIMIT = 20;
     constexpr int32_t LAST_TOUCH_CNT = 1;
 
@@ -126,8 +127,10 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
         } else {
             if (RSUniRenderJudgement::IsUniRender()) {
-                rsController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
-                appController->SetPhaseOffset(UNI_RENDER_VSYNC_OFFSET);
+                int64_t offset = HgmCore::Instance().IsDelayMode() ?
+                    UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
+                rsController->SetPhaseOffset(offset);
+                appController->SetPhaseOffset(offset);
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
@@ -238,6 +241,7 @@ void HgmFrameRateManager::SetAceAnimatorVote(const std::shared_ptr<RSRenderFrame
             "AnimatorExpectedFrameRate = [%d]", ExtractPid(linker->GetId()), linker->GetId(),
             linker->GetAceAnimatorExpectedFrameRate());
         idleDetector_.SetAceAnimatorIdleState(false);
+        idleDetector_.UpdateAceAnimatorExpectedFrameRate(linker->GetAceAnimatorExpectedFrameRate());
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("SetAceAnimatorVote PID = [%d]  linkerId = [%" PRIu64 "] "
@@ -336,6 +340,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
 
     UpdateGuaranteedPlanVote(timestamp);
+    idleDetector_.ResetAceAnimatorExpectedFrameRate();
     VoteInfo resultVoteInfo = ProcessRefreshRateVote();
     // max used here
     finalRange = {resultVoteInfo.max, resultVoteInfo.max, resultVoteInfo.max};

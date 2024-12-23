@@ -26,6 +26,9 @@
 #include "transaction/rs_render_service_client.h"
 namespace OHOS {
 namespace Rosen {
+constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
+constexpr int32_t IRREGULAR_REFRESH_RATE_SKIP_THRETHOLD = 10;
+
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
     : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
@@ -185,6 +188,7 @@ void RSDisplayRenderNode::OnSync()
     }
     auto syncDirtyManager = renderDrawable_->GetSyncDirtyManager();
     dirtyManager_->OnSync(syncDirtyManager);
+    displayParams->SetZoomed(curZoomState_);
     displayParams->SetNeedSync(true);
     RSRenderNode::OnSync();
     HandleCurMainAndLeashSurfaceNodes();
@@ -227,7 +231,6 @@ void RSDisplayRenderNode::UpdateRenderParams()
     displayParams->offsetX_ = GetDisplayOffsetX();
     displayParams->offsetY_ = GetDisplayOffsetY();
     displayParams->nodeRotation_ = GetRotation();
-    displayParams->mirrorSource_ = GetMirrorSource();
     RSRenderNode::UpdateRenderParams();
 }
 
@@ -241,6 +244,7 @@ void RSDisplayRenderNode::UpdateScreenRenderParams(ScreenRenderParams& screenRen
     displayParams->screenId_ = GetScreenId();
     displayParams->screenRotation_ = GetScreenRotation();
     displayParams->compositeType_ = GetCompositeType();
+    displayParams->isMirrorScreen_ = IsMirrorScreen();
     displayParams->isSecurityDisplay_ = GetSecurityDisplay();
     displayParams->screenInfo_ = std::move(screenRenderParams.screenInfo);
     displayParams->displayHasSecSurface_ = std::move(screenRenderParams.displayHasSecSurface);
@@ -277,6 +281,25 @@ bool RSDisplayRenderNode::SkipFrame(uint32_t refreshRate, uint32_t skipFrameInte
     }
     int64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::steady_clock::now().time_since_epoch()).count();
+    // when skipFrameInterval > 10 means the skipFrameInterval is the virtual screen refresh rate
+    if (skipFrameInterval > IRREGULAR_REFRESH_RATE_SKIP_THRETHOLD) {
+        int64_t minFrameInterval = 1000000000LL / skipFrameInterval;
+        if (minFrameInterval == 0) {
+            return false;
+        }
+        // lastRefreshTime_ is next frame expected refresh time for virtual display
+        if (lastRefreshTime_ <= 0) {
+            lastRefreshTime_ = currentTime + minFrameInterval;
+            return false;
+        }
+        if (currentTime < (lastRefreshTime_ - MAX_JITTER_NS)) {
+            return true;
+        }
+        int64_t intervalNums = (currentTime - lastRefreshTime_ + MAX_JITTER_NS) / minFrameInterval;
+        lastRefreshTime_ += (intervalNums + 1) * minFrameInterval;
+        return false;
+    }
+    // the skipFrameInterval is equal to 60 divide the virtual screen refresh rate
     int64_t refreshInterval = currentTime - lastRefreshTime_;
     // 1000000000ns == 1s, 110/100 allows 10% over.
     bool needSkip = refreshInterval < (1000000000LL / refreshRate) * (skipFrameInterval - 1) * 110 / 100;
@@ -386,6 +409,25 @@ void RSDisplayRenderNode::SetBrightnessRatio(float brightnessRatio)
     }
 }
 
+void RSDisplayRenderNode::SetColorSpace(const GraphicColorGamut& colorSpace)
+{
+    auto displayParams = static_cast<RSDisplayRenderParams*>(stagingRenderParams_.get());
+    if (displayParams == nullptr) {
+        RS_LOGE("%{public}s displayParams is nullptr", __func__);
+        return;
+    }
+    displayParams->SetNewColorSpace(colorSpace);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+    colorSpace_ = colorSpace;
+}
+
+GraphicColorGamut RSDisplayRenderNode::GetColorSpace() const
+{
+    return colorSpace_;
+}
+
 RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() const
 {
     int32_t currentScbPid = GetCurrentScbPid();
@@ -410,17 +452,16 @@ RSRenderNode::ChildrenListSharedPtr RSDisplayRenderNode::GetSortedChildren() con
     std::vector<int32_t> oldScbPids = GetOldScbPids();
     currentChildrenList_->clear();
     for (auto& child : *fullChildrenList) {
+        if (child == nullptr) {
+            continue;
+        }
         auto childPid = ExtractPid(child->GetId());
         auto pidIter = std::find(oldScbPids.begin(), oldScbPids.end(), childPid);
         if (pidIter != oldScbPids.end()) {
-            if (child) {
-                child->SetIsOntheTreeOnlyFlag(false);
-            }
+            child->SetIsOntheTreeOnlyFlag(false);
             continue;
         } else if (childPid == currentScbPid) {
-            if (child) {
-                child->SetIsOntheTreeOnlyFlag(true);
-            }
+            child->SetIsOntheTreeOnlyFlag(true);
         }
         currentChildrenList_->emplace_back(child);
     }

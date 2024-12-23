@@ -29,7 +29,7 @@ public:
     
     void SetRadius(float radius)
     {
-        radius_ = radius;
+        radius_ = std::max(radius, 0.0f);
     }
 
     float GetRadius() const

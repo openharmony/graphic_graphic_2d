@@ -17,27 +17,19 @@
 #define SKIMAGE_FILTER_FACTORY_H
 
 #include "include/core/SkImageFilter.h"
+#include "include/effects/SkImageFilters.h"
 
 namespace OHOS {
 namespace Rosen {
     
-enum class TileMode : int32_t {
-    CLAMP = 0,
-    REPEAT,
-    MIRROR,
-    DECAL
-};
-
 struct PixelColorMatrix {
     static constexpr uint8_t MATRIX_SIZE = 20;
-    static constexpr uint8_t ROW_SIZE = 4;
-    static constexpr uint8_t COL_SIZE = 5;
     float val[MATRIX_SIZE] = {0};
 };
 
 class SKImageFilterFactory {
 public:
-    static sk_sp<SkImageFilter> Blur(float radius, TileMode tileMode = TileMode::DECAL);
+    static sk_sp<SkImageFilter> Blur(float radius, SkTileMode tileMode = SkTileMode::kDecal);
     static sk_sp<SkImageFilter> Brightness(float degree);
     static sk_sp<SkImageFilter> Grayscale();
     static sk_sp<SkImageFilter> Invert();

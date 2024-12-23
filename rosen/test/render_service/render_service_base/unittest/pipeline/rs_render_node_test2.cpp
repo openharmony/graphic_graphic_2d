@@ -187,6 +187,8 @@ HWTEST_F(RSRenderNodeTest2, Animate, TestSize.Level1)
     std::weak_ptr<RSContext> context2 = context_shared;
     RSRenderNode node2(id, context2);
     node2.Animate(timestamp, period, isDisplaySyncEnabled);
+    RSSurfaceRenderNode node3(id, context2);
+    node3.Animate(timestamp, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }
 
@@ -459,7 +461,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDrawRectAndDirtyRegion002, TestSize.Level1)
     properties.geoDirty_ = true;
     node.dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
     node.isSelfDrawingNode_ = true;
-    node.clipAbsDrawRectChange_ = true;
+    node.srcOrClipedAbsDrawRectChangeFlag_ = true;
     node.shouldPaint_ = true;
     node.isLastVisible_ = true;
     ASSERT_EQ(node.UpdateDrawRectAndDirtyRegion(*rsDirtyManager, false, clipRect, matrix), true);
@@ -1204,7 +1206,7 @@ HWTEST_F(RSRenderNodeTest2, ForceMergeSubTreeDirtyRegionTest033, TestSize.Level1
 
     RSDirtyRegionManager dirtyManagerTest3;
     RectI clipRectTest3 = RectI { 0, 0, 1, 1 };
-    nodeTest->clipAbsDrawRectChange_ = true;
+    nodeTest->srcOrClipedAbsDrawRectChangeFlag_ = true;
     nodeTest->hasChildrenOutOfRect_ = false;
     nodeTest->lastFrameHasChildrenOutOfRect_ = true;
     nodeTest->renderContent_->renderProperties_.boundsGeo_ = nullptr;
@@ -1246,43 +1248,25 @@ HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest035
- * @tc.desc: UpdateDrawingCacheInfoBeforeChildren UpdateDrawingCacheInfoAfterChildren DisableDrawingCacheByHwcNode test
+ * @tc.name: CollectAndUpdateLocalDistortionEffectRecttest
+ * @tc.desc: CollectAndUpdateLocalDistortionEffectRect
  * @tc.type: FUNC
- * @tc.require: issueIA5Y41
+ * @tc.require: issueIAS8IM
  */
-HWTEST_F(RSRenderNodeTest2, UpdateDrawingCacheInfoBeforeChildrenTest035, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalDistortionEffectRecttest, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
+    RSRenderNode node(id, context);
+    float width = 100.0f; // 100: set width of bounds
+    float height = 100.0f; // 100: set height of bounds
+    Vector4f bounds(0.0, 0.0, width, height);
+    node.renderContent_->renderProperties_.SetBounds(bounds);
+    node.CollectAndUpdateLocalDistortionEffectRect();
+    EXPECT_FALSE(node.localDistortionEffectRect_.width_ > static_cast<int>(width));
 
-    nodeTest->shouldPaint_ = false;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
-    nodeTest->shouldPaint_ = true;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true);
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
-
-    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
-    nodeTest->hasChildrenOutOfRect_ = true;
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
-    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
-    nodeTest->hasChildrenOutOfRect_ = false;
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_NE(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
-    nodeTest->DisableDrawingCacheByHwcNode();
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
-    nodeTest->DisableDrawingCacheByHwcNode();
-    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
+    node.renderContent_->renderProperties_.SetDistortionK(0.5f); // 0.5 is k of value in distortion
+    EXPECT_TRUE(node.renderContent_->renderProperties_.GetDistortionDirty());
+    node.CollectAndUpdateLocalDistortionEffectRect();
+    EXPECT_FALSE(node.renderContent_->renderProperties_.GetDistortionDirty());
 }
 } // namespace Rosen
 } // namespace OHOS

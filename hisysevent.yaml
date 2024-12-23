@@ -176,6 +176,7 @@ IPC_DATA_OVER_ERROR:
   PID: {type: INT32, desc: application pid}
   UID: {type: INT32, desc: application uid}
   BUNDLE_NAME: {type: STRING, desc: application package name}
+  TRANSACTION_DATA_SIZE: {type: UINT64, desc: total received transaction data size}
 
 RENDER_MEMORY_OVER_WARNING:
   __BASE: {type: STATISTIC, level: MINOR, desc: warning of the memory applied by an application exceeds the threshold}

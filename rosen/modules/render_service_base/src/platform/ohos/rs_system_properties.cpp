@@ -191,6 +191,24 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
     return isNeedScreenRCD;
 }
 
+bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    return isPurgeable;
+}
+
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    static bool isPurgeable = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
+    return isPurgeable;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
+{
+    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.purge.enabled", "1") != "0";
+    return isClosePixelMapFd;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyregiondebug.enabled", "0");
@@ -276,7 +294,10 @@ bool RSSystemProperties::GetAceDebugBoundaryEnabled()
     static CachedHandle g_Handle = CachedParameterCreate("persist.ace.debug.boundary.enabled", "false");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return (strcmp(enable, "true") == 0);
+    if (enable) {
+        return (strcmp(enable, "true") == 0);
+    }
+    return false;
 }
 
 bool RSSystemProperties::GetHardwareComposerEnabled()
@@ -319,16 +340,6 @@ bool RSSystemProperties::GetAFBCEnabled()
 std::string RSSystemProperties::GetRSEventProperty(const std::string &paraName)
 {
     return system::GetParameter(paraName, "0");
-}
-
-bool RSSystemProperties::GetDirectClientCompEnableStatus()
-{
-    // If the value of rosen.directClientComposition.enabled is not 0 then enable the direct CLIENT composition.
-    // Direct CLIENT composition will be processed only when the num of layer is larger than 11
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.directClientComposition.enabled", "1");
-    int changed = 0;
-    const char *status = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(status, 1) != 0;
 }
 
 bool RSSystemProperties::GetHighContrastStatus()
@@ -928,12 +939,22 @@ bool RSSystemProperties::GetPurgeBetweenFramesEnabled()
     return purgeResourcesEveryEnabled;
 }
 
-bool RSSystemProperties::GetAsyncFreeVMAMemoryBetweenFramesEnabled()
+bool RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled()
 {
-    static bool AsyncFreeVMAMemoryBetweenFramesEnabled =
-        (std::atoi(system::GetParameter("persist.sys.graphic.mem.async_free_between_frames_enabled", "1").c_str()) !=
+    static bool gpuMemoryAsyncReclaimerEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_async_reclaimer_between_frames_enabled", "1").c_str()) !=
             0);
-    return AsyncFreeVMAMemoryBetweenFramesEnabled;
+    return gpuMemoryAsyncReclaimerEnabled;
+}
+
+bool RSSystemProperties::GetGpuCacheSuppressWindowEnabled()
+{
+    static bool gpuCacheSuppressWindowEnabled =
+        (std::atoi(
+             system::GetParameter("persist.sys.graphic.mem.gpu_suppress_window_between_frames_enabled", "1").c_str()) !=
+            0);
+    return gpuCacheSuppressWindowEnabled;
 }
 
 const DdgrOpincType RSSystemProperties::ddgrOpincType_ =

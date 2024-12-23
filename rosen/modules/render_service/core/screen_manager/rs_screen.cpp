@@ -1036,9 +1036,23 @@ const std::unordered_set<uint64_t>& RSScreen::GetWhiteList() const
     return whiteList_;
 }
 
-void RSScreen::SetBlackList(std::unordered_set<uint64_t>& blackList)
+void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
 {
     blackList_ = blackList;
+}
+
+void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
+{
+    for (auto& list : blackList) {
+        blackList_.emplace(list);
+    }
+}
+
+void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
+{
+    for (auto& list : blackList) {
+        blackList_.erase(list);
+    }
 }
 
 void RSScreen::SetCastScreenEnableSkipWindow(bool enable)

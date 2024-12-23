@@ -30,7 +30,9 @@
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_render_thread_util.h"
 #include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #ifdef NEW_RENDER_CONTEXT
@@ -120,9 +122,11 @@ void RSRenderThreadVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
         }
         dirtyFlag_ = false;
         isIdle_ = false;
+        parentSurfaceNode_ = node.shared_from_this();
         PrepareCanvasRenderNode(node);
         isIdle_ = true;
     } else {
+        parentSurfaceNode_ = node.shared_from_this();
         PrepareCanvasRenderNode(node);
     }
 }
@@ -184,13 +188,16 @@ void RSRenderThreadVisitor::PrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
             node.SetContextClipRegion(Drawing::Rect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom()));
         }
     }
-    dirtyFlag_ = node.Update(*curDirtyManager_, nodeParent, dirtyFlag_);
+    dirtyFlag_ = node.Update(*curDirtyManager_, parentSurfaceNode_, dirtyFlag_);
+    auto parentSurfaceNode = parentSurfaceNode_;
+    parentSurfaceNode_ = node.shared_from_this();
     if (node.IsDirtyRegionUpdated() && curDirtyManager_->IsDebugRegionTypeEnable(DebugRegionType::CURRENT_SUB)) {
         curDirtyManager_->UpdateDirtyRegionInfoForDfx(node.GetId(), RSRenderNodeType::SURFACE_NODE,
             DirtyRegionType::UPDATE_DIRTY_REGION, node.GetOldDirty());
     }
     ResetAndPrepareChildrenNode(node, nodeParent);
     dirtyFlag_ = dirtyFlag;
+    parentSurfaceNode_ = parentSurfaceNode;
 }
 
 void RSRenderThreadVisitor::PrepareEffectRenderNode(RSEffectRenderNode& node)
@@ -407,6 +414,9 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         RS_TRACE_NAME_FMT("RSRenderThreadVisitor::ProcessRootRenderNode quick skip");
         return;
     }
+    if (node.GetIsTextureExportNode()) {
+        activeSubtreeRootId_ = node.GetId();
+    }
 
     auto surfaceNodeColorSpace = ptr->GetColorSpace();
 #ifdef NEW_RENDER_CONTEXT
@@ -590,6 +600,17 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     rsSurface->FlushFrame(uiTimestamp_);
 #else
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
+#endif
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        auto fenceFd = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->DupReservedFlushFd();
+        auto rootId = GetActiveSubtreeRootId();
+        if (rootId != INVALID_NODEID) {
+            RSSurfaceBufferCallbackManager::Instance().SetReleaseFenceForVulkan(fenceFd, rootId);
+            RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferSubCallbackForVulkan(rootId);
+        }
+        ::close(fenceFd);
+    }
 #endif
 #ifdef ROSEN_OHOS
     FrameCollector::GetInstance().MarkFrameEvent(FrameEventType::FlushEnd);
@@ -825,10 +846,22 @@ void RSRenderThreadVisitor::ProcessSurfaceViewInRT(RSSurfaceRenderNode& node)
         property.GetBoundsWidth(), property.GetBoundsHeight()};
     Drawing::Matrix transfromMatrix = CacRotationFromTransformType(transform, bounds);
     FlipMatrix(transform, transfromMatrix, bounds);
+    ScalingMode scalingMode = surfaceBuffer->GetSurfaceBufferScalingMode();
+    Drawing::Rect srcRect { 0, 0, surfaceBuffer->GetWidth(), surfaceBuffer->GetHeight() };
+    Drawing::Rect dstRect { 0, 0, bounds.width_, bounds.height_ };
+    Drawing::Rect boundsRect = { bounds.left_, bounds.top_, bounds.left_ + bounds.width_,
+        bounds.top_ + bounds.height_ };
+    if (scalingMode == ScalingMode::SCALING_MODE_SCALE_CROP) {
+        RSRenderThreadUtil::SrcRectScaleDown(srcRect, boundsRect);
+    } else if (scalingMode == ScalingMode::SCALING_MODE_SCALE_FIT) {
+        RSRenderThreadUtil::SrcRectScaleFit(srcRect, dstRect, boundsRect);
+    }
     canvas_->ConcatMatrix(transfromMatrix);
     auto recordingCanvas =
         std::make_shared<ExtendRecordingCanvas>(property.GetBoundsWidth(), property.GetBoundsHeight());
-    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(surfaceBuffer, 0, 0, bounds.width_, bounds.height_);
+    DrawingSurfaceBufferInfo rsSurfaceBufferInfo(
+        surfaceBuffer, dstRect.GetLeft(), dstRect.GetTop(), dstRect.GetWidth(), dstRect.GetHeight());
+    rsSurfaceBufferInfo.srcRect_ = srcRect;
     recordingCanvas->DrawSurfaceBuffer(rsSurfaceBufferInfo);
     auto drawCmdList = recordingCanvas->GetDrawCmdList();
     drawCmdList->Playback(*canvas_);
@@ -1079,6 +1112,11 @@ void RSRenderThreadVisitor::ProcessOtherSurfaceRenderNode(RSSurfaceRenderNode& n
 
     // clip hole
     ClipHoleForSurfaceNode(node);
+}
+
+NodeId RSRenderThreadVisitor::GetActiveSubtreeRootId()
+{
+    return activeSubtreeRootId_;
 }
 } // namespace Rosen
 } // namespace OHOS

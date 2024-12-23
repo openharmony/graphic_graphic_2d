@@ -59,6 +59,9 @@ ExtendRecordingCanvas* RSCanvasNode::BeginRecording(int width, int height)
     recordingCanvas_ = new ExtendRecordingCanvas(width, height);
     recordingCanvas_->SetIsCustomTextType(isCustomTextType_);
     recordingCanvas_->SetIsCustomTypeface(isCustomTypeface_);
+    if (auto recording = recordingCanvas_->GetDrawCmdList()) {
+        recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
+    }
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return recordingCanvas_;
@@ -77,13 +80,19 @@ bool RSCanvasNode::IsRecording() const
     return recordingCanvas_ != nullptr;
 }
 
-void RSCanvasNode::CreateTextureExportRenderNodeInRT()
+void RSCanvasNode::CreateRenderNodeForTextureExportSwitch()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), true);
     auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy != nullptr) {
-        transactionProxy->AddCommand(command, false);
+    if (transactionProxy == nullptr) {
+        return;
     }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), isTextureExportNode_);
+    if (IsRenderServiceNode()) {
+        hasCreateRenderNodeInRS_ = true;
+    } else {
+        hasCreateRenderNodeInRT_ = true;
+    }
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
 }
 
 void RSCanvasNode::FinishRecording()
@@ -123,6 +132,9 @@ void RSCanvasNode::DrawOnNode(RSModifierType type, DrawFunc func)
         return;
     }
     auto recording = recordingCanvas->GetDrawCmdList();
+    if (recording) {
+        recording->SetIsNeedUnmarshalOnDestruct(!IsRenderServiceNode());
+    }
     if (recording && recording->IsEmpty()) {
         return;
     }

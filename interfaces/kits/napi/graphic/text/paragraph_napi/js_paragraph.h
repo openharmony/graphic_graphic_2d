@@ -51,16 +51,12 @@ public:
     static napi_value DidExceedMaxLines(napi_env env, napi_callback_info info);
     static napi_value GetActualTextRange(napi_env env, napi_callback_info info);
     static napi_value GetLineMetrics(napi_env env, napi_callback_info info);
-    static napi_value GetFontMetricsByTextStyle(napi_env env, napi_callback_info info);
-    static napi_value GetLineFontMetrics(napi_env env, napi_callback_info info);
     static void Destructor(napi_env env, void *nativeObject, void *finalize);
     static napi_value CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography);
     static napi_value Constructor(napi_env env, napi_callback_info info);
     std::shared_ptr<Typography> GetParagraph();
-    static napi_value LayoutAsync(napi_env env, napi_callback_info info);
 
 private:
-    static thread_local napi_ref constructor_;
     napi_value OnLayout(napi_env env, napi_callback_info info);
     napi_value OnPaint(napi_env env, napi_callback_info info);
     napi_value OnPaintOnPath(napi_env env, napi_callback_info info);
@@ -84,9 +80,10 @@ private:
     napi_value OnGetActualTextRange(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetrics(napi_env env, napi_callback_info info);
     napi_value OnGetLineMetricsAt(napi_env env, napi_callback_info info);
-    napi_value OnGetFontMetricsByTextStyle(napi_env env, napi_callback_info info);
-    napi_value OnGetLineFontMetrics(napi_env env, napi_callback_info info);
-    napi_value OnLayoutAsync(napi_env env, napi_callback_info info);
+
+    static thread_local napi_ref constructor_;
+    static std::unique_ptr<Typography> g_Typography;
+
     std::shared_ptr<Typography> paragraph_ = nullptr;
 };
 } // namespace OHOS::Rosen

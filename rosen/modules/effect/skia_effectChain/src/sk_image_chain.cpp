@@ -32,11 +32,41 @@ SKImageChain::SKImageChain(SkCanvas* canvas, sk_sp<SkImage> image) : canvas_(can
 SKImageChain::SKImageChain(std::shared_ptr<Media::PixelMap> srcPixelMap) : srcPixelMap_(srcPixelMap)
 {}
 
-void SKImageChain::InitWithoutCanvas()
+SKImageChain::~SKImageChain()
+{
+    canvas_ = nullptr;
+    gpuSurface_ = nullptr;
+    dstPixmap_ = nullptr;
+    srcPixelMap_ = nullptr;
+    dstPixelMap_ = nullptr;
+    filters_ = nullptr;
+    cpuSurface_ = nullptr;
+    image_ = nullptr;
+}
+
+DrawError SKImageChain::Render(const std::vector<sk_sp<SkImageFilter>>& skFilters, const bool& forceCPU,
+    std::shared_ptr<Media::PixelMap>& dstPixelMap)
+{
+    for (auto filter : skFilters) {
+        SetFilters(filter);
+    }
+
+    ForceCPU(forceCPU);
+    DrawError ret = Draw();
+    if (ret == DrawError::ERR_OK) {
+        dstPixelMap = GetPixelMap();
+    } else {
+        LOGE("skImage.Draw() = %{public}d", ret);
+    }
+
+    return ret;
+}
+
+DrawError SKImageChain::InitWithoutCanvas()
 {
     if (srcPixelMap_ == nullptr) {
         LOGE("The srcPixelMap_ is nullptr.");
-        return;
+        return DrawError::ERR_IMAGE_NULL;
     }
     imageInfo_ = SkImageInfo::Make(srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight(),
     PixelFormatConvert(srcPixelMap_->GetPixelFormat()), static_cast<SkAlphaType>(srcPixelMap_->GetAlphaType()));
@@ -52,7 +82,12 @@ void SKImageChain::InitWithoutCanvas()
     if (dstPixelMap != nullptr) {
         dstPixmap_ = std::make_shared<SkPixmap>(imageInfo_, dstPixelMap->GetPixels(), dstPixelMap->GetRowStride());
         dstPixelMap_ = std::shared_ptr<Media::PixelMap>(dstPixelMap.release());
+    } else {
+        LOGE("Failed to create the dstPixelMap.");
+        return DrawError::ERR_IMAGE_NULL;
     }
+
+    return DrawError::ERR_OK;
 }
 
 bool SKImageChain::CreateCPUCanvas()
@@ -68,13 +103,21 @@ bool SKImageChain::CreateCPUCanvas()
         return false;
     }
     canvas_ = cpuSurface_->getCanvas();
+    if (canvas_ == nullptr) {
+        LOGE("Failed to getCanvas for CPU.");
+        return false;
+    }
+
     return true;
 }
 
 bool SKImageChain::CreateGPUCanvas()
 {
 #ifdef ACE_ENABLE_GL
-    EglManager::GetInstance().Init();
+    if (!EglManager::GetInstance().Init()) {
+        LOGE("Failed to init for GPU.");
+        return false;
+    }
     sk_sp<const GrGLInterface> glInterface(GrGLCreateNativeInterface());
 #if defined(NEW_SKIA)
     sk_sp<GrDirectContext> grContext(GrDirectContext::MakeGL(std::move(glInterface)));
@@ -87,21 +130,15 @@ bool SKImageChain::CreateGPUCanvas()
         return false;
     }
     canvas_ = gpuSurface_->getCanvas();
+    if (canvas_ == nullptr) {
+        LOGE("Failed to getCanvas for GPU.");
+        return false;
+    }
+    
     return true;
 #else
     LOGI("GPU rendering is not supported.");
     return false;
-#endif
-}
-
-void SKImageChain::DestroyGPUCanvas()
-{
-#ifdef ACE_ENABLE_GL
-    if (gpuSurface_) {
-        canvas_ = nullptr;
-        gpuSurface_ = nullptr;
-    }
-    EglManager::GetInstance().Deinit();
 #endif
 }
 
@@ -160,35 +197,50 @@ std::shared_ptr<Media::PixelMap> SKImageChain::GetPixelMap()
     return dstPixelMap_;
 }
 
-DrawError SKImageChain::Draw()
+bool SKImageChain::InitializeCanvas()
+{
+    DrawError ret = InitWithoutCanvas();
+    if (ret != DrawError::ERR_OK) {
+        LOGE("Failed to init.");
+        return false;
+    }
+
+    if (forceCPU_) {
+        if (!CreateCPUCanvas()) {
+            LOGE("Failed to create canvas for CPU.");
+            return false;
+        }
+    } else {
+        if (!CreateGPUCanvas()) {
+            LOGE("Failed to create canvas for GPU.");
+            return false;
+        }
+    }
+    return canvas_ != nullptr;
+}
+
+DrawError SKImageChain::CheckForErrors()
 {
     if (canvas_ == nullptr) {
-        InitWithoutCanvas();
-        if (forceCPU_) {
-            if (!CreateCPUCanvas()) {
-                LOGE("Failed to create canvas for CPU.");
-                return DrawError::ERR_CPU_CANVAS;
-            }
-        } else {
-            if (!CreateGPUCanvas()) {
-                LOGE("Failed to create canvas for GPU.");
-                DestroyGPUCanvas();
-                return DrawError::ERR_GPU_CANVAS;
-            }
-        }
+        LOGE("Failed to create canvas");
+        return DrawError::ERR_CANVAS_NULL;
     }
     if (image_ == nullptr) {
         LOGE("The image_ is nullptr, nothing to draw.");
-        if (!forceCPU_) {
-            DestroyGPUCanvas();
-        }
         return DrawError::ERR_IMAGE_NULL;
     }
-    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
-    SkPaint paint;
+    return DrawError::ERR_OK;
+}
+
+void SKImageChain::SetupPaint(SkPaint& paint)
+{
     paint.setAntiAlias(true);
     paint.setBlendMode(SkBlendMode::kSrc);
     paint.setImageFilter(filters_);
+}
+
+void SKImageChain::ApplyClipping()
+{
     if (rect_ != nullptr) {
         canvas_->clipRect(*rect_, true);
     } else if (path_ != nullptr) {
@@ -196,6 +248,10 @@ DrawError SKImageChain::Draw()
     } else if (rRect_ != nullptr) {
         canvas_->clipRRect(*rRect_, true);
     }
+}
+
+bool SKImageChain::DrawImage(SkPaint& paint)
+{
     canvas_->save();
     canvas_->resetMatrix();
 #if defined(NEW_SKIA)
@@ -206,13 +262,35 @@ DrawError SKImageChain::Draw()
     if (!forceCPU_ && dstPixmap_ != nullptr) {
         if (!canvas_->readPixels(*dstPixmap_.get(), 0, 0)) {
             LOGE("Failed to readPixels to target Pixmap.");
+            canvas_->restore();
+            return false;
         }
     }
     canvas_->restore();
+    return true;
+}
 
-    if (!forceCPU_) {
-        DestroyGPUCanvas();
+DrawError SKImageChain::Draw()
+{
+    if (!InitializeCanvas()) {
+        return DrawError::ERR_CPU_CANVAS;
     }
+
+    DrawError error = CheckForErrors();
+    if (error != DrawError::ERR_OK) {
+        return error;
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "SKImageChain::Draw");
+
+    SkPaint paint;
+    SetupPaint(paint);
+    ApplyClipping();
+
+    if (!DrawImage(paint)) {
+        return DrawError::ERR_PIXEL_READ;
+    }
+
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawError::ERR_OK;
 }

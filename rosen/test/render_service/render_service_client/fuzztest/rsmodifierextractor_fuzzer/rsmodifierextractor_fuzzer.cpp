@@ -62,9 +62,7 @@ bool DoGet001(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    RSModifierExtractor modifierExtractor;
-    RSNode nodeTest(true);
-    modifierExtractor.node_ = &nodeTest;
+    RSModifierExtractor modifierExtractor(1);
     modifierExtractor.GetBounds();
     modifierExtractor.GetFrame();
     modifierExtractor.GetPositionZ();
@@ -114,9 +112,7 @@ bool DoGet002(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    RSModifierExtractor modifierExtractor;
-    RSNode nodeTest(true);
-    modifierExtractor.node_ = &nodeTest;
+    RSModifierExtractor modifierExtractor(1);
     modifierExtractor.GetOutlineRadius();
     modifierExtractor.GetForegroundEffectRadius();
     modifierExtractor.GetBackgroundFilter();
@@ -164,9 +160,7 @@ bool DoGet003(const uint8_t* data, size_t size)
     g_pos = 0;
 
     // test
-    RSModifierExtractor modifierExtractor;
-    RSNode nodeTest(true);
-    modifierExtractor.node_ = &nodeTest;
+    RSModifierExtractor modifierExtractor(1);
     modifierExtractor.GetForegroundBlurSaturation();
     modifierExtractor.GetForegroundBlurBrightness();
     modifierExtractor.GetForegroundBlurMaskColor();

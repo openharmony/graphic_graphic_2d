@@ -58,6 +58,8 @@ public:
     friend bool operator==(const Filter& f1, const Filter& f2);
     friend bool operator!=(const Filter& f1, const Filter& f2);
 
+    void Dump(std::string& out) const;
+
 private:
     std::shared_ptr<ColorFilter> colorFilter_;
     std::shared_ptr<ImageFilter> imageFilter_;

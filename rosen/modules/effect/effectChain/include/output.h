@@ -33,7 +33,7 @@ public:
     std::string GetFragmentShader() override;
     virtual FILTER_TYPE GetFilterType() override;
     std::unique_ptr<OHOS::Media::PixelMap> GetPixelMap();
-    std::shared_ptr<uint8_t> GetColorBuffer();
+    const std::vector<uint8_t>& GetColorBuffer();
 
 protected:
     void DoProcess(ProcessData& data) override;
@@ -43,7 +43,7 @@ protected:
     std::string format_;
     std::string dstImagePath_;
     std::unique_ptr<OHOS::Media::PixelMap> pixelMap_ = nullptr;
-    std::shared_ptr<uint8_t> colorBuffer_ = nullptr;
+    std::vector<uint8_t> colorBuffer_;
 
 private:
     void LoadFilterParams() override {};

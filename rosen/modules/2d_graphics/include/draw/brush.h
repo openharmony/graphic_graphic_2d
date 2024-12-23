@@ -270,6 +270,8 @@ public:
     friend DRAWING_API bool operator==(const Brush& b1, const Brush& b2);
     friend DRAWING_API bool operator!=(const Brush& b1, const Brush& b2);
 
+    void Dump(std::string& out) const;
+
 private:
     Color color_;
     BlendMode blendMode_;

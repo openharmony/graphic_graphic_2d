@@ -215,7 +215,7 @@ public:
     const Occlusion::Region& GetVisibleDirtyRegion() const;
     void SetVisibleDirtyRegion(const Occlusion::Region& region);
     void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
-    void SetGlobalDirtyRegion(const RectI& rect);
+    void SetGlobalDirtyRegion(Occlusion::Region region);
     const Occlusion::Region& GetGlobalDirtyRegion() const;
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
@@ -251,7 +251,9 @@ private:
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    void MergeSubSurfaceNodesDirtyRegionForMainWindow(
+        RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const;
+    Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
@@ -343,6 +345,7 @@ private:
     // if a there a dirty layer under transparent clean layer, transparent layer should refreshed
     Occlusion::Region dirtyRegionBelowCurrentLayer_;
     bool dirtyRegionBelowCurrentLayerIsEmpty_ = false;
+    bool vmaCacheOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

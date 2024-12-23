@@ -93,13 +93,6 @@ public:
         return interactiveImplictAnimatorMap_;
     }
 
-#ifndef ROSEN_CROSS_PLATFORM
-    std::vector<BufferInfo>& GetMutableSkipSyncBuffer()
-    {
-        return skipSyncBuffer_;
-    }
-#endif
-
     void RegisterAnimatingRenderNode(const std::shared_ptr<RSRenderNode>& nodePtr);
     void UnregisterAnimatingRenderNode(NodeId id);
 
@@ -197,9 +190,6 @@ private:
     std::mutex activeNodesInRootMutex_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
-#ifndef ROSEN_CROSS_PLATFORM
-    std::vector<BufferInfo> skipSyncBuffer_;
-#endif
 
     friend class RSRenderThread;
     friend class RSMainThread;

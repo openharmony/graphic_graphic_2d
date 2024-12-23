@@ -105,6 +105,8 @@ public:
     void PostSyncTask(RSTaskMessage::RSTask task);
     bool IsIdle() const;
     void RenderServiceTreeDump(std::string& dumpString, bool forceDumpSingleFrame = true);
+    void SendClientDumpNodeTreeCommands(uint32_t taskId);
+    void CollectClientNodeTreeResult(uint32_t taskId, std::string& dumpString, size_t timeout);
     void RsEventParamDump(std::string& dumpString);
     bool IsUIFirstOn() const;
     void UpdateAnimateNodeFlag();
@@ -289,9 +291,13 @@ public:
 
     void SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec);
     void SurfaceOcclusionCallback();
+    bool CheckSurfaceOcclusionNeedProcess(NodeId id);
     void SubscribeAppState();
     void HandleOnTrim(Memory::SystemMemoryLevel level);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+    void AddPidNeedDropFrame(std::vector<int32_t> pid);
+    void ClearNeedDropframePidList();
+    bool IsNeedDropFrameByPid(NodeId nodeId);
     void SetLuminanceChangingStatus(bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus();
     bool IsCurtainScreenOn() const;
@@ -345,7 +351,7 @@ public:
     }
 
     bool IsHardwareEnabledNodesNeedSync();
-    bool IsOcclusionNodesNeedSync(NodeId id);
+    bool IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow);
 
     void CallbackDrawContextStatusToWMS(bool isUniRender = false);
     void SetHardwareTaskNum(uint32_t num);
@@ -359,6 +365,7 @@ public:
         return isOverDrawEnabledOfCurFrame_ != isOverDrawEnabledOfLastFrame_;
     }
 
+    uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -476,6 +483,11 @@ private:
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
     bool CheckUIExtensionCallbackDataChanged() const;
+
+    void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
+
+    // Used for CommitAndReleaseLayers task
+    void SetFrameInfo(uint64_t frameCount);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -595,12 +607,23 @@ private:
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
     bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
+
+    // for client node tree dump
+    struct NodeTreeDumpTask {
+        size_t count = 0;
+        size_t completionCount = 0;
+        std::map<pid_t, std::optional<std::string>> data;
+    };
+    std::mutex nodeTreeDumpMutex_;
+    std::condition_variable nodeTreeDumpCondVar_;
+    std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
     // used for watermark
     std::mutex watermarkMutex_;
@@ -685,6 +708,7 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     RsParallelType rsParallelType_;
     bool isCurtainScreenOn_ = false;
+    std::unordered_set<int32_t> surfacePidNeedDropFrame_;
 #ifdef RES_SCHED_ENABLE
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
@@ -698,6 +722,8 @@ private:
     bool isFirstFrameOfPartialRender_ = false;
     bool isPartialRenderEnabledOfLastFrame_ = false;
     bool isRegionDebugEnabledOfLastFrame_ = false;
+
+    bool isForceRefresh_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

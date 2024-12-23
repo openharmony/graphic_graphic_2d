@@ -43,37 +43,34 @@ EGLConfig EglManager::GetConfig(int version, EGLDisplay eglDisplay)
     return configs;
 }
 
-EGLBoolean EglManager::Init()
+bool EglManager::RetryEGLContext()
 {
-    if (initialized_) {
-        if (!IsEGLContextInCurrentThread(EGLDisplay_, EGLContext_)) {
-            LOGW("retry eglMakeCurrent.");
-            eglMakeCurrent(EGLDisplay_, currentSurface_, currentSurface_, EGLContext_);
-            int error = eglGetError();
-            if (error != EGL_SUCCESS) {
-                return EGL_FALSE;
-            }
+    if (!IsEGLContextInCurrentThread(EGLDisplay_, EGLContext_)) {
+        LOGW("retry eglMakeCurrent.");
+        eglMakeCurrent(EGLDisplay_, currentSurface_, currentSurface_, EGLContext_);
+        int error = eglGetError();
+        if (error != EGL_SUCCESS) {
+            Deinit();
+            return false;
         }
-        return EGL_TRUE;
+        return true;
     }
-    initialized_ = true;
-    LOGI("EglManager ----- Init.\n");
-    if (EGLContext_ != nullptr) {
-        LOGE("EglManager Init EGLContext_ is already init.\n");
-        return EGL_FALSE;
-    }
+    return true;
+}
 
+bool EglManager::InitializeEGLDisplay()
+{
     EGLDisplay_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (EGLDisplay_ == EGL_NO_DISPLAY) {
-        LOGE("EglManager Init unable to get EGL display.\n");
-        return EGL_FALSE;
+        LOGE("EglManager Init unable to get EGL display.");
+        return false;
     }
 
     EGLint eglMajVers, eglMinVers;
     if (!eglInitialize(EGLDisplay_, &eglMajVers, &eglMinVers)) {
         EGLDisplay_ = EGL_NO_DISPLAY;
-        LOGE("EglManager Init unable to initialize display");
-        return EGL_FALSE;
+        LOGE("EglManager Init unable to initialize display.");
+        return false;
     }
 
     LOGI("EglManager Init eglMinVers = %{public}u", eglMinVers);
@@ -85,49 +82,83 @@ EGLBoolean EglManager::Init()
     EGLConfig_ = EglManager::GetConfig(version, EGLDisplay_);
     if (EGLConfig_ == NULL) {
         LOGE("EglManager Init config ERROR");
-        return EGL_FALSE;
+        return false;
     }
 
+    return true;
+}
+
+bool EglManager::CreateEGLSurface()
+{
     if (EGLWindow_ != nullptr) {
         LOGI("EglManager Init eglSurface from eglWindow");
         currentSurface_ = eglCreateWindowSurface(EGLDisplay_, EGLConfig_, EGLWindow_, NULL);
         if (currentSurface_ == NULL) {
             LOGE("EglManager Init eglSurface = null");
-            return EGL_FALSE;
+            return false;
         }
     } else {
-        LOGI("EglManager Init eglSurface from PBuffer width = %{public}d, height = %{public}d",
-            EGLWidth_, EGLHeight_);
-        int surfaceAttributes[] = {
-            EGL_WIDTH, EGLWidth_,
-            EGL_HEIGHT, EGLHeight_,
-            EGL_NONE
-        };
+        LOGI("EglManager Init eglSurface from PBuffer width = %{public}d, height = %{public}d", EGLWidth_, EGLHeight_);
+        int surfaceAttributes[] = { EGL_WIDTH, EGLWidth_, EGL_HEIGHT, EGLHeight_, EGL_NONE };
         currentSurface_ = eglCreatePbufferSurface(EGLDisplay_, EGLConfig_, surfaceAttributes);
         if (currentSurface_ == NULL) {
             LOGE("EglManager Init eglCreateContext eglSurface = null");
-            return EGL_FALSE;
+            return false;
         }
     }
 
-    int attrib3List[] = {
-        EGL_CONTEXT_CLIENT_VERSION, version,
-        EGL_NONE
-    };
+    return true;
+}
+
+bool EglManager::CreateAndSetEGLContext()
+{
+    int attrib3List[] = { EGL_CONTEXT_CLIENT_VERSION, EGL_SUPPORT_VERSION, EGL_NONE };
     EGLContext_ = eglCreateContext(EGLDisplay_, EGLConfig_, nullptr, attrib3List);
     int error = eglGetError();
     if (error == EGL_SUCCESS) {
         LOGI("EglManager Init Create EGLContext_ ok");
     } else {
         LOGE("EglManager Init eglCreateContext error %x", error);
-        return EGL_FALSE;
+        return false;
     }
     eglMakeCurrent(EGLDisplay_, currentSurface_, currentSurface_, EGLContext_);
+    error = eglGetError();
+    return error == EGL_SUCCESS;
+}
+
+EGLBoolean EglManager::Init()
+{
+    if (initialized_) {
+        if (RetryEGLContext()) {
+            return EGL_TRUE;
+        }
+    }
+
+    initialized_ = true;
+    LOGI("EglManager ----- Init.\n");
+
+    if (EGLContext_ != EGL_NO_CONTEXT && EGLContext_ != nullptr) {
+        LOGW("EglManager Init EGLContext_ is already init.\n");
+    }
+
+    if (!InitializeEGLDisplay()) {
+        return EGL_FALSE;
+    }
+
+    if (!CreateEGLSurface()) {
+        return EGL_FALSE;
+    }
+
+    if (!CreateAndSetEGLContext()) {
+        return EGL_FALSE;
+    }
     return EGL_TRUE;
 }
 
 void EglManager::Deinit()
 {
+    LOGW("Deinit");
+
     if (EGLDisplay_ == EGL_NO_DISPLAY) {
         return;
     }

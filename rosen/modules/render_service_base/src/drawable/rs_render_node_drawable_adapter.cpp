@@ -14,10 +14,13 @@
  */
 
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include <mutex>
+#include <sstream>
 
 #include "skia_adapter/skia_canvas.h"
 #include "src/core/SkCanvasPriv.h"
 
+#include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
@@ -29,6 +32,10 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+
+#ifdef ROSEN_OHOS
+#include "hisysevent.h"
+#endif
 
 namespace OHOS::Rosen::DrawableV2 {
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
@@ -57,10 +64,26 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::GetDrawableB
     return nullptr;
 }
 
+std::vector<RSRenderNodeDrawableAdapter::SharedPtr> RSRenderNodeDrawableAdapter::GetDrawableVectorById(
+    const std::unordered_set<NodeId>& ids)
+{
+    std::vector<RSRenderNodeDrawableAdapter::SharedPtr> vec;
+    std::lock_guard<std::mutex> lock(cacheMapMutex_);
+    for (const auto& id : ids) {
+        if (const auto cacheIt = RenderNodeDrawableCache_.find(id); cacheIt != RenderNodeDrawableCache_.end()) {
+            if (const auto ptr = cacheIt->second.lock()) {
+                vec.push_back(ptr);
+            }
+        }
+    }
+    return vec;
+}
+
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     const std::shared_ptr<const RSRenderNode>& node)
 {
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node null");
         return nullptr;
     }
     if (node->renderDrawable_ != nullptr) {
@@ -86,7 +109,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerate(
     // If we don't have a cached drawable, try to generate a new one and cache it.
     const auto it = GeneratorMap.find(node->GetType());
     if (it == GeneratorMap.end()) {
-        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %d is not supported", node->GetType());
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerate, node type %{public}d is not supported", node->GetType());
         return nullptr;
     }
     auto ptr = it->second(node);
@@ -128,6 +151,8 @@ void RSRenderNodeDrawableAdapter::InitRenderParams(const std::shared_ptr<const R
             sharedPtr->uifirstRenderParams_ = std::make_unique<RSRenderParams>(id);
             break;
     }
+    sharedPtr->renderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE);
+    sharedPtr->uifirstRenderParams_->SetParamsType(RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST);
 }
 
 RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable(
@@ -144,6 +169,7 @@ RSRenderNodeDrawableAdapter::SharedPtr RSRenderNodeDrawableAdapter::OnGenerateSh
     };
 
     if (node == nullptr) {
+        ROSEN_LOGE("RSRenderNodeDrawableAdapter::OnGenerateShadowDrawable, node null");
         return nullptr;
     }
     auto id = node->GetId();
@@ -247,8 +273,15 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     drawCmdList_[index](&canvas, &rect);
 }
 
-void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
+void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
+
     if (uifirstDrawCmdList_.empty()) {
         return;
     }
@@ -300,6 +333,10 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
         out += ", SkipType:" + std::to_string(static_cast<int>(skipType_));
         out += ", SkipIndex:" + std::to_string(GetSkipIndex());
     }
+    if (drawSkipType_ != DrawSkipType::NONE) {
+        out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_));
+    }
+    out += ", ChildrenIndex:" + std::to_string(drawCmdIndex_.childrenIndex_);
     out += "\n";
 
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
@@ -347,7 +384,6 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
     if (originalCanvas && !paintFilterCanvas->GetOffscreenDataList().empty()) {
         originalCanvas->GetTotalMatrix().MapRect(dst, dst);
     }
-    auto deviceClipRegion = paintFilterCanvas->GetCurDirtyRegion();
     Drawing::Region dstRegion;
     if (!dstRegion.SetRect(dst.RoundOut()) && !dst.IsEmpty()) {
         RS_LOGW("invalid dstDrawRect: %{public}s, RoundOut: %{public}s",
@@ -356,7 +392,7 @@ bool RSRenderNodeDrawableAdapter::QuickReject(Drawing::Canvas& canvas, const Rec
             dst.ToString().c_str(), dst.RoundOut().ToString().c_str());
         return false;
     }
-    return !(deviceClipRegion.IsIntersects(dstRegion));
+    return !(paintFilterCanvas->GetCurDirtyRegion().IsIntersects(dstRegion));
 }
 
 void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas)
@@ -592,5 +628,45 @@ void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& ca
     if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
         drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
     }
+}
+
+// will only called by OnDraw or OnSync
+void RSRenderNodeSingleDrawableLocker::DrawableOnDrawMultiAccessEventReport(const std::string& func) const
+{
+#ifdef ROSEN_OHOS
+    auto tid = gettid();
+    MultiAccessReportInfo reportInfo;
+    if (drawable_) {
+        reportInfo.drawableNotNull = true;
+        reportInfo.nodeId = drawable_->GetId();
+        reportInfo.nodeType = drawable_->GetNodeType();
+        const auto& params = drawable_->GetRenderParams();
+        if (params) {
+            reportInfo.paramNotNull = true;
+            reportInfo.uifirstRootNodeId = params->GetUifirstRootNodeId();
+            reportInfo.firstLevelNodeId = params->GetFirstLevelNodeId();
+        }
+    }
+
+    auto task = [tid, func, reportInfo]() {
+        RS_TRACE_NAME_FMT("DrawableOnDrawMultiAccessEventReport HiSysEventWrite nodeId:%" PRIu64, reportInfo.nodeId);
+        std::ostringstream oss;
+        oss << "func:" << func << ",";
+        oss << "drawable:" << reportInfo.drawableNotNull << ",";
+        oss << "param:" << reportInfo.paramNotNull << ",";
+        if (reportInfo.drawableNotNull) {
+            oss << "id:" << reportInfo.nodeId << ",";
+            oss << "type:" << int(reportInfo.nodeType) << ",";
+        }
+        if (reportInfo.paramNotNull) {
+            oss << "URN:" << reportInfo.uifirstRootNodeId << ",";
+            oss << "FLN:" << reportInfo.firstLevelNodeId << ",";
+        }
+        oss << "tid:" << tid;
+        HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, "RENDER_DRAWABLE_MULTI_ACCESS",
+            OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "MULTI_ACCESS_MSG", oss.str());
+    };
+    RSBackgroundThread::Instance().PostTask(task);
+#endif
 }
 } // namespace OHOS::Rosen::DrawableV2

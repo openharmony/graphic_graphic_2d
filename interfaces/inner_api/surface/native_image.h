@@ -224,9 +224,11 @@ int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[
  * @brief Acquire an <b>OHNativeWindowBuffer</b> through an <b>OH_NativeImage</b> instance for content consumer.\n
  * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
  * This method will create an <b>OHNativeWindowBuffer</b>.\n
- * When using <b>OHNativeWindowBuffer</b>, need to increase its reference count
+ * If there is a situation when <b>OHNativeWindowBuffer</b> is still used after calling
+ * <b>OH_NativeImage_ReleaseNativeWindowBuffer</b>, you must pay attention to the following two points.\n
+ * 1) When using <b>OHNativeWindowBuffer</b>, need to increase its reference count
  * by <b>OH_NativeWindow_NativeObjectReference</b>.\n
- * When the <b>OHNativeWindowBuffer</b> is used up, its reference count needs to be decremented
+ * 2) When the <b>OHNativeWindowBuffer</b> is used up, its reference count needs to be decremented
  * by <b>OH_NativeWindow_NativeObjectUnreference</b>.\n
  * This interface needs to be used in conjunction with <b>OH_NativeImage_ReleaseNativeWindowBuffer<\b>,
  * otherwise memory leaks will occur.\n

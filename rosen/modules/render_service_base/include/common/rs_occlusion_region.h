@@ -390,7 +390,6 @@ private:
     
 private:
     std::vector<Rect> rects_;
-    std::vector<RectI> rectIs_;
     Rect bound_;
     static bool _s_so_loaded_;
 };

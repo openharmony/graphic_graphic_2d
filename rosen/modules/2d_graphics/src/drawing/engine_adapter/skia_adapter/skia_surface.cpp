@@ -461,6 +461,16 @@ void SkiaSurface::Flush(FlushInfo *drawingflushInfo)
 {
     if (skSurface_ == nullptr) {
         LOGD("skSurface is nullptr");
+        // handle exception such as skia
+        if (!drawingflushInfo) {
+            return;
+        }
+        if (drawingflushInfo->submittedProc) {
+            drawingflushInfo->submittedProc(drawingflushInfo->submittedContext, false);
+        }
+        if (drawingflushInfo->finishedProc) {
+            drawingflushInfo->finishedProc(drawingflushInfo->finishedContext);
+        }
         return;
     }
     if (drawingflushInfo != nullptr) {

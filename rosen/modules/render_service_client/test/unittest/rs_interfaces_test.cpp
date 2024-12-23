@@ -1387,6 +1387,7 @@ HWTEST_F(RSInterfacesTest, ResizeVirtualScreen001, Function | SmallTest | Level2
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(true);
 }
 
@@ -1398,7 +1399,32 @@ HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus001, Function | SmallTest 
  */
 HWTEST_F(RSInterfacesTest, SetCurtainScreenUsingStatus002, Function | SmallTest | Level2)
 {
+    ASSERT_TRUE(rsInterfaces != nullptr);
     rsInterfaces->SetCurtainScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: DropFrameByPid001
+ * @tc.desc: Test DropFrameByPid interface
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid001, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({0});
+}
+
+/*
+ * @tc.name: DropFrameByPid002
+ * @tc.desc: Test DropFrameByPid interface while pidList empty
+ * @tc.type: FUNC
+ * @tc.require: issueIB612L
+ */
+HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
+{
+    ASSERT_TRUE(rsInterfaces != nullptr);
+    rsInterfaces->DropFrameByPid({});
 }
 
 /*
@@ -1567,6 +1593,58 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenBlackList_Test, Function | SmallTest 
 
     std::vector<NodeId> blackList = {1, 2, 3};
     int32_t ret = rsInterfaces->SetVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: AddVirtualScreenBlackList
+ * @tc.desc: Test AddVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueIB57Y6
+ */
+HWTEST_F(RSInterfacesTest, AddVirtualScreenBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeId> blackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->AddVirtualScreenBlackList(virtualScreenId, blackList);
+    ASSERT_EQ(ret, 0);
+}
+
+/*
+ * @tc.name: RemoveVirtualScreenBlackList
+ * @tc.desc: Test RemoveVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require:issueIB57Y6
+ */
+HWTEST_F(RSInterfacesTest, RemoveVirtualScreenBlackList_Test, Function | SmallTest | Level2)
+{
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtualScreen0", defaultWidth, defaultHeight, pSurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<NodeId> blackList = {1, 2, 3};
+    int32_t ret = rsInterfaces->RemoveVirtualScreenBlackList(virtualScreenId, blackList);
     ASSERT_EQ(ret, 0);
 }
 
@@ -1749,6 +1827,32 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityExemptionList_005, Function |
     std::vector<NodeId> securityExemptionList = {};
     int32_t res = rsInterfaces->SetVirtualScreenSecurityExemptionList(0, securityExemptionList);
     EXPECT_EQ(res, RS_CONNECTION_ERROR); // Unable to access IPC due to lack of permissions.
+}
+
+/*
+ * @tc.name: SetLayerTop_001
+ * @tc.desc: Test SetLayerTop with false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, false);
+}
+
+/*
+ * @tc.name: SetLayerTop_002
+ * @tc.desc: Test SetLayerTop with true.
+ * @tc.type: FUNC
+ * @tc.require: issueIAT8HK
+ */
+HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    std::string nodeIdStr = "123456";
+    rsInterfaces->SetLayerTop(nodeIdStr, true);
 }
 } // namespace Rosen
 } // namespace OHOS
