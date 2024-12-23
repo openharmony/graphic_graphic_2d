@@ -986,10 +986,83 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 
 Drawing::BitmapFormat DrawSurfaceBufferOpItem::CreateBitmapFormat(int32_t bufferFormat)
 {
-    bool isRgbx = bufferFormat == OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888;
-    return { isRgbx ? Drawing::ColorType::COLORTYPE_RGB_888X : Drawing::ColorType::COLORTYPE_RGBA_8888,
-        isRgbx ? Drawing::AlphaType::ALPHATYPE_OPAQUE : Drawing::AlphaType::ALPHATYPE_PREMUL };
+    switch (bufferFormat) {
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_8888 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGBA_8888,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGB_888X,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_BGRA_8888 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_BGRA_8888,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGB_565 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGB_565,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_1010102 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+        default : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGBA_8888,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+    }
 }
+
+#ifdef RS_ENABLE_GL
+GLenum DrawSurfaceBufferOpItem::GetGLTextureFormatByBitmapFormat(Drawing::ColorType colorType)
+{
+    switch (colorType) {
+        case Drawing::ColorType::COLORTYPE_ALPHA_8 : {
+            return GL_ALPHA8_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGB_888X : {
+            return GL_RGBA8_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGB_565 : {
+            return GL_RGB565_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGBA_1010102 : {
+            return GL_RGB10_A2_EXT;
+        }
+        case Drawing::ColorType::COLORTYPE_BGRA_8888 : {
+            return GL_BGRA8_EXT;
+        }
+        case Drawing::ColorType::COLORTYPE_RGBA_8888 : {
+            return GL_RGBA8_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGBA_F16 : {
+            return GL_RGBA16F_EXT;
+        }
+        case Drawing::ColorType::COLORTYPE_GRAY_8 :
+            [[fallthrough]];
+        case Drawing::ColorType::COLORTYPE_ARGB_4444 :
+            [[fallthrough]];
+        case Drawing::ColorType::COLORTYPE_N32 :
+            [[fallthrough]];
+        default : {
+            return GL_RGBA8_OES;
+        }
+    }
+}
+#endif
 
 void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
@@ -1058,19 +1131,15 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         rotatedRect.SetRight(rotatedRect.GetLeft() + width);
         rotatedRect.SetBottom(rotatedRect.GetTop() + height);
     }
-    GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
 
-    GrBackendTexture backendTexture(
-        rotatedRect.GetWidth(), rotatedRect.GetHeight(), GrMipMapped::kNo, textureInfo);
-
+    Drawing::BitmapFormat bitmapFormat = CreateBitmapFormat(surfaceBufferInfo_.surfaceBuffer_->GetFormat());
     Drawing::TextureInfo externalTextureInfo;
     externalTextureInfo.SetWidth(rotatedRect.GetWidth());
     externalTextureInfo.SetHeight(rotatedRect.GetHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
-    externalTextureInfo.SetFormat(GL_RGBA8_OES);
-    Drawing::BitmapFormat bitmapFormat = CreateBitmapFormat(surfaceBufferInfo_.surfaceBuffer_->GetFormat());
+    externalTextureInfo.SetFormat(GetGLTextureFormatByBitmapFormat(bitmapFormat.colorType));
     if (!canvas->GetGPUContext()) {
         LOGE("DrawSurfaceBufferOpItem::Draw: gpu context is nullptr");
         return;
