@@ -100,6 +100,7 @@ enum class RSModifierType : int16_t {
     PIXEL_STRETCH_PERCENT,
     PIXEL_STRETCH_TILE_MODE,
     USE_EFFECT,
+    USE_EFFECT_TYPE,
     COLOR_BLEND_MODE,
     COLOR_BLEND_APPLY_TYPE,
     SANDBOX,
@@ -166,6 +167,10 @@ enum class RSModifierType : int16_t {
     ENV_FOREGROUND_COLOR_STRATEGY,
     GEOMETRYTRANS,
     CUSTOM_CLIP_TO_FRAME,
+    BEHIND_WINDOW_FILTER_RADIUS,
+    BEHIND_WINDOW_FILTER_SATURATION,
+    BEHIND_WINDOW_FILTER_BRIGHTNESS,
+    BEHIND_WINDOW_FILTER_MASK_COLOR,
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
     MAX_RS_MODIFIER_TYPE,
 };
@@ -290,6 +295,7 @@ private:
         { RSModifierType::PIXEL_STRETCH_PERCENT, "PixelStretchPercent" },
         { RSModifierType::PIXEL_STRETCH_TILE_MODE, "PixelStretchTileMode" },
         { RSModifierType::USE_EFFECT, "UseEffect" },
+        { RSModifierType::USE_EFFECT_TYPE, "UseEffectType" },
         { RSModifierType::COLOR_BLEND_MODE, "ColorBlendMode" },
         { RSModifierType::COLOR_BLEND_APPLY_TYPE, "ColorBlendApplyType" },
         { RSModifierType::SANDBOX, "Sandbox" },
@@ -351,6 +357,10 @@ private:
         { RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, "EnvForegroundColorStrategy" },
         { RSModifierType::GEOMETRYTRANS, "Geometrytrans" },
         { RSModifierType::CUSTOM_CLIP_TO_FRAME, "CustomClipToFrame" },
+        { RSModifierType::BEHIND_WINDOW_FILTER_RADIUS, "BehindWindowFilterRadius" },
+        { RSModifierType::BEHIND_WINDOW_FILTER_SATURATION, "BehindWindowFilterSaturation" },
+        { RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS, "BehindWindowFilterBrightness" },
+        { RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR, "BehindWindowFilterMaskColor" },
         { RSModifierType::CHILDREN, "Children" },
         { RSModifierType::MAX_RS_MODIFIER_TYPE, "MaxRsModifierType" },
     };

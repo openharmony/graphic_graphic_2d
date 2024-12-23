@@ -141,8 +141,13 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
     void RemovePixelStretch();
     bool FuzePixelStretch(const RSRenderNode& node);
+private:
+    static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
+    template <typename T>
+    static bool GetModifierProperty(const RSRenderNode& node, RSModifierType type, T& property);
 };
 
 class RSBackgroundEffectDrawable : public RSFilterDrawable {
@@ -158,6 +163,7 @@ public:
 class RSUseEffectDrawable : public RSDrawable {
 public:
     RSUseEffectDrawable() = default;
+    RSUseEffectDrawable(UseEffectType useEffectType) : useEffectType_(useEffectType) {}
     RSUseEffectDrawable(DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawable)
         : effectRenderNodeDrawableWeakRef_(drawable)
     {}
@@ -165,10 +171,13 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override {};
+    void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
 
 private:
+    bool needSync_ = false;
+    UseEffectType stagingUseEffectType_ = UseEffectType::DEFAULT;
+    UseEffectType useEffectType_ = UseEffectType::DEFAULT;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr effectRenderNodeDrawableWeakRef_;
 };
 

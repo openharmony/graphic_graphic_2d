@@ -2952,5 +2952,32 @@ void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
 
     apiCompatibleVersion_ = apiCompatibleVersion;
 }
+
+bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
+{
+    bool needDrawBehindWindow = !childrenBlurBehindWindow_.empty();
+    GetMutableRenderProperties().SetNeedDrawBehindWindow(needDrawBehindWindow);
+    return needDrawBehindWindow != oldNeedDrawBehindWindow_;
+}
+
+void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
+{
+    oldNeedDrawBehindWindow_ = val;
+}
+
+bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
+{
+    return !childrenBlurBehindWindow_.empty();
+}
+
+void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
+{
+    childrenBlurBehindWindow_.emplace(id);
+}
+
+void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
+{
+    childrenBlurBehindWindow_.erase(id);
+}
 } // namespace Rosen
 } // namespace OHOS
