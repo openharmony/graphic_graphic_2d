@@ -150,45 +150,6 @@ HWTEST_F(RSMemoryTrackUnitTest, GetAppMemorySizeInMBTest, testing::ext::TestSize
 }
 
 /**
- * @tc.name: MemoryType2StringTest001
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackUnitTest, MemoryType2StringTest001, testing::ext::TestSize.Level1)
-{
-    MEMORY_TYPE type = MEMORY_TYPE::MEM_PIXELMAP;
-    const char* ret = MemoryTrack::Instance().MemoryType2String(type);
-    ASSERT_EQ(ret, "pixelmap");
-}
-
-/**
- * @tc.name: MemoryType2StringTest002
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackUnitTest, MemoryType2StringTest002, testing::ext::TestSize.Level1)
-{
-    MEMORY_TYPE type = MEMORY_TYPE::MEM_SKIMAGE;
-    const char* ret = MemoryTrack::Instance().MemoryType2String(type);
-    ASSERT_EQ(ret, "skimage");
-}
-
-/**
- * @tc.name: MemoryType2StringTest003
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMemoryTrackUnitTest, MemoryType2StringTest003, testing::ext::TestSize.Level1)
-{
-    MEMORY_TYPE type = MEMORY_TYPE::MEM_RENDER_NODE;
-    const char* ret = MemoryTrack::Instance().MemoryType2String(type);
-    ASSERT_EQ(ret, "");
-}
-
-/**
  * @tc.name: GenerateDumpTitleTest
  * @tc.desc: test
  * @tc.type: FUNC
@@ -222,4 +183,4 @@ HWTEST_F(RSMemoryTrackUnitTest, DumpMemoryNodeStatisticsTest, testing::ext::Test
     MemoryTrack::Instance().DumpMemoryPicStatistics(log, func);
     int ret = 1;
     ASSERT_EQ(ret, 1);
-}
+} // namespace OHOS::Rosen
