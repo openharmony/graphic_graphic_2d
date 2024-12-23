@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+struct FontByteArray;
 class FontMgrImpl : public BaseImpl {
 public:
     ~FontMgrImpl() override = default;
@@ -44,6 +45,8 @@ public:
     virtual int CountFamilies() const = 0;
     virtual void GetFamilyName(int index, std::string& str) const = 0;
     virtual FontStyleSet* CreateStyleSet(int index) const = 0;
+    virtual int GetFontFullName(int fontFd, std::vector<FontByteArray>& fullnameVec) = 0;
+    virtual int ParseInstallFontConfig(const std::string& configPath, std::vector<std::string>& fontPathVec) = 0;
 protected:
     FontMgrImpl() noexcept = default;
 };

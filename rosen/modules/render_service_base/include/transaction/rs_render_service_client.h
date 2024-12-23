@@ -134,7 +134,8 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
         uint64_t id = 0,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
@@ -158,9 +159,9 @@ public:
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId mirrorId, int32_t flags, std::vector<NodeId> whiteList = {});
 
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
-
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 

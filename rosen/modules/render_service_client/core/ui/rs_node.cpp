@@ -1798,6 +1798,12 @@ void RSNode::SetClipToFrame(bool clipToFrame)
     SetProperty<RSClipToFrameModifier, RSProperty<bool>>(RSModifierType::CLIP_TO_FRAME, clipToFrame);
 }
 
+void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
+{
+    SetProperty<RSCustomClipToFrameModifier, RSAnimatableProperty<Vector4f>>(
+        RSModifierType::CUSTOM_CLIP_TO_FRAME, clipRect);
+}
+
 void RSNode::SetVisible(bool visible)
 {
     // kick off transition only if it's on tree(has valid parent) and visibility is changed.
@@ -2341,6 +2347,20 @@ void RSNode::MarkUifirstNode(bool isUifirstNode)
     }
     isUifirstNode_ = isUifirstNode;
     std::unique_ptr<RSCommand> command = std::make_unique<RSMarkUifirstNode>(GetId(), isUifirstNode);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+ 
+void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
+{
+    if (isForceFlag == isForceFlag_ && isUifirstEnable_ == isUifirstEnable) {
+        return;
+    }
+    isForceFlag_ = isForceFlag;
+    isUifirstEnable_ = isUifirstEnable;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSForceUifirstNode>(GetId(), isForceFlag, isUifirstEnable);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, IsRenderServiceNode());

@@ -45,7 +45,7 @@ void SkiaHelperTest::TearDown() {}
 HWTEST_F(SkiaHelperTest, SkiaHelper001, TestSize.Level1)
 {
     std::shared_ptr<SkiaHelper> skiaHelper = std::make_shared<SkiaHelper>();
-    skiaHelper->FlattenableSerialize(nullptr);
+    ASSERT_TRUE(skiaHelper->FlattenableSerialize(nullptr) == nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen

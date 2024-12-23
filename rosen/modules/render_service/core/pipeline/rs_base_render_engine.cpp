@@ -666,27 +666,6 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     return true;
 }
 
-std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut)
-{
-    std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
-    switch (colorGamut) {
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
-            break;
-        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
-            break;
-        case GRAPHIC_COLOR_GAMUT_BT2020:
-            colorSpace = Drawing::ColorSpace::CreateRGB(Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
-            break;
-        default:
-            colorSpace = Drawing::ColorSpace::CreateSRGB();
-            break;
-    }
-
-    return colorSpace;
-}
-
 void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader,
     BufferDrawParam& params, Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter)
 {
@@ -723,6 +702,31 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
     RS_OPTIONAL_TRACE_END();
 }
 #endif
+
+std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(
+    GraphicColorGamut colorGamut)
+{
+    std::shared_ptr<Drawing::ColorSpace>  colorSpace = nullptr;
+    switch (colorGamut) {
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::DCIP3);
+            break;
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
+            break;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+            break;
+        default:
+            colorSpace = Drawing::ColorSpace::CreateSRGB();
+            break;
+    }
+
+    return colorSpace;
+}
 
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {

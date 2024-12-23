@@ -66,7 +66,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token = nullptr,
                                                          uint64_t id = 0,
-                                                         NodeId windowNodeId = 0) = 0;
+                                                         NodeId windowNodeId = 0,
+                                                         bool fromXcomponent = false) = 0;
 
     virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect) = 0;
@@ -96,12 +97,12 @@ public:
     virtual int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
     
     virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
-    
+
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
-    
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;

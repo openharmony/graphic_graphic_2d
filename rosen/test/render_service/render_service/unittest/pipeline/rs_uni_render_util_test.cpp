@@ -73,9 +73,13 @@ HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistory, Function | SmallTest | Level2)
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(node, nullptr);
     auto rsRenderNode = std::make_shared<RSRenderNode>(id);
+    ASSERT_NE(rsRenderNode, nullptr);
     node->renderDrawable_ = std::make_shared<DrawableV2::RSRenderNodeDrawable>(rsRenderNode);
+    ASSERT_NE(node->renderDrawable_, nullptr);
     node->renderDrawable_->renderParams_ = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(node->renderDrawable_->renderParams_, nullptr);
     int32_t bufferAge = 0;
     RSUniRenderUtil::MergeDirtyHistory(node, bufferAge);
 }
@@ -392,6 +396,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_001, Function | SmallTe
 {
     bool forceCPU = false;
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    ASSERT_NE(layer, nullptr);
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -520,6 +525,7 @@ HWTEST_F(RSUniRenderUtilTest, AssignWindowNodes, Function | SmallTest | Level2)
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(node, nullptr);
     RSUniRenderUtil::AssignWindowNodes(node, mainThreadNodes, subThreadNodes);
 }
 
@@ -537,6 +543,7 @@ HWTEST_F(RSUniRenderUtilTest, ClearSurfaceIfNeed, Function | SmallTest | Level2)
     NodeId id = 0;
     RSDisplayNodeConfig config;
     auto node = std::make_shared<RSDisplayRenderNode>(id, config);
+    ASSERT_NE(node, nullptr);
     RSUniRenderUtil::ClearSurfaceIfNeed(map, node, oldChildren);
 }
 
@@ -1160,6 +1167,7 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 
     RSSurfaceRenderNode nodesTest2(1);
     nodesTest2.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    ASSERT_NE(nodesTest2.GetRSSurfaceHandler()->buffer_.buffer, nullptr);
     nodesTest2.GetRSSurfaceHandler()->consumer_ = nullptr;
     rsUniRenderUtil.LayerScaleDown(nodesTest2);
 }

@@ -55,9 +55,9 @@ ohos_shared_library("librender_service") {
     defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
   }
   defines += gpu_defines
+  cflags = [ "-DIMAGE_COLORSPACE_FLAG" ]
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
     defines += [ "IS_OHOS" ]
-    cflags = []
     if (!use_libfuzzer) {
       cflags += [ "-flto=thin" ]
     }

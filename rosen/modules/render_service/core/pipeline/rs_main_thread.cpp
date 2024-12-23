@@ -198,6 +198,13 @@ const std::map<int, int32_t> BLUR_CNT_TO_BLUR_CODE {
     { 3, 10023 },
 };
 
+static int64_t SystemTime()
+{
+    timespec t = {};
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec; // 1000000000ns == 1s
+}
+
 bool Compare(const std::unique_ptr<RSTransactionData>& data1, const std::unique_ptr<RSTransactionData>& data2)
 {
     if (!data1 || !data2) {
@@ -1928,10 +1935,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     UpdateRogSizeIfNeeded();
     UpdateAceDebugBoundaryEnabled();
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
-    uniVisitor->SetHardwareEnabledNodes(hardwareEnabledNodes_);
     uniVisitor->SetAppWindowNum(appWindowNum_);
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
-    uniVisitor->SetForceUpdateFlag(forceUpdateUniRenderFlag_);
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();
@@ -1977,13 +1982,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             uniVisitor->GetIsPartialRenderEnabled() && !uniVisitor->GetIsRegionDebugEnabled();
         SetFocusLeashWindowId();
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
-        if (RSSystemProperties::GetQuickPrepareEnabled()) {
-            //planning:the QuickPrepare will be replaced by Prepare
-            rootNode->QuickPrepare(uniVisitor);
-            uniVisitor->SurfaceOcclusionCallbackToWMS();
-        } else {
-            rootNode->Prepare(uniVisitor);
-        }
+        rootNode->QuickPrepare(uniVisitor);
+        uniVisitor->SurfaceOcclusionCallbackToWMS();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
@@ -1992,9 +1992,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSPointLightManager::Instance()->PrepareLight();
         vsyncControlEnabled_ = (deviceType_ == DeviceType::PC) && RSSystemParameters::GetVSyncControlEnabled();
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();
-        if (!RSSystemProperties::GetQuickPrepareEnabled()) {
-            CalcOcclusion();
-        }
         if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
             WaitUntilUploadTextureTaskFinished(isUniRender_);
         }
@@ -2119,6 +2116,9 @@ void RSMainThread::Render()
     if (isUniRender_) {
         auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
         renderThreadParams_->SetTimestamp(hgmCore.GetCurrentTimestamp());
+        renderThreadParams_->SetActualTimestamp(hgmCore.GetActualTimestamp());
+        renderThreadParams_->SetVsyncId(hgmCore.GetVsyncId());
+        renderThreadParams_->SetForceRefreshFlag(isForceRefresh_);
         renderThreadParams_->SetRequestNextVsyncFlag(needRequestNextVsyncAnimate_);
         renderThreadParams_->SetPendingScreenRefreshRate(hgmCore.GetPendingScreenRefreshRate());
         renderThreadParams_->SetPendingConstraintRelativeTime(hgmCore.GetPendingConstraintRelativeTime());
@@ -2127,6 +2127,10 @@ void RSMainThread::Render()
         renderThreadParams_->SetCacheEnabledForRotation(RSSystemProperties::GetCacheEnabledForRotation());
         renderThreadParams_->SetUIFirstCurrentFrameCanSkipFirstWait(
             RSUifirstManager::Instance().GetCurrentFrameSkipFirstWait());
+        // If use DoDirectComposition, we do not sync renderThreadParams,
+        // so we use hgmCore to keep force refresh flag, then reset flag.
+        hgmCore.SetForceRefreshFlag(isForceRefresh_);
+        isForceRefresh_ = false;
     }
     if (RSSystemProperties::GetRenderNodeTraceEnabled()) {
         RSPropertyTrace::GetInstance().RefreshNodeTraceInfo();
@@ -2683,6 +2687,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 {
     isOnVsync_.store(true);
+    SetFrameInfo(frameCount);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
     const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
@@ -3563,6 +3568,9 @@ void RSMainThread::ForceRefreshForUni()
             RS_PROFILER_PATCH_TIME(now);
             timestamp_ = timestamp_ + (now - curTime_);
             curTime_ = now;
+            isForceRefresh_ = true;
+            // Not triggered by vsync, so we set frameCount to 0.
+            SetFrameInfo(0);
             RS_TRACE_NAME("RSMainThread::ForceRefreshForUni timestamp:" + std::to_string(timestamp_));
             mainLoop_();
         });
@@ -4259,6 +4267,20 @@ bool RSMainThread::CheckUIExtensionCallbackDataChanged() const
 void RSMainThread::SetHardwareTaskNum(uint32_t num)
 {
     rsVSyncDistributor_->SetHardwareTaskNum(num);
+}
+
+uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
+{
+    return rsVSyncDistributor_->GetRealTimeOffsetOfDvsync(time);
+}
+
+void RSMainThread::SetFrameInfo(uint64_t frameCount)
+{
+    // use the same function as vsync to get current time
+    int64_t currentTimestamp = SystemTime();
+    auto &hgmCore = HgmCore::Instance();
+    hgmCore.SetActualTimestamp(currentTimestamp);
+    hgmCore.SetVsyncId(frameCount);
 }
 } // namespace Rosen
 } // namespace OHOS

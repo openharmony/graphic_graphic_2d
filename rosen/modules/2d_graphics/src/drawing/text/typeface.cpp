@@ -38,6 +38,11 @@ std::shared_ptr<Typeface> Typeface::MakeFromFile(const char path[], const FontAr
     return StaticFactory::MakeFromFile(path, fontArguments);
 }
 
+std::vector<std::shared_ptr<Typeface>> Typeface::GetSystemFonts()
+{
+    return StaticFactory::GetSystemFonts();
+}
+
 std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index)
 {
     return StaticFactory::MakeFromStream(std::move(memoryStream), index);
@@ -54,6 +59,11 @@ std::string Typeface::GetFamilyName() const
         return typefaceImpl_->GetFamilyName();
     }
     return std::string();
+}
+
+std::string Typeface::GetFontPath() const
+{
+    return (typefaceImpl_ == nullptr) ? "" : typefaceImpl_->GetFontPath();
 }
 
 FontStyle Typeface::GetFontStyle() const

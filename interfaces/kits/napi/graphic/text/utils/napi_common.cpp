@@ -320,7 +320,8 @@ void ParsePartTextStyle(napi_env env, napi_value argValue, TextStyle& textStyle)
 
 bool GetTextStyleFromJS(napi_env env, napi_value argValue, TextStyle& textStyle)
 {
-    if (argValue == nullptr) {
+    napi_valuetype valueType = napi_undefined;
+    if (argValue == nullptr || napi_typeof(env, argValue, &valueType) != napi_ok || valueType != napi_object) {
         return false;
     }
     SetColorFromJS(env, argValue, "color", textStyle.color);
@@ -492,8 +493,15 @@ bool GetRunMetricsFromJS(napi_env env, napi_value argValue, RunMetrics& runMetri
     return true;
 }
 
-void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
+bool SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographyStyle& typographyStyle)
 {
+    napi_valuetype valueType = napi_undefined;
+    if (strutStyleValue == nullptr || napi_typeof(env, strutStyleValue, &valueType) != napi_ok ||
+        valueType != napi_object) {
+        TEXT_LOGE("Invalid strut style value");
+        return false;
+    }
+
     napi_value tempValue = nullptr;
     if (GetNamePropertyFromJS(env, strutStyleValue, "fontFamilies", tempValue)) {
         std::vector<std::string> fontFamilies;
@@ -514,6 +522,7 @@ void SetStrutStyleFromJS(napi_env env, napi_value strutStyleValue, TypographySty
     SetBoolValueFromJS(env, strutStyleValue, "enabled", typographyStyle.useLineStyle);
     SetBoolValueFromJS(env, strutStyleValue, "heightOverride", typographyStyle.lineStyleHeightOnly);
     SetBoolValueFromJS(env, strutStyleValue, "halfLeading", typographyStyle.lineStyleHalfLeading);
+    return true;
 }
 
 void SetRectStyleFromJS(napi_env env, napi_value argValue, RectStyle& rectStyle)

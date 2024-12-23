@@ -122,6 +122,9 @@ bool ParagraphImpl::DidExceedMaxLines()
 size_t ParagraphImpl::GetLineCount() const
 {
     RecordDifferentPthreadCall(__FUNCTION__);
+    if (paragraph_ == nullptr || paragraph_->GetMaxLines() == 0) {
+        return 0;
+    }
     return paragraph_->lineNumber();
 }
 
@@ -407,6 +410,19 @@ void ParagraphImpl::RecordDifferentPthreadCall(const char* caller) const
             threadId_, caller);
         threadId_ = currenetThreadId;
     }
+}
+
+Drawing::RectI ParagraphImpl::GeneratePaintRegion(double x, double y)
+{
+    RecordDifferentPthreadCall("GeneratePaintRegion");
+    if (!paragraph_) {
+        double left = std::floor(x);
+        double top = std::floor(y);
+        return Drawing::RectI(left, top, left, top);
+    }
+
+    SkIRect skIRect = paragraph_->generatePaintRegion(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    return Drawing::RectI(skIRect.left(), skIRect.top(), skIRect.right(), skIRect.bottom());
 }
 } // namespace SPText
 } // namespace Rosen

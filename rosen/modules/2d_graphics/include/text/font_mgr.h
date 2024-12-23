@@ -27,6 +27,20 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+enum FontCheckCode {
+    SUCCESSED                  = 0, /** no error */
+    ERROR_PARSE_CONFIG_FAILED  = 1, /** failed to parse the JSON configuration file */
+    ERROR_TYPE_OTHER           = 2  /** other reasons, such as empty input parameters or other internal reasons */
+};
+
+struct FontByteArray {
+public:
+    FontByteArray(std::unique_ptr<uint8_t[]> data, uint32_t dataLen)
+        : strData(std::move(data)), strLen(dataLen) {}
+    std::unique_ptr<uint8_t[]> strData; // A byte array in UTF-16BE encoding
+    uint32_t strLen;
+};
+
 class DRAWING_API FontMgr {
 public:
     explicit FontMgr(std::shared_ptr<FontMgrImpl> fontMgrImpl) noexcept;
@@ -116,6 +130,23 @@ public:
 
     FontStyleSet* CreateStyleSet(int index) const;
 
+    /**
+     * @brief             Get the fullname of font
+     * @param fontFd      The file descriptor for the font file
+     * @param fullnameVec Read the font fullname list
+     * @return            Returns Whether the fullnameVec was successfully obtained, 0 means success,
+     *                    see FontCheckCode for details
+     */
+    int GetFontFullName(int fontFd, std::vector<FontByteArray>& fullnameVec);
+
+    /**
+     * @brief             Parse the Installed font configuration file and get the font path list
+     * @param configPath  The path to the configuration file
+     * @param fontPathVec Read a list of font file paths
+     * @return            Returns Whether the configuration file is parsed successfully, 0 means success,
+     *                    see FontCheckCode for details
+     */
+    int ParseInstallFontConfig(const std::string& configPath, std::vector<std::string>& fontPathVec);
 private:
     std::shared_ptr<FontMgrImpl> fontMgrImpl_;
 };

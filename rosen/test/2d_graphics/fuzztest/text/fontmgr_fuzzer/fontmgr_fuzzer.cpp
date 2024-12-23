@@ -336,6 +336,54 @@ bool FontMgrFuzzTest008(const uint8_t* data, size_t size)
     return true;
 }
 
+bool FontMgrFuzzTest009(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDefaultFontMgr();
+    int fd = GetObject<int>() % MAX_SIZE;
+    std::vector<FontByteArray> fullnameVec;
+    fontMgr->GetFontFullName(fd, fullnameVec);
+    return true;
+}
+
+bool FontMgrFuzzTest010(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+   // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<FontMgr> fontMgr = FontMgr::CreateDynamicFontMgr();
+    uint32_t countT = GetObject<uint32_t>() % MAX_SIZE + 1;
+    char* path = new char[countT];
+    if (path == nullptr) {
+        return false;
+    }
+    for (size_t i = 0; i < countT; i++) {
+        path[i] =  GetObject<char>();
+    }
+    path[countT - 1] = '\0';
+    std::string strPath(path);
+    std::vector<std::string> fontPathVec;
+    fontMgr->ParseInstallFontConfig(strPath, fontPathVec);
+    if (path != nullptr) {
+        delete [] path;
+        path = nullptr;
+    }
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -352,5 +400,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::FontMgrFuzzTest006(data, size);
     OHOS::Rosen::Drawing::FontMgrFuzzTest007(data, size);
     OHOS::Rosen::Drawing::FontMgrFuzzTest008(data, size);
+    OHOS::Rosen::Drawing::FontMgrFuzzTest009(data, size);
+    OHOS::Rosen::Drawing::FontMgrFuzzTest010(data, size);
     return 0;
 }

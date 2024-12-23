@@ -74,6 +74,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         return false;
     }
     if (!pixelMap_->IsHdr()) {
+        RS_LOGD("bhdr pixelMap_ is not hdr");
         return false;
     }
 
@@ -542,7 +543,7 @@ void RSImage::SetPaint(Drawing::Paint paint)
     paint_ = paint;
 }
 
-void RSImage::SetDyamicRangeMode(uint32_t dynamicRangeMode)
+void RSImage::SetDynamicRangeMode(uint32_t dynamicRangeMode)
 {
     dynamicRangeMode_ = dynamicRangeMode;
 }

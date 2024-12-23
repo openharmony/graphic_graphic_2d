@@ -17,7 +17,7 @@ import("//foundation/graphic/graphic_2d/rosen/modules/effect/effect_config.gni")
 
 ## Build libegl_effect.so
 
-ohos_shared_library("libegl_effect") {
+config("egl_effect_config") {
   include_dirs = [
     "$graphic_2d_root/utils/log",
     "include",
@@ -36,31 +36,59 @@ ohos_shared_library("libegl_effect") {
   ]
 
   cflags_cc = [ "-std=c++17" ]
+}
 
-  sources = []
+if (current_os == "android") {
+  ohos_source_set("libegl_effect") {
+    configs = [ ":egl_effect_config" ]
 
-  deps = []
+    defines = [ "ANDROID_PLATFORM" ]
 
-  external_deps = [
-    "graphic_surface:surface_headers",
-    "hilog:libhilog",
-  ]
-
-  if (effect_enable_gpu) {
-    sources += [ "src/egl_manager.cpp" ]
-
-    deps += [
-      "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
-      "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+    include_dirs = [
+      "//foundation/multimedia/image_framework/interfaces/innerkits/include",
     ]
-  }
 
-  if (effect_enable_gpu) {
-    install_enable = true
-  } else {
-    install_enable = false
-  }
+    sources = []
 
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
+    deps = [ "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}" ]
+
+    if (effect_enable_gpu) {
+      sources += [ "src/egl_manager.cpp" ]
+      deps += [
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+      ]
+    }
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
+} else {
+  ohos_shared_library("libegl_effect") {
+    configs = [ ":egl_effect_config" ]
+    sources = []
+    deps = []
+    external_deps = [
+      "graphic_surface:surface_headers",
+      "hilog:libhilog",
+    ]
+
+    if (effect_enable_gpu) {
+      sources += [ "src/egl_manager.cpp" ]
+
+      deps += [
+        "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+        "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
+      ]
+    }
+
+    if (effect_enable_gpu) {
+      install_enable = true
+    } else {
+      install_enable = false
+    }
+
+    part_name = "graphic_2d"
+    subsystem_name = "graphic"
+  }
 }

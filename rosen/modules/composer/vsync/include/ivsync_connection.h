@@ -36,6 +36,7 @@ public:
     virtual VsyncError Destroy() = 0;
     virtual VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch) = 0;
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount) = 0;
+    virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch) = 0;
 
     DECLARE_INTERFACE_DESCRIPTOR(u"IVSyncConnection");
 
@@ -47,6 +48,7 @@ protected:
         IVSYNC_CONNECTION_DESTROY,
         IVSYNC_CONNECTION_SET_UI_DVSYNC_SWITCH,
         IVSYNC_CONNECTION_SET_UI_DVSYNC_CONFIG,
+        IVSYNC_CONNECTION_SET_NATIVE_DVSYNC_SWITCH,
     };
 };
 } // namespace Vsync

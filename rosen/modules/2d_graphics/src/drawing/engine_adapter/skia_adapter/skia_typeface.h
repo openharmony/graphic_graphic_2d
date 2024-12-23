@@ -41,6 +41,7 @@ public:
     sk_sp<SkTypeface> GetTypeface() const;
 
     std::string GetFamilyName() const override;
+    std::string GetFontPath() const override;
     FontStyle GetFontStyle() const override;
     size_t GetTableSize(uint32_t tag) const override;
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const override;
@@ -56,6 +57,7 @@ public:
     static std::shared_ptr<Typeface> MakeFromFile(const char path[], const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
+    static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
 
     static sk_sp<SkData> SerializeTypeface(SkTypeface* typeface, void* ctx);
     static sk_sp<SkTypeface> DeserializeTypeface(const void* data, size_t length, void* ctx);

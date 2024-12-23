@@ -90,6 +90,7 @@ bool EglManager::InitializeEGLDisplay()
 
 bool EglManager::CreateEGLSurface()
 {
+#ifndef ANDROID_PLATFORM
     if (EGLWindow_ != nullptr) {
         LOGI("EglManager Init eglSurface from eglWindow");
         currentSurface_ = eglCreateWindowSurface(EGLDisplay_, EGLConfig_, EGLWindow_, NULL);
@@ -106,7 +107,15 @@ bool EglManager::CreateEGLSurface()
             return false;
         }
     }
-
+#else
+    LOGI("EglManager Init eglSurface from PBuffer width = %{public}d, height = %{public}d", EGLWidth_, EGLHeight_);
+    int surfaceAttributes[] = { EGL_WIDTH, EGLWidth_, EGL_HEIGHT, EGLHeight_, EGL_NONE };
+    currentSurface_ = eglCreatePbufferSurface(EGLDisplay_, EGLConfig_, surfaceAttributes);
+    if (currentSurface_ == NULL) {
+        LOGE("EglManager Init eglCreateContext eglSurface = null");
+        return false;
+    }
+#endif
     return true;
 }
 

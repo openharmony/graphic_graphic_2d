@@ -679,7 +679,7 @@ bool ConvertBufferColorGamut(std::vector<uint8_t>& dstBuf, const sptr<OHOS::Surf
 }
 
 // YUV to RGBA: Pixel value conversion table
-static int Table_fv1[256] = { -180, -179, -177, -176, -174, -173, -172, -170, -169, -167, -166, -165, -163, -162,
+static const int TABLE_FV1[256] = { -180, -179, -177, -176, -174, -173, -172, -170, -169, -167, -166, -165, -163, -162,
     -160, -159, -158, -156, -155, -153, -152, -151, -149, -148, -146, -145, -144, -142, -141, -139,
     -138, -137,  -135, -134, -132, -131, -130, -128, -127, -125, -124, -123, -121, -120, -118,
     -117, -115, -114, -113, -111, -110, -108, -107, -106, -104, -103, -101, -100, -99, -97, -96,
@@ -693,7 +693,7 @@ static int Table_fv1[256] = { -180, -179, -177, -176, -174, -173, -172, -170, -1
     109, 110, 112, 113, 114, 116, 117, 119, 120, 122, 123, 124, 126, 127, 129, 130, 131, 133, 134,
     136, 137, 138, 140, 141, 143, 144, 145, 147, 148,  150, 151, 152, 154, 155, 157, 158, 159, 161,
     162, 164, 165, 166, 168, 169, 171, 172, 173, 175, 176, 178 };
-static int Table_fv2[256] = { -92, -91, -91, -90, -89, -88, -88, -87, -86, -86, -85, -84, -83, -83, -82, -81,
+static const int TABLE_FV2[256] = { -92, -91, -91, -90, -89, -88, -88, -87, -86, -86, -85, -84, -83, -83, -82, -81,
     -81, -80, -79, -78, -78, -77, -76, -76, -75, -74, -73, -73, -72, -71, -71, -70, -69, -68, -68, -67, -66,
     -66, -65, -64, -63, -63, -62, -61, -61, -60, -59, -58, -58, -57, -56, -56, -55, -54, -53, -53, -52, -51,
     -51, -50, -49, -48, -48, -47, -46, -46, -45, -44, -43, -43, -42, -41, -41, -40, -39, -38, -38, -37, -36,
@@ -704,7 +704,7 @@ static int Table_fv2[256] = { -92, -91, -91, -90, -89, -88, -88, -87, -86, -86, 
     36, 37, 37, 38, 39, 40, 40, 41, 42, 42, 43, 44, 45, 45, 46, 47, 47, 48, 49, 50, 50, 51, 52, 52, 53, 54, 55,
     55, 56, 57, 57, 58, 59, 60, 60, 61, 62, 62, 63, 64, 65, 65, 66, 67, 67, 68, 69, 70, 70, 71, 72, 72, 73, 74,
     75, 75, 76, 77, 77, 78, 79, 80, 80, 81, 82, 82, 83, 84, 85, 85, 86, 87, 87, 88, 89, 90, 90 };
-static int Table_fu1[256] = { -44, -44, -44, -43, -43, -43, -42, -42, -42, -41, -41, -41, -40, -40, -40, -39, -39,
+static const int TABLE_FU1[256] = { -44, -44, -44, -43, -43, -43, -42, -42, -42, -41, -41, -41, -40, -40, -40, -39, -39,
     -39, -38, -38, -38, -37, -37, -37, -36, -36, -36, -35, -35, -35, -34, -34, -33, -33, -33, -32, -32, -32, -31,
     -31, -31, -30, -30, -30, -29, -29, -29, -28, -28, -28, -27, -27, -27, -26, -26, -26, -25, -25, -25, -24, -24,
     -24, -23, -23, -22, -22, -22, -21, -21, -21, -20, -20, -20, -19, -19, -19, -18, -18, -18, -17, -17, -17, -16,
@@ -715,7 +715,7 @@ static int Table_fu1[256] = { -44, -44, -44, -43, -43, -43, -42, -42, -42, -41, 
     23, 23, 24, 24, 24, 25, 25, 25, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 32,
     32, 33, 33, 33, 34, 34, 34, 35, 35, 35, 36, 36, 36, 37, 37, 37, 38, 38, 38, 39, 39, 39, 40, 40, 40, 41, 41,
     41, 42, 42, 42, 43, 43 };
-static int Table_fu2[256] = { -227, -226, -224, -222, -220, -219, -217, -215, -213, -212, -210, -208, -206, -204,
+static const int TABLE_FU2[256] = { -227, -226, -224, -222, -220, -219, -217, -215, -213, -212, -210, -208, -206, -204,
     -203, -201, -199, -197, -196, -194, -192, -190, -188, -187, -185, -183, -181, -180, -178, -176, -174, -173,
     -171, -169, -167, -165, -164, -162, -160, -158, -157, -155, -153, -151, -149, -148, -146, -144, -142, -141,
     -139, -137, -135, -134, -132, -130, -128, -126, -125, -123, -121, -119, -118, -116, -114, -112, -110, -109,
@@ -776,19 +776,19 @@ bool ConvertYUV420SPToRGBA(std::vector<uint8_t>& rgbaBuf, const sptr<OHOS::Surfa
     int bdif = 0;
     for (int i = 0; i < bufferHeight; i++) {
         for (int j = 0; j < bufferWidth; j++) {
-            int Y = static_cast<int>(ybase[i * bufferStride + j]);
-            int U = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2 + 1]);
-            int V = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2]);
+            int y = static_cast<int>(ybase[i * bufferStride + j]);
+            int u = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2 + 1]);
+            int v = static_cast<int>(ubase[i / 2 * bufferStride + (j / 2) * 2]);
             if (srcBuf->GetFormat() == GRAPHIC_PIXEL_FMT_YCBCR_420_SP) {
-                std::swap(U, V);
+                std::swap(u, v);
             }
-            rdif = Table_fv1[V];
-            invgdif = Table_fu1[U] + Table_fv2[V];
-            bdif = Table_fu2[U];
+            rdif = TABLE_FV1[v];
+            invgdif = TABLE_FU1[u] + TABLE_FV2[v];
+            bdif = TABLE_FU2[u];
 
-            rgb[0] = Y + rdif;
-            rgb[1] = Y - invgdif;
-            rgb[2] = Y + bdif; // 2 is index
+            rgb[0] = y + rdif;
+            rgb[1] = y - invgdif;
+            rgb[2] = y + bdif; // 2 is index
 
             for (int k = 0; k < 3; k++) { // 3 is index
                 idx = (i * bufferWidth + j) * 4 + k; // 4 is color channel
@@ -1156,6 +1156,36 @@ Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
     GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
 {
     Drawing::Matrix matrix;
+    const float bufferWidth = bufferBounds.GetWidth();
+    const float bufferHeight = bufferBounds.GetHeight();
+
+    switch (rotationTransform) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90: {
+            matrix.PreTranslate(0, bufferHeight);
+            matrix.PreRotate(-90);  // rotate 90 degrees anti-clockwise at last.
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_180: {
+            matrix.PreTranslate(bufferWidth, bufferHeight);
+            matrix.PreRotate(-180);  // rotate 180 degrees anti-clockwise at last.
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_270: {
+            matrix.PreTranslate(bufferWidth, 0);
+            matrix.PreRotate(-270); // rotate 270 degrees anti-clockwise at last.
+            break;
+        }
+        default:
+            break;
+    }
+
+    return matrix;
+}
+
+Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(
+    GraphicTransformType rotationTransform, const RectF &bounds, const RectF &bufferBounds, Gravity gravity)
+{
+    Drawing::Matrix matrix;
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
     const float bufferHeight = bufferBounds.GetHeight();
@@ -1183,7 +1213,6 @@ Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
             matrix.PreTranslate(boundsWidth, heightAdjust);
             matrix.PreRotate(-180);  // rotate 180 degrees anti-clockwise at last.
-
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
@@ -1199,15 +1228,12 @@ Drawing::Matrix RSBaseRenderUtil::GetSurfaceTransformMatrix(
 }
 
 Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
-    Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds)
+    Gravity gravity, const RectF& bufferSize, const RectF& bounds)
 {
     Drawing::Matrix gravityMatrix;
-    if (buffer == nullptr) {
-        return gravityMatrix;
-    }
 
-    auto frameWidth = static_cast<float>(buffer->GetSurfaceBufferWidth());
-    auto frameHeight = static_cast<float>(buffer->GetSurfaceBufferHeight());
+    auto frameWidth = bufferSize.GetWidth();
+    auto frameHeight = bufferSize.GetHeight();
     const float boundsWidth = bounds.GetWidth();
     const float boundsHeight = bounds.GetHeight();
     if (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) {
@@ -1245,18 +1271,15 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
         }
     }
 
+    // deal with buffer's gravity effect in node's inner space.
+    params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, bufferBounds, localBounds));
     params.matrix.PreConcat(
         RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds, bufferBounds, gravity));
-
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
         std::swap(localBounds.width_, localBounds.height_);
-        params.dstRect = Drawing::Rect(0, 0, localBounds.GetWidth(), localBounds.GetHeight());
     }
-
-    // deal with buffer's gravity effect in node's inner space.
-    params.matrix.PreConcat(RSBaseRenderUtil::GetGravityMatrix(gravity, params.buffer, localBounds));
     // because we use the gravity matrix above(which will implicitly includes scale effect),
     // we must disable the scale effect that from srcRect to dstRect.
     params.dstRect = params.srcRect;

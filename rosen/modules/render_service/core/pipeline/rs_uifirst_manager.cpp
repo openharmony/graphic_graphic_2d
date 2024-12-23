@@ -208,6 +208,7 @@ void RSUifirstManager::ProcessForceUpdateNode()
         if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
             continue;
         }
+        bool isChildForceUpdate = false;
         for (auto& child : *node->GetChildren()) {
             if (!child) {
                 continue;
@@ -220,7 +221,14 @@ void RSUifirstManager::ProcessForceUpdateNode()
             if (!child->IsDirty() && !child->IsSubTreeDirty()) {
                 markForceUpdateByUifirst_.push_back(child);
                 child->SetForceUpdateByUifirst(true);
+                isChildForceUpdate = true;
             }
+        }
+        if (isChildForceUpdate && !node->GetForceUpdateByUifirst()) {
+            // if the child's forceupdate flag is true, the parent flag must also be true,
+            // otherwise subtreedirty flag is unreliable.
+            markForceUpdateByUifirst_.push_back(node);
+            node->SetForceUpdateByUifirst(true);
         }
     }
     for (auto& node : toDirtyNodes) {
@@ -1228,11 +1236,30 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
     return node.QuerySubAssignable(isDisplayRotation);
 }
 
+
+bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
+{
+    if (node.isForceFlag_ && node.IsLeashWindow()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("ForceUpdateUifirstNodes: isUifirstEnable: %d", node.isUifirstEnable_);
+        if (!node.isUifirstEnable_) {
+            UifirstStateChange(node, MultiThreadCacheType::NONE);
+            return true;
+        }
+        UifirstStateChange(node, MultiThreadCacheType::LEASH_WINDOW);
+        return true;
+    }
+    return false;
+}
+
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
-    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d]",
+    RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
+        " isForceFlag:[%d]",
         node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_);
+        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_);
+    if (ForceUpdateUifirstNodes(node)) {
+        return;
+    }
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
         if (!node.isUifirstNode_) {

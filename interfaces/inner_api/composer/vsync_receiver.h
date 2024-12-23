@@ -164,6 +164,7 @@ public:
     virtual VsyncError SetVsyncCallBackForEveryFrame(FrameCallback callback, bool isOpen);
     virtual VsyncError SetUiDvsyncConfig(int32_t bufferCount);
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
+    virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
 private:
     VsyncError DestroyLocked();
     void RemoveAndCloseFdLocked();

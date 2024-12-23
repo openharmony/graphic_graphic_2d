@@ -89,7 +89,7 @@ void RSRenderServiceListener::OnCleanCache()
 {
     auto node = surfaceRenderNode_.lock();
     if (node == nullptr) {
-        RS_LOGW("RSRenderServiceListener::OnBufferAvailable node is nullptr");
+        RS_LOGD("RSRenderServiceListener::OnBufferAvailable node is nullptr");
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnCleanCache node id:%{public}" PRIu64, node->GetId());
