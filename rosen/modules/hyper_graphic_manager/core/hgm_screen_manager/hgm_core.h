@@ -159,8 +159,7 @@ public:
 
     bool GetLtpoEnabled() const
     {
-        return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
-            (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
+        return ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
     }
 
     bool GetAdaptiveSyncEnabled() const

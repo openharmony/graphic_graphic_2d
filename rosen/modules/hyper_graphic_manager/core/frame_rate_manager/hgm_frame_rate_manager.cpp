@@ -400,26 +400,23 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     appFrameRateLinkers_ = appFrameRateLinkers;
 
     auto& hgmCore = HgmCore::Instance();
-    FrameRateRange finalRange;
-    if (curRefreshRateMode_ == HGM_REFRESHRATE_MODE_AUTO) {
-        finalRange = rsFrameRateLinker->GetExpectedRange();
-        idleDetector_.SetAceAnimatorIdleState(true);
-        for (auto linker : appFrameRateLinkers) {
-            if (!multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
-                continue;
-            }
-            SetAceAnimatorVote(linker.second);
-            auto expectedRange = linker.second->GetExpectedRange();
-            if (!HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange) &&
-                (expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
-                expectedRange.preferred_ < static_cast<int32_t>(currRefreshRate_)) {
-                expectedRange.Set(currRefreshRate_, currRefreshRate_, currRefreshRate_);
-            }
-            finalRange.Merge(expectedRange);
+    FrameRateRange finalRange = rsFrameRateLinker->GetExpectedRange();
+    idleDetector_.SetAceAnimatorIdleState(true);
+    for (auto linker : appFrameRateLinkers) {
+        if (!multiAppStrategy_.CheckPidValid(ExtractPid(linker.first))) {
+            continue;
         }
-        HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(finalRange);
-        ProcessLtpoVote(finalRange);
+        SetAceAnimatorVote(linker.second);
+        auto expectedRange = linker.second->GetExpectedRange();
+        if (!HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(expectedRange) &&
+            (expectedRange.type_ & ANIMATION_STATE_FIRST_FRAME) != 0 &&
+            expectedRange.preferred_ < static_cast<int32_t>(currRefreshRate_)) {
+            expectedRange.Set(currRefreshRate_, currRefreshRate_, currRefreshRate_);
+        }
+        finalRange.Merge(expectedRange);
     }
+    HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(finalRange);
+    ProcessLtpoVote(finalRange);
 
     UpdateGuaranteedPlanVote(timestamp);
     idleDetector_.ResetAceAnimatorExpectedFrameRate();
