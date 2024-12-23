@@ -32,7 +32,6 @@
 #include "vsync_generator.h"
 
 #include "common/rs_singleton.h"
-#include "graphic_2d_configure.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
 #ifdef RS_ENABLE_GPU
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
@@ -90,7 +89,6 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 
-    Graphic2dConfigure::Instance();
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
 #ifdef TP_FEATURE_ENABLE
