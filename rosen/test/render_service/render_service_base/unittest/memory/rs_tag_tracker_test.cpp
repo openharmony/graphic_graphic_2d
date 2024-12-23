@@ -67,6 +67,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker001, TestSize.Level1)
 {
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "RSTagTracker001");
     Drawing::GPUContext* gpuContext = nullptr;
+    EXPECT_TRUE(gpuContext == nullptr);
     RSTagTracker tagTracker(gpuContext, tag);
     tagTracker.SetTagEnd();
 }
@@ -81,6 +82,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker002, TestSize.Level1)
 {
     RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    EXPECT_TRUE(gpuContext != nullptr);
     RSTagTracker tagTracker(gpuContext, tagType);
     tagTracker.UpdateReleaseResourceEnabled(true);
     RSTagTracker tagTracker1(gpuContext, tagType);
@@ -97,6 +99,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker003, TestSize.Level1)
 {
     RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    EXPECT_TRUE(gpuContext != nullptr);
     RSTagTracker tagTracker(gpuContext, tagType);
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(gpuContext, tagType);
@@ -112,6 +115,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker003, TestSize.Level1)
 HWTEST_F(RSTagTrackerTest, RSTagTracker004, TestSize.Level1)
 {
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    EXPECT_TRUE(gpuContext != nullptr);
     NodeId nodeId = 1;
     RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker004");
     tagTracker.UpdateReleaseResourceEnabled(false);
@@ -128,6 +132,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker004, TestSize.Level1)
 HWTEST_F(RSTagTrackerTest, RSTagTracker005, TestSize.Level1)
 {
     Drawing::GPUContext* gpuContext = nullptr;
+    EXPECT_TRUE(gpuContext == nullptr);
     NodeId nodeId = 1;
     RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker005");
     tagTracker.SetTagEnd();
@@ -142,6 +147,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker005, TestSize.Level1)
 HWTEST_F(RSTagTrackerTest, RSTagTracker006, TestSize.Level1)
 {
     Drawing::GPUContext* gpuContext = nullptr;
+    EXPECT_TRUE(gpuContext == nullptr);
     NodeId nodeId = 1;
     RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker005");
     tagTracker.UpdateReleaseResourceEnabled(false);
@@ -158,6 +164,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker006, TestSize.Level1)
 HWTEST_F(RSTagTrackerTest, RSTagTracker007, TestSize.Level1)
 {
     Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    EXPECT_TRUE(gpuContext != nullptr);
     NodeId nodeId = 1;
     RSTagTracker tagTracker(gpuContext, nodeId, RSTagTracker::TAGTYPE::TAG_FILTER, "RSTagTracker007");
     tagTracker.UpdateReleaseResourceEnabled(true);
@@ -174,10 +181,11 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker007, TestSize.Level1)
 HWTEST_F(RSTagTrackerTest, RSTagTracker008, TestSize.Level1)
 {
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "RSTagTracker008");
-    Drawing::GPUContext gpuContext;
-    RSTagTracker tagTracker(&gpuContext, tag);
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    EXPECT_TRUE(gpuContext != nullptr);
+    RSTagTracker tagTracker(gpuContext, tag);
     tagTracker.UpdateReleaseResourceEnabled(true);
-    RSTagTracker tagTracker1(&gpuContext, tag);
+    RSTagTracker tagTracker1(gpuContext, tag);
     tagTracker.SetTagEnd();
 }
 
@@ -190,10 +198,11 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker008, TestSize.Level1)
 HWTEST_F(RSTagTrackerTest, RSTagTracker009, TestSize.Level1)
 {
     Drawing::GPUResourceTag tag(0, 0, 0, 0, "RSTagTracker009");
-    Drawing::GPUContext gpuContext;
-    RSTagTracker tagTracker(&gpuContext, tag);
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    EXPECT_TRUE(gpuContext != nullptr);
+    RSTagTracker tagTracker(gpuContext, tag);
     tagTracker.UpdateReleaseResourceEnabled(false);
-    RSTagTracker tagTracker1(&gpuContext, tag);
+    RSTagTracker tagTracker1(gpuContext, tag);
     tagTracker.SetTagEnd();
 }
 
@@ -207,6 +216,7 @@ HWTEST_F(RSTagTrackerTest, RSTagTracker010, TestSize.Level1)
 {
     RSTagTracker::TAGTYPE tagType = RSTagTracker::TAGTYPE::TAG_DRAW_SURFACENODE;
     Drawing::GPUContext* gpuContext = nullptr;
+    EXPECT_TRUE(gpuContext == nullptr);
     RSTagTracker tagTracker(gpuContext, tagType);
     tagTracker.UpdateReleaseResourceEnabled(false);
     RSTagTracker tagTracker1(gpuContext, tagType);

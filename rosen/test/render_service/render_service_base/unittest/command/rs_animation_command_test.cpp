@@ -48,6 +48,7 @@ HWTEST_F(RSAnimationCommandTest, TestRSAnimationCommand001, TestSize.Level1)
     AnimationCallbackEvent event = static_cast<AnimationCallbackEvent>(1);
     AnimationCommandHelper::SetAnimationCallbackProcessor(TestProcessor);
     AnimationCommandHelper::AnimationCallback(context, targetId, animId, event);
+    EXPECT_TRUE(targetId == -1);
 }
 
 /**
@@ -73,6 +74,7 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
     AnimationCommandHelper::CreateParticleAnimation(context2, id, animation2);
 
     AnimationCommandHelper::CancelAnimation(context2, id, 0);
+    EXPECT_TRUE(targetId == -1);
 }
 
 /**

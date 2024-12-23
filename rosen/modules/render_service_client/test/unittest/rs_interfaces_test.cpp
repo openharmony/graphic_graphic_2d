@@ -1436,6 +1436,7 @@ HWTEST_F(RSInterfacesTest, DropFrameByPid002, Function | SmallTest | Level2)
 HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest | Level2)
 {
     rsInterfaces->SetVirtualScreenUsingStatus(true);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /*
@@ -1447,6 +1448,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus001, Function | SmallTest 
 HWTEST_F(RSInterfacesTest, SetVirtualScreenUsingStatus002, Function | SmallTest | Level2)
 {
     rsInterfaces->SetVirtualScreenUsingStatus(false);
+    EXPECT_NE(rsInterfaces, nullptr);
 }
 
 /*

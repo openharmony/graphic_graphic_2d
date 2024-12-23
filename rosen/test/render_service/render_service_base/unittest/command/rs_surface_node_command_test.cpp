@@ -469,6 +469,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, CreateWithConfigTest, TestSize.Level1)
     std::string bundleName = "bundleName"; // for test
     enum SurfaceWindowType windowType = SurfaceWindowType::DEFAULT_WINDOW;
     SurfaceNodeCommandHelper::CreateWithConfig(context, 1, name, 1, bundleName, windowType);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
 
 /**
