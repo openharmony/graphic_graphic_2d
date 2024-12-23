@@ -79,7 +79,7 @@ void RSSurfaceFpsManager::Dump(std::string& result, std::string name) const
     result += "\n surface [" + name + "]:\n";
     surfaceFps->Dump(result);
 }
-void RSSurfaceFpsManager::ClearDump(std::string name) const
+void RSSurfaceFpsManager::ClearDump(std::string& result, std::string name) const
 {
     const auto& surfaceFps = GetSurfaceFps(name);
     if (surfaceFps == nullptr) {

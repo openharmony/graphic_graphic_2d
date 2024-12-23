@@ -20,7 +20,7 @@ namespace OHOS::Rosen {
 bool RSSurfaceFps::RecordPresentTime(uint64_t timestamp, uint32_t seqNum)
 {
     std::unique_lock<std::mutex> lock(mutex_);
-    if (seqNum == presentTimeRecords_[count_ - 1 + FRAME_RECORDS_NUM] % FRAME_RECORDS_NUM.seqNum) {
+    if (seqNum == presentTimeRecords_[(count_ - 1 + FRAME_RECORDS_NUM) % FRAME_RECORDS_NUM].seqNum) {
         return false;
     }
     RS_TRACE_NAME_FMT("RSSurfaceFps::RecordPresentTime timestamp:%llu", timestamp);

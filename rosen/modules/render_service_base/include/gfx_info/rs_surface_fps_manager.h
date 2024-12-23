@@ -27,7 +27,7 @@ public:
     bool Unregister(NodeId id);
     bool RecordPresentTime(NodeId id, uint64_t timestamp, int32_t seqNum) const;
     void Dump(std::string& result, std::string name) const;
-    void ClearDump(std::string name) const;
+    void ClearDump(std::string& result, std::string name) const;
 private:
     std::shared_ptr<RSSurfaceFps> GetSurfaceFps(NodeId id) const;
     std::shared_ptr<RSSurfaceFps> GetSurfaceFps(std::string name) const;
