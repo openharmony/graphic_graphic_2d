@@ -26,7 +26,6 @@
 #include "param/sys_param.h"
 #include "common/rs_optional_trace.h"
 #include "rs_trace.h"
-#include <mutex>
 
 namespace OHOS {
 namespace Rosen {

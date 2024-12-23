@@ -906,45 +906,45 @@ const RSScreenType& RSScreen::GetScreenType() const
 
 void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     skipFrameInterval_ = skipFrameInterval;
     skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
 }
 
 void RSScreen::SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     expectedRefreshRate_ = expectedRefreshRate;
     skipFrameStrategy_ = SKIP_FRAME_BY_REFRESH_RATE;
 }
 
 void RSScreen::SetEqualVsyncPeriod(bool isEqualVsyncPeriod)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     isEqualVsyncPeriod_ = isEqualVsyncPeriod;
 }
 
 uint32_t RSScreen::GetScreenSkipFrameInterval() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return skipFrameInterval_;
 }
 
 uint32_t RSScreen::GetScreenExpectedRefreshRate() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return expectedRefreshRate_;
 }
 
 SkipFrameStrategy RSScreen::GetScreenSkipFrameStrategy() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return skipFrameStrategy_;
 }
 
 bool RSScreen::GetEqualVsyncPeriod() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return isEqualVsyncPeriod_;
 }
 

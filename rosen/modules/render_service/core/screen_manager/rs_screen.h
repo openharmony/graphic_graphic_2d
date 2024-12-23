@@ -300,7 +300,7 @@ private:
     Rect mainScreenVisibleRect_ = {};
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
-    mutable std::mutex mutex_;
+    mutable std::mutex skipFrameMutex_;
 };
 } // namespace impl
 } // namespace Rosen
