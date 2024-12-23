@@ -205,11 +205,10 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
-    const Drawing:Rect& rect = captureConfig_.mainScreenRect;
-    if ((float width = rect.right_ - rect.left_) > 0 &&
-        (float height = rect.bottom_ - rect.top_) > 0 &&
+    const Drawing::Rect& rect = captureConfig_.mainScreenRect;
+    if (rect.right_ - rect.left_ > 0 && rect.bottom_ - rect.top_ > 0 &&
         (!(rect.left_ < 0 || rect.top_ < 0))) {
-        canvas.ClipRect({0, 0, width, height});
+        canvas.ClipRect({0, 0, rect.right_ - rect.left_, rect.bottom_ - rect.top_});
         canvas.Translate(0 - rect.left_, 0 - rect.top_);
     }
     canvas.SetDisableFilterCache(true);
@@ -325,9 +324,9 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
     const Drawing:Rect& rect = captureConfig_.mainScreenRect;
-    if ((float width = rect.right_ - rect.left_) > 0 && (float height = rect.bottom_ - rect.top_) > 0) {
-        pixmapWidth = ceil(width);
-        pixmapHeight = ceil(height);
+    if (rect.right_ - rect.left_ > 0 && rect.bottom_ - rect.top_ > 0) {
+        pixmapWidth = ceil(rect.right_ - rect.left_);
+        pixmapHeight = ceil(rect.bottom_ - rect.top_);
     }
 
     Media::InitializationOptions opts;
