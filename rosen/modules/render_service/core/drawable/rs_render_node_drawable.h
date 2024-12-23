@@ -111,6 +111,10 @@ public:
         return isOpincRootNode_;
     }
 
+    void SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image);
+
+    std::shared_ptr<Drawing::Image> GetCacheImageByCapture() const;
+
     // dfx
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
@@ -168,8 +172,10 @@ protected:
 private:
     std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
+    mutable std::mutex freezeByCaptureMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
+    std::shared_ptr<Drawing::Image> cachedImageByCapture_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cachedBackendTexture_;
 #ifdef RS_ENABLE_VK

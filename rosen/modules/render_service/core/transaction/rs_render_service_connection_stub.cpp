@@ -757,12 +757,11 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             RSSurfaceCaptureConfig captureConfig;
-            captureConfig.scaleX = data.ReadFloat();
-            captureConfig.scaleY = data.ReadFloat();
-            captureConfig.useDma = data.ReadBool();
-            captureConfig.useCurWindow = data.ReadBool();
-            captureConfig.captureType = static_cast<SurfaceCaptureType>(data.ReadUint8());
-            captureConfig.isSync = data.ReadBool();
+            if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                ret = ERR_INVALID_DATA;
+                RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture write captureConfig failed");
+                break;
+            }
             RSSurfaceCapturePermissions permissions;
             permissions.screenCapturePermission = accessible;
             permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
@@ -772,6 +771,42 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // The white list will be removed after GetCallingPid interface can return real PID.
             permissions.selfCapture = (ExtractPid(id) == callingPid || callingPid == 0);
             TakeSurfaceCapture(id, cb, captureConfig, permissions);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY): {
+            NodeId id{0};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            RS_PROFILER_PATCH_NODE_ID(data, id);
+            bool isFreeze{false};
+            if (!data.ReadBool(isFreeze)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<RSISurfaceCaptureCallback> cb;
+            RSSurfaceCaptureConfig captureConfig;
+            if (isFreeze) {
+                auto remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    ret = ERR_NULL_OBJECT;
+                    RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY remoteObject is nullptr");
+                    break;
+                }
+                cb = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
+                if (cb == nullptr) {
+                    ret = ERR_NULL_OBJECT;
+                    RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY cb is nullptr");
+                    break;
+                }
+                if (!ReadSurfaceCaptureConfig(captureConfig, data)) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY write captureConfig failed");
+                    break;
+                }
+            }
+            SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
@@ -1878,6 +1913,18 @@ void RSRenderServiceConnectionStub::ReadGameStateDataRs(GameStateData& info, Mes
     info.state = data.ReadInt32();
     info.renderTid = data.ReadInt32();
     info.bundleName = data.ReadString();
+}
+
+bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+{
+    uint8_t captureType { 0 };
+    if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
+        !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
+        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync)) {
+        return false;
+    }
+    captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);
+    return true;
 }
 
 const RSInterfaceCodeSecurityManager RSRenderServiceConnectionStub::securityManager_ = \
