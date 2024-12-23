@@ -46,8 +46,14 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol001, TestSize.Level1)
     symbolText.SetSymbolEffect(RSEffectStrategy::SCALE); // whit symbol anination
     hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
 
-    textblob = nullptr; // test bullptr
+    // test rsCanvas is nullptr
+    hmSymbolRun.DrawSymbol(nullptr, textblob.get(), paint_, symbolText);
+
+    textblob = nullptr; // test textblob is bullptr
     hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
+
+    // test rsCanvas is nullptr, textblob is nullptr
+    hmSymbolRun.DrawSymbol(nullptr, nullptr, paint_, symbolText);
 }
 
 /*
@@ -58,13 +64,39 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol001, TestSize.Level1)
 HWTEST_F(OHHmSymbolRunTest, DrawSymbol002, TestSize.Level1)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
-    RSPoint paint_ = {100, 100}; // 1, 1 is the offset
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
     const char* str = "Test multiple glyphs";
     Drawing::Font font;
     auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
     HMSymbolTxt symbolText;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
     hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
+}
+
+/*
+ * @tc.name: DrawSymbol003
+ * @tc.desc: test DrawSymbol with animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
+{
+    std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
+    const char* str = "A";
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolTxt symbolText;
+    symbolText.SetAnimationStart(true);
+    // test bounce animation
+    symbolText.SetSymbolEffect(RSEffectStrategy::BOUNCE);
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
+    EXPECT_TRUE(symbolText.GetEffectStrategy() == RSEffectStrategy::BOUNCE);
+
+    // test pulse animation
+    symbolText.SetSymbolEffect(RSEffectStrategy::PULSE);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), textblob.get(), paint_, symbolText);
+    EXPECT_TRUE(symbolText.GetEffectStrategy() == RSEffectStrategy::PULSE);
 }
 
 /*
@@ -157,31 +189,26 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
     HMSymbolTxt symbolTxt;
     RSHMSymbolData symbol;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    bool check = false;
+    check = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check == false);
 
     symbolTxt.SetSymbolEffect(RSEffectStrategy::SCALE);
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    bool check1 = false;
+    check1 = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check1 == false);
 
     symbolTxt.SetAnimationMode(1);
     symbolTxt.SetSymbolEffect(RSEffectStrategy::SCALE);
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    bool check2 = false;
+    check2 = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check2 == false);
 
     symbolTxt.SetAnimationMode(1);
     symbolTxt.SetSymbolEffect(RSEffectStrategy::VARIABLE_COLOR);
-    hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
-}
-
-/*
- * @tc.name: ClearSymbolAnimation001
- * @tc.desc: test ClearSymbolAnimation with glyphid
- * @tc.type: FUNC
- */
-HWTEST_F(OHHmSymbolRunTest, ClearSymbolAnimation001, TestSize.Level1)
-{
-    std::pair<float, float> offset = {100, 100}; // 100, 100 is the offset
-    RSHMSymbolData symbol;
-    HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.ClearSymbolAnimation(symbol, offset);
+    bool check3 = false;
+    check3 = hmSymbolRun.SymbolAnimation(symbol, glyphid, offset, symbolTxt);
+    EXPECT_TRUE(check3 == false);
 }
 
 /*
@@ -195,7 +222,44 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups001, TestSize.Level1)
     RSEffectStrategy effectStrategy = RSEffectStrategy::BOUNCE;
     RSAnimationSetting animationOut;
     HMSymbolRun hmSymbolRun = HMSymbolRun();
-    hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    bool flag = hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    EXPECT_TRUE(flag);
+}
+
+/*
+ * @tc.name: GetAnimationGroups002
+ * @tc.desc: test GetAnimationGroups with pulse animation
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level1)
+{
+    uint16_t glyphid = 3; // 3 is an existing GlyphID
+    RSEffectStrategy effectStrategy = RSEffectStrategy::PULSE;
+    RSAnimationSetting animationOut;
+    HMSymbolRun hmSymbolRun = HMSymbolRun();
+    bool flag = hmSymbolRun.GetAnimationGroups(glyphid, effectStrategy, animationOut);
+    EXPECT_TRUE(flag == false);
+}
+
+/*
+ * @tc.name: GetSymbolLayers001
+ * @tc.desc: test GetSymbolLayers with glyphid
+ * @tc.type: FUNC
+ */
+HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level1)
+{
+    // step 1: init data
+    uint16_t glyphid = 3; // 3 is an existing GlyphID
+    RSSColor color = {1.0, 255, 0, 0}; // the 1.0 is alpha, 255, 0, 0 is RGB
+    HMSymbolTxt symbolText;
+    symbolText.SetRenderColor(color);
+    auto symbolLayer = HMSymbolRun::GetSymbolLayers(glyphid, symbolText);
+    EXPECT_TRUE(symbolLayer.symbolGlyphId == glyphid);
+
+    if (!symbolLayer.renderGroups.empty()) {
+        auto layerColor = symbolLayer.renderGroups[0].color;
+        EXPECT_TRUE(layerColor.r == color.r); // the default color is {1.0, 0, 0, 0}
+    }
 }
 } // namespace SPText
 } // namespace Rosen
