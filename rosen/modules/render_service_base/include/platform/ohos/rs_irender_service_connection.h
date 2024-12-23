@@ -303,8 +303,6 @@ public:
 
     virtual void SetScreenSwitchStatus(bool flag) = 0;
 
-    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
-
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;

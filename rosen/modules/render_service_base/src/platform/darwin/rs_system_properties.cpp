@@ -190,15 +190,6 @@ bool RSSystemProperties::GetScreenSwitchStatus()
     return false;
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {

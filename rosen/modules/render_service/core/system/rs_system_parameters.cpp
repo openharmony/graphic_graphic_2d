@@ -237,5 +237,11 @@ bool RSSystemParameters::GetArsrPreEnabled()
     static bool flag = system::GetBoolParameter("const.display.enable_arsr_pre", true);
     return flag;
 }
+
+bool RSSystemParameters::GetMultimediaEnableCameraRotationCompensation()
+{
+    static bool flag = system::GetBoolParameter("const.multimedia.enable_camera_rotation_compensation", 0);
+    return flag;
+}
 } // namespace Rosen
 } // namespace OHOS

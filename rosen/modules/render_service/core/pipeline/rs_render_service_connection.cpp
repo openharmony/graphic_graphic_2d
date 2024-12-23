@@ -2279,11 +2279,6 @@ void RSRenderServiceConnection::SetScreenSwitchStatus(bool flag)
     RSSystemProperties::SetScreenSwitchStatus(flag);
 }
 
-void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    RSSystemProperties::SetDefaultDeviceRotationOffset(offset);
-}
-
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
 {
 #ifdef RS_ENABLE_GPU

@@ -360,8 +360,6 @@ public:
 
     void SetScreenSwitchStatus(bool flag);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
