@@ -64,6 +64,29 @@ bool RSImage::IsEqual(const RSImage& other) const
            (scale_ == other.scale_) && radiusEq && (compressData_ == other.compressData_);
 }
 
+bool RSImage::CanDrawRectWithImageShader(const Drawing::Canvas& canvas) const
+{
+    return canvas.GetTotalMatrix().HasPerspective() && imageRepeat_ == ImageRepeat::NO_REPEAT && image_ != nullptr;
+}
+
+std::shared_ptr<Drawing::ShaderEffect> RSImage::GenerateImageShaderForDrawRect(
+    const Drawing::Canvas& canvas, const Drawing::SamplingOptions& sampling) const
+{
+    if (!CanDrawRectWithImageShader(canvas)) {
+        return nullptr;
+    }
+
+    Drawing::Matrix matrix;
+    auto sx = dstRect_.GetWidth() / src_.GetWidth();
+    auto sy = dstRect_.GetHeight() / src_.GetHeight();
+    auto tx = dstRect_.GetLeft() - src_.GetLeft() * sx;
+    auto ty = dstRect_.GetTop() - src_.GetTop() * sy;
+    matrix.SetScaleTranslate(sx, sy, tx, ty);
+
+    return Drawing::ShaderEffect::CreateImageShader(
+        *image_, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, sampling, matrix);
+}
+
 bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas)
 {
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -183,12 +206,18 @@ void RSImage::DrawImageRect(
         canvas.Rotate(rotateDegree_);
         auto axis = CalculateByDegree(rect);
         canvas.Translate(axis.first, axis.second);
-        canvas.DrawImageRect(
-            *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-        canvas.Restore();
+    }
+
+    auto imageShader = GenerateImageShaderForDrawRect(canvas, samplingOptions);
+    if (imageShader != nullptr) {
+        DrawImageShaderRectOnCanvas(canvas, imageShader);
     } else {
         canvas.DrawImageRect(
             *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    }
+
+    if (rotateDegree_ != 0) {
+        canvas.Restore();
     }
 }
 
@@ -541,6 +570,21 @@ void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
     }
 }
 
+void RSImage::DrawImageShaderRectOnCanvas(
+    Drawing::Canvas& canvas, const std::shared_ptr<Drawing::ShaderEffect>& imageShader) const
+{
+    if (imageShader == nullptr) {
+        RS_LOGE("RSImage::DrawImageShaderRectOnCanvas image shader is nullptr");
+        return;
+    }
+    Drawing::Paint paint;
+    paint.SetShaderEffect(imageShader);
+    paint.SetStyle(Drawing::Paint::PAINT_FILL_STROKE);
+    canvas.AttachPaint(paint);
+    canvas.DrawRect(dst_);
+    canvas.DetachPaint();
+}
+
 void RSImage::DrawImageOnCanvas(
     const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw)
 {
@@ -553,6 +597,11 @@ void RSImage::DrawImageOnCanvas(
     } else if (hdrImageDraw) {
         canvas.DrawRect(dst_);
     } else {
+        auto imageShader = GenerateImageShaderForDrawRect(canvas, samplingOptions);
+        if (imageShader != nullptr) {
+            DrawImageShaderRectOnCanvas(canvas, imageShader);
+            return;
+        }
         canvas.DrawImageRect(
             *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
