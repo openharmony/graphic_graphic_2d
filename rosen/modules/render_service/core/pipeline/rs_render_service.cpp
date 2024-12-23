@@ -43,7 +43,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
-
 #include "gfx_info/rs_surface_fps_manager.h"
 
 #include "text/font_mgr.h"

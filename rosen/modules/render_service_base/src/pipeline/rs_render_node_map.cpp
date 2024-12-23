@@ -224,9 +224,6 @@ void RSRenderNodeMap::MoveRenderNodeMap(
         for (auto subIter = subMap.begin(); subIter != subMap.end();) {
             subIter->second->RemoveFromTree(false);
             subRenderNodeMap->emplace(subIter->first, subIter->second);
-            if (subIter->second->GetType() == RSRenderNodeType::SURFACE_NODE) {
-                RSSurfaceFpsManager::GetInstance().Unregister(subIter->first);
-            }
             subIter = subMap.erase(subIter);
         }
         renderNodeMap_.erase(iter);

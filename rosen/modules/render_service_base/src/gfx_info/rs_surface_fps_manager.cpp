@@ -70,7 +70,7 @@ bool RSSurfaceFpsManager::RecordPresentTime(NodeId id, uint64_t timestamp, int32
     surfaceFps->RecordPresentTime(timestamp, seqNum);
     return true;
 }
-void RSSurfaceFpsManager::Dump(std::string& result, std::string name) const
+void RSSurfaceFpsManager::Dump(std::string& result, std::string& name) const
 {
     const auto& surfaceFps = GetSurfaceFps(name);
     if (surfaceFps == nullptr) {
@@ -79,7 +79,7 @@ void RSSurfaceFpsManager::Dump(std::string& result, std::string name) const
     result += "\n surface [" + name + "]:\n";
     surfaceFps->Dump(result);
 }
-void RSSurfaceFpsManager::ClearDump(std::string& result, std::string name) const
+void RSSurfaceFpsManager::ClearDump(std::string& result, std::string& name) const
 {
     const auto& surfaceFps = GetSurfaceFps(name);
     if (surfaceFps == nullptr) {
