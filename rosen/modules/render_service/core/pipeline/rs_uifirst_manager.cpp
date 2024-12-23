@@ -140,22 +140,42 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     }
 }
 
-void RSUifirstManager::MergeOldDirty(RSSurfaceRenderNode& node)
+void RSUifirstManager::MergeOldDirty(NodeId id)
 {
-    auto params = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
-    if (!params || !params->GetPreSurfaceCacheContentStatic()) {
+    if (!mainThread_) {
         return;
     }
-    if (node.IsAppWindow() && !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock())) {
-        node.GetDirtyManager()->MergeDirtyRect(node.GetOldDirty());
+    auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+        mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+    if (!node) {
         return;
     }
-    for (auto& child : *node.GetSortedChildren()) {
+    if (node->IsAppWindow() &&
+        !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
+        MergeOldDirtyToDrawable(node);
+        return;
+    }
+    for (auto& child : * node-> GetSortedChildren()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (surfaceNode && surfaceNode->IsAppWindow()) {
-            surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+            MergeOldDirtyToDrawable(surfaceNode);
             break;
         }
+    }
+}
+
+void RSUifirstManager::MergeOldDirtyToDrawable(std::shared_ptr<RSSurfaceRenderNode> node)
+{
+    auto drawable = node->GetRenderDrawable();
+    if (!drawable) {
+        return;
+    }
+    const auto& oldDirty = node->GetOldDirty();
+    RS_OPTIONAL_TRACE_NAME_FMT("uifirst MergeOldDirty [%d %d %d %d]",
+        oldDirty.left_, oldDirty.top_, oldDirty.width_, oldDirty.height_);
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    if (auto dirtyManager = surfaceDrawable->GetSyncDirtyManager()) {
+        dirtyManager->MergeDirtyRect(oldDirty);
     }
 }
 
@@ -196,36 +216,11 @@ void RSUifirstManager::ProcessForceUpdateNode()
     std::vector<std::shared_ptr<RSRenderNode>> toDirtyNodes;
     for (auto id : pendingForceUpdateNode_) {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
-        if (!node) {
+        if (!node || node->GetLastFrameUifirstFlag() != MultiThreadCacheType::ARKTS_CARD) {
             continue;
         }
         toDirtyNodes.push_back(node);
         if (!node->IsDirty() && !node->IsSubTreeDirty()) {
-            markForceUpdateByUifirst_.push_back(node);
-            node->SetForceUpdateByUifirst(true);
-        }
-        if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
-            continue;
-        }
-        bool isChildForceUpdate = false;
-        for (auto& child : *node->GetChildren()) {
-            if (!child) {
-                continue;
-            }
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (!surfaceNode || !surfaceNode->IsMainWindowType()) {
-                continue;
-            }
-            toDirtyNodes.push_back(child);
-            if (!child->IsDirty() && !child->IsSubTreeDirty()) {
-                markForceUpdateByUifirst_.push_back(child);
-                child->SetForceUpdateByUifirst(true);
-                isChildForceUpdate = true;
-            }
-        }
-        if (isChildForceUpdate && !node->GetForceUpdateByUifirst()) {
-            // if the child's forceupdate flag is true, the parent flag must also be true,
-            // otherwise subtreedirty flag is unreliable.
             markForceUpdateByUifirst_.push_back(node);
             node->SetForceUpdateByUifirst(true);
         }
@@ -461,6 +456,9 @@ void RSUifirstManager::PurgePendingPostNodes()
         node->SetForceUpdateByUifirst(false);
     }
     markForceUpdateByUifirst_.clear();
+    for (auto id : pendingForceUpdateNode_) {
+        MergeOldDirty(id);
+    }
 }
 
 void RSUifirstManager::PostSubTask(NodeId id)
@@ -1412,7 +1410,6 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
                     node.GetName().c_str(), node.GetId());
             }
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64"", node.GetId());
-            MergeOldDirty(node);
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
             if (node.isTargetUIFirstDfxEnabled_) {
