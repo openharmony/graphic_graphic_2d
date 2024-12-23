@@ -171,7 +171,7 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
             (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
-                name_ == "VMLinuxXComponentSurface" || name_ == "oh_flutter_1Surface"
+                name_ == "VMLinuxXComponentSurface" || name_ == "oh_flutter_1Surface" ||
                 name_.find("HwStylusFeature") != std::string::npos);
     }
 
