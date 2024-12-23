@@ -394,7 +394,7 @@ private:
     std::queue<NodeId> curMainAndLeashWindowNodesIds_;
     // vector of Appwindow nodes ids not contain subAppWindow nodes ids in last frame
     static inline std::queue<NodeId> preMainAndLeashWindowNodesIds_;
-    // vector of current displaynode mainwindow surface visible info
+    // vector of current dsiplaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     // vector of current frame mainwindow surface visible info
     VisibleData allDstCurVisVec_;

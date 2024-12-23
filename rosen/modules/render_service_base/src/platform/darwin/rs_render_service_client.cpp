@@ -564,7 +564,8 @@ void RSRenderServiceClient::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceClient::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
 }
 #endif

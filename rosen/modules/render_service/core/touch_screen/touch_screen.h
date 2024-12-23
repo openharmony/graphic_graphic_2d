@@ -16,26 +16,64 @@
 #ifndef TOUCH_SCREEN_H
 #define TOUCH_SCREEN_H
 
+#include <dlfcn.h>
+
 #include "nocopyable.h"
+#include "platform/common/rs_log.h"
 #include "singleton.h"
 
 namespace OHOS {
 namespace Rosen {
 class TouchScreen final {
-    DECLARE_DELAYED_SINGLETON(TouchScreen);
 public:
+    using TsSetFeatureConfig = int32_t (*)(int32_t, const char *);
+    using TsSetAftConfig = int32_t (*)(const char *);
+
     DISALLOW_COPY_AND_MOVE(TouchScreen);
     
     void InitTouchScreen();
-    typedef int32_t (*TS_SET_FEATURE_CONFIG_)(int32_t, const char *config);
 
-    TS_SET_FEATURE_CONFIG_ tsSetFeatureConfig_ = nullptr;
+    bool IsSetFeatureConfigHandleValid() const
+    {
+        return setFeatureConfigHandle_ != nullptr;
+    }
+
+    int32_t SetFeatureConfig(int32_t feature, const char *config)
+    {
+        return setFeatureConfigHandle_(feature, config);
+    }
+
+    bool IsSetAftConfigHandleValid() const
+    {
+        return setAftConfigHandle_ != nullptr;
+    }
+
+    int32_t SetAftConfig(const char *config)
+    {
+        return setAftConfigHandle_(config);
+    }
+protected:
+    template<typename Handle>
+    void GetHandleBySymbol(Handle& handle, const char* symbol)
+    {
+        handle = reinterpret_cast<Handle>(dlsym(touchScreenHandle_, symbol));
+        if (handle == nullptr) {
+            RS_LOGE("touch screen get handle by %{public}s failed, error: %{public}s",
+                symbol, dlerror());
+        } else {
+            RS_LOGI("touch screen get handle by %{public}s success", symbol);
+        }
+    }
 
 private:
+    DECLARE_DELAYED_SINGLETON(TouchScreen);
+
     void* touchScreenHandle_ = nullptr;
+    TsSetFeatureConfig setFeatureConfigHandle_ = nullptr;
+    TsSetAftConfig setAftConfigHandle_ = nullptr;
 };
 
 #define TOUCH_SCREEN ::OHOS::DelayedSingleton<TouchScreen>::GetInstance()
 } // namespace Rosen
 } // namespace OHOS
-#endif // TOUCH_SCREEN_WRAPPER_H
+#endif // TOUCH_SCREEN_H
