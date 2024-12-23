@@ -504,6 +504,19 @@ public:
         isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
     }
 
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+    {
+        if (ROSEN_EQ(apiCompatibleVersion_, apiCompatibleVersion)) {
+            return;
+        }
+        apiCompatibleVersion_ = apiCompatibleVersion;
+        needSync_ = true;
+    }
+    uint32_t GetApiCompatibleVersion() const
+    {
+        return apiCompatibleVersion_;
+    }
+
 protected:
 private:
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
@@ -591,6 +604,8 @@ private:
 
     bool hasSubSurfaceNodes_ = false;
     std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+
+    uint32_t apiCompatibleVersion_ = 0;
 
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;

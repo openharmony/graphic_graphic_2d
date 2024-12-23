@@ -310,5 +310,15 @@ void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId
     }
     node->SetAbilityState(abilityState);
 }
+
+void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (!node) {
+        RS_LOGE("SurfaceNodeCommandHelper::SetApiCompatibleVersion node is null!");
+        return;
+    }
+    node->SetApiCompatibleVersion(apiCompatibleVersion);
+}
 } // namespace Rosen
 } // namespace OHOS
