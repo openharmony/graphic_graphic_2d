@@ -176,12 +176,13 @@ bool RoundCornerDisplay::LoadImgsbyResolution(uint32_t width, uint32_t height)
         RS_LOGD("[%{public}s] No lcdModel selected in config file \n", __func__);
         return false;
     }
-    rog_ = lcdModel_->GetRog(width, height);
-    if (rog_ == nullptr) {
-        RS_LOGE("[%{public}s] Can't find resolution (%{public}u x %{public}u) in config file \n",
+    auto rog = lcdModel_->GetRog(width, height);
+    if (rog == nullptr) {
+        RS_LOGI("[%{public}s] Can't find resolution (%{public}u x %{public}u) in config file \n",
             __func__, width, height);
         return false;
     }
+    rog_ = rog;
     RS_LOGD("[%{public}s] Get rog resolution (%{public}u x %{public}u) in config file \n", __func__, width, height);
     if (supportTopSurface_ && supportHardware_) {
         if (!GetTopSurfaceSource()) {
