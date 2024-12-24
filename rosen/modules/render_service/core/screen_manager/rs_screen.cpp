@@ -295,7 +295,7 @@ void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo activeMode)
         || modeInfo.width != activeMode.width || modeInfo.height != activeMode.height) {
         HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "EPS_LCD_FREQ",
             HiSysEvent::EventType::STATISTIC, "SOURCERATE", modeInfo.freshRate,
-            "TARGETRATE", activeMode->freshRate, "WIDTH", activeMode.width, "HEIGHT", activeMode.height);
+            "TARGETRATE", activeMode.freshRate, "WIDTH", activeMode.width, "HEIGHT", activeMode.height);
         modeInfo = activeMode;
     }
 }
