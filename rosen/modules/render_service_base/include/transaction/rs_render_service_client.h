@@ -67,6 +67,7 @@ using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigDa
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
+using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -304,6 +305,9 @@ public:
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
+
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 
