@@ -50,6 +50,7 @@ HWTEST_F(SkiaPathEffectTest, InitWithPathDash001, TestSize.Level1)
     scalar phase = 10.0f;
     SkiaPathEffect skiaPathEffect;
     skiaPathEffect.InitWithPathDash(path, advance, phase, PathDashStyle::TRANSLATE);
+    EXPECT_TRUE(skiaPathEffect.GetPathEffect() == nullptr);
 }
 
 /**
@@ -78,6 +79,7 @@ HWTEST_F(SkiaPathEffectTest, InitWithDiscrete002, TestSize.Level1)
 {
     SkiaPathEffect skiaPathEffect;
     skiaPathEffect.InitWithDiscrete(200, 3, 1); //200: egLength, 3: dev, 1: seedAssist
+    EXPECT_TRUE(skiaPathEffect.GetPathEffect() != nullptr);
 }
 
 /**

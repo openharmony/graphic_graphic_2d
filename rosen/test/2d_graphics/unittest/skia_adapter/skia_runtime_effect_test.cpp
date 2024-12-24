@@ -50,6 +50,7 @@ HWTEST_F(SkiaRuntimeEffectTest, InitForShader001, TestSize.Level1)
     std::string s = "safd";
     SkiaRuntimeEffect skiaRuntimeEffect;
     skiaRuntimeEffect.InitForShader(s, op);
+    EXPECT_TRUE(skiaRuntimeEffect.GetRuntimeEffect() == nullptr);
 }
 
 /**
@@ -63,6 +64,7 @@ HWTEST_F(SkiaRuntimeEffectTest, InitForShader002, TestSize.Level1)
     std::string s = "safd";
     SkiaRuntimeEffect skiaRuntimeEffect;
     skiaRuntimeEffect.InitForShader(s);
+    EXPECT_TRUE(skiaRuntimeEffect.GetRuntimeEffect() == nullptr);
 }
 
 /**
@@ -76,6 +78,7 @@ HWTEST_F(SkiaRuntimeEffectTest, InitForBlender001, TestSize.Level1)
     std::string s = "safd";
     SkiaRuntimeEffect skiaRuntimeEffect;
     skiaRuntimeEffect.InitForBlender(s);
+    EXPECT_TRUE(skiaRuntimeEffect.GetRuntimeEffect() == nullptr);
 }
 
 /**
@@ -99,9 +102,9 @@ HWTEST_F(SkiaRuntimeEffectTest, GetRuntimeEffect001, TestSize.Level1)
 HWTEST_F(SkiaRuntimeEffectTest, MakeShader001, TestSize.Level1)
 {
     SkiaRuntimeShaderBuilder skiaRuntimeShaderBuilder;
-    skiaRuntimeShaderBuilder.MakeShader(nullptr, false);
+    EXPECT_TRUE(skiaRuntimeShaderBuilder.MakeShader(nullptr, false) == nullptr);
     Matrix matrix;
-    skiaRuntimeShaderBuilder.MakeShader(&matrix, false);
+    EXPECT_TRUE(skiaRuntimeShaderBuilder.MakeShader(&matrix, false) == nullptr);
 }
 
 /**
@@ -130,6 +133,7 @@ HWTEST_F(SkiaRuntimeEffectTest, InitForES3Shader001, TestSize.Level1)
     std::string s1 = "safd";
     SkiaRuntimeEffect skiaRuntimeEffect;
     skiaRuntimeEffect.InitForES3Shader(s1);
+    EXPECT_TRUE(skiaRuntimeEffect.GetRuntimeEffect() == nullptr);
 }
 } // namespace Drawing
 } // namespace Rosen
