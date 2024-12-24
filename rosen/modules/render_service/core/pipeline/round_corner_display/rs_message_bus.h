@@ -75,6 +75,9 @@ public:
     void RegisterTopic(std::string strTopic, TObject *Object, TMember Member)
     {
         std::lock_guard<std::mutex> lock(m_map_mutex);
+        if (Object == nullptr) {
+            return;
+        }
         std::function<void(Args...)> f = std::function<void(Args...)>([=](Args... arg) {
             (Object->*Member)(arg...);
         });
