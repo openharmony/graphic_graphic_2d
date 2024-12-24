@@ -565,6 +565,7 @@ void TestMsgBusFunc2()
 HWTEST_F(RSRoundCornerDisplayTest, MessageBus, TestSize.Level1)
 {
     auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+    ASSERT_TRUE(msgBus.m_map.empty());
     msgBus.RemoveTopic("NG_TOPIC");
     TestMsgBusFunc2<uint8_t>();
     TestMsgBusFunc2<uint16_t>();
