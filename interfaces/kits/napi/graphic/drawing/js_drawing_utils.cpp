@@ -201,6 +201,24 @@ bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* po
     return true;
 }
 
+bool ConvertFromJsPointsArrayOffset(napi_env env, napi_value array, Drawing::Point* points,
+    uint32_t count, uint32_t offset)
+{
+    if (points == nullptr) {
+        return false;
+    }
+    for (uint32_t i = offset; i < offset + count; i++)  {
+        napi_value tempPoint = nullptr;
+        if (napi_get_element(env, array, i, &tempPoint) != napi_ok) {
+            return false;
+        }
+        if (!GetDrawingPointFromJsValue(env, tempPoint, points[i - offset])) {
+            return false;
+        }
+    }
+    return true;
+}
+
 napi_value GetFontMetricsAndConvertToJsValue(napi_env env, FontMetrics* metrics)
 {
     napi_value objValue = nullptr;

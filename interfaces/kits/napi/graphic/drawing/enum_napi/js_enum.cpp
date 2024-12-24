@@ -22,6 +22,7 @@
 #include "draw/blend_mode.h"
 #include "draw/clip.h"
 #include "draw/core_canvas.h"
+#include "draw/path_iterator.h"
 #include "draw/path.h"
 #include "draw/pen.h"
 #include "draw/shadow.h"
@@ -223,6 +224,16 @@ static const std::vector<struct JsEnumInt> g_pathOp = {
     { "REVERSE_DIFFERENCE", static_cast<int32_t>(PathOp::REVERSE_DIFFERENCE) },
 };
 
+static const std::vector<struct JsEnumInt> g_pathiteratorVerb = {
+    { "MOVE", static_cast<int32_t>(PathVerb::MOVE) },
+    { "LINE", static_cast<int32_t>(PathVerb::LINE) },
+    { "QUAD", static_cast<int32_t>(PathVerb::QUAD) },
+    { "CONIC", static_cast<int32_t>(PathVerb::CONIC) },
+    { "CUBIC", static_cast<int32_t>(PathVerb::CUBIC) },
+    { "CLOSE", static_cast<int32_t>(PathVerb::CLOSE) },
+    { "DONE", static_cast<int32_t>(PathVerb::DONE) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -246,6 +257,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "SrcRectConstraint", g_srcRectConstraint },
     { "ScaleToFit", g_scaleToFit },
     { "CornerPos", g_cornerPos },
+    { "PathIteratorVerb", g_pathiteratorVerb },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

@@ -189,6 +189,7 @@ constexpr size_t ARGC_SEVEN = 7;
 constexpr size_t ARGC_EIGHT = 8;
 constexpr size_t ARGC_NINE = 9;
 constexpr int NUMBER_TWO = 2;
+constexpr int MAX_PAIRS_PATHVERB = 4;
 
 enum class DrawingErrorCode : int32_t {
     OK = 0,
@@ -398,6 +399,9 @@ inline bool GetDrawingPointFromJsValue(napi_env env, napi_value argValue, Drawin
 }
 
 bool ConvertFromJsPointsArray(napi_env env, napi_value array, Drawing::Point* points, uint32_t count);
+
+bool ConvertFromJsPointsArrayOffset(napi_env env, napi_value array, Drawing::Point* points,
+    uint32_t count, uint32_t offset);
 
 inline napi_value GetDoubleAndConvertToJsValue(napi_env env, double d)
 {

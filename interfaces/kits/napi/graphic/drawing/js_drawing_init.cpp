@@ -26,6 +26,7 @@
 #include "mask_filter_napi/js_mask_filter.h"
 #include "matrix_napi/js_matrix.h"
 #include "path_effect_napi/js_path_effect.h"
+#include "path_iterator_napi/js_path_iterator.h"
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
 #include "region_napi/js_region.h"
@@ -54,6 +55,7 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsMaskFilter::Init(env, exportObj);
     JsLattice::Init(env, exportObj);
     JsPathEffect::Init(env, exportObj);
+    JsPathIterator::Init(env, exportObj);
     JsRegion::Init(env, exportObj);
     JsRoundRect::Init(env, exportObj);
     JsShaderEffect::Init(env, exportObj);
