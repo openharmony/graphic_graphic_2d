@@ -202,6 +202,14 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+#ifdef TP_FEATURE_ENABLE
+// the type of TpFeatureConfig
+enum class TpFeatureConfigType : uint8_t {
+    DEFAULT_TP_FEATURE = 0,
+    AFT_TP_FEATURE,
+};
+#endif
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
