@@ -48,9 +48,7 @@ ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   defines += gpu_defines
   if (defined(enable_ipc_security) && enable_ipc_security) {
     defines += [ "ENABLE_IPC_SECURITY" ]
-    external_deps += [
-      "access_token:libaccesstoken_sdk",
-    ]
+    external_deps += [ "access_token:libaccesstoken_sdk" ]
   }
 }
 

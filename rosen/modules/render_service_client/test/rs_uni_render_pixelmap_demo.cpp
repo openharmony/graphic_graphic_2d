@@ -23,7 +23,6 @@
 
 #include "pixel_map.h"
 #include "accesstoken_kit.h"
-#include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "transaction/rs_transaction.h"
 #include "ui/rs_root_node.h"

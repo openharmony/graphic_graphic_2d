@@ -19,7 +19,6 @@
 #include "window.h"
 
 #include "accesstoken_kit.h"
-#include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"

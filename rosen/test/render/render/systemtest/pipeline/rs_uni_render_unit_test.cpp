@@ -20,7 +20,6 @@
 #include "accesstoken_kit.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "nativetoken_kit.h"
 #include "surface.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_render_service_listener.h"

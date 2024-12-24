@@ -19,7 +19,6 @@
 #include <iostream>
 #include <sstream>
 #include "accesstoken_kit.h"
-#include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "display_type.h"
 #include "draw/canvas.h"

@@ -26,7 +26,6 @@
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
 #include "accesstoken_kit.h"
-#include "nativetoken_kit.h"
 #include "token_setproc.h"
 
 #include <iostream>
