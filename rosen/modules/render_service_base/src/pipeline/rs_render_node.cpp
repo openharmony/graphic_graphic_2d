@@ -61,10 +61,6 @@
 namespace {
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-        return UINT32_MAX;
-    }
     auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
 
@@ -1190,7 +1186,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
         return displaySync_->GetAnimateResult();
     }
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
-    
+
     // Animation on surfaceNode is always on foreground ability state.
     // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
     if (GetType() != RSRenderNodeType::SURFACE_NODE) {
@@ -1206,7 +1202,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
             "], abilityState: " +
             std::string(GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
     }
-    
+
     RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");
     auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
     if (displaySync_) {
