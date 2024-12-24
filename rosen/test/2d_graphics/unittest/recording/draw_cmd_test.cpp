@@ -916,6 +916,19 @@ HWTEST_F(DrawCmdTest, SurfaceBuffer001, TestSize.Level1)
     EXPECT_TRUE(surfaceBufferSize >= 0);
 }
 #endif
+
+/**
+ * @tc.name: SetNoNeedUICapturedTest
+ * @tc.desc: Test SetNoNeedUICaptured
+ * @tc.type: FUNC
+ * @tc.require: IBDGY3
+ */
+HWTEST_F(DrawCmdTest, SetNoNeedUICapturedTest, TestSize.Level1)
+{
+    auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
+    drawCmdList->SetNoNeedUICaptured(true);
+    ASSERT_TRUE(drawCmdList->GetNoNeedUICaptured());
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

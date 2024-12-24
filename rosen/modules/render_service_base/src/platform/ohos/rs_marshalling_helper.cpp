@@ -1588,6 +1588,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 
     parcel.WriteBool(val->GetIsCache());
     parcel.WriteBool(val->GetCachedHighContrast());
+    parcel.WriteBool(val->GetNoNeedUICaptured());
     auto replacedOpList = val->GetReplacedOpList();
     parcel.WriteUint32(replacedOpList.size());
     for (size_t i = 0; i < replacedOpList.size(); ++i) {
@@ -1727,6 +1728,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     bool isCache = parcel.ReadBool();
     bool cachedHighContrast = parcel.ReadBool();
+    bool noNeedUICaptured = parcel.ReadBool();
 
     uint32_t replacedOpListSize = parcel.ReadUint32();
     uint32_t readableSize = parcel.GetReadableBytes() / (sizeof(uint32_t) * 2);    // 增加IPC异常保护，读取2个uint_32_t
@@ -1768,6 +1770,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     val->SetIsCache(isCache);
     val->SetCachedHighContrast(cachedHighContrast);
+    val->SetNoNeedUICaptured(noNeedUICaptured);
     val->SetReplacedOpList(replacedOpList);
 
     int32_t imageSize = parcel.ReadInt32();
