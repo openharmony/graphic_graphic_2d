@@ -74,7 +74,7 @@ HWTEST_F(SkiaDataTest, BuildWithCopy001, TestSize.Level1)
 {
     SkiaData skiaData;
     auto intData = std::make_unique<int>();
-    skiaData.BuildWithCopy(intData.get(), sizeof(*intData.get()));
+    EXPECT_TRUE(skiaData.BuildWithCopy(intData.get(), sizeof(*intData.get())));
 }
 
 /**
@@ -87,7 +87,7 @@ HWTEST_F(SkiaDataTest, BuildWithoutCopy001, TestSize.Level1)
 {
     SkiaData skiaData;
     auto intData = std::make_unique<int>();
-    skiaData.BuildWithoutCopy(intData.get(), sizeof(*intData.get()));
+    EXPECT_TRUE(skiaData.BuildWithoutCopy(intData.get(), sizeof(*intData.get())));
 }
 
 /**
@@ -100,7 +100,7 @@ HWTEST_F(SkiaDataTest, BuildUninitialized001, TestSize.Level1)
 {
     SkiaData skiaData;
     auto intData = std::make_unique<int>();
-    skiaData.BuildUninitialized(sizeof(*intData.get()));
+    EXPECT_TRUE(skiaData.BuildUninitialized(sizeof(*intData.get())));
 }
 
 /**
@@ -112,7 +112,7 @@ HWTEST_F(SkiaDataTest, BuildUninitialized001, TestSize.Level1)
 HWTEST_F(SkiaDataTest, BuildEmpty001, TestSize.Level1)
 {
     SkiaData skiaData;
-    skiaData.BuildEmpty();
+    EXPECT_TRUE(skiaData.BuildEmpty());
 }
 } // namespace Drawing
 } // namespace Rosen

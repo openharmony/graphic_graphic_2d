@@ -1275,6 +1275,9 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_RoundRectSetCorner, Te
     OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, 0, 0);
     OH_Drawing_RoundRectSetCorner(nullptr, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, {10, 10});
     OH_Drawing_RoundRectSetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT, {10, 10});
+    OH_Drawing_Corner_Radii radiusPoint =
+        OH_Drawing_RoundRectGetCorner(roundRect, OH_Drawing_CornerPos::CORNER_POS_BOTTOM_LEFT);
+    EXPECT_EQ(10.0f, radiusPoint.x);
     OH_Drawing_CanvasClipRoundRect(canvas_, roundRect, OH_Drawing_CanvasClipOp::INTERSECT, true);
     OH_Drawing_CanvasDrawRect(canvas_, rect);
     OH_Drawing_RectDestroy(rect);
