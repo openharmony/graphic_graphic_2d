@@ -84,7 +84,6 @@ private:
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
-    void ReportFrameToRSS();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
