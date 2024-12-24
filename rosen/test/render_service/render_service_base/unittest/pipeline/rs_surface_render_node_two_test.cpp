@@ -990,5 +990,28 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, GetAbilityState, TestSize.Level1)
     abilityState = node->GetAbilityState();
     ASSERT_FALSE(abilityState == RSSurfaceNodeAbilityState::FOREGROUND);
 }
+
+/**
+ * @tc.name: ChildrenBlurBehindWindowTest
+ * @tc.desc: Test ChildrenBlurBehindWindow and NeedUpdateDrawableBehindWindow
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSSurfaceRenderNodeTwoTest, ChildrenBlurBehindWindowTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    NodeId idOne = 1;
+    NodeId idTwo = 2;
+    node->AddChildBlurBehindWindow(idOne);
+    ASSERT_TRUE(!node->childrenBlurBehindWindow_.empty());
+    ASSERT_TRUE(node->NeedUpdateDrawableBehindWindow());
+    ASSERT_TRUE(node->GetMutableRenderProperties().GetNeedDrawBehindWindow());
+    ASSERT_TRUE(node->NeedDrawBehindWindow());
+    node->RemoveChildBlurBehindWindow(idTwo);
+    ASSERT_TRUE(node->NeedDrawBehindWindow());
+    node->RemoveChildBlurBehindWindow(idOne);
+    ASSERT_FALSE(node->NeedDrawBehindWindow());
+}
 } // namespace Rosen
 } // namespace OHOS

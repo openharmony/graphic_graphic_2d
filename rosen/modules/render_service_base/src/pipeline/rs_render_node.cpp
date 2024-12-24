@@ -2023,7 +2023,8 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
         GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter() && !filterRegion_.IsInsideOf(lastFilterRegion_)) {
+    if ((properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) &&
+        !filterRegion_.IsInsideOf(lastFilterRegion_)) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             if (!IsForceClearOrUseFilterCache(filterDrawable)) {
@@ -2067,7 +2068,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
         return;
     }
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter()) {
+    if (properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
@@ -2432,6 +2433,11 @@ void RSRenderNode::ApplyModifiers()
     OnApplyModifiers();
     MarkForegroundFilterCache();
     UpdateShouldPaint();
+
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT_TYPE))) {
+        ProcessBehindWindowAfterApplyModifiers();
+    }
 
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
         !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
@@ -3366,6 +3372,12 @@ void RSRenderNode::OnTreeStateChanged()
         drawCmdListNeedSync_ = true;
         uifirstNeedSync_ = true;
         AddToPendingSyncList();
+    }
+    auto& properties = GetMutableRenderProperties();
+    bool useEffect = properties.GetUseEffect();
+    UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
+    if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
+        ProcessBehindWindowOnTreeStateChanged();
     }
 }
 
@@ -4364,5 +4376,38 @@ void SharedTransitionParam::InternalUnregisterSelf()
     }
 }
 
+void RSRenderNode::ProcessBehindWindowOnTreeStateChanged()
+{
+    auto rootNode = GetInstanceRootNode();
+    if (!rootNode) {
+        return;
+    }
+    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowOnTreeStateChanged nodeId = %{public}" PRIu64
+        ", isOnTheTree_ = %{public}d", GetId(), isOnTheTree_);
+    if (isOnTheTree_) {
+        rootNode->AddChildBlurBehindWindow(GetId());
+    } else {
+        rootNode->RemoveChildBlurBehindWindow(GetId());
+    }
+}
+
+void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
+{
+    auto rootNode = GetInstanceRootNode();
+    if (!rootNode) {
+        return;
+    }
+    auto& properties = GetMutableRenderProperties();
+    bool useEffect = properties.GetUseEffect();
+    UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
+    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowAfterApplyModifiers nodeId = %{public}" PRIu64
+        ", isOnTheTree_ = %{public}d, useEffect = %{public}d, useEffectType = %{public}hd",
+        GetId(), isOnTheTree_, useEffect, useEffectType);
+    if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
+        rootNode->AddChildBlurBehindWindow(GetId());
+    } else {
+        rootNode->RemoveChildBlurBehindWindow(GetId());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
