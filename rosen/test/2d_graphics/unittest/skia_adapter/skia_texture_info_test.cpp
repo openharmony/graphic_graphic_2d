@@ -61,7 +61,8 @@ HWTEST_F(SkiaTextureInfoTest, ConvertToGrSurfaceOrigin001, TestSize.Level1)
 HWTEST_F(SkiaTextureInfoTest, ConvertToGrBackendVKTexture001, TestSize.Level1)
 {
     TextureInfo info;
-    SkiaTextureInfo::ConvertToGrBackendVKTexture(info);
+    GrBackendTexture texture = SkiaTextureInfo::ConvertToGrBackendVKTexture(info);
+    EXPECT_EQ(texture.width(), 0);
 }
 #endif
 
