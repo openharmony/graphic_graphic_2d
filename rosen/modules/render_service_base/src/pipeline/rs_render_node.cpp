@@ -4314,6 +4314,11 @@ void RSRenderNode::UpdateRenderParams()
 #endif
 }
 
+void RSRenderNode::SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_)
+{
+    stagingRenderParams_->SetCrossNodeOffScreenStatus(isCrossNodeOffscreenOn_);
+}
+
 bool RSRenderNode::UpdateLocalDrawRect()
 {
 #ifdef RS_ENABLE_GPU

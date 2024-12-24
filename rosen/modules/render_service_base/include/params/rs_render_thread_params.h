@@ -125,7 +125,7 @@ public:
         isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
     }
 
-    CrossNodeOffScreenRenderDebugType GetCrossNodeOffscreenDebugEnabled() const
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
     {
         return isCrossNodeOffscreenOn_;
     }
