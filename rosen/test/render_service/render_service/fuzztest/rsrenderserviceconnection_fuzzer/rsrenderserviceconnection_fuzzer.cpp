@@ -25,6 +25,7 @@
 #include <unordered_map>
 
 #include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "iremote_object.h"

@@ -20,6 +20,7 @@
 #include "wm/window.h"
 
 #include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "render/rs_border.h"

@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
 #include "surface.h"

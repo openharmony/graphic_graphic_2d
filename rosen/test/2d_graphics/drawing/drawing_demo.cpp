@@ -17,6 +17,7 @@
 #include <sstream>
 
 #include "accesstoken_kit.h"
+#include "nativetoken_kit.h"
 #include "display_manager.h"
 #include "test_case_factory.h"
 #include "test_case/test_common.h"
