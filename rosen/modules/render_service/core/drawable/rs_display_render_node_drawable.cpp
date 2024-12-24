@@ -383,7 +383,9 @@ void RSDisplayRenderNodeDrawable::RenderOverDraw()
 bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
     RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor)
 {
-    if (params.HasChildCrossNode() && !params.IsMirrorScreen()) {
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (params.HasChildCrossNode() && !params.IsMirrorScreen() &&
+        uniParam->GetCrossNodeOffScreenStatus() != CrossNodeOffScreenRenderDebugType::DISABLED) {
         return false;
     }
     if (GetSyncDirtyManager()->IsCurrentFrameDirty() ||

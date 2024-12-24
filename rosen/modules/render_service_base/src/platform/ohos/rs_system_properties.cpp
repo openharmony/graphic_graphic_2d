@@ -723,7 +723,7 @@ bool RSSystemProperties::GetCacheOptimizeRotateEnable()
     return debugEnable;
 }
 
-CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffscreenDebugEnabled()
+CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffScreenStatus()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.crossnode.offscreen.render.enabled", "1");
     int chanded = 0;
