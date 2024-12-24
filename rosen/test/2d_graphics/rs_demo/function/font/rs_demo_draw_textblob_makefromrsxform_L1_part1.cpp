@@ -958,4 +958,984 @@ DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 118)
     DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
     -5, 2, Drawing::TextEncoding::UTF16, "111111111111111111111111111111111".c_str());
 }
+//对应用例makefromrsxform_3119
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 119)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 2, Drawing::TextEncoding::UTF32, "111111111111111111111111111111111".c_str());
+}
 
+//对应用例makefromrsxform_3120
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 120)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 2, Drawing::TextEncoding::GLYPH_ID, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3121
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 121)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 3, Drawing::TextEncoding::UTF8, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3122
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 122)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 3, Drawing::TextEncoding::UTF16, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3123
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 123)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 3, Drawing::TextEncoding::UTF32, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3124
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 124)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 3, Drawing::TextEncoding::GLYPH_ID, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3125
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 125)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 4, Drawing::TextEncoding::UTF8, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3126
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 126)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 4, Drawing::TextEncoding::UTF16, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3127
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 127)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 4, Drawing::TextEncoding::UTF32, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3128
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 128)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "111111111111111111111111111111111",
+    -5, 4, Drawing::TextEncoding::GLYPH_ID, "111111111111111111111111111111111".c_str());
+}
+
+//对应用例makefromrsxform_3129
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 129)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 1, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3130
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 130)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 1, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3131
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 131)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 1, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3132
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 132)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 1, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3133
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 133)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 2, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3134
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 134)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 2, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3135
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 135)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 2, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3136
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 136)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 2, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3137
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 137)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 3, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3138
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 138)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 3, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3139
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 139)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 3, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3140
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 140)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 3, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3141
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 141)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 4, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3142
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 142)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 4, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3143
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 143)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 4, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3144
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 144)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size(), 4, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3145
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 145)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 1, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3146
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 146)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 1, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3147
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 147)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 1, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3148
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 148)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 1, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3149
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 149)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 2, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3150
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 150)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 2, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3151
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 151)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 2, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3152
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 152)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 2, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3153
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 153)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 3, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3154
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 154)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 3, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3155
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 155)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 3, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3156
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 156)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 3, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3157
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 157)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 4, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3158
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 158)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 4, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3159
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 159)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 4, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3160
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 160)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    "harmony_os".size()+1, 4, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3161
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 161)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 1, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3162
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 162)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 1, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3163
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 163)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 1, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3164
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 164)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 1, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3165
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 165)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 2, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3166
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 166)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 2, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3167
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 167)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 2, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3168
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 168)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 2, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3169
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 169)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 3, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3170
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 170)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 3, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3171
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 171)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 3, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3172
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 172)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 3, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3173
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 173)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 4, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3174
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 174)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 4, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3175
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 175)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 4, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3176
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 176)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    0, 4, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3177
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 177)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 1, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3178
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 178)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 1, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3179
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 179)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 1, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3180
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 180)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 1, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3181
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 181)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 2, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3182
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 182)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 2, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3183
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 183)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 2, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3184
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 184)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 2, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3185
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 185)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 3, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3186
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 186)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 3, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3187
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 187)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 3, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3188
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 188)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 3, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3189
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 189)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 4, Drawing::TextEncoding::UTF8, nullptr);
+}
+
+//对应用例makefromrsxform_3190
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 190)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 4, Drawing::TextEncoding::UTF16, nullptr);
+}
+
+//对应用例makefromrsxform_3191
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 191)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 4, Drawing::TextEncoding::UTF32, nullptr);
+}
+
+//对应用例makefromrsxform_3192
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 192)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HarmonyOS Sans SC", "harmony_os",
+    -5, 4, Drawing::TextEncoding::GLYPH_ID, nullptr);
+}
+
+//对应用例makefromrsxform_3193
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 193)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 1,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3194
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 194)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 1,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3195
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 195)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 1,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3196
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 196)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 1,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3197
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 197)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 2,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3198
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 198)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 2,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3199
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 199)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 2,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3200
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 200)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 2,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3201
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 201)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 3,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3202
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 202)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 3,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3203
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 203)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 3,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3204
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 204)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 3,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3205
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 205)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 4,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3206
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 206)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 4,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3207
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 207)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 4,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3208
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 208)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size(), 4,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3209
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 209)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 1,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3210
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 210)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 1,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3211
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 211)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 1,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3212
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 212)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 1,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3213
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 213)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 2,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3214
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 214)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 2,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3215
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 215)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 2,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3216
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 216)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 2,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3217
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 217)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 3,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3218
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 218)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 3,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3219
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 219)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 3,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3220
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 220)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 3,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3221
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 221)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 4,
+    Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3222
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 222)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 4,
+    Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3223
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 223)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 4,
+    Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3224
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 224)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".size()+1, 4,
+    Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3225
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 225)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 1, Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3226
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 226)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 1, Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3227
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 227)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 1, Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3228
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 228)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 1, Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3229
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 229)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 2, Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3230
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 230)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 2, Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3231
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 231)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 2, Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3232
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 232)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 2, Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3233
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 233)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 3, Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3234
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 234)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 3, Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3235
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 235)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 3, Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3236
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 236)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 3, Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3237
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 237)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 4, Drawing::TextEncoding::UTF8,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3238
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 238)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 4, Drawing::TextEncoding::UTF16,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3239
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 239)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 4, Drawing::TextEncoding::UTF32,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
+
+//对应用例makefromrsxform_3240
+DEF_RSDEMO(textblob_makefromrsxform, TestLevel::L1, 240)
+{
+    DrawTexts(infoTextBlob, playbackCanvas_, "HMOS Color Emoji",
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99",
+    0, 4, Drawing::TextEncoding::GLYPH_ID,
+    "\xE2\x99\x88\xE2\x99\x89\xE2\x99\x8A\xE2\x99\x8B\xE2\x99\x89\xE2\x99\x8A\xE2\x99".c_str());
+}
