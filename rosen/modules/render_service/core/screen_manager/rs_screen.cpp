@@ -283,7 +283,7 @@ bool RSScreen::IsVirtual() const
     return isVirtual_;
 }
 
-void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo activeMode)
+void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
 {
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr != nullptr && frameRateMgr->IsLtpo()) {
