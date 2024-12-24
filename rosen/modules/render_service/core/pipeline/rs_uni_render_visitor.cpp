@@ -2544,7 +2544,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         if (geoPtr == nullptr) {
             return;
         }
-        auto matrix = geoPtr->GetMatrix();
+        auto originalMatrix = geoPtr->GetMatrix();
+        auto matrix = Drawing::Matrix();
         auto parent = hwcNodePtr->GetParent().lock();
         bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
         while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
@@ -2569,7 +2570,10 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             }
         }
         auto surfaceHandler = hwcNodePtr->GetMutableRSSurfaceHandler();
-        const auto& properties = hwcNodePtr->GetRenderProperties();
+        auto& properties = hwcNodePtr->GetMutableRenderProperties();
+        auto offset = std::nullopt;
+        properties.UpdateGeometryByParent(&matrix, offset);
+        matrix.PreConcat(originalMatrix);
         Drawing::Rect bounds = Drawing::Rect(0, 0, properties.GetBoundsWidth(), properties.GetBoundsHeight());
         Drawing::Rect absRect;
         matrix.MapRect(absRect, bounds);
@@ -2713,7 +2717,11 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
 {
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (auto filter = cleanFilter.begin(); filter != cleanFilter.end(); ++filter) {
-        if (hwcNodePtr.GetDstRect().Intersect(filter->second)) {
+        auto geo = hwcNodePtr.GetRenderProperties().GetBoundsGeometry();
+        if (!geo) {
+            return;
+        }
+        if (!geo->GetAbsRect().IntersectRect(filter->second).IsEmpty()) {
             auto& rendernode = nodeMap.GetRenderNode<RSRenderNode>(filter->first);
             if (rendernode == nullptr) {
                 ROSEN_LOGD("RSUniRenderVisitor::UpdateHwcNodeByFilter: rendernode is null");
