@@ -17,6 +17,7 @@
 
 namespace {
 constexpr float HDR_DEFAULT_TMO_NIT = 1000.0f;
+constexpr float HDR_DEFAULT_SCALER = 1000.0f / 203.0f;
 }
 
 namespace OHOS {
@@ -90,6 +91,16 @@ float RSLuminanceControl::GetDisplayNits(ScreenId screenId)
 double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int mode)
 {
     return 1.0; // 1.0 refers to default value, no need to process.
+}
+
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel)
+{
+    return HDR_DEFAULT_SCALER;
+}
+
+bool RSLuminanceControl::IsHdrPictureOn()
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS
