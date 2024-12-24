@@ -3696,8 +3696,8 @@ void RSRenderNode::UpdateCompletedCacheSurface()
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
     }
 #endif
@@ -3716,16 +3716,16 @@ void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = nullptr;
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         cacheCleanupHelper_ = nullptr;
     }
 #endif
     if (isClearCompletedCacheSurface) {
         cacheCompletedSurface_ = nullptr;
 #ifdef RS_ENABLE_VK
-        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             cacheCompletedCleanupHelper_ = nullptr;
         }
 #endif
