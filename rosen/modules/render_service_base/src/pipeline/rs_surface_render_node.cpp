@@ -1723,6 +1723,10 @@ void RSSurfaceRenderNode::CheckHwcChildrenType(SurfaceHwcNodeType& enabledType)
         if (hwcNodes.empty()) {
             return;
         }
+        if (IsSubHighPriorityType()) {
+            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+            return;
+        }
         if (IsRosenWeb()) {
             enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
             return;
@@ -1736,7 +1740,10 @@ void RSSurfaceRenderNode::CheckHwcChildrenType(SurfaceHwcNodeType& enabledType)
                 enabledType = SurfaceHwcNodeType::DEFAULT_HWC_ROSENWEB;
                 return;
             }
-            enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+            if (hwcNodePtr->IsSubHighPriorityType()) {
+                enabledType = SurfaceHwcNodeType::DEFAULT_HWC_VIDEO;
+                return;
+            }
         }
     } else if (IsLeashWindow()) {
         for (auto& child : *GetChildren()) {

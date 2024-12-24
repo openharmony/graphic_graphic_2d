@@ -103,6 +103,11 @@ public:
         return GetName().find("RosenWeb") != std::string::npos;
     }
 
+    bool IsSubHighPriorityType() const
+    {
+        return GetName().find("hipreview") != std::string::npos;
+    }
+
     bool IsScbScreen() const
     {
         return nodeType_ == RSSurfaceNodeType::SCB_SCREEN_NODE;
