@@ -42,8 +42,10 @@ constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
-    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string &componentName) {
-        HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
+    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string& componentName) {
+        if (isAnimationEnergyConsumptionAssuranceMode_) {
+            HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
+        }
     });
     RsCommonHook::Instance().SetComponentPowerFpsFunc(
         std::bind(&HgmEnergyConsumptionPolicy::GetComponentFps, this, std::placeholders::_1));
