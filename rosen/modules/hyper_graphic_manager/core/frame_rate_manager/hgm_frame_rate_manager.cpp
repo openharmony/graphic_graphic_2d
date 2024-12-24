@@ -55,6 +55,7 @@ namespace {
     constexpr uint64_t BUFFER_IDLE_TIME_OUT = 200000000; // 200ms
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
     const static std::string LOW_BRIGHT = "LowBright";
+    const static std::string STYLUS_PEN = "StylusPen";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -77,6 +78,14 @@ namespace {
 
     constexpr int ADAPTIVE_SYNC_PROPERTY = 3;
     constexpr int DISPLAY_SUCCESS = 1;
+
+    constexpr int32_t STYLUS_NO_LINK = 0;
+    constexpr int32_t STYLUS_LINK_UNUSED = 1;
+    constexpr int32_t STYLUS_LINK_WRITE = 2;
+    const std::unordered_map<std::string, int32_t> STYLUS_STATUS_MAP = {
+        {"STYLUS_NO_LINK", STYLUS_NO_LINK},
+        {"STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED},
+        {"STYLUS_LINK_WRITE", STYLUS_LINK_WRITE}};
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -119,6 +128,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         }
         multiAppStrategy_.UpdateXmlConfigCache();
         GetLowBrightVec(configData);
+        GetStylusVec(configData);
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -615,6 +625,31 @@ void HgmFrameRateManager::GetLowBrightVec(const std::shared_ptr<PolicyConfigData
     multiAppStrategy_.HandleLowAmbientStatus(isAmbientEffect_);
 }
 
+void HgmFrameRateManager::GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (!configData) {
+        return;
+    }
+ 
+    // refresh rate for stylus pen
+    if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
+        return;
+    }
+    auto supportedModeConfig = configData->supportedModeConfigs_[curScreenStrategyId_];
+    auto iter = supportedModeConfig.find(STYLUS_PEN);
+    if (iter == supportedModeConfig.end() || iter->second.empty()) {
+        return;
+    }
+    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
+    stylusVec_.clear();
+    for (auto rate : iter->second) {
+        auto it = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), rate);
+        if (it != supportRefreshRateVec.end()) {
+            stylusVec_.push_back(rate);
+        }
+    }
+}
+
 uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const
 {
     // Find current refreshRate by FrameRateRange. For example:
@@ -624,8 +659,12 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     // of current screen are {30, 60, 90}, the result will be 90.
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
+    bool stylusFlag = (stylusMode_ == STYLUS_LINK_WRITE && !stylusVec_.empty());
     if (isAmbientSafe_ && isAmbientEffect_) {
         supportRefreshRateVec = lowBrightVec_;
+    } else if (stylusFlag) {
+        supportRefreshRateVec = stylusVec_;
+        HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
     } else {
         supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
     }
@@ -636,6 +675,9 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
         refreshRate = *iter;
+        if (stylusFlag) {
+            return refreshRate;
+        }
         if (refreshRate > static_cast<uint32_t>(range.max_) &&
             (iter - supportRefreshRateVec.begin()) > 0) {
             iter--;
@@ -953,6 +995,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
     multiAppStrategy_.UpdateXmlConfigCache();
     GetLowBrightVec(configData);
+    GetStylusVec(configData);
     UpdateEnergyConsumptionConfig();
 
     multiAppStrategy_.CalcVote();
@@ -1000,6 +1043,12 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     auto screenSetting = multiAppStrategy_.GetScreenSetting();
     auto &gameSceneList = screenSetting.gameSceneList;
     auto &ancoSceneList = screenSetting.ancoSceneList;
+
+    // control the list of supported frame rates for stylus pen, not control frame rate directly
+    if (STYLUS_STATUS_MAP.find(sceneName) != STYLUS_STATUS_MAP.end()) {
+        stylusMode_ = STYLUS_STATUS_MAP.at(sceneName);
+        return;
+    }
 
     if (gameSceneList.find(sceneName) != gameSceneList.end()) {
         if (eventInfo.eventStatus == ADD_VOTE) {
