@@ -503,27 +503,6 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
     frameRateMgr.SetAceAnimatorVote(linker);
 }
 
-
-/**
- * @tc.name: HgmOneShotTimerTest
- * @tc.desc: Verify the result of HgmOneShotTimerTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
-{
-    auto timer = HgmOneShotTimer("HgmOneShotTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
-    ASSERT_NE(timer.handler_, nullptr);
-    ASSERT_EQ(timer.name_, "HgmOneShotTimer");
-    ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
-    ASSERT_EQ(timer.resetCallback_, nullptr);
-    ASSERT_EQ(timer.expiredCallback_, nullptr);
-    timer.Start();
-    timer.Reset();
-    timer.Stop();
-    sleep(1); // wait for timer stop
-}
-
 /**
  * @tc.name: HgmSimpleTimerTest
  * @tc.desc: Verify the result of HgmSimpleTimerTest

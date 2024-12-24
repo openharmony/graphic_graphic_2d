@@ -21,8 +21,13 @@ module_output_path = "graphic_2d/rosen/modules/hyper_graphic_manager"
 ohos_fuzztest("RSFrameRateVoteFuzzTest") {
   module_out_path = module_output_path
 
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+  ]
   cflags = [
     "-g",
     "-O0",

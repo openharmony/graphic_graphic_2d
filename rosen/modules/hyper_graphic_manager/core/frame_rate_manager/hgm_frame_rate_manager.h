@@ -16,7 +16,6 @@
 #ifndef HGM_FRAME_RATE_MANAGER_H
 #define HGM_FRAME_RATE_MANAGER_H
 
-#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -91,14 +90,14 @@ struct VoteInfo {
 
     std::string ToString(uint64_t timestamp) const
     {
-        std::stringstream str;
-        str << "VOTER_NAME:" << voterName << ";";
-        str << "PREFERRED:" << max << ";";
-        str << "EXT_INFO:" << extInfo << ";";
-        str << "PID:" << pid << ";";
-        str << "BUNDLE_NAME:" << bundleName << ";";
-        str << "TIMESTAMP:" << timestamp << ".";
-        return str.str();
+        char buf[STRING_BUFFER_MAX_SIZE] = {0};
+        int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
+            "VOTER_NAME:%s;PREFERRED:%u;EXT_INFO:%s;PID:%d;BUNDLE_NAME:%s;TIMESTAMP:%lu.",
+            voterName.c_str(), max, extInfo.c_str(), pid, bundleName.c_str(), timestamp);
+        if (len <= 0) {
+            HGM_LOGE("failed to execute snprintf.");
+        }
+        return buf;
     }
 
     std::string ToSimpleString() const

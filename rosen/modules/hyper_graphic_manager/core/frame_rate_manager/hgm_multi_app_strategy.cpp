@@ -157,11 +157,6 @@ HgmErrCode HgmMultiAppStrategy::GetVoteRes(PolicyConfigData::StrategyConfig& str
     return voteRes_.first;
 }
 
-void HgmMultiAppStrategy::RegisterStrategyChangeCallback(const StrategyChangeCallback& callback)
-{
-    strategyChangeCallbacks_.emplace_back(callback);
-}
-
 bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 {
     auto configData = HgmCore::Instance().GetPolicyConfigData();
@@ -196,26 +191,6 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
 {
     auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.empty() ? "" : pkgs_.front());
     return GetAppStrategyConfig(pkgName, strategyRes);
-}
-
-std::unordered_map<std::string, std::pair<pid_t, int32_t>> HgmMultiAppStrategy::GetPidAppType() const
-{
-    return pidAppTypeMap_;
-}
-
-std::unordered_map<pid_t, std::pair<int32_t, std::string>> HgmMultiAppStrategy::GetForegroundPidApp() const
-{
-    return foregroundPidAppMap_;
-}
-
-HgmLRUCache<pid_t> HgmMultiAppStrategy::GetBackgroundPid() const
-{
-    return backgroundPid_;
-}
-
-std::vector<std::string> HgmMultiAppStrategy::GetPackages() const
-{
-    return pkgs_;
 }
 
 void HgmMultiAppStrategy::CleanApp(pid_t pid)
@@ -253,26 +228,6 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     }
 
     screenSettingCache_ = screenConfig[curRefreshRateMode];
-}
-
-PolicyConfigData::ScreenSetting HgmMultiAppStrategy::GetScreenSetting() const
-{
-    return screenSettingCache_;
-}
-
-void HgmMultiAppStrategy::SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting)
-{
-    screenSettingCache_ = screenSetting;
-}
-
-PolicyConfigData::StrategyConfigMap HgmMultiAppStrategy::GetStrategyConfigs() const
-{
-    return strategyConfigMapCache_;
-}
-
-void HgmMultiAppStrategy::SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs)
-{
-    strategyConfigMapCache_ = strategyConfigs;
 }
 
 HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
