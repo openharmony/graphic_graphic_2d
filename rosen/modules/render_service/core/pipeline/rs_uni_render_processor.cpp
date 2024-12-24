@@ -204,6 +204,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRe
         if (layer->GetZorder() > 0) {
             solidColorLayer->SetZorder(layer->GetZorder() - 1);
         }
+        solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
         auto dstRect = params.layerInfo_.dstRect;
         GraphicIRect layerRect = {dstRect.x, dstRect.y, dstRect.w, dstRect.h};
         solidColorLayer->SetLayerSize(layerRect);
