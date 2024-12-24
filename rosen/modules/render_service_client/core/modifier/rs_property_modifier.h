@@ -68,6 +68,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSPositionZApplicableCamera3DModifier : public RSGeometryModifier {
+public:
+    explicit RSPositionZApplicableCamera3DModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSPositionZApplicableCamera3DModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSSandBoxModifier : public RSGeometryModifier {
 public:
     explicit RSSandBoxModifier(const std::shared_ptr<RSPropertyBase>& property);
