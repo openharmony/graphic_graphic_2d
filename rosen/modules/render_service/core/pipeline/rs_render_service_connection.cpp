@@ -929,12 +929,12 @@ void RSRenderServiceConnection::RepaintEverything()
     if (mainThread_ == nullptr) {
         RS_LOGE("RepaintEverything, mainThread_ is null, return");
     }
-    auto captureTask = []() -> void {
+    auto task = []() -> void {
         RS_LOGI("RepaintEverything, setDirtyflag, forceRefresh in mainThread");
         RSMainThread::Instance()->SetDirtyFlag();
         RSMainThread::Instance()->ForceRefreshForUni();
     };
-    mainThread_->PostTask(captureTask);
+    mainThread_->PostTask(task);
 }
 
 void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
