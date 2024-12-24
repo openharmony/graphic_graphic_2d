@@ -1824,6 +1824,11 @@ void RSDisplayRenderNodeDrawable::PrepareOffscreenRender(const RSDisplayRenderNo
         } else {
             maxRenderSize =
                 static_cast<int32_t>(std::max(params->GetScreenInfo().width, params->GetScreenInfo().height));
+            if (offscreenSurface_ != nullptr
+                && maxRenderSize != std::max(offscreenSurface_->Width(), offscreenSurface_->Height())) {
+                RS_TRACE_NAME("offscreen surface's max size has changed");
+                offscreenSurface_ = nullptr;
+            }
         }
         offscreenWidth = maxRenderSize;
         offscreenHeight = maxRenderSize;
