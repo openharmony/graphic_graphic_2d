@@ -176,7 +176,7 @@ bool BootCompileProgress::RegisterVsyncCallback()
 
 bool BootCompileProgress::WaitBmsStartIfNeeded()
 {
-    if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT)) {
+    if (WaitParameter(BMS_COMPILE_STATUS, BMS_COMPILE_STATUS_BEGIN.c_str(), WAITING_BMS_TIMEOUT) != 0) {
         LOGE("waiting bms start oat compile failed.");
         return false;
     }
@@ -199,7 +199,10 @@ void BootCompileProgress::DrawCompileProgress()
 
     auto canvas = static_cast<Rosen::Drawing::RecordingCanvas*>(
         rsCanvasNode_->BeginRecording(windowWidth_, windowHeight_ * HEIGHT_PERCENT));
-
+    if (canvas == nullptr) {
+        LOGE("DrawCompileProgress canvas is null");
+        return;
+    }
     Rosen::Drawing::Font font;
     font.SetTypeface(tf_);
     font.SetSize(fontSize_);
@@ -216,8 +219,8 @@ void BootCompileProgress::DrawCompileProgress()
     whiteBrush.SetAntiAlias(true);
     canvas->AttachBrush(whiteBrush);
 
-    double scale = 0.5;
-    float scalarX = windowWidth_ * scale - textBlob->Bounds()->GetWidth() / NUMBER_TWO;
+    auto textWidth = font.MeasureText(info, strlen(info), Rosen::Drawing::TextEncoding::UTF8, nullptr);
+    float scalarX = windowWidth_ / NUMBER_TWO - textWidth / NUMBER_TWO;
     float scalarY = TEXT_BLOB_OFFSET + textBlob->Bounds()->GetHeight() / NUMBER_TWO;
     canvas->DrawTextBlob(textBlob.get(), scalarX, scalarY);
     canvas->DetachBrush();
