@@ -720,8 +720,11 @@ public:
         return context_;
     }
 
-    // arkui mark uifirst
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -822,6 +825,8 @@ protected:
     bool srcOrClipedAbsDrawRectChangeFlag_ = false;
     bool startingWindowFlag_ = false;
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
     int isUifirstDelay_ = 0;
     bool lastFrameHasAnimation_ = false;
 
