@@ -76,9 +76,8 @@ RSUIDirector::~RSUIDirector()
 void RSUIDirector::Init(bool shouldCreateRenderThread)
 {
     AnimationCommandHelper::SetAnimationCallbackProcessor(AnimationCallbackProcessor);
-    std::call_once(g_initDumpNodeTreeProcessorFlag, [this] () {
-        RSNodeCommandHelper::SetDumpNodeTreeProcessor(std::bind(&RSUIDirector::DumpNodeTreeProcessor, this,
-            std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    std::call_once(g_initDumpNodeTreeProcessorFlag, [] () {
+        RSNodeCommandHelper::SetDumpNodeTreeProcessor(RSUIDirector::DumpNodeTreeProcessor);
     });
 
     isUniRenderEnabled_ = RSSystemProperties::GetUniRenderEnabled();
@@ -459,8 +458,19 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
-    out.append("transactionFlags:[ ").append(std::to_string(pid).append(", ")
-        .append(std::to_string(index_)).append("]\r"));
+    // use for dump transactionFlags [pid,index] in client tree dump
+    int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
+    {
+        std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+        for (const auto &[director, taskRunner] : g_uiTaskRunners) {
+            if (director->instanceId_ == instanceId) {
+                out.append("transactionFlags:[ ").append(std::to_string(pid).append(", ")
+                    .append(std::to_string(director->index_)).append("]\r"));
+                break;
+            }
+        }
+    }
+
     if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);
