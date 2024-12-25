@@ -60,6 +60,19 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     return surface->GetImageSnapshot();
 }
 
+RSDisplayRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, RSDisplayNodeConfig config)
+{
+    std::shared_ptr<RSDisplayRenderNode> renderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    if (!renderNode) {
+        return nullptr;
+    }
+    RSRenderNodeDrawableAdapter* displayAdapter = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
+    if (!displayAdapter) {
+        return nullptr;
+    }
+    return static_cast<RSDisplayRenderNodeDrawable*>(displayAdapter);
+}
+
 void RSUniRenderUtilTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
@@ -2453,5 +2466,106 @@ HWTEST_F(RSUniRenderUtilTest, MultiLayersPerf, TestSize.Level1)
         num++;
     }
     EXPECT_TRUE(num == total);
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryForDrawable001
+ * @tc.desc: test results of MergeDirtyHistoryForDrawable if surface drawable invalid
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    bool aligned = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryForDrawable002
+ * @tc.desc: test results of MergeDirtyHistoryForDrawable if app drawable is first-cross node or not
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable002, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    bool aligned = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters;
+
+    NodeId defaultSurfaceId = 10;
+    // normal appwindow
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId++);
+    renderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    // cross appwindow but not first visited
+    renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    renderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(surfaceAdapter, nullptr);
+    surfaceAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
+    surfaceAdapter->renderParams_->isFirstLevelCrossNode_ = true;
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryForDrawable003
+ * @tc.desc: test results of MergeDirtyHistoryForDrawable if app drawable first visited within first cross display
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = true;
+    bool aligned = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters;
+
+    NodeId defaultSurfaceId = 10;
+    // cross appwindow
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    renderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(surfaceAdapter, nullptr);
+    surfaceAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
+    surfaceAdapter->renderParams_->isFirstLevelCrossNode_ = true;
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
 }
 } // namespace OHOS::Rosen
