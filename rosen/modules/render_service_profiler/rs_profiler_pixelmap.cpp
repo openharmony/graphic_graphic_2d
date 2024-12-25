@@ -118,13 +118,14 @@ bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, Pixel
         return false;
     }
 
-    memory.base = new uint8_t[memory.bufferSize];
+    memory.allocatorType = AllocatorType::HEAP_ALLOC;
+    memory.base = reinterpret_cast<uint8_t*>(malloc(memory.bufferSize));
     if (!memory.base) {
         return false;
     }
 
     if (!CopyImageData(image, memory.base, memory.bufferSize)) {
-        delete[] memory.base;
+        free(memory.base);
         memory.base = nullptr;
         return false;
     }
