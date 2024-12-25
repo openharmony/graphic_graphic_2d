@@ -295,7 +295,6 @@ public:
     static int GetRSNodeLimit();
     static std::string GetVersionType();
     static bool GetHwcDirtyRegionEnabled();
-    static bool GetDisableHebcEnabled();
 private:
     RSSystemProperties() = default;
 
