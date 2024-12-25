@@ -48,6 +48,7 @@ void RSOffscreenRenderThreadTest::DisplayTestInfo()
 HWTEST_F(RSOffscreenRenderThreadTest, Stop001, TestSize.Level1)
 {
     auto task = RSOffscreenRenderThreadTest::DisplayTestInfo;
+    ASSERT_EQ(RSOffscreenRenderThread::Instance().GetCaptureTask(0), nullptr);
     RSOffscreenRenderThread::Instance().PostTask(task);
 }
 
