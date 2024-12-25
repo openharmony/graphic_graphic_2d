@@ -246,8 +246,7 @@ bool RSCanvasDrawingRenderNode::ResetSurface(int width, int height, RSPaintFilte
     auto gpuContext = canvas.GetGPUContext();
     isGpuSurface_ = true;
     if (gpuContext == nullptr) {
-        RS_LOGW("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr, imagesize:[%{public}d, %{public}d],"
-                "id: %{public}" PRIu64"", width, height, GetId());
+        RS_LOGD("RSCanvasDrawingRenderNode::ResetSurface: gpuContext is nullptr");
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
     } else {
@@ -503,9 +502,11 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
         // too many drawOp, so we need to add the limit of drawcmdlists.
         while ((GetOldDirtyInSurface().IsEmpty() || !IsDirty() || renderDrawable_) &&
             drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
-            RS_LOGD("This Node[%{public}" PRIu64 "] with Modifier[%{public}hd] have drawcmdlist:%{public}zu", GetId(),
-                type, drawCmdLists_[type].size());
             drawCmdLists_[type].pop_front();
+        }
+        if (drawCmdLists_[type].size() > DRAWCMDLIST_COUNT_LIMIT) {
+            RS_LOGE("drawcmdlist Error, This Node[%{public}" PRIu64 "] with Modifier[%{public}hd]"
+                    " have drawcmdlist:%{public}zu", GetId(), type, drawCmdLists_[type].size());
         }
     }
 }
