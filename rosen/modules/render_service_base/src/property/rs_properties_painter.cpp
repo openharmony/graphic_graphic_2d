@@ -577,6 +577,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (RSFilter == nullptr) {
         return;
     }
+
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + RSFilter->GetDescription());
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s", filterType,
         RSFilter->GetDetailedDescription().c_str(), properties.GetBoundsGeometry()->GetAbsRect().ToString().c_str());
@@ -591,6 +592,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         brush.SetAntiAlias(true);
         Drawing::Filter filterForBrush;
         auto imageFilter = filter->GetImageFilter();
+        // Since using Kawase blur (shader) in the screenshot scene would lead to failure,
+        // a Gaussian blur filter (imageFilter) is regenerated here instead.
         std::shared_ptr<RSShaderFilter> kawaseShaderFilter =
             filter->GetShaderFilterWithType(RSShaderFilter::KAWASE);
         if (kawaseShaderFilter != nullptr) {
@@ -632,7 +635,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
     if (auto& cacheManager = properties.GetFilterCacheManager(filterType == FilterType::FOREGROUND_FILTER);
         cacheManager != nullptr && !canvas.GetDisableFilterCache()) {
         std::shared_ptr<RSShaderFilter> rsShaderFilter =
-        filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
+            filter->GetShaderFilterWithType(RSShaderFilter::LINEAR_GRADIENT_BLUR);
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
@@ -640,7 +643,7 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         }
         // RSFilterCacheManger has no more logic for evaluating filtered snapshot clearing
         // Should be passed as secnod argument, if required (see RSPropertyDrawableUtils::DrewFiler())
-        cacheManager->DrawFilter(canvas, filter, {RSFilter->NeedSnapshotOutset(), false });
+        cacheManager->DrawFilter(canvas, filter, { false, false });
         return;
     }
 #endif
@@ -860,7 +863,7 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
     auto scaledBounds = RectF(boundsRect.left_ - pixelStretch->x_, boundsRect.top_ - pixelStretch->y_,
         boundsRect.width_ + pixelStretch->x_ + pixelStretch->z_,
         boundsRect.height_ + pixelStretch->y_ + pixelStretch->w_);
-    auto& geoPtr = properties.GetBoundsGeometry();
+    auto geoPtr = properties.GetBoundsGeometry();
     Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
     auto drawingRect = Rect2DrawingRect(scaledBounds);
     matrix.MapRect(drawingRect, drawingRect);
@@ -883,7 +886,7 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
         return;
     }
     float dirtyExtension =
-        std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
+                std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
     auto boundsRect = properties.GetBoundsRect();
     auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
     auto& geoPtr = properties.GetBoundsGeometry();
@@ -1147,7 +1150,7 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPropertiesPainter::GetPh
         return phongShaderBuilder;
     }
     std::shared_ptr<Drawing::RuntimeEffect> lightEffect_;
-    std::string lightString(R"(
+    const static std::string lightString(R"(
         uniform vec4 lightPos[12];
         uniform vec4 viewPos[12];
         uniform vec4 specularLightColor[12];
@@ -1721,7 +1724,6 @@ std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeLightUpEffectSha
     return Drawing::ShaderEffect::CreateLightUp(lightUpDeg, *imageShader);
 }
 
-
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawDynamicLightUp, rate: %f, degree: %f, bounds: %s",
@@ -1759,12 +1761,10 @@ std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeDynamicLightUpBlender
     if (dynamicLightUpBlenderEffect_ == nullptr) {
         dynamicLightUpBlenderEffect_ = Drawing::RuntimeEffect::CreateForBlender(prog);
         if (dynamicLightUpBlenderEffect_ == nullptr) {
-            ROSEN_LOGE("MakeDynamicLightUpBlender::MakeDynamicLightUpBlender effect error!\n");
             return nullptr;
         }
     }
-    std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder =
-        std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicLightUpBlenderEffect_);
+    auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(dynamicLightUpBlenderEffect_);
     builder->SetUniform("dynamicLightUpRate", dynamicLightUpRate);
     builder->SetUniform("dynamicLightUpDeg", dynamicLightUpDeg);
     return builder->MakeBlender();
@@ -1858,7 +1858,7 @@ void RSPropertiesPainter::DrawParticle(const RSProperties& properties, RSPaintFi
     }
     const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
-    int imageCount = particleVector.GetParticleImageCount();
+    auto imageCount = particleVector.GetParticleImageCount();
     auto imageVector = particleVector.GetParticleImageVector();
     auto particleDrawable = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
     if (particleDrawable != nullptr) {

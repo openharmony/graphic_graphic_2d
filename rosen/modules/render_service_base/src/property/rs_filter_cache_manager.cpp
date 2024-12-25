@@ -27,6 +27,7 @@
 #include "render/rs_drawing_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_skia_filter.h"
+#include "drawable/rs_property_drawable_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -123,19 +124,16 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
         cachedSnapshot_ == nullptr || cachedSnapshot_->cachedImage_ == nullptr) {
         return false;
     }
+    RS_OPTIONAL_TRACE_FUNC();
+
     /* Reuse code from RSPropertiesPainter::DrawFilter() when cache manager is not available */
     auto clipIBounds = src;
+    Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();
-    auto visibleRect = canvas.GetVisibleRect();
-    visibleRect.Round();
-    auto visibleIRect = Drawing::RectI(
-        static_cast<int>(visibleRect.GetLeft()), static_cast<int>(visibleRect.GetTop()),
-        static_cast<int>(visibleRect.GetRight()), static_cast<int>(visibleRect.GetBottom()));
-    if (!visibleIRect.IsEmpty()) {
-        canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
-    }
+    // Only draw within the visible rect.
+    ClipVisibleRect(canvas);
     Drawing::Rect srcRect = Drawing::Rect(0, 0, cachedSnapshot_->cachedImage_->GetWidth(),
-        cachedSnapshot_->cachedImage_->GetHeight());
+            cachedSnapshot_->cachedImage_->GetHeight());
     Drawing::Rect dstRect = clipIBounds;
     filter->DrawImageRect(canvas, cachedSnapshot_->cachedImage_, srcRect, dstRect);
     filter->PostProcess(canvas);
@@ -195,8 +193,8 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     return cachedFilteredSnapshot;
 }
 
-void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
-    const Drawing::RectI& srcRect)
+void RSFilterCacheManager::TakeSnapshot(
+    RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter, const Drawing::RectI& srcRect)
 {
     auto drawingSurface = canvas.GetSurface();
     if (drawingSurface == nullptr) {
@@ -205,8 +203,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     RS_OPTIONAL_TRACE_FUNC();
 
     // shrink the srcRect by 1px to avoid edge artifacts.
-    Drawing::RectI snapshotIBounds;
-    snapshotIBounds = srcRect;
+    Drawing::RectI snapshotIBounds = srcRect;
 
     std::shared_ptr<RSShaderFilter> magnifierShaderFilter = filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
@@ -244,6 +241,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     // them again.
     RS_OPTIONAL_TRACE_FUNC();
 
+    // planning yan for LINEAR_GRADIENT_BLUR
+
     // Create an offscreen canvas with the same size as the filter region.
     auto offscreenRect = dstRect;
     auto offscreenSurface = surface->MakeSurface(offscreenRect.GetWidth(), offscreenRect.GetHeight());
@@ -263,8 +262,12 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
 
     // Update the cache state with the filtered snapshot.
     auto filteredSnapshot = offscreenSurface->GetImageSnapshot();
-    if (RSSystemProperties::GetImageGpuResourceCacheEnable(
-            filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight())) {
+    if (filteredSnapshot == nullptr) {
+        ROSEN_LOGE("RSFilterCacheManager::GenerateFilteredSnapshot failed to get filteredSnapshot.");
+        return;
+    }
+    if (RSSystemProperties::GetImageGpuResourceCacheEnable(filteredSnapshot->GetWidth(),
+        filteredSnapshot->GetHeight())) {
         ROSEN_LOGD("GenerateFilteredSnapshot cache image resource(width:%{public}d, height:%{public}d).",
             filteredSnapshot->GetWidth(), filteredSnapshot->GetHeight());
         filteredSnapshot->HintCacheGpuResource();
@@ -362,8 +365,8 @@ inline void RSFilterCacheManager::ClipVisibleRect(RSPaintFilterCanvas& canvas)
 {
     auto visibleRectF = canvas.GetVisibleRect();
     visibleRectF.Round();
-    Drawing::RectI visibleIRect = { (int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
-        (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom() };
+    Drawing::RectI visibleIRect = {(int)visibleRectF.GetLeft(), (int)visibleRectF.GetTop(),
+                                   (int)visibleRectF.GetRight(), (int)visibleRectF.GetBottom()};
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     if (!visibleIRect.IsEmpty() && deviceClipRect.Intersect(visibleIRect)) {
         canvas.ClipIRect(visibleIRect, Drawing::ClipOp::INTERSECT);
@@ -387,14 +390,16 @@ void RSFilterCacheManager::CheckCachedImages(RSPaintFilterCanvas& canvas)
         ROSEN_LOGE("RSFilterCacheManager::CheckCachedImages cachedSnapshot_ is invalid");
         cachedSnapshot_.reset();
     }
+
     if (cachedFilteredSnapshot_ != nullptr && IsCacheInvalid(*cachedFilteredSnapshot_, canvas)) {
         ROSEN_LOGE("RSFilterCacheManager::CheckCachedImages cachedFilteredSnapshot_ is invalid");
         cachedFilteredSnapshot_.reset();
     }
 }
 
-std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(RSPaintFilterCanvas& canvas,
-    const std::optional<Drawing::RectI>& srcRect, const std::optional<Drawing::RectI>& dstRect)
+std::tuple<Drawing::RectI, Drawing::RectI> RSFilterCacheManager::ValidateParams(
+    RSPaintFilterCanvas& canvas, const std::optional<Drawing::RectI>& srcRect,
+    const std::optional<Drawing::RectI>& dstRect)
 {
     Drawing::RectI src;
     Drawing::RectI dst;

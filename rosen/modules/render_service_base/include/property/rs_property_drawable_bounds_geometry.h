@@ -358,6 +358,7 @@ public:
     bool Update(const RSRenderContent& content) override;
 };
 
+
 // ============================================================================
 // PixelStretch
 class RSPixelStretchDrawable : public RSPropertyDrawable {
