@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include "rs_round_corner_config.h"
 #include <algorithm>
 #include <chrono>
 #include <regex>
-#include "rs_round_corner_config.h"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
@@ -49,7 +50,7 @@ xmlNodePtr XMLReader::FindNode(const xmlNodePtr& src, const std::string& index)
         }
         startPtr = startPtr->next;
     }
-    RS_LOGD("[%{public}s] can not found node %{public}s! \n", __func__, index.c_str());
+    RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] can not found node %{public}s! \n", __func__, index.c_str());
     return nullptr;
 }
 
@@ -234,6 +235,42 @@ bool ROGSetting::ReadXmlNode(const xmlNodePtr& rogNodePtr)
     return true;
 }
 
+bool ROGSetting::HavePortrait(const std::string& name) const
+{
+    if (portraitMap.count(name) < 1) {
+        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] PORTRAIT layerUp %{public}s do not configured \n", __func__,
+            name.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool ROGSetting::HaveLandscape(const std::string& name) const
+{
+    if (landscapeMap.count(name) < 1) {
+        RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] LANDSACPE layerUp %{public}s do not configured \n", __func__,
+            name.c_str());
+        return false;
+    }
+    return true;
+}
+
+std::optional<RogPortrait> ROGSetting::GetPortrait(const std::string& name) const
+{
+    if (!HavePortrait(name)) {
+        return std::nullopt;
+    }
+    return portraitMap.at(name);
+}
+
+std::optional<RogLandscape> ROGSetting::GetLandscape(const std::string& name) const
+{
+    if (!HaveLandscape(name)) {
+        return std::nullopt;
+    }
+    return landscapeMap.at(name);
+}
+
 bool SurfaceConfig::ReadXmlNode(const xmlNodePtr& surfaceConfigNodePtr)
 {
     if (surfaceConfigNodePtr == nullptr) {
@@ -381,9 +418,9 @@ ROGSetting* LCDModel::GetRog(const int w, const int h) const
 
 void RCDConfig::PrintLayer(const std::string& name, const rs_rcd::RoundCornerLayer& layer)
 {
-    RS_LOGD("%{public}s->Filename: %{public}s, Offset: %{public}d, %{public}d \n",
+    RS_LOGD_IF(DEBUG_PIPELINE, "%{public}s->Filename: %{public}s, Offset: %{public}d, %{public}d \n",
         name.c_str(), layer.fileName.c_str(), layer.offsetX, layer.offsetY);
-    RS_LOGD("BinFilename: %{public}s, BufferSize: %{public}d, cldSize:%{public}d, %{public}d \n",
+    RS_LOGD_IF(DEBUG_PIPELINE, "BinFilename: %{public}s, BufferSize: %{public}d, cldSize:%{public}d, %{public}d \n",
         layer.binFileName.c_str(), layer.bufferSize, layer.cldWidth, layer.cldHeight);
 }
 
@@ -395,21 +432,28 @@ void RCDConfig::PrintParseRog(rs_rcd::ROGSetting* rog)
     }
     for (auto kv : rog->portraitMap) {
         auto port = kv.second;
-        RS_LOGD("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
+        RS_LOGD_IF(DEBUG_PIPELINE, "rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height,
+            kv.first.c_str());
         PrintLayer(std::string("layerUp  "), port.layerUp);
         PrintLayer(std::string("layerDown"), port.layerDown);
         PrintLayer(std::string("layerHide"), port.layerHide);
     }
     for (auto kv : rog->landscapeMap) {
         auto port = kv.second;
-        RS_LOGD("rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height, kv.first.c_str());
+        RS_LOGD_IF(DEBUG_PIPELINE, "rog: %{public}d, %{public}d, %{public}s: \n", rog->width, rog->height,
+            kv.first.c_str());
         PrintLayer(std::string("layerUp  "), port.layerUp);
     }
 }
 
 bool RCDConfig::Load(const std::string& configFile)
 {
+    std::lock_guard<std::mutex> lock(xmlMut);
+    if (isLoadData) {
+        return true;
+    }
     auto begin = high_resolution_clock::now();
+    Clear();
     xmlKeepBlanksDefault(0);
     pDoc = xmlReadFile(configFile.c_str(), "", XML_PARSE_RECOVER);
     if (pDoc == nullptr) {
@@ -439,6 +483,7 @@ bool RCDConfig::Load(const std::string& configFile)
         startPtr = startPtr->next;
     }
     CloseXML();
+    isLoadData = true;
     auto interval = std::chrono::duration_cast<microseconds>(high_resolution_clock::now() - begin);
     RS_LOGI("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
     return true;
@@ -472,7 +517,7 @@ void RCDConfig::CloseXML()
     xmlMemoryDump();
 }
 
-RCDConfig::~RCDConfig()
+void RCDConfig::Clear()
 {
     for (auto& modelPtr : lcdModels) {
         if (modelPtr != nullptr) {
@@ -480,6 +525,11 @@ RCDConfig::~RCDConfig()
             modelPtr = nullptr;
         }
     }
+}
+
+RCDConfig::~RCDConfig()
+{
+    Clear();
 }
 } // namespace rs_rcd
 } // namespace Rosen

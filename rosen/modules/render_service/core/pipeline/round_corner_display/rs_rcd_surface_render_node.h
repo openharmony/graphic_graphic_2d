@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CORE_RS_RCD_SURFACE_RENDER_NODE_H
 #define RENDER_SERVICE_CORE_RS_RCD_SURFACE_RENDER_NODE_H
 
+#include <atomic>
 #include <ibuffer_consumer_listener.h>
 #include <memory>
 #include <surface.h>
@@ -104,6 +105,7 @@ public:
     using SharedPtr = std::shared_ptr<RSRcdSurfaceRenderNode>;
 
     RSRcdSurfaceRenderNode(NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context = {});
+    static SharedPtr Create(NodeId id, RCDSurfaceType type);
     ~RSRcdSurfaceRenderNode() override;
 
     const RectI& GetSrcRect() const;
@@ -126,7 +128,7 @@ public:
     void Reset();
     bool SetHardwareResourceToBuffer();
     BufferRequestConfig GetHardenBufferRequestConfig() const;
-    bool PrepareHardwareResourceBuffer(rs_rcd::RoundCornerLayer* layerInfo);
+    bool PrepareHardwareResourceBuffer(const std::shared_ptr<rs_rcd::RoundCornerLayer>& layerInfo);
     bool IsBottomSurface() const;
     bool IsTopSurface() const;
     bool IsInvalidSurface() const;
@@ -135,6 +137,8 @@ public:
     float GetFrameOffsetY() const;
 
     const CldInfo& GetCldInfo() const;
+
+    void SetRenderTargetId(NodeId id);
 
 private:
     float GetSurfaceWidth() const;
@@ -157,6 +161,8 @@ private:
     RcdExtInfo rcdExtInfo_;
 
     CldInfo cldInfo_;
+
+    NodeId renerTargetId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
