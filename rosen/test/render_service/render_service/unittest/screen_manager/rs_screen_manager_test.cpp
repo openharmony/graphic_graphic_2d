@@ -1046,8 +1046,10 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_004, TestSize.Level2)
 HWTEST_F(RSScreenManagerTest, RemoveVirtualScreen_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager->RemoveVirtualScreen(screenId);
+    ASSERT_EQ(screenManager->GetProducerSurface(screenId), nullptr);
 }
 
 /*
@@ -1339,6 +1341,7 @@ HWTEST_F(RSScreenManagerTest, GetScreenBacklight_002, TestSize.Level1)
 HWTEST_F(RSScreenManagerTest, SetScreenBacklight_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
     ScreenId screenId = INVALID_SCREEN_ID;
     screenManager->SetScreenBacklight(screenId, LIGHT_LEVEL);
 }

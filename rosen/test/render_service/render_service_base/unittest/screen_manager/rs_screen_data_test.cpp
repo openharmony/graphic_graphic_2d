@@ -60,6 +60,7 @@ HWTEST_F(RSScreenDataTest, Unmarshalling001, TestSize.Level1)
     RSScreenData screenData;
     Parcel parcel;
     std::shared_ptr<RSScreenData>(screenData.Unmarshalling(parcel));
+    ASSERT_EQ(std::shared_ptr<RSScreenData>(screenData.Unmarshalling(parcel)), nullptr);
 }
 
 /**
