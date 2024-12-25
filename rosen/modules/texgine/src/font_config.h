@@ -18,7 +18,7 @@
 
 #include <string>
 #include <vector>
-#include <include/core/SkString.h>
+#include <unordered_map>
 #include <map>
 
 struct cJSON;
@@ -102,15 +102,10 @@ public:
 private:
     int ParseConfigList(const char* fname);
     int ParseConfigListPath(const char* fname);
-    int ParseGeneric(const cJSON* root, const char* key);
-    int ParseAlias(const cJSON* root, FontGenericInfo &genericInfo);
-    int ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo);
-    int ParseFallback(const cJSON* root, const char* key);
     int ParseFontMap(const cJSON* root, const char* key);
     int ParseDir(const cJSON* root);
-    void AnalyseFontDir(const cJSON* root);
-    int ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo);
-    int ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo);
+    int ParseFonts(const cJSON* root);
+    void AnalyseFont(const cJSON* root);
     int ParseInstallFont(const cJSON* root, std::vector<std::string>& fontPathList);
     void DumpFontDir() const;
     void DumpGeneric() const;
@@ -118,9 +113,19 @@ private:
     void DumpAlias(const AliasSet &aliasSet) const;
     void DumpAjdust(const AdjustSet &adjustSet) const;
     void DumpFontFileMap() const;
+    struct FontJson {
+        uint32_t type = 0;
+        uint32_t weight = 0;
+        std::string alias;
+        std::string family;
+        std::string lang;
+    };
+    void emplaceFontJson(const FontJson &fontJson);
 
     std::shared_ptr<FontConfigJsonInfo> fontPtr = nullptr;
     std::shared_ptr<FontFileMap> fontFileMap = nullptr;
+    // because of some memory bugs, this place use static
+    static std::unordered_map<std::string, size_t> indexMap;
 };
 } // namespace TextEngine
 } // namespace Rosen
