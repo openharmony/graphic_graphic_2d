@@ -559,7 +559,7 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         if (linker.second == nullptr) {
             continue;
         }
-        auto& expectedRange = linker.second->GetExpectedRange();
+        auto expectedRange = linker.second->GetExpectedRange();
         CollectVRateChange(linker.first, expectedRange.preferred_);
         auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
                             GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
