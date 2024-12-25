@@ -89,7 +89,6 @@ HWTEST_F(RSCanvasNodeTest, Create001, TestSize.Level1)
 	// return shared_ptr
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     ASSERT_NE(canvasNode, nullptr);
-
 }
 
 /**
