@@ -49,6 +49,8 @@ HWTEST_F(RSJankDetectorTest, UpdateUiDrawFrameMsgTest, TestSize.Level1)
     std::string abilityName = "ABILITY_NAME";
     RSJankDetector rsJankDetector;
     rsJankDetector.UpdateUiDrawFrameMsg(startTimeStamp, endTimeStamp, abilityName);
+    auto refreshPeriod = rsJankDetector.GetRefreshPeriod();
+    EXPECT_NE(refreshPeriod, -1);
 }
 
 /**

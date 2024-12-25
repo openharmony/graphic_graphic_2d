@@ -122,6 +122,7 @@ HWTEST_F(RSContextTest, TaskRunnerTest004, TestSize.Level1)
     auto rtTaskRunner = [](const std::function<void()>& task) {};
     rSContext.SetRTTaskRunner(rtTaskRunner);
     rSContext.PostRTTask(taskRunnerTest);
+    EXPECT_TRUE(rSContext.globalRootRenderNode_ != nullptr);
 }
 
 /**
@@ -134,6 +135,7 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
 {
     RSContext rSContext;
     rSContext.Initialize();
+    EXPECT_TRUE(rSContext.globalRootRenderNode_ != nullptr);
 }
 
 /**

@@ -78,6 +78,7 @@ HWTEST_F(RSRenderContentTest, RegisterTaskDispatchTest001, TestSize.Level1)
     extendRecordingCanvas.addDrawOpImmediate_ = false;
     canvas.canvas_ = &extendRecordingCanvas;
     renderContent->DrawPropertyDrawable(RSPropertyDrawableSlot::ALPHA, canvas);
+    EXPECT_TRUE(renderContent != nullptr);
 }
 
 /**
@@ -115,5 +116,6 @@ HWTEST_F(RSRenderContentTest, DrawPropertyDrawableRangeTest002, TestSize.Level1)
     extendRecordingCanvas.addDrawOpImmediate_ = false;
     canvas.canvas_ = &extendRecordingCanvas;
     renderContent->DrawPropertyDrawableRange(RSPropertyDrawableSlot::ALPHA, RSPropertyDrawableSlot::ALPHA, canvas);
+    EXPECT_TRUE(renderContent != nullptr);
 }
 } // namespace OHOS::Rosen
