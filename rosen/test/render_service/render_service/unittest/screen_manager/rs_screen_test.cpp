@@ -220,8 +220,9 @@ HWTEST_F(RSScreenTest, SetActiveMode_001, testing::ext::TestSize.Level1)
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
     ASSERT_NE(virtualScreen, nullptr);
-    std::vector<ScreenColorGamut> mode;
-    virtualScreen->GetScreenSupportedColorGamuts(mode);
+    uint32_t modeId = static_cast<uint32_t>(1);
+    virtualScreen->SetActiveMode(modeId);
+    ASSERT_EQ(virtualScreen->GetActiveMode().has_value(), false);
 }
 
 /*
