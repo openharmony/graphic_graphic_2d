@@ -60,6 +60,7 @@ HWTEST_F(RSScreenCapabilityTest, Unmarshalling001, TestSize.Level1)
     RSScreenCapability capability;
     Parcel parcel;
     std::shared_ptr<RSScreenCapability>(capability.Unmarshalling(parcel));
+    ASSERT_EQ(std::shared_ptr<RSScreenCapability>(capability.Unmarshalling(parcel)), nullptr);
 }
 
 /**

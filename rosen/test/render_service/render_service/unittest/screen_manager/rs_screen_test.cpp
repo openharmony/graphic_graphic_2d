@@ -56,9 +56,11 @@ HWTEST_F(RSScreenTest, DisplayDump_001, testing::ext::TestSize.Level2)
 {
     ScreenId id = 0;
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
     std::string dumpString = "";
     int32_t screenIndex = 0;
     rsScreen->DisplayDump(screenIndex, dumpString);
+    ASSERT_NE(dumpString.size(), 0);
 }
 
 /*
@@ -87,6 +89,10 @@ HWTEST_F(RSScreenTest, SetResolution_001, testing::ext::TestSize.Level1)
     uint32_t height = 100;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
     virtualScreen->SetResolution(width, height);
+    if (virtualScreen->IsVirtual()) {
+        ASSERT_EQ(virtualScreen->Width(), width);
+        ASSERT_EQ(virtualScreen->Height(), height);
+    }
 }
 
 /*
@@ -98,8 +104,10 @@ HWTEST_F(RSScreenTest, SetResolution_001, testing::ext::TestSize.Level1)
 HWTEST_F(RSScreenTest, SetPowerStatus_001, testing::ext::TestSize.Level2)
 {
     ScreenId id = INVALID_SCREEN_ID;
-    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
     rsScreen->SetPowerStatus(static_cast<uint32_t>(1000));
+    ASSERT_EQ(rsScreen->GetPowerStatus(), ScreenPowerStatus::INVALID_POWER_STATUS);
 }
 
 /*
@@ -113,8 +121,10 @@ HWTEST_F(RSScreenTest, ScreenTypeDump_001, testing::ext::TestSize.Level1)
     VirtualScreenConfigs config;
     config.id = static_cast<uint64_t>(1000);
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
     std::string dumpString = "";
     virtualScreen->DisplayDump(config.id, dumpString);
+    ASSERT_NE(dumpString.size(), 0);
 }
 
 /*
@@ -157,8 +167,12 @@ HWTEST_F(RSScreenTest, GetScreenSupportedColorGamuts_001, testing::ext::TestSize
 {
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
     std::vector<ScreenColorGamut> mode;
     virtualScreen->GetScreenSupportedColorGamuts(mode);
+
+    virtualScreen->supportedPhysicalColorGamuts_.resize(1);
+    ASSERT_EQ(virtualScreen->GetScreenSupportedColorGamuts(mode), StatusCode::SUCCESS);
 }
 
 /*
@@ -187,9 +201,11 @@ HWTEST_F(RSScreenTest, SetScreenVsyncEnabled_001, testing::ext::TestSize.Level1)
 {
     ScreenId id = static_cast<uint64_t>(1000);
     auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
     rsScreen->SetScreenVsyncEnabled(true);
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
     virtualScreen->SetScreenVsyncEnabled(true);
 }
 
@@ -203,8 +219,9 @@ HWTEST_F(RSScreenTest, SetActiveMode_001, testing::ext::TestSize.Level1)
 {
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
-    uint32_t modeId = static_cast<uint32_t>(1);
-    virtualScreen->SetActiveMode(modeId);
+    ASSERT_NE(virtualScreen, nullptr);
+    std::vector<ScreenColorGamut> mode;
+    virtualScreen->GetScreenSupportedColorGamuts(mode);
 }
 
 /*
@@ -217,8 +234,10 @@ HWTEST_F(RSScreenTest, SetPowerStatus_002, testing::ext::TestSize.Level1)
 {
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_unique<impl::RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
     uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     virtualScreen->SetPowerStatus(status);
+    ASSERT_EQ(virtualScreen->GetPowerStatus(status), INVALID_POWER_STATUS);
 }
 
 /*

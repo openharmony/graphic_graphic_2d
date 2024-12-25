@@ -60,6 +60,7 @@ HWTEST_F(RSScreenHDRCapabilityTest, Unmarshalling001, TestSize.Level1)
     RSScreenHDRCapability capability;
     Parcel parcel;
     capability.Unmarshalling(parcel);
+    ASSERT_EQ(capability.Unmarshalling(parcel), nullptr);
 }
 
 /**
