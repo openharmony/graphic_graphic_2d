@@ -2585,6 +2585,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
                 " disabled by having UniRenderHdrSurface/DRM nodes",
                 hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
+            // DRM will force HDR to use unirender
+            hasUniRenderHdrSurface_ = hasUniRenderHdrSurface_ || RSMainThread::CheckIsHdrSurface(*hwcNodePtr);
         }
         UpdateHwcNodeDirtyRegionForApp(node, hwcNodePtr);
         hwcNodePtr->SetCalcRectInPrepare(false);
@@ -3260,12 +3262,18 @@ void RSUniRenderVisitor::MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> 
         return;
     }
     for (const auto& win : drmKeyWins) {
-        if (appWindowNode->GetName().find(win) != std::string::npos) {
-            for (auto& drmNode : drmNodes_) {
-                auto drmNodePtr = drmNode.lock();
-                if (drmNodePtr && drmNodePtr->GetDstRect().Intersect(node->GetFilterRegion())) {
-                    node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
-                }
+        if (appWindowNode->GetName().find(win) == std::string::npos) {
+            continue;
+        }
+        for (auto& drmNode : drmNodes_) {
+            auto drmNodePtr = drmNode.lock();
+            if (drmNodePtr == nullptr) {
+                continue;
+            }
+            bool isIntersect =
+                drmNodePtr->GetRenderProperties().GetBoundsGeometry()->GetAbsRect().Intersect(node->GetFilterRegion());
+            if (isIntersect) {
+                node->MarkBlurIntersectWithDRM(true, RSMainThread::Instance()->GetGlobalDarkColorMode());
             }
         }
     }
