@@ -212,8 +212,10 @@ public:
 
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
+    
+    virtual void SetScreenSwitchStatus(bool flag) = 0;
 
-    virtual bool SetScreenSwitchStatus(bool flag) = 0;
+    virtual bool GetScreenSwitchStatus() = 0;
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
@@ -440,7 +442,9 @@ public:
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
 
-    bool SetScreenSwitchStatus(bool flag) override;
+    void SetScreenSwitchStatus(bool flag) override;
+
+    bool GetScreenSwitchStatus() override;
 
     bool IsAllScreensPowerOff() const override;
 
@@ -571,6 +575,7 @@ private:
     uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
+    std::atomic<bool> isScreenSwitching_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;

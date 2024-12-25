@@ -2268,12 +2268,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS) : {
-            bool flag = false;
-            if (!data.ReadBool(flag)) {
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            SetScreenSwitchStatus(flag);
+            NotifyScreenSwitched();
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {

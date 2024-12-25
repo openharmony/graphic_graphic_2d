@@ -276,7 +276,7 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void SetScreenSwitchStatus(bool flag) override;
+    void NotifyScreenSwitched() override;
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 

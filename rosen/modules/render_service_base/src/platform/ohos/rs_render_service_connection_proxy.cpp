@@ -3181,24 +3181,20 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceConnectionProxy::SetScreenSwitchStatus(bool flag)
+void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchStatus: Write InterfaceToken val err.");
-        return;
-    }
-    if (!data.WriteBool(flag)) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchStatus: Write Bool val err.");
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyScreenSwitched: Write InterfaceToken val err.");
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetScreenSwitchStatus: Send Request err.");
+        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
         return;
     }
 }

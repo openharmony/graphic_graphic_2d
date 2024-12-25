@@ -592,7 +592,7 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
-void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
+void RSRenderServiceClient::NotifyScreenSwitched()
 {
 }
 

@@ -15,12 +15,15 @@
 
 #include "command/rs_display_node_command.h"
 
+#include "rs_trace.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
+
+ScreenStatusNotifyTask DisplayNodeCommandHelper::screenStatusNotifyTask_;
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
@@ -73,8 +76,17 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
         node->SetScreenId(screenId);
-        context.SetScreenSwitchStatus(false);
+        if (screenStatusNotifyTask_) {
+            RS_TRACE_NAME("SwitchScreenId [" %{public} "], set screenSwitchStatus false", screenId);
+            screenStatusNotifyTask_(false);
+        }
     }
+}
+
+
+void DisplayNodeCommandHelper::SetScreenStatusNotifyTask(ScreenStatusNotifyTask callback)
+{
+    screenStatusNotifyTask_ = callback;
 }
 
 void DisplayNodeCommandHelper::SetRogSize(RSContext& context, NodeId id, uint32_t rogWidth, uint32_t rogHeight)

@@ -1532,11 +1532,11 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
     }
 }
 
-void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
+void RSRenderServiceClient::NotifyScreenSwitched()
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
-        renderService->SetScreenSwitchStatus(flag);
+        renderService->NotifyScreenSwitched();
     }
 }
 

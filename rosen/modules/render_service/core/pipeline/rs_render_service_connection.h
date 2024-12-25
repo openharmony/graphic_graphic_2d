@@ -300,7 +300,7 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void SetScreenSwitchStatus(bool flag) override;
+    void NotifyScreenSwitched() override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 

@@ -301,7 +301,7 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
-    virtual void SetScreenSwitchStatus(bool flag) = 0;
+    virtual void NotifyScreenSwitched() = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

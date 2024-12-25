@@ -291,16 +291,6 @@ public:
         return cacheEnabledForRotation_;
     }
 
-    void SetScreenSwitchStatus(bool flag)
-    {
-        isScreenSwitching_ = flag;
-    }
-
-    bool GetScreenSwitchStatus() const
-    {
-        return isScreenSwitching_;
-    }
-
     void SetRequestNextVsyncFlag(bool flag)
     {
         needRequestNextVsyncAnimate_ = flag;

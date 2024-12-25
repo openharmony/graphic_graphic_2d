@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 
+using ScreenStatusNotifyTask = std::function<void(bool)>;
 enum RSDisplayNodeCommandType : uint16_t {
     DISPLAY_NODE_CREATE,
     DISPLAY_NODE_SET_SCREEN_ID,
@@ -51,6 +52,9 @@ public:
     static void AddDisplayNodeToTree(RSContext&, NodeId);
     static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void SetScbNodePid(RSContext&, NodeId, const std::vector<int32_t>& oldScbPids, int32_t currentScbPid);
+    static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask callback);
+private:
+    static ScreenStatusNotifyTask screenStatusNotifyTask_;
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,

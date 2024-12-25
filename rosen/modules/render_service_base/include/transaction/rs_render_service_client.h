@@ -358,7 +358,7 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
-    void SetScreenSwitchStatus(bool flag);
+    void NotifyScreenSwitched();
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 

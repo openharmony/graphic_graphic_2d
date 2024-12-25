@@ -2276,11 +2276,11 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     mainThread_->PostTask(task);
 }
 
-void RSRenderServiceConnection::SetScreenSwitchStatus(bool flag)
+void RSRenderServiceConnection::NotifyScreenSwitched()
 {
-    RS_LOGD("RSRenderServiceConnection::SetScreenSwitchStatus %{public}d", flag);
-    RS_TRACE_NAME_FMT("SetScreenSwitchStatus %d", flag);
-    screenManager_->SetScreenSwitchStatus(flag);
+    RS_LOGD("RSRenderServiceConnection::NotifyScreenSwitched");
+    RS_TRACE_NAME_FMT("NotifyScreenSwitched");
+    screenManager_->SetScreenSwitchStatus(true);
 }
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
