@@ -44,12 +44,14 @@ HWTEST_F(RSAnimationManagerTest, DumpAnimationsTest001, TestSize.Level1)
     RSAnimationManager rsAnimationManager;
     auto animation = std::make_shared<RSRenderAnimation>();
     std::string str = "out";
+    std::string copy = str;
     rsAnimationManager.AddAnimation(animation);
 
     std::shared_ptr<RSRenderAnimation> animation2;
     rsAnimationManager.AddAnimation(animation2);
 
     rsAnimationManager.DumpAnimations(str);
+    EXPECT_NE(str, copy);
 }
 
 /**
