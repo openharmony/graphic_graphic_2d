@@ -913,27 +913,65 @@ HWTEST_F(RSRenderNodeTest, StoreMustRenewedInfoTest, TestSize.Level1)
 
 /**
  * @tc.name: UpdateSubSurfaceCntTest
- * @tc.desc:
+ * @tc.desc: test addChild and removeChild
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueBAYJG
  */
-HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    auto curParent = std::make_shared<RSRenderNode>(id + 1, context);
-    auto preParent = std::make_shared<RSRenderNode>(id + 2, context);
-    EXPECT_TRUE(node->GetType() != RSRenderNodeType::SURFACE_NODE);
-    node->UpdateSubSurfaceCnt(curParent, preParent);
+    const int cnt = 0;
+    auto rootNode = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
 
-    const auto cnt = 9;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto curSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto preSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    curSurfaceParent->subSurfaceCnt_ = cnt;
-    preSurfaceParent->subSurfaceCnt_ = cnt;
-    surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
-    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
-    EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+
+    auto selfDrawNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
+    selfDrawNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    leashNode->AddChild(selfDrawNode);
+    leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+
+    rootNode->RemoveChild(leashNode);
+    rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCntTest
+ * @tc.desc: test addChild and loop
+ * @tc.type: FUNC
+ * @tc.require: issueBAYJG
+ */
+HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest002, TestSize.Level1)
+{
+    const int cnt = 0;
+    auto rootNode = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
+    appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    leashNode->AddChild(appNode);
+    leashNode->UpdateSubSurfaceCnt(appNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+
+    auto antherApp = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 3);
+    antherApp->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    appNode->AddChild(antherApp);
+    appNode->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
+
+    // loop tree
+    antherApp->AddChild(leashNode);
+    antherApp->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
 }
 
 /**

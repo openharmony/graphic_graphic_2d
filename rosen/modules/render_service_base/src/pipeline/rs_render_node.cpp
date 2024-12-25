@@ -516,6 +516,7 @@ void RSRenderNode::ClearChildren()
 
 void RSRenderNode::SetParent(WeakPtr parent)
 {
+    AddSubSurfaceUpdateInfo(parent.lock(), parent_.lock());
     parent_ = parent;
     if (isSubSurfaceEnabled_) {
         AddSubSurfaceNode(parent.lock());
@@ -534,6 +535,7 @@ void RSRenderNode::ResetParent()
         }
         parentNode->hasRemovedChild_ = true;
         parentNode->SetContentDirty();
+        AddSubSurfaceUpdateInfo(nullptr, parentNode);
     }
     SetIsOnTheTree(false);
     parent_.reset();
@@ -658,6 +660,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     if (uifirstRootNodeId_ != INVALID_NODEID) {
         out += ", uifirstRootNodeId_: " + std::to_string(uifirstRootNodeId_);
+    }
+    if (HasSubSurface()) {
+        out += ", subSurfaceCnt: " + std::to_string(subSurfaceCnt_);
     }
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
@@ -3801,21 +3806,41 @@ const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
 {
     return visitedCacheRoots_;
 }
-void RSRenderNode::UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent)
+void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)
 {
-    uint32_t subSurfaceCnt = GetType() == RSRenderNodeType::SURFACE_NODE ?
-        subSurfaceCnt_ + 1 : subSurfaceCnt_;
-    if (subSurfaceCnt == 0) {
+    if (!selfAddForSubSurfaceCnt_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+        subSurfaceCnt_ = (surfaceNode && (surfaceNode->IsLeashWindow() || surfaceNode->IsAppWindow())) ?
+            subSurfaceCnt_ + 1 : subSurfaceCnt_;
+        selfAddForSubSurfaceCnt_ = true;
+    }
+    if (subSurfaceCnt_ == 0) {
         return;
     }
-    if (curParent) {
-        curParent->subSurfaceCnt_ += subSurfaceCnt;
-        UpdateSubSurfaceCnt(curParent->GetParent().lock(), nullptr);
+    if (auto context = context_.lock()) {
+        context->AddSubSurfaceCntUpdateInfo({subSurfaceCnt_,
+            preParent == nullptr ? INVALID_NODEID : preParent->GetId(),
+            curParent == nullptr ? INVALID_NODEID : curParent->GetId()});
     }
-    if (preParent) {
-        preParent->subSurfaceCnt_ -= subSurfaceCnt;
-        UpdateSubSurfaceCnt(nullptr, preParent->GetParent().lock());
+}
+void RSRenderNode::UpdateSubSurfaceCnt(int updateCnt)
+{
+    // avoid loop
+    if (visitedForSubSurfaceCnt_) {
+        RS_LOGE("RSRenderNode::UpdateSubSurfaceCnt: %{public}" PRIu64" has loop tree", GetId());
+        return;
     }
+    visitedForSubSurfaceCnt_ = true;
+    if (updateCnt == 0) {
+        visitedForSubSurfaceCnt_ = false;
+        return;
+    }
+    int cnt = subSurfaceCnt_ + updateCnt;
+    subSurfaceCnt_ = cnt < 0 ? 0 : cnt;
+    if (auto parent = GetParent().lock()) {
+        parent->UpdateSubSurfaceCnt(updateCnt);
+    }
+    visitedForSubSurfaceCnt_ = false;
 }
 bool RSRenderNode::HasSubSurface() const
 {
