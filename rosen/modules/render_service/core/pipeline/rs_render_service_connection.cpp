@@ -131,6 +131,13 @@ void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
     frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
+void RSRenderServiceConnection::CleanFrameRateLinkerExpectedFpsCallbacks() noexcept
+{
+    auto& context = mainThread_->GetContext();
+    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+    frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(remotePid_);
+}
+
 void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -161,6 +168,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
+            connection->CleanFrameRateLinkerExpectedFpsCallbacks();
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -1684,6 +1692,24 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     std::lock_guard<std::mutex> lock(mutex_);
 
     HgmConfigCallbackManager::GetInstance()->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
+    return StatusCode::SUCCESS;
+}
+
+int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (!mainThread_ || dstPid == 0) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [pid = remotePid_, dstPid, callback, weakThis = wptr<RSRenderServiceConnection>(this)]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            return;
+        }
+        connection->mainThread_->GetContext().GetMutableFrameRateLinkerMap()
+            .RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid, dstPid, callback);
+    };
+    mainThread_->PostTask(task);
     return StatusCode::SUCCESS;
 }
 
