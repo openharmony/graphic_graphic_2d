@@ -47,6 +47,24 @@ namespace {
     constexpr int32_t errorVelocity = -1;
     constexpr int32_t strategy3 = 3;
     const std::string testScene = "TestScene";
+    const GraphicIRect rectF {
+        .x = 0,
+        .y = 0,
+        .w = 2232,
+        .h = 1008,
+    };
+    const GraphicIRect rectM {
+        .x = 0,
+        .y = 1136,
+        .w = 2232,
+        .h = 2048,
+    };
+    const GraphicIRect rectG {
+        .x = 0,
+        .y = 0,
+        .w = 2232,
+        .h = 3184,
+    };
 }
 class HgmFrameRateMgrTest : public testing::Test {
 public:
@@ -240,24 +258,6 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
     std::string pkg0 = "com.pkg.other:0:-1";
     std::string pkg1 = "com.ss.hm.ugc.aweme:1001:10067";
     std::string pkg2 = "com.wedobest.fivechess.harm:1002:10110";
-    GraphicIRect rectF {
-        .x = 0,
-        .y = 0,
-        .w = 2232,
-        .h = 1008,
-    };
-    GraphicIRect rectM {
-        .x = 0,
-        .y = 1136,
-        .w = 2232,
-        .h = 2048,
-    };
-    GraphicIRect rectG {
-        .x = 0,
-        .y = 0,
-        .w = 2232,
-        .h = 3184,
-    };
 
     HgmFrameRateManager frameRateMgr;
     auto vsyncGenerator = CreateVSyncGenerator();
