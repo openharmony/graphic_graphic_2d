@@ -49,6 +49,9 @@ HWTEST_F(RSOffscreenRenderThreadTest, Stop001, TestSize.Level1)
 {
     auto task = RSOffscreenRenderThreadTest::DisplayTestInfo;
     RSOffscreenRenderThread::Instance().PostTask(task);
+    std::function<void()> taskTwo = []() {};
+    RSOffscreenRenderThread::Instance().InSertCaptureTask(1, taskTwo);
+    ASSERT_NE(RSOffscreenRenderThread::Instance().GetCaptureTask(1), nullptr);
 }
 
 /**
