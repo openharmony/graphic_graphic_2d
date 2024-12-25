@@ -238,7 +238,7 @@ HWTEST_F(RSScreenTest, SetPowerStatus_002, testing::ext::TestSize.Level1)
     ASSERT_NE(virtualScreen, nullptr);
     uint32_t status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     virtualScreen->SetPowerStatus(status);
-    ASSERT_EQ(virtualScreen->GetPowerStatus(status), INVALID_POWER_STATUS);
+    ASSERT_EQ(virtualScreen->GetPowerStatus(), INVALID_POWER_STATUS);
 }
 
 /*
