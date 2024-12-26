@@ -1034,7 +1034,7 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
 
 void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    auto captureTask = [=]() -> void {
+    auto captureTask = [app]() -> void {
         RSMainThread::Instance()->UnRegisterApplicationAgent(app);
     };
     RSMainThread::Instance()->ScheduleTask(captureTask).wait();

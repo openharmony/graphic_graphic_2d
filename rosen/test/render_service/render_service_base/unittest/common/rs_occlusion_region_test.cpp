@@ -53,6 +53,7 @@ HWTEST_F(RSOcclusionRegionTest, OstreamOperator001, Function | MediumTest | Leve
      * @tc.steps: step1. operator<<
      */
     Rect rect;
+    ASSERT_TRUE(rect.IsEmpty());
     std::cout << rect;
 }
 
@@ -68,6 +69,7 @@ HWTEST_F(RSOcclusionRegionTest, OstreamOperator002, Function | MediumTest | Leve
      * @tc.steps: step1. operator<<
      */
     Rect rect;
+    ASSERT_TRUE(rect.IsEmpty());
     Region region(rect);
     std::cout << region;
 }
@@ -220,6 +222,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOp001, Function | MediumTest | Level2)
     Region region1;
     Region region2;
     Region res;
+    ASSERT_TRUE(region.IsEmpty());
     Region::OP op = Region::OP::SUB;
     region.RegionOp(region1, region2, res, op);
 }
@@ -239,6 +242,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpLocal001, Function | MediumTest | Level2
     Region region1;
     Region region2;
     Region res;
+    ASSERT_TRUE(region.IsEmpty());
     Region::OP op = Region::OP::AND;
     region.RegionOpLocal(region1, region2, res, op);
 }
@@ -259,6 +263,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpLocal002, Function | MediumTest | Level2
     Region region1(rect);
     Region region2(rect);
     Region res;
+    ASSERT_TRUE(region.IsEmpty());
     Region::OP op = static_cast<Region::OP>(0);
     region.RegionOpLocal(region1, region2, res, op);
 }
@@ -275,6 +280,7 @@ HWTEST_F(RSOcclusionRegionTest, XOrSelf001, Function | MediumTest | Level2)
      * @tc.steps: step1. XOrSelf
      */
     Rect rect;
+    ASSERT_TRUE(rect.IsEmpty());
     Region region1(rect);
     Region region2(rect);
     region1.XOrSelf(region2);
@@ -345,6 +351,7 @@ HWTEST_F(RSOcclusionRegionTest, IntersectArea, Function | MediumTest | Level2)
 HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest1, Function | MediumTest | Level2)
 {
     Rect trans{};
+    ASSERT_TRUE(trans.IsEmpty());
     Rect opaque{353284384, 2147483647, 1184, 2147483647};
     Rect screen{0, 0, 1260, 2720};
     Region transparentRegion{trans};
@@ -368,6 +375,7 @@ HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest1, Function | Medium
 HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest2, Function | MediumTest | Level2)
 {
     Rect trans{};
+    ASSERT_TRUE(trans.IsEmpty());
     Rect opaque{1021068672, 2147483647, 1024, 2147483647};
     Rect screen{0, 0, 1260, 2720};
     Region transparentRegion{trans};
@@ -391,6 +399,7 @@ HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest2, Function | Medium
 HWTEST_F(RSOcclusionRegionTest, ResetSurfaceOpaqueRegionTest3, Function | MediumTest | Level2)
 {
     Rect trans{};
+    ASSERT_TRUE(trans.IsEmpty());
     Rect opaque{2147483647, 2147483647, 24964864, 2147483647};
     Rect screen{0, 0, 1260, 2720};
     Region transparentRegion{trans};
@@ -485,6 +494,7 @@ HWTEST_F(RSOcclusionRegionTest, UpdateRectsTest, Function | MediumTest | Level2)
 HWTEST_F(RSOcclusionRegionTest, RegionOpTest, Function | MediumTest | Level2)
 {
     Region emptyRegion(Rect { 0, 0, 0, 0 });
+    ASSERT_TRUE(emptyRegion.IsEmpty());
     Region baseRegion;
     Region resultRegion;
     Region::OP operationType = Region::OP::AND;
