@@ -96,10 +96,11 @@ HWTEST_F(RSHveFilterTest, GetSurfaceNodeSizeTest, TestSize.Level1)
 HWTEST_F(RSHveFilterTest, SampleLayerTest, TestSize.Level1)
 {
     HveFilter filter;
-    Drawing::Canvas canvas;
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
+    Drawing::Surface surface;
+    Drawing::Canvas canvas(&surface);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
     const Drawing::RectI srcRect = Drawing::RectI(0, 0, 350, 20);
-    auto outImage = filter.SampleLayer(*paintFilterCanvas, srcRect);
+    auto outImage = filter.SampleLayer(paintFilterCanvas, srcRect);
     EXPECT_EQ(outImage, nullptr);
 }
 
