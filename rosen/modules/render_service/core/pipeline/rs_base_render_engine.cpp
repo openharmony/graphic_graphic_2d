@@ -700,7 +700,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 #ifdef RS_ENABLE_GL // RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         image = CreateEglImageFromBuffer(canvas, params.buffer, params.acquireFence, params.threadIndex,
-            videoInfo.drawingColorSpace);
+            videoInfo.drawingColorSpace_);
         if (image == nullptr) {
             RS_LOGE("RSBaseRenderEngine::CreateImageFromBuffer: image is nullptr!");
             return nullptr;
