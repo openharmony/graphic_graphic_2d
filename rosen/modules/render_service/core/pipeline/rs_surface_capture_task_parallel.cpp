@@ -336,10 +336,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " translate: [%{public}f, %{public}f],"
+        " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
         " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
-        rect.GetLeft(), rect.GetTop(), captureConfig_.useDma, screenRotation_, screenCorrection_);
+        rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
+        captureConfig_.useDma, screenRotation_, screenCorrection_);
     return Media::PixelMap::Create(opts);
 }
 
