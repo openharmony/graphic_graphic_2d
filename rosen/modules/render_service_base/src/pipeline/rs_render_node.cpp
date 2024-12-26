@@ -1345,6 +1345,7 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    CollectAndUpdateLocalForegroundEffectRect();
     CollectAndUpdateLocalDistortionEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
