@@ -826,7 +826,7 @@ void DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT(std::function<NodeI
 {
     if (std::exchange(getRootNodeIdForRT, func)) {
         RS_LOGE("DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT"
-            " registered OnAfterAcquireBuffer twice incorrectly.");
+            " registered OnFinish twice incorrectly.");
     }
 }
 
