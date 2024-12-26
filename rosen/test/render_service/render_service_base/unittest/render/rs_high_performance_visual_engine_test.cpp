@@ -33,7 +33,7 @@ public:
 
 void RSHveFilterTest::SetUpTestCase() {}
 void RSHveFilterTest::TearDownTestCase() {}
-void RSHveFilterTest::SetUp(){}
+void RSHveFilterTest::SetUp() {}
 void RSHveFilterTest::TearDown() {}
 
 /**
