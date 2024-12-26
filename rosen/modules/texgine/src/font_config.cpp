@@ -210,17 +210,17 @@ void FontConfigJson::emplaceFontJson(const FontJson& fontJson)
             indexMap[fontJson.family] = fontPtr->genericSet.size();
             fontPtr->genericSet.emplace_back(FontGenericInfo { fontJson.family });
             fontPtr->genericSet.back().aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
-        } else {
-            auto& aliasSet = fontPtr->genericSet[exist->second].aliasSet;
-            auto existAlias = std::find_if(aliasSet.begin(), aliasSet.end(),
-                [&fontJson](const AliasInfo& aliasInfo) { return aliasInfo.familyName == fontJson.alias; });
-            if (existAlias == aliasSet.end()) {
-                fontPtr->genericSet[exist->second].aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
-            }
+            return;
         }
-    } else if (fontJson.type == 1) {
-        fontPtr->fallbackGroupSet[0].fallbackInfoSet.emplace_back(FallbackInfo { fontJson.family, fontJson.lang });
+        auto& aliasSet = fontPtr->genericSet[exist->second].aliasSet;
+        auto existAlias = std::find_if(aliasSet.begin(), aliasSet.end(),
+            [&fontJson](const AliasInfo& aliasInfo) { return aliasInfo.familyName == fontJson.alias; });
+        if (existAlias == aliasSet.end()) {
+            fontPtr->genericSet[exist->second].aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
+        }
+        return;
     }
+    fontPtr->fallbackGroupSet[0].fallbackInfoSet.emplace_back(FallbackInfo { fontJson.family, fontJson.lang });
 }
 
 int FontConfigJson::ParseDir(const cJSON* root)

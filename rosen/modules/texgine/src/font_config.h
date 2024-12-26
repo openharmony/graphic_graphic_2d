@@ -16,10 +16,13 @@
 #ifndef FONT_CONFIG_H
 #define FONT_CONFIG_H
 
-#include <string>
-#include <vector>
-#include <unordered_map>
+#include <algorithm>
+#include <cstring>
 #include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 struct cJSON;
 namespace OHOS {
