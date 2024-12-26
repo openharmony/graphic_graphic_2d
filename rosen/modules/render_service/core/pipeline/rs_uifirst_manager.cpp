@@ -225,23 +225,6 @@ void RSUifirstManager::ProcessForceUpdateNode()
             markForceUpdateByUifirst_.push_back(node);
             node->SetForceUpdateByUifirst(true);
         }
-        if (node->GetLastFrameUifirstFlag() == MultiThreadCacheType::ARKTS_CARD) {
-            continue;
-        }
-        for (auto& child : *node->GetChildren()) {
-            if (!child) {
-                continue;
-            }
-            auto surfaceNode = child->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (!surfaceNode || !surfaceNode->IsMainWindowType()) {
-                continue;
-            }
-            toDirtyNodes.push_back(child);
-            if (!child->IsDirty() && !child->IsSubTreeDirty()) {
-                markForceUpdateByUifirst_.push_back(child);
-                child->SetForceUpdateByUifirst(true);
-            }
-        }
     }
     for (auto& node : toDirtyNodes) {
         node->SetDirty(true);
