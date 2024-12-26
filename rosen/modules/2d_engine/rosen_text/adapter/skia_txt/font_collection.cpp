@@ -60,9 +60,14 @@ FontCollection::~FontCollection()
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [id, typeface] : typefaces_) {
         Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
-        FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(typeface);
+        auto it = familyNames_.find(id);
+        if (it != familyNames_.end()) {
+            std::string familyName = it->second;
+            FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
+        }
     }
     typefaces_.clear();
+    familyNames_.clear();
 }
 
 void FontCollection::DisableFallback()
@@ -109,7 +114,8 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
         return nullptr;
     }
-    FontDescriptorMgrInstance.CacheDynamicTypeface(typeface);
+    FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, familyName);
+    familyNames_.emplace(typeface->GetUniqueID(), familyName);
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }

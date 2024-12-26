@@ -158,7 +158,7 @@ std::unordered_set<std::string> FontDescriptorCache::GetDynamicFontList()
 {
     std::unordered_set<std::string> fullNameList;
     for (const auto& temp : dynamicFullNameMap_) {
-        fullNameList.emplace(temp->fullName);
+        fullNameList.emplace(temp.first);
     }
     return fullNameList;
 }
@@ -292,22 +292,20 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
     result = nullptr;
 }
 
-void FontDescriptorCache::CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface)
+void FontDescriptorCache::CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface,
+    const std::string &familyName)
 {
-    std::vector<std::shared_ptr<FontDescriptor>> fdArr =
+    std::vector<std::shared_ptr<TextEngine::FontParser::FontDescriptor>> fontDescArr =
         parser_.CreateFontDescriptors({typeface});
-    for (auto fd : fdArr) {
-        dynamicFullNameMap_[fd->fullName] = fd;
+    for (auto fontDesc : fontDescArr) {
+        fontDesc->fontFamily = familyName;
+        dynamicFullNameMap_[fontDesc->fontFamily] = fontDesc;
     }
 }
 
-void FontDescriptorCache::DeleteDynamicTypefaceFromCache(std::shared_ptr<Drawing::Typeface> typeface)
+void FontDescriptorCache::DeleteDynamicTypefaceFromCache(const std::string &familyName)
 {
-    std::vector<std::shared_ptr<FontDescriptor>> fdArr =
-        parser_.CreateFontDescriptors({typeface});
-    for (auto fd : fdArr) {
-        dynamicFullNameMap_.erase(fd->fullName);
-    }
+    dynamicFullNameMap_.erase(familyName);
 }
 
 bool FontDescriptorCache::HandleMapIntersection(std::set<FontDescSharedPtr>& finishRet, const std::string& name,
