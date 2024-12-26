@@ -287,7 +287,6 @@ void FontDescriptorCache::GetFontDescSharedPtrByFullName(const std::string& full
             result = dynamicFullNameMap_[fullName];
             return;
         }
-        return;
     }
     TEXT_LOGD("Failed to get fontDescriptor by fullName: %{public}s", fullName.c_str());
     result = nullptr;
