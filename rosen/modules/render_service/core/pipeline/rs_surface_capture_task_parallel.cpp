@@ -205,7 +205,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
-    const Rect& rect = captureConfig_.mainScreenRect;
+    const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     if (rect.GetWidth() > 0 && rect.GetHeight() > 0 && (!(rect.GetLeft() < 0 || rect.GetRight() < 0))) {
         canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
         canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetRight());
@@ -324,7 +324,7 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
-    const Rect& rect = captureConfig_.mainScreenRect;
+    const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
         pixmapWidth = ceil(rect.GetWidth());
         pixmapHeight = ceil(rect.GetHeight());
