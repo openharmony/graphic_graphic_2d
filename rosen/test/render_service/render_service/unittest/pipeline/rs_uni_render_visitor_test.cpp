@@ -3012,6 +3012,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_001, Test
     ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
 
     std::vector<RectI> hwcRects;
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, surfaceNode, true);
     EXPECT_EQ(hwcRects.size(), 0);
 }
@@ -3037,6 +3040,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_002, Test
     ASSERT_TRUE(surfaceNode->GetAncoForceDoDirect());
 
     std::vector<RectI> hwcRects;
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, surfaceNode, false);
     EXPECT_EQ(hwcRects.size(), 1);
 }
@@ -3065,6 +3071,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_003, Test
     hwcRects.emplace_back(RectI(50, 50, 100, 100));
     ASSERT_TRUE(surfaceNode->GetDstRect().Intersect(RectI(50, 50, 100, 100)));
 
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, surfaceNode, true);
     EXPECT_EQ(hwcRects.size(), 2);
 }
@@ -3093,6 +3102,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeEnableByHwcNodeBelowSelf_004, Test
     hwcRects.emplace_back(RectI(50, 50, 100, 100));
     ASSERT_FALSE(surfaceNode->GetDstRect().Intersect(RectI(50, 50, 100, 100)));
 
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->UpdateHwcNodeEnableByHwcNodeBelowSelf(hwcRects, surfaceNode, true);
     EXPECT_EQ(hwcRects.size(), 2);
 }
