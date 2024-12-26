@@ -391,7 +391,7 @@ HWTEST_F(SkiaImageTest, IsOpaque001, TestSize.Level1)
 HWTEST_F(SkiaImageTest, GetAlphaType001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    skiaImage->GetAlphaType();
+    ASSERT_TRUE(skiaImage->GetAlphaType() == AlphaType::ALPHATYPE_UNKNOWN);
 }
 
 /**
@@ -403,7 +403,7 @@ HWTEST_F(SkiaImageTest, GetAlphaType001, TestSize.Level1)
 HWTEST_F(SkiaImageTest, GetColorType001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    skiaImage->GetColorType();
+    ASSERT_TRUE(skiaImage->GetColorType() == ColorType::COLORTYPE_UNKNOWN);
 }
 
 /**
@@ -427,7 +427,7 @@ HWTEST_F(SkiaImageTest, GetColorSpace001, TestSize.Level1)
 HWTEST_F(SkiaImageTest, GetImageInfo001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    skiaImage->GetImageInfo();
+    ASSERT_TRUE(skiaImage->GetImageInfo().GetWidth() == 0);
 }
 
 /**
