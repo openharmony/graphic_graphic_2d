@@ -42,6 +42,7 @@ void RSRootNodeTest::TearDown() {}
 HWTEST_F(RSRootNodeTest, CreateAndDestroy001, TestSize.Level1)
 {
     RSRootNode::Create();
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create()->GetType());
 }
 
 /**
@@ -52,6 +53,7 @@ HWTEST_F(RSRootNodeTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(RSRootNodeTest, CreateAndDestroy002, TestSize.Level1)
 {
     RSRootNode::Create(true);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(true)->GetType());
 }
 
 /**
@@ -62,6 +64,7 @@ HWTEST_F(RSRootNodeTest, CreateAndDestroy002, TestSize.Level1)
 HWTEST_F(RSRootNodeTest, CreateAndDestroy003, TestSize.Level1)
 {
     RSRootNode::Create(false);
+    EXPECT_EQ(RSUINodeType::ROOT_NODE, RSRootNode::Create(false)->GetType());
 }
 
 /**
