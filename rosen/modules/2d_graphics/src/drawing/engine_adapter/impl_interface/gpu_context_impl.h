@@ -100,7 +100,7 @@ public:
 
     virtual void SetGpuCacheSuppressWindowSwitch(bool enabled) = 0;
 
-    virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) = 0;
+    virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority) = 0;
 
     virtual void FlushGpuMemoryInWaitQueue() = 0;
     
