@@ -1899,7 +1899,7 @@ bool RSMainThread::IsRequestedNextVSync()
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
     int changed = 0;
-    if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(changed); changed != 0) {
+    if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
     }
     DvsyncInfo info;
