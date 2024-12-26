@@ -1631,8 +1631,10 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
 {
     auto contentStatic = false;
-    if (IsLeashWindow() || IsAbilityComponent()) {
+    if (IsLeashWindow()) {
         contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !HasRemovedChild();
+    } else if (IsAbilityComponent()) {
+        contentStatic = (!IsSubTreeDirty() || GetForceUpdateByUifirst()) && !IsContentDirty();
     } else {
         contentStatic = surfaceCacheContentStatic_;
     }
