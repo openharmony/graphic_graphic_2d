@@ -124,6 +124,42 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ProcessImage004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ProcessImage005
+ * @tc.desc: Verify function ProcessImage
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ProcessImage005, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params{100}; // 100 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_EQ(geKawaseBlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+}
+
+/**
+ * @tc.name: ProcessImage006
+ * @tc.desc: Verify function ProcessImage
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ProcessImage006, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params{60}; // 60 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_EQ(geKawaseBlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+}
+
+/**
+ * @tc.name: ProcessImage007
+ * @tc.desc: Verify function ProcessImage
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ProcessImage007, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params{30}; // 30 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    EXPECT_EQ(geKawaseBlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+}
+
+/**
  * @tc.name: ScaleAndAddRandomColor001
  * @tc.desc: Verify function ScaleAndAddRandomColor
  * @tc.type:FUNC
@@ -206,6 +242,46 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor004, TestSize.Level
 }
 
 /**
+ * @tc.name: ScaleAndAddRandomColor005
+ * @tc.desc: Verify function ScaleAndAddRandomColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor005, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto filter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    std::shared_ptr<Drawing::Image> image { nullptr };
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(1000, 300, format); // 1000, 30  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_RED);
+    std::shared_ptr<Drawing::Image> imageBlur = bmp.MakeImage();
+    auto width = std::max(static_cast<int>(std::ceil(dst_.GetWidth())), imageBlur->GetWidth());
+    auto height = std::max(static_cast<int>(std::ceil(dst_.GetHeight())), imageBlur->GetHeight());
+    EXPECT_NE(filter->ScaleAndAddRandomColor(canvas_, image_, imageBlur, src_, dst_, width, height), image_);
+}
+
+/**
+ * @tc.name: ScaleAndAddRandomColor006
+ * @tc.desc: Verify function ScaleAndAddRandomColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ScaleAndAddRandomColor006, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto filter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    std::shared_ptr<Drawing::Image> image { nullptr };
+    Drawing::Bitmap bmp;
+    Drawing::BitmapFormat format { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    bmp.Build(50, 30, format); // 50, 30  bitmap size
+    bmp.ClearWithColor(Drawing::Color::COLOR_GREEN);
+    std::shared_ptr<Drawing::Image> imageBlur = bmp.MakeImage();
+    auto width = std::max(static_cast<int>(std::ceil(dst_.GetWidth())), imageBlur->GetWidth());
+    auto height = std::max(static_cast<int>(std::ceil(dst_.GetHeight())), imageBlur->GetHeight());
+    EXPECT_NE(filter->ScaleAndAddRandomColor(canvas_, image_, imageBlur, src_, dst_, width, height), image_);
+}
+
+/**
  * @tc.name: ComputeRadiusAndScale001
  * @tc.desc: Verify function ComputeRadiusAndScale
  * @tc.type:FUNC
@@ -222,6 +298,50 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, ComputeRadiusAndScale001, TestSize.Level1
     std::string expect = "blur radius is " + std::to_string(float(36)); // 36 match result
     EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
 }
+
+/**
+ * @tc.name: ComputeRadiusAndScale002
+ * @tc.desc: Verify function ComputeRadiusAndScale
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, ComputeRadiusAndScale002, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 10 }; // 10 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(1); // 1 blur radius
+    std::string expect = "blur radius is " + std::to_string(float(3));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(2); // 2 blur radius
+    expect = "blur radius is " + std::to_string(float(6));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(3); // 3 blur radius
+    expect = "blur radius is " + std::to_string(float(12));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+    
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(4); // 4 blur radius
+    expect = "blur radius is " + std::to_string(float(15));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+    
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(5); // 5 blur radius
+    expect = "blur radius is " + std::to_string(float(18));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+    
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(6); // 6 blur radius
+    expect = "blur radius is " + std::to_string(float(24));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+    
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(7); // 7 blur radius
+    expect = "blur radius is " + std::to_string(float(27));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+    
+    geKawaseBlurShaderFilter->ComputeRadiusAndScale(8); // 8 blur radius
+    expect = "blur radius is " + std::to_string(float(30));
+    EXPECT_EQ(geKawaseBlurShaderFilter->GetDescription(), expect);
+}
+
 
 /**
  * @tc.name: InitSimpleFilter001
@@ -243,6 +363,34 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter001, TestSize.Level1)
 HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter002, TestSize.Level1)
 {
     Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    geKawaseBlurShaderFilter->InitSimpleFilter();
+    //g_simpleFilter != nullptr
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitSimpleFilter());
+}
+
+/**
+ * @tc.name: InitSimpleFilter003
+ * @tc.desc: Verify function InitSimpleFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter003, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 10 }; // 10 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    geKawaseBlurShaderFilter->InitSimpleFilter();
+    //g_simpleFilter != nullptr
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitSimpleFilter());
+}
+
+/**
+ * @tc.name: InitSimpleFilter004
+ * @tc.desc: Verify function InitSimpleFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitSimpleFilter004, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 100 }; // 100 blur radius
     auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
     geKawaseBlurShaderFilter->InitSimpleFilter();
     //g_simpleFilter != nullptr
@@ -275,6 +423,33 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter002, TestS
     EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
 }
 
+/**
+ * @tc.name: InitBlurEffectForAdvancedFilter003
+ * @tc.desc: Verify function InitBlurEffectForAdvancedFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter003, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 10 }; // 10 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter();
+    //g_blurEffectAf != nullptr
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
+}
+
+/**
+ * @tc.name: InitBlurEffectForAdvancedFilter004
+ * @tc.desc: Verify function InitBlurEffectForAdvancedFilter
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEKawaseBlurShaderFilterTest, InitBlurEffectForAdvancedFilter004, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 100 }; // 100 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter();
+    //g_blurEffectAf != nullptr
+    EXPECT_TRUE(geKawaseBlurShaderFilter->InitBlurEffectForAdvancedFilter());
+}
 
 /**
 * @tc.name: CheckInputImage001
@@ -286,6 +461,62 @@ HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage001, TestSize.Level1)
     Drawing::GEKawaseBlurShaderFilterParams params { 1 }; // 1 blur radius
     auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
     Drawing::Rect src { 3.0f, 5.0f, 3.0f, 5.0f };
+    geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
+    EXPECT_NE(image_, nullptr);
+}
+
+/**
+* @tc.name: CheckInputImage002
+* @tc.desc: Verify function CheckInputImage
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage002, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 10 }; // 10 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Rect src { 3.0f, 5.0f, 3.0f, 5.0f };
+    geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
+    EXPECT_NE(image_, nullptr);
+}
+
+/**
+* @tc.name: CheckInputImage003
+* @tc.desc: Verify function CheckInputImage
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage003, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 100 }; // 100 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Rect src { 3.0f, 5.0f, 3.0f, 5.0f };
+    geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
+    EXPECT_NE(image_, nullptr);
+}
+
+/**
+* @tc.name: CheckInputImage004
+* @tc.desc: Verify function CheckInputImage
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage004, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 10 }; // 10 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Rect src { 30.0f, 50.0f, 30.0f, 50.0f };
+    geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
+    EXPECT_NE(image_, nullptr);
+}
+
+/**
+* @tc.name: CheckInputImage005
+* @tc.desc: Verify function CheckInputImage
+* @tc.type:FUNC
+*/
+HWTEST_F(GEKawaseBlurShaderFilterTest, CheckInputImage005, TestSize.Level1)
+{
+    Drawing::GEKawaseBlurShaderFilterParams params { 10 }; // 10 blur radius
+    auto geKawaseBlurShaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
+    Drawing::Rect src { 10.0f, 30.0f, 10.0f, 30.0f };
     geKawaseBlurShaderFilter->CheckInputImage(canvas_, image_, image_, src);
     EXPECT_NE(image_, nullptr);
 }
