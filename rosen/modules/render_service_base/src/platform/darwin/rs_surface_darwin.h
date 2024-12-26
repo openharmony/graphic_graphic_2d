@@ -57,7 +57,6 @@ public:
     }
 
 private:
-    void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();
 
     RenderContext* renderContext_ = nullptr;

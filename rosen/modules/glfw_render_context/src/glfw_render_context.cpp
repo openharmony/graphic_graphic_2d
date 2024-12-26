@@ -17,6 +17,9 @@
 
 #include <mutex>
 
+#ifdef __APPLE__
+#include <glad/gl.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #include "hilog/log.h"
@@ -89,6 +92,7 @@ void GlfwRenderContext::Terminate()
 int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visible)
 {
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "CreateGlfwWindow");
+    isVisible_ = visible;
     if (external_) {
         return 0;
     }
@@ -109,10 +113,21 @@ int GlfwRenderContext::CreateGlfwWindow(int32_t width, int32_t height, bool visi
 
     glfwSetWindowUserPointer(window_, this);
 
+#ifdef __APPLE__
+    if (isVisible_) {
+        glfwGetFramebufferSize(window_, &framebufferWidth_, &framebufferHeight_);
+    }
+#endif
     width_ = width;
     height_ = height;
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "glfwSetWindowSizeCallback %{public}d %{public}d", width, height);
     glfwSetWindowSizeCallback(window_, GlfwRenderContext::OnSizeChanged);
+
+#ifdef __APPLE__
+    if (isVisible_) {
+        CreateTexture();
+    }
+#endif
     return 0;
 }
 
@@ -121,6 +136,13 @@ void GlfwRenderContext::DestroyWindow()
     if (external_) {
         return;
     }
+
+#ifdef __APPLE__
+    glDeleteTextures(1, &textureId);
+    if (renderingWindow_ != nullptr) {
+        glfwDestroyWindow(renderingWindow_);
+    }
+#endif
 
     if (window_ != nullptr) {
         glfwDestroyWindow(window_);
@@ -140,6 +162,11 @@ void GlfwRenderContext::WaitForEvents()
 void GlfwRenderContext::PollEvents()
 {
     glfwPollEvents();
+#ifdef __APPLE__
+    if (isVisible_) {
+        DrawTexture();
+    }
+#endif
 }
 
 void GlfwRenderContext::GetWindowSize(int32_t &width, int32_t &height)
@@ -161,7 +188,14 @@ void GlfwRenderContext::SetWindowTitle(const std::string &title)
 
 std::string GlfwRenderContext::GetClipboardData()
 {
-    return glfwGetClipboardString(window_);
+    if (!window_) {
+        return std::string("");
+    }
+    const char* text = glfwGetClipboardString(window_);
+    if (!text) {
+        return std::string("");
+    }
+    return std::string(text);
 }
 
 void GlfwRenderContext::SetClipboardData(const std::string &data)
@@ -174,9 +208,104 @@ void GlfwRenderContext::MakeCurrent()
     glfwMakeContextCurrent(window_);
 }
 
+#ifdef __APPLE__
+void GlfwRenderContext::MakeRenderingCurrent()
+{
+    if (renderingWindow_) {
+        glfwMakeContextCurrent(renderingWindow_);
+    }
+}
+
+bool GlfwRenderContext::CreateRenderingContext()
+{
+    if (!isVisible_) {
+        return false;
+    }
+    if (renderingWindow_ != nullptr) {
+        return true;
+    }
+
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    renderingWindow_ = glfwCreateWindow(width_, height_, "glfw window", nullptr, nullptr);
+    if (renderingWindow_ == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+void GlfwRenderContext::CreateTexture()
+{
+    if (!isVisible_) {
+        return;
+    }
+    glfwMakeContextCurrent(window_);
+    gladLoadGL(glfwGetProcAddress);
+    std::lock_guard<std::mutex> lock(renderingMutex);
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, framebufferWidth_, framebufferHeight_, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+
+void GlfwRenderContext::CopySnapshot(void* addr)
+{
+    if (addr == nullptr || !isVisible_) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(renderingMutex);
+    glfwMakeContextCurrent(window_);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, framebufferWidth_, framebufferHeight_, GL_RGBA, GL_UNSIGNED_BYTE, addr);
+    textureReady = true;
+    glfwMakeContextCurrent(NULL);
+}
+
+void GlfwRenderContext::DrawTexture()
+{
+    std::lock_guard<std::mutex> lock(renderingMutex);
+    if (!textureReady || !isVisible_) {
+        return;
+    }
+
+    glfwMakeContextCurrent(window_);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glEnable(GL_TEXTURE_2D);
+
+    glBegin(GL_QUADS);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, framebufferWidth_);
+
+    glTexCoord2f(0, 0);
+    glVertex2f(-1, 1);
+
+    glTexCoord2f(1, 0);
+    glVertex2f(1, 1);
+
+    glTexCoord2f(1, 1);
+    glVertex2f(1, -1);
+
+    glTexCoord2f(0, 1);
+    glVertex2f(-1, -1);
+
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+
+    glfwSwapBuffers(window_);
+    textureReady = false;
+}
+#endif
+
 void GlfwRenderContext::SwapBuffers()
 {
     glfwSwapBuffers(window_);
+}
+
+void GlfwRenderContext::GetFrameBufferSize(int32_t &width, int32_t &height)
+{
+    glfwGetFramebufferSize(window_, &width, &height);
 }
 
 void GlfwRenderContext::OnMouseButton(const OnMouseButtonFunc &onMouseBotton)
@@ -249,7 +378,9 @@ void GlfwRenderContext::OnSizeChanged(GLFWwindow *window, int32_t width, int32_t
     if (that->width_ != width || that->height_ != height) {
         glfwSetWindowSize(window, that->width_, that->height_);
     }
-    that->onSizeChanged_(that->width_, that->height_);
+    if (that->onSizeChanged_) {
+        that->onSizeChanged_(that->width_, that->height_);
+    }
     ::OHOS::HiviewDFX::HiLog::Info(LABEL, "OnSizeChanged done %{public}d %{public}d", width, height);
 }
 } // namespace OHOS::Rosen

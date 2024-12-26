@@ -40,9 +40,7 @@ ohos_source_set("windows") {
   include_dirs = [ "$rosen_root/modules/render_service_base/include" ]
 
   defines += [ "MODULE_RSB" ]
-  if (enable_glfw_window) {
-    defines += [ "USE_GLFW_WINDOW" ]
-  }
+  defines += [ "USE_GLFW_WINDOW" ]
 
   cflags = [ "-std=c++17" ]
 

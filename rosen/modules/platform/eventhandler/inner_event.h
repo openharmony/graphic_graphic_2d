@@ -24,6 +24,7 @@
 #include <typeinfo>
 
 #include "nocopyable.h"
+#include "eventhandler_macros.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -37,7 +38,7 @@ class EventHandler;
 
 const std::string LINE_SEPARATOR = "\n";
 
-class InnerEvent final {
+class IMPL_EVENTHANDELER_EXPORT InnerEvent final {
 public:
     using Clock = std::chrono::steady_clock;
     using TimePoint = std::chrono::time_point<Clock>;
