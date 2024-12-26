@@ -1123,6 +1123,15 @@ void RSSurfaceRenderNodeDrawable::EnableGpuOverDrawDrawBufferOptimization(Drawin
     canvas.DetachBrush();
 }
 
+bool RSSurfaceRenderNodeDrawable::BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface,
+    bool isNeedFP16)
+{
+    bool bufferFormatNeedUpdate = cacheSurface ? isNeedFP16 &&
+        cacheSurface->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16 : false;
+    RS_LOGD("RSSurfaceRenderNodeDrawable::BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
+    return bufferFormatNeedUpdate;
+}
+
 const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion() const
 {
     return visibleDirtyRegion_;
