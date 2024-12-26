@@ -1981,8 +1981,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             return;
         }
 
-        if (RSSyStemProperties::GetHveFilterEnable()) {
-            const auto &preHwcNodes = surfaceNode->GetChildHardwareEnableNodes();
+        if (RSSystemProperties::GetHveFilterEnabled()) {
+            const auto &preHwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
             for (const auto& preHwcNode : preHwcNodes) {
                 auto hwcNodePtr = preHwcNode.lock();
                 if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree()) {
