@@ -1,4 +1,4 @@
-# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Copyright (c) 2024 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -11,18 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("fuzztest") {
-  testonly = true
-
-  deps = [
-    "postvsyncevent_fuzzer:fuzztest",
-    "vsynccallbacklistener_fuzzer:fuzztest",
-    "vsyncconnection_fuzzer:fuzztest",
-    "vsynccontroller_fuzzer:fuzztest",
-    "vsyncdistributor_fuzzer:fuzztest",
-    "vsyncgenerator_fuzzer:fuzztest",
-    "vsyncreceiver_fuzzer:fuzztest",
-    "vsyncreceiverconcurrent_fuzzer:fuzztest",
-    "vsyncsampler_fuzzer:fuzztest",
-  ]
-}
+FUZZ
