@@ -1288,7 +1288,7 @@ public:
         subThreadAssignable_ = subThreadAssignable;
     }
 
-    bool NeedUpdateDrawableBehindWindow();
+    bool NeedUpdateDrawableBehindWindow() const override;
     void SetOldNeedDrawBehindWindow(bool val);
     bool NeedDrawBehindWindow() const override;
     bool GetBehindWindowFilterEnabled() const;

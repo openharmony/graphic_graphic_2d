@@ -2505,5 +2505,19 @@ HWTEST_F(RSRenderNodeTest2, ResortChildrenTest02, TestSize.Level1)
     node->ResortChildren();
     EXPECT_TRUE(node->isChildrenSorted_);
 }
+
+/**
+ * @tc.name: UpdateDrawableBehindWindowTest
+ * @tc.desc: UpdateDrawableBehindWindowTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBDI0L
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateDrawableBehindWindowTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->UpdateDrawableBehindWindow();
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::BACKGROUND_FILTER) != 0);
+}
 } // namespace Rosen
 } // namespace OHOS

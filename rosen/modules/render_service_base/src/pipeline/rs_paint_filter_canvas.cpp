@@ -1398,7 +1398,7 @@ void RSPaintFilterCanvas::SetBehindWindowData(
 
 const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& RSPaintFilterCanvas::GetBehindWindowData() const
 {
-    return envStack_.top().behindWindowData_;
+    return envStack_.empty() ? nullptr : envStack_.top().behindWindowData_;
 }
 
 void RSPaintFilterCanvas::ReplaceMainScreenData(std::shared_ptr<Drawing::Surface>& offscreenSurface,
