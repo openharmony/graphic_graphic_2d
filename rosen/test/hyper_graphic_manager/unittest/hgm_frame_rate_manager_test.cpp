@@ -47,6 +47,24 @@ namespace {
     constexpr int32_t errorVelocity = -1;
     constexpr int32_t strategy3 = 3;
     const std::string testScene = "TestScene";
+    const GraphicIRect rectF {
+        .x = 0,
+        .y = 0,
+        .w = 2232,
+        .h = 1008,
+    };
+    const GraphicIRect rectM {
+        .x = 0,
+        .y = 1136,
+        .w = 2232,
+        .h = 2048,
+    };
+    const GraphicIRect rectG {
+        .x = 0,
+        .y = 0,
+        .w = 2232,
+        .h = 3184,
+    };
 }
 class HgmFrameRateMgrTest : public testing::Test {
 public:
@@ -286,6 +304,11 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
             // HandleScreenPowerStatus
             frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
             frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
+
+            // HandleScreenRectFrameRate
+            frameRateMgr.HandleScreenRectFrameRate(i, rectF);
+            frameRateMgr.HandleScreenRectFrameRate(i, rectM);
+            frameRateMgr.HandleScreenRectFrameRate(i, rectG);
         }
     });
     sleep(1); // wait for handler task finished

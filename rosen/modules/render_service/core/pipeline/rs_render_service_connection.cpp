@@ -1945,7 +1945,13 @@ uint32_t RSRenderServiceConnection::SetScreenActiveRect(
         .w = activeRect.w,
         .h = activeRect.h,
     };
-    return screenManager_->SetScreenActiveRect(id, dstActiveRect);
+    auto result = screenManager_->SetScreenActiveRect(id, dstActiveRect);
+    if (result == StatusCode::SUCCESS) {
+        HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
+            OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
+        });
+    }
+    return result;
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
