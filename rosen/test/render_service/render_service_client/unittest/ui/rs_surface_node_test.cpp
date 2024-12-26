@@ -340,6 +340,7 @@ HWTEST_F(RSSurfaceNodeTest, SetWatermarkEnabled001, TestSize.Level1)
     }
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     std::string waterMark = "watermark";
     surfaceNode->SetWatermarkEnabled(waterMark, true);
     surfaceNode->SetWatermarkEnabled(waterMark, false);
@@ -1091,6 +1092,7 @@ HWTEST_F(RSSurfaceNodeTest, SetFreeze001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetFreeze(true);
 }
 
@@ -1104,6 +1106,7 @@ HWTEST_F(RSSurfaceNodeTest, SetContainerWindow001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetContainerWindow(true, rrect);
 }
 
@@ -1117,6 +1120,7 @@ HWTEST_F(RSSurfaceNodeTest, SetIsNotifyUIBufferAvailable001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetIsNotifyUIBufferAvailable(true);
 }
 
@@ -1130,6 +1134,7 @@ HWTEST_F(RSSurfaceNodeTest, ClearChildren001, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->CreateNodeInRenderThread();
     RSSurfaceNodeConfig c2;
     RSSurfaceNode::SharedPtr surfaceNode2 = RSSurfaceNode::Create(c2);
@@ -1403,6 +1408,7 @@ HWTEST_F(RSSurfaceNodeTest, ResetContextAlpha, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->ResetContextAlpha();
     ASSERT_NE(RSTransactionProxy::GetInstance()->implicitRemoteTransactionData_, nullptr);
 }
