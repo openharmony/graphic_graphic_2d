@@ -726,17 +726,27 @@ HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level2)
 
 /**
  * @tc.name: GetDrawingFrameRate
- * @tc.desc: Verify the result of HandleFrameRateChangeForLTPO
+ * @tc.desc: Verify the result of GetDrawingFrameRate
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(HgmFrameRateMgrTest, GetDrawingFrameRate, Function | SmallTest | Level2)
 {
-    HgmFrameRateManager mgr;
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_90_HZ, OLED_60_HZ};
-    mgr.GetDrawingFrameRate(OLED_120_HZ, finalRange);
-    FrameRateRange finalRange2 = {OLED_50_HZ, OLED_80_HZ, OLED_80_HZ};
-    EXPECT_EQ(mgr.GetDrawingFrameRate(OLED_90_HZ, finalRange), OLED_90_HZ);
+    std::vector<std::pair<std::pair<uint32_t, FrameRateRange>, uint32_t>> inputAndOutput = {
+        {{0, {0, 120, 60}}, 0},
+        {{60, {0, 120, 0}}, 0},
+        {{60, {0, 90, 120}}, 60},
+        {{60, {0, 120, 120}}, 60},
+        {{90, {0, 120, 30}}, 30},
+        {{80, {0, 120, 30}}, 40},
+        {{70, {0, 120, 30}}, 35},
+        {{60, {0, 120, 30}}, 30},
+        {{50, {0, 120, 30}}, 50}
+    };
+
+    for (const auto& [input, output] : inputAndOutput) {
+        EXPECT_EQ(HgmFrameRateManager::GetDrawingFrameRate(input.first, input.second), output);
+    }
 }
 
 /**

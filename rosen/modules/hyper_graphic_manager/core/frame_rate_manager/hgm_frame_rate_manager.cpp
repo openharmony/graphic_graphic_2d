@@ -37,10 +37,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr float MARGIN = 0.00001;
-    constexpr float MIN_DRAWING_DIVISOR = 10.0f;
-    constexpr float DIVISOR_TWO = 2.0f;
-    constexpr uint32_t MULTIPLE_TWO = 2;
     constexpr int32_t IDLE_TIMER_EXPIRED = 200; // ms
     constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
     constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
@@ -561,16 +557,8 @@ bool HgmFrameRateManager::CollectFrameRateChange(FrameRateRange finalRange,
         }
         auto expectedRange = linker.second->GetExpectedRange();
         CollectVRateChange(linker.first, expectedRange.preferred_);
-        auto appFrameRate = GetDrawingFrameRate(currRefreshRate_, expectedRange);
-        // The caculated drawing fps should be greater than or equal to preferred fps.
-        // e.g. The preferred fps is 72, the refresh rate is 120, the drawing fps will be 120, not 60.
-        if (appFrameRate < static_cast<uint32_t>(expectedRange.preferred_) &&
-            (appFrameRate * MULTIPLE_TWO <= currRefreshRate_)) {
-            appFrameRate = appFrameRate * MULTIPLE_TWO;
-        }
-        if (touchManager_.GetState() != TouchState::IDLE_STATE) {
-            appFrameRate = OLED_NULL_HZ;
-        }
+        auto appFrameRate = touchManager_.GetState() == TouchState::IDLE_STATE ?
+                            GetDrawingFrameRate(currRefreshRate_, expectedRange) : OLED_NULL_HZ;
         if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
             linker.second->SetFrameRate(appFrameRate);
             appChangeData_.emplace_back(linker.second->GetId(), appFrameRate);
@@ -734,72 +722,24 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
 
 uint32_t HgmFrameRateManager::GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range)
 {
-    // We will find a drawing fps, which is divisible by refreshRate.
-    // If the refreshRate is 60, the options of drawing fps are 60, 30, 15, 12, etc.
-    // 1. The preferred fps is divisible by refreshRate.
-    const float currRefreshRate = static_cast<float>(refreshRate);
-    const float preferredFps = static_cast<float>(range.preferred_);
-    if (preferredFps < MARGIN || currRefreshRate < MARGIN) {
+    if (refreshRate == 0 || range.preferred_ <= 0) {
         return 0;
     }
-    if (std::fmodf(currRefreshRate, range.preferred_) < MARGIN) {
-        return static_cast<uint32_t>(preferredFps);
+
+    uint32_t preferredFps = static_cast<uint32_t>(range.preferred_);
+    if (!range.IsValid() || preferredFps > refreshRate) {
+        return refreshRate;
     }
-    // 2. FrameRateRange is not dynamic, we will find the closest drawing fps to preferredFps.
-    // e.g. If the FrameRateRange of a surfaceNode is [50, 50, 50], the refreshRate is
-    // 90, the drawing fps of the surfaceNode should be 45.
-    if (!range.IsDynamic()) {
-        return static_cast<uint32_t>(currRefreshRate / std::round(refreshRate / preferredFps));
-    }
-    // 3. FrameRateRange is dynamic. We will find a divisible result in the range if possible.
-    // If several divisible options are in the range, the smoother, the better.
-    // The KPI of "smooth" is the ratio of lack.
-    // e.g. The preferred fps is 58, the refreshRate is 60. When the drawing fps is 60,
-    // we lack the least(the ratio is 2/60).
-    // The preferred fps is 34, the refreshRate is 60, the drawing fps will be 30(the ratio is 4/30).
-    int divisor = 1;
-    float drawingFps = currRefreshRate;
-    float dividedFps = currRefreshRate;
-    float currRatio = std::abs(dividedFps - preferredFps) / preferredFps;
-    float ratio = currRatio;
-    const float minDrawingFps = currRefreshRate / MIN_DRAWING_DIVISOR;
-    while (dividedFps > minDrawingFps - MARGIN) {
-        if (dividedFps < range.min_ || dividedFps <= static_cast<float>(range.preferred_) / DIVISOR_TWO) {
+
+    // find the smallest value in range of [preferredFps, refreshRate], which can exactly divide refreshRate
+    uint32_t divisor = refreshRate / preferredFps;
+    while (divisor > 1) {
+        if (refreshRate % divisor == 0) {
             break;
         }
-        if (dividedFps > range.max_) {
-            divisor++;
-            float preDividedFps = dividedFps;
-            dividedFps = currRefreshRate / static_cast<float>(divisor);
-            // If we cannot find a divisible result, the closer to the preferred, the better.
-            // e.g.FrameRateRange is [50, 80, 80], refreshrate is
-            // 90, the drawing frame rate is 90.
-            if (dividedFps < range.min_ && (preferredFps - dividedFps) > (preDividedFps - preferredFps)) {
-                drawingFps = preDividedFps;
-                break;
-            }
-            currRatio = std::abs(dividedFps - preferredFps) / preferredFps;
-            if (currRatio < ratio) {
-                ratio = currRatio;
-                drawingFps = dividedFps;
-            }
-            continue;
-        }
-        currRatio = std::min(std::fmodf(preferredFps, dividedFps),
-            std::fmodf(std::abs(dividedFps - preferredFps), dividedFps)) / dividedFps;
-        // When currRatio is almost zero, dividedFps is the perfect result
-        if (currRatio < MARGIN) {
-            drawingFps = dividedFps;
-            break;
-        }
-        if (currRatio < ratio) {
-            ratio = currRatio;
-            drawingFps = dividedFps;
-        }
-        divisor++;
-        dividedFps = currRefreshRate / static_cast<float>(divisor);
+        divisor--;
     }
-    return static_cast<uint32_t>(std::round(drawingFps));
+    return refreshRate / divisor;
 }
 
 void HgmFrameRateManager::Reset()
