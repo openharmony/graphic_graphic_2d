@@ -593,8 +593,7 @@ void RSUniRenderUtil::DealWithRotationAndGravityForRotationFixed(GraphicTransfor
     RectF& localBounds, BufferDrawParam& params)
 {
     auto rotationTransform = RSBaseRenderUtil::GetRotateTransform(transform);
-    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrixForRotationFixed(
-        rotationTransform, localBounds));
+    params.matrix.PreConcat(RSBaseRenderUtil::GetSurfaceTransformMatrix(rotationTransform, localBounds));
     if (rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         rotationTransform == GraphicTransformType::GRAPHIC_ROTATE_270) {
         // after rotate, we should swap dstRect and bound's width and height.
