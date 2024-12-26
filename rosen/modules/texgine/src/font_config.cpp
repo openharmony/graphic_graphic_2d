@@ -196,7 +196,7 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
     return SUCCESSED;
 }
 
-void FontConfigJson::emplaceFontJson(const FontJson& fontJson)
+void FontConfigJson::EmplaceFontJson(const FontJson& fontJson)
 {
     if (!fontPtr) {
         return;
@@ -255,7 +255,7 @@ void FontConfigJson::AnalyseFont(const cJSON* root)
         }
         item = item->next;
     }
-    emplaceFontJson(fontJson);
+    EmplaceFontJson(fontJson);
 }
 
 int FontConfigJson::ParseFonts(const cJSON* root)

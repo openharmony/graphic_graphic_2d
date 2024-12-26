@@ -123,7 +123,7 @@ private:
         std::string family;
         std::string lang;
     };
-    void emplaceFontJson(const FontJson &fontJson);
+    void EmplaceFontJson(const FontJson &fontJson);
 
     std::shared_ptr<FontConfigJsonInfo> fontPtr = nullptr;
     std::shared_ptr<FontFileMap> fontFileMap = nullptr;
