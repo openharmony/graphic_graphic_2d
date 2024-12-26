@@ -153,6 +153,10 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    void SetHardwareEnableHint(bool enable);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

@@ -1000,5 +1000,15 @@ RSInterfaceErrorCode RSSurfaceNode::SetHidePrivacyContent(bool needHidePrivacyCo
     }
     return RSInterfaceErrorCode::UNKNOWN_ERROR;
 }
+
+void RSSurfaceNode::SetHardwareEnableHint(bool enable)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetHardwareEnableHint>(GetId(), enable);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

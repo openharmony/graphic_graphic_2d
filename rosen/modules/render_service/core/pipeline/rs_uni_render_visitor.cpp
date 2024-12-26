@@ -1636,6 +1636,7 @@ void RSUniRenderVisitor::UpdateHwcNodeInfoForAppNode(RSSurfaceRenderNode& node)
     // app node
     if (node.GetNeedCollectHwcNode()) {
         node.ResetChildHardwareEnabledNodes();
+        node.SetExistTransparentHardwareEnabledNode(false);
     }
     // hwc node
     if (node.IsHardwareEnabledType() && curSurfaceNode_) {
@@ -1744,7 +1745,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by background color alpha < 1",
             node.GetName().c_str(), node.GetId());
         // use in skip updating hardware state for hwcnode with background alpha in specific situation
-        if (!RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag()) {
+        if (!RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() &&
+            !node.IsHardwareEnableHint()) {
 #ifdef HIPERF_TRACE_ENABLE
             RS_LOGW("hiperf_surface: name:%s disabled by background color alpha < 1, "
                 "surfaceRect: [%d, %d, %d, %d]->[%d, %d, %d, %d]", node.GetName().c_str(),
@@ -1755,6 +1757,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
 #endif
             node.SetHardwareForcedDisabledState(true);
         }
+        curSurfaceNode_->SetExistTransparentHardwareEnabledNode(true);
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
@@ -1867,7 +1870,9 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<
         return;
     }
     for (const auto& rect : hwcRects) {
-        if (dst.Intersect(rect) && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
+        const bool isIntersect = !dst.IntersectRect(rect).IsEmpty();
+        if (isIntersect && !RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag() &&
+            !hwcNode->IsHardwareEnableHint()) {
             if (RsCommonHook::Instance().GetVideoSurfaceFlag() &&
                 ((dst.GetBottom() - rect.GetTop() <= MIN_OVERLAP && dst.GetBottom() - rect.GetTop() >= 0) ||
                 (rect.GetBottom() - dst.GetTop() <= MIN_OVERLAP && rect.GetBottom() - dst.GetTop() >= 0))) {
@@ -2306,11 +2311,46 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByNodeBelow()
         if (!hwcNodes.empty() && RsCommonHook::Instance().GetHardwareEnabledByBackgroundAlphaFlag() &&
             RsCommonHook::Instance().GetHardwareEnabledByHwcnodeBelowSelfInAppFlag()) {
             UpdateHardwareStateByHwcNodeBackgroundAlpha(hwcNodes);
+        } else if (surfaceNode->ExistTransparentHardwareEnabledNode()) {
+            UpdateTransparentHwcNodeEnable(hwcNodes);
         }
         // use end
-
         UpdateChildHwcNodeEnableByHwcNodeBelow(hwcRects, surfaceNode);
     });
+}
+
+void RSUniRenderVisitor::UpdateTransparentHwcNodeEnable(
+    const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes)
+{
+    for (size_t index = 1; index < hwcNodes.size(); ++index) {
+        auto transparentHwcNodeSPtr = hwcNodes[index].lock();
+        if (!transparentHwcNodeSPtr) {
+            continue;
+        }
+        const bool isTransparentEnableHwcNode = transparentHwcNodeSPtr->IsNodeHasBackgroundColorAlpha() &&
+            !transparentHwcNodeSPtr->IsHardwareForcedDisabled() && transparentHwcNodeSPtr->IsHardwareEnableHint();
+        if (!isTransparentEnableHwcNode) {
+            continue;
+        }
+        auto transparentDstRect = transparentHwcNodeSPtr->GetDstRect();
+        for (size_t lowerIndex = 0; lowerIndex < index; ++lowerIndex) {
+            // 'lowerHwcNode' means lower device composition layer.
+            auto lowerHwcNodeSPtr = hwcNodes[lowerIndex].lock();
+            if (!lowerHwcNodeSPtr || !lowerHwcNodeSPtr->IsHardwareForcedDisabled()) {
+                continue;
+            }
+            auto lowerHwcNodeRect = lowerHwcNodeSPtr->GetDstRect();
+            bool isIntersect = !transparentDstRect.IntersectRect(lowerHwcNodeRect).IsEmpty();
+            if (isIntersect) {
+                RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by transparent hwc node"
+                    " cover other disabled hwc node name:%s id:%" PRIu64,
+                    transparentHwcNodeSPtr->GetName().c_str(), transparentHwcNodeSPtr->GetId(),
+                    lowerHwcNodeSPtr->GetName().c_str(), lowerHwcNodeSPtr->GetId());
+                transparentHwcNodeSPtr->SetHardwareForcedDisabledState(true);
+                break;
+            }
+        }
+    }
 }
 
 void RSUniRenderVisitor::UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,

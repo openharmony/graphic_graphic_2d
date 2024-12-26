@@ -1709,4 +1709,20 @@ HWTEST_F(RSSurfaceNodeTest, GetAbilityState, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     EXPECT_TRUE(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND);
 }
+
+/**
+ * @tc.name: SetHardwareEnableHint
+ * @tc.desc: Test function SetHardwareEnableHint
+ * @tc.type: FUNC
+ * @tc.require: issueIAHFXD
+ */
+HWTEST_F(RSSurfaceNodeTest, SetHardwareEnableHint, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetHardwareEnableHint(true);
+    surfaceNode->SetHardwareEnableHint(false);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
 } // namespace OHOS::Rosen

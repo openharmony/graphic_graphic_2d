@@ -67,6 +67,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_ABILITY_STATE,
     SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
     SURFACE_NODE_SET_API_COMPATIBLE_VERSION,
+    SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -114,6 +115,7 @@ public:
     static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
     static void SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion);
+    static void SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
@@ -230,6 +232,9 @@ ADD_COMMAND(RSSurfaceNodeSetAbilityState,
 ADD_COMMAND(
     RSSurfaceNodeSetApiCompatibleVersion, ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_API_COMPATIBLE_VERSION,
                                               SurfaceNodeCommandHelper::SetApiCompatibleVersion, NodeId, uint32_t))
+ADD_COMMAND(RSSurfaceNodeSetHardwareEnableHint,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
+        SurfaceNodeCommandHelper::SetHardwareEnableHint, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

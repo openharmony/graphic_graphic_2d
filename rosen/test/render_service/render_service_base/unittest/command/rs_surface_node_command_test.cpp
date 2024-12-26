@@ -696,4 +696,19 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetAbilityState, TestSize.Level1)
     SurfaceNodeCommandHelper::SetAbilityState(context, 1, RSSurfaceNodeAbilityState::FOREGROUND);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
 }
+
+/**
+ * @tc.name: SetHardwareEnableHint
+ * @tc.desc: Verify function SetHardwareEnableHint
+ * @tc.type:FUNC
+ * @tc.require: issueIAHFXD
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, SetHardwareEnableHint, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::SetHardwareEnableHint(context, nodeId, true);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
 } // namespace OHOS::Rosen

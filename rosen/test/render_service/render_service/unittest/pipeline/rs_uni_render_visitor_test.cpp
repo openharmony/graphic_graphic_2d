@@ -4405,6 +4405,71 @@ HWTEST_F(RSUniRenderVisitorTest, IsNodeAboveInsideOfNodeBelow, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateTransparentHwcNodeEnable001
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateTransparentHwcNodeEnable
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateTransparentHwcNodeEnable001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetDstRect({0, 0, 100, 100});
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->UpdateTransparentHwcNodeEnable(hwcNodes);
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    surfaceNode->SetNodeHasBackgroundColorAlpha(true);
+    surfaceNode->SetHardwareEnableHint(true);
+    rsUniRenderVisitor->UpdateTransparentHwcNodeEnable(hwcNodes);
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
+ * @tc.name: UpdateTransparentHwcNodeEnable002
+ * @tc.desc: Test RSUnitRenderVisitorTest.UpdateTransparentHwcNodeEnable
+ * @tc.type: FUNC
+ * @tc.require: IAHFXD
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateTransparentHwcNodeEnable002, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceConfig.id = 2;
+    auto opacitySurfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(opacitySurfaceNode, nullptr);
+    // set transparent
+    surfaceNode->SetNodeHasBackgroundColorAlpha(true);
+    surfaceNode->SetHardwareEnableHint(true);
+    surfaceNode->SetDstRect({0, 0, 100, 100});
+    opacitySurfaceNode->SetDstRect({100, 0, 100, 100});
+    opacitySurfaceNode->SetHardwareForcedDisabledState(true);
+
+    std::vector<std::weak_ptr<RSSurfaceRenderNode>> hwcNodes;
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(opacitySurfaceNode));
+    hwcNodes.push_back(std::weak_ptr<RSSurfaceRenderNode>(surfaceNode));
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+    // A transparent HWC node is NOT intersected with another opacity disabled-HWC node below it.
+    rsUniRenderVisitor->UpdateTransparentHwcNodeEnable(hwcNodes);
+    ASSERT_FALSE(surfaceNode->IsHardwareForcedDisabled());
+
+    // A transparent HWC node is intersected with another opacity disabled-HWC node below it.
+    opacitySurfaceNode->SetDstRect({50, 0, 100, 100});
+    rsUniRenderVisitor->UpdateTransparentHwcNodeEnable(hwcNodes);
+    ASSERT_TRUE(surfaceNode->IsHardwareForcedDisabled());
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnableByGlobalFilter
  * @tc.desc: Test UpdateHwcNodeEnableByGlobalFilter nullptr / eqeual nodeid / hwcNodes empty.
  * @tc.type: FUNC

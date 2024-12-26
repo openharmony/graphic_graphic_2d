@@ -136,6 +136,30 @@ public:
         return isLayerTop_;
     }
 
+    void SetHardwareEnableHint(bool enable)
+    {
+        if (isHardwareEnableHint_ == enable) {
+            return;
+        }
+        isHardwareEnableHint_ = enable;
+        SetContentDirty();
+    }
+
+    bool IsHardwareEnableHint() const
+    {
+        return isHardwareEnableHint_;
+    }
+
+    void SetExistTransparentHardwareEnabledNode(bool exist)
+    {
+        existTransparentHardwareEnabledNode_ = exist;
+    }
+    
+    bool ExistTransparentHardwareEnabledNode() const
+    {
+        return existTransparentHardwareEnabledNode_;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -1415,6 +1439,10 @@ private:
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     bool isLayerTop_ = false;
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    bool isHardwareEnableHint_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.
@@ -1573,6 +1601,8 @@ private:
     bool isHardwareDisabledByCache_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
+    // Mark if the leash or main window node has transparent self-drawing node
+    bool existTransparentHardwareEnabledNode_ = false;
     int32_t nodeCost_ = 0;
 
     bool animateState_ = false;
