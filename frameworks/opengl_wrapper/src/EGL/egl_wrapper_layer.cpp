@@ -78,7 +78,7 @@ static void SetupFuncMaps(FunctionTable &table,
         if (table.find(name) == table.end()) {
             table[name] = *curr;
         } else {
-            WLOGW("duplicate function name(%{public}s)", name);
+            WLOGD("duplicate function name(%{public}s)", name);
         }
 
         entries++;
@@ -310,7 +310,7 @@ bool EglWrapperLayer::LoadLayers()
     return true;
 }
 
-bool EglWrapperLayer::LoadLayerFuncs(std::string realLayerPath)
+bool EglWrapperLayer::LoadLayerFuncs(const std::string& realLayerPath)
 {
     dlhandle_ = dlopen(realLayerPath.c_str(), RTLD_NOW | RTLD_LOCAL);
     if (dlhandle_ == nullptr) {
