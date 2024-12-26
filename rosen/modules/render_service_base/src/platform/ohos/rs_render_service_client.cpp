@@ -33,6 +33,7 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -1246,6 +1247,44 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
 
     ROSEN_LOGD("RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback called");
     return renderService->RegisterHgmRefreshRateUpdateCallback(cb);
+}
+
+class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub
+{
+public:
+    explicit CustomFrameRateLinkerExpectedFpsUpdateCallback(
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback) : cb_(callback) {}
+    ~CustomFrameRateLinkerExpectedFpsUpdateCallback() override {};
+
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override
+    {
+        ROSEN_LOGD("CustomFrameRateLinkerExpectedFpsUpdateCallback::OnFrameRateLinkerExpectedFpsUpdate called,"
+            " pid=%{public}d, fps=%{public}d", dstPid, expectedFps);
+        if (cb_ != nullptr) {
+            cb_(dstPid, expectedFps);
+        }
+    }
+
+private:
+    FrameRateLinkerExpectedFpsUpdateCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
+    int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback renderService == nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+
+    sptr<CustomFrameRateLinkerExpectedFpsUpdateCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
+    }
+
+    ROSEN_LOGD("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback called");
+    return renderService->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, cb);
 }
 
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
