@@ -120,7 +120,7 @@ struct VideoInfo {
     std::shared_ptr<Drawing::ColorSpace> drawingColorSpace_ = nullptr;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     GSError retGetColorSpaceInfo_ = GSERROR_OK;
-    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter paramter_ = {};
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter_ = {};
 #endif
 };
 
