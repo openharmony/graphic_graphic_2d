@@ -86,7 +86,7 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
-    EraseIf(surfaceBufferCallbacks_, [pid](const auto& pair) {
+    EraseIf(surfaceBufferCallbacks_, [pid](auto& pair) {
         return pair.first.first == pid;
     });
 }
@@ -131,7 +131,7 @@ sptr<RSISurfaceBufferCallback> RSSurfaceBufferCallbackManager::GetSurfaceBufferC
     auto iter = surfaceBufferCallbacks_.find({pid, uid});
     if (iter == std::cend(surfaceBufferCallbacks_)) {
         RS_LOGE("RSSurfaceBufferCallbackManager::GetSurfaceBufferCallback Pair:"
-            "[Pid: %{public}s, Uid: %{public}s] not exists.",
+            "[Pid: %{public}s, Uid %{public}s] not exists.",
             std::to_string(pid).c_str(), std::to_string(uid).c_str());
         return nullptr;
     }
@@ -231,6 +231,9 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
         return;
     }
     runPolicy_([this]() {
+        if (GetSurfaceBufferCallbackSize() == 0) {
+            return;
+        }
         std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
         {
             std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
