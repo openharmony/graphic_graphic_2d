@@ -42,12 +42,12 @@ Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat);
 #endif
 
 /**
- * @tc.name: DrawImageTest
+ * @tc.name: TestDrawImage
  * @tc.desc: Verify function DrawImage
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, DrawImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestDrawImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Drawing::Canvas canvas;
@@ -60,12 +60,12 @@ HWTEST_F(RSImageBaseUintTest, DrawImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetImageTest
+ * @tc.name: TestSetImage
  * @tc.desc: Verify function SetImage
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, SetImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestSetImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -74,12 +74,12 @@ HWTEST_F(RSImageBaseUintTest, SetImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetPixelMapTest
+ * @tc.name: TestSetPixelMap
  * @tc.desc: Verify function SetPixelMap
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, SetPixelMapTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestSetPixelMap, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelmap = std::make_shared<Media::PixelMap>();
@@ -88,12 +88,12 @@ HWTEST_F(RSImageBaseUintTest, SetPixelMapTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: DumpPictureTest
+ * @tc.name: TestDumpPicture
  * @tc.desc: Verify function DumpPicture
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, DumpPictureTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestDumpPicture, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     DfxString info;
@@ -105,12 +105,12 @@ HWTEST_F(RSImageBaseUintTest, DumpPictureTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetSrcRectTest
+ * @tc.name: TestSetSrcRect
  * @tc.desc: Verify function SetSrcRect
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, SetSrcRectTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestSetSrcRect, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     RectF srcRect;
@@ -120,12 +120,12 @@ HWTEST_F(RSImageBaseUintTest, SetSrcRectTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDstRectTest
+ * @tc.name: TestSetDstRect
  * @tc.desc: Verify function SetDstRect
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, SetDstRectTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestSetDstRect, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     RectF dstRect;
@@ -135,12 +135,12 @@ HWTEST_F(RSImageBaseUintTest, SetDstRectTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetImagePixelAddrTest
+ * @tc.name: TestSetImagePixelAddr
  * @tc.desc: Verify function SetImagePixelAddr
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, SetImagePixelAddrTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestSetImagePixelAddr, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     void* addr = nullptr;
@@ -149,12 +149,12 @@ HWTEST_F(RSImageBaseUintTest, SetImagePixelAddrTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateNodeIdToPictureTest
+ * @tc.name: TestUpdateNodeIdToPicture
  * @tc.desc: Verify function UpdateNodeIdToPicture
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UpdateNodeIdToPictureTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUpdateNodeIdToPicture, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     imageBase->UpdateNodeIdToPicture(0);
@@ -167,12 +167,12 @@ HWTEST_F(RSImageBaseUintTest, UpdateNodeIdToPictureTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkRenderServiceImageTest
+ * @tc.name: TestMarkRenderServiceImage
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMarkRenderServiceImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     imageBase->MarkRenderServiceImage();
@@ -180,12 +180,12 @@ HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ConvertPixelMapToDrawingImageTest
+ * @tc.name: TestConvertPixelMapToDrawingImage
  * @tc.desc: Verify function ConvertPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, ConvertPixelMapToDrawingImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestConvertPixelMapToDrawingImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelmap = std::make_shared<Media::PixelMap>();
@@ -195,12 +195,12 @@ HWTEST_F(RSImageBaseUintTest, ConvertPixelMapToDrawingImageTest, TestSize.Level1
 }
 
 /**
- * @tc.name: GenUniqueIdTest
+ * @tc.name: TestGenUniqueId
  * @tc.desc: Verify function GenUniqueId
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GenUniqueIdTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGenUniqueId, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     imageBase->GenUniqueId(1);
@@ -208,24 +208,24 @@ HWTEST_F(RSImageBaseUintTest, GenUniqueIdTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetPixelMapTest
+ * @tc.name: TestGetPixelMap
  * @tc.desc: Verify function GetPixelMap
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GetPixelMapTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGetPixelMap, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     EXPECT_EQ(imageBase->GetPixelMap(), nullptr);
 }
 
 /**
- * @tc.name: PurgeTest
+ * @tc.name: TestPurge
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issueI9I9D1
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     ASSERT_NE(imageBase, nullptr);
@@ -233,12 +233,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDmaImageTest
+ * @tc.name: TestSetDmaImage
  * @tc.desc: Verify function SetDmaImage
- * @tc.type:FUNC
- * @tc.require: issuesI9MO9U
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, SetDmaImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestSetDmaImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     ASSERT_NE(imageBase, nullptr);
@@ -249,12 +249,12 @@ HWTEST_F(RSImageBaseUintTest, SetDmaImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkYUVImageTest
+ * @tc.name: TestMarkYUVImage
  * @tc.desc: Verify function MarkYUVImage
- * @tc.type:FUNC
- * @tc.require: issuesI9SX8Q
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MarkYUVImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMarkYUVImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     ASSERT_NE(imageBase, nullptr);
@@ -263,12 +263,12 @@ HWTEST_F(RSImageBaseUintTest, MarkYUVImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UnmarshallingTest
+ * @tc.name: TestUnmarshalling
  * @tc.desc: Verify function Unmarshalling
- * @tc.type:FUNC
- * @tc.require: issuesI9MO9U
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshalling, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     ASSERT_NE(imageBase, nullptr);
@@ -277,12 +277,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ProcessYUVImageTest
+ * @tc.name: TestProcessYUVImage
  * @tc.desc: Verify function ProcessYUVImage
- * @tc.type:FUNC
- * @tc.require: issuesI9TOXM
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, ProcessYUVImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestProcessYUVImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     ASSERT_NE(imageBase, nullptr);
@@ -298,12 +298,12 @@ HWTEST_F(RSImageBaseUintTest, ProcessYUVImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkRenderServiceImageTest001
+ * @tc.name: TestMarkRenderServiceImage001
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMarkRenderServiceImage001, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -316,12 +316,12 @@ HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkRenderServiceImageTest002
+ * @tc.name: TestMarkRenderServiceImage002
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMarkRenderServiceImage002, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -334,12 +334,12 @@ HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkRenderServiceImageTest003
+ * @tc.name: TestMarkRenderServiceImage003
  * @tc.desc: Verify function MarkRenderServiceImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest003, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMarkRenderServiceImage003, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -356,60 +356,60 @@ HWTEST_F(RSImageBaseUintTest, MarkRenderServiceImageTest003, TestSize.Level1)
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
- * @tc.name: GetColorTypeWithVKFormatTest
+ * @tc.name: TestGetColorTypeWithVKFormat
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GetColorTypeWithVKFormatTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGetColorTypeWithVKFormat, TestSize.Level1)
 {
     VkFormat vkFormat = VK_FORMAT_R8G8B8A8_UNORM;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_8888);
 }
 
 /**
- * @tc.name: GetColorTypeWithVKFormatTest001
+ * @tc.name: TestGetColorTypeWithVKFormat001
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GetColorTypeWithVKFormatTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGetColorTypeWithVKFormat001, TestSize.Level1)
 {
     VkFormat vkFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_F16);
 }
 
 /**
- * @tc.name: GetColorTypeWithVKFormatTest002
+ * @tc.name: TestGetColorTypeWithVKFormat002
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GetColorTypeWithVKFormatTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGetColorTypeWithVKFormat002, TestSize.Level1)
 {
     VkFormat vkFormat = VK_FORMAT_R5G6B5_UNORM_PACK16;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGB_565);
 }
 
 /**
- * @tc.name: GetColorTypeWithVKFormatTest003
+ * @tc.name: TestGetColorTypeWithVKFormat003
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GetColorTypeWithVKFormatTest003, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGetColorTypeWithVKFormat003, TestSize.Level1)
 {
     VkFormat vkFormat = VK_FORMAT_A2B10G10R10_UNORM_PACK32;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_1010102);
 }
 
 /**
- * @tc.name: GetColorTypeWithVKFormatTest004
+ * @tc.name: TestGetColorTypeWithVKFormat004
  * @tc.desc: Verify function GetColorTypeWithVKFormat
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestGetColorTypeWithVKFormat004, TestSize.Level1)
 {
     VkFormat vkFormat = VK_FORMAT_R32_SFLOAT;
     EXPECT_EQ(GetColorTypeWithVKFormat(vkFormat), Drawing::COLORTYPE_RGBA_8888);
@@ -417,12 +417,12 @@ HWTEST_F(RSImageBaseUintTest, GetColorTypeWithVKFormatTest004, TestSize.Level1)
 #endif
 
 /**
- * @tc.name: PurgeTest001
+ * @tc.name: TestPurge001
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge001, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -432,12 +432,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest002
+ * @tc.name: TestPurge002
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge002, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -449,12 +449,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest003
+ * @tc.name: TestPurge003
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest003, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge003, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -466,12 +466,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest003, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest004
+ * @tc.name: TestPurge004
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest004, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge004, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -483,12 +483,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest004, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest005
+ * @tc.name: TestPurge005
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest005, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge005, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -500,12 +500,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest005, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest006
+ * @tc.name: TestPurge006
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest006, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge006, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -521,12 +521,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest006, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest007
+ * @tc.name: TestPurge007
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest007, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge007, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -542,12 +542,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest007, TestSize.Level1)
 }
 
 /**
- * @tc.name: PurgeTest008
+ * @tc.name: TestPurge008
  * @tc.desc: Verify function Purge
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, PurgeTest008, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestPurge008, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -563,12 +563,12 @@ HWTEST_F(RSImageBaseUintTest, PurgeTest008, TestSize.Level1)
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap
  * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -584,12 +584,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest, TestSize
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest001
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap001
  * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap001, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -604,12 +604,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest001, TestS
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest002
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap002
  * @tc.desc: Verify function UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap002, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -625,12 +625,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest002, TestS
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
- * @tc.name: MakeFromTextureForVKTest
+ * @tc.name: TestMakeFromTextureForVK
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMakeFromTextureForVK, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -639,12 +639,12 @@ HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeFromTextureForVKTest001
+ * @tc.name: TestMakeFromTextureForVK001
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMakeFromTextureForVK001, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -655,12 +655,12 @@ HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeFromTextureForVKTest002
+ * @tc.name: TestMakeFromTextureForVK002
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMakeFromTextureForVK002, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -671,12 +671,12 @@ HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeFromTextureForVKTest003
+ * @tc.name: TestMakeFromTextureForVK003
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest003, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMakeFromTextureForVK003, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -688,12 +688,12 @@ HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest003, TestSize.Level1)
 }
 
 /**
- * @tc.name: MakeFromTextureForVKTest004
+ * @tc.name: TestMakeFromTextureForVK004
  * @tc.desc: Verify function MakeFromTextureForVK
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest004, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestMakeFromTextureForVK004, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -707,12 +707,12 @@ HWTEST_F(RSImageBaseUintTest, MakeFromTextureForVKTest004, TestSize.Level1)
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
- * @tc.name: BindPixelMapToDrawingImageTest
+ * @tc.name: TestBindPixelMapToDrawingImage
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Drawing::Canvas canvas = RSPaintFilterCanvas(std::make_shared<Drawing::Canvas>().get());
@@ -721,12 +721,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest001
+ * @tc.name: TestBindPixelMapToDrawingImage001
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage001, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto image = std::make_shared<Drawing::Image>();
@@ -737,12 +737,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest001, TestSize.Level1
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest002
+ * @tc.name: TestBindPixelMapToDrawingImage002
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage002, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -754,12 +754,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest002, TestSize.Level1
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest003
+ * @tc.name: TestBindPixelMapToDrawingImage003
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest003, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage003, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -771,12 +771,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest003, TestSize.Level1
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest004
+ * @tc.name: TestBindPixelMapToDrawingImage004
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest004, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage004, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -790,12 +790,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest004, TestSize.Level1
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest005
+ * @tc.name: TestBindPixelMapToDrawingImage005
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest005, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage005, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -809,12 +809,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest005, TestSize.Level1
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest006
+ * @tc.name: TestBindPixelMapToDrawingImage006
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest006, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage006, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -829,12 +829,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest006, TestSize.Level1
 }
 
 /**
- * @tc.name: BindPixelMapToDrawingImageTest007
+ * @tc.name: TestBindPixelMapToDrawingImage007
  * @tc.desc: Verify function BindPixelMapToDrawingImage
- * @tc.type:FUNC
- * @tc.require: issue#IB2B3G
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest007, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestBindPixelMapToDrawingImage007, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
@@ -850,12 +850,12 @@ HWTEST_F(RSImageBaseUintTest, BindPixelMapToDrawingImageTest007, TestSize.Level1
 #endif
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest003
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap003
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest003, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap003, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -870,12 +870,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest003, TestS
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest004
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap004
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest004, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap004, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -890,12 +890,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest004, TestS
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest005
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap005
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest005, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap005, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -911,12 +911,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest005, TestS
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest006
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap006
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest006, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap006, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -932,12 +932,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest006, TestS
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest007
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap007
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest007, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap007, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -954,12 +954,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest007, TestS
 }
 
 /**
- * @tc.name: UnmarshallingDrawingImageAndPixelMapTest008
+ * @tc.name: TestUnmarshallingDrawingImageAndPixelMap008
  * @tc.desc: Verify UnmarshallingDrawingImageAndPixelMap
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest008, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestUnmarshallingDrawingImageAndPixelMap008, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     Parcel parcel;
@@ -974,12 +974,12 @@ HWTEST_F(RSImageBaseUintTest, UnmarshallingDrawingImageAndPixelMapTest008, TestS
 }
 
 /**
- * @tc.name: IncreaseCacheRefCountTest
+ * @tc.name: TestIncreaseCacheRefCount
  * @tc.desc: Verify IncreaseCacheRefCount
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, IncreaseCacheRefCountTest, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestIncreaseCacheRefCount, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     uint64_t uniqueId = 1;
@@ -991,12 +991,12 @@ HWTEST_F(RSImageBaseUintTest, IncreaseCacheRefCountTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: IncreaseCacheRefCountTest001
+ * @tc.name: TestIncreaseCacheRefCount001
  * @tc.desc: Verify IncreaseCacheRefCount
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, IncreaseCacheRefCountTest001, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestIncreaseCacheRefCount001, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     uint64_t uniqueId = 1;
@@ -1008,12 +1008,12 @@ HWTEST_F(RSImageBaseUintTest, IncreaseCacheRefCountTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IncreaseCacheRefCountTest002
+ * @tc.name: TestIncreaseCacheRefCount002
  * @tc.desc: Verify IncreaseCacheRefCount
- * @tc.type:FUNC
- * @tc.require: issue#IB2LQP
+ * @tc.type: FUNC
+ * @tc.require:
  */
-HWTEST_F(RSImageBaseUintTest, IncreaseCacheRefCountTest002, TestSize.Level1)
+HWTEST_F(RSImageBaseUintTest, TestIncreaseCacheRefCount002, TestSize.Level1)
 {
     auto imageBase = std::make_shared<RSImageBase>();
     uint64_t uniqueId = 1;
