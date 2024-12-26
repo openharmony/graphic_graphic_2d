@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_NATIVE_IMAGE_H_
-#define NDK_INCLUDE_NATIVE_IMAGE_H_
-
 /**
  * @addtogroup OH_NativeImage
  * @{
@@ -36,6 +33,9 @@
  * @since 9
  * @version 1.0
  */
+ 
+#ifndef NDK_INCLUDE_NATIVE_IMAGE_H_
+#define NDK_INCLUDE_NATIVE_IMAGE_H_
 
 #include <stdint.h>
 

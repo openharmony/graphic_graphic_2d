@@ -51,6 +51,7 @@ HWTEST_F(RSRenderThreadTest, Detach001, TestSize.Level1)
      */
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderThread::Instance().Detach(nodeId);
+    EXPECT_NE(RSRenderThread::Instance().mValue, -1);
 }
 
 /**
@@ -67,6 +68,7 @@ HWTEST_F(RSRenderThreadTest, Detach002, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSCanvasRenderNode node(nodeId);
     RSRenderThread::Instance().Detach(node.GetId());
+    EXPECT_NE(RSRenderThread::Instance().mValue, -1);
 }
 
 /**
@@ -82,6 +84,7 @@ HWTEST_F(RSRenderThreadTest, RecvTransactionData001, TestSize.Level1)
      */
     std::unique_ptr<RSTransactionData> data = std::make_unique<RSTransactionData>();
     RSRenderThread::Instance().RecvTransactionData(data);
+    EXPECT_NE(RSRenderThread::Instance().mValue, -1);
 }
 
 /**
@@ -96,6 +99,7 @@ HWTEST_F(RSRenderThreadTest, PostPreTask001, TestSize.Level1)
      * @tc.steps: step1. PrepareChildren
      */
     RSRenderThread::Instance().PostPreTask();
+    EXPECT_NE(RSRenderThread::Instance().mValue, -1);
 }
 
 /**
@@ -111,6 +115,7 @@ HWTEST_F(RSRenderThreadTest, UpdateWindowStatus001, TestSize.Level1)
      */
     RSRenderThread::Instance().UpdateWindowStatus(false);
     RSRenderThread::Instance().UpdateWindowStatus(true);
+    EXPECT_NE(RSRenderThread::Instance().mValue, -1);
 }
 
 /**

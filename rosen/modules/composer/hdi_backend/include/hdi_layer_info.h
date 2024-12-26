@@ -409,19 +409,19 @@ public:
         return brightnessRatio_;
     }
 
-    int32_t SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(int32_t sdrNit)
     {
-        return sdrNit_ = sdrNit;
+        sdrNit_ = sdrNit;
     }
 
-    int32_t SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(int32_t displayNit)
     {
-        return displayNit_ = displayNit;
+        displayNit_ = displayNit;
     }
 
-    int32_t SetBrightnessRatio(float brightnessRatio)
+    void SetBrightnessRatio(float brightnessRatio)
     {
-        return brightnessRatio_ = brightnessRatio;
+        brightnessRatio_ = brightnessRatio;
     }
 
     // source crop tuning

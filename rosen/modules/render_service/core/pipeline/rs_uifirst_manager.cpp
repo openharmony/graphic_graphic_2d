@@ -138,22 +138,42 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
     }
 }
 
-void RSUifirstManager::MergeOldDirty(RSSurfaceRenderNode& node)
+void RSUifirstManager::MergeOldDirty(NodeId id)
 {
-    auto params = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
-    if (!params || !params->GetPreSurfaceCacheContentStatic()) {
+    if (!mainThread_) {
         return;
     }
-    if (node.IsAppWindow() && !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock())) {
-        node.GetDirtyManager()->MergeDirtyRect(node.GetOldDirty());
+    auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+        mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+    if (!node) {
         return;
     }
-    for (auto& child : *node.GetSortedChildren()) {
+    if (node->IsAppWindow() &&
+        !RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock())) {
+        MergeOldDirtyToDrawable(node);
+        return;
+    }
+    for (auto& child : * node-> GetSortedChildren()) {
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
         if (surfaceNode && surfaceNode->IsAppWindow()) {
-            surfaceNode->GetDirtyManager()->MergeDirtyRect(surfaceNode->GetOldDirty());
+            MergeOldDirtyToDrawable(surfaceNode);
             break;
         }
+    }
+}
+
+void RSUifirstManager::MergeOldDirtyToDrawable(std::shared_ptr<RSSurfaceRenderNode> node)
+{
+    auto drawable = node->GetRenderDrawable();
+    if (!drawable) {
+        return;
+    }
+    const auto& oldDirty = node->GetOldDirty();
+    RS_OPTIONAL_TRACE_NAME_FMT("uifirst MergeOldDirty %" PRIu64" [%d %d %d %d]",
+        node->GetId(), oldDirty.left_, oldDirty.top_, oldDirty.width_, oldDirty.height_);
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    if (auto dirtyManager = surfaceDrawable->GetSyncDirtyManager()) {
+        dirtyManager->MergeDirtyRect(oldDirty);
     }
 }
 
@@ -197,7 +217,7 @@ void RSUifirstManager::ProcessForceUpdateNode()
     std::vector<std::shared_ptr<RSRenderNode>> toDirtyNodes;
     for (auto id : pendingForceUpdateNode_) {
         auto node = mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
-        if (!node) {
+        if (!node || node->GetLastFrameUifirstFlag() != MultiThreadCacheType::ARKTS_CARD) {
             continue;
         }
         toDirtyNodes.push_back(node);
@@ -438,6 +458,9 @@ void RSUifirstManager::PurgePendingPostNodes()
         node->SetForceUpdateByUifirst(false);
     }
     markForceUpdateByUifirst_.clear();
+    for (auto id : pendingForceUpdateNode_) {
+        MergeOldDirty(id);
+    }
 }
 
 void RSUifirstManager::PostSubTask(NodeId id)
@@ -1329,7 +1352,6 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.shared_from_this());
         if (currentFrameCacheType != MultiThreadCacheType::NONE) { // keep enable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_keep enable  %" PRIu64"", node.GetId());
-            MergeOldDirty(node);
             AddPendingPostNode(node.GetId(), surfaceNode, currentFrameCacheType);
         } else { // switch: enable -> disable
             RS_OPTIONAL_TRACE_NAME_FMT("UIFirst_switch enable -> disable %" PRIu64"", node.GetId());

@@ -212,6 +212,7 @@ HWTEST_F(PathTest, ArcTo003, TestSize.Level2)
 {
     Path path;
     path.ArcTo(1.0f, 3.0f, 2.5f, PathDirection::CCW_DIRECTION, 1.0f, 3.0f);
+    ASSERT_TRUE(path.IsValid());
 }
 
 /**

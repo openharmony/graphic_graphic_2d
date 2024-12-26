@@ -60,6 +60,7 @@
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -171,12 +172,7 @@ constexpr uint32_t DELAY_TIME_FOR_ACE_BOUNDARY_UPDATE = 100; // ms
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
-constexpr float REFERENCE_WHITE = 203.0f;
-constexpr float CAMERA_WHITE_MIN = 500.0f;
-constexpr float CAMERA_WHITE_MAX = 510.0f;
-constexpr float CAMERA_HDR_RATIO = 2.5f;
-constexpr float HDR_WHITE = 1000.0f;
-constexpr float DEFAULT_SCALER = HDR_WHITE / REFERENCE_WHITE;
+constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
@@ -229,35 +225,21 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 #endif
 }
 
-void DoScreenRcdTask(std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
+void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     const ScreenInfo& screenInfo)
 {
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
-        RSSingleton<RoundCornerDisplay>::GetInstance().RunHardwareTask(
-            [&processor, &rcdInfo]() {
-                auto hardInfo = RSSingleton<RoundCornerDisplay>::GetInstance().GetHardwareInfo();
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        RSSingleton<RoundCornerDisplayManager>::GetInstance().RunHardwareTask(id,
+            [id, &processor, &rcdInfo](void) {
+                auto hardInfo = RSSingleton<RoundCornerDisplayManager>::GetInstance().GetHardwareInfo(id);
                 rcdInfo->processInfo = {processor, hardInfo.topLayer, hardInfo.bottomLayer,
                     hardInfo.resourceChanged};
-                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(rcdInfo->processInfo);
-            }
-        );
-    }
-}
-
-float CalScaler(const float& maxContentLightLevel)
-{
-    if (ROSEN_EQ(maxContentLightLevel, REFERENCE_WHITE)) {
-        return DEFAULT_HDR_RATIO;
-    } else if (ROSEN_GE(maxContentLightLevel, CAMERA_WHITE_MIN) && ROSEN_LE(maxContentLightLevel, CAMERA_WHITE_MAX)) {
-        return CAMERA_HDR_RATIO;
-    } else if (ROSEN_LE(maxContentLightLevel, HDR_WHITE)) {
-        return HDR_WHITE / REFERENCE_WHITE;
-    } else {
-        return maxContentLightLevel / REFERENCE_WHITE;
+                RSRcdRenderManager::GetInstance().DoProcessRenderMainThreadTask(id, rcdInfo->processInfo);
+            });
     }
 }
 
@@ -269,7 +251,6 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
     }
     if (ancestor == nullptr) {
-        RS_LOGD("RSMainThread UpdateSurfaceNodeNit GetAncestorDisplayNode() return nullptr");
         return;
     }
     auto screenId = ancestor->GetScreenId();
@@ -286,14 +267,14 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         return;
     }
     float scaler = DEFAULT_SCALER;
+    auto& rsLuminance = RSLuminanceControl::Get();
     if (hdrStaticMetadataVec.size() != sizeof(HdrStaticMetadata) || hdrStaticMetadataVec.data() == nullptr) {
         RS_LOGD("hdrStaticMetadataVec is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(hdrStaticMetadataVec.data());
-        scaler = CalScaler(data.cta861.maxContentLightLevel);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
     }
 
-    auto& rsLuminance = RSLuminanceControl::Get();
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
     float displayNits = rsLuminance.GetDisplayNits(screenId);
 
@@ -448,6 +429,7 @@ void RSMainThread::Init()
         ClearNeedDropframePidList();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
+        UpdateSubSurfaceCnt();
         Animate(timestamp_);
         DvsyncCheckRequestNextVsync();
         CollectInfoForHardwareComposer();
@@ -862,6 +844,29 @@ void RSMainThread::ProcessCommand()
     if (RsFrameReport::GetInstance().GetEnable()) {
         RsFrameReport::GetInstance().AnimateStart();
     }
+}
+
+void RSMainThread::UpdateSubSurfaceCnt()
+{
+    auto& updateInfo = context_->subSurfaceCntUpdateInfo_;
+    if (updateInfo.empty()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT("UpdateSubSurfaceCnt size: %zu", updateInfo.size());
+    const auto& nodeMap = context_->GetNodeMap();
+    for (auto& iter : updateInfo) {
+        if (iter.curParentId_ != INVALID_NODEID) {
+            if (auto curParent = nodeMap.GetRenderNode(iter.curParentId_)) {
+                curParent->UpdateSubSurfaceCnt(iter.updateCnt_);
+            }
+        }
+        if (iter.preParentId_ != INVALID_NODEID) {
+            if (auto preParent = nodeMap.GetRenderNode(iter.preParentId_)) {
+                preParent->UpdateSubSurfaceCnt(-iter.updateCnt_);
+            }
+        }
+    }
+    context_->subSurfaceCntUpdateInfo_.clear();
 }
 
 void RSMainThread::PrintCurrentStatus()
@@ -1346,6 +1351,14 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
             surfaceNode->SetContentDirty(); // screen recording capsule force mark dirty
+        }
+        if (surfaceNode->NeedUpdateDrawableBehindWindow()) {
+            RS_LOGD("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
+            RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
+            surfaceNode->AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
+            surfaceNode->SetContentDirty();
+            surfaceNode->SetDoDirectComposition(false);
+            surfaceNode->SetOldNeedDrawBehindWindow(surfaceNode->NeedDrawBehindWindow());
         }
         if (surfaceNode->IsHardwareEnabledType()
             && CheckSubThreadNodeStatusIsDoing(surfaceNode->GetInstanceRootNodeId())) {
@@ -2042,7 +2055,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
-    DoScreenRcdTask(processor, rcdInfo, screenInfo);
+    DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
     if (waitForRT) {
         RSUniRenderThread::Instance().PostSyncTask([processor, displayNode]() {
             RS_TRACE_NAME("DoDirectComposition PostProcess");
@@ -3282,8 +3295,8 @@ void RSMainThread::OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t
         } else {
             data = result;
         }
+        nodeTreeDumpCondVar_.notify_all();
     }
-    nodeTreeDumpCondVar_.notify_all();
 
     RS_LOGI("OnDumpClientNodeTree task[%{public}u] dataSize[%{public}zu] pid[%d]",
         taskId, result.size(), pid);

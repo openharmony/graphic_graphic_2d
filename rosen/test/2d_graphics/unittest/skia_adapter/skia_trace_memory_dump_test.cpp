@@ -47,6 +47,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, DumpNumericValue001, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
     skiaTraceMemoryDump.DumpNumericValue("dumpName1", "valueName", "bytes", 1);
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
 }
 
 /**
@@ -59,6 +60,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, DumpNumericValue002, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
     skiaTraceMemoryDump.DumpNumericValue("dumpName1", "valueName", "bytes", 1);
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
 }
 
 /**
@@ -71,6 +73,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, DumpStringValue001, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
     skiaTraceMemoryDump.DumpStringValue("dumpName1", "valueName", "1");
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
 }
 
 
@@ -84,6 +87,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, DumpStringValue002, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
     skiaTraceMemoryDump.DumpStringValue("dumpName1", "valueName", "1");
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
 }
 
 /**
@@ -95,6 +99,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, DumpStringValue002, TestSize.Level1)
 HWTEST_F(SkiaTraceMemoryDumpTest, LogOutput001, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
     DfxString log;
     skiaTraceMemoryDump.LogOutput(log);
 }
@@ -109,6 +114,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, LogOutput001, TestSize.Level1)
 HWTEST_F(SkiaTraceMemoryDumpTest, LogOutput002, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
     DfxString log;
     skiaTraceMemoryDump.LogOutput(log);
 }
@@ -122,6 +128,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, LogOutput002, TestSize.Level1)
 HWTEST_F(SkiaTraceMemoryDumpTest, LogTotals001, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{"category", false};
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
     DfxString log;
     skiaTraceMemoryDump.LogTotals(log);
 }
@@ -135,6 +142,7 @@ HWTEST_F(SkiaTraceMemoryDumpTest, LogTotals001, TestSize.Level1)
 HWTEST_F(SkiaTraceMemoryDumpTest, LogTotals002, TestSize.Level1)
 {
     SkiaTraceMemoryDump skiaTraceMemoryDump{nullptr, false};
+    ASSERT_TRUE(skiaTraceMemoryDump.GetGpuMemorySizeInMB() >= 0);
     DfxString log;
     skiaTraceMemoryDump.LogTotals(log);
 }

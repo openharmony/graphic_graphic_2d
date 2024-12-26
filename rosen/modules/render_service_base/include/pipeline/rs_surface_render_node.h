@@ -766,7 +766,7 @@ public:
     {
         const uint8_t opacity = 255;
         return !(GetAbilityBgAlpha() == opacity && ROSEN_EQ(GetGlobalAlpha(), 1.0f)) ||
-            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender());
+            (IsEmptyAppWindow() && RSUniRenderJudgement::IsUniRender()) || NeedDrawBehindWindow();
     }
 
     inline bool IsCurrentNodeInTransparentRegion(const Occlusion::Rect& nodeRect) const
@@ -1242,6 +1242,18 @@ public:
         return intersectedRoundCornerAABBs_.size();
     }
 
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
+    uint32_t GetApiCompatibleVersion()
+    {
+        return apiCompatibleVersion_;
+    }
+
+    bool NeedUpdateDrawableBehindWindow();
+    void SetOldNeedDrawBehindWindow(bool val);
+    bool NeedDrawBehindWindow() const override;
+    void AddChildBlurBehindWindow(NodeId id) override;
+    void RemoveChildBlurBehindWindow(NodeId id) override;
+
 protected:
     void OnSync() override;
 
@@ -1523,6 +1535,11 @@ private:
     bool isHardwareForcedByBackgroundAlpha_ = false;
 
     bool arsrTag_ = true;
+
+    uint32_t apiCompatibleVersion_ = 0;
+
+    bool oldNeedDrawBehindWindow_ = false;
+    std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};

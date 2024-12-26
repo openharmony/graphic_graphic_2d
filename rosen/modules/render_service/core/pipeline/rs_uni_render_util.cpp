@@ -1533,7 +1533,10 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
         return GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
     auto consumer = surfaceHandler->GetConsumer();
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
+    auto surfaceParams = node.GetStagingRenderParams() == nullptr
+                             ? nullptr
+                             : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    int32_t rotationDegree = RSBaseRenderUtil::GetDeviceRotation(surfaceParams);
     int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
@@ -1545,8 +1548,8 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     }
     int consumerTransform = RSBaseRenderUtil::RotateEnumToInt(RSBaseRenderUtil::GetRotateTransform(transformType));
     GraphicTransformType consumerFlip = RSBaseRenderUtil::GetFlipTransform(transformType);
-    int totalRotation = (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) +
-        surfaceNodeRotation + consumerTransform) % 360;
+    int totalRotation =
+        (RSBaseRenderUtil::RotateEnumToInt(screenInfo.rotation) + surfaceNodeRotation + consumerTransform + 360) % 360;
     GraphicTransformType rotateEnum = RSBaseRenderUtil::RotateEnumToInt(totalRotation, consumerFlip);
     return rotateEnum;
 }
@@ -1810,9 +1813,6 @@ void RSUniRenderUtil::AccumulateMatrixAndAlpha(std::shared_ptr<RSSurfaceRenderNo
         const auto& curProperty = parent->GetRenderProperties();
         alpha *= curProperty.GetAlpha();
         matrix.PostConcat(curProperty.GetBoundsGeometry()->GetMatrix());
-        if (ROSEN_EQ(alpha, 1.f)) {
-            parent->DisableDrawingCacheByHwcNode();
-        }
         parent = parent->GetParent().lock();
     }
     if (!parent) {

@@ -103,6 +103,8 @@ public:
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
+    void SetPositionZApplicableCamera3D(bool isApplicable);
+    bool GetPositionZApplicableCamera3D() const;
 
     void SetPivot(Vector2f pivot);
     void SetPivotX(float pivotX);
@@ -523,6 +525,10 @@ public:
 
     void SetUseEffect(bool useEffect);
     bool GetUseEffect() const;
+    void SetUseEffectType(int useEffectType);
+    int GetUseEffectType() const;
+    void SetNeedDrawBehindWindow(bool needDrawBehindWindow);
+    bool GetNeedDrawBehindWindow() const;
 
     void SetColorBlendMode(int colorBlendMode);
     int GetColorBlendMode() const;
@@ -590,6 +596,8 @@ private:
 
     bool hasBounds_ = false;
     bool useEffect_ = false;
+    int useEffectType_ = 0;
+    bool needDrawBehindWindow_ = false;
     bool useShadowBatching_ = false;
     bool needSkipShadow_ = false;
 

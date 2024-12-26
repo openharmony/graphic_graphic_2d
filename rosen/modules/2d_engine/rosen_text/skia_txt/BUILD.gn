@@ -112,11 +112,18 @@ template("skia_libtxt") {
       ":skia_unicode",
     ]
 
-    external_deps += [
-      "bounds_checking_function:libsec_shared",
-      "hilog:libhilog",
-      "skia:skia_canvaskit",
-    ]
+    if (is_arkui_x) {
+      deps += [
+        "//third_party/bounds_checking_function:libsec_static",
+        "//third_party/skia:skia_$platform",
+      ]
+    } else {
+      external_deps += [
+        "bounds_checking_function:libsec_shared",
+        "hilog:libhilog",
+        "skia:skia_canvaskit",
+      ]
+    }
 
     if (!is_cross_platform) {
       external_deps += [ "hitrace:hitrace_meter" ]
@@ -201,11 +208,19 @@ ohos_source_set("skia_paragraph") {
     ":skia_unicode",
   ]
 
-  external_deps = [
-    "bounds_checking_function:libsec_shared",
-    "hilog:libhilog",
-    "skia:skia_canvaskit",
-  ]
+  if (is_arkui_x) {
+    deps += [
+      "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_${target_os}",
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "hilog:libhilog",
+      "skia:skia_canvaskit",
+    ]
+  }
 
   is_cross_platform =
       current_os == "mac" || current_os == "mingw" || current_os == "linux" ||
@@ -224,19 +239,22 @@ ohos_source_set("skia_unicode") {
   public_configs = [ ":skia_libtxt_config" ]
   include_dirs = []
   defines = [ "OHOS_SUPPORT" ]
+  sources = []
 
   public = [ "$skunicode_root/include/SkUnicode.h" ]
   defines += [ "SKUNICODE_IMPLEMENTATION=1" ]
-  sources = [ "$skunicode_root/src/SkUnicode.cpp" ]
   defines += [ "SK_UNICODE_AVAILABLE" ]
-  sources += [
-    "$skunicode_root/src/SkUnicode_icu.cpp",
-    "$skunicode_root/src/SkUnicode_icu.h",
-    "$skunicode_root/src/SkUnicode_icu_bidi.cpp",
-    "$skunicode_root/src/SkUnicode_icu_bidi.h",
-  ]
   defines += [ "SK_UNICODE_ICU_IMPLEMENTATION" ]
-  sources += [ "$skunicode_root/src/SkUnicode_icu_builtin.cpp" ]
+  if (!is_arkui_x) {
+    sources += [ "$skunicode_root/src/SkUnicode.cpp" ]
+    sources += [
+      "$skunicode_root/src/SkUnicode_icu.cpp",
+      "$skunicode_root/src/SkUnicode_icu.h",
+      "$skunicode_root/src/SkUnicode_icu_bidi.cpp",
+      "$skunicode_root/src/SkUnicode_icu_bidi.h",
+    ]
+    sources += [ "$skunicode_root/src/SkUnicode_icu_builtin.cpp" ]
+  }
 
   platform = current_os
   if (platform == "mingw") {
@@ -283,8 +301,15 @@ ohos_source_set("skia_shaper") {
   }
   deps = [ ":skia_unicode" ]
 
-  external_deps = [
-    "bounds_checking_function:libsec_shared",
-    "skia:skia_canvaskit",
-  ]
+  if (is_arkui_x) {
+    deps += [
+      "//third_party/bounds_checking_function:libsec_static",
+      "//third_party/skia:skia_$platform",
+    ]
+  } else {
+    external_deps = [
+      "bounds_checking_function:libsec_shared",
+      "skia:skia_canvaskit",
+    ]
+  }
 }

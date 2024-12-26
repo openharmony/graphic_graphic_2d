@@ -241,6 +241,9 @@ public:
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;
+    // behind window cache relate
+    void SetBehindWindowData(const std::shared_ptr<CachedEffectData>& behindWindowData);
+    const std::shared_ptr<CachedEffectData>& GetBehindWindowData() const;
 
     // for foregroundFilter to store offscreen canvas & surface
     struct OffscreenData {
@@ -301,6 +304,7 @@ protected:
     using Env = struct {
         Color envForegroundColor_;
         std::shared_ptr<CachedEffectData> effectData_;
+        std::shared_ptr<CachedEffectData> behindWindowData_;
         std::shared_ptr<Drawing::Blender> blender_;
         bool hasOffscreenLayer_;
     };

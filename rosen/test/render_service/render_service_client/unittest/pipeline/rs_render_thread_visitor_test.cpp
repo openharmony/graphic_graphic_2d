@@ -216,6 +216,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
@@ -230,6 +231,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 
@@ -259,6 +261,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
@@ -273,6 +276,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
+    EXPECT_NE(node, nullptr);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
 }
@@ -826,6 +830,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus001, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), false);
+    EXPECT_NE(rsRenderThreadVisitor.queueSize_, -1);
 }
 
 /**
@@ -838,6 +843,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus002, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetPartialRenderEnabled(), true);
+    EXPECT_NE(rsRenderThreadVisitor.queueSize_, -1);
 }
 
 /**
@@ -850,6 +856,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus003, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), true);
+    EXPECT_NE(rsRenderThreadVisitor.queueSize_, -1);
 }
 
 /**
@@ -862,6 +869,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus004, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), false);
+    EXPECT_NE(rsRenderThreadVisitor.queueSize_, -1);
 }
 
 /**
@@ -874,6 +882,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus005, TestSize.Level1)
 {
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(RSSystemProperties::GetUniPartialRenderEnabled(), true);
+    EXPECT_NE(rsRenderThreadVisitor.queueSize_, -1);
 }
 
 /**
@@ -887,6 +896,7 @@ HWTEST_F(RSRenderThreadVisitorTest, SetPartialRenderStatus006, TestSize.Level1)
     RSRenderThreadVisitor rsRenderThreadVisitor;
     rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::DISABLED, true);
     rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, true);
+    EXPECT_NE(rsRenderThreadVisitor.queueSize_, -1);
 }
 
 /**

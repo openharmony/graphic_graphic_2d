@@ -75,6 +75,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
     [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
     [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
+    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
     [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION
     [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X
@@ -142,6 +143,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
                              prop->SetPixelStretchPercent({}); },        // PIXEL_STRETCH_PERCENT
     [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
+    [](RSProperties* prop) { prop->SetUseEffectType(0); },               // USE_EFFECT_TYPE
     [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
     [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
     [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX
@@ -550,7 +552,6 @@ std::optional<Drawing::Matrix> RSProperties::GetSandBoxMatrix() const
 void RSProperties::SetPositionZ(float positionZ)
 {
     boundsGeo_->SetZ(positionZ);
-    frameGeo_->SetZ(positionZ);
     geoDirty_ = true;
     SetDirty();
 }
@@ -558,6 +559,18 @@ void RSProperties::SetPositionZ(float positionZ)
 float RSProperties::GetPositionZ() const
 {
     return boundsGeo_->GetZ();
+}
+
+void RSProperties::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    boundsGeo_->SetZApplicableCamera3D(isApplicable);
+    geoDirty_ = true;
+    SetDirty();
+}
+
+bool RSProperties::GetPositionZApplicableCamera3D() const
+{
+    return boundsGeo_->GetZApplicableCamera3D();
 }
 
 void RSProperties::SetPivot(Vector2f pivot)
@@ -3070,6 +3083,30 @@ bool RSProperties::GetUseEffect() const
     return useEffect_;
 }
 
+void RSProperties::SetUseEffectType(int useEffectType)
+{
+    useEffectType_ = std::clamp<int>(useEffectType, 0, static_cast<int>(UseEffectType::MAX));
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+int RSProperties::GetUseEffectType() const
+{
+    return useEffectType_;
+}
+
+void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
+{
+    needDrawBehindWindow_ = needDrawBehindWindow;
+}
+
+bool RSProperties::GetNeedDrawBehindWindow() const
+{
+    return needDrawBehindWindow_;
+}
+
 void RSProperties::SetUseShadowBatching(bool useShadowBatching)
 {
     if (useShadowBatching) {
@@ -4182,7 +4219,7 @@ void RSProperties::UpdateFilter()
                   IsDynamicLightUpValid() || greyCoef_.has_value() || linearGradientBlurPara_ != nullptr ||
                   IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   foregroundFilter_ != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
-                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() ||
+                  foregroundFilterCache_ != nullptr || IsWaterRippleValid() || needDrawBehindWindow_ ||
                   mask_;
 }
 

@@ -51,6 +51,8 @@ HWTEST_F(RSSpringAnimationTest, SetTimingCurveTest001, Level1)
     RSSpringAnimation rsSpringAnimation(property, byValue);
     RSAnimationTimingCurve timingCurve;
     rsSpringAnimation.SetTimingCurve(timingCurve);
+    ASSERT_NE(property, nullptr);
+    ASSERT_NE(byValue, nullptr);
 }
 
 /**

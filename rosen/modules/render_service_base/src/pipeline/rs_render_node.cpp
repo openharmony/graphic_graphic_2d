@@ -61,10 +61,6 @@
 namespace {
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::VULKAN &&
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() != OHOS::Rosen::GpuApiType::DDGR) {
-        return UINT32_MAX;
-    }
     auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkPhysicalDevice physicalDevice = vkContext.GetPhysicalDevice();
 
@@ -520,6 +516,7 @@ void RSRenderNode::ClearChildren()
 
 void RSRenderNode::SetParent(WeakPtr parent)
 {
+    AddSubSurfaceUpdateInfo(parent.lock(), parent_.lock());
     parent_ = parent;
     if (isSubSurfaceEnabled_) {
         AddSubSurfaceNode(parent.lock());
@@ -538,6 +535,7 @@ void RSRenderNode::ResetParent()
         }
         parentNode->hasRemovedChild_ = true;
         parentNode->SetContentDirty();
+        AddSubSurfaceUpdateInfo(nullptr, parentNode);
     }
     SetIsOnTheTree(false);
     parent_.reset();
@@ -662,6 +660,9 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
     }
     if (uifirstRootNodeId_ != INVALID_NODEID) {
         out += ", uifirstRootNodeId_: " + std::to_string(uifirstRootNodeId_);
+    }
+    if (HasSubSurface()) {
+        out += ", subSurfaceCnt: " + std::to_string(subSurfaceCnt_);
     }
     DumpSubClassNode(out);
     out += ", Properties: " + GetRenderProperties().Dump();
@@ -1070,18 +1071,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
     AddToPendingSyncList();
 }
 
-void RSRenderNode::DisableDrawingCacheByHwcNode()
-{
-    if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
-        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("DisableDrawingCacheByHwcNode id:%llu", GetId());
-    SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
-    AddToPendingSyncList();
-}
-
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
@@ -1190,7 +1179,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
         return displaySync_->GetAnimateResult();
     }
     RSSurfaceNodeAbilityState abilityState = RSSurfaceNodeAbilityState::FOREGROUND;
-    
+
     // Animation on surfaceNode is always on foreground ability state.
     // If instanceRootNode is surfaceNode, get its ability state. If not, regard it as foreground ability state.
     if (GetType() != RSRenderNodeType::SURFACE_NODE) {
@@ -1206,7 +1195,7 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(int64_t timestamp, int64_t pe
             "], abilityState: " +
             std::string(GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND ? "foreground" : "background"));
     }
-    
+
     RS_OPTIONAL_TRACE_BEGIN("RSRenderNode:Animate node id: [" + std::to_string(GetId()) + "]");
     auto animateResult = animationManager_.Animate(timestamp, IsOnTheTree(), abilityState);
     if (displaySync_) {
@@ -1344,6 +1333,7 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    CollectAndUpdateLocalForegroundEffectRect();
     CollectAndUpdateLocalDistortionEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
@@ -1754,7 +1744,7 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 
 void RSRenderNode::MapAndUpdateChildrenRect()
 {
-    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
     if (!shouldPaint_ || geoPtr == nullptr) {
         return;
     }
@@ -2023,7 +2013,8 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
         GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter() && !filterRegion_.IsInsideOf(lastFilterRegion_)) {
+    if ((properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) &&
+        !filterRegion_.IsInsideOf(lastFilterRegion_)) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             if (!IsForceClearOrUseFilterCache(filterDrawable)) {
@@ -2067,7 +2058,7 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
         return;
     }
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter()) {
+    if (properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
@@ -2432,6 +2423,11 @@ void RSRenderNode::ApplyModifiers()
     OnApplyModifiers();
     MarkForegroundFilterCache();
     UpdateShouldPaint();
+
+    if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT)) ||
+        dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT_TYPE))) {
+        ProcessBehindWindowAfterApplyModifiers();
+    }
 
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
         !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
@@ -3367,6 +3363,12 @@ void RSRenderNode::OnTreeStateChanged()
         uifirstNeedSync_ = true;
         AddToPendingSyncList();
     }
+    auto& properties = GetMutableRenderProperties();
+    bool useEffect = properties.GetUseEffect();
+    UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
+    if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
+        ProcessBehindWindowOnTreeStateChanged();
+    }
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -3688,8 +3690,8 @@ void RSRenderNode::UpdateCompletedCacheSurface()
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     std::swap(cacheBackendTexture_, cacheCompletedBackendTexture_);
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         std::swap(cacheCleanupHelper_, cacheCompletedCleanupHelper_);
     }
 #endif
@@ -3708,16 +3710,16 @@ void RSRenderNode::ClearCacheSurface(bool isClearCompletedCacheSurface)
     std::scoped_lock<std::recursive_mutex> lock(surfaceMutex_);
     cacheSurface_ = nullptr;
 #ifdef RS_ENABLE_VK
-    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-        OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         cacheCleanupHelper_ = nullptr;
     }
 #endif
     if (isClearCompletedCacheSurface) {
         cacheCompletedSurface_ = nullptr;
 #ifdef RS_ENABLE_VK
-        if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN ||
-            OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::DDGR) {
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
             cacheCompletedCleanupHelper_ = nullptr;
         }
 #endif
@@ -3793,21 +3795,41 @@ const std::unordered_set<NodeId>& RSRenderNode::GetVisitedCacheRootIds() const
 {
     return visitedCacheRoots_;
 }
-void RSRenderNode::UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent)
+void RSRenderNode::AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent)
 {
-    uint32_t subSurfaceCnt = GetType() == RSRenderNodeType::SURFACE_NODE ?
-        subSurfaceCnt_ + 1 : subSurfaceCnt_;
-    if (subSurfaceCnt == 0) {
+    if (!selfAddForSubSurfaceCnt_ && GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto surfaceNode = ReinterpretCastTo<RSSurfaceRenderNode>();
+        subSurfaceCnt_ = (surfaceNode && (surfaceNode->IsLeashWindow() || surfaceNode->IsAppWindow())) ?
+            subSurfaceCnt_ + 1 : subSurfaceCnt_;
+        selfAddForSubSurfaceCnt_ = true;
+    }
+    if (subSurfaceCnt_ == 0) {
         return;
     }
-    if (curParent) {
-        curParent->subSurfaceCnt_ += subSurfaceCnt;
-        UpdateSubSurfaceCnt(curParent->GetParent().lock(), nullptr);
+    if (auto context = context_.lock()) {
+        context->AddSubSurfaceCntUpdateInfo({subSurfaceCnt_,
+            preParent == nullptr ? INVALID_NODEID : preParent->GetId(),
+            curParent == nullptr ? INVALID_NODEID : curParent->GetId()});
     }
-    if (preParent) {
-        preParent->subSurfaceCnt_ -= subSurfaceCnt;
-        UpdateSubSurfaceCnt(nullptr, preParent->GetParent().lock());
+}
+void RSRenderNode::UpdateSubSurfaceCnt(int updateCnt)
+{
+    // avoid loop
+    if (visitedForSubSurfaceCnt_) {
+        RS_LOGE("RSRenderNode::UpdateSubSurfaceCnt: %{public}" PRIu64" has loop tree", GetId());
+        return;
     }
+    visitedForSubSurfaceCnt_ = true;
+    if (updateCnt == 0) {
+        visitedForSubSurfaceCnt_ = false;
+        return;
+    }
+    int cnt = subSurfaceCnt_ + updateCnt;
+    subSurfaceCnt_ = cnt < 0 ? 0 : cnt;
+    if (auto parent = GetParent().lock()) {
+        parent->UpdateSubSurfaceCnt(updateCnt);
+    }
+    visitedForSubSurfaceCnt_ = false;
 }
 bool RSRenderNode::HasSubSurface() const
 {
@@ -4364,5 +4386,38 @@ void SharedTransitionParam::InternalUnregisterSelf()
     }
 }
 
+void RSRenderNode::ProcessBehindWindowOnTreeStateChanged()
+{
+    auto rootNode = GetInstanceRootNode();
+    if (!rootNode) {
+        return;
+    }
+    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowOnTreeStateChanged nodeId = %{public}" PRIu64
+        ", isOnTheTree_ = %{public}d", GetId(), isOnTheTree_);
+    if (isOnTheTree_) {
+        rootNode->AddChildBlurBehindWindow(GetId());
+    } else {
+        rootNode->RemoveChildBlurBehindWindow(GetId());
+    }
+}
+
+void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
+{
+    auto rootNode = GetInstanceRootNode();
+    if (!rootNode) {
+        return;
+    }
+    auto& properties = GetMutableRenderProperties();
+    bool useEffect = properties.GetUseEffect();
+    UseEffectType useEffectType = static_cast<UseEffectType>(properties.GetUseEffectType());
+    RS_LOGD("RSSurfaceRenderNode::ProcessBehindWindowAfterApplyModifiers nodeId = %{public}" PRIu64
+        ", isOnTheTree_ = %{public}d, useEffect = %{public}d, useEffectType = %{public}hd",
+        GetId(), isOnTheTree_, useEffect, useEffectType);
+    if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
+        rootNode->AddChildBlurBehindWindow(GetId());
+    } else {
+        rootNode->RemoveChildBlurBehindWindow(GetId());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -755,6 +755,12 @@ void RSNode::SetPositionZ(float positionZ)
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);
 }
 
+void RSNode::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    SetProperty<RSPositionZApplicableCamera3DModifier, RSProperty<bool>>(
+        RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D, isApplicable);
+}
+
 // pivot
 void RSNode::SetPivot(const Vector2f& pivot)
 {
@@ -1822,6 +1828,12 @@ void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
 void RSNode::SetUseEffect(bool useEffect)
 {
     SetProperty<RSUseEffectModifier, RSProperty<bool>>(RSModifierType::USE_EFFECT, useEffect);
+}
+
+void RSNode::SetUseEffectType(UseEffectType useEffectType)
+{
+    SetProperty<RSUseEffectTypeModifier, RSProperty<int>>(
+        RSModifierType::USE_EFFECT_TYPE, static_cast<int>(useEffectType));
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

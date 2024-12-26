@@ -48,10 +48,9 @@ public:
     void ProcessEffectRenderNode(RSEffectRenderNode& node) override {}
 
     bool ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node);
-    bool ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
-        bool resourceChanged);
+    bool ProcessRcdSurfaceRenderNode(
+        RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged);
     void ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged);
-
     void SetUniProcessor(std::shared_ptr<RSProcessor> processor);
 
 private:

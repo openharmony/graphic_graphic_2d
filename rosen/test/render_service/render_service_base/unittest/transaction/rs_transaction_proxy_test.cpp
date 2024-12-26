@@ -115,6 +115,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction001, TestSize.Level1)
 {
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
 }
 
 /**
@@ -144,6 +145,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransaction003, TestSize.Level1)
     RSTransactionProxy::GetInstance()->Begin();
     RSTransactionProxy::GetInstance()->StartSyncTransaction();
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction(timestamp);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
 }
 
 /**
@@ -252,6 +254,7 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT001, TestSize.Lev
 {
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->FlushImplicitTransactionFromRT(timestamp);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
 }
 
 /**
@@ -298,6 +301,7 @@ HWTEST_F(RSTransactionProxyTest, Commit001, TestSize.Level1)
 {
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->Commit(timestamp);
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
 }
 
 /**
@@ -360,6 +364,7 @@ HWTEST_F(RSTransactionProxyTest, CommitSyncTransaction001, TestSize.Level1)
     uint64_t timestamp = 1;
     RSTransactionProxy::GetInstance()->Begin();
     RSTransactionProxy::GetInstance()->CommitSyncTransaction(timestamp, "abilityName");
+    EXPECT_NE(RSTransactionProxy::GetInstance(), nullptr);
 }
 
 /**

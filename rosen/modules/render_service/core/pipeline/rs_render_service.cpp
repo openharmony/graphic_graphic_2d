@@ -34,7 +34,8 @@
 #include "common/rs_singleton.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
@@ -164,23 +165,23 @@ void RSRenderService::Run()
 
 void RSRenderService::RegisterRcdMsg()
 {
-    if (RSSingleton<RoundCornerDisplay>::GetInstance().GetRcdEnable()) {
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
         if (!isRcdServiceRegister_) {
-            auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
             auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<uint32_t, uint32_t>(
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t>(
                 TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-                &RoundCornerDisplay::UpdateDisplayParameter);
-            msgBus.RegisterTopic<ScreenRotation>(
+                &RoundCornerDisplayManager::UpdateDisplayParameter);
+            msgBus.RegisterTopic<NodeId, ScreenRotation>(
                 TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-                &RoundCornerDisplay::UpdateOrientationStatus);
-            msgBus.RegisterTopic<int>(
+                &RoundCornerDisplayManager::UpdateOrientationStatus);
+            msgBus.RegisterTopic<NodeId, int>(
                 TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-                &RoundCornerDisplay::UpdateNotchStatus);
-            msgBus.RegisterTopic<bool>(
+                &RoundCornerDisplayManager::UpdateNotchStatus);
+            msgBus.RegisterTopic<NodeId, bool>(
                 TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
-                &RoundCornerDisplay::UpdateHardwareResourcePrepared);
+                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
             isRcdServiceRegister_ = true;
             RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice end");
             return;
@@ -327,8 +328,6 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump all info\n")
         .append("client                         ")
         .append("|dump client ui node trees\n")
-        .append("client-server                  ")
-        .append("|dump client and server info\n")
         .append("dumpMem                        ")
         .append("|dump Cache\n")
         .append("trimMem cpu/gpu/shader         ")
@@ -514,7 +513,7 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         }
         int pid = 0;
         if (!type.empty() && IsNumber(type)) {
-            pid = std::stoi(type);
+            pid = std::atoi(type.c_str());
         }
         mainThread_->ScheduleTask(
             [this, &argSets, &dumpString, &type, &pid]() {
@@ -574,14 +573,9 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg18(u"rsLogFlag");
     std::u16string arg19(u"flushJankStatsRs");
     std::u16string arg20(u"client");
-    std::u16string arg21(u"client-server");
 #ifdef RS_ENABLE_VK
     std::u16string arg22(u"vktextureLimit");
 #endif
-    if (argSets.count(arg21)) {
-        argSets.insert(arg9);
-        argSets.insert(arg20);
-    }
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -663,7 +657,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
         mainThread_->ScheduleTask(
             [this, &dumpString]() { DumpJankStatsRs(dumpString); }).wait();
     }
-    if (argSets.count(arg20)) {
+    if (argSets.count(arg9) || argSets.count(arg20)) {
         auto taskId = GenerateTaskId();
         mainThread_->ScheduleTask(
             [this, taskId]() {

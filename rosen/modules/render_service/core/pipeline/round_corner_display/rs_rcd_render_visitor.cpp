@@ -76,11 +76,11 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
     }
 }
 
-bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(RSRcdSurfaceRenderNode& node, rs_rcd::RoundCornerLayer* layerInfo,
-    bool resourceChanged)
+bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
+    RSRcdSurfaceRenderNode& node, const std::shared_ptr<rs_rcd::RoundCornerLayer> &layerInfo, bool resourceChanged)
 {
     std::lock_guard<std::mutex> lock(bufferMut_);
-    if (uniProcessor_ == nullptr || node.IsInvalidSurface()) {
+    if (uniProcessor_ == nullptr || node.IsInvalidSurface() || renderEngine_ == nullptr) {
         RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
         return false;
     }

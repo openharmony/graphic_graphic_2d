@@ -131,6 +131,13 @@ void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
     frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
+void RSRenderServiceConnection::CleanFrameRateLinkerExpectedFpsCallbacks() noexcept
+{
+    auto& context = mainThread_->GetContext();
+    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+    frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(remotePid_);
+}
+
 void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -161,6 +168,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
+            connection->CleanFrameRateLinkerExpectedFpsCallbacks();
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -973,6 +981,36 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     mainThread_->PostTask(captureTask);
 }
 
+void RSRenderServiceConnection::SetWindowFreezeImmediately(
+    NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    if (!mainThread_) {
+        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
+        return;
+    }
+    std::function<void()> setWindowFreezeTask = [id, isFreeze, callback, captureConfig]() -> void {
+        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
+        if (node == nullptr) {
+            RS_LOGE("RSRenderServiceConnection::SetWindowFreezeImmediately failed, node is nullptr");
+            if (callback) {
+                callback->OnSurfaceCapture(id, nullptr);
+            }
+            return;
+        }
+        node->SetStaticCached(isFreeze);
+        if (isFreeze) {
+            bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+                "::SET_WINDOW_FREEZE_IMMEDIATELY");
+            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling, isFreeze);
+        } else {
+            RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(id);
+        }
+    };
+    mainThread_->PostTask(setWindowFreezeTask);
+}
+
 void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     if (!mainThread_) {
@@ -992,7 +1030,7 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
 
 void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    auto captureTask = [=]() -> void {
+    auto captureTask = [app]() -> void {
         RSMainThread::Instance()->UnRegisterApplicationAgent(app);
     };
     RSMainThread::Instance()->ScheduleTask(captureTask).wait();
@@ -1699,6 +1737,24 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (!mainThread_ || dstPid == 0) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [pid = remotePid_, dstPid, callback, weakThis = wptr<RSRenderServiceConnection>(this)]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            return;
+        }
+        connection->mainThread_->GetContext().GetMutableFrameRateLinkerMap()
+            .RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid, dstPid, callback);
+    };
+    mainThread_->PostTask(task);
+    return StatusCode::SUCCESS;
+}
+
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     if (!mainThread_) {
@@ -1959,15 +2015,37 @@ void RSRenderServiceConnection::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceConnection::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
-    if (TOUCH_SCREEN->tsSetFeatureConfig_ == nullptr) {
-        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: touch screen function symbol is nullptr.");
-        return;
-    }
-    if (TOUCH_SCREEN->tsSetFeatureConfig_(feature, config) < 0) {
-        RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: tsSetFeatureConfig_ failed.");
-        return;
+    switch (tpFeatureConfigType) {
+        case TpFeatureConfigType::DEFAULT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetFeatureConfigHandleValid()) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetFeatureConfigHandl is nullptr");
+                return;
+            }
+            if (TOUCH_SCREEN->SetFeatureConfig(feature, config) < 0) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetFeatureConfig failed");
+                return;
+            }
+            break;
+        }
+        case TpFeatureConfigType::AFT_TP_FEATURE: {
+            if (!TOUCH_SCREEN->IsSetAftConfigHandleValid()) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetAftConfigHandl is nullptr");
+                return;
+            }
+            if (TOUCH_SCREEN->SetAftConfig(config) < 0) {
+                RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: SetAftConfig failed");
+                return;
+            }
+            break;
+        }
+        default: {
+            RS_LOGW("RSRenderServiceConnection::SetTpFeatureConfig: unknown TpFeatureConfigType: %" PRIu8"",
+                static_cast<uint8_t>(tpFeatureConfigType));
+            return;
+        }
     }
 }
 #endif

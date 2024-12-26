@@ -43,6 +43,7 @@ HWTEST_F(RsCommonHookTest, RegisterStartNewAnimationListenerTest, TestSize.Level
 {
     auto callback = []() {};
     RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
+    ASSERT_NE(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
 
 /**
@@ -56,6 +57,7 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest1, TestSize.Level1)
     auto callback = []() {};
     RsCommonHook::Instance().RegisterStartNewAnimationListener(callback);
     RsCommonHook::Instance().OnStartNewAnimation();
+    ASSERT_NE(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
 
 /**
@@ -68,5 +70,6 @@ HWTEST_F(RsCommonHookTest, OnStartNewAnimationTest2, TestSize.Level1)
 {
     RsCommonHook::Instance().RegisterStartNewAnimationListener(nullptr);
     RsCommonHook::Instance().OnStartNewAnimation();
+    ASSERT_EQ(RsCommonHook::Instance().startNewAniamtionFunc_, nullptr);
 }
 } // namespace OHOS::Rosen

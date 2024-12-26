@@ -135,6 +135,16 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
+bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->SetWindowFreezeImmediately(node->GetId(), isFreeze, callback, captureConfig);
+}
+
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
@@ -545,6 +555,21 @@ int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
     return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
 }
 
+int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+    const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback callback == nullptr.");
+        return INVALID_ARGUMENTS;
+    }
+    return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+}
+
+int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid)
+{
+    return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
+}
+
 void RSInterfaces::SetAppWindowNum(uint32_t num)
 {
     renderServiceClient_->SetAppWindowNum(num);
@@ -676,9 +701,9 @@ void RSInterfaces::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSInterfaces::SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType)
 {
-    renderServiceClient_->SetTpFeatureConfig(feature, config);
+    renderServiceClient_->SetTpFeatureConfig(feature, config, tpFeatureConfigType);
 }
 #endif
 

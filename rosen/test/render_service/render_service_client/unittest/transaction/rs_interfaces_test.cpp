@@ -299,6 +299,7 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.GetHwcDisabledReasonInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 
 /**
@@ -330,6 +331,22 @@ HWTEST_F(RSInterfacesTest, SetTpFeatureConfig001, TestSize.Level1)
     std::string config = "config";
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.SetTpFeatureConfig(feature, config.c_str());
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: SetTpFeatureConfig002
+ * @tc.desc: test results of SetTpFeatureConfig
+ * @tc.type: FUNC
+ * @tc.require: issueIB39L8
+ */
+HWTEST_F(RSInterfacesTest, SetTpFeatureConfig002, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    int32_t feature = 1;
+    std::string config = "config";
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.SetTpFeatureConfig(feature, config.c_str(), TpFeatureConfigType::AFT_TP_FEATURE);
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 #endif

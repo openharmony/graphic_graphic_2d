@@ -33,7 +33,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
+#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -59,6 +59,10 @@
 #ifdef SOC_PERF_ENABLE
 #include "socperf_client.h"
 #endif
+
+#include <sched.h>
+#include "res_sched_client.h"
+#include "res_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -156,10 +160,17 @@ void RSUniRenderThread::InitGrContext()
     if (!grContext) {
         return;
     }
-    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
-        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled());
     MemoryManager::SetGpuCacheSuppressWindowSwitch(
         grContext, RSSystemProperties::GetGpuCacheSuppressWindowEnabled());
+    MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+        grContext, RSSystemProperties::GetGpuMemoryAsyncReclaimerEnabled(), []() {
+            const uint32_t RS_IPC_QOS_LEVEL = 7;
+            std::unordered_map<std::string, std::string> mapPayload = { { "bundleName", "render_service" },
+                { "pid", std::to_string(getpid()) }, { std::to_string(gettid()), std::to_string(RS_IPC_QOS_LEVEL) } };
+            using namespace OHOS::ResourceSchedule;
+            auto& schedClient = ResSchedClient::GetInstance();
+            schedClient.ReportData(ResType::RES_TYPE_THREAD_QOS_CHANGE, 0, mapPayload);
+        });
 }
 
 void RSUniRenderThread::Inittcache()
@@ -729,7 +740,7 @@ void RSUniRenderThread::TrimMem(std::string& dumpString, std::string& type)
         } else if (type.substr(0, typeGpuLimit.length()) == typeGpuLimit) {
             TrimMemGpuLimitType(gpuContext, dumpString, type, typeGpuLimit);
         } else {
-            uint32_t pid = static_cast<uint32_t>(std::stoll(type));
+            uint32_t pid = static_cast<uint32_t>(std::atoi(type.c_str()));
             Drawing::GPUResourceTag tag(pid, 0, 0, 0, "TrimMem");
             MemoryManager::ReleaseAllGpuResource(gpuContext, tag);
         }

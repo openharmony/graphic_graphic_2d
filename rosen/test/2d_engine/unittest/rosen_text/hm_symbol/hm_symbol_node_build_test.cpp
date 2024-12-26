@@ -131,6 +131,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, SymbolNodeBuild001, TestSize.Level1)
     RSHMSymbolData symbol;
     RSEffectStrategy effectMode = RSEffectStrategy::SCALE;
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSetting, symbol, effectMode, offset);
+    EXPECT_EQ(symbolNode.effectStrategy_, RSEffectStrategy::SCALE);
 }
 
 /*
@@ -154,7 +155,17 @@ HWTEST_F(OHHmSymbolNodeBuildTest, DecomposeSymbolAndDraw001, TestSize.Level1)
     symbolNode.SetAnimation(&SetSymbolAnimationOne);
     symbolNode.SetSymbolId(0);
     symbolNode.SetAnimationMode(1); // 1 is wholeSymbol effect
-    int result = symbolNode.DecomposeSymbolAndDraw();
+    bool result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result, true);
+
+    symbol.symbolInfo_.renderGroups = {};
+    symbolNode.symbolData_ = symbol;
+    result = symbolNode.DecomposeSymbolAndDraw();
+    EXPECT_EQ(result, false);
+
+    symbol.symbolInfo_.renderGroups = renderGroupsOneMask_;
+    symbolNode.symbolData_ = symbol;
+    result = symbolNode.DecomposeSymbolAndDraw();
     EXPECT_EQ(result, true);
 }
 
@@ -333,6 +344,7 @@ HWTEST_F(OHHmSymbolNodeBuildTest, ClearAnimation001, TestSize.Level1)
     SymbolNodeBuild symbolNode = SymbolNodeBuild(animationSettingOneMask_, symbol, effectMode, offset);
     symbolNode.SetAnimation(&SetSymbolAnimationOne);
     symbolNode.ClearAnimation();
+    EXPECT_EQ(symbolNode.effectStrategy_, RSEffectStrategy::NONE);
 }
 } // namespace SPText
 } // namespace Rosen

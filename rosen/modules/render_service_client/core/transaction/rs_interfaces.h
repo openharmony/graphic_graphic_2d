@@ -91,6 +91,9 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
 
+    bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
 #ifndef ROSEN_ARKUI_X
@@ -226,6 +229,11 @@ public:
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
+
+    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
+
     void SetAppWindowNum(uint32_t num);
 
     // Set the system overload Animated Scenes to RS for special load shedding
@@ -278,7 +286,8 @@ public:
     void SetVmaCacheStatus(bool flag);
 
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config);
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 

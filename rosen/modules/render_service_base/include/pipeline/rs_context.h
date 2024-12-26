@@ -163,6 +163,11 @@ public:
 
     // save some need sync finish to client animations in list
     void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
+
+    void AddSubSurfaceCntUpdateInfo(SubSurfaceCntUpdateInfo info)
+    {
+        subSurfaceCntUpdateInfo_.emplace_back(info);
+    }
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -174,9 +179,9 @@ private:
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
-    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
     // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
     bool requestedNextVsyncAnimate_ = false;
+    std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
     PurgeType purgeType_ = PurgeType::NONE;
     ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 
@@ -190,6 +195,7 @@ private:
     std::mutex activeNodesInRootMutex_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
+    std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

@@ -101,7 +101,8 @@ public:
         return hasDoneNode_;
     }
 
-    void MergeOldDirty(RSSurfaceRenderNode& node);
+    void MergeOldDirty(NodeId id);
+    void MergeOldDirtyToDrawable(std::shared_ptr<RSSurfaceRenderNode> node);
 
     void SetRotationChanged(bool rotationChanged)
     {

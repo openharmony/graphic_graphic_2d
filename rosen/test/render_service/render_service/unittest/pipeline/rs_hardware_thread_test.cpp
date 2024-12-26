@@ -233,6 +233,7 @@ HWTEST_F(RSHardwareThreadTest, Start004, TestSize.Level1)
 HWTEST_F(RSHardwareThreadTest, Start005, TestSize.Level1)
 {
     auto& hardwareThread = RSHardwareThread::Instance();
+    EXPECT_EQ(hardwareThread.delayTime_ == 0, true);
     hardwareThread.AddRefreshRateCount();
 }
 

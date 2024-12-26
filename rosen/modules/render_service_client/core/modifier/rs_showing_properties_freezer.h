@@ -58,8 +58,6 @@ public:
 
     std::optional<Vector4<Color>> GetBorderColor() const;
     std::optional<Vector4f> GetBorderWidth() const;
-    std::optional<Vector4f> GetBorderDashWidth() const;
-    std::optional<Vector4f> GetBorderDashGap() const;
 
     std::optional<std::shared_ptr<RSFilter>> GetBackgroundFilter() const;
     std::optional<std::shared_ptr<RSFilter>> GetFilter() const;

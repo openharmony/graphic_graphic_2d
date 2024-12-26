@@ -56,6 +56,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, Create001, TestSize.Level1)
 {
     Drawing::Canvas canvas;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     delete listener;
 }
 
@@ -70,6 +71,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRect001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Rect rect;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawRect(rect);
     delete listener;
 }
@@ -85,6 +87,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawOval001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Rect rect;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawOval(rect);
     delete listener;
 }
@@ -102,6 +105,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc001, TestSize.Level1)
     Drawing::scalar startAngle = 0.0;
     Drawing::scalar sweepAngle = 0.0;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawArc(rect, startAngle, sweepAngle);
     delete listener;
 }
@@ -119,6 +123,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawArc002, TestSize.Level1)
     Drawing::scalar startAngle = 0.0;
     Drawing::scalar sweepAngle = 0.0;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawArc(rect, startAngle, sweepAngle);
     delete listener;
 }
@@ -134,6 +139,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPath001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Path path;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawPath(path);
     delete listener;
 }
@@ -149,6 +155,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawRegion001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Region region;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawRegion(region);
     delete listener;
 }
@@ -164,6 +171,7 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, onDrawPicture001, TestSize.Level1)
     Drawing::Canvas canvas;
     Drawing::Picture picture;
     auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     listener->DrawPicture(picture);
     delete listener;
 }
@@ -263,21 +271,23 @@ HWTEST_F(RSGPUOverdrawCanvasListenerTest, DrawRegionWithSpecifiedRegionTest003, 
 {
     // The calling function is empty internally
     Drawing::Canvas canvas;
-    RSGPUOverdrawCanvasListener listener(canvas);
+    auto listener = new RSGPUOverdrawCanvasListener(canvas);
+    EXPECT_TRUE(listener != nullptr);
     Drawing::Brush brush;
-    listener.DrawBackground(brush);
+    listener->DrawBackground(brush);
 
     Drawing::Path path;
     Drawing::Point3 planeParams;
     Drawing::Point3 devLightPos;
     Drawing::Color ambientColor;
     Drawing::Color spotColor;
-    listener.DrawShadow(path, planeParams, devLightPos, SET_XORY1, ambientColor, spotColor, Drawing::ShadowFlags::NONE);
+    listener->DrawShadow(path, planeParams, devLightPos, SET_XORY1, ambientColor, spotColor,
+        Drawing::ShadowFlags::NONE);
 
     Drawing::Picture picture;
-    listener.DrawPicture(picture);
+    listener->DrawPicture(picture);
 
-    listener.Clear(Drawing::Color::COLOR_BLACK);
+    listener->Clear(Drawing::Color::COLOR_BLACK);
 }
 
 /**

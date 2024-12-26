@@ -163,6 +163,7 @@ public:
     static bool WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id = 0);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
+    static int32_t GetDeviceRotation(RSSurfaceRenderParams* nodeParams);
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);

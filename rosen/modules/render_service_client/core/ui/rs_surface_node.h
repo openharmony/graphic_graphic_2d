@@ -124,11 +124,6 @@ public:
         return name_;
     }
 
-    const std::string GetBundleName() const
-    {
-        return bundleName_;
-    }
-
     void ResetContextAlpha() const;
 
     void SetContainerWindow(bool hasContainerWindow, float density);
@@ -198,6 +193,8 @@ private:
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;
 #endif
+
+    std::mutex apiInitMutex_;
 
     friend class RSUIDirector;
     friend class RSAnimation;

@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_NATIVE_VSYNC_H_
-#define NDK_INCLUDE_NATIVE_VSYNC_H_
-
 /**
  * @addtogroup NativeVsync
  * @{
@@ -36,6 +33,9 @@
  * @since 9
  * @version 1.0
  */
+
+#ifndef NDK_INCLUDE_NATIVE_VSYNC_H_
+#define NDK_INCLUDE_NATIVE_VSYNC_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,7 +76,7 @@ OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, con
  * @brief Delete the NativeVsync instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
- * @param window Indicates the pointer to a <b>NativeVsync</b> instance.
+ * @param nativeVsync Indicates the pointer to a <b>NativeVsync</b> instance.
  * @since 9
  * @version 1.0
  */
@@ -157,4 +157,5 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
 }
 #endif
 
+/** @} */
 #endif

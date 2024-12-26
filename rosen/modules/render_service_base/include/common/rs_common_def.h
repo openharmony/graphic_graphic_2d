@@ -202,6 +202,14 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+#ifdef TP_FEATURE_ENABLE
+// the type of TpFeatureConfig
+enum class TpFeatureConfigType : uint8_t {
+    DEFAULT_TP_FEATURE = 0,
+    AFT_TP_FEATURE,
+};
+#endif
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -322,6 +330,12 @@ struct RSDisplayNodeConfig {
 enum class RSSurfaceNodeAbilityState : uint8_t {
     BACKGROUND,
     FOREGROUND,
+};
+
+struct SubSurfaceCntUpdateInfo {
+    int updateCnt_ = 0;
+    NodeId preParentId_ = INVALID_NODEID;
+    NodeId curParentId_ = INVALID_NODEID;
 };
 
 constexpr int64_t NS_TO_S = 1000000000;

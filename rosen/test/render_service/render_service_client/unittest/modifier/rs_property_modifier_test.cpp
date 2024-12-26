@@ -349,4 +349,76 @@ HWTEST_F(RSPropertyModifierTest, Apply05, TestSize.Level1)
     translateZModifier->Apply(geometry);
     EXPECT_EQ(geometry->trans_->translateZ_, 50);
 }
+
+/**
+ * @tc.name: RSBehindWindowFilterRadiusModifierTest
+ * @tc.desc: RSBehindWindowFilterRadiusModifierTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterRadiusModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSBehindWindowFilterRadiusModifier> modifier =
+        std::make_shared<RSBehindWindowFilterRadiusModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS);
+    ASSERT_NE(modifier->CreateRenderModifier(), nullptr);
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterSaturationModifierTest
+ * @tc.desc: RSBehindWindowFilterSaturationModifierTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterSaturationModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSBehindWindowFilterSaturationModifier> modifier =
+        std::make_shared<RSBehindWindowFilterSaturationModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::BEHIND_WINDOW_FILTER_SATURATION);
+    ASSERT_NE(modifier->CreateRenderModifier(), nullptr);
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterBrightnessModifierTest
+ * @tc.desc: RSBehindWindowFilterBrightnessModifierTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterBrightnessModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSBehindWindowFilterBrightnessModifier> modifier =
+        std::make_shared<RSBehindWindowFilterBrightnessModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::BEHIND_WINDOW_FILTER_BRIGHTNESS);
+    ASSERT_NE(modifier->CreateRenderModifier(), nullptr);
+}
+
+/**
+ * @tc.name: RSBehindWindowFilterMaskColorModifierTest
+ * @tc.desc: RSBehindWindowFilterMaskColorModifierTest
+ * @tc.type: FUNC
+ * @tc.require: issueIB0UQV
+ */
+HWTEST_F(RSPropertyModifierTest, RSBehindWindowFilterMaskColorModifierTest, TestSize.Level1)
+{
+    std::shared_ptr<RSPropertyBase> property = std::make_shared<RSPropertyBase>();
+    ASSERT_NE(property, nullptr);
+    std::shared_ptr<RSBehindWindowFilterMaskColorModifier> modifier =
+        std::make_shared<RSBehindWindowFilterMaskColorModifier>(property);
+    ASSERT_NE(modifier, nullptr);
+    RSModifierType ModifierType = modifier->GetModifierType();
+    EXPECT_EQ(ModifierType, RSModifierType::BEHIND_WINDOW_FILTER_MASK_COLOR);
+    ASSERT_NE(modifier->CreateRenderModifier(), nullptr);
+}
 } // namespace OHOS::Rosen

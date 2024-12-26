@@ -45,7 +45,8 @@ void SkiaPictureTest::TearDown() {}
 HWTEST_F(SkiaPictureTest, SkiaPicture001, TestSize.Level1)
 {
     SkiaPicture skiaPicture;
-    skiaPicture.Deserialize(nullptr);
+    bool ret = skiaPicture.Deserialize(nullptr);
+    EXPECT_FALSE(ret);
     std::shared_ptr<Data> data = std::make_shared<Data>();
     skiaPicture.Deserialize(data);
     skiaPicture.Serialize();

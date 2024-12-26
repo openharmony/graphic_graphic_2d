@@ -71,6 +71,7 @@ HWTEST_F(RSRenderParamsTest, SetAlpha001, TestSize.Level1)
     renderParams->alpha_ = 1.0;
     float alpha = 1.0;
     params.SetAlpha(alpha);
+    EXPECT_TRUE(renderParams != nullptr);
 }
 
 /**
@@ -85,6 +86,7 @@ HWTEST_F(RSRenderParamsTest, SetAlphaOffScreen001, TestSize.Level1)
     RSRenderParams params(id);
     bool alphaOffScreen = false;
     params.SetAlphaOffScreen(alphaOffScreen);
+    EXPECT_TRUE(!params.GetAlphaOffScreen());
 }
 
 /**
@@ -100,5 +102,6 @@ HWTEST_F(RSRenderParamsTest, ApplyAlphaAndMatrixToCanvas001, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     params.ApplyAlphaAndMatrixToCanvas(paintFilterCanvas, true);
+    EXPECT_TRUE(id != -1);
 }
 } // namespace OHOS::Rosen

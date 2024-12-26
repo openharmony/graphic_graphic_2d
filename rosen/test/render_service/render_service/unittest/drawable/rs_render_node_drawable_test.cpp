@@ -70,7 +70,7 @@ HWTEST_F(RSRenderNodeDrawableTest, CreateRenderNodeForTextureExportSwitchDrawabl
 HWTEST_F(RSRenderNodeDrawableTest, OpincCalculateBefore, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-
+    ASSERT_NE(drawable, nullptr);
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
     bool isOpincDropNodeExt = true;
@@ -90,7 +90,7 @@ HWTEST_F(RSRenderNodeDrawableTest, OpincCalculateBefore, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, OpincCalculateAfter, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
-
+    ASSERT_NE(drawable, nullptr);
     Drawing::Canvas canvas;
     bool isOpincDropNodeExt = true;
     drawable->OpincCalculateAfter(canvas, isOpincDropNodeExt);
@@ -138,6 +138,7 @@ HWTEST_F(RSRenderNodeDrawableTest, OpincCanvasUnionTranslate, TestSize.Level1)
 
     drawable->isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
     drawable->OpincCanvasUnionTranslate(paintFilterCanvas);
+    ASSERT_TRUE(drawable->IsComputeDrawAreaSucc());
 }
 
 /**
@@ -157,6 +158,7 @@ HWTEST_F(RSRenderNodeDrawableTest, ResumeOpincCanvasTranslate, TestSize.Level1)
 
     drawable->isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_ENABLE;
     drawable->ResumeOpincCanvasTranslate(paintFilterCanvas);
+    ASSERT_TRUE(drawable->IsComputeDrawAreaSucc());
 }
 
 /**
@@ -275,6 +277,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCacheProcessChildNode, TestSize.Lev
 HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
@@ -297,6 +300,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCacheFindRootNode, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
@@ -308,6 +312,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
     strategyType = NodeStrategyType::CACHE_NONE;
     drawable->recordState_ = NodeRecordState::RECORD_NONE;
     drawable->BeforeDrawCache(strategyType, canvas, params, isOpincDropNodeExt);
+    ASSERT_EQ(drawable->temNodeStragyType_, NodeStrategyType::CACHE_NONE);
 }
 
 /**
@@ -319,6 +324,7 @@ HWTEST_F(RSRenderNodeDrawableTest, BeforeDrawCache, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSRenderParams params(RSRenderNodeDrawableTest::id);
@@ -328,9 +334,11 @@ HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
     drawable->recordState_ = NodeRecordState::RECORD_CALCULATE;
     NodeStrategyType cacheStragy = NodeStrategyType::CACHE_NONE;
     drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_EQ(drawable->isDrawAreaEnable_, DrawAreaEnableState::DRAW_AREA_INIT);
 
     drawable->recordState_ = NodeRecordState::RECORD_CACHING;
     drawable->AfterDrawCache(cacheStragy, canvas, params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(!drawable->isOpincMarkCached_);
 }
 
 /**
@@ -382,6 +390,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     std::vector<std::pair<RectI, std::string>> autoCacheRenderNodeInfos = {
         { RectI(100, 100, 200, 200), "" },
@@ -390,6 +399,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCacheDfx, TestSize.Level1)
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     drawable->DrawAutoCacheDfx(paintFilterCanvas, autoCacheRenderNodeInfos);
+    ASSERT_TRUE(drawable->GetOpListUnionArea().IsEmpty());
 }
 
 /**

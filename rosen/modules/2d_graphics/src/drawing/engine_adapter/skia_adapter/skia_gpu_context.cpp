@@ -403,13 +403,13 @@ void SkiaGPUContext::SetGpuCacheSuppressWindowSwitch(bool enabled)
     grContext_->setGpuCacheSuppressWindowSwitch(enabled);
 }
 
-void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled)
+void SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority)
 {
     if (!grContext_) {
         LOGD("SkiaGPUContext::SetGpuMemoryAsyncReclaimerSwitch, grContext_ is nullptr");
         return;
     }
-    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled);
+    grContext_->setGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 }
 
 void SkiaGPUContext::FlushGpuMemoryInWaitQueue()

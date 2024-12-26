@@ -2933,5 +2933,49 @@ RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 {
     return abilityState_;
 }
+
+void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetApiCompatibleVersion: stagingRenderPrams is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetApiCompatibleVersion: surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetApiCompatibleVersion(apiCompatibleVersion);
+    AddToPendingSyncList();
+
+    apiCompatibleVersion_ = apiCompatibleVersion;
+}
+
+bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
+{
+    bool needDrawBehindWindow = !childrenBlurBehindWindow_.empty();
+    GetMutableRenderProperties().SetNeedDrawBehindWindow(needDrawBehindWindow);
+    return needDrawBehindWindow != oldNeedDrawBehindWindow_;
+}
+
+void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
+{
+    oldNeedDrawBehindWindow_ = val;
+}
+
+bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
+{
+    return !childrenBlurBehindWindow_.empty();
+}
+
+void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
+{
+    childrenBlurBehindWindow_.emplace(id);
+}
+
+void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
+{
+    childrenBlurBehindWindow_.erase(id);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -521,7 +521,7 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
 
 void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
-    if (!image_ && pixelMap_ && !pixelMap_->IsAstc()) {
+    if (pixelMap_ && !pixelMap_->IsAstc()) {
         if (!pixelMap_->IsEditable()) {
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
         }

@@ -32,7 +32,11 @@
 namespace OHOS {
 namespace Rosen {
 enum class ScreenRotation : uint32_t;
-
+constexpr char TOPIC_RCD_DISPLAY_SIZE[] = "RCD_UPDATE_DISPLAY_SIZE";
+constexpr char TOPIC_RCD_DISPLAY_ROTATION[] = "RCD_UPDATE_DISPLAY_ROTATION";
+constexpr char TOPIC_RCD_DISPLAY_NOTCH[] = "RCD_UPDATE_DISPLAY_NOTCH";
+constexpr char TOPIC_RCD_RESOURCE_CHANGE[] = "TOPIC_RCD_RESOURCE_CHANGE";
+constexpr char TOPIC_RCD_DISPLAY_HWRESOURCE[] = "RCD_UPDATE_DISPLAY_HWRESOURCE";
 // On the devices that LCD/AMOLED contain notch, at settings-->display-->notch
 // we can set default or hide notch.
 enum WindowNotchStatus {
@@ -60,7 +64,8 @@ enum RoundCornerSurfaceType {
 
 class RoundCornerDisplay {
 public:
-    RoundCornerDisplay();
+    RoundCornerDisplay() {};
+    explicit RoundCornerDisplay(NodeId id);
     virtual ~RoundCornerDisplay();
 
     // update displayWidth_ and displayHeight_
@@ -75,8 +80,6 @@ public:
     // update hardInfo_.resourceChanged after hw resource applied
     void UpdateHardwareResourcePrepared(bool prepared);
 
-    void DrawRoundCorner(RSPaintFilterCanvas *canvas);
-    
     void DrawTopRoundCorner(RSPaintFilterCanvas* canvas);
 
     void DrawBottomRoundCorner(RSPaintFilterCanvas* canvas);
@@ -104,14 +107,10 @@ public:
     rs_rcd::RoundCornerHardware GetHardwareInfoPreparing()
     {
         std::unique_lock<std::shared_mutex> lock(resourceMut_);
-        if (hardInfo_.resourceChanged)
+        if (hardInfo_.resourceChanged) {
             hardInfo_.resourcePreparing = true;
+        }
         return hardInfo_;
-    }
-
-    bool GetRcdEnable() const
-    {
-        return isRcdEnable_;
     }
 
     bool IsNotchNeedUpdate(bool notchStatus)
@@ -122,7 +121,11 @@ public:
         return result;
     }
 
+    void InitOnce();
+
 private:
+    NodeId renderTargetId_ = 0;
+    bool isInit = false;
     // load config
     rs_rcd::LCDModel* lcdModel_ = nullptr;
     rs_rcd::ROGSetting* rog_ = nullptr;
@@ -163,8 +166,6 @@ private:
     bool supportBottomSurface_ = false;
     bool supportHardware_ = false;
     bool resourceChanged = false;
-
-    bool isRcdEnable_ = false;
 
     // the resource to be drawn
     std::shared_ptr<Drawing::Image> curTop_ = nullptr;

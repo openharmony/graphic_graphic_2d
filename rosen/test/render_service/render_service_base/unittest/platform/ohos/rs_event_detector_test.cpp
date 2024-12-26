@@ -65,6 +65,7 @@ HWTEST_F(RSEventDetectorTest, settings, TestSize.Level1)
     std::string bundle = "bundle";
     std::string ability = "ability";
     rsDetector->SetLoopFinishTag(1, 1, bundle, ability);
+    EXPECT_TRUE(rsDetector);
     RSTimeOutDetector rsTimeOutDetector(0, "1");
     rsTimeOutDetector.SetLoopStartTag();
     rsTimeOutDetector.timeOutThresholdMs_ = rsTimeOutDetector.startTimeStampMs_;

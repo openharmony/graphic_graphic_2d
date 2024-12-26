@@ -1073,20 +1073,73 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
-    data.WriteUint64(id);
-    data.WriteRemoteObject(callback->AsObject());
-    data.WriteFloat(captureConfig.scaleX);
-    data.WriteFloat(captureConfig.scaleY);
-    data.WriteBool(captureConfig.useDma);
-    data.WriteBool(captureConfig.useCurWindow);
-    data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType));
-    data.WriteBool(captureConfig.isSync);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s write callback failed", __func__);
+        return;
+    }
+    if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+        ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+        return;
+    }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceProxy: Remote()->SendRequest() error.\n");
         return;
     }
+}
+
+void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(
+    NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s write id failed", __func__);
+        return;
+    }
+    if (!data.WriteBool(isFreeze)) {
+        ROSEN_LOGE("%{public}s write isFreeze failed", __func__);
+        return;
+    }
+    if (isFreeze) {
+        if (callback == nullptr) {
+            ROSEN_LOGE("%{public}s callback == nullptr", __func__);
+            return;
+        }
+        if (!data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("%{public}s write callback failed", __func__);
+            return;
+        }
+        if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
+            ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+            return;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s Remote()->SendRequest() error[%{public}d]", __func__, err);
+        return;
+    }
+}
+
+bool RSRenderServiceConnectionProxy::WriteSurfaceCaptureConfig(
+    const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
+{
+    if (!data.WriteFloat(captureConfig.scaleX) || !data.WriteFloat(captureConfig.scaleY) ||
+        !data.WriteBool(captureConfig.useDma) || !data.WriteBool(captureConfig.useCurWindow) ||
+        !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync)) {
+        return false;
+    }
+    return true;
 }
 
 RSVirtualScreenResolution RSRenderServiceConnectionProxy::GetVirtualScreenResolution(ScreenId id)
@@ -2179,6 +2232,43 @@ int32_t RSRenderServiceConnectionProxy::RegisterHgmRefreshRateUpdateCallback(
     return result;
 }
 
+int32_t RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterFrameRateLinkerCallback: WriteInterfaceToken err.");
+        return WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInt32(dstPid)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(
+        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpdateCallback: "
+            "Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result = reply.ReadInt32();
+    return result;
+}
+
 void RSRenderServiceConnectionProxy::SetAppWindowNum(uint32_t num)
 {
     MessageParcel data;
@@ -2733,7 +2823,8 @@ void RSRenderServiceConnectionProxy::SetVmaCacheStatus(bool flag)
 }
 
 #ifdef TP_FEATURE_ENABLE
-void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config)
+void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const char* config,
+    TpFeatureConfigType tpFeatureConfigType)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -2751,6 +2842,10 @@ void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const c
         return;
     }
 
+    if (!data.WriteUint8(static_cast<uint8_t>(tpFeatureConfigType))) {
+        return;
+    }
+
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -2759,6 +2854,7 @@ void RSRenderServiceConnectionProxy::SetTpFeatureConfig(int32_t feature, const c
     }
 }
 #endif
+
 void RSRenderServiceConnectionProxy::SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus)
 {
     MessageParcel data;

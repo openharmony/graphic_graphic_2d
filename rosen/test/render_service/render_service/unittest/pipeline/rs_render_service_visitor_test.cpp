@@ -65,6 +65,7 @@ void RSRenderServiceVisitorTest::TearDown() {}
 HWTEST_F(RSRenderServiceVisitorTest, CreateAndDestroy001, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
 }
 
 /**
@@ -368,6 +369,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode002, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -382,6 +384,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -396,6 +399,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -410,6 +414,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode005, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -424,6 +429,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode006, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -438,6 +444,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode007, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -452,6 +459,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareCanvasRenderNode008, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareCanvasRenderNode(node);
 }
@@ -1119,6 +1127,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, SetAnimateState, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     rsRenderServiceVisitor.SetAnimateState(true);
 }
 
