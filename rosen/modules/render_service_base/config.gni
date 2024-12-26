@@ -48,6 +48,7 @@ if (is_emulator) {
 
 if (rosen_preview) {
   rs_common_define += [ "ROSEN_PREVIEW" ]
+  rs_common_define += [ "USE_GLFW_WINDOW" ]
 }
 
 if (rosen_is_ohos) {

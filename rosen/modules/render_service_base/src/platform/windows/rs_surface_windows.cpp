@@ -72,13 +72,6 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceWindows::RequestFrame(
         ROSEN_LOGE("RSSurfaceWindows::RequestFrame, surface bind failed");
         return frame;
     }
-#ifdef USE_GLFW_WINDOW
-    const auto canvas = frame->surface_->GetCanvas();
-    if (canvas != nullptr) {
-        canvas->Translate(0, frame->height_);
-        canvas->Scale(1, -1);
-    }
-#endif
     return frame;
 }
 
@@ -110,11 +103,6 @@ bool RSSurfaceWindows::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64
             image->ReadPixels(bitmap, 0, 0);
         }
     }
-#ifdef USE_GLFW_WINDOW
-    if (frameWindows->surface_ != nullptr) {
-        YInvert(addr, frameWindows->width_, frameWindows->height_);
-    }
-#endif
 
     int32_t width = frameWindows->width_;
     int32_t height = frameWindows->height_;
