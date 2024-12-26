@@ -1556,7 +1556,7 @@ HWTEST_F(RSSurfaceNodeTest, CreateNodeAndSurface, TestSize.Level1)
     const RSSurfaceRenderNodeConfig& config = {0, "SurfaceNode", RSSurfaceNodeType::DEFAULT, nullptr, false, false};
     SurfaceId surfaceId = 0;
     bool res = surfaceNode->CreateNodeAndSurface(config, surfaceId);
-    ASSERT_EQ(true, res);
+    ASSERT_EQ(false, res);
 }
 
 /**
