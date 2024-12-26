@@ -157,8 +157,6 @@ std::vector<std::string> FontConfig::GetFontSet() const
 }
 
 
-std::unordered_map<std::string, size_t> FontConfigJson::indexMap{};
-
 int FontConfigJson::ParseFile(const char* fname)
 {
     if (fname == nullptr) {
@@ -168,9 +166,9 @@ int FontConfigJson::ParseFile(const char* fname)
 
     TEXT_LOGI("ParseFile fname is: %{public}s", fname);
     fontPtr = std::make_shared<FontConfigJsonInfo>();
+    indexMap = std::make_shared<std::unordered_map<std::string, size_t>>();
     fontPtr->fallbackGroupSet.emplace_back();
     fontPtr->fallbackGroupSet[0].groupName = "";
-    indexMap.clear();
     int err = ParseConfigList(fname);
     // only for compatible with old version
     fontPtr->genericSet[0].adjustSet = { { 50, 100 }, { 80, 400 }, { 100, 700 }, { 200, 900 } };
@@ -205,9 +203,9 @@ void FontConfigJson::emplaceFontJson(const FontJson& fontJson)
     }
 
     if (fontJson.type == 0) {
-        auto exist = indexMap.find(fontJson.family);
-        if (exist == indexMap.end()) {
-            indexMap[fontJson.family] = fontPtr->genericSet.size();
+        auto exist = indexMap->find(fontJson.family);
+        if (exist == indexMap->end()) {
+            (*indexMap)[fontJson.family] = fontPtr->genericSet.size();
             fontPtr->genericSet.emplace_back(FontGenericInfo { fontJson.family });
             fontPtr->genericSet.back().aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
             return;

@@ -127,8 +127,8 @@ private:
 
     std::shared_ptr<FontConfigJsonInfo> fontPtr = nullptr;
     std::shared_ptr<FontFileMap> fontFileMap = nullptr;
-    // because of some memory bugs, this place use static
-    static std::unordered_map<std::string, size_t> indexMap;
+    // because of some memory bugs, this place use shared ptr
+    std::shared_ptr<std::unordered_map<std::string, size_t>> indexMap = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen
