@@ -48,21 +48,23 @@ int HveFilter::GetSurfaceNodeSize()
 std::shared_ptr<Drawing::Image> HveFilter::SampleLayer(RSPaintFilterCanvas& canvas, const Drawing::RectI& srcRect)
 {
     auto drawingSurface = canvas.GetSurface();
-
-    std::shared_ptr<Drawing::Image> snapshot;
+    if(drawingSurface == nullptr) {
+        return nullptr;
+    }
     int widthUI = srcRect.GetWidth();
     int heightUI = srcRect.GetHeight();
     auto offscreenSurface = drawingSurface->MakeSurface(widthUI, heightUI);
     if (offscreenSurface == nullptr) {
         ClearSurfaceNodeInfo();
-        return snapshot;
+        return nullptr;
     }
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
     if (offscreenCanvas == nullptr) {
         ClearSurfaceNodeInfo();
-        return snapshot;
+        return nullptr;
     }
 
+    std::shared_ptr<Drawing::Image> snapshot;
     std::vector<SurfaceNodeInfo> vecSurfaceNode = GetSurfaceNodeInfo();
     size_t surfaceNodeSize = vecSurfaceNode.size();
     RS_TRACE_NAME_FMT("surfaceNodeSize:%d", surfaceNodeSize);
