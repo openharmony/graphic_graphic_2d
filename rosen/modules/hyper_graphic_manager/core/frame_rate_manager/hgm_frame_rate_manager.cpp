@@ -37,7 +37,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr float MARGIN = 0.00001;
     constexpr float MIN_DRAWING_DIVISOR = 10.0f;
     constexpr float DIVISOR_TWO = 2.0f;
     constexpr uint32_t MULTIPLE_TWO = 2;
