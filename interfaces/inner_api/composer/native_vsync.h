@@ -76,7 +76,7 @@ OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, con
  * @brief Delete the NativeVsync instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
- * @param window Indicates the pointer to a <b>NativeVsync</b> instance.
+ * @param nativeVsync Indicates the pointer to a <b>NativeVsync</b> instance.
  * @since 9
  * @version 1.0
  */
