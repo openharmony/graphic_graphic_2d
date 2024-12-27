@@ -162,7 +162,10 @@ ohos_shared_library("librender_service") {
   }
 
   if (graphic_2d_feature_enable_vulkan) {
-    sources += [ "core/pipeline/rs_vk_image_manager.cpp" ]
+    sources += [
+      "core/pipeline/rs_vk_image_manager.cpp",
+      "core/pipeline/rs_vk_pipeline_config.cpp",
+    ]
   }
 
   if (rs_enable_parallel_render && rs_enable_gpu) {
@@ -282,7 +285,10 @@ ohos_shared_library("librender_service") {
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
   }
 
-  public_external_deps += [ "libxml2:libxml2" ]
+  public_external_deps += [
+    "config_policy:configpolicy_util",
+    "libxml2:libxml2",
+  ]
 
   external_deps = [
     "ability_runtime:app_manager",
