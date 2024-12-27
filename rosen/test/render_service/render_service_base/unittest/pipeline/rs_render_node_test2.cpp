@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "drawable/rs_property_drawable_background.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
@@ -1021,7 +1022,9 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    if (!RSProperties::FilterCacheEnabled) {
+        return;
+    }
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
@@ -1031,10 +1034,15 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     RectI lastRegion(0, 0, 100, 100);
     node.filterRegion_ = inRegion;
     node.lastFilterRegion_ = lastRegion;
+    auto filterDrawable = std::static_pointer_cast<DrawableV2::RSBackgroundFilterDrawable>(
+        DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node));
+    filterDrawable->stagingFilterRegionChanged_ = false;
+    node.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = filterDrawable;
     node.UpdateFilterCacheWithSelfDirty();
+    ASSERT_TRUE(filterDrawable->stagingFilterRegionChanged_);
     node.filterRegion_ = outRegion;
     node.UpdateFilterCacheWithSelfDirty();
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(filterDrawable->stagingFilterRegionChanged_);
 }
 
 /**
@@ -1090,7 +1098,9 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    if (!RSProperties::FilterCacheEnabled) {
+        return;
+    }
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -1101,7 +1111,6 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
     node.drawableVec_[static_cast<uint32_t>(slot)] = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     ASSERT_NE(node.GetFilterDrawable(false), nullptr);
-    ASSERT_TRUE(true);
 }
 
 /**
