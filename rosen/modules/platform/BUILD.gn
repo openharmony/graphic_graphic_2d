@@ -142,7 +142,7 @@ ohos_source_set("mock_ipc_core") {
 
 # utils {{{
 group("utils") {
-  public_deps = []
+  defines = []
   if (platform == "ohos") {
     public_external_deps = [ "c_utils:utils" ]
   } else if (platform == "android" || platform == "ios") {
