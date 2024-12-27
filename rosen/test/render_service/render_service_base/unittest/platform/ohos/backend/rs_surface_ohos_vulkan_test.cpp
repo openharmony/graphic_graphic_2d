@@ -61,6 +61,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer001, TestSize.Level1)
 HWTEST_F(RSSurfaceOhosVulkanTest, ClearBuffer002, TestSize.Level1)
 {
     RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
+    EXPECT_TRUE(rsSurface.mPresentCount != -1);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         int32_t width = 1;
@@ -96,6 +97,7 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge002, TestSize.Level1)
 {
     RSSurfaceOhosVulkan rsSurface(IConsumerSurface::Create());
     rsSurface = std::make_shared<RSSurfaceOhosVulkan>(targetSurface);
+    EXPECT_TRUE(rsSurface.mPresentCount != -1);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         rsSurface.SetRenderContext(renderContext);
