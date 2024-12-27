@@ -660,7 +660,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
     std::shared_ptr<Drawing::AutoCanvasRestore> acr = nullptr;
     if (params.preRotation) {
         acr = std::make_shared<Drawing::AutoCanvasRestore>(canvas, true);
-        canvas.ResetMatrix;
+        canvas.ResetMatrix();
     }
 
     auto image = std::make_shared<Drawing::Image>();
