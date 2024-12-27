@@ -137,7 +137,7 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation()) {
         Drawing::Rect rect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
-        Drawing::RectI iRect(0, 0, rect.GetWidth(), rect.GetHeight());
+        Drawing::RectI iRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
         canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
     } else {
         canvas.ClipRect(
