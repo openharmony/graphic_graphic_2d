@@ -135,10 +135,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
     std::shared_ptr<Drawing::Typeface> face = CreateTypeFace(data, datalen);
     if (face != nullptr) {
         std::string name = face->GetFamilyName();
+        uint32_t faceHash = face->GetHash();
         for (auto item : typefaces_) {
-            if (name == item.second->GetFamilyName()) {
-                TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u",
-                    name.c_str(), item.second->GetUniqueID());
+            if (faceHash == item.second->GetHash()) {
+                TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u, hash:%{public}u",
+                    name.c_str(), item.second->GetUniqueID(), faceHash);
                 dfmanager_->LoadThemeFont(OHOS_THEME_FONT, item.second);
                 fontCollection_->ClearFontFamilyCache();
                 return item.second;
