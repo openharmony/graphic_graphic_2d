@@ -631,11 +631,15 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         paintFilterCanvas->ClipRect(*rect);
         Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
         canvas->GetTotalMatrix().MapRect(absRect, *rect);
-        Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetRight()),
-            std::ceil(absRect.GetBottom()));
+        RectI deviceRect(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
+        RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+            std::ceil(absRect.GetHeight()));
+        bounds = bounds.IntersectRect(deviceRect);
+        Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_, bounds);
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_,
+            boundsRect);
     };
 }
 
