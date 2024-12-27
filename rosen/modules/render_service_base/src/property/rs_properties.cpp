@@ -74,9 +74,9 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     nullptr,                                                             // BOUNDS
     nullptr,                                                             // FRAME
     [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
+    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
     [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
-    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
     [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION
     [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X
