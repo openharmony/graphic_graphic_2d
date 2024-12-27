@@ -1067,7 +1067,7 @@ public:
         return false;
     }
 
-    void UpdateSurfaceCacheContentStaticFlag();
+    void UpdateSurfaceCacheContentStaticFlag(bool isAccessibilityChanged);
 
     void UpdateSurfaceSubTreeDirtyFlag();
 
