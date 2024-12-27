@@ -220,7 +220,7 @@ public:
             purgeFunc_();
         }
     }
-    
+
     void SetDrawSkipType(DrawSkipType type) {
         drawSkipType_ = type;
     }
@@ -308,7 +308,7 @@ protected:
 
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
-    
+
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
@@ -335,7 +335,6 @@ private:
     friend class RSRenderNodeDrawable;
 };
 
- 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.
 class RSB_EXPORT RSRenderNodeSingleDrawableLocker {
 public:

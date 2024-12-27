@@ -115,7 +115,7 @@ public:
     int GetForegroundBlurColorMode() const;
     float GetForegroundBlurRadiusX() const;
     float GetForegroundBlurRadiusY() const;
-    
+
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;

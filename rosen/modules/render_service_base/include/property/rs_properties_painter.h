@@ -107,6 +107,7 @@ private:
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool isOutline);
     static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
