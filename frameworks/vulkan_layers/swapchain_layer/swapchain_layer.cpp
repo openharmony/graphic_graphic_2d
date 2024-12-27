@@ -406,13 +406,15 @@ void SwapchainCloseFd(int &fd)
     fd = -1;
 }
 
-static bool IsFencePending(int fd)
+static bool IsFencePending(int &fd)
 {
     if (fd < 0) {
         return false;
     }
     errno = 0;
     sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fd);
+    //SyncFence close need to change fd to -1
+    fd = -1;
     return syncFence->Wait(0) == -1 && errno == ETIME;
 }
 
@@ -1030,6 +1032,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         if (fenceDup == -1) {
             SWLOGE("dup NativeWindow requested fencefd failed, wait for signalled");
             sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fence);
+            fence = -1;
             syncFence->Wait(-1);
         }
     }
