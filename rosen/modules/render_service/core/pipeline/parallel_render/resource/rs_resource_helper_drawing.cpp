@@ -33,7 +33,7 @@ void UploadTextureWithDrawing(bool paraUpload, const std::shared_ptr<Drawing::Im
             auto grContext = instance.GetShareGrContext();
             if (grContext && image && pixelMap && instance.TaskIsValid(count)) {
                 RS_TRACE_NAME_FMT("parallel upload texture w%d h%d", image->GetWidth(), image->GetHeight());
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
                 // Need To Pin Image here.
 #endif
 #ifdef RS_ENABLE_VK

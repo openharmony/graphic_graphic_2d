@@ -256,7 +256,7 @@ public:
      */
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
                                                  size_t rowBytes);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     /**
      * @brief             Create YUV Image from pixelmap.
      * @param gpuContext  GPU context.

@@ -26,8 +26,8 @@ ohos_unittest("2d_graphics_engine_adapter_test") {
   deps = [ "//third_party/googletest:gtest_main" ]
 
   defines = [ "ROSEN_OHOS" ]
-  if (ace_enable_gpu) {
-    defines += [ "ACE_ENABLE_GPU" ]
+  if (rs_enable_gpu) {
+    defines += [ "RS_ENABLE_GPU" ]
   }
   defines += gpu_defines
 

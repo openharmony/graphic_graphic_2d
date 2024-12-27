@@ -75,7 +75,7 @@ HWTEST_F(SkiaImageTest, MakeRasterData001, TestSize.Level1)
     EXPECT_TRUE(image2 == nullptr);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: MakeFromEncoded001
  * @tc.desc: Test MakeFromEncoded

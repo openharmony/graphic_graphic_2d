@@ -14,6 +14,6 @@
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 effect_enable_gpu = false
-if (ace_enable_gpu) {
+if (rs_enable_gpu) {
   effect_enable_gpu = true
 }

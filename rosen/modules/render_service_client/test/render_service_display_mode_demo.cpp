@@ -39,7 +39,7 @@ using namespace OHOS::Rosen;
 using namespace std;
 
 namespace OHOS::Rosen {
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* rc_ = nullptr;
 #endif
 constexpr int SURFACE_NODE_SIZE = 100;
@@ -113,7 +113,7 @@ namespace pipelineTestUtils {
             if (rsSurface == nullptr) {
                 return wrongExit;
             }
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
             // SetRenderContext must before rsSurface->RequestFrame, or it will failed.
             if (rc_) {
                 rsSurface->SetRenderContext(rc_);
@@ -271,8 +271,8 @@ private:
     RSDisplayModeTestCase() = default;
     void RenderContextInit()
     {
-#ifdef ACE_ENABLE_GPU
-        cout << "ACE_ENABLE_GPU is true. \n";
+#ifdef RS_ENABLE_GPU
+        cout << "RS_ENABLE_GPU is true. \n";
         cout << "Init RenderContext start. \n";
             rc_ = RenderContextFactory::GetInstance().CreateEngine();
             if (rc_) {

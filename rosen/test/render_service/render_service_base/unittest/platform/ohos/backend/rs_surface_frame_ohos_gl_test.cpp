@@ -65,7 +65,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas001, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
     EXPECT_NE(renderContext, nullptr);
     if (renderContext) {
@@ -104,7 +104,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface001, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
     EXPECT_NE(renderContext, nullptr);
     if (renderContext) {
