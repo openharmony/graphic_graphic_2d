@@ -882,5 +882,5 @@ HWTEST_F(HgmFrameRateMgrTest, ChangePriority, Function | SmallTest | Level1)
     ASSERT_LT(scenePos2, ltpoPos2);
     ASSERT_LT(ltpoPos2, packagesPos2);
 }
-} // namesace Rosen
-} // namesppace OHOS
+} // namespace Rosen
+} // namespace OHOS
