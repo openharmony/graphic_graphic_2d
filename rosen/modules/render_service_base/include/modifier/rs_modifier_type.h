@@ -26,7 +26,7 @@ namespace Rosen {
 // 1. Following LUTs must be updated according when this enum is updated :
 //    a. g_propertyResetterLUT in rs_properties.cpp
 //    b. g_propertyToDrawableLut in rs_drawable_content.cpp
-// 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, else wise it will not work
+// 2. Property modifier(i.e. to be applied to RSProperties) MUST be added before CUSTOM enum, elsewise it will not work
 enum class RSModifierType : int16_t {
     INVALID = 0,
     BOUNDS,
@@ -125,7 +125,6 @@ enum class RSModifierType : int16_t {
     OUTLINE_DASH_WIDTH,
     OUTLINE_DASH_GAP,
     OUTLINE_RADIUS,
-    USE_SHADOW_BATCHING,
     GREY_COEF,
     LIGHT_INTENSITY,
     LIGHT_COLOR,
@@ -133,10 +132,11 @@ enum class RSModifierType : int16_t {
     ILLUMINATED_BORDER_WIDTH,
     ILLUMINATED_TYPE,
     BLOOM,
+    FOREGROUND_EFFECT_RADIUS,
+    USE_SHADOW_BATCHING,
+    MOTION_BLUR_PARA,
     PARTICLE_EMITTER_UPDATER,
     PARTICLE_NOISE_FIELD,
-    FOREGROUND_EFFECT_RADIUS,
-    MOTION_BLUR_PARA,
     FLY_OUT_DEGREE,
     FLY_OUT_PARAMS,
     DISTORTION_K,

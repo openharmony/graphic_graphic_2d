@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 #include <algorithm>
@@ -1090,7 +1089,6 @@ Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
 {
     return recordingState_ ? canvas_ : nullptr;
 }
-
 
 bool RSPaintFilterCanvas::GetRecordingState() const
 {

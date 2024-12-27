@@ -294,23 +294,15 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     const Drawing::Rect& src, const Drawing::Rect& dst)
 {
     auto visualEffectContainer = std::make_shared<Drawing::GEVisualEffectContainer>();
-    if (visualEffectContainer == nullptr) {
-        ROSEN_LOGE("RSDrawingFilter::DrawImageRect visualEffectContainer is null");
-        return;
-    }
     for (const auto& filter : shaderFilters_) {
         if (filter->GetShaderFilterType() == RSShaderFilter::KAWASE) {
             continue;
         }
         filter->GenerateGEVisualEffect(visualEffectContainer);
-    }
+    };
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-    if (geRender == nullptr) {
-        ROSEN_LOGE("RSDrawingFilter::DrawImageRect geRender is null");
-        return;
-    }
-    auto outImage =
-        geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
+    auto outImage = geRender->ApplyImageEffect(
+        canvas, *visualEffectContainer, image, src, src, Drawing::SamplingOptions());
     if (outImage == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
         return;

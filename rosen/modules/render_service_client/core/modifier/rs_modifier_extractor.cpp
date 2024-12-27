@@ -50,18 +50,18 @@ constexpr uint32_t DEBUG_MODIFIER_SIZE = 20;
 #define GET_PROPERTY_FROM_MODIFIERS_EQRETURN(T, propertyType, defaultValue, operator)                               \
     do {                                                                                                            \
         auto node = RSNodeMap::Instance().GetNode<RSNode>(id_);                                                     \
-        if (!node) {                                                                                     \
+        if (!node) {                                                                                                \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                     \
+        std::unique_lock<std::recursive_mutex> lock(node->GetPropertyMutex());                                      \
         auto typeIter = node->modifiersTypeMap_.find((int16_t)RSModifierType::propertyType);                        \
         if (typeIter != node->modifiersTypeMap_.end()) {                                                            \
-            auto modifier = typeIter->second;                                                                         \
-            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                       \
-        } else {                                                                                                     \
+            auto modifier = typeIter->second;                                                                       \
+            return std::static_pointer_cast<RSProperty<T>>(modifier->GetProperty())->Get();                         \
+        } else {                                                                                                    \
             return defaultValue;                                                                                    \
         }                                                                                                           \
-    } while (0)                                                                                                      \
+    } while (0)                                                                                                     \
 
 Vector4f RSModifierExtractor::GetBounds() const
 {
@@ -465,6 +465,7 @@ Color RSModifierExtractor::GetLightColor() const
     GET_PROPERTY_FROM_MODIFIERS(Color, LIGHT_COLOR, RgbPalette::White(), =);
 }
 
+
 std::string RSModifierExtractor::Dump() const
 {
     std::string dumpInfo;
@@ -492,6 +493,24 @@ std::string RSModifierExtractor::Dump() const
     if (!ROSEN_EQ(GetAlpha(), 1.f) &&
         sprintf_s(buffer, UINT8_MAX, ", Alpha[%.1f]", GetAlpha()) != -1) {
         dumpInfo.append(buffer);
+    }
+
+    // BackgroundFilter
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for BackgroundFilter, ret=" + std::to_string(ret);
+    }
+    float radius = GetBackgroundBlurRadius();
+    if (ROSEN_GNE(radius, 0.0f)) {
+        float saturation = GetBackgroundBlurSaturation();
+        float brightness = GetBackgroundBlurBrightness();
+        Color maskColor = GetBackgroundBlurMaskColor();
+        int colorMode = GetBackgroundBlurColorMode();
+        if (sprintf_s(buffer, UINT8_MAX, ", BackgroundFilter[radius: %.2f, saturation: %.2f, brightness: %.2f, "
+            "maskColor: %08X, colorMode: %d]", radius, saturation, brightness, maskColor.AsArgbInt(),
+            colorMode) != -1) {
+            dumpInfo.append(buffer);
+        }
     }
 
     if (!GetVisible()) {
