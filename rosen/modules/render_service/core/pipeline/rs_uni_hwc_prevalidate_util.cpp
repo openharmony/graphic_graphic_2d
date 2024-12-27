@@ -70,21 +70,9 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
     }
 }
 
-bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable(const ScreenId& screenId)
+bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()
 {
-    if (!loadSuccess_) {
-        return false;
-    }
-    if (!isPrevalidateHwcNodeEnable_) {
-        return false;
-    }
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager && screenManager->GetDefaultScreenId() != screenId) {
-        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::IsPrevalidateEnable"
-            " %{public}" PRIu64 " isn't default screen", screenId);
-        return false;
-    }
-    return true;
+    return loadSuccess_ && isPrevalidateHwcNodeEnable_;
 }
 
 bool RSUniHwcPrevalidateUtil::PreValidate(

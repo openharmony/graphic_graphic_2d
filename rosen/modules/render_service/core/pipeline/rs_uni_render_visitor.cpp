@@ -2038,7 +2038,7 @@ void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState()
 
 void RSUniRenderVisitor::PrevalidateHwcNode()
 {
-    if (!RSUniHwcPrevalidateUtil::GetInstance().IsPrevalidateEnable(curDisplayNode_->GetScreenId())) {
+    if (!RSUniHwcPrevalidateUtil::GetInstance().IsPrevalidateEnable()) {
         RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniRenderVisitor::PrevalidateHwcNode prevalidate close");
 #ifdef HIPERF_TRACE_ENABLE
         RS_LOGW("hiperf_surface_counter2 %{public}" PRIu64 " ", static_cast<uint64_t>(0));

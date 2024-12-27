@@ -200,13 +200,13 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateRCDLayerInfo002, TestSize.Level1)
 HWTEST_F(RSUniPrevalidateUtilTest, IsPrevalidateEnable001, TestSize.Level1)
 {
     auto& uniHwcPrevalidateUtil = RSUniHwcPrevalidateUtil::GetInstance();
+    uniHwcPrevalidateUtil.isPrevalidateHwcNodeEnable_ = true;
     uniHwcPrevalidateUtil.loadSuccess_ = false;
-    ScreenId screenId = 1;
-    bool ret = uniHwcPrevalidateUtil.IsPrevalidateEnable(screenId);
+    bool ret = uniHwcPrevalidateUtil.IsPrevalidateEnable();
     EXPECT_EQ(ret, false);
     uniHwcPrevalidateUtil.loadSuccess_ = true;
-    ret = uniHwcPrevalidateUtil.IsPrevalidateEnable(screenId);
-    EXPECT_EQ(ret, false);
+    ret = uniHwcPrevalidateUtil.IsPrevalidateEnable();
+    EXPECT_EQ(ret, true);
 }
 
 /**
