@@ -22,11 +22,11 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <hilog/log.h>
-#include <securec.h>
-#include <unistd.h>
 #include <memory>
 #include <iservice_registry.h>
+#include <securec.h>
 #include <system_ability_definition.h>
+#include <unistd.h>
 
 #include "pipeline/rs_render_frame_rate_linker.h"
 #include "pipeline/rs_render_frame_rate_linker_map.h"
