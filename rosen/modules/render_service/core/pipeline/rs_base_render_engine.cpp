@@ -772,7 +772,8 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc == outClrInfo.transfunc && !canvas.GetHdrOn()) {
+    if (inClrInfo.primaries == outClrInfo.primaries && inClrInfo.transfunc ==
+        outClrInfo.transfunc && !canvas.GetHdrOn()) {
         RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
