@@ -153,7 +153,7 @@ group("utils") {
   if (is_emulator) {
     defines += [ "ROSEN_EMULATOR" ]
   } else {
-    defines += [ "" ]
+    defines += []
   }
   if (platform == "ios") {
     public_configs = [ ":ios_utils_config" ]
