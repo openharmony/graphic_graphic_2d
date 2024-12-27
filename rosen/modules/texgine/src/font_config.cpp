@@ -34,10 +34,10 @@ namespace Rosen {
 namespace TextEngine {
 #define SUCCESSED 0
 #define FAILED 1
+#define GENERIC_FONT 0
 
-const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig.json";
-constexpr const char* FALLBACK_VARIATIONS_KEY = "variations";
-constexpr const char* FALLBACK_INDEX_KEY = "index";
+const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig_ohos.json";
+const char* FONT_FILE_MAP_CONFIG = "/system/etc/font_file_map.json";
 
 FontConfig::FontConfig(const char* fname)
 {
@@ -88,6 +88,7 @@ char* FontConfig::GetFileData(const char* fname, int& size)
 
     return nullptr;
 }
+
 cJSON* FontConfig::CheckConfigFile(const char* fname) const
 {
     int size = 0;
@@ -96,10 +97,10 @@ cJSON* FontConfig::CheckConfigFile(const char* fname) const
         TEXT_LOGE("Data is NULL");
         return nullptr;
     }
-    std::string pramsString;
-    pramsString.assign(data, size);
+    cJSON_Minify(data);
+    cJSON* res = cJSON_Parse(data);
     free(data);
-    return cJSON_Parse(pramsString.c_str());
+    return res;
 }
 
 int FontConfig::ParseFont(const cJSON* root)
@@ -113,7 +114,7 @@ int FontConfig::ParseFont(const cJSON* root)
     int size = cJSON_GetArraySize(filters);
     for (int i = 0; i < size;i++) {
         cJSON* item = cJSON_GetArrayItem(filters, i);
-        if (item != nullptr && cJSON_IsString(item)) {
+        if (cJSON_IsString(item)) {
             fontSet_.emplace_back(rootPath_ + std::string(item->valuestring));
         }
     }
@@ -156,6 +157,7 @@ std::vector<std::string> FontConfig::GetFontSet() const
     return fontSet_;
 }
 
+
 int FontConfigJson::ParseFile(const char* fname)
 {
     if (fname == nullptr) {
@@ -165,18 +167,24 @@ int FontConfigJson::ParseFile(const char* fname)
 
     TEXT_LOGI("ParseFile fname is: %{public}s", fname);
     fontPtr = std::make_shared<FontConfigJsonInfo>();
+    indexMap = std::make_shared<std::unordered_map<std::string, size_t>>();
+    fontPtr->fallbackGroupSet.emplace_back();
+    fontPtr->fallbackGroupSet[0].groupName = "";
     int err = ParseConfigList(fname);
+    // only for compatible with old version
+    fontPtr->genericSet[0].adjustSet = { { 50, 100 }, { 80, 400 }, { 100, 700 }, { 200, 900 } };
     if (err != 0) {
         TEXT_LOGE("Failed to ParseFile ParseConfigList");
         return err;
     }
     return SUCCESSED;
 }
+
 int FontConfigJson::ParseFontFileMap(const char* fname)
 {
     if (fname == nullptr) {
         TEXT_LOGD("ParseFontFileMap fname is nullptr");
-        fname = FONT_DEFAULT_CONFIG;
+        fname = FONT_FILE_MAP_CONFIG;
     }
 
     TEXT_LOGI("ParseFontFileMap fname is: %{public}s", fname);
@@ -189,31 +197,82 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
     return SUCCESSED;
 }
 
-void FontConfigJson::AnalyseFontDir(const cJSON* root)
+void FontConfigJson::EmplaceFontJson(const FontJson& fontJson)
 {
-    if (root == nullptr) {
+    if (fontPtr != nullptr) {
         return;
     }
-    int size = cJSON_GetArraySize(root);
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(root, i);
-        if (item != nullptr && cJSON_IsString(item)) {
-            fontPtr->fontDirSet.emplace_back(std::string(item->valuestring));
+
+    if (fontJson.type == GENERIC_FONT) {
+        auto exist = indexMap->find(fontJson.family);
+        if (exist == indexMap->end()) {
+            (*indexMap)[fontJson.family] = fontPtr->genericSet.size();
+            fontPtr->genericSet.emplace_back(FontGenericInfo { fontJson.family });
+            fontPtr->genericSet.back().aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
+            return;
         }
+        auto& aliasSet = fontPtr->genericSet[exist->second].aliasSet;
+        auto existAlias = std::find_if(aliasSet.begin(), aliasSet.end(),
+            [&fontJson](const AliasInfo& aliasInfo) { return aliasInfo.familyName == fontJson.alias; });
+        if (existAlias == aliasSet.end()) {
+            fontPtr->genericSet[exist->second].aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
+        }
+        return;
     }
-    return;
+    fontPtr->fallbackGroupSet[0].fallbackInfoSet.emplace_back(FallbackInfo { fontJson.family, fontJson.lang });
 }
 
 int FontConfigJson::ParseDir(const cJSON* root)
 {
-    if (root == nullptr) {
-        TEXT_LOGE("Failed to parse dir");
+    if (fontPtr == nullptr) {
         return FAILED;
     }
-    const char* key = "fontdir";
-    cJSON* item = cJSON_GetObjectItem(root, key);
-    if (item != nullptr) {
-        AnalyseFontDir(item);
+    int size = cJSON_GetArraySize(root);
+    for (int i = 0; i < size; i++) {
+        cJSON* item = cJSON_GetArrayItem(root, i);
+        if (cJSON_IsString(item)) {
+            fontPtr->fontDirSet.emplace_back(std::string(item->valuestring));
+        }
+    }
+    return SUCCESSED;
+}
+
+void FontConfigJson::AnalyseFont(const cJSON* root)
+{
+    cJSON* item = root->child;
+
+    FontJson fontJson;
+    while (item != nullptr) {
+        if (strcmp(item->string, "type") == 0 && cJSON_IsNumber(item)) {
+            fontJson.type = item->valueint;
+        } else if (strcmp(item->string, "alias") == 0 && cJSON_IsString(item)) {
+            fontJson.alias = item->valuestring;
+        } else if (strcmp(item->string, "family") == 0 && cJSON_IsString(item)) {
+            fontJson.family = item->valuestring;
+        } else if (strcmp(item->string, "weight") == 0 && cJSON_IsNumber(item)) {
+            fontJson.weight = item->valueint;
+        } else if (strcmp(item->string, "lang") == 0  && cJSON_IsString(item)) {
+            fontJson.lang = item->valuestring;
+        }
+        item = item->next;
+    }
+    EmplaceFontJson(fontJson);
+}
+
+int FontConfigJson::ParseFonts(const cJSON* root)
+{
+    if (root == nullptr) {
+        TEXT_LOGE("Failed to parse fonts");
+        return FAILED;
+    }
+    if (cJSON_IsArray(root)) {
+        int fontsSize = cJSON_GetArraySize(root);
+        for (int i = 0; i < fontsSize; i++) {
+            cJSON* item = cJSON_GetArrayItem(root, i);
+            if (cJSON_IsObject(item)) {
+                AnalyseFont(item);
+            }
+        }
     }
     return SUCCESSED;
 }
@@ -229,21 +288,15 @@ int FontConfigJson::ParseConfigList(const char* fname)
         TEXT_LOGE("Failed to ParseConfigList CheckConfigFile");
         return FAILED;
     }
-    // "generic", "fallback" - font attribute
-    const char* keys[] = {"generic", "fallback", "fontdir", nullptr};
-    int index = 0;
-    while (true) {
-        if (keys[index] == nullptr) {
-            break;
+    // "font_dir", "fonts" - font attribute
+    cJSON* item = root->child;
+    while (item != nullptr) {
+        if (strcmp(item->string, "font_dir") == 0) {
+            ParseDir(item);
+        } else if (strcmp(item->string, "fonts") == 0) {
+            ParseFonts(item);
         }
-        const char* key = keys[index++];
-        if (!strcmp(key, "fontdir")) {
-            ParseDir(root);
-        } else if (!strcmp(key, "generic")) {
-            ParseGeneric(root, key);
-        } else if (!strcmp(key, "fallback")) {
-            ParseFallback(root, key);
-        }
+        item = item->next;
     }
     cJSON_Delete(root);
     return SUCCESSED;
@@ -265,169 +318,6 @@ int FontConfigJson::ParseConfigListPath(const char* fname)
     return SUCCESSED;
 }
 
-int FontConfigJson::ParseAdjustArr(const cJSON* arr, FontGenericInfo &genericInfo)
-{
-    if (arr == nullptr) {
-        TEXT_LOGE("Failed to parse adjust arr");
-        return FAILED;
-    }
-    int size = cJSON_GetArraySize(arr);
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(arr, i);
-        if (item == nullptr) {
-            continue;
-        }
-        ParseAdjust(item, genericInfo);
-    }
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseAliasArr(const cJSON* arr, FontGenericInfo &genericInfo)
-{
-    if (arr == nullptr) {
-        TEXT_LOGE("Failed to parseAliasArr");
-        return FAILED;
-    }
-    int size = cJSON_GetArraySize(arr);
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(arr, i);
-        if (item == nullptr) {
-            continue;
-        }
-        ParseAlias(item, genericInfo);
-    }
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseGeneric(const cJSON* root, const char* key)
-{
-    if (root == nullptr) {
-        TEXT_LOGE("Root is nullptr");
-        return FAILED;
-    }
-    cJSON* filters = cJSON_GetObjectItem(root, key);
-    if (filters == nullptr || !cJSON_IsArray(filters)) {
-        TEXT_LOGE("Failed to parseGeneric");
-        return FAILED;
-    }
-    int size = cJSON_GetArraySize(filters);
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(filters, i);
-        if (item == nullptr) {
-            continue;
-        }
-        FontGenericInfo genericInfo;
-        cJSON* family = cJSON_GetObjectItem(item, "family");
-        if (family != nullptr && cJSON_IsString(family)) {
-            genericInfo.familyName = std::string(family->valuestring);
-        }
-
-        cJSON* alias = cJSON_GetObjectItem(item, "alias");
-        if (alias != nullptr && cJSON_IsArray(alias)) {
-            ParseAliasArr(alias, genericInfo);
-        }
-
-        cJSON* adjust = cJSON_GetObjectItem(item, "adjust");
-        if (adjust != nullptr && cJSON_IsArray(adjust)) {
-            ParseAdjustArr(adjust, genericInfo);
-        }
-
-        fontPtr->genericSet.push_back(genericInfo);
-    }
-
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseAlias(const cJSON* root, FontGenericInfo &genericInfo)
-{
-    if (root == nullptr) {
-        TEXT_LOGE("Root is nullptr");
-        return FAILED;
-    }
-
-    int size = cJSON_GetArraySize(root);
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(root, i);
-        if (item == nullptr) {
-            continue;
-        }
-        std::string aliasName = std::string(item->string);
-        if (!cJSON_IsNumber(item)) {
-            continue;
-        }
-        int weight = item->valueint;
-        AliasInfo info = {aliasName, weight};
-        genericInfo.aliasSet.emplace_back(std::move(info));
-    }
-
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseAdjust(const cJSON* root, FontGenericInfo &genericInfo)
-{
-    if (root == nullptr) {
-        TEXT_LOGE("Root is nullptr");
-        return FAILED;
-    }
-    int size = cJSON_GetArraySize(root);
-    const int count = 2; // the adjust item is 2
-    int value[count] = { 0 };
-    for (int i = 0; i < size; i++) {
-        if (i >= count) {
-            break;
-        }
-        cJSON* item = cJSON_GetArrayItem(root, i);
-        if (item == nullptr || !cJSON_IsNumber(item)) {
-            continue;
-        }
-        value[i] = item->valueint;
-    }
-
-    AdjustInfo info = {value[0], value[1]};
-    genericInfo.adjustSet.emplace_back(std::move(info));
-    return SUCCESSED;
-}
-
-int FontConfigJson::ParseFallback(const cJSON* root, const char* key)
-{
-    if (root == nullptr) {
-        TEXT_LOGE("Root is nullptr");
-        return FAILED;
-    }
-    cJSON* filters = cJSON_GetObjectItem(root, key);
-    if (filters == nullptr || !cJSON_IsArray(filters)) {
-        TEXT_LOGE("Failed to cJSON_GetObjectItem");
-        return FAILED;
-    }
-    cJSON* forItem = cJSON_GetArrayItem(cJSON_GetArrayItem(filters, 0), 0);
-    int size = cJSON_GetArraySize(forItem);
-    FallbackGroup fallbackGroup;
-    fallbackGroup.groupName = std::string("");
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(forItem, i);
-        if (item == nullptr) {
-            continue;
-        }
-        // refer to FontConfig_OHOS::parseFallbackItem
-        int itemSize = cJSON_GetArraySize(item);
-        for (int j = itemSize - 1; j >= 0; --j) {
-            cJSON* item2 = cJSON_GetArrayItem(item, j);
-            if (item2 == nullptr || item2->valuestring == nullptr || item2->string == nullptr ||
-                strcmp(item2->string, FALLBACK_VARIATIONS_KEY) == 0 ||
-                strcmp(item2->string, FALLBACK_INDEX_KEY) == 0) {
-                continue;
-            }
-            FallbackInfo fallbackInfo;
-            fallbackInfo.familyName = item2->valuestring;
-            fallbackInfo.font = item2->string;
-            fallbackGroup.fallbackInfoSet.emplace_back(std::move(fallbackInfo));
-            break;
-        }
-    }
-    fontPtr->fallbackGroupSet.emplace_back(std::move(fallbackGroup));
-    return SUCCESSED;
-}
-
 int FontConfigJson::ParseFontMap(const cJSON* root, const char* key)
 {
     if (root == nullptr) {
@@ -435,21 +325,14 @@ int FontConfigJson::ParseFontMap(const cJSON* root, const char* key)
         return FAILED;
     }
     cJSON* filters = cJSON_GetObjectItem(root, key);
-    if (filters == nullptr || !cJSON_IsArray(filters)) {
+    if (filters == nullptr || !cJSON_IsObject(filters)) {
         TEXT_LOGE("Failed to cJSON_GetObjectItem");
         return FAILED;
     }
-    int size = cJSON_GetArraySize(filters);
-    for (int i = 0; i < size; i++) {
-        cJSON* item = cJSON_GetArrayItem(filters, i);
-        if (item == nullptr) {
-            continue;
-        }
-        cJSON* item2 = cJSON_GetArrayItem(item, 0);
-        if (item2 == nullptr || item2->valuestring == nullptr || item2->string == nullptr) {
-            continue;
-        }
-        (*fontFileMap)[item2->string] = item2->valuestring;
+    cJSON* item = filters->child;
+    while (item != nullptr) {
+        (*fontFileMap)[item->string] = item->valuestring;
+        item = item->next;
     }
     return SUCCESSED;
 }
