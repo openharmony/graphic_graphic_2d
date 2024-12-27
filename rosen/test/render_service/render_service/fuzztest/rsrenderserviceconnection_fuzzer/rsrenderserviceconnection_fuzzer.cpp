@@ -1214,6 +1214,18 @@ bool DOSetFreeMultiWindowStatus()
     return true;
 }
 
+bool DoNotifySoftVsyncEvent()
+{
+    auto rsConn  = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+    uint32_t pid = GetData<uint32_t>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    rsConn->NotifySoftVsyncEvent(pid, rateDiscount);
+    return true;
+}
+
 bool DoCreatePixelMapFromSurface()
 {
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
@@ -1334,6 +1346,7 @@ void DoFuzzerTest2()
 
 void DoFuzzerTest3()
 {
+    DoNotifySoftVsyncEvent();
     DoCreatePixelMapFromSurface();
 }
 } // namespace Rosen

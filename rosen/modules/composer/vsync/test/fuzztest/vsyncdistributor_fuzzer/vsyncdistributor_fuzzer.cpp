@@ -119,6 +119,31 @@ namespace OHOS {
         vsyncDistributor->HasPendingUIRNV();
         return true;
     }
+
+    bool DoSetQosVSyncRateByPidPublic(const uint8_t* data, size_t size)
+    {
+        if (data == nullptr) {
+            return false;
+        }
+
+        // initialize
+        data_ = data;
+        size_ = size;
+        pos = 0;
+
+        //get data
+        int64_t offset  = GetData<int32_t>();
+        int32_t pid = GetData<int32_t>();
+        int32_t rateDiscount = GetData<int32_t>();
+        bool isSystemAnimateScene = GetData<int32_t>();
+        // test
+        sptr<Rosen::VSyncGenerator> vsyncGenerator = Rosen::CreateVSyncGenerator();
+        sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
+        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
+        sptr<Rosen::VSyncConnection> conn = new Rosen::VSyncConnection(vsyncDistributor, "Fuzz");
+        vsyncDistributor->SetQosVSyncRateByPidPublic(pid, rateDiscount, isSystemAnimateScene);
+        return true;
+    }
 }
 
 /* Fuzzer entry point */
@@ -126,6 +151,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
+    OHOS::DoSetQosVSyncRateByPidPublic(data, size);
     return 0;
 }
 

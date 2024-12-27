@@ -75,6 +75,7 @@ namespace Rosen {
 namespace {
 constexpr int SLEEP_TIME_US = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
+const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -2166,6 +2167,14 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
         }
     });
+}
+
+void RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
+{
+    if (!appVSyncDistributor_) {
+        return;
+    }
+    appVSyncDistributor_->SetQosVSyncRateByPidPublic(pid, rateDiscount, true);
 }
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
