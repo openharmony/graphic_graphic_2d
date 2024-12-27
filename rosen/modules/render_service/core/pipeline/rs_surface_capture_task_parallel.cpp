@@ -80,6 +80,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
         RSPointerWindowManager::Instance().UpdatePointerInfo();
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+        int skipTimes = 0;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
             auto node = weakPtr.lock();
             if (node == nullptr) {
@@ -89,7 +90,11 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
                 node->Sync();
             } else {
                 node->SkipSync();
+                skipTimes++;
             }
+        }
+        if (skipTimes != 0) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CheckModifiers SkipSync times: [%{public}d]", skipTimes);
         }
         pendingSyncNodes.clear();
         RSUifirstManager::Instance().UifirstCurStateClear();
@@ -288,13 +293,13 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    RS_LOGD("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
+    RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " created pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " useDma: [%{public}d], useCurWindow: [%{public}d]",
-        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma, captureConfig_.useCurWindow);
+        " useDma: [%{public}d], useCurWindow: [%{public}d],"
+        " isOnTheTree: [%{public}d]",
+        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree());
     return Media::PixelMap::Create(opts);
 }
 

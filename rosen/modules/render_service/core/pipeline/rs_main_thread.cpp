@@ -4022,7 +4022,7 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
         }
     }
 
-    if (nodePtr->GetIsFullChildrenListValid() == false) {
+    if (nodePtr->GetIsFullChildrenListValid() == false || !nodePtr->IsOnTheTree()) {
         nodePtr->PrepareSelfNodeForApplyModifiers();
         return true;
     }
