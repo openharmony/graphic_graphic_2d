@@ -99,7 +99,7 @@ public:
     float GetSpherizeDegree() const;
     float GetLightUpEffectDegree() const;
     float GetDynamicDimDegree() const;
-
+    
     float GetBackgroundBlurRadius() const;
     float GetBackgroundBlurSaturation() const;
     float GetBackgroundBlurBrightness() const;
