@@ -142,6 +142,7 @@ ohos_source_set("mock_ipc_core") {
 
 # utils {{{
 group("utils") {
+  public_deps = []
   if (platform == "ohos") {
     public_external_deps = [ "c_utils:utils" ]
   } else if (platform == "android" || platform == "ios") {
@@ -150,7 +151,9 @@ group("utils") {
     public_deps = [ ":mock_utils" ]
   }
   if (is_emulator) {
-    defines = [ "ROSEN_EMULATOR" ]
+    defines += [ "ROSEN_EMULATOR" ]
+  } else {
+    defines += [ "" ]
   }
   if (platform == "ios") {
     public_configs = [ ":ios_utils_config" ]
