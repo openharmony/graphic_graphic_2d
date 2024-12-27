@@ -187,7 +187,6 @@ bool RSRenderNodeMap::RegisterDisplayRenderNode(const std::shared_ptr<RSDisplayR
 
 void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
 {
-    // temp solution to address the dma leak
     pid_t pid = ExtractPid(id);
     auto it = surfaceNodeMap_.find(id);
     if (it != surfaceNodeMap_.end()) {
