@@ -240,6 +240,15 @@ public:
      */
     void ExtendObjectLifetime();
 
+#ifndef ROSEN_EMULATOR
+    using CanPromote = std::function<bool()>;
+
+    void SetCanPromote(const CanPromote& canPromote);
+
+    void RemoveCanPromote();
+
+    bool IsCanPromoteValid();
+#endif
 private:
     std::atomic<int> atomicStrong_; // = (num of sptr) or Initial-value
     std::atomic<int> atomicWeak_; // = (num of sptr)+(num of WeakRefCounter)
@@ -248,6 +257,10 @@ private:
     std::atomic<int> atomicAttempt_; // Times of attempts
     RefPtrCallback callback_ = nullptr; // A callback function to deallocate the corresponding RefBase object
     static constexpr unsigned int FLAG_EXTEND_LIFE_TIME = 0x00000002; // Extended life-time bit to be set via logic-OR
+#ifndef ROSEN_EMULATOR
+sfgchjzdhmcn
+    CanPromote canPromote_ = nullptr;
+#endif
 #ifdef DEBUG_REFBASE
     RefTracker* refTracker = nullptr;
     std::mutex trackerMutex;  // To ensure refTracker be thread-safe
@@ -590,6 +603,10 @@ public:
      * @return Return true if success, otherwise return false.
      */
     virtual bool OnAttemptPromoted(const void *);
+
+#ifndef ROSEN_EMULATOR
+    virtual bool CanPromote();
+#endif
 
 private:
     RefCounter *refs_ = nullptr; // Pointer to the corresponding reference counter of this RefBase object

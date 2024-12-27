@@ -14,6 +14,8 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 
+
+
 # ace_skia {{{
 group("ace_skia") {
   if (is_arkui_x) {
@@ -148,6 +150,9 @@ group("utils") {
     public_external_deps = [ "c_utils:utilsbase" ]
   } else {
     public_deps = [ ":mock_utils" ]
+  }
+  if (is_emulator) {
+    defines = [ "ROSEN_EMULATOR" ]
   }
   if (platform == "ios") {
     public_configs = [ ":ios_utils_config" ]
