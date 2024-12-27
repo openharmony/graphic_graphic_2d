@@ -39,7 +39,11 @@ bool RSPhysicalScreenProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX,
         return false;
     }
 
-    return composerAdapter_->Init(node, screenInfo_, mirroredScreenInfo_, mirrorAdaptiveCoefficient_,
+    if (mirroredId != INVALID_SCREEN_ID) {
+        SetMirrorScreenSwap(node);
+    }
+
+    return composerAdapter_->Init(screenInfo_, offsetX, offsetY, mirrorAdaptiveCoefficient_,
         [this](const auto& surface, const auto& layers) { Redraw(surface, layers); });
 }
 
@@ -95,14 +99,8 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw: canvas is nullptr.");
         return;
     }
-
-    if (mirroredScreenInfo_.id != INVALID_SCREEN_ID) {
-        canvas->ConcatMatrix(mirrorAdaptiveMatrix_);
-    } else {
-        canvas->ConcatMatrix(screenTransformMatrix_);
-    }
-
-    renderEngine_->DrawLayers(*canvas, layers, forceCPU);
+    canvas->ConcatMatrix(screenTransformMatrix_);
+    renderEngine_->DrawLayers(*canvas, layers, forceCPU, mirrorAdaptiveCoefficient_);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer end");
 }
