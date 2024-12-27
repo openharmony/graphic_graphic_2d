@@ -321,7 +321,6 @@ private:
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
     DrawSkipType drawSkipType_ = DrawSkipType::NONE;
-    int filterRectSize_ = 0;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
