@@ -165,18 +165,19 @@ namespace OHOS {
         eglWrapperDisplay->ReleaseTexImage(surf7, buffer2);
         eglWrapperDisplay->SurfaceAttrib(surf8, attribList9, value3);
         eglWrapperDisplay->CreatePbufferFromClientBuffer(buftype1, buffer3, config5, &attribList10);
-        eglWrapperDisplay->CreateImage(ctx4, target2, buffer4, &attribList11);
+        EGLImage image1 = eglWrapperDisplay->CreateImage(ctx4, target2, buffer4, &attribList11);
         eglWrapperDisplay->DestroyImage(img1);
         eglWrapperDisplay->CreatePlatformWindowSurface(config6, nativeWindow, &attribList12);
         eglWrapperDisplay->CreatePlatformPixmapSurface(config7, nativePixmap, &attribList13);
         eglWrapperDisplay->LockSurfaceKHR(surf9, &attribList14);
         eglWrapperDisplay->UnlockSurfaceKHR(surf10);
-        eglWrapperDisplay->CreateImageKHR(ctx5, target3, buffer5, &attribList15);
+        EGLImageKHR image2 = eglWrapperDisplay->CreateImageKHR(ctx5, target3, buffer5, &attribList15);
         eglWrapperDisplay->DestroyImageKHR(img2);
         eglWrapperDisplay->CreateStreamProducerSurfaceKHR(config8, stream, &attribList16);
         eglWrapperDisplay->SwapBuffersWithDamageKHR(draw2, &rects1, nRects1);
         eglWrapperDisplay->SetDamageRegionKHR(surf11, &rects2, nRects2);
-
+        eglWrapperDisplay->DestroyImage(image1);
+        eglWrapperDisplay->DestroyImageKHR(image2);
         return true;
     }
 }
