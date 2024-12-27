@@ -37,18 +37,14 @@
  * @version 1.0
  */
 
-#ifdef __cplusplus
-#include <cstddef>
-#include <cstdint>
-#else
-#include <stddef.h>
-#include <stdint.h>
-#endif
+#include "cstdint"
 #include "drawing_canvas.h"
 #include "drawing_color.h"
 #include "drawing_font.h"
 #include "drawing_text_declaration.h"
 #include "drawing_types.h"
+
+#include "stdint.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -2727,6 +2723,7 @@ void OH_Drawing_SetTextShadow(OH_Drawing_TextShadow* shadow, uint32_t color, OH_
  * @version 1.0
  */
 size_t OH_Drawing_GetDrawingArraySize(OH_Drawing_Array* drawingArray);
+
 #ifdef __cplusplus
 }
 #endif

@@ -122,7 +122,7 @@ std::unordered_set<std::string> FontDescriptorCache::GetInstallFontList()
     std::unordered_set<std::string> fullNameList;
     std::vector<std::string> fontPathList;
     if (!ParserInstallFontsPathList(fontPathList)) {
-        TEXT_LOGE("Failed to parser install fonts path list");
+        TEXT_LOGE("Parser install fonts path list failed");
         return fullNameList;
     }
     for (const auto& path : fontPathList) {
@@ -162,7 +162,7 @@ bool FontDescriptorCache::ProcessSystemFontType(const int32_t& systemFontType, i
         return false;
     }
     fontType = systemFontType;
-    if (static_cast<uint32_t>(systemFontType) & TextEngine::FontParser::SystemFontType::ALL) {
+    if (systemFontType & TextEngine::FontParser::SystemFontType::ALL) {
         fontType = TextEngine::FontParser::SystemFontType::GENERIC |
             TextEngine::FontParser::SystemFontType::STYLISH |
             TextEngine::FontParser::SystemFontType::INSTALLED;
@@ -183,17 +183,17 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
         return;
     }
 
-    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::GENERIC) {
+    if (fontType & TextEngine::FontParser::SystemFontType::GENERIC) {
         auto fullNameList = GetGenericFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::STYLISH) {
+    if (fontType & TextEngine::FontParser::SystemFontType::STYLISH) {
         auto fullNameList = GetStylishFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::INSTALLED) {
+    if (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) {
         auto fullNameList = GetInstallFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
@@ -203,7 +203,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
 {
     std::vector<std::string> fontPathList;
     if (!ParserInstallFontsPathList(fontPathList)) {
-        TEXT_LOGE("Failed to parser install fonts path list");
+        TEXT_LOGE("Parser install fonts path list failed");
         return false;
     }
     for (const auto& path : fontPathList) {
@@ -216,7 +216,7 @@ bool FontDescriptorCache::ParseInstallFontDescSharedPtrByName(const std::string&
             }
         }
     }
-    TEXT_LOGE_LIMIT3_MIN("Failed to parser installed fontDescriptor by name, fullName: %{public}s", fullName.c_str());
+    TEXT_LOGE_LIMIT3_MIN("Parser installed fontDescriptor by name failed, fullName: %{public}s", fullName.c_str());
     return false;
 }
 
@@ -320,13 +320,11 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
         constexpr int kWeightDiffThreshold = Drawing::FontStyle::EXTRA_BLACK_WEIGHT / 2;
         if ((weight == Drawing::FontStyle::NORMAL_WEIGHT && item == Drawing::FontStyle::MEDIUM_WEIGHT) ||
             (weight == Drawing::FontStyle::MEDIUM_WEIGHT && item == Drawing::FontStyle::NORMAL_WEIGHT)) {
-            weightDiff = static_cast<uint32_t>(SPECIAL_WEIGHT_DIFF);
+            weightDiff = SPECIAL_WEIGHT_DIFF;
         } else if (weight <= Drawing::FontStyle::NORMAL_WEIGHT) {
-            weightDiff = (item <= weight) ? static_cast<uint32_t>(weight - item) :
-                static_cast<uint32_t>(item - weight + kWeightDiffThreshold);
+            weightDiff = (item <= weight) ? (weight - item) : (item - weight + kWeightDiffThreshold);
         } else if (weight > Drawing::FontStyle::NORMAL_WEIGHT) {
-            weightDiff = (item >= weight) ? static_cast<uint32_t>(item - weight) :
-                static_cast<uint32_t>(weight - item + kWeightDiffThreshold);
+            weightDiff = (item >= weight) ? (item - weight) : (weight - item + kWeightDiffThreshold);
         }
 
         // Retain the font weight with the smallest difference
