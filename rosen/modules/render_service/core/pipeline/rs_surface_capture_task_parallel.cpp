@@ -206,7 +206,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
-    if (rect.GetWidth() > 0 && rect.GetHeight() > 0 && (!(rect.GetLeft() < 0 || rect.GetRight() < 0))) {
+    if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
         canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
         canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetRight());
     }
