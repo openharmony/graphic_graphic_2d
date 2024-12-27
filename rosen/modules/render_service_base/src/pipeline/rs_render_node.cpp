@@ -2812,8 +2812,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     Vector2f size = GetOptionalBufferSize();
     boundsWidth_ = size.x_;
     boundsHeight_ = size.y_;
-    if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid()) {
+    if (cacheType == CacheType::ANIMATE_PROPERTY &&
+        GetRenderProperties().IsShadowValid() && !GetRenderProperties().IsSpherizeValid()) {
         const RectF boundsRect = GetRenderProperties().GetBoundsRect();
         RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
         RectI shadowRect;
@@ -2823,8 +2823,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         shadowRectOffsetX_ = -shadowRect.GetLeft();
         shadowRectOffsetY_ = -shadowRect.GetTop();
     } else {
-        width = std::ceil(boundsWidth_);
-        height = std::ceil(boundsHeight_);
+        width = boundsWidth_;
+        height = boundsHeight_;
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
