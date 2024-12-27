@@ -23,6 +23,7 @@
 #include "skia_adapter/skia_convert_utils.h"
 #include "skia_adapter/skia_data.h"
 #include "skia_adapter/skia_memory_stream.h"
+
 #include "utils/log.h"
 
 namespace OHOS {
@@ -52,7 +53,7 @@ std::string SkiaTypeface::GetFontPath() const
 {
     std::string path;
     if (!skTypeface_) {
-        LOGE("skTypeface nullptr");
+        LOGE("SkTypeface nullptr");
         return path;
     }
     SkString skName;
