@@ -99,7 +99,7 @@ public:
     float GetSpherizeDegree() const;
     float GetLightUpEffectDegree() const;
     float GetDynamicDimDegree() const;
-
+    
     float GetBackgroundBlurRadius() const;
     float GetBackgroundBlurSaturation() const;
     float GetBackgroundBlurBrightness() const;
@@ -115,7 +115,7 @@ public:
     int GetForegroundBlurColorMode() const;
     float GetForegroundBlurRadiusX() const;
     float GetForegroundBlurRadiusY() const;
-    
+
     float GetLightIntensity() const;
     Color GetLightColor() const;
     Vector4f GetLightPosition() const;
