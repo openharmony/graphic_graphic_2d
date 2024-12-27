@@ -258,7 +258,6 @@ private:
     RefPtrCallback callback_ = nullptr; // A callback function to deallocate the corresponding RefBase object
     static constexpr unsigned int FLAG_EXTEND_LIFE_TIME = 0x00000002; // Extended life-time bit to be set via logic-OR
 #ifndef ROSEN_EMULATOR
-sfgchjzdhmcn
     CanPromote canPromote_ = nullptr;
 #endif
 #ifdef DEBUG_REFBASE
