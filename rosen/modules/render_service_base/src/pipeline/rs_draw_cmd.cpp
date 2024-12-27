@@ -200,8 +200,7 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
 #if defined(RS_ENABLE_VK)
         if (RSSystemProperties::IsUseVukan()) {
-            if (GetRsImageCache(canvas, pixelMap,
-                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            if (GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
                 rsImage_->SetDmaImage(image_);
             }
         }
@@ -214,8 +213,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
             RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
             if (!nativeWindowBuffer_) {
-                sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
-                nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+                sptr<SurfaceBuffer> sfBuffer(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
+                nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
             }
             OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
             if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
