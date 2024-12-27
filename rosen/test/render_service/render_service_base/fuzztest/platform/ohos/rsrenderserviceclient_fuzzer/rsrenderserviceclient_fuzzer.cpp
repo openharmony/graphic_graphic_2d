@@ -22,12 +22,12 @@
 #include "transaction/rs_render_service_client.h"
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "core/transaction/rs_interfaces.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
-#include "core/transaction/rs_interfaces.h"
 
 namespace OHOS {
 namespace Rosen {
