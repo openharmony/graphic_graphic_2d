@@ -360,6 +360,86 @@ HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImageTest, TestSize.Leve
 }
 
 /**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage001, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 20;
+    int height = 300;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage002, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 2;
+    int height = 3000;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage003, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 2;
+    int height = 3000;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
+ * @tc.name: ConvertYUVPixelMapToDrawingImage004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPixelMapUtilTest, ConvertYUVPixelMapToDrawingImage004, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap;
+    int width = 2;
+    int height = 3000;
+    pixelmap = CreatePixelMap(width, height);
+ 
+    auto gpuContext = std::make_shared<Drawing::GPUContext>();
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+    pixelmap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelmap), nullptr);
+}
+
+/**
  * @tc.name: IsSupportZeroCopyTest
  * @tc.desc: Verify function IsSupportZeroCopy
  * @tc.type: FUNC
