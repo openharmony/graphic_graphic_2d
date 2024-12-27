@@ -35,12 +35,12 @@ struct RSXform {
     inline void Dump(std::string& out) const
     {
         out += "[cos:" + std::to_string(cos_);
-        out += "sin:" + std::to_string(sin_);
-        out += "tx:" + std::to_string(tx_);
-        out += "ty:" + std::to_string(ty_);
+        out += " sin:" + std::to_string(sin_);
+        out += " tx:" + std::to_string(tx_);
+        out += " ty:" + std::to_string(ty_);
         out += ']';
     }
-    
+
     scalar cos_;
     scalar sin_;
     scalar tx_;

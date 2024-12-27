@@ -303,7 +303,7 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
     // Obtain weight ranges for non-whole hundred values
     auto it = std::lower_bound(weightType.begin(), weightType.end(), weight);
     std::vector<int> targetRange = { *(it - 1), *it };
-
+    
     /**
      * When the font weight is less than NORMAL_WEIGHT, round down as much as possible;
      * when the font weight exceeds NORMAL_WEIGHT, round up where possible. For example, when weight is 360,

@@ -315,7 +315,7 @@ void ColorPicker::GenerateMorandiBackgroundColor(HSV& hsv) const
 // Get morandi background color
 uint32_t ColorPicker::GetMorandiBackgroundColor(ColorManager::Color &color) const
 {
-    
+
     bool rst = GetLargestProportionColor(color);
     if (rst != SUCCESS) {
         return ERR_EFFECT_INVALID_VALUE;
@@ -639,7 +639,7 @@ uint32_t ColorPicker::GetDeepenImmersionColor(ColorManager::Color &color) const
             hsv.v += 20; // 20 used to increse saturation.
         }
         colorPicked = HSVtoRGB(hsv);
-        
+
     } else {
         // If there is no dominant color, return black-0x00000000
         colorPicked = 0xFF000000;

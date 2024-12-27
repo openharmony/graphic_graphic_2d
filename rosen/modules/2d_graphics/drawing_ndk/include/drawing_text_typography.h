@@ -37,7 +37,7 @@
  * @version 1.0
  */
 
-#include "cstdint"
+#include "cstddef"
 #include "drawing_canvas.h"
 #include "drawing_color.h"
 #include "drawing_font.h"

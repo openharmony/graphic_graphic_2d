@@ -418,7 +418,7 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
         }
     }
 #endif
-#ifndef USE_GRAPHIC_TEXT_GINE    
+#ifndef USE_GRAPHIC_TEXT_GINE
     ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
 #else
     ConvertToOriginalText<TextStyle>(style)->fontStyle = rosenFontStyle;
