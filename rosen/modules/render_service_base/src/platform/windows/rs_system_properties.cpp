@@ -571,10 +571,5 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
 {
     return false;
 }
-
-bool RSSystemProperties::GetDisableHebcEnabled()
-{
-    return false;
-}
 } // namespace Rosen
 } // namespace OHOS
