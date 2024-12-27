@@ -1375,7 +1375,7 @@ void RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canv
     uint32_t hwcNodesNum = static_cast<uint32_t>(params.GetHardwareEnabledDrawables().size());
     uint32_t hwcTopNodesNum = static_cast<uint32_t>(params.GetHardwareEnabledTopDrawables().size());
 
-    RS_LOGD("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
+    RS_LOGI("RSDisplayRenderNodeDrawable::DrawHardwareEnabledNodes: \
         process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) \
         using UniRender buffer with hwcNodes(%{public}u, %{public}u)",
         GetId(), hwcNodesNum, hwcTopNodesNum);

@@ -965,26 +965,14 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             callback->OnSurfaceCapture(id, nullptr);
             return;
         }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
-            renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
-            auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
-                !node->IsOnTheTree() : false;
-            std::function<void()> captureTaskInner = [id, callback, captureConfig, isProcOnBgThread]() -> void {
-                RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
-                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                RSSurfaceCaptureTask task(id, captureConfig, isProcOnBgThread);
-                if (!task.Run(callback)) {
-                    callback->OnSurfaceCapture(id, nullptr);
-                }
-                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-            };
-            if (isProcOnBgThread) {
-                RSBackgroundThread::Instance().PostTask(captureTaskInner);
-            } else {
-                captureTaskInner();
+        if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+            RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
+            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+            RSSurfaceCaptureTask task(id, captureConfig);
+            if (!task.Run(callback)) {
+                callback->OnSurfaceCapture(id, nullptr);
             }
+            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         } else {
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
             RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);

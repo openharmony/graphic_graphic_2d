@@ -314,11 +314,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " created pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " useDma: [%{public}d]",
-        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma);
+        " useDma: [%{public}d], screenRotation_: [%{public}d], screenCorrection_: [%{public}d]",
+        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.useDma, screenRotation_, screenCorrection_);
     return Media::PixelMap::Create(opts);
 }
 
@@ -389,8 +388,6 @@ int32_t RSSurfaceCaptureTaskParallel::CalPixelMapRotation()
     auto screenRotation = ScreenRotationMapping(screenRotation_);
     auto screenCorrection = ScreenRotationMapping(screenCorrection_);
     int32_t rotation = screenRotation - screenCorrection;
-    RS_LOGI("RSSurfaceCaptureTaskParallel::CalPixelMapRotation: screenRotation:%{public}d"
-        " screenCorrection:%{public}d", screenRotation, screenCorrection);
     return rotation;
 }
 
