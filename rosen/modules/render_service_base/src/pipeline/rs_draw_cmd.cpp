@@ -147,9 +147,7 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
-#ifndef ROSEN_ARKUI_X
             SKResourceManager::Instance().HoldResource(image_);
-#endif
             rsImage_->SetDmaImage(image_);
         }
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);

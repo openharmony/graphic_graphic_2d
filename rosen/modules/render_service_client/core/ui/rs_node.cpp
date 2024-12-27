@@ -642,9 +642,9 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 
 void RSNode::SetBoundsWidth(float width)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
             SetBounds(0.f, 0.f, width, 0.f);
@@ -664,9 +664,9 @@ void RSNode::SetBoundsWidth(float width)
 
 void RSNode::SetBoundsHeight(float height)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
             SetBounds(0.f, 0.f, 0.f, height);
@@ -697,9 +697,9 @@ void RSNode::SetFrame(float positionX, float positionY, float width, float heigh
 
 void RSNode::SetFramePositionX(float positionX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::FRAME);
         if (iter == propertyModifiers_.end()) {
             SetFrame(positionX, 0.f, 0.f, 0.f);
@@ -718,9 +718,9 @@ void RSNode::SetFramePositionX(float positionX)
 
 void RSNode::SetFramePositionY(float positionY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::FRAME);
         if (iter == propertyModifiers_.end()) {
             SetFrame(0.f, positionY, 0.f, 0.f);
@@ -774,9 +774,9 @@ void RSNode::SetPivot(float pivotX, float pivotY)
 
 void RSNode::SetPivotX(float pivotX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::PIVOT);
         if (iter == propertyModifiers_.end()) {
             SetPivot(pivotX, 0.5f);
@@ -795,9 +795,9 @@ void RSNode::SetPivotX(float pivotX)
 
 void RSNode::SetPivotY(float pivotY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::PIVOT);
         if (iter == propertyModifiers_.end()) {
             SetPivot(0.5f, pivotY);
@@ -875,9 +875,9 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 
 void RSNode::SetTranslateX(float translate)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
             SetTranslate({ translate, 0.f });
@@ -896,9 +896,9 @@ void RSNode::SetTranslateX(float translate)
 
 void RSNode::SetTranslateY(float translate)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
             SetTranslate({ 0.f, translate });
@@ -936,9 +936,9 @@ void RSNode::SetScale(const Vector2f& scale)
 
 void RSNode::SetScaleX(float scaleX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::SCALE);
         if (iter == propertyModifiers_.end()) {
             SetScale(scaleX, 1.f);
@@ -957,9 +957,9 @@ void RSNode::SetScaleX(float scaleX)
 
 void RSNode::SetScaleY(float scaleY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::SCALE);
         if (iter == propertyModifiers_.end()) {
             SetScale(1.f, scaleY);
