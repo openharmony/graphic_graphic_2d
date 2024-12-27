@@ -27,6 +27,7 @@
 #endif
 #include "ipc_callbacks/screen_change_callback_stub.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
+#include "core/transaction/rs_interfaces.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1274,12 +1275,12 @@ bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
     client->RegisterHgmRefreshRateUpdateCallback(callback3);
     uint32_t dstPid = GetData<uint32_t>();
     FrameRateLinkerExpectedFpsUpdateCallback callback4;
-    client->RegisterFrameRateLinkerExpetedFpsUpdateCallback(dstPid, callback4);
+    client->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback4);
 
     return true;
 }
 
-bool DoRegisterFrameRateLinkerExpetedFpsUpdateCallback(const uint8_t* data, size_t size)
+bool DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -1290,15 +1291,15 @@ bool DoRegisterFrameRateLinkerExpetedFpsUpdateCallback(const uint8_t* data, size
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSInterfaces> rsInterfaces = std::maked_shared<RSInterfaces>();
-    uint32_t dstPid = Getdata<uint32_t>();
+    std::shared_ptr<RSInterfaces> rsInterfaces = std::make_shared<RSInterfaces>();
+    uint32_t dstPid = GetData<uint32_t>();
     FrameRateLinkerExpectedFpsUpdateCallback callback;
-    rsInterfaces->RegisterFrameRateLinkerExpetedFpsUpdateCallback(dstPid, callback);
+    rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
 
     return true;
 }
 
-bool DoUnRegisterFrameRateLinkerExpetedFpsUpdateCallback(const uint8_t* data, size_t size)
+bool DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
@@ -1309,9 +1310,9 @@ bool DoUnRegisterFrameRateLinkerExpetedFpsUpdateCallback(const uint8_t* data, si
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RSInterfaces> rsInterfaces = std::maked_shared<RSInterfaces>();
-    uint32_t dstPid = Getdata<uint32_t>();
-    rsInterfaces->UnRegisterFrameRateLinkerExpetedFpsUpdateCallback(dstPid);
+    std::shared_ptr<RSInterfaces> rsInterfaces = std::make_shared<RSInterfaces>();
+    uint32_t dstPid = GetData<uint32_t>();
+    rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid);
 
     return true;
 }
@@ -2385,8 +2386,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback(data, size);
     OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
     OHOS::Rosen::DoSetSystemAnimatedScenes(data, size);
-    OHOS::Rosen::DoRegisterFrameRateLinkerExpetedFpsUpdateCallback(data, size);
-    OHOS::Rosen::DoUnRegisterFrameRateLinkerExpetedFpsUpdateCallback(data, size);
+    OHOS::Rosen::DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
+    OHOS::Rosen::DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
     OHOS::Rosen::DoResizeVirtualScreen(data, size);
     OHOS::Rosen::DoReportJankStats(data, size);

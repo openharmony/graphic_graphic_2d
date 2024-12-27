@@ -103,7 +103,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t uid = GetData<int32_t>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
-    uint32_t dstPid = GetData<uint32_t>();
     int32_t expectedFps = GetData<int32_t>();
     int32_t x = GetData<int32_t>();
     int32_t y = GetData<int32_t>();
