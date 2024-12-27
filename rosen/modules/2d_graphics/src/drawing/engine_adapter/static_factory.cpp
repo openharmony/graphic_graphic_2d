@@ -119,7 +119,7 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromName(const char familyName[], F
     return EngineStaticFactory::MakeFromName(familyName, fontStyle);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #ifdef RS_ENABLE_VK
 std::shared_ptr<Surface> StaticFactory::MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
     TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,

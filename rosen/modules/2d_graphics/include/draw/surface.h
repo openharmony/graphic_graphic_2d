@@ -27,7 +27,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 struct FrameBuffer {
     int width;
     int height;
@@ -67,7 +67,7 @@ public:
      */
     bool Bind(const Bitmap& bitmap);
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     /**
      * @brief         Bind GPU texture Surface.
      * @param image   In GPU memory as a GPU texture.

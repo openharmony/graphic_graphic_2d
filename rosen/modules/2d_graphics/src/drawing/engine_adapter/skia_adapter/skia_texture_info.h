@@ -15,7 +15,7 @@
 
 #ifndef SKIA_TEXTURE_INFO_H
 #define SKIA_TEXTURE_INFO_H
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "include/gpu/GrBackendSurface.h"
 #endif
 
