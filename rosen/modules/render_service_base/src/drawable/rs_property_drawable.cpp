@@ -135,12 +135,14 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+    } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::IsPhoneType() &&
+        RSSystemProperties::GetCacheEnabledForRotation()) {
+        Drawing::Rect rect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
+        Drawing::RectI iRect(0, 0, rect.GetWidth(), rect.GetHeight());
+        canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
     } else {
-        // Enable anti-aliasing only on surface nodes to resolve the issue of jagged edges on card compoments
-        // during dragging.
-        bool aa = node.IsInstanceOf<RSSurfaceRenderNode>();
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, aa);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
     }
     return true;
 }
