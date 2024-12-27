@@ -14,8 +14,6 @@
 import("//build/ohos.gni")
 import("//foundation/graphic/graphic_2d/rosen/modules/platform/config.gni")
 
-
-
 # ace_skia {{{
 group("ace_skia") {
   if (is_arkui_x) {
