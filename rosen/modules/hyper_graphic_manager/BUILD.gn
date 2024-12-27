@@ -58,7 +58,8 @@ ohos_shared_library("libhyper_graphic_manager") {
     cfi_vcall_icall_only = true
     debug = false
   }
-  public_configs = [ ":libhyper_graphic_manager_config" ]
+  configs = [ ":libhyper_graphic_manager_config" ]
+  version_script = "libhyper_graphic_manager.map"
 
   sources = [
     "core/config/hgm_config_callback_manager.cpp",
