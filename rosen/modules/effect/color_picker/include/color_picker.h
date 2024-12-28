@@ -94,8 +94,8 @@ private:
                                         const std::pair<uint32_t, uint32_t> &secondaryColor) const;
     void GenerateMorandiBackgroundColor(HSV& hsv) const;
     void GenerateMorandiShadowColor(HSV& hsv) const;
-    bool GetDominantColor(
-        std::pair<uint32_t, uint32_t>& mainColor, std::pair<uint32_t, uint32_t>& secondaryColor) const;
+    bool GetDominantColor(std::pair<uint32_t, uint32_t >& mainColor, std::pair<uint32_t,
+        uint32_t >& secondaryColor) const;
     ColorBrightnessMode DiscriminateDarkOrBrightColor(const HSV& hsv) const;
     void ProcessToDarkColor(HSV& hsv) const;
     void ProcessToBrightColor(HSV& hsv) const;

@@ -55,11 +55,11 @@ void Ranges::Dump() const
             << ": offset " << std::dec << end;
     }
 
-    for (const auto& [codepoint, gid] : singles_) {
+    for (const auto &[codepoint, gid] : singles_) {
         LOGSO_FUNC_LINE(INFO) << "0x" << std::uppercase << std::hex
             << std::setw(4) << std::setfill('0') << codepoint  // 4 means output width
             << ": glyphid " << std::dec
-            << (codepoint + gid) % (1 << 16); // 16 means offset, 1 << 16 means residual multiple
+            << (codepoint + gid) % (1 << 16); // 16 means offset; 1 << 16 means residual multiple
     }
 }
 } // namespace TextEngine

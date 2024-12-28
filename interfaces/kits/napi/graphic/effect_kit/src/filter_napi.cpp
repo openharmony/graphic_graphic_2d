@@ -296,7 +296,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(valueType == napi_object, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi Constructor parse input PixelMapNapi fail, the type is napi_undefined"));
     Media::PixelMapNapi* tempPixelMap = nullptr;
-    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&tempPixelMap));
+    status = napi_unwrap(env, argv[0], reinterpret_cast<void**>(&tempPixelMap));
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok && tempPixelMap != nullptr, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi Constructor parse input PixelMapNapi fail, the PixelMap is nullptr"));
     std::shared_ptr<Media::PixelMap> sharPixelPoint = tempPixelMap->GetPixelNapiInner();
