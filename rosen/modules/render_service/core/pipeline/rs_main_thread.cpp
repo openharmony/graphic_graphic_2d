@@ -180,6 +180,7 @@ constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
+constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -517,6 +518,7 @@ void RSMainThread::Init()
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
+    RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {
             auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
@@ -1815,6 +1817,24 @@ void RSMainThread::OnHideNotchStatusCallback(const char *key, const char *value,
     RSMainThread::Instance()->RequestNextVSync();
 }
 
+void RSMainThread::OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context)
+{
+    if (strcmp(key, DRAWING_CACHE_DFX) != 0) {
+        return;
+    }
+    bool isDrawingCacheDfxEnabled;
+    if (value) {
+        isDrawingCacheDfxEnabled = (std::atoi(value) != 0);
+    } else {
+        isDrawingCacheDfxEnabled = RSSystemParameters::GetDrawingCacheEnabledDfx();
+    }
+    RSMainThread::Instance()->PostTask([isDrawingCacheDfxEnabled]() {
+        RSMainThread::Instance()->SetDirtyFlag();
+        RSMainThread::Instance()->SetDrawingCacheDfxEnabledOfCurFrame(isDrawingCacheDfxEnabled);
+        RSMainThread::Instance()->RequestNextVSync("DrawingCacheDfx");
+    });
+}
+
 bool RSMainThread::IsRequestedNextVSync()
 {
     if (receiver_ != nullptr) {
@@ -1967,6 +1987,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
+        renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
@@ -1989,6 +2010,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
+        isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {

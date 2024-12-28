@@ -24,6 +24,7 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "system/rs_system_parameters.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -410,6 +411,28 @@ void RSRenderNodeDrawable::UpdateCacheInfoForDfx(Drawing::Canvas& canvas, const 
         std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
         drawingCacheInfos_[id] = std::make_pair(dfxRect, updateTimes);
     }
+}
+
+void RSRenderNodeDrawable::InitDfxForCacheInfo()
+{
+    isDrawingCacheEnabled_ = RSSystemParameters::GetDrawingCacheEnabled();
+    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (LIKELY(uniParam)) {
+        isDrawingCacheDfxEnabled_ = uniParam->IsDrawingCacheDfxEnabled();
+    }
+    if (isDrawingCacheDfxEnabled_) {
+        std::lock_guard<std::mutex> lock(drawingCacheInfoMutex_);
+        drawingCacheInfos_.clear();
+        cacheUpdatedNodeMap_.clear();
+    }
+
+#ifdef DDGR_ENABLE_FEATURE_OPINC
+    autoCacheEnable_ = RSSystemProperties::IsDdgrOpincEnable();
+    autoCacheDrawingEnable_ = RSSystemProperties::GetAutoCacheDebugEnabled() && autoCacheEnable_;
+    autoCacheRenderNodeInfos_.clear();
+    opincRootTotalCount_ = 0;
+    isOpincDropNodeExt_ = true;
+#endif
 }
 
 void RSRenderNodeDrawable::DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas)
