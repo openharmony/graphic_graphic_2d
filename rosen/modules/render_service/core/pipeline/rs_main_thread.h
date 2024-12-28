@@ -329,6 +329,16 @@ public:
         return skipJankAnimatorFrame_.load();
     }
 
+    bool IsFirstFrameOfDrawingCacheDFXSwitch() const
+    {
+        return isDrawingCacheDfxEnabledOfCurFrame_ != isDrawingCacheDfxEnabledOfLastFrame_;
+    }
+
+    void SetDrawingCacheDfxEnabledOfCurFrame(bool isDrawingCacheDfxEnabledOfCurFrame)
+    {
+        isDrawingCacheDfxEnabledOfCurFrame_ = isDrawingCacheDfxEnabledOfCurFrame;
+    }
+
     void SetSkipJankAnimatorFrame(bool skipJankAnimatorFrame)
     {
         skipJankAnimatorFrame_.store(skipJankAnimatorFrame);
@@ -411,6 +421,7 @@ private:
     uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
     static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
+    static void OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
@@ -668,6 +679,10 @@ private:
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
     uint32_t leashWindowCount_ = 0;
+
+    // for drawing cache dfx
+    bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
+    bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
 
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
