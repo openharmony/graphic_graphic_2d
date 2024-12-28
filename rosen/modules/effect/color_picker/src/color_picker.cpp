@@ -318,8 +318,6 @@ uint32_t ColorPicker::GetMorandiBackgroundColor(ColorManager::Color &color) cons
         return ERR_EFFECT_INVALID_VALUE;
     }
     uint32_t mostColor = ((color.PackValue() >> 32) & 0xFFFFFFFF);
-
-
     HSV hsv = RGB2HSV(mostColor);
     bool isBWGColor = IsBlackOrWhiteOrGrayColor(mostColor);
     if (isBWGColor) {
@@ -633,7 +631,6 @@ uint32_t ColorPicker::GetDeepenImmersionColor(ColorManager::Color &color) const
             hsv.v += 20; // 20 used to increse saturation.
         }
         colorPicked = HSVtoRGB(hsv);
-
     } else {
         // If there is no dominant color, return black-0x00000000
         colorPicked = 0xFF000000;
