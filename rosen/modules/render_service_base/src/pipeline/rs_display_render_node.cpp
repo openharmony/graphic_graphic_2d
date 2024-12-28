@@ -218,6 +218,9 @@ void RSDisplayRenderNode::UpdateRenderParams()
         RS_LOGE("RSDisplayRenderNode::UpdateRenderParams displayParams is null");
         return;
     }
+    displayParams->offsetX_ = GetDisplayOffsetX();
+    displayParams->offsetY_ = GetDisplayOffsetY();
+    displayParams->nodeRotation_ = GetRotation();
     auto mirroredNode = GetMirrorSource().lock();
     if (mirroredNode == nullptr) {
         displayParams->mirrorSourceId_ = INVALID_NODEID;
@@ -227,9 +230,6 @@ void RSDisplayRenderNode::UpdateRenderParams()
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
-    displayParams->offsetX_ = GetDisplayOffsetX();
-    displayParams->offsetY_ = GetDisplayOffsetY();
-    displayParams->nodeRotation_ = GetRotation();
     RSRenderNode::UpdateRenderParams();
 }
 
