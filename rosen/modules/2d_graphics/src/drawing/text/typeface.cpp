@@ -120,6 +120,14 @@ bool Typeface::IsCustomTypeface() const
     return false;
 }
 
+bool Typeface::IsThemeTypeface() const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->IsThemeTypeface();
+    }
+    return false;
+}
+
 std::shared_ptr<Data> Typeface::Serialize() const
 {
     if (!typefaceImpl_) {

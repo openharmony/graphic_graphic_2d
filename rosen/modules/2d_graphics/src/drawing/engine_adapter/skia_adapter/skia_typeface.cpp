@@ -133,6 +133,15 @@ bool SkiaTypeface::IsCustomTypeface() const
     return skTypeface_->isCustomTypeface();
 }
 
+bool SkiaTypeface::IsThemeTypeface() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isThemeTypeface();
+}
+
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()
 {
     if (!skTypeface_) {
