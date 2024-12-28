@@ -63,6 +63,8 @@ HWTEST_F(RSImageUnitTest, TestIsEqual001, TestSize.Level1)
 static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 {
     Media::InitializationOptions opts;
+    const int quarter = 4;
+    const int half = 2;
     opts.size.width = width;
     opts.size.height = height;
     auto pixelmap = Media::PixelMap::Create(opts);
@@ -78,7 +80,7 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
     Drawing::Brush brush;
     brush.SetColor(Drawing::Color::COLOR_RED);
     canvas->AttachBrush(brush);
-    canvas->DrawRect(Drawing::Rect(width / 4, height / 4, width / 2, height / 2));
+    canvas->DrawRect(Drawing::Rect(width / quarter, height / quarter, width / half, height / half));
     canvas->DetachBrush();
     return pixelmap;
 }
