@@ -49,9 +49,10 @@ public:
 
 private:
     FontDescriptorMgr();
-
+    bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
     FontDescriptorCache descCache_;
     std::mutex parserMtx_;
+    bool hasParseAllFont = false;
 };
 } // namespace OHOS::Rosen
 #define FontDescriptorMgrInstance OHOS::Rosen::FontDescriptorMgr::GetInstance()
