@@ -5285,4 +5285,111 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateAncoNodeHWCDisabledState, TestSize.Level1
     rsUniRenderVisitor->ancoNodes_.insert(hwcNodePtr);
     rsUniRenderVisitor->UpdateAncoNodeHWCDisabledState();
 }
+
+/*
+ * @tc.name: UpdatePointWindowDirtyStatus001
+ * @tc.desc: Test UpdatePointWindowDirtyStatus while pointSurfaceHandler isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdatePointWindowDirtyStatus001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->InitRenderParams();
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE;
+    surfaceNode->name_ = "pointer window";
+
+    // globalZOrder_ + 2 is displayNode layer
+    ASSERT_NE(surfaceNode->GetMutableRSSurfaceHandler(), nullptr);
+    auto displayLayerZoder = surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_ + 2;
+
+    rsUniRenderVisitor->UpdatePointWindowDirtyStatus(surfaceNode);
+    ASSERT_EQ(displayLayerZoder, surfaceNode->GetMutableRSSurfaceHandler()->globalZOrder_);
+}
+
+/*
+ * @tc.name: MarkBlurIntersectWithDRM002
+ * @tc.desc: Test MarkBlurIntersectWithDRM while appWindowNode isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, MarkBlurIntersectWithDRM002, TestSize.Level2)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "SCBBannerNotification";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->instanceRootNodeId_ = surfaceNode->GetId();
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+
+    // let drm intersect with blur
+    surfaceNode->filterRegion_ = RectT(0, 0, 1, 1);
+    drmNode->dstRect_ = RectT(0, 0, 1, 1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
+    rsUniRenderVisitor->MarkBlurIntersectWithDRM(surfaceNode);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache001
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache while effectNode with fiter
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+    auto effectNode = std::make_shared<RSEffectRenderNode>(1);
+    ASSERT_NE(effectNode, nullptr);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    effectNode->GetMutableRenderProperties().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSDisplayNodeConfig config;
+    rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(0, config);
+    ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache002
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache while surfaceNode not included in the nodemap
+ * @tc.type: FUNC
+ * @tc.require: issueIBE0XP
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    ASSERT_NE(rsRootRenderNode, nullptr);
+    rsRootRenderNode->InitRenderParams();
+
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceConfig);
+    surfaceNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*surfaceNode);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+}
 } // OHOS::Rosen
