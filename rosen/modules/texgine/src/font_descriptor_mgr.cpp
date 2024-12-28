@@ -34,7 +34,6 @@ FontDescriptorMgr::~FontDescriptorMgr() {}
 
 void FontDescriptorMgr::ParseAllFontSource()
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
     descCache_.ParserSystemFonts();
     descCache_.ParserStylishFonts();
     hasParseAllFont = true;
@@ -99,6 +98,17 @@ void FontDescriptorMgr::GetSystemFontFullNamesByType(
     const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
     std::unique_lock<std::mutex> guard(parserMtx_);
+    int32_t fontType = 0;
+    if (!ProcessSystemFontType(systemFontType, fontType)) {
+        fontList.clear();
+        return;
+    }
+    if (((fontType & TextEngine::FontParser::SystemFontType::GENERIC) ||
+        (fontType & TextEngine::FontParser::SystemFontType::STYLISH) ||
+        (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) ||
+        (fontType & TextEngine::FontParser::SystemFontType::ALL)) && !hasParseAllFont) {
+        ParseAllFontSource();
+    }
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
 }
 
