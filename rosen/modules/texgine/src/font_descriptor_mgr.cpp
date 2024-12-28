@@ -25,15 +25,13 @@ FontDescriptorMgr& FontDescriptorMgr::GetInstance()
     return instance;
 }
 
-FontDescriptorMgr::FontDescriptorMgr()
-{
-    
-}
-
 FontDescriptorMgr::~FontDescriptorMgr() {}
 
 void FontDescriptorMgr::ParseAllFontSource()
 {
+    if (hasParseAllFont) {
+        return;
+    }
     descCache_.ParserSystemFonts();
     descCache_.ParserStylishFonts();
     hasParseAllFont = true;
@@ -66,6 +64,16 @@ bool FontDescriptorMgr::ProcessSystemFontType(const int32_t& systemFontType, int
     return true;
 }
 
+bool FontDescriptorMgr::AdjustSystemFontTypeNotCustomized(uint32_t fontType)
+{
+    if ((fontType & TextEngine::FontParser::SystemFontType::GENERIC) ||
+        (fontType & TextEngine::FontParser::SystemFontType::STYLISH) ||
+        (fontType & TextEngine::FontParser::SystemFontType::INSTALLED)) {
+        return true;
+    }
+    return false;
+}
+
 void FontDescriptorMgr::MatchFontDescriptors(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& descs)
 {
     std::unique_lock<std::mutex> guard(parserMtx_);
@@ -78,35 +86,28 @@ void FontDescriptorMgr::MatchFontDescriptors(FontDescSharedPtr desc, std::set<Fo
 void FontDescriptorMgr::GetFontDescSharedPtrByFullName(const std::string& fullName,
     const int32_t& systemFontType, FontDescSharedPtr& result)
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
     int32_t fontType = 0;
     if (!ProcessSystemFontType(systemFontType, fontType)) {
         result = nullptr;
         return;
     }
-    if (((fontType & TextEngine::FontParser::SystemFontType::GENERIC) ||
-        (fontType & TextEngine::FontParser::SystemFontType::STYLISH) ||
-        (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) ||
-        (fontType & TextEngine::FontParser::SystemFontType::ALL)) && !hasParseAllFont) {
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    if (AdjustSystemFontTypeNotCustomized(static_cast<uint32_t>(fontType))) {
         ParseAllFontSource();
     }
-    
     descCache_.GetFontDescSharedPtrByFullName(fullName, systemFontType, result);
 }
 
 void FontDescriptorMgr::GetSystemFontFullNamesByType(
     const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
     int32_t fontType = 0;
     if (!ProcessSystemFontType(systemFontType, fontType)) {
         fontList.clear();
         return;
     }
-    if (((fontType & TextEngine::FontParser::SystemFontType::GENERIC) ||
-        (fontType & TextEngine::FontParser::SystemFontType::STYLISH) ||
-        (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) ||
-        (fontType & TextEngine::FontParser::SystemFontType::ALL)) && !hasParseAllFont) {
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    if (AdjustSystemFontTypeNotCustomized(static_cast<uint32_t>(fontType))) {
         ParseAllFontSource();
     }
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);

@@ -48,8 +48,9 @@ public:
     void DeleteDynamicTypefaceFromCache(const std::string &familyName);
 
 private:
-    FontDescriptorMgr();
+    FontDescriptorMgr() = default;
     bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
+    bool AdjustSystemFontTypeNotCustomized(uint32_t fontType);
     FontDescriptorCache descCache_;
     std::mutex parserMtx_;
     bool hasParseAllFont = false;
