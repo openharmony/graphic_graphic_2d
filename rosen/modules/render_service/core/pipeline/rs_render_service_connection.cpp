@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
@@ -150,6 +151,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         return;
     }
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
+    RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(remotePid_);
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();

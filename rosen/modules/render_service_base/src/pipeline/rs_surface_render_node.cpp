@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
@@ -114,6 +115,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
+    RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
 #endif
 }
 
@@ -129,6 +131,7 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #endif
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
 #endif
 }
 
