@@ -926,7 +926,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING): {
-            RS_LOGI("call RepaintEverything");
             RepaintEverything();
             break;
         }

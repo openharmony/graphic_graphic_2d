@@ -930,9 +930,15 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 
 void RSRenderServiceConnection::RepaintEverything()
 {
-    RS_LOGI("RepaintEverything, call SetDirtyflag, ForceRefreshForUni");
-    RSMainThread::Instance()->SetDirtyFlag();
-    RSMainThread::Instance()->ForceRefreshForUni();
+    if (mainThread_ == nullptr) {
+        RS_LOGE("RepaintEverything, mainThread_ is null, return");
+    }
+    auto task = []() -> void {
+        RS_LOGI("RepaintEverything, setDirtyflag, forceRefresh in mainThread");
+        RSMainThread::Instance()->SetDirtyFlag();
+        RSMainThread::Instance()->ForceRefreshForUni();
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
