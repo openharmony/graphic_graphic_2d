@@ -1506,7 +1506,7 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     RS_TRACE_NAME_FMT("CheckAndWaitPreFirstLevelDrawableNotify %" PRIu64 " wait for %" PRIu64 "",
         params.GetId(), uifirstRootSurfaceNodeDrawable->GetId());
 
-    static constexpr auto TIME_OUT = std::chrono::milliseconds(32); // 32ms
+    static constexpr auto TIME_OUT = std::chrono::milliseconds(500); // 500ms for timeout
     auto pred = [uifirstRootSurfaceNodeDrawable] {
         auto curState = uifirstRootSurfaceNodeDrawable->GetCacheSurfaceProcessedStatus();
         return curState == CacheProcessStatus::DONE || curState == CacheProcessStatus::UNKNOWN ||
@@ -1514,7 +1514,12 @@ bool RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify
     };
     std::unique_lock<std::mutex> lock(notifyMutex_);
     notifyCv_.wait_for(lock, TIME_OUT, pred);
-    return pred();
+    auto ret = pred();
+    if (!ret) {
+        RS_LOGE("uifirst nodeId %{public}" PRIu64
+            " wait uifirstrootNodeId %{public}" PRIu64 " until 500ms timeout", params.GetId(), rootId);
+    }
+    return ret;
 }
 
 bool RSUiFirstProcessStateCheckerHelper::IsCurFirstLevelMatch(const RSRenderParams& params)
