@@ -62,6 +62,9 @@ private:
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,
         const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
 
+    // Check the symbol is a mask symbol
+    bool IsMaskSymbol(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
+
     void InitSupportAnimationTable();
 
     // to start animations for one path group
