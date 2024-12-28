@@ -26,6 +26,9 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    constexpr int EDGE_WIDTH_LIMIT = 1000;
+}
 RSCanvasDrawingNode::RSCanvasDrawingNode(bool isRenderServiceNode, bool isTextureExportNode)
     : RSCanvasNode(isRenderServiceNode, isTextureExportNode) {}
 
@@ -52,6 +55,10 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (!transactionProxy) {
         return false;
+    }
+    if (width > EDGE_WIDTH_LIMIT) {
+        RS_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 " width:%{public}d height:%{public}d",
+            GetId(), width, height);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId(), width, height);
     transactionProxy->AddCommand(command, IsRenderServiceNode());
