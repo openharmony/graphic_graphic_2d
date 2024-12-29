@@ -171,8 +171,7 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
-    int32_t SetVirtualScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap>& securityMaskImg);
+    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap>& securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 

@@ -777,40 +777,4 @@ HWTEST_F(RSDisplayRenderNodeTest, HdrVideoTest, TestSize.Level1)
     EXPECT_EQ(displayNode->GetHdrVideo(), false);
     EXPECT_EQ(displayNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
 }
-
-/**
- * @tc.name: GetSecurityMaskResource001
- * @tc.desc: test results of GetSecurityMaskResource
- * @tc.type:FUNC
- * @tc.require: issueIBCH1W
- */
-HWTEST_F(RSDisplayRenderNodeTest, GetSecurityMaskResource001, TestSize.Level1)
-{
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    ASSERT_NE(displayNode, nullptr);
-    EXPECT_TRUE(displayNode->GetSecurityMaskResource() == nullptr);
-}
-
-/**
- * @tc.name: SetSecurityMaskResource001
- * @tc.desc: test results of SecurityMaskResource
- * @tc.type:FUNC
- * @tc.require: issueIBCH1W
- */
-HWTEST_F(RSDisplayRenderNodeTest, SetSecurityMaskResource001, TestSize.Level1)
-{
-    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
-    ASSERT_NE(displayNode, nullptr);
-    const uint32_t color[1] = { 0x6f0000ff };
-    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
-    Media::InitializationOptions opts;
-    opts.size.width = 1;
-    opts.size.height = 1;
-    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
-    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
-    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
-
-    displayNode->SetSecurityMaskResource(std::move(pixelMap));
-    EXPECT_FALSE(displayNode->GetSecurityMaskResource() == nullptr);
-}
 } // namespace OHOS::Rosen

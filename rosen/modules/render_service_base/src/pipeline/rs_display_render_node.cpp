@@ -246,7 +246,6 @@ void RSDisplayRenderNode::UpdateRenderParams()
         displayParams->mirrorSourceId_ = mirroredNode->GetId();
     }
     displayParams->isSecurityExemption_ = isSecurityExemption_;
-    displayParams->securityMaskResource_ = securityMaskResource_;
     displayParams->mirrorSource_ = GetMirrorSource();
     displayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     displayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;

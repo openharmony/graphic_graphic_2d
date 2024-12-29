@@ -437,15 +437,15 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     return renderService->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
-int32_t RSRenderServiceClient::SetVirtualScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap>& securityMaskImg)
+int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
+    const std::shared_ptr<Media::PixelMap>& securityMask)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
         return RENDER_SERVICE_NULL;
     }
 
-    return renderService->SetVirtualScreenSecurityMask(id, securityMaskImg);
+    return renderService->SetScreenSecurityMask(id, securityMask);
 }
 
 int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)

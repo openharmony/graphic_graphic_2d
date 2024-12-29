@@ -53,9 +53,9 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "static_factory.h"
-#include "render/rs_pixel_map_util.h"
 // dfx
 #include "drawable/dfx/rs_dirty_rects_dfx.h"
 #include "drawable/dfx/rs_skp_capture_dfx.h"
@@ -1086,7 +1086,8 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     if (hasSecSurface[mirroredParams->GetScreenId()] && !uniParam.GetSecExemption()) {
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
-        if (!params.GetSecurityMaskResource()) {
+        auto screenManager = CreateOrGetScreenManager();
+        if (!screenManager->GetScreenSecurityMask(params.GetScreenId())) {
             SetCanvasBlack(*virtualProcesser);
         } else {
             SetSecurityMask(*virtualProcesser);
@@ -1426,41 +1427,25 @@ void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
 
 void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
 {
+    RS_TRACE_FUNC();
     auto params = static_cast<RSDisplayRenderParams*>(GetRenderParams().get());
-    auto imagePtr = params->GetSecurityMaskResource();
-    auto image = RSPixelMapUtil::ExtractDrawingImage(imagePtr);
-    if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
-        return;
-    }
     if (auto screenManager = CreateOrGetScreenManager()) {
-        RS_TRACE_FUNC();
+        auto imagePtr = screenManager->GetScreenSecurityMask(params->GetScreenId());
+        auto image = RSPixelMapUtil::ExtractDrawingImage(imagePtr);
+        if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
+            return;
+        }
         auto screenInfo = screenManager->QueryScreenInfo(params->GetScreenId());
-        auto mainWidth = static_cast<float>(screenInfo.width);
-        auto mainHeight = static_cast<float>(screenInfo.height);
+        auto screenWidth = static_cast<float>(screenInfo.width);
+        auto screenHeight = static_cast<float>(screenInfo.height);
 
         // in certain cases (such as fold screen), the width and height must be swapped to fix the screen rotation.
         int angle = RSUniRenderUtil::GetRotationFromMatrix(curCanvas_->GetTotalMatrix());
         if (angle == RS_ROTATION_90 || angle == RS_ROTATION_270) {
-            std::swap(mainWidth, mainHeight);
+            std::swap(screenWidth, screenHeight);
         }
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
-        auto dstRect = Drawing::Rect(0, 0, mainWidth, mainHeight);
-
-        auto imageScaleWidth = mainWidth / static_cast<float>(image->GetWidth());
-        auto imageScaleHeight = mainHeight / static_cast<float>(image->GetHeight());
-        //Ensure image is centered on the screen.
-        if (imageScaleWidth != imageScaleHeight && mainWidth >= mainHeight) {
-            auto imageWidth_ = image->GetWidth() * imageScaleHeight;
-            auto halfBoundWidthLeft_ = (mainWidth - imageWidth_) / 2;
-            auto halfBoundWidthRight_ = (mainWidth + imageWidth_) / 2;
-            dstRect = Drawing::Rect(halfBoundWidthLeft_, 0, halfBoundWidthRight_, mainHeight);
-        }
-        if (imageScaleWidth != imageScaleHeight && mainWidth < mainHeight) {
-            auto imageHeight_ = image->GetHeight() * imageScaleWidth;
-            auto halfBoundHeightLeft_ = (mainHeight - imageHeight_) / 2;
-            auto halfBoundHeightRight_ = (mainHeight + imageHeight_) / 2;
-            dstRect = Drawing::Rect(0, halfBoundHeightLeft_, mainWidth, halfBoundHeightRight_);
-        }
+        auto dstRect = Drawing::Rect(0, 0, screenWidth, screenHeight);
 
         Drawing::Brush brush;
         curCanvas_->AttachBrush(brush);

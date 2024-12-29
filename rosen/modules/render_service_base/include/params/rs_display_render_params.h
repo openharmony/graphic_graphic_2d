@@ -164,11 +164,6 @@ public:
         return isSecurityExemption_;
     }
 
-    const std::shared_ptr<Media::PixelMap> GetSecurityMaskResource() const
-    {
-        return securityMaskResource_;
-    }
-
     bool HasSecLayerInVisibleRect() const
     {
         return hasSecLayerInVisibleRect_;
@@ -199,7 +194,6 @@ private:
     uint64_t screenId_ = 0;
     bool isSecurityDisplay_ = false;
     bool isSecurityExemption_ = false;
-    std::shared_ptr<Media::PixelMap> securityMaskResource_ = nullptr;
     bool hasSecLayerInVisibleRect_ = false;
     bool hasSecLayerInVisibleRectChanged_ = false;
     std::weak_ptr<RSDisplayRenderNode> mirrorSource_;

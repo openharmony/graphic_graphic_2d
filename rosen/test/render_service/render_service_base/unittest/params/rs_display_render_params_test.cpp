@@ -334,17 +334,4 @@ HWTEST_F(RSDisplayRenderParamsTest, HasSecLayerInVisibleRectChanged002, TestSize
     params.hasSecLayerInVisibleRectChanged_ = true;
     EXPECT_EQ(params.HasSecLayerInVisibleRectChanged(), true);
 }
-
-/**
- * @tc.name: GetSecurityMaskResource001
- * @tc.desc: test result of GetSecurityMaskResource
- * @tc.type: FUNC
- * @tc.require: issueIBCH1W
- */
-HWTEST_F(RSDisplayRenderParamsTest, GetSecurityMaskResource001, TestSize.Level1)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
-    RSDisplayRenderParams params(id);
-    EXPECT_TRUE(params.GetSecurityMaskResource() == nullptr);
-}
 } // namespace OHOS::Rosen

@@ -739,7 +739,6 @@ void RSUniRenderVisitor::UpdateVirtualScreenInfo(RSDisplayRenderNode& node)
 
     UpdateVirtualScreenSecurityExemption(node, *mirrorNode);
     UpdateVirtualScreenVisibleRectSecurity(node, *mirrorNode);
-    SetSecurityMask(node);
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node,
@@ -775,12 +774,6 @@ void RSUniRenderVisitor::UpdateVirtualScreenSecurityExemption(RSDisplayRenderNod
     RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:%{public}d",
         node.GetId(), isSecurityExemption);
     node.SetSecurityExemption(isSecurityExemption);
-}
-
-void RSUniRenderVisitor::SetSecurityMask(RSDisplayRenderNode& node)
-{
-    auto securityMaskImg = screenManager_->GetVirtualScreenSecurityMask(node.GetScreenId());
-    node.SetSecurityMaskResource(securityMaskImg);
 }
 
 void RSUniRenderVisitor::UpdateVirtualScreenVisibleRectSecurity(RSDisplayRenderNode& node,

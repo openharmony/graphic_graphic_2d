@@ -304,7 +304,6 @@ private:
 
     void UpdateVirtualScreenInfo(RSDisplayRenderNode& node);
     void UpdateVirtualScreenSecurityExemption(RSDisplayRenderNode& node, RSDisplayRenderNode& mirrorNode);
-    void SetSecurityMask(RSDisplayRenderNode& node);
     void UpdateVirtualScreenVisibleRectSecurity(RSDisplayRenderNode& node, RSDisplayRenderNode& mirrorNode);
 
     /* Check whether gpu overdraw buffer feature can be enabled on the RenderNode

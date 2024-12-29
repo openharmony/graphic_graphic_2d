@@ -454,8 +454,8 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     return {};
 }
 
-int32_t RSRenderServiceClient::SetVirtualScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap>& securityMaskImg)
+int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
+    const std::shared_ptr<Media::PixelMap>& securityMask)
 {
     return {};
 }

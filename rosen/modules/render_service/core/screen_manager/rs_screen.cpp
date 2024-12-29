@@ -1193,9 +1193,9 @@ const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
     return securityExemptionList_;
 }
 
-void RSScreen::SetSecurityMaskResource(const std::shared_ptr<Media::PixelMap>& securityMaskImg)
+void RSScreen::SetSecurityMaskResource(const std::shared_ptr<Media::PixelMap>& securityMask)
 {
-    securityMaskResource_ = securityMaskImg;
+    securityMaskResource_ = securityMask;
 }
 
 const std::shared_ptr<Media::PixelMap> RSScreen::GetSecurityMaskResource() const

@@ -1461,17 +1461,4 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDraw, TestSize.Level2
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
 }
-
-/**
- * @tc.name: SetSecurityMaskTest
- * @tc.desc: Test SetSecurityMask
- * @tc.type: FUNC
- * @tc.require: issueIBCH1W
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SetSecurityMaskTest, TestSize.Level2)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
-    displayDrawable_->SetSecurityMask(*virtualProcesser);
-}
 }

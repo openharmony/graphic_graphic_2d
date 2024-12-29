@@ -197,7 +197,6 @@ void RSDisplayRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetDisplayParams->screenId_ = screenId_;
     targetDisplayParams->isSecurityDisplay_ = isSecurityDisplay_;
     targetDisplayParams->isSecurityExemption_ = isSecurityExemption_;
-    targetDisplayParams->securityMaskResource_ = securityMaskResource_;
     targetDisplayParams->hasSecLayerInVisibleRect_ = hasSecLayerInVisibleRect_;
     targetDisplayParams->hasSecLayerInVisibleRectChanged_ = hasSecLayerInVisibleRectChanged_;
     targetDisplayParams->mirroredId_ = mirroredId_;

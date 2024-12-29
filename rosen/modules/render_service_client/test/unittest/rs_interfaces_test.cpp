@@ -2087,12 +2087,12 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
 }
 
 /*
- * @tc.name: SetVirtualScreenSecurityMask_001
- * @tc.desc: Test SetVirtualScreenSecurityMask with normal params, securityMaskImg is nullptr.
+ * @tc.name: SetScreenSecurityMask_001
+ * @tc.desc: Test SetScreenSecurityMask with normal params, securityMask is nullptr.
  * @tc.type: FUNC
  * @tc.require: issueIBCH1W
  */
-HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityMask_001, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_001, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     constexpr uint32_t sizeWidth = 720;
@@ -2106,17 +2106,17 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityMask_001, Function | SmallTes
         "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
-    int32_t ret = rsInterfaces->SetVirtualScreenSecurityMask(virtualScreenId, nullptr);
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, nullptr);
     EXPECT_EQ(ret, RS_CONNECTION_ERROR);
 }
 
 /*
- * @tc.name: SetVirtualScreenSecurityMask_002
- * @tc.desc: Test SetVirtualScreenSecurityMask with normal params.
+ * @tc.name: SetScreenSecurityMask_002
+ * @tc.desc: Test SetScreenSecurityMask with normal params.
  * @tc.type: FUNC
  * @tc.require: issueIBCH1W
  */
-HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityMask_002, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
     constexpr uint32_t sizeWidth = 720;
@@ -2138,7 +2138,7 @@ HWTEST_F(RSInterfacesTest, SetVirtualScreenSecurityMask_002, Function | SmallTes
     opts.pixelFormat = Media::PixelFormat::RGBA_8888;
     opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
-    int32_t ret = rsInterfaces->SetVirtualScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
     EXPECT_EQ(ret, SUCCESS);
 }
 } // namespace Rosen

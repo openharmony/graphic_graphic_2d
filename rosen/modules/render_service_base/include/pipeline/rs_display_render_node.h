@@ -258,11 +258,6 @@ public:
         return isSecurityExemption_;
     }
 
-    void SetSecurityMaskResource(const std::shared_ptr<Media::PixelMap>& securityMaskImg)
-    {
-        securityMaskResource_ = securityMaskImg;
-    }
-
     const std::shared_ptr<Media::PixelMap> GetSecurityMaskResource() const
     {
         return securityMaskResource_;
@@ -568,9 +563,6 @@ private:
     // Use in virtual screen security exemption
     std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
     bool isSecurityExemption_ = false;
-
-    // Use in virtual screen securitymask
-    std::shared_ptr<Media::PixelMap> securityMaskResource_ = nullptr;
 
     // Use in mirror screen visible rect projection
     std::vector<NodeId> securityVisibleLayerList_;  // surface node id

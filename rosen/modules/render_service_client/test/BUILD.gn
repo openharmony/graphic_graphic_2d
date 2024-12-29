@@ -447,30 +447,6 @@ ohos_executable("render_service_client_watermark_demo") {
   subsystem_name = "graphic"
 }
 
-ohos_executable("render_service_client_securitymask_demo") {
-  sources = [ "render_service_client_securitymask_demo.cpp" ]
-
-  deps = [ "../../render_service_client:librender_service_client" ]
-
-  public_external_deps = [ "skia:skia_canvaskit" ]
-
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-  }
-
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-    "image_framework:image_native",
-    "window_manager:sms",
-  ]
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
 ohos_executable("rs_uni_render_pixelmap_demo") {
   sources = [ "rs_uni_render_pixelmap_demo.cpp" ]
 
