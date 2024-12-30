@@ -40,7 +40,7 @@ public:
         std::function<void()> requestNextVSync;
         std::function<bool()> isRequestedNextVSync;
     };
- 
+
 #ifdef ROSEN_OHOS
     using OnFinishCb = std::function<void(const Drawing::DrawSurfaceBufferFinishCbData&)>;
     using OnAfterAcquireBufferCb = std::function<void(const Drawing::DrawSurfaceBufferAfterAcquireCbData&)>;
@@ -63,7 +63,7 @@ public:
 #ifdef RS_ENABLE_VK
     void SetReleaseFenceForVulkan(int releaseFenceFd, NodeId rootNodeId);
 #endif
- 
+
     void RunSurfaceBufferCallback();
 #ifdef RS_ENABLE_VK
     void RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId);
@@ -95,7 +95,7 @@ private:
     void OnAfterAcquireBuffer(const Drawing::DrawSurfaceBufferAfterAcquireCbData& data);
     void OnFinish(const Drawing::DrawSurfaceBufferFinishCbData& data);
 #endif
- 
+
 #ifdef ROSEN_OHOS
     void EnqueueSurfaceBufferId(const Drawing::DrawSurfaceBufferFinishCbData& data);
 #endif
@@ -128,7 +128,7 @@ std::tuple<Iters...> FindIf(std::tuple<Iters...> begin, std::tuple<Iters...> end
     }
     return end;
 }
- 
+
 template<class... Iters, class UnaryPred, size_t... Is>
 std::tuple<Iters...> RemoveIf(std::tuple<Iters...> begin, std::tuple<Iters...> end,
     UnaryPred unaryPred, std::index_sequence<Is...>)
@@ -143,7 +143,7 @@ std::tuple<Iters...> RemoveIf(std::tuple<Iters...> begin, std::tuple<Iters...> e
     }
     return begin;
 }
- 
+
 template <class... InputIters, class... OutPutIters, class UnaryPred, size_t... Is>
 std::tuple<OutPutIters...> CopyIf(std::tuple<InputIters...> inputBegin,
     std::tuple<InputIters...> inputEnd, std::tuple<OutPutIters...> outputBegin, UnaryPred unaryPred,
@@ -159,21 +159,21 @@ std::tuple<OutPutIters...> CopyIf(std::tuple<InputIters...> inputBegin,
     return outputBegin;
 }
 } // namespace Detail
- 
+
 template<class... Iters, class UnaryPred>
 std::tuple<Iters...> FindIf(std::tuple<Iters...> begin,
     std::tuple<Iters...> end, UnaryPred unaryPred)
 {
     return Detail::FindIf(begin, end, unaryPred, std::make_index_sequence<sizeof...(Iters)>());
 }
- 
+
 template<class... Iters, class UnaryPred>
 std::tuple<Iters...> RemoveIf(std::tuple<Iters...> begin,
     std::tuple<Iters...> end, UnaryPred unaryPred)
 {
     return Detail::RemoveIf(begin, end, unaryPred, std::make_index_sequence<sizeof...(Iters)>());
 }
- 
+
 template<class... InputIters, class... OutPutIters, class UnaryPred>
 std::tuple<OutPutIters...> CopyIf(std::tuple<InputIters...> inputBegin,
     std::tuple<InputIters...> inputEnd, std::tuple<OutPutIters...> outputBegin, UnaryPred unaryPred)
