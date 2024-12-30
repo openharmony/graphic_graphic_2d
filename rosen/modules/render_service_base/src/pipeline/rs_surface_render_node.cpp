@@ -567,7 +567,8 @@ void RSSurfaceRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& vis
     ApplyModifiers();
     visitor->QuickPrepareSurfaceRenderNode(*this);
 
-    if ((IsAppWindow() || IsScbScreen()) && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this)) {
+    if ((IsAppWindow() || IsScbScreen() || IsUIExtension())
+        && !IsNotifyUIBufferAvailable() && IsFirstFrameReadyToDraw(*this)) {
         NotifyUIBufferAvailable();
     }
 }
