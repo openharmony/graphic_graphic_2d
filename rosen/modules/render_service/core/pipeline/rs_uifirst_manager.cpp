@@ -64,13 +64,14 @@ RSUifirstManager::RSUifirstManager() :
 std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSurfaceDrawableByID(NodeId id)
 {
     if (const auto cacheIt = subthreadProcessingNode_.find(id); cacheIt != subthreadProcessingNode_.end()) {
-        if (const auto ptr = cacheIt->second) {
+        const auto ptr = cacheIt->second;
+        if (ptr && ptr->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
             return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(ptr);
         }
     }
     // unlikely
     auto ptr = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(id);
-    if (ptr) {
+    if (ptr && ptr->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
         return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(ptr);
     }
     return nullptr;
