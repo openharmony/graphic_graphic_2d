@@ -223,14 +223,6 @@ bool RSSystemParameters::GetWiredScreenOndrawEnabled()
     return ConvertToInt(enable, 0) != 0;
 }
 
-bool RSSystemParameters::GetDFXMirrorScreenForceRedrawEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.DFX.mirrorScreen.forceRedraw.enabled", "0");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
-}
-
 bool RSSystemParameters::GetArsrPreEnabled()
 {
     static bool flag = system::GetBoolParameter("const.display.enable_arsr_pre", true);
