@@ -23,6 +23,10 @@
 #include "render_context_log.h"
 
 namespace OHOS {
+const char* RS_CACHE_MAGIC_HEAD = "OHRS";
+const int RS_CACHE_MAGIC_HEAD_LEN = 4;
+const int RS_CACHE_HEAD_LEN = 8;
+const int RS_BYTE_SIZE = 8;
 namespace Rosen {
 CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     const size_t maxTotalSize, const std::string& fileName)
@@ -32,6 +36,45 @@ CacheData::CacheData(const size_t maxKeySize, const size_t maxValueSize,
     cacheDir_(fileName) {}
 
 CacheData::~CacheData() {}
+
+uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
+{
+    const uint32_t polynoimal = 0xEDB88320;
+    uint32_t crc = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < bufferSize ; ++i) {
+        crc ^= (static_cast<uint32_t>(buffer[i]));
+        for (size_t j = 0; j < RS_BYTE_SIZE; ++j) {
+            if (crc & 0x01) {
+                crc = (crc >> 1) ^ polynoimal;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    return crc ^ 0xFFFFFFFF;
+}
+
+bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
+{
+    if (buffer == nullptr) {
+        LOGE("abandon, because of buffer is nullprt");
+        return false;
+    }
+    if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
+        LOGE("abandon, because of mismatched RS_CACHE_MAGIC_HEAD");
+        return false;
+    }
+
+    uint32_t* storedCrc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
+    uint32_t computedCrc = CrcGen(buffer + RS_CACHE_HEAD_LEN, bufferSize - RS_CACHE_HEAD_LEN);
+    if (computedCrc != *storedCrc) {
+        LOGE("abandon, because of mismatched crc code");
+        return false;
+    }
+
+    return true;
+}
 
 void CacheData::ReadFromFile()
 {
@@ -60,20 +103,28 @@ void CacheData::ReadFromFile()
     }
 
     size_t fileSize = static_cast<size_t>(statBuf.st_size);
-    if (fileSize == 0 || fileSize > maxTotalSize_ * maxMultipleSize_) {
-        LOGD("abandon, illegal file size");
+    if (fileSize < RS_CACHE_HEAD_LEN || fileSize > maxTotalSize_ * maxMultipleSize_ + RS_CACHE_HEAD_LEN) {
+        LOGE("abandon, illegal file size");
         close(fd);
         return;
     }
-    void *buffer = mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0);
+    uint8_t *buffer = reinterpret_cast<uint8_t*>(mmap(nullptr, fileSize, PROT_READ, MAP_PRIVATE, fd, 0));
     if (buffer == MAP_FAILED) {
         LOGD("abandon, because of mmap failure:");
         close(fd);
         return;
     }
-    uint8_t *shaderBuffer = reinterpret_cast<uint8_t*>(buffer);
-    if (DeSerialize(shaderBuffer, fileSize) < 0) {
-        LOGD("abandon, because fail to read file contents");
+
+    if (!IsValidFile(buffer, fileSize)) {
+        LOGE("abandon, invalid file");
+        munmap(buffer, fileSize);
+        close(fd);
+        return;
+    }
+
+    uint8_t *shaderBuffer = reinterpret_cast<uint8_t*>(buffer + RS_CACHE_HEAD_LEN);
+    if (DeSerialize(shaderBuffer, fileSize - RS_CACHE_HEAD_LEN) < 0) {
+        LOGE("abandon, because fail to read file contents");
     }
     munmap(buffer, fileSize);
     close(fd);
@@ -105,21 +156,32 @@ void CacheData::WriteToFile()
         close(fd);
         return;
     }
-    uint8_t *buffer = new uint8_t[cacheSize];
+    size_t bufferSize = cacheSize + RS_CACHE_HEAD_LEN;
+    uint8_t *buffer = new uint8_t[bufferSize];
     if (!buffer) {
         LOGD("abandon, because fail to allocate buffer for cache content");
         close(fd);
         unlink(cacheDir_.c_str());
         return;
     }
-    if (Serialize(buffer, cacheSize) < 0) {
+    if (Serialize(buffer + RS_CACHE_HEAD_LEN, cacheSize) < 0) {
         LOGD("abandon, because fail to serialize the CacheData:");
         delete[] buffer;
         close(fd);
         unlink(cacheDir_.c_str());
         return;
     }
-    if (write(fd, buffer, cacheSize) == ERR_NUMBER) {
+
+    // Write the file rs magic head and CRC code
+    if (memcpy_s(buffer, bufferSize, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
+        delete[] buffer;
+        close(fd);
+        return;
+    }
+    uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
+    *crc = CrcGen(buffer + RS_CACHE_HEAD_LEN, cacheSize);
+
+    if (write(fd, buffer, bufferSize) == ERR_NUMBER) {
         LOGD("abandon, because fail to write to disk");
         delete[] buffer;
         close(fd);
