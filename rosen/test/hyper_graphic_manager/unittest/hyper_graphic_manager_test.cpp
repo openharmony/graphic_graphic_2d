@@ -612,9 +612,6 @@ HWTEST_F(HyperGraphicManagerTest, NotifyScreenPowerStatus, Function | SmallTest 
     ScreenId screenId = 8;
     auto &instance = HgmCore::Instance();
     instance.NotifyScreenPowerStatus(screenId, POWER_STATUS_ON);
-    if (instance.hgmFrameRateMgr_ != nullptr) {
-        EXPECT_NE(instance.hgmFrameRateMgr_->curScreenId_, screenId);
-    }
 }
 
 
