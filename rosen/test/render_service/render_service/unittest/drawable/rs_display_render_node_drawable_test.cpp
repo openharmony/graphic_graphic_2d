@@ -1083,9 +1083,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, OnCapture, TestSize.Level1)
     auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     displayDrawable_->OnCapture(canvas);
 
-    params->compositeType_ = RSDisplayRenderNode::CompositeType::UNKNOWN;
-    displayDrawable_->OnCapture(canvas);
-
     RSUniRenderThread::GetCaptureParam().isMirror_ = true;
     displayDrawable_->OnCapture(canvas);
 

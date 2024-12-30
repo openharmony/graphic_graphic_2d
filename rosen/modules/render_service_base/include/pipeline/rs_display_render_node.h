@@ -59,8 +59,7 @@ public:
         UNI_RENDER_MIRROR_COMPOSITE,
         UNI_RENDER_EXPAND_COMPOSITE,
         HARDWARE_COMPOSITE,
-        SOFTWARE_COMPOSITE,
-        UNKNOWN
+        SOFTWARE_COMPOSITE
     };
     using WeakPtr = std::weak_ptr<RSDisplayRenderNode>;
     using SharedPtr = std::shared_ptr<RSDisplayRenderNode>;
