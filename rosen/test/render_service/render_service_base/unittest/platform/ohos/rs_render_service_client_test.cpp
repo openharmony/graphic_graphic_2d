@@ -315,7 +315,7 @@ HWTEST_F(RSClientTest, CreateNodeAndSurface001, TestSize.Level1)
 {
     ASSERT_NE(rsClient, nullptr);
     RSSurfaceRenderNodeConfig config = {.id=0, .name="testSurface"};
-    ASSERT_NE(rsClient->CreateNodeAndSurface(config), nullptr);
+    ASSERT_EQ(rsClient->CreateNodeAndSurface(config), nullptr);
 }
 
 /**

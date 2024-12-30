@@ -15,6 +15,7 @@
 
 #include "command/rs_surface_node_command.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -30,6 +31,11 @@ namespace Rosen {
 void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
 {
     if (!context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(id))) {
+            ROSEN_LOGI("SurfaceNodeCommandHelper::Create command is not vaild because there "
+            "have been too many surfaceNodes, nodeId:%{public}" PRIu64 "", id);
+            return;
+        }
         auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
             context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
         node->SetSurfaceNodeType(type);
@@ -46,6 +52,11 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
         .id = nodeId, .name = name, .bundleName = bundleName,
         .nodeType = static_cast<RSSurfaceNodeType>(type), .surfaceWindowType = windowType
     };
+    if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(nodeId))) {
+        ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfig command is not vaild because there "
+            "have been too many surfaceNodes, nodeId:%{public}" PRIu64 "", nodeId);
+        return;
+    }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
@@ -54,6 +65,11 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
 std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigInRS(
     const RSSurfaceRenderNodeConfig& config, RSContext& context)
 {
+    if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(config.id))) {
+        ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfigInRS command is not vaild because there have "
+            "been too many surfaceNodes, nodeId:%{public}" PRIu64 "", config.id);
+        return nullptr;
+    }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     return node;
