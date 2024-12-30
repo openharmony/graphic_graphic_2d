@@ -99,8 +99,7 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         RS_LOGE("RsDebug RSPhysicalScreenProcessor::Redraw: canvas is nullptr.");
         return;
     }
-    canvas->ConcatMatrix(screenTransformMatrix_);
-    renderEngine_->DrawLayers(*canvas, layers, forceCPU, mirrorAdaptiveCoefficient_);
+    renderEngine_->DrawLayers(*canvas, layers, forceCPU);
     renderFrame->Flush();
     RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw flush frame buffer end");
 }
