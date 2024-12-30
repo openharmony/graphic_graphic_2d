@@ -199,7 +199,7 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
 
 void FontConfigJson::EmplaceFontJson(const FontJson& fontJson)
 {
-    if (fontPtr == nullptr) {
+    if (fontPtr != nullptr) {
         return;
     }
 
