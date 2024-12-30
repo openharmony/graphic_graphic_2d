@@ -24,11 +24,13 @@ public:
     RSFrameRenderModifier() = default;
     ~RSFrameRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::FRAME;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::FRAME;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
+
+    void ResetProperties(RSProperties& properties) override;
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
@@ -37,7 +39,14 @@ private:
         return LegacyPropertyApplierMap_;
     }
 
-    void OnSetDirty() override {}
+    bool OnApply(RSModifierContext& context) override;
+
+    void CalculateFrameOffset(RSModifierContext& context);
+
+    float frameOffsetX_ = 0.0f;
+    float frameOffsetY_ = 0.0f;
+
+    bool isDrawn_ = false;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_GEOMETRY_RS_FRAME_RENDER_MODIFIER_H

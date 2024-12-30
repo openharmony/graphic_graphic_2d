@@ -261,11 +261,6 @@ public:
      */
     std::optional<Vector4f> GetBorderWidth() const;
 
-    /**
-     * @brief Gets the color of shadow.
-     *
-     * @return The color of shadow.
-     */
     std::optional<Color> GetShadowColor() const;
 
     /**

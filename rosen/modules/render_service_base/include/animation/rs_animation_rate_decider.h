@@ -20,6 +20,7 @@
 
 #include "common/rs_common_def.h"
 #include "modifier/rs_modifier_type.h"
+#include "modifier/rs_render_property.h"
 
 namespace OHOS {
 namespace Rosen {

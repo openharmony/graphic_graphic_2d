@@ -30,7 +30,8 @@ bool RSNodeGetShowingPropertyAndCancelAnimation::Marshalling(Parcel& parcel) con
            RSMarshallingHelper::Marshalling(parcel, commandSubType) &&
            RSMarshallingHelper::Marshalling(parcel, targetId_) &&
            RSMarshallingHelper::Marshalling(parcel, timeoutNS_) &&
-           RSMarshallingHelper::Marshalling(parcel, isTimeout_) && RSMarshallingHelper::Marshalling(parcel, success_) &&
+           RSMarshallingHelper::Marshalling(parcel, isTimeout_) &&
+           RSMarshallingHelper::Marshalling(parcel, success_) &&
            RSMarshallingHelper::Marshalling(parcel, property_);
 }
 
@@ -81,22 +82,19 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
             "node [%{public}" PRIu64 "] or property is null!", targetId_);
         return;
     }
-    if (auto property = node->GetProperty(property_->GetId())) {
-        property_ = property;
+    std::shared_ptr<RSRenderPropertyBase> property;
+    if (auto modifier = node->GetModifier(property_->GetId())) {
+        property = modifier->GetProperty();
     } else {
-        auto modifier = node->GetModifier(property_->GetId());
-        if (!modifier) {
-            success_ = false;
-            ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, modifier is null!");
-            return;
-        }
-        property_ = modifier->GetProperty();
+        property = node->GetProperty(property_->GetId());
     }
-    success_ = (property_ != nullptr);
-    if (success_) {
-        auto& animationManager = node->GetAnimationManager();
-        animationManager.CancelAnimationByPropertyId(property_->GetId());
+    if (!property) {
+        success_ = false;
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, modifier is null!");
+        return;
     }
+    auto& animationManager = node->GetAnimationManager();
+    animationManager.CancelAnimationByPropertyId(property_->GetId());
 }
 
 bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
@@ -173,10 +171,10 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
                 "node [%{public}" PRIu64 "] is null!", nodeId);
             continue;
         }
-        if (auto prop = node->GetProperty(propertyId)) {
-            property = prop;
-        } else if (auto modifier = node->GetModifier(propertyId)) {
+        if (auto modifier = node->GetModifier(propertyId)) {
             property = modifier->GetProperty();
+        } else {
+            property = node->GetProperty(propertyId);
         }
         node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
     }

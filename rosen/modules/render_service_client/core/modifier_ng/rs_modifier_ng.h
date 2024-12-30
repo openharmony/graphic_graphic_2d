@@ -17,14 +17,15 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_RS_MODIFIER_NG_H
 
 #include <map>
+#include <memory>
 
+#include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "modifier/rs_property.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 
 namespace OHOS::Rosen {
-class RSModifierExtractor;
 class RSNode;
-class RSPropertyBase;
 
 namespace ModifierNG {
 class RSRenderModifier;
@@ -38,11 +39,11 @@ public:
 
     void OnAttach(RSNode& node);
     void OnDetach();
-    void AttachProperty(const std::shared_ptr<RSPropertyBase>& property);
-    void AttachProperty(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
-    void DetachProperty(RSPropertyType type);
 
-    void SetDirty(bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager = nullptr);
+    void AttachProperty(ModifierNG::RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
+    void DetachProperty(ModifierNG::RSPropertyType type);
+
+    void SetDirty(bool isDirty);
 
     virtual RSModifierType GetType() const = 0;
 
@@ -55,25 +56,8 @@ public:
         return it->second;
     }
 
-    bool HasProperty(RSPropertyType type) const
-    {
-        return properties_.count(type);
-    }
-
-    virtual bool IsCustom() const
-    {
-        return false;
-    }
-
-    void ResetRSNodeExtendModifierDirty()
-    {
-        if (auto node = node_.lock()) {
-            node->ResetExtendModifierDirty();
-        }
-    }
-
 protected:
-    RSModifier() : id_(GenerateModifierId()) {}
+    RSModifier() = default;
     virtual ~RSModifier() = default;
 
     // only accept properties on white list ?
@@ -83,7 +67,6 @@ protected:
 
     virtual std::shared_ptr<RSRenderModifier> CreateRenderModifier();
     virtual void UpdateToRender() {}
-    virtual void MarkNodeDirty() {}
 
     template<typename T>
     inline T Getter(RSPropertyType type, const T& defaultValue) const
@@ -94,12 +77,6 @@ protected:
         }
         auto property = std::static_pointer_cast<RSProperty<T>>(it->second);
         return property->Get();
-    }
-
-    template<typename T>
-    inline T GetterWithoutCheck(const std::shared_ptr<RSPropertyBase> property) const
-    {
-        return std::static_pointer_cast<RSProperty<T>>(property)->Get();
     }
 
     template<template<typename> class PropertyType = RSAnimatableProperty, typename T>
@@ -143,17 +120,18 @@ protected:
         }
     }
 
+    // TODO: used in the original code, but do we need this?
+    std::string GetModifierTypeString() const
+    {
+        return RSModifierTypeString::GetModifierTypeString(GetType());
+    }
+
     using Constructor = std::function<RSModifier*()>;
 
 private:
-    static ModifierId GenerateModifierId();
-    void SetPropertyThresholdType(RSPropertyType type, std::shared_ptr<RSPropertyBase> property);
-    static std::array<Constructor, MODIFIER_TYPE_COUNT> ConstructorLUT_;
-    bool isDirty_ { false };
+    static std::array<Constructor, ModifierNG::MODIFIER_TYPE_COUNT> ConstructorLUT_;
 
-    friend class OHOS::Rosen::RSModifierExtractor;
     friend class OHOS::Rosen::RSNode;
-    friend class OHOS::Rosen::RSPropertyBase;
 };
 } // namespace ModifierNG
 } // namespace OHOS::Rosen

@@ -22,6 +22,8 @@
 #include <set>
 #include <utility>
 
+#include "offscreen_render/rs_offscreen_render_thread.h"
+#include "rs_profiler.h"
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
@@ -32,12 +34,14 @@
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "modifier/rs_modifier_type.h"
-#include "offscreen_render/rs_offscreen_render_thread.h"
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "params/rs_render_params.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -53,9 +57,6 @@
 #include "render/rs_render_filter.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
-#include "rs_profiler.h"
-#include "sandbox_utils.h"
-#include "string_utils.h"
 
 #ifdef RS_ENABLE_VK
 #ifdef USE_M133_SKIA
@@ -1180,11 +1181,9 @@ void RSRenderNode::ForceMergeSubTreeDirtyRegion(RSDirtyRegionManager& dirtyManag
 {
     // prepare skip -> quick prepare, old dirty do not update
     if (geoUpdateDelay_) {
-        if (auto& geoPtr = GetRenderProperties().GetBoundsGeometry()) {
-            auto absChildrenRect = geoPtr->MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
-            subTreeDirtyRegion_ = absChildrenRect.IntersectRect(oldClipRect_);
-            dirtyManager.MergeDirtyRect(subTreeDirtyRegion_);
-        }
+        auto absChildrenRect = RSObjAbsGeometry::MapRect(oldChildrenRect_.ConvertTo<float>(), oldAbsMatrix_);
+        subTreeDirtyRegion_ = absChildrenRect.IntersectRect(oldClipRect_);
+        dirtyManager.MergeDirtyRect(subTreeDirtyRegion_);
     }
     lastFrameSubTreeSkipped_ = false;
 }
@@ -1225,7 +1224,7 @@ void RSRenderNode::SetContentDirty()
 
 void RSRenderNode::SetDirty(bool forceAddToActiveList)
 {
-    bool dirtyEmpty = dirtyTypes_.none();
+    bool dirtyEmpty = dirtyTypes_.none() && dirtyTypesNG_.none();
     // TO avoid redundant add, only add if both: 1. on-tree node 2. newly dirty node (or forceAddToActiveList = true)
     if (dirtyStatus_ == NodeDirty::CLEAN || dirtyEmpty || forceAddToActiveList) {
         if (auto context = GetContext().lock()) {
@@ -1254,7 +1253,7 @@ void RSRenderNode::CollectSelfDrawingChild(const std::shared_ptr<RSRenderNode>& 
     if (node == nullptr) {
         return;
     }
-    
+
     for (auto& child : *node->GetSortedChildren()) {
         child->CollectSelfDrawingChild(child, vec);
     }
@@ -2820,11 +2819,11 @@ void RSRenderNode::DumpNodeInfo(DfxString& log)
 void RSRenderNode::AccumulateDirtyInOcclusion(bool isOccluded)
 {
     if (isOccluded) {
-        // accumulate dirtytypes for modifiers
+        // Accumulate dirtytypes for modifiers
         AccumulateDirtyTypes();
-        // accumulate dirtystatus in rendernode
+        // Accumulate dirtystatus in rendernode
         AccumulateDirtyStatus();
-        // accumulate dirtystatus in render properties(isDirty, geoDirty, contentDirty)
+        // Accumulate dirtystatus in render properties(isDirty, geoDirty, contentDirty)
         GetMutableRenderProperties().AccumulateDirtyStatus();
         return;
     }
@@ -2855,22 +2854,26 @@ void RSRenderNode::ResetAccumulateDirtyStatus()
 
 void RSRenderNode::RecordCurDirtyTypes()
 {
-    curDirtyTypes_ |= ~dirtyTypes_;
+    curDirtyTypes_ |= dirtyTypes_;
+    curDirtyTypesNG_ |= dirtyTypesNG_;
 }
 
 void RSRenderNode::AccumulateDirtyTypes()
 {
-    dirtyTypes_ |= ~curDirtyTypes_;
+    dirtyTypes_ |= curDirtyTypes_;
+    dirtyTypesNG_ |= curDirtyTypesNG_;
 }
 
 void RSRenderNode::ResetAccumulateDirtyTypes()
 {
     dirtyTypes_.reset();
+    dirtyTypesNG_.reset();
 }
 
 void RSRenderNode::ApplyPositionZModifier()
 {
     constexpr auto positionZModifierType = static_cast<size_t>(RSModifierType::POSITION_Z);
+    // TODO: modifier NG adaption
     if (!dirtyTypes_.test(positionZModifierType)) {
         return;
     }
@@ -2908,6 +2911,7 @@ void RSRenderNode::MarkForegroundFilterCache()
 void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSRenderModifier> modifier)
 {
     auto modifierType = modifier->GetType();
+    // TODO: modifier NG adaption
     if (!dirtyTypes_.test(static_cast<size_t>(modifierType))) {
         return;
     }
@@ -2934,6 +2938,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
         // if children has shared transition, force regenerate RSChildrenDrawable
         AddDirtyType(RSModifierType::CHILDREN);
     } else if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+        // TODO: modifier NG adaption
         RS_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
         // clean node, skip apply
         return;
@@ -2943,6 +2948,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     RSModifierContext context = { GetMutableRenderProperties() };
 
     // Reset before apply modifiers
+    // TODO: modifier NG adaption
     GetMutableRenderProperties().ResetProperty(dirtyTypes_);
 
     // Apply modifiers
@@ -2961,12 +2967,14 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
             ApplyModifier(context, modifier);
         }
     }
+
     // execute hooks
     GetMutableRenderProperties().OnApplyModifiers();
     OnApplyModifiers();
     MarkForegroundFilterCache();
     UpdateShouldPaint();
 
+    // TODO: modifier NG adaption
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT)) ||
         dirtyTypes_.test(static_cast<size_t>(RSModifierType::USE_EFFECT_TYPE))) {
         ProcessBehindWindowAfterApplyModifiers();
@@ -3007,6 +3015,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     ClearResource();
     // update state
     dirtyTypes_.reset();
+    dirtyTypesNG_.reset();
     AddToPendingSyncList();
 
     // update rate decider scale reference size and scale.
@@ -5193,6 +5202,7 @@ void RSRenderNode::UpdateDrawableBehindWindow()
     AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
     SetContentDirty();
 #ifdef RS_ENABLE_GPU
+    // TODO: dirtyTypesNG
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
     if (dirtySlots.empty()) {
         RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow dirtySlots is empty");
@@ -5233,35 +5243,70 @@ size_t RSRenderNode::GetAllModifierSize()
     return totalSize;
 }
 
-void RSRenderNode::ClearDrawableVec2()
+void RSRenderNode::AddModifier(const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
 {
-    if (drawableVecNeedClear_) {
-        if (GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE &&
-            drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]) {
-            if (isPurgeable_) {
-                drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]->OnPurge();
-            }
-            drawableVec_[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)].reset();
-            dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
-        }
-        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::TRANSITION)]) {
-            drawableVec_[static_cast<int8_t>(RSDrawableSlot::TRANSITION)].reset();
-            dirtyTypes_.set(static_cast<int>(RSModifierType::TRANSITION), true);
-        }
-        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)]) {
-            drawableVec_[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)].reset();
-            dirtyTypes_.set(static_cast<int>(RSModifierType::BACKGROUND_STYLE), true);
-        }
-        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)]) {
-            drawableVec_[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)].reset();
-            dirtyTypes_.set(static_cast<int>(RSModifierType::FOREGROUND_STYLE), true);
-        }
-        if (drawableVec_[static_cast<int8_t>(RSDrawableSlot::OVERLAY)]) {
-            drawableVec_[static_cast<int8_t>(RSDrawableSlot::OVERLAY)].reset();
-            dirtyTypes_.set(static_cast<int>(RSModifierType::OVERLAY_STYLE), true);
-        }
-        drawableVecNeedClear_ = false;
+    if (modifier == nullptr) {
+        return;
     }
+    if (modifier->IsAttached()) {
+        // other cleanup
+        modifier->OnDetachModifier();
+    }
+    modifiersNG_[static_cast<uint8_t>(modifier->GetType())].emplace_back(modifier);
+    modifier->OnAttachModifier(*this);
+}
+
+void RSRenderNode::RemoveModifier(ModifierNG::RSModifierType type, ModifierId id)
+{
+    auto& slot = modifiersNG_[static_cast<uint8_t>(type)];
+    auto it = std::find_if (slot.begin(), slot.end(),
+        [id](const auto& modifier) -> bool { return modifier->GetId() == id; });
+    if (it == slot.end()) {
+        return;
+    }
+    (*it)->OnDetachModifier();
+    slot.erase(it);
+}
+
+void RSRenderNode::RemoveAllModifiersNG()
+{
+    for (auto& slot : modifiersNG_) {
+        for (auto& modifier : slot) {
+            modifier->OnDetachModifier();
+        }
+        slot.clear();
+    }
+}
+
+std::shared_ptr<ModifierNG::RSRenderModifier> RSRenderNode::GetModifierNG(
+    ModifierNG::RSModifierType type, ModifierId id)
+{
+    auto& slot = modifiersNG_[static_cast<uint8_t>(type)];
+    auto it =
+        std::find_if(slot.begin(), slot.end(), [id](const auto& modifier) -> bool { return modifier->GetId() == id; });
+    if (it == slot.end()) {
+        return nullptr;
+    }
+    return *it;
+}
+
+std::shared_ptr<ModifierNG::RSRenderModifier> RSRenderNode::GetModifierNG(PropertyId id)
+{
+    auto property = GetProperty(id);
+    if (property == nullptr) {
+        return nullptr;
+    }
+    // return property->GetTarget();
+    return nullptr;
+}
+
+std::shared_ptr<RSRenderPropertyBase> RSRenderNode::GetProperty(PropertyId id)
+{
+    auto it = properties_.find(id);
+    if (it == properties_.end()) {
+        return nullptr;
+    }
+    return it->second;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -16,18 +16,13 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H
 #define ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H
 
-#include "animation/rs_frame_rate_range.h"
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_render_node.h"
-#include "property/rs_properties.h"
 
 namespace OHOS {
 namespace Rosen {
-
-//Each command HAVE TO have UNIQUE ID in ALL HISTORY
-//If a command is not used and you want to delete it,
-//just COMMENT it - and never use this value anymore
 enum RSNodeCommandType : uint16_t {
     ADD_MODIFIER = 0x0000,
     REMOVE_MODIFIER = 0x0001,
@@ -84,17 +79,18 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_FLY_OUT = 0x0604,
     REMOVE_ALL_MODIFIERS = 0x0605,
 
-    DUMP_CLIENT_NODE_TREE = 0x0700,
-    COMMIT_DUMP_CLIENT_NODE_TREE = 0x0701,
+    DUMP_CLIENT_NODE_TREE,
+    COMMIT_DUMP_CLIENT_NODE_TREE,
 
-    SET_UICONTEXT_TOKEN = 0x0800,
-
-    SET_DRAW_NODE_TYPE = 0x0900,
-
-    UPDATE_OCCLUSION_CULLING_STATUS = 0x0a00,
-
-    MARK_REPAINT_BOUNDARY = 0x1000,
+    ADD_MODIFIER_NG,
+    REMOVE_MODIFIER_NG,
+    MODIFIER_NG_ATTACH_PROPERTY,
+    MODIFIER_NG_DETACH_PROPERTY,
 };
+
+namespace ModifierNG {
+class RSRenderModifier;
+}
 
 class RSB_EXPORT RSNodeCommandHelper {
 public:
@@ -103,7 +99,7 @@ public:
     static void RemoveAllModifiers(RSContext& context, NodeId nodeId);
 
     template<typename T>
-    static void UpdateModifier(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
+    static void UpdateProperty(RSContext& context, NodeId nodeId, T value, PropertyId id, PropertyUpdateType type)
     {
         auto& nodeMap = context.GetNodeMap();
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
@@ -114,13 +110,16 @@ public:
             node->GetAnimationManager().CancelAnimationByPropertyId(id);
         }
         if (auto modifier = node->GetModifier(id)) {
+            // Legacy modifier: update RSRenderModifier
             std::shared_ptr<RSRenderPropertyBase> prop = std::make_shared<RSRenderProperty<T>>(value, id);
             bool isDelta = (type == UPDATE_TYPE_INCREMENTAL);
             modifier->Update(prop, isDelta);
         } else if (auto property = node->GetProperty(id)) {
+            // ModifierNG: update RSRenderProperty
             std::static_pointer_cast<RSRenderProperty<T>>(property)->Set(value, type);
         }
     }
+
     static void UpdateModifierDrawCmdList(
         RSContext& context, NodeId nodeId, Drawing::DrawCmdListPtr value, PropertyId id, bool isDelta)
     {
@@ -131,11 +130,16 @@ public:
         if (!node) {
             return;
         }
-        auto modifier = node->GetModifier(id);
-        if (!modifier) {
+        if (auto modifier = node->GetModifier(id)) {
+            // Legacy modifier: update RSRenderModifier
+            modifier->Update(prop, isDelta);
+        } else if (auto property = node->GetProperty(id)) {
+            // ModifierNG: update RSRenderProperty
+            std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(property)->Set(
+                value, UPDATE_TYPE_OVERWRITE);
+        } else {
             return;
         }
-        modifier->Update(prop, isDelta);
         if (value) {
             value->UpdateNodeIdToPicture(nodeId);
         }
@@ -169,10 +173,15 @@ public:
     static void CommitDumpClientNodeTree(RSContext& context, NodeId nodeId, pid_t pid, uint32_t taskId,
         const std::string& result);
     static RSB_EXPORT void SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProcessor processor);
-    static void SetUIToken(RSContext& context, NodeId nodeId, uint64_t token);
-    static void SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType);
-    static void UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId,
-        bool enable, NodeId keyOcclusionNodeId);
+
+    static void AddModifierNG(
+        RSContext& context, NodeId nodeId, const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier);
+    static void RemoveModifierNG(RSContext& context, NodeId nodeId, ModifierNG::RSModifierType type, ModifierId id);
+    static void ModifierNGAttachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
+        ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType,
+        std::shared_ptr<RSRenderPropertyBase> prop);
+    static void ModifierNGDetachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
+        ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType type);
 };
 
 ADD_COMMAND(RSAddModifier,
@@ -184,22 +193,22 @@ ADD_COMMAND(RSRemoveModifier,
 
 ADD_COMMAND(RSUpdatePropertyBool,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_BOOL,
-        RSNodeCommandHelper::UpdateModifier<bool>, NodeId, bool, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<bool>, NodeId, bool, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFloat,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_FLOAT,
-        RSNodeCommandHelper::UpdateModifier<float>, NodeId, float, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<float>, NodeId, float, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyInt,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_INT,
-        RSNodeCommandHelper::UpdateModifier<int>, NodeId, int, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<int>, NodeId, int, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyColor,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_COLOR,
-        RSNodeCommandHelper::UpdateModifier<Color>, NodeId, Color, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Color>, NodeId, Color, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyGravity,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_GRAVITY,
-        RSNodeCommandHelper::UpdateModifier<Gravity>, NodeId, Gravity, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Gravity>, NodeId, Gravity, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMatrix3f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MATRIX3F,
-        RSNodeCommandHelper::UpdateModifier<Matrix3f>, NodeId, Matrix3f, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Matrix3f>, NodeId, Matrix3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyQuaternion,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_QUATERNION,
         RSNodeCommandHelper::UpdateModifier<Quaternion>, NodeId, Quaternion, PropertyId, PropertyUpdateType))
@@ -213,81 +222,73 @@ ADD_COMMAND(RSUpdatePropertyNGFilterBase,
         NodeId, std::shared_ptr<RSNGRenderFilterBase>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyImage,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_IMAGE_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSImage>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSImage>>,
         NodeId, std::shared_ptr<RSImage>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMask,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MASK_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMask>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSMask>>,
         NodeId, std::shared_ptr<RSMask>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyPath,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PATH_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSPath>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSPath>>,
         NodeId, std::shared_ptr<RSPath>, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyDynamicBrightness,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DYNAMIC_BRIGHTNESS,
-        RSNodeCommandHelper::UpdateModifier<RSDynamicBrightnessPara>,
-        NodeId, RSDynamicBrightnessPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyWaterRipple,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_WATER_RIPPLE,
-        RSNodeCommandHelper::UpdateModifier<RSWaterRipplePara>,
+        RSNodeCommandHelper::UpdateProperty<RSWaterRipplePara>,
         NodeId, RSWaterRipplePara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyFlyOut,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_FLY_OUT,
-        RSNodeCommandHelper::UpdateModifier<RSFlyOutPara>, NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<RSFlyOutPara>, NodeId, RSFlyOutPara, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyLinearGradientBlurPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_GRADIENT_BLUR_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSLinearGradientBlurPara>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSLinearGradientBlurPara>>,
         NodeId, std::shared_ptr<RSLinearGradientBlurPara>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMotionBlurPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MOTION_BLUR_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<MotionBlurParam>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<MotionBlurParam>>,
         NodeId, std::shared_ptr<MotionBlurParam>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyMagnifierPara,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_MAGNIFIER_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSMagnifierParams>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSMagnifierParams>>,
         NodeId, std::shared_ptr<RSMagnifierParams>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyEmitterUpdater,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_EMITTER_UPDATER_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::vector<std::shared_ptr<EmitterUpdater>>>,
+        RSNodeCommandHelper::UpdateProperty<std::vector<std::shared_ptr<EmitterUpdater>>>,
         NodeId, std::vector<std::shared_ptr<EmitterUpdater>>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyParticleNoiseFields,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_NOISE_FIELD_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<ParticleNoiseFields>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<ParticleNoiseFields>>,
         NodeId, std::shared_ptr<ParticleNoiseFields>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyShader,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_SHADER_PTR,
-        RSNodeCommandHelper::UpdateModifier<std::shared_ptr<RSShader>>,
+        RSNodeCommandHelper::UpdateProperty<std::shared_ptr<RSShader>>,
         NodeId, std::shared_ptr<RSShader>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector2f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR2F,
-        RSNodeCommandHelper::UpdateModifier<Vector2f>, NodeId, Vector2f, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Vector2f>, NodeId, Vector2f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector3f,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR3F, RSNodeCommandHelper::UpdateModifier<Vector3f>,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR3F, RSNodeCommandHelper::UpdateProperty<Vector3f>,
         NodeId, Vector3f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyBorderStyle,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4_BORDER_STYLE,
-        RSNodeCommandHelper::UpdateModifier<Vector4<uint32_t>>,
+        RSNodeCommandHelper::UpdateProperty<Vector4<uint32_t>>,
         NodeId, Vector4<uint32_t>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector4Color,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4_COLOR,
-        RSNodeCommandHelper::UpdateModifier<Vector4<Color>>, NodeId, Vector4<Color>, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Vector4<Color>>, NodeId, Vector4<Color>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyVector4f,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR4F,
-        RSNodeCommandHelper::UpdateModifier<Vector4f>, NodeId, Vector4f, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Vector4f>, NodeId, Vector4f, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyRRect,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_RRECT,
-        RSNodeCommandHelper::UpdateModifier<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<RRect>, NodeId, RRect, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawCmdList,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAW_CMD_LIST,
         RSNodeCommandHelper::UpdateModifierDrawCmdList,
         NodeId, Drawing::DrawCmdListPtr, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyDrawingMatrix,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_DRAWING_MATRIX,
-        RSNodeCommandHelper::UpdateModifier<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
-ADD_COMMAND(RSUpdatePropertyComplexShaderParam,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_COMPLEX_SHADER_PARAM,
-        RSNodeCommandHelper::UpdateModifier<std::vector<float>>,
-        NodeId, std::vector<float>, PropertyId, PropertyUpdateType))
+        RSNodeCommandHelper::UpdateProperty<Drawing::Matrix>, NodeId, Drawing::Matrix, PropertyId, PropertyUpdateType))
 
 ADD_COMMAND(RSSetFreeze,
     ARG(PERMISSION_APP, RS_NODE, SET_FREEZE,
@@ -354,13 +355,19 @@ ADD_COMMAND(RSDumpClientNodeTree,
 ADD_COMMAND(RSCommitDumpClientNodeTree,
     ARG(PERMISSION_APP, RS_NODE, COMMIT_DUMP_CLIENT_NODE_TREE,
         RSNodeCommandHelper::CommitDumpClientNodeTree, NodeId, pid_t, uint32_t, std::string))
-ADD_COMMAND(RSSetDrawNodeType,
-    ARG(PERMISSION_APP, RS_NODE, SET_DRAW_NODE_TYPE,
-        RSNodeCommandHelper::SetDrawNodeType, NodeId, DrawNodeType))
-ADD_COMMAND(RSUpdateOcclusionCullingStatus,
-    ARG(PERMISSION_APP, RS_NODE, UPDATE_OCCLUSION_CULLING_STATUS,
-        RSNodeCommandHelper::UpdateOcclusionCullingStatus, NodeId, bool, NodeId))
+
+ADD_COMMAND(RSAddModifierNG,
+    ARG(PERMISSION_APP, RS_NODE, ADD_MODIFIER_NG,
+        RSNodeCommandHelper::AddModifierNG, NodeId, std::shared_ptr<ModifierNG::RSRenderModifier>))
+ADD_COMMAND(RSRemoveModifierNG,
+    ARG(PERMISSION_APP, RS_NODE, REMOVE_MODIFIER_NG,
+        RSNodeCommandHelper::RemoveModifierNG, NodeId, ModifierNG::RSModifierType, ModifierId))
+ADD_COMMAND(RSModifierNGAttachProperty,
+    ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_ATTACH_PROPERTY, RSNodeCommandHelper::ModifierNGAttachProperty, NodeId,
+        ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType, std::shared_ptr<RSRenderPropertyBase>))
+ADD_COMMAND(RSModifierNGDetachProperty,
+    ARG(PERMISSION_APP, RS_NODE, MODIFIER_NG_DETACH_PROPERTY, RSNodeCommandHelper::ModifierNGDetachProperty, NodeId,
+        ModifierId, ModifierNG::RSModifierType, ModifierNG::RSPropertyType))
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_NODE_COMMAND_H

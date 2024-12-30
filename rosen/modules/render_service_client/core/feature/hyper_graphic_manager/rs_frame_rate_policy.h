@@ -24,19 +24,6 @@
 namespace OHOS {
 namespace Rosen {
 enum class RSPropertyUnit : uint8_t;
-
-enum TouchStatus : uint32_t {
-    TOUCH_CANCEL = 1,
-    TOUCH_DOWN = 2,
-    TOUCH_MOVE = 3,
-    TOUCH_UP = 4,
-    TOUCH_BUTTON_DOWN = 8,
-    TOUCH_BUTTON_UP = 9,
-    TOUCH_PULL_DOWN = 12,
-    TOUCH_PULL_MOVE = 13,
-    TOUCH_PULL_UP = 14,
-};
-
 struct AnimDynamicAttribute {
     int32_t minSpeed = 0;
     int32_t maxSpeed = 0;

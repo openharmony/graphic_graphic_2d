@@ -68,6 +68,5 @@ float RSFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
     float radiusPx = radiusVp * dipScale;
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + 0.5f : 0.0f;
 }
-
 } // namespace Rosen
 } // namespace OHOS

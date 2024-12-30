@@ -53,14 +53,14 @@ class RSC_EXPORT RSModifier : public std::enable_shared_from_this<RSModifier> {
 public:
     /**
      * @brief Construct an RSModifier object with the specified property.
-     * 
+     *
      * If the provided property is a valid shared pointer, it is assigned to the RSModifier.
      * Otherwise, a new default instance of RSPropertyBase is created and assigned.
-     * 
+     *
      * @param property A shared pointer to an RSPropertyBase object.
      */
     explicit RSModifier(const std::shared_ptr<RSPropertyBase>& property)
-        : property_(property ? property : std::make_shared<RSProperty<bool>>())
+        : property_(property ? property : std::make_shared<RSProperty<int>>())
     {}
 
     /**
@@ -80,7 +80,7 @@ public:
 
     /**
      * @brief Get the unique identifier of the property associated with this modifier.
-     * 
+     *
      * @return PropertyId The unique identifier of the property.
      */
     PropertyId GetPropertyId()
@@ -90,7 +90,7 @@ public:
 
 protected:
     RSModifier(const std::shared_ptr<RSPropertyBase>& property, const RSModifierType type)
-        : property_(property ? property : std::make_shared<RSProperty<bool>>())
+        : property_(property ? property : std::make_shared<RSProperty<int>>())
     {
         property_->type_ = type;
     }
@@ -147,9 +147,7 @@ protected:
 
     virtual void OnAttachToNode(const std::weak_ptr<RSNode>& target) {}
 
-    virtual void OnDetachFromNode() {}
-
-    void SetDirty(const bool isDirty, const std::shared_ptr<RSModifierManager>& modifierManager = nullptr);
+    void SetDirty(bool isDirty);
 
     virtual void MarkNodeDirty() {}
 

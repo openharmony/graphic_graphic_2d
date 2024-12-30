@@ -15,6 +15,12 @@
 
 #include "modifier_ng/foreground/rs_foreground_color_render_modifier.h"
 
+#include "drawable/rs_property_drawable_utils.h"
+#include "modifier/rs_render_property.h"
+#include "modifier_ng/rs_render_modifier_utils.h"
+#include "pipeline/rs_recording_canvas.h"
+#include "property/rs_properties.h"
+
 namespace OHOS::Rosen::ModifierNG {
 const RSForegroundColorRenderModifier::LegacyPropertyApplierMap
     RSForegroundColorRenderModifier::LegacyPropertyApplierMap_ = {
@@ -24,6 +30,38 @@ const RSForegroundColorRenderModifier::LegacyPropertyApplierMap
 
 void RSForegroundColorRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetForegroundColor(Color());
+    properties.SetForegroundColor({});
+}
+
+void RSForegroundColorRenderModifier::Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) {}
+
+/*
+ * Protected Methods
+ */
+bool RSForegroundColorRenderModifier::OnApply(RSModifierContext& context)
+{
+    if (!HasProperty(RSPropertyType::FOREGROUND_COLOR)) {
+        return false;
+    }
+    stagingFgColor_ = Getter<Color>(RSPropertyType::FOREGROUND_COLOR);
+
+    if (stagingFgColor_ == RgbPalette::Transparent()) {
+        return false;
+    }
+
+    RSDisplayListModifierUpdater updater(this);
+    auto& canvas = updater.GetRecordingCanvas();
+    Drawing::Brush brush;
+    brush.SetColor(Drawing::Color(stagingFgColor_.AsArgbInt()));
+    brush.SetAntiAlias(true);
+    canvas->AttachBrush(brush);
+    canvas->DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(context.GetRRect()));
+    canvas->DetachBrush();
+    return true;
+}
+
+void RSForegroundColorRenderModifier::OnSync()
+{
+    std::swap(stagingFgColor_, renderFgColor_);
 }
 } // namespace OHOS::Rosen::ModifierNG

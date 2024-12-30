@@ -43,6 +43,7 @@
 #include "memory/rs_dfx_string.h"
 #include "memory/rs_memory_snapshot.h"
 #include "modifier/rs_render_modifier.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_render_display_sync.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -64,6 +65,10 @@ namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
 struct SharedTransitionParam;
+namespace ModifierNG {
+    class RSRenderModifier;
+    enum class RSModifierType : uint8_t;
+}
 
 struct CurFrameInfoDetail {
     uint32_t curFramePrepareSeqNum = 0;
@@ -356,8 +361,12 @@ public:
         dirtyTypes_.set(static_cast<int>(type), true);
     }
 
-    std::tuple<bool, bool, bool> Animate(
-        int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
+    void AddDirtyType(ModifierNG::RSModifierType type)
+    {
+        dirtyTypesNG_.set(static_cast<int>(type), true);
+    }
+
+    std::tuple<bool, bool, bool> Animate(int64_t timestamp, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
@@ -438,6 +447,13 @@ public:
     void RemoveAllModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
+    void AddModifier(const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier);
+    void RemoveModifier(ModifierNG::RSModifierType type, ModifierId id);
+    void RemoveAllModifiersNG();
+    std::shared_ptr<ModifierNG::RSRenderModifier> GetModifierNG(ModifierNG::RSModifierType type, ModifierId id);
+    std::shared_ptr<ModifierNG::RSRenderModifier> GetModifierNG(PropertyId id);
+    std::shared_ptr<RSRenderPropertyBase> GetProperty(PropertyId id);
+
     size_t GetAllModifierSize();
 
     bool IsShadowValidLastFrame() const;
@@ -485,7 +501,7 @@ public:
         return cacheSurface_;
     }
 
-// use for uni render visitor
+    // use for uni render visitor
     std::shared_ptr<Drawing::Surface> GetCacheSurface(uint32_t threadIndex, bool needCheckThread,
         bool releaseAfterGet = false);
 
@@ -1012,6 +1028,9 @@ protected:
     ModifierDirtyTypes dirtyTypes_;
     ModifierDirtyTypes curDirtyTypes_;
 
+    ModifierNG::ModifierDirtyTypes dirtyTypesNG_;
+    ModifierNG::ModifierDirtyTypes curDirtyTypesNG_;
+
     CurFrameInfoDetail curFrameInfoDetail_;
 
     // Enable HWCompose
@@ -1176,11 +1195,16 @@ private:
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     DrawCmdIndex stagingDrawCmdIndex_;
     std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
+    RSDrawable::Vec drawableVec_;
+
+    std::array<std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>, ModifierNG::MODIFIER_TYPE_COUNT>
+        modifiersNG_;
+    std::map<PropertyId, std::shared_ptr<RSRenderPropertyBase>> properties_;
+
     std::vector<NodeId> visibleFilterChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;
     Drawing::Matrix oldAbsMatrix_;
-    RSDrawable::Vec drawableVec_;
     RSAnimationManager animationManager_;
     RSOpincCache opincCache_;
 
@@ -1274,6 +1298,7 @@ private:
     friend class DrawableV2::RSRenderNodeDrawableAdapter;
     friend class DrawableV2::RSChildrenDrawable;
     friend class DrawableV2::RSRenderNodeShadowDrawable;
+    friend class ModifierNG::RSRenderModifier;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

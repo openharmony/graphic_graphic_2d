@@ -16,34 +16,29 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H
 
+#include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "render/rs_path.h"
 
-namespace OHOS::Rosen::ModifierNG {
+namespace OHOS::Rosen {
+namespace ModifierNG {
 class RSC_EXPORT RSBoundsClipModifier : public RSModifier {
 public:
     RSBoundsClipModifier() = default;
     ~RSBoundsClipModifier() = default;
 
-    static inline constexpr auto Type = RSModifierType::CLIP_TO_BOUNDS;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::CLIP_TO_BOUNDS;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     }
 
-    void MarkNodeDirty() override
-    {
-        if (auto node = node_.lock()) {
-            node->MarkDirty(NodeDirtyType::APPEARANCE, true);
-        }
-    }
-
-    void SetClipRectWithRadius(const Vector4f& clipRect, const Vector4f& clipRadius);
+    void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
     void SetClipRRect(const std::shared_ptr<RRect>& rrect);
     void SetClipBounds(const std::shared_ptr<RSPath>& clipToBounds);
     void SetClipToBounds(bool clipToBounds);
-    void SetCornerRadius(const Vector4f& cornerRadius);
-    Vector4f GetCornerRadius() const;
 };
-} // namespace OHOS::Rosen::ModifierNG
+} // namespace ModifierNG
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H

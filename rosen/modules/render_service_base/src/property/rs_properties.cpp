@@ -1176,6 +1176,27 @@ Vector4f RSProperties::GetBgImageInnerRect() const
     return decoration_ ? decoration_->bgImageInnerRect_ : Vector4f();
 }
 
+void RSProperties::SetBgImageDstRect(const Vector4f& rect)
+{
+    if (!decoration_) {
+        decoration_ = std::make_optional<Decoration>();
+    }
+    decoration_->bgImageRect_ = RectF(rect);
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const Vector4f RSProperties::GetBgImageDstRect()
+{
+    RectF rect = decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
+    return Vector4f(rect.left_, rect.top_, rect.width_, rect.height_);
+}
+
+const RectF& RSProperties::GetBgImageRect() const
+{
+    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
+}
+
 void RSProperties::SetBgImageWidth(float width)
 {
     if (!decoration_) {
@@ -2371,11 +2392,6 @@ RectF RSProperties::GetBoundsRect() const
 RectF RSProperties::GetFrameRect() const
 {
     return {0, 0, GetFrameWidth(), GetFrameHeight()};
-}
-
-const RectF& RSProperties::GetBgImageRect() const
-{
-    return decoration_ ? decoration_->bgImageRect_ : EMPTY_RECT;
 }
 
 void RSProperties::SetVisible(bool visible)
@@ -5188,12 +5204,12 @@ void RSProperties::CalculateFrameOffset()
     frameOffsetX_ = frameGeo_.GetX() - boundsGeo_->GetX();
     frameOffsetY_ = frameGeo_.GetY() - boundsGeo_->GetY();
     if (isinf(frameOffsetX_)) {
-        frameOffsetX_ = 0.;
+        frameOffsetX_ = 0.f;
     }
     if (isinf(frameOffsetY_)) {
-        frameOffsetY_ = 0.;
+        frameOffsetY_ = 0.f;
     }
-    if (frameOffsetX_ != 0. || frameOffsetY_ != 0.) {
+    if (frameOffsetX_ != 0.f || frameOffsetY_ != 0.f) {
         isDrawn_ = true;
     }
 }

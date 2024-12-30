@@ -15,10 +15,21 @@
 
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 
+#include <memory>
+#include <optional>
+
+#include "rs_frame_modifier.h"
+#include "modifier_ng/rs_modifier_ng.h"
+
 namespace OHOS::Rosen::ModifierNG {
 void RSFrameModifier::SetFrame(Vector4f frame)
 {
     Setter(RSPropertyType::FRAME, frame);
+}
+
+void RSFrameModifier::SetFrameGravity(const Gravity& gravity)
+{
+    Setter<RSProperty, Gravity>(RSPropertyType::FRAME_GRAVITY, gravity);
 }
 
 void RSFrameModifier::SetFrameSize(Vector2f size)
@@ -60,6 +71,11 @@ void RSFrameModifier::SetFramePositionY(float positionY)
 Vector4f RSFrameModifier::GetFrame() const
 {
     return Getter(RSPropertyType::FRAME, Vector4f(0.0f, 0.0f, 0.0f, 0.0f));
+}
+
+Gravity RSFrameModifier::GetFrameGravity() const
+{
+    return Getter<Gravity>(RSPropertyType::FRAME_GRAVITY, {});
 }
 
 Vector2f RSFrameModifier::GetFrameSize() const

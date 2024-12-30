@@ -80,5 +80,6 @@ std::shared_ptr<RSDrawingFilterOriginal> RSLightUpEffectFilter::Compose(
     result->hash_ = hashFunc(&otherHash, sizeof(otherHash), hash_);
     return result;
 }
+
 } // namespace Rosen
 } // namespace OHOS

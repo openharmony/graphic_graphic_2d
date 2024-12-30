@@ -24,18 +24,11 @@ public:
     RSVisibilityModifier() = default;
     ~RSVisibilityModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::VISIBILITY;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::VISIBILITY;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
-
-    void MarkNodeDirty() override
-    {
-        if (auto node = node_.lock()) {
-            node->MarkDirty(NodeDirtyType::APPEARANCE, true);
-        }
-    }
 
     void SetVisible(bool visible);
     bool GetVisible() const;

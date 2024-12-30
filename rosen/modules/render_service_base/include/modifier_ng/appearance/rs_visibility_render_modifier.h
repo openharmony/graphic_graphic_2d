@@ -24,13 +24,15 @@ public:
     RSVisibilityRenderModifier() = default;
     ~RSVisibilityRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::VISIBILITY;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::VISIBILITY;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
 
-    static void ResetProperties(RSProperties& properties);
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+
+    void ResetProperties(RSProperties& properties) override;
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
@@ -38,6 +40,15 @@ private:
     {
         return LegacyPropertyApplierMap_;
     }
+
+    bool OnApply(RSModifierContext& context) override;
+
+    void OnSync() override;
+
+    // Staging Value
+    bool stagingVisibility_;
+    // Render Value
+    bool renderVisibility_;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_VISIBILITY_RENDER_MODIFIER_H

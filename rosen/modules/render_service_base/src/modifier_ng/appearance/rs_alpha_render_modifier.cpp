@@ -15,6 +15,9 @@
 
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 
+#include "modifier/rs_render_property.h"
+#include "property/rs_properties.h"
+
 namespace OHOS::Rosen::ModifierNG {
 const RSAlphaRenderModifier::LegacyPropertyApplierMap RSAlphaRenderModifier::LegacyPropertyApplierMap_ = {
     { RSPropertyType::ALPHA,
@@ -26,5 +29,33 @@ void RSAlphaRenderModifier::ResetProperties(RSProperties& properties)
 {
     properties.SetAlpha(1.f);
     properties.SetAlphaOffscreen(false);
+}
+
+void RSAlphaRenderModifier::Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect)
+{
+    if (renderAlphaOffscreen_) {
+        Drawing::Brush brush;
+        brush.SetAlpha(std::clamp(renderAlpha_, 0.f, 1.f) * UINT8_MAX);
+        Drawing::SaveLayerOps slr(&rect, &brush);
+        canvas.SaveLayer(slr);
+    } else {
+        canvas.MultiplyAlpha(renderAlpha_);
+    }
+}
+
+/*
+ * Protected Methods
+ */
+bool RSAlphaRenderModifier::OnApply(RSModifierContext& context)
+{
+    stagingAlpha_ = Getter(RSPropertyType::ALPHA, 1.0f);
+    stagingAlphaOffscreen_ = Getter(RSPropertyType::ALPHA_OFFSCREEN, false);
+    return ROSEN_EQ(stagingAlpha_, 1.0f);
+}
+
+void RSAlphaRenderModifier::OnSync()
+{
+    std::swap(stagingAlpha_, renderAlpha_);
+    std::swap(stagingAlphaOffscreen_, renderAlphaOffscreen_);
 }
 } // namespace OHOS::Rosen::ModifierNG

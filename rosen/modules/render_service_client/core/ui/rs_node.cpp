@@ -21,13 +21,13 @@
 #include <string>
 #include <vector>
 
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 
 #include "animation/rs_animation.h"
-#include "animation/rs_animation_group.h"
 #include "animation/rs_animation_callback.h"
-#include "animation/rs_implicit_animation_param.h"
+#include "animation/rs_animation_group.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_render_particle_animation.h"
@@ -38,22 +38,34 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_vector4.h"
-#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
-#include "modifier/rs_modifier.h"
-#include "modifier/rs_modifier_manager_map.h"
 #include "modifier/rs_property.h"
 #include "modifier/rs_property_modifier.h"
+#include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "modifier_ng/appearance/rs_blend_modifier.h"
+#include "modifier_ng/appearance/rs_env_foreground_color_modifier.h"
+#include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
+#include "modifier_ng/appearance/rs_visibility_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_modifier.h"
+#include "modifier_ng/geometry/rs_frame_clip_modifier.h"
+#include "modifier_ng/geometry/rs_frame_modifier.h"
+#include "modifier_ng/rs_appearance_modifier.h"
+#include "modifier_ng/rs_background_modifier.h"
+#include "modifier_ng/rs_content_modifier.h"
+#include "modifier_ng/rs_foreground_modifier.h"
+#include "modifier_ng/rs_modifier_ng.h"
+#include "modifier_ng/rs_overlay_modifier.h"
+#include "modifier_ng/rs_transition_modifier.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_blur_filter.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
-#include "render/rs_blur_filter.h"
 #include "render/rs_path.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
-#include "ui/rs_effect_node.h"
 #include "ui/rs_proxy_node.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
@@ -777,6 +789,8 @@ void RSNode::SetMagnifierParams(const std::shared_ptr<RSMagnifierParams>& para)
 {
     SetProperty<RSMagnifierParamsModifier, RSProperty<std::shared_ptr<RSMagnifierParams>>>(
         RSModifierType::MAGNIFIER_PARA, para);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetMagnifierParams>(
+    //     para);
 }
 
 const std::shared_ptr<RSMotionPathOption> RSNode::GetMotionPathOption() const
@@ -900,10 +914,28 @@ void RSNode::SetProperty(RSModifierType modifierType, T value)
     AddModifier(propertyModifier);
 }
 
+template<typename ModifierType, auto Setter, typename T>
+void RSNode::SetPropertyNG(T value)
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    auto type = static_cast<uint8_t>(ModifierType::Type);
+    auto& modifier = modifiersNGCreatedBySetter_[type];
+    // Create corresponding modifier if not exist
+    if (modifier == nullptr) {
+        modifier = std::make_shared<ModifierType>();
+        modifier->OnAttach(*this);
+        modifiersNGCreatedBySetter_[type] = modifier;
+        AddModifier(modifier);
+    }
+    // Set value to modifier
+    (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+}
+
 // alpha
 void RSNode::SetAlpha(float alpha)
 {
     SetProperty<RSAlphaModifier, RSAnimatableProperty<float>>(RSModifierType::ALPHA, alpha);
+    // SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlpha>(alpha);
     if (alpha < 1) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
@@ -913,12 +945,14 @@ void RSNode::SetAlpha(float alpha)
 void RSNode::SetAlphaOffscreen(bool alphaOffscreen)
 {
     SetProperty<RSAlphaOffscreenModifier, RSProperty<bool>>(RSModifierType::ALPHA_OFFSCREEN, alphaOffscreen);
+    // SetPropertyNG<ModifierNG::RSAlphaModifier, &ModifierNG::RSAlphaModifier::SetAlphaOffscreen>(alphaOffscreen);
 }
 
 // Bounds
 void RSNode::SetBounds(const Vector4f& bounds)
 {
     SetProperty<RSBoundsModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BOUNDS, bounds);
+    // SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetBounds>(bounds);
     OnBoundsSizeChanged();
     if (bounds.x_ != 0 || bounds.y_ != 0) {
         SetDrawNode();
@@ -939,10 +973,14 @@ void RSNode::SetBoundsWidth(float width)
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
         auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
+        // auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint8_t>(RSModifierType::BOUNDS)];
+        // if (modifier == nullptr) {
             SetBounds(0.f, 0.f, width, 0.f);
             return;
         }
         property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        // property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        //     modifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS));
     }
 
     if (property == nullptr) {
@@ -962,10 +1000,14 @@ void RSNode::SetBoundsHeight(float height)
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
         auto iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
+        // auto& modifier = modifiersNGCreatedBySetter_[static_cast<uint8_t>(RSModifierType::BOUNDS)];
+        // if (modifier == nullptr) {
             SetBounds(0.f, 0.f, 0.f, height);
             return;
         }
         property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(iter->second->GetProperty());
+        // property = std::static_pointer_cast<RSAnimatableProperty<Vector4f>>(
+        //     modifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS));
     }
 
     if (property == nullptr) {
@@ -981,6 +1023,7 @@ void RSNode::SetBoundsHeight(float height)
 void RSNode::SetFrame(const Vector4f& bounds)
 {
     SetProperty<RSFrameModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::FRAME, bounds);
+    // SetPropertyNG<ModifierNG::RSFrameModifier, &ModifierNG::RSFrameModifier::SetFrame>(bounds);
     if (bounds.x_ != 0 || bounds.y_ != 0) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::MergeableType);
@@ -1067,6 +1110,7 @@ void RSNode::SetPositionZApplicableCamera3D(bool isApplicable)
 {
     SetProperty<RSPositionZApplicableCamera3DModifier, RSProperty<bool>>(
         RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D, isApplicable);
+    // SetPropertyNG<ModifierNG::RSTransformModifier, &ModifierNG::RSTransformModifier::SetPositionZApplicableCamera3D>(isApplicable);
 }
 
 // pivot
@@ -1311,7 +1355,7 @@ void RSNode::SetScaleY(float scaleY)
     SetDrawNodeType(DrawNodeType::GeometryPropertyType);
 }
 
-void RSNode::SetScaleZ(const float& scaleZ)
+void RSNode::SetScaleZ(float scaleZ)
 {
     SetProperty<RSScaleZModifier, RSAnimatableProperty<float>>(RSModifierType::SCALE_Z, scaleZ);
     SetDrawNodeType(DrawNodeType::GeometryPropertyType);
@@ -1338,7 +1382,7 @@ void RSNode::SetSkew(float skewX, float skewY, float skewZ)
 void RSNode::SetSkew(const Vector3f& skew)
 {
     SetProperty<RSSkewModifier, RSAnimatableProperty<Vector3f>>(RSModifierType::SKEW, skew);
-    SetDrawNodeType(DrawNodeType::GeometryPropertyType);
+    // SetPropertyNG<ModifierNG::RSTransformModifier, &ModifierNG::RSTransformModifier::SetSkew>(skew);
 }
 
 void RSNode::SetSkewX(float skewX)
@@ -1549,6 +1593,8 @@ void RSNode::SetEnvForegroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
     SetProperty<RSEnvForegroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::ENV_FOREGROUND_COLOR, color);
+    // SetPropertyNG<ModifierNG::RSEnvForegroundColorModifier,
+    //     &ModifierNG::RSEnvForegroundColorModifier::SetEnvForegroundColor>(color);
 }
 
 // Set the foreground color strategy of the control
@@ -1556,6 +1602,8 @@ void RSNode::SetEnvForegroundColorStrategy(ForegroundColorStrategyType strategyT
 {
     SetProperty<RSEnvForegroundColorStrategyModifier,
         RSProperty<ForegroundColorStrategyType>>(RSModifierType::ENV_FOREGROUND_COLOR_STRATEGY, strategyType);
+    // SetPropertyNG<ModifierNG::RSEnvForegroundColorModifier,
+    //     &ModifierNG::RSEnvForegroundColorModifier::SetEnvForegroundColorStrategy>(strategyType);
 }
 
 // Set ParticleParams
@@ -1579,10 +1627,15 @@ void RSNode::SetParticleParams(std::vector<ParticleParams>& particleParams, cons
         std::make_shared<RSRenderParticleAnimation>(animationId, propertyId, std::move(particlesRenderParams));
 
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
-    AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
-    if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
-        AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+    // std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCreateParticleNG>(GetId(), animation);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSAnimationCreateParticle>(GetId(), animation);
+            // std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSAnimationCreateParticleNG>(GetId(), animation);
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
     }
 }
 
@@ -1643,6 +1696,7 @@ void RSNode::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUpdater>
 {
     SetProperty<RSEmitterUpdaterModifier, RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>>(
         RSModifierType::PARTICLE_EMITTER_UPDATER, para);
+    // SetPropertyNG<ModifierNG::RSParticleEffectModifier, &ModifierNG::RSParticleEffectModifier::SetEmitterUpdater>(para);
 }
 
 // Set Particle Noise Field
@@ -1650,6 +1704,8 @@ void RSNode::SetParticleNoiseFields(const std::shared_ptr<ParticleNoiseFields>& 
 {
     SetProperty<RSParticleNoiseFieldsModifier, RSProperty<std::shared_ptr<ParticleNoiseFields>>>(
         RSModifierType::PARTICLE_NOISE_FIELD, para);
+    // SetPropertyNG<ModifierNG::RSParticleEffectModifier,
+    //     &ModifierNG::RSParticleEffectModifier::SetParticleNoiseFields>(para);
 }
 
 // foreground
@@ -1657,6 +1713,8 @@ void RSNode::SetForegroundColor(uint32_t colorValue)
 {
     auto color = Color::FromArgbInt(colorValue);
     SetProperty<RSForegroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::FOREGROUND_COLOR, color);
+    // SetPropertyNG<ModifierNG::RSForegroundColorModifier,
+    //     &ModifierNG::RSForegroundColorModifier::SetForegroundColor>(color);
 }
 
 void RSNode::SetBackgroundColor(uint32_t colorValue)
@@ -1668,6 +1726,8 @@ void RSNode::SetBackgroundColor(uint32_t colorValue)
 void RSNode::SetBackgroundColor(RSColor& color)
 {
     SetProperty<RSBackgroundColorModifier, RSAnimatableProperty<Color>>(RSModifierType::BACKGROUND_COLOR, color);
+    // SetPropertyNG<ModifierNG::RSBackgroundColorModifier, &ModifierNG::RSBackgroundColorModifier::SetBackgroundColor>(
+    //     color);
     if (color.GetAlpha() > 0) {
         SetDrawNode();
         SetDrawNodeType(DrawNodeType::DrawPropertyType);
@@ -1753,6 +1813,7 @@ void RSNode::SetBorderColor(uint32_t left, uint32_t top, uint32_t right, uint32_
 void RSNode::SetBorderColor(const Vector4<Color>& color)
 {
     SetProperty<RSBorderColorModifier, RSAnimatableProperty<Vector4<Color>>>(RSModifierType::BORDER_COLOR, color);
+    // SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderColor>(color);
 }
 
 // set inner border width
@@ -1772,6 +1833,7 @@ void RSNode::SetBorderWidth(float left, float top, float right, float bottom)
 void RSNode::SetBorderWidth(const Vector4f& width)
 {
     SetProperty<RSBorderWidthModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::BORDER_WIDTH, width);
+    // SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderWidth>(width);
 }
 
 // set inner border style
@@ -1784,15 +1846,14 @@ void RSNode::SetBorderStyle(uint32_t styleValue)
 void RSNode::SetBorderStyle(uint32_t left, uint32_t top, uint32_t right, uint32_t bottom)
 {
     Vector4<uint32_t> style(left, top, right, bottom);
-    SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, style);
+    SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderStyle>(style);
 }
 
 // set inner border style
 void RSNode::SetBorderStyle(const Vector4<BorderStyle>& style)
 {
-    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_),
-                             static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
-    SetProperty<RSBorderStyleModifier, RSProperty<Vector4<uint32_t>>>(RSModifierType::BORDER_STYLE, styles);
+    Vector4<uint32_t> styles(static_cast<uint32_t>(style.x_), static_cast<uint32_t>(style.y_), static_cast<uint32_t>(style.z_), static_cast<uint32_t>(style.w_));
+    SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderStyle>(styles);
 }
 
 // set dash width for border
@@ -1800,13 +1861,14 @@ void RSNode::SetBorderDashWidth(const Vector4f& dashWidth)
 {
     SetProperty<RSBorderDashWidthModifier, RSProperty<Vector4f>>(
         RSModifierType::BORDER_DASH_WIDTH, dashWidth);
+    // SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderDashWidth>(dashWidth);
 }
 
 // set dash gap for border
 void RSNode::SetBorderDashGap(const Vector4f& dashGap)
 {
-    SetProperty<RSBorderDashGapModifier, RSProperty<Vector4f>>(
-        RSModifierType::BORDER_DASH_GAP, dashGap);
+    SetProperty<RSBorderDashGapModifier, RSProperty<Vector4f>>(RSModifierType::BORDER_DASH_GAP, dashGap);
+    // SetPropertyNG<ModifierNG::RSBorderModifier, &ModifierNG::RSBorderModifier::SetBorderDashGap>(dashGap);
 }
 
 void RSNode::SetOuterBorderColor(const Vector4<Color>& color)
@@ -2145,6 +2207,8 @@ void RSNode::SetForegroundEffectRadius(const float blurRadius)
 {
     SetProperty<RSForegroundEffectRadiusModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_EFFECT_RADIUS, blurRadius);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+    //     &ModifierNG::RSForegroundFilterModifier::SetForegroundEffectRadius>(blurRadius);
 }
 
 void RSNode::SetBackgroundFilter(const std::shared_ptr<RSFilter>& backgroundFilter)
@@ -2251,6 +2315,8 @@ void RSNode::SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlu
 {
     SetProperty<RSLinearGradientBlurParaModifier, RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>>(
         RSModifierType::LINEAR_GRADIENT_BLUR_PARA, para);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetLinearGradientBlurPara>(para);
 }
 
 void RSNode::SetMotionBlurPara(const float radius, const Vector2f& anchor)
@@ -2259,6 +2325,8 @@ void RSNode::SetMotionBlurPara(const float radius, const Vector2f& anchor)
     std::shared_ptr<MotionBlurParam> para = std::make_shared<MotionBlurParam>(radius, anchor1);
     SetProperty<RSMotionBlurParaModifier, RSProperty<std::shared_ptr<MotionBlurParam>>>(
         RSModifierType::MOTION_BLUR_PARA, para);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+    //     &ModifierNG::RSForegroundFilterModifier::SetMotionBlurParam>(para);
 }
 
 void RSNode::SetDynamicLightUpRate(const float rate)
@@ -2285,30 +2353,35 @@ void RSNode::SetFgBrightnessRates(const Vector4f& rates)
 {
     SetProperty<RSFgBrightnessRatesModifier,
         RSAnimatableProperty<Vector4f>>(RSModifierType::FG_BRIGHTNESS_RATES, rates);
+    // SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetFgBrightnessRates>(rates);
 }
 
 void RSNode::SetFgBrightnessSaturation(const float& saturation)
 {
     SetProperty<RSFgBrightnessSaturationModifier,
         RSAnimatableProperty<float>>(RSModifierType::FG_BRIGHTNESS_SATURATION, saturation);
+    // SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetFgBrightnessSaturation>(saturation);
 }
 
 void RSNode::SetFgBrightnessPosCoeff(const Vector4f& coeff)
 {
     SetProperty<RSFgBrightnessPosCoeffModifier,
         RSAnimatableProperty<Vector4f>>(RSModifierType::FG_BRIGHTNESS_POSCOEFF, coeff);
+    // SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetFgBrightnessPosCoeff>(coeff);
 }
 
 void RSNode::SetFgBrightnessNegCoeff(const Vector4f& coeff)
 {
     SetProperty<RSFgBrightnessNegCoeffModifier,
         RSAnimatableProperty<Vector4f>>(RSModifierType::FG_BRIGHTNESS_NEGCOEFF, coeff);
+    // SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetFgBrightnessNegCoeff>(coeff);
 }
 
 void RSNode::SetFgBrightnessFract(const float& fract)
 {
     SetProperty<RSFgBrightnessFractModifier,
         RSAnimatableProperty<float>>(RSModifierType::FG_BRIGHTNESS_FRACTION, fract);
+    // SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetFgBrightnessFract>(fract);
 }
 
 void RSNode::SetBgBrightnessParams(const RSDynamicBrightnessPara& params)
@@ -2350,14 +2423,9 @@ void RSNode::SetBgBrightnessFract(const float& fract)
         RSAnimatableProperty<float>>(RSModifierType::BG_BRIGHTNESS_FRACTION, fract);
 }
 
-void RSNode::SetDynamicDimDegree(const float dimDegree)
-{
-    SetProperty<RSDynamicDimDegreeModifier,
-        RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_DIM_DEGREE, dimDegree);
-}
-
 void RSNode::SetGreyCoef(const Vector2f greyCoef)
 {
+    // TODO Used for RSBackgroundFilterRenderModifier and RSCompositingFilterRenderModifier, need split
     SetProperty<RSGreyCoefModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::GREY_COEF, greyCoef);
 }
 
@@ -2409,6 +2477,10 @@ void RSNode::SetShadowPath(const std::shared_ptr<RSPath>& shadowPath)
 
 void RSNode::SetShadowMask(bool shadowMask)
 {
+    if (RSSystemProperties::GetModifierNGEnabled()) {
+        SetPropertyNG<ModifierNG::RSShadowModifier, &ModifierNG::RSShadowModifier::SetShadowMask>(shadowMask);
+        return;
+    }
     int shadowMaskColor = shadowMask ? SHADOW_MASK_STRATEGY::MASK_BLUR : SHADOW_MASK_STRATEGY::MASK_NONE;
     SetProperty<RSShadowMaskModifier, RSProperty<int>>(RSModifierType::SHADOW_MASK, shadowMaskColor);
 }
@@ -2428,6 +2500,7 @@ void RSNode::SetFrameGravity(Gravity gravity)
 {
     ROSEN_LOGD("RSNode::SetFrameGravity, gravity = %{public}d", gravity);
     SetProperty<RSFrameGravityModifier, RSProperty<Gravity>>(RSModifierType::FRAME_GRAVITY, gravity);
+    // SetPropertyNG<ModifierNG::RSFrameOffsetModifier, &ModifierNG::RSFrameOffsetModifier::SetFrameGravity>(gravity);
 }
 
 void RSNode::SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius)
@@ -2449,17 +2522,20 @@ void RSNode::SetClipBounds(const std::shared_ptr<RSPath>& path)
 void RSNode::SetClipToBounds(bool clipToBounds)
 {
     SetProperty<RSClipToBoundsModifier, RSProperty<bool>>(RSModifierType::CLIP_TO_BOUNDS, clipToBounds);
+    // SetPropertyNG<ModifierNG::RSBoundsClipModifier, &ModifierNG::RSBoundsClipModifier::SetClipToBounds>(clipToBounds);
 }
 
 void RSNode::SetClipToFrame(bool clipToFrame)
 {
     SetProperty<RSClipToFrameModifier, RSProperty<bool>>(RSModifierType::CLIP_TO_FRAME, clipToFrame);
+    //SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetClipToFrame>(clipToFrame);
 }
 
 void RSNode::SetCustomClipToFrame(const Vector4f& clipRect)
 {
     SetProperty<RSCustomClipToFrameModifier, RSAnimatableProperty<Vector4f>>(
         RSModifierType::CUSTOM_CLIP_TO_FRAME, clipRect);
+    // SetPropertyNG<ModifierNG::RSFrameClipModifier, &ModifierNG::RSFrameClipModifier::SetCustomClipToFrame>(clipRect);
 }
 
 void RSNode::SetHDRBrightness(const float& hdrBrightness)
@@ -2486,6 +2562,7 @@ void RSNode::SetVisible(bool visible)
     }
 
     SetProperty<RSVisibleModifier, RSProperty<bool>>(RSModifierType::VISIBLE, visible);
+    // SetPropertyNG<ModifierNG::RSVisibilityModifier, &ModifierNG::RSVisibilityModifier::SetVisible>(visible);
 }
 
 void RSNode::SetMask(const std::shared_ptr<RSMask>& mask)
@@ -2530,12 +2607,15 @@ void RSNode::SetColorBlendMode(RSColorBlendMode colorBlendMode)
 {
     SetProperty<RSColorBlendModeModifier, RSProperty<int>>(
         RSModifierType::COLOR_BLEND_MODE, static_cast<int>(colorBlendMode));
+    // SetPropertyNG<ModifierNG::RSBlendModifier, &ModifierNG::RSBlendModifier::SetColorBlendMode>(colorBlendMode);
 }
 
 void RSNode::SetColorBlendApplyType(RSColorBlendApplyType colorBlendApplyType)
 {
     SetProperty<RSColorBlendApplyTypeModifier, RSProperty<int>>(
         RSModifierType::COLOR_BLEND_APPLY_TYPE, static_cast<int>(colorBlendApplyType));
+    // SetPropertyNG<ModifierNG::RSBlendModifier,
+    //     &ModifierNG::RSBlendModifier::SetColorBlendApplyType>(colorBlendApplyType);
 }
 
 void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stretchTileMode)
@@ -2543,6 +2623,10 @@ void RSNode::SetPixelStretch(const Vector4f& stretchSize, Drawing::TileMode stre
     SetProperty<RSPixelStretchModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::PIXEL_STRETCH, stretchSize);
     SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
         RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
+    // SetPropertyNG<ModifierNG::RSPixelStretchModifier,
+    //     &ModifierNG::RSPixelStretchModifier::SetPixelStretchSize>(stretchSize);
+    // SetPropertyNG<ModifierNG::RSPixelStretchModifier,
+    //     &ModifierNG::RSPixelStretchModifier::SetPixelStretchTileMode>(static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent, Drawing::TileMode stretchTileMode)
@@ -2551,6 +2635,10 @@ void RSNode::SetPixelStretchPercent(const Vector4f& stretchPercent, Drawing::Til
         stretchPercent);
     SetProperty<RSPixelStretchTileModeModifier, RSProperty<int>>(
         RSModifierType::PIXEL_STRETCH_TILE_MODE, static_cast<int>(stretchTileMode));
+    // SetPropertyNG<ModifierNG::RSPixelStretchModifier,
+    //     &ModifierNG::RSPixelStretchModifier::SetPixelStretchPercent>(stretchPercent);
+    // SetPropertyNG<ModifierNG::RSPixelStretchModifier,
+    //     &ModifierNG::RSPixelStretchModifier::SetPixelStretchTileMode>(static_cast<int>(stretchTileMode));
 }
 
 void RSNode::SetWaterRippleParams(const RSWaterRipplePara& params, float progress)
@@ -2559,6 +2647,10 @@ void RSNode::SetWaterRippleParams(const RSWaterRipplePara& params, float progres
         RSProperty<RSWaterRipplePara>>(RSModifierType::WATER_RIPPLE_PARAMS, params);
     SetProperty<RSWaterRippleProgressModifier,
         RSAnimatableProperty<float>>(RSModifierType::WATER_RIPPLE_PROGRESS, progress);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetWaterRippleParams>(params);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetWaterRippleProgress>(progress);
 }
 
 void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
@@ -2567,11 +2659,17 @@ void RSNode::SetFlyOutParams(const RSFlyOutPara& params, float degree)
         RSProperty<RSFlyOutPara>>(RSModifierType::FLY_OUT_PARAMS, params);
     SetProperty<RSFlyOutDegreeModifier,
         RSAnimatableProperty<float>>(RSModifierType::FLY_OUT_DEGREE, degree);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier, &ModifierNG::RSForegroundFilterModifier::SetFlyOutParams>(
+    //     params);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier, &ModifierNG::RSForegroundFilterModifier::SetFlyOutDegree>(
+    //     degree);
 }
 
 void RSNode::SetDistortionK(const float distortionK)
 {
     SetProperty<RSDistortionKModifier, RSAnimatableProperty<float>>(RSModifierType::DISTORTION_K, distortionK);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier, &ModifierNG::RSForegroundFilterModifier::SetDistortionK>(
+    //     distortionK);
 }
 
 void RSNode::SetFreeze(bool isFreeze)
@@ -2607,6 +2705,8 @@ void RSNode::SetTakeSurfaceForUIFlag()
 void RSNode::SetSpherizeDegree(float spherizeDegree)
 {
     SetProperty<RSSpherizeModifier, RSAnimatableProperty<float>>(RSModifierType::SPHERIZE, spherizeDegree);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier, &ModifierNG::RSForegroundFilterModifier::SetSpherize>(
+    //     spherizeDegree);
 }
 
 void RSNode::SetAttractionEffect(float fraction, const Vector2f& destinationPoint)
@@ -2617,20 +2717,18 @@ void RSNode::SetAttractionEffect(float fraction, const Vector2f& destinationPoin
 
 void RSNode::SetAttractionEffectFraction(float fraction)
 {
-    SetProperty<RSAttractionFractionModifier, RSAnimatableProperty<float>>(RSModifierType::ATTRACTION_FRACTION,
-        fraction);
+    SetProperty<RSAttractionFractionModifier, RSAnimatableProperty<float>>(
+        RSModifierType::ATTRACTION_FRACTION, fraction);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+    //     &ModifierNG::RSForegroundFilterModifier::SetAttractionFraction>(fraction);
 }
 
 void RSNode::SetAttractionEffectDstPoint(Vector2f destinationPoint)
 {
-    SetProperty<RSAttractionDstPointModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::ATTRACTION_DSTPOINT,
-        destinationPoint);
-}
-
-void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
-{
-    SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(
-        RSModifierType::LIGHT_UP_EFFECT, LightUpEffectDegree);
+    SetProperty<RSAttractionDstPointModifier, RSAnimatableProperty<Vector2f>>(
+        RSModifierType::ATTRACTION_DSTPOINT, destinationPoint);
+    // SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+    //     &ModifierNG::RSForegroundFilterModifier::SetAttractionDstPoint>(destinationPoint);
 }
 
 void RSNode::NotifyTransition(const std::shared_ptr<const RSTransitionEffect>& effect, bool isTransitionIn)
@@ -2685,42 +2783,56 @@ void RSNode::SetBackgroundBlurRadius(float radius)
 {
     SetProperty<RSBackgroundBlurRadiusModifier, RSAnimatableProperty<float>>(
         RSModifierType::BACKGROUND_BLUR_RADIUS, radius);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurRadius>(radius);
 }
 
 void RSNode::SetBackgroundBlurSaturation(float saturation)
 {
     SetProperty<RSBackgroundBlurSaturationModifier, RSAnimatableProperty<float>>(
         RSModifierType::BACKGROUND_BLUR_SATURATION, saturation);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurSaturation>(saturation);
 }
 
 void RSNode::SetBackgroundBlurBrightness(float brightness)
 {
     SetProperty<RSBackgroundBlurBrightnessModifier, RSAnimatableProperty<float>>(
         RSModifierType::BACKGROUND_BLUR_BRIGHTNESS, brightness);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurBrightness>(brightness);
 }
 
 void RSNode::SetBackgroundBlurMaskColor(Color maskColor)
 {
     SetProperty<RSBackgroundBlurMaskColorModifier, RSAnimatableProperty<Color>>(
         RSModifierType::BACKGROUND_BLUR_MASK_COLOR, maskColor);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurMaskColor>(maskColor);
 }
 
 void RSNode::SetBackgroundBlurColorMode(int colorMode)
 {
     SetProperty<RSBackgroundBlurColorModeModifier, RSProperty<int>>(
         RSModifierType::BACKGROUND_BLUR_COLOR_MODE, colorMode);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurColorMode>(colorMode);
 }
 
 void RSNode::SetBackgroundBlurRadiusX(float blurRadiusX)
 {
     SetProperty<RSBackgroundBlurRadiusXModifier, RSAnimatableProperty<float>>(
         RSModifierType::BACKGROUND_BLUR_RADIUS_X, blurRadiusX);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurRadiusX>(blurRadiusX);
 }
 
 void RSNode::SetBackgroundBlurRadiusY(float blurRadiusY)
 {
     SetProperty<RSBackgroundBlurRadiusYModifier, RSAnimatableProperty<float>>(
         RSModifierType::BACKGROUND_BLUR_RADIUS_Y, blurRadiusY);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier,
+    //     &ModifierNG::RSBackgroundFilterModifier::SetBackgroundBlurRadiusY>(blurRadiusY);
 }
 
 void RSNode::SetBgBlurDisableSystemAdaptation(bool disableSystemAdaptation)
@@ -2733,42 +2845,56 @@ void RSNode::SetForegroundBlurRadius(float radius)
 {
     SetProperty<RSForegroundBlurRadiusModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_BLUR_RADIUS, radius);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurRadius>(radius);
 }
 
 void RSNode::SetForegroundBlurSaturation(float saturation)
 {
     SetProperty<RSForegroundBlurSaturationModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_BLUR_SATURATION, saturation);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurSaturation>(saturation);
 }
 
 void RSNode::SetForegroundBlurBrightness(float brightness)
 {
     SetProperty<RSForegroundBlurBrightnessModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_BLUR_BRIGHTNESS, brightness);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurBrightness>(brightness);
 }
 
 void RSNode::SetForegroundBlurMaskColor(Color maskColor)
 {
     SetProperty<RSForegroundBlurMaskColorModifier, RSAnimatableProperty<Color>>(
         RSModifierType::FOREGROUND_BLUR_MASK_COLOR, maskColor);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurMaskColor>(maskColor);
 }
 
 void RSNode::SetForegroundBlurColorMode(int colorMode)
 {
     SetProperty<RSForegroundBlurColorModeModifier, RSProperty<int>>(
         RSModifierType::FOREGROUND_BLUR_COLOR_MODE, colorMode);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurColorMode>(colorMode);
 }
 
 void RSNode::SetForegroundBlurRadiusX(float blurRadiusX)
 {
     SetProperty<RSForegroundBlurRadiusXModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_BLUR_RADIUS_X, blurRadiusX);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurRadiusX>(blurRadiusX);
 }
 
 void RSNode::SetForegroundBlurRadiusY(float blurRadiusY)
 {
     SetProperty<RSForegroundBlurRadiusYModifier, RSAnimatableProperty<float>>(
         RSModifierType::FOREGROUND_BLUR_RADIUS_Y, blurRadiusY);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetForegroundBlurRadiusY>(blurRadiusY);
 }
 
 void RSNode::SetFgBlurDisableSystemAdaptation(bool disableSystemAdaptation)
@@ -2840,8 +2966,7 @@ void RSNode::AddModifier(const std::shared_ptr<RSModifier> modifier)
         if (motionPathOption_ != nullptr && IsPathAnimatableModifier(modifier->GetModifierType())) {
             modifier->SetMotionPathOption(motionPathOption_);
         }
-        auto rsnode = std::static_pointer_cast<RSNode>(shared_from_this());
-        modifier->AttachToNode(rsnode);
+        modifier->AttachToNode(shared_from_this());
         modifiers_.emplace(modifier->GetPropertyId(), modifier);
         modifiersTypeMap_.emplace((int16_t)modifier->GetModifierType(), modifier);
     }
@@ -3303,16 +3428,12 @@ void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
     AddCommand(command, IsRenderServiceNode());
 }
 
-void RSNode::SetGrayScale(float grayScale)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
-}
-
 void RSNode::SetLightIntensity(float lightIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSLightIntensityModifier, RSAnimatableProperty<float>>(RSModifierType::LIGHT_INTENSITY, lightIntensity);
+    // SetPropertyNG<ModifierNG::RSPointLightModifier,
+    //     &ModifierNG::RSPointLightModifier::SetLightIntensity>(lightIntensity);
 }
 
 void RSNode::SetLightColor(uint32_t lightColorValue)
@@ -3320,6 +3441,7 @@ void RSNode::SetLightColor(uint32_t lightColorValue)
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     auto lightColor = Color::FromArgbInt(lightColorValue);
     SetProperty<RSLightColorModifier, RSAnimatableProperty<Color>>(RSModifierType::LIGHT_COLOR, lightColor);
+    // SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightColor>(lightColor);
 }
 
 void RSNode::SetLightPosition(float positionX, float positionY, float positionZ)
@@ -3332,6 +3454,7 @@ void RSNode::SetLightPosition(const Vector4f& lightPosition)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSLightPositionModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::LIGHT_POSITION, lightPosition);
+    // SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetLightPosition>(lightPosition);
 }
 
 void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
@@ -3339,6 +3462,8 @@ void RSNode::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSIlluminatedBorderWidthModifier, RSAnimatableProperty<float>>(
         RSModifierType::ILLUMINATED_BORDER_WIDTH, illuminatedBorderWidth);
+    // SetPropertyNG<ModifierNG::RSPointLightModifier,
+    //     &ModifierNG::RSPointLightModifier::SetIlluminatedBorderWidth>(illuminatedBorderWidth);
 }
 
 void RSNode::SetIlluminatedType(uint32_t illuminatedType)
@@ -3346,60 +3471,70 @@ void RSNode::SetIlluminatedType(uint32_t illuminatedType)
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSIlluminatedTypeModifier, RSProperty<int>>(
         RSModifierType::ILLUMINATED_TYPE, illuminatedType);
+    // SetPropertyNG<ModifierNG::RSPointLightModifier,
+    //     &ModifierNG::RSPointLightModifier::SetIlluminatedType>(illuminatedType);
 }
 
 void RSNode::SetBloom(float bloomIntensity)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSBloomModifier, RSAnimatableProperty<float>>(RSModifierType::BLOOM, bloomIntensity);
-}
-
-void RSNode::SetBrightness(float brightness)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSBrightnessModifier, RSAnimatableProperty<float>>(RSModifierType::BRIGHTNESS, brightness);
-}
-
-void RSNode::SetContrast(float contrast)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSContrastModifier, RSAnimatableProperty<float>>(RSModifierType::CONTRAST, contrast);
-}
-
-void RSNode::SetSaturate(float saturate)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSSaturateModifier, RSAnimatableProperty<float>>(RSModifierType::SATURATE, saturate);
-}
-
-void RSNode::SetSepia(float sepia)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSSepiaModifier, RSAnimatableProperty<float>>(RSModifierType::SEPIA, sepia);
-}
-
-void RSNode::SetInvert(float invert)
-{
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSInvertModifier, RSAnimatableProperty<float>>(RSModifierType::INVERT, invert);
+    // SetPropertyNG<ModifierNG::RSPointLightModifier, &ModifierNG::RSPointLightModifier::SetBloom>(bloomIntensity);
 }
 
 void RSNode::SetAiInvert(const Vector4f& aiInvert)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSAiInvertModifier, RSAnimatableProperty<Vector4f>>(RSModifierType::AIINVERT, aiInvert);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetAiInvert>(aiInvert);
 }
 
-void RSNode::SetSystemBarEffect()
+void RSNode::SetGrayScale(float grayScale)
 {
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-    SetProperty<RSSystemBarEffectModifier, RSProperty<bool>>(RSModifierType::SYSTEMBAREFFECT, true);
+    SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetGrayScale>(
+    //     grayScale);
+}
+
+void RSNode::SetBrightness(float brightness)
+{
+    SetProperty<RSBrightnessModifier, RSAnimatableProperty<float>>(RSModifierType::BRIGHTNESS, brightness);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetBrightness>(
+    //     brightness);
+}
+
+void RSNode::SetContrast(float contrast)
+{
+    SetProperty<RSContrastModifier, RSAnimatableProperty<float>>(RSModifierType::CONTRAST, contrast);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetContrast>(
+    //     contrast);
+}
+
+void RSNode::SetSaturate(float saturate)
+{
+    SetProperty<RSSaturateModifier, RSAnimatableProperty<float>>(RSModifierType::SATURATE, saturate);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetSaturate>(
+    //     saturate);
+}
+
+void RSNode::SetSepia(float sepia)
+{
+    SetProperty<RSSepiaModifier, RSAnimatableProperty<float>>(RSModifierType::SEPIA, sepia);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetSepia>(sepia);
+}
+
+void RSNode::SetInvert(float invert)
+{
+    SetProperty<RSInvertModifier, RSAnimatableProperty<float>>(RSModifierType::INVERT, invert);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetInvert>(invert);
 }
 
 void RSNode::SetHueRotate(float hueRotate)
 {
-    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     SetProperty<RSHueRotateModifier, RSAnimatableProperty<float>>(RSModifierType::HUE_ROTATE, hueRotate);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetHueRotate>(
+    //     hueRotate);
 }
 
 void RSNode::SetColorBlend(uint32_t colorValue)
@@ -3407,6 +3542,31 @@ void RSNode::SetColorBlend(uint32_t colorValue)
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
     auto colorBlend = Color::FromArgbInt(colorValue);
     SetProperty<RSColorBlendModifier, RSAnimatableProperty<Color>>(RSModifierType::COLOR_BLEND, colorBlend);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier, &ModifierNG::RSCompositingFilterModifier::SetColorBlend>(
+    //     colorBlend);
+}
+
+void RSNode::SetLightUpEffectDegree(float lightUpEffectDegree)
+{
+    SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(
+        RSModifierType::LIGHT_UP_EFFECT, lightUpEffectDegree);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetLightUpEffectDegree>(lightUpEffectDegree);
+}
+
+void RSNode::SetDynamicDimDegree(const float dimDegree)
+{
+    SetProperty<RSDynamicDimDegreeModifier,
+        RSAnimatableProperty<float>>(RSModifierType::DYNAMIC_DIM_DEGREE, dimDegree);
+    // SetPropertyNG<ModifierNG::RSCompositingFilterModifier,
+    //     &ModifierNG::RSCompositingFilterModifier::SetDynamicDimDegree>(dimDegree);
+}
+
+void RSNode::SetSystemBarEffect()
+{
+    SetProperty<RSSystemBarEffectModifier, RSProperty<bool>>(RSModifierType::SYSTEMBAREFFECT, true);
+    // SetPropertyNG<ModifierNG::RSBackgroundFilterModifier, &ModifierNG::RSBackgroundFilterModifier::SetSystemBarEffect>(
+    //     true);
 }
 
 int32_t RSNode::CalcExpectedFrameRate(const std::string& scene, float speed)
@@ -3892,7 +4052,7 @@ void RSNode::Dump(std::string& out) const
     if (!animations_.empty()) {
         out.pop_back();
     }
-    
+
     out += "], modifiers[";
     for (const auto& [id, modifier] : modifiers_) {
         if (modifier == nullptr) {
@@ -4004,5 +4164,46 @@ void RSNode::SetDrawNodeChangeCallback(DrawNodeChangeCallback callback)
     drawNodeChangeCallback_ = callback;
 }
 
+void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
+{
+    if (modifier == nullptr) {
+        return;
+    }
+    modifiersNG_.emplace(modifier->GetId(), modifier);
+    modifier->OnAttach(*this);
+
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSAddModifierNG>(GetId(), modifier->CreateRenderModifier());
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
+        // ROSEN_LOGD("RSNode::add modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+        // GetId(), modifier->GetModifierTypeString().c_str());
+    }
+}
+
+void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
+{
+    modifier->OnDetach();
+    modifiersNG_.erase(modifier->GetId());
+
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), GetId());
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSRemoveModifierNG>(GetId(), modifier->GetType(), modifier->GetId());
+            transactionProxy->AddCommand(cmdForRemote, true, GetFollowType(), GetId());
+        }
+        // ROSEN_LOGD("RSNode::remove modifier, node id: %{public}" PRIu64 ", type: %{public}s",
+        // GetId(), modifier->GetModifierTypeString().c_str());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

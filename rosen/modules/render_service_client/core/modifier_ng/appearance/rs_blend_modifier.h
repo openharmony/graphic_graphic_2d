@@ -24,8 +24,8 @@ public:
     RSBlendModifier() = default;
     ~RSBlendModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::BLENDER;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::BLENDER;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };

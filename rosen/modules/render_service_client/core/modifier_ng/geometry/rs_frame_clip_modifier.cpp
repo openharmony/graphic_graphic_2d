@@ -15,6 +15,9 @@
 
 #include "modifier_ng/geometry/rs_frame_clip_modifier.h"
 
+#include <memory>
+#include <optional>
+
 namespace OHOS::Rosen::ModifierNG {
 void RSFrameClipModifier::SetClipToFrame(bool clipToFrame)
 {
@@ -24,10 +27,5 @@ void RSFrameClipModifier::SetClipToFrame(bool clipToFrame)
 void RSFrameClipModifier::SetCustomClipToFrame(const Vector4f& customClipToFrame)
 {
     Setter(RSPropertyType::CUSTOM_CLIP_TO_FRAME, customClipToFrame);
-}
-
-void RSFrameClipModifier::SetFrameGravity(const Gravity& gravity)
-{
-    Setter<RSProperty, Gravity>(RSPropertyType::FRAME_GRAVITY, gravity);
 }
 } // namespace OHOS::Rosen::ModifierNG

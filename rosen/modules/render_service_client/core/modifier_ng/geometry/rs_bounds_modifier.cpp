@@ -15,7 +15,8 @@
 
 #include "modifier_ng/geometry/rs_bounds_modifier.h"
 
-#include "platform/common/rs_log.h"
+#include <memory>
+#include <optional>
 
 namespace OHOS::Rosen::ModifierNG {
 void RSBoundsModifier::SetBounds(Vector4f bounds)
@@ -94,17 +95,5 @@ float RSBoundsModifier::GetBoundsPositionX() const
 float RSBoundsModifier::GetBoundsPositionY() const
 {
     return GetBounds().y_;
-}
-
-void RSBoundsModifier::ApplyGeometry(const std::shared_ptr<RSObjAbsGeometry>& geometry)
-{
-    if (geometry == nullptr) {
-        RS_LOGE("RSBoundsModifier::ApplyGeometry, geometry null");
-        return;
-    }
-    if (auto boundsPtr = GetProperty(RSPropertyType::BOUNDS)) {
-        auto bounds = GetterWithoutCheck<Vector4f>(boundsPtr);
-        geometry->SetRect(bounds.x_, bounds.y_, bounds.z_, bounds.w_);
-    }
 }
 } // namespace OHOS::Rosen::ModifierNG

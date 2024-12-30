@@ -88,29 +88,19 @@ class RSUIFilterUtils;
  * Used to determine when the spring animation ends visually
  */
 enum class ThresholdType {
-    /** 0.5f for properties like position, as the difference in properties by 0.5 appears visually unchanged. */
-    LAYOUT,
-    /** 1.0f / 256.0f */
-    COARSE,
-    /** 1.0f / 1000.0f */
-    MEDIUM,
-    /** 1.0f / 3072.0f */
-    FINE,
-    /** 0.0f */
-    COLOR,
-    /** 1.0f / 256.0f */
-    DEFAULT,
-    /** 0.0f for noanimatable property */
-    ZERO,
+    LAYOUT,  // 0.5f for properties like position, as the difference in properties by 0.5 appears visually unchanged
+    COARSE,  // 1.0f / 256.0f
+    MEDIUM,  // 1.0f / 1000.0f
+    FINE,    // 1.0f / 3072.0f
+    COLOR,   // 0.0f
+    DEFAULT, // 1.0f / 256.0f
+    ZERO,    // 0.0f for noanimatable property
 };
 
-/**
- * @class RSPropertyBase
- *
- * @brief The base class for properties.
- *
- * This class provides a common interface for all property types.
- */
+namespace ModifierNG {
+class RSModifier;
+}
+
 class RSC_EXPORT RSPropertyBase : public std::enable_shared_from_this<RSPropertyBase> {
 public:
     /**
@@ -179,6 +169,10 @@ protected:
     {
         modifier_ = modifier;
     }
+    void AttachModifier(const std::shared_ptr<ModifierNG::RSModifier>& modifier)
+    {
+        modifierNG_ = modifier;
+    }
 
     void Attach(const std::shared_ptr<RSNode>& node)
     {
@@ -221,6 +215,7 @@ protected:
     RSModifierType type_ { RSModifierType::INVALID };
     std::weak_ptr<RSNode> target_;
     std::weak_ptr<RSModifier> modifier_;
+    std::weak_ptr<ModifierNG::RSModifier> modifierNG_;
 
 private:
     virtual std::shared_ptr<RSPropertyBase> Add(const std::shared_ptr<const RSPropertyBase>& value)
@@ -278,7 +273,7 @@ private:
     friend class RSExtendedModifier;
     friend class RSCustomTransitionEffect;
     friend class RSCurveAnimation;
-    friend class RSUIFilterParaBase;
+    friend class ModifierNG::RSModifier;
     template<typename T>
     friend class RSAnimatableProperty;
     template<uint16_t commandType, uint16_t commandSubType>
@@ -310,10 +305,6 @@ public:
     {
         stagingValue_ = value;
     }
-
-    /**
-     * @brief Destructor for RSProperty.
-     */
     ~RSProperty() override = default;
 
     using ValueType = T;
@@ -923,18 +914,70 @@ RSC_EXPORT bool RSProperty<Vector2f>::IsValid(const Vector2f& value);
 template<>
 RSC_EXPORT bool RSProperty<Vector4f>::IsValid(const Vector4f& value);
 
-#define DECLARE_PROPERTY(T, TYPE_ENUM) \
-template<>                             \
-inline const RSPropertyType RSProperty<T>::type_ = RSPropertyType::TYPE_ENUM
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) DECLARE_PROPERTY(T, TYPE_ENUM)
-
-#include "modifier/rs_property_def.in"
-
-#undef DECLARE_PROPERTY
-#undef DECLARE_ANIMATABLE_PROPERTY
-
+template<>
+inline const RSPropertyType RSProperty<bool>::type_ = RSPropertyType::BOOL;
+template<>
+inline const RSPropertyType RSProperty<int>::type_ = RSPropertyType::INT;
+template<>
+inline const RSPropertyType RSProperty<float>::type_ = RSPropertyType::FLOAT;
+template<>
+inline const RSPropertyType RSProperty<Vector4<uint32_t>>::type_ = RSPropertyType::VECTOR4_UINT32;
+template<>
+inline const RSPropertyType RSProperty<Color>::type_ = RSPropertyType::RS_COLOR;
+template<>
+inline const RSPropertyType RSProperty<Matrix3f>::type_ = RSPropertyType::MATRIX3F;
+template<>
+inline const RSPropertyType RSProperty<Quaternion>::type_ = RSPropertyType::QUATERNION;
+template<>
+inline const RSPropertyType RSProperty<Vector2f>::type_ = RSPropertyType::VECTOR2F;
+template<>
+inline const RSPropertyType RSProperty<Vector3f>::type_ = RSPropertyType::VECTOR3F;
+template<>
+inline const RSPropertyType RSProperty<Vector4f>::type_ = RSPropertyType::VECTOR4F;
+template<>
+inline const RSPropertyType RSProperty<Vector4<Color>>::type_ = RSPropertyType::VECTOR4_COLOR;
+template<>
+inline const RSPropertyType RSProperty<SkMatrix>::type_ = RSPropertyType::SK_MATRIX;
+template<>
+inline const RSPropertyType RSProperty<RRect>::type_ = RSPropertyType::RRECT;
+template<>
+inline const RSPropertyType RSProperty<Drawing::DrawCmdListPtr>::type_ = RSPropertyType::DRAW_CMD_LIST;
+template<>
+inline const RSPropertyType RSProperty<ForegroundColorStrategyType>::type_ =
+    RSPropertyType::FOREGROUND_COLOR_STRATEGY;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<RSShader>>::type_ = RSPropertyType::RS_SHADER;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<RSImage>>::type_ = RSPropertyType::RS_IMAGE;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<RSPath>>::type_ = RSPropertyType::RS_PATH;
+template<>
+inline const RSPropertyType RSProperty<Gravity>::type_ = RSPropertyType::GRAVITY;
+template<>
+inline const RSPropertyType RSProperty<Drawing::Matrix>::type_ = RSPropertyType::DRAWING_MATRIX;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::type_ =
+    RSPropertyType::LINEAR_GRADIENT_BLUR_PARA;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<RSMagnifierParams>>::type_ =
+    RSPropertyType::MAGNIFIER_PARAMS;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<MotionBlurParam>>::type_ =
+    RSPropertyType::MOTION_BLUR_PARAM;
+template<>
+inline const RSPropertyType RSProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::type_ =
+    RSPropertyType::VECTOR_EMITTER_UPDATER;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<ParticleNoiseFields>>::type_ =
+    RSPropertyType::PARTICLE_NOISE_FIELD;
+template<>
+inline const RSPropertyType RSProperty<std::shared_ptr<RSMask>>::type_ = RSPropertyType::RS_MASK;
+template<>
+inline const RSPropertyType RSProperty<RSWaterRipplePara>::type_ = RSPropertyType::WATER_RIPPLE_PARAMS;
+template<>
+inline const RSPropertyType RSProperty<RSFlyOutPara>::type_ = RSPropertyType::FLY_OUT_PARAMS;
+template<>
+inline const RSPropertyType RSProperty<RSRenderParticleVector>::type_ = RSPropertyType::RENDER_PARTICLE_VECTOR;
 } // namespace Rosen
 } // namespace OHOS
-
-/** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_RS_PROPERTY_H

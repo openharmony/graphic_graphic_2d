@@ -44,6 +44,7 @@
 #include "modifier/rs_modifier_extractor.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_showing_properties_freezer.h"
+#include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "property/rs_properties.h"
 #include "render/rs_mask.h"
@@ -57,7 +58,7 @@
 #include "ui_effect/filter/include/filter_water_ripple_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_distort_para.h"
-#include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
+#include "modifier_ng/rs_node_modifier_data.h"
 
 #include "transaction/rs_transaction_handler.h"
 #include "transaction/rs_sync_transaction_handler.h"
@@ -80,6 +81,10 @@ class RSUIContext;
 class RSUIFilter;
 class RSNGFilterBase;
 enum class CancelAnimationStatus;
+namespace ModifierNG {
+class RSModifier;
+enum class RSModifierType : uint8_t;
+}
 
 /**
  * @class RSNode
@@ -415,13 +420,9 @@ public:
     template<typename ModifierName, typename PropertyName, typename T>
     void SetProperty(RSModifierType modifierType, T value);
 
-    /**
-     * @brief Sets the bounds of the node.
-     *
-     * The bounds typically define the position and size of the node within its parent.
-     *
-     * @param bounds A Vector4f representing the new bounds (X, Y, width, height).
-     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value);
+
     virtual void SetBounds(const Vector4f& bounds);
 
     /**
@@ -688,13 +689,7 @@ public:
      * @param scaleY The scaling factor to apply on the Y-axis.
      */
     void SetScaleY(float scaleY);
-
-    /**
-     * @brief Sets the scaling factor for the node along the Z-axis.
-     *
-     * @param scaleZ The scaling factor to apply on the Z-axis.
-     */
-    void SetScaleZ(const float& scaleZ);
+    void SetScaleZ(float scaleZ);
 
     /**
      * @brief Sets the skew factor for the node.
@@ -1458,20 +1453,7 @@ public:
      * @param spherizeDegree The degree of spherization to apply.
      */
     void SetSpherizeDegree(float spherizeDegree);
-
-    /**
-     * @brief Sets the brightness ratio of HDR UI component.
-     *
-     * @param hdrUIBrightness The HDR UI component brightness ratio.
-     */
-    void SetHDRUIBrightness(float hdrUIBrightness);
-
-    /**
-     * @brief Sets the degree of light up effect.
-     *
-     * @param LightUpEffectDegree The degree of the light up effect to apply.
-     */
-    void SetLightUpEffectDegree(float LightUpEffectDegree);
+    void SetLightUpEffectDegree(float lightUpEffectDegree);
 
     void SetAttractionEffect(float fraction, const Vector2f& destinationPoint);
     void SetAttractionEffectFraction(float fraction);
@@ -1533,11 +1515,9 @@ public:
      */
     void RemoveModifier(const std::shared_ptr<RSModifier> modifier);
 
-    /**
-     * @brief Sets whether the node is a custom text type.
-     *
-     * @param isCustomTextType true if the text type is custom; false otherwise.
-     */
+    void AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+    void RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier);
+
     void SetIsCustomTextType(bool isCustomTextType);
 
     /**
@@ -1967,6 +1947,11 @@ private:
     std::map<PropertyId, std::shared_ptr<RSPropertyBase>> properties_;
     std::map<uint16_t, std::shared_ptr<RSModifier>> modifiersTypeMap_;
     std::map<RSModifierType, std::shared_ptr<RSModifier>> propertyModifiers_;
+
+    std::map<ModifierId, std::shared_ptr<ModifierNG::RSModifier>> modifiersNG_;
+    std::array<std::shared_ptr<ModifierNG::RSModifier>, ModifierNG::MODIFIER_TYPE_COUNT> modifiersNGCreatedBySetter_;
+    ModifierNG::RSNodeModifierData modifierDataNG_;
+
     std::shared_ptr<RectF> drawRegion_;
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
 
@@ -1990,8 +1975,7 @@ private:
     friend class RSPathAnimation;
     friend class RSModifierExtractor;
     friend class RSModifier;
-    friend class RSBackgroundUIFilterModifier;
-    friend class RSForegroundUIFilterModifier;
+    friend class ModifierNG::RSModifier;
     friend class RSKeyframeAnimation;
     friend class RSInterpolatingSpringAnimation;
     friend class RSImplicitCancelAnimationParam;

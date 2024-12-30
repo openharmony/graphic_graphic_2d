@@ -24,13 +24,15 @@ public:
     RSForegroundColorRenderModifier() = default;
     ~RSForegroundColorRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::FOREGROUND_COLOR;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::FOREGROUND_COLOR;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
 
-    static void ResetProperties(RSProperties& properties);
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+
+    void ResetProperties(RSProperties& properties) override;
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
@@ -38,6 +40,18 @@ private:
     {
         return LegacyPropertyApplierMap_;
     }
+
+    bool OnApply(RSModifierContext& context) override;
+
+    void OnSync() override;
+
+    // Staging Value
+    Color stagingFgColor_;
+
+    // Render Value
+    Color renderFgColor_;
+
+    // bool alphaNeedApply_ = false; // ?? TODO: check properties for more info
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_FOREGROUND_RS_FOREGROUND_COLOR_RENDER_MODIFIER_H

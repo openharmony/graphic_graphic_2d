@@ -21,7 +21,7 @@
 
 #include "command/rs_node_command.h"
 #include "modifier/rs_modifier.h"
-#include "modifier/rs_modifier_manager_map.h"
+#include "modifier_ng/rs_modifier_ng.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -59,14 +59,17 @@ RSPropertyBase::RSPropertyBase() : id_(GeneratePropertyId())
 
 void RSPropertyBase::MarkModifierDirty()
 {
-    auto modifier = modifier_.lock();
-    if (modifier != nullptr) {
+    if (auto modifier = modifier_.lock()) {
+        // legacy modifier set dirty
         auto node = target_.lock();
         if (node && node->GetRSUIContext()) {
             modifier->SetDirty(true, node->GetRSUIContext()->GetRSModifierManager());
         } else {
             modifier->SetDirty(true, RSModifierManagerMap::Instance()->GetModifierManager(gettid()));
         }
+    } else if (auto modifier = modifierNG_.lock()) {
+        // ModifierNG set dirty
+        modifier->SetDirty(true);
     }
 }
 
@@ -330,12 +333,6 @@ void RSProperty<std::shared_ptr<RSPath>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyPath, value, type);
 }
 template<>
-void RSProperty<RSDynamicBrightnessPara>::UpdateToRender(
-    const RSDynamicBrightnessPara& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyDynamicBrightness, value, type);
-}
-template<>
 void RSProperty<std::shared_ptr<RSLinearGradientBlurPara>>::UpdateToRender(
     const std::shared_ptr<RSLinearGradientBlurPara>& value, PropertyUpdateType type) const
 {
@@ -447,16 +444,5 @@ bool RSProperty<Vector4f>::IsValid(const Vector4f& value)
 {
     return !value.IsInfinite();
 }
-
-#define DECLARE_PROPERTY(T, TYPE_ENUM) template class RSProperty<T>
-#define DECLARE_ANIMATABLE_PROPERTY(T, TYPE_ENUM) \
-    template class RSAnimatableProperty<T>;       \
-    template class RSProperty<T>
-
-#include "modifier/rs_property_def.in"
-
-#undef DECLARE_PROPERTY
-#undef DECLARE_ANIMATABLE_PROPERTY
-
 } // namespace Rosen
 } // namespace OHOS

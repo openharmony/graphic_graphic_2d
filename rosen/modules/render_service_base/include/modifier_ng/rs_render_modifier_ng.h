@@ -16,14 +16,61 @@
 #ifndef RENDER_SERVICE_BASE_MODIFIER_NG_RS_RENDER_MODIFIER_NG_H
 #define RENDER_SERVICE_BASE_MODIFIER_NG_RS_RENDER_MODIFIER_NG_H
 
-#include "drawable/rs_misc_drawable.h"
+#include "recording/draw_cmd_list.h"
+
+#include "common/rs_macros.h"
 #include "modifier/rs_render_property.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
-#include "property/rs_properties.h"
+#include "pipeline/rs_paint_filter_canvas.h"
+#include "pipeline/rs_recording_canvas.h"
+#include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
+class RSProperties;
 class RSRenderNode;
+class RSFilterCacheManager;
 namespace ModifierNG {
+struct RSClipBoundsParams {
+    Vector4f borderRadius_; // cornerRadius
+    std::shared_ptr<RSPath> clipBounds_;
+    std::optional<RRect> clipRRect_;
+    bool clipToBounds_ = false;
+};
+struct RSModifierContext {
+    Drawing::Rect frame_;
+    Drawing::Rect bounds_;
+    Gravity frameGravity_;
+    RSClipBoundsParams clipBoundsParams_;
+    RRect GetRRect() const
+    {
+        return RRect(GetBoundsRect(), clipBoundsParams_.borderRadius_);
+    }
+    RectF GetBoundsRect() const
+    {
+        return (frame_.GetWidth() > 0 && frame_.GetHeight() > 0)
+                   ? RectF { 0, 0, frame_.GetWidth(), frame_.GetHeight() }
+                   : RectF { 0, 0, bounds_.GetWidth(), bounds_.GetHeight() };
+    }
+};
+
+class RSB_EXPORT RSDrawable : public std::enable_shared_from_this<RSDrawable> {
+public:
+    // move staging value to render value
+    void Sync();
+    // use render value to draw on canvas
+    virtual void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) {};
+
+    // clear staging values, and clear render value via a sync
+    virtual void Purge();
+
+protected:
+    RSDrawable() = default;
+    virtual ~RSDrawable() = default;
+    bool needSync_ = true; // need call sync
+
+    virtual void OnSync() {};
+};
+
 // =============================================
 // life cycle of RSRenderModifier
 // 1. Create & animate
@@ -31,15 +78,25 @@ namespace ModifierNG {
 //   value
 // 2. Apply
 //   Apply RSRenderProperty(s) to staging value
-class RSB_EXPORT RSRenderModifier : public std::enable_shared_from_this<RSRenderModifier> {
+// 3. GenerateDrawable
+//   Generate drawable from staging value
+// 4. Sync
+//   Move staging value to render value
+// 5. Draw
+//   Use render value to draw on canvas
+// 6. Purge
+//   Clear staging values, and clear render value via a sync
+class RSB_EXPORT RSRenderModifier : public RSDrawable {
 public:
     RSRenderModifier() = default;
-    RSRenderModifier(ModifierId id) : id_(id) {}
-    virtual ~RSRenderModifier() = default;
+    ~RSRenderModifier() override = default;
 
     // RSRenderProperty(s) to staging value
-    virtual void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) {}
+    bool Apply(RSModifierContext& context);
+    void Purge() override;
     void ApplyLegacyProperty(RSProperties& properties);
+
+    virtual void ResetProperties(RSProperties& properties) {}
 
     void AttachProperty(RSPropertyType type, const std::shared_ptr<RSRenderPropertyBase>& property);
     void DetachProperty(RSPropertyType type);
@@ -49,30 +106,33 @@ public:
     void OnDetachModifier();
     void SetDirty();
 
-    // Only use in dump without consideration of time performance
-    RSPropertyType FindPropertyType(const std::shared_ptr<RSRenderPropertyBase> target) const;
+    // TODO: re-design this modifier->drawable procedure
+    virtual std::shared_ptr<const RSDrawable> GenerateDrawable() const { return shared_from_this(); }
 
-    virtual void SetSingleFrameModifier(bool value) {}
-
-    virtual bool GetSingleFrameModifier() const
+    virtual ModifierNG::RSModifierType GetType() const = 0;
+    ModifierId GetId() const
     {
-        return false;
+        return id_;
     }
 
-    virtual bool IsCustom() const
-    {
-        return false;
-    }
+    bool Marshalling(Parcel& parcel) const;
+    [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
 
-    void Dump(std::string& out, const std::string& splitStr) const
-    {
-        for (auto& [type, property] : properties_) {
-            out += RSModifierTypeString::GetPropertyTypeString(type) + (IsCustom() ? ":[" : "");
-            property->Dump(out);
-            out += (IsCustom() ? "]" : "") + splitStr;
-        }
-    }
+protected:
+    virtual bool OnApply(RSModifierContext& context) = 0;
 
+    // only accept properties on white list ?
+    ModifierId id_;
+    bool dirty_ = true;
+    std::weak_ptr<RSRenderNode> target_;
+
+    // sub-class should not directly access properties_, use GetPropertyValue instead
+    std::map<RSPropertyType, std::shared_ptr<RSRenderPropertyBase>> properties_;
+
+    inline bool HasProperty(RSPropertyType type) const
+    {
+        return properties_.count(type);
+    };
     template<typename T>
     inline T Getter(RSPropertyType type, const T& defaultValue = {}) const
     {
@@ -83,74 +143,20 @@ public:
         auto property = std::static_pointer_cast<RSRenderProperty<T>>(it->second);
         return property->Get();
     }
-
-    template<typename T>
+    template<template<typename> class PropertyType, typename T>
     inline void Setter(RSPropertyType type, const T& value)
     {
         auto it = properties_.find(type);
         if (it != properties_.end()) {
-            auto property = std::static_pointer_cast<RSRenderProperty<T>>(it->second);
+            auto property = std::static_pointer_cast<PropertyType<T>>(it->second);
             property->Set(value);
         } else {
             // should not happen
         }
     }
 
-    virtual ModifierNG::RSModifierType GetType() const = 0;
-
-    ModifierId GetId() const
-    {
-        return id_;
-    }
-
-    bool Marshalling(Parcel& parcel) const;
-    [[nodiscard]] static RSRenderModifier* Unmarshalling(Parcel& parcel);
-
-    inline bool HasProperty(RSPropertyType type) const
-    {
-        return properties_.count(type);
-    }
-
-    size_t GetPropertySize()
-    {
-        auto size = 0;
-        for (auto& [type, property] : properties_) {
-            if (property != nullptr) {
-                size += property->GetSize();
-            }
-        }
-        return size;
-    }
-
-    template<typename T>
-    static std::shared_ptr<RSRenderModifier> MakeRenderModifier(
-        const RSModifierType type, const std::shared_ptr<RSRenderProperty<T>>& property)
-    {
-        const auto& constructor = RSRenderModifier::ConstructorLUT_[static_cast<uint8_t>(type)];
-        if (constructor == nullptr) {
-            return nullptr;
-        }
-        auto rawPointer = constructor();
-        if (rawPointer == nullptr) {
-            return nullptr;
-        }
-        std::shared_ptr<RSRenderModifier> renderModifier(rawPointer);
-        auto propertyType = ModifierTypeConvertor::GetPropertyType(type);
-        renderModifier->properties_.emplace(propertyType, property);
-        return renderModifier;
-    }
-
-    using ResetFunc = void (*)(RSProperties& properties);
-    static const std::unordered_map<RSModifierType, ResetFunc>& GetResetFuncMap();
-
-protected:
-    // only accept properties on white list ?
-    ModifierId id_ = 0;
-    bool dirty_ = true;
-    std::weak_ptr<RSRenderNode> target_;
-
-    // sub-class should not directly access properties_, use GetPropertyValue instead
-    std::map<RSPropertyType, std::shared_ptr<RSRenderPropertyBase>> properties_;
+    using LegacyPropertyApplier = std::function<void(RSProperties& context, RSRenderPropertyBase&)>;
+    using LegacyPropertyApplierMap = std::unordered_map<ModifierNG::RSPropertyType, LegacyPropertyApplier>;
 
     template<typename T, auto Setter>
     static void PropertyApplyHelper(RSProperties& properties, RSRenderPropertyBase& property)
@@ -177,11 +183,6 @@ protected:
         (properties.*Setter)(newValue);
     }
 
-    virtual void OnSetDirty();
-
-    using LegacyPropertyApplier = std::function<void(RSProperties& context, RSRenderPropertyBase&)>;
-    using LegacyPropertyApplierMap = std::unordered_map<ModifierNG::RSPropertyType, LegacyPropertyApplier>;
-
     static const LegacyPropertyApplierMap emptyLegacyPropertyApplierMap_;
 
     virtual const LegacyPropertyApplierMap& GetLegacyPropertyApplierMap() const
@@ -189,8 +190,9 @@ protected:
         return emptyLegacyPropertyApplierMap_;
     };
 
-private:
     using Constructor = std::function<RSRenderModifier*()>;
+
+private:
     static std::array<Constructor, ModifierNG::MODIFIER_TYPE_COUNT> ConstructorLUT_;
 
     template<typename T>
@@ -233,18 +235,57 @@ private:
     }
 
     friend class RSModifier;
-    friend class OHOS::Rosen::DrawableV2::RSCustomClipToFrameDrawable;
-    friend class OHOS::Rosen::DrawableV2::RSEnvFGColorDrawable;
-    friend class OHOS::Rosen::DrawableV2::RSEnvFGColorStrategyDrawable;
     friend class OHOS::Rosen::RSRenderNode;
 };
 
 // =============================================
 // modifiers that can be recorded as display list
 class RSB_EXPORT RSDisplayListRenderModifier : public RSRenderModifier {
+public:
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+    void Purge() override;
+
 protected:
     RSDisplayListRenderModifier() = default;
     ~RSDisplayListRenderModifier() override = default;
+
+    void OnSync() override;
+
+    // Staging Value
+    Drawing::DrawCmdListPtr stagingDrawCmd_;
+    // Render Value
+    Drawing::DrawCmdListPtr renderDrawCmd_;
+    friend class RSDisplayListModifierUpdater;
+
+    std::string renderPropertyDescription_;
+    std::string stagingPropertyDescription_;
+};
+
+class StyleTypeConvertor {
+public:
+    static ModifierNG::RSPropertyType getPropertyType(ModifierNG::RSModifierType T)
+    {
+        auto it = map_.find(T);
+        if (it == map_.end()) {
+            return ModifierNG::RSPropertyType::INVALID;
+        }
+        return it->second;
+    }
+
+private:
+    StyleTypeConvertor() = default;
+    ~StyleTypeConvertor() = default;
+
+    StyleTypeConvertor(const StyleTypeConvertor&) = delete;
+    StyleTypeConvertor& operator=(const StyleTypeConvertor&) = delete;
+
+    static inline std::unordered_map<ModifierNG::RSModifierType, ModifierNG::RSPropertyType> map_ = {
+        { ModifierNG::RSModifierType::TRANSITION, ModifierNG::RSPropertyType::TRANSITION },
+        { ModifierNG::RSModifierType::BACKGROUND_STYLE, ModifierNG::RSPropertyType::BACKGROUND_STYLE },
+        { ModifierNG::RSModifierType::CONTENT_STYLE, ModifierNG::RSPropertyType::CONTENT_STYLE },
+        { ModifierNG::RSModifierType::FOREGROUND_STYLE, ModifierNG::RSPropertyType::FOREGROUND_STYLE },
+        { ModifierNG::RSModifierType::OVERLAY_STYLE, ModifierNG::RSPropertyType::OVERLAY_STYLE },
+    };
 };
 
 // Holds DrawCmdList
@@ -255,37 +296,37 @@ public:
     ~RSCustomRenderModifier() override = default;
 
     static inline constexpr auto Type = type;
-
     ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
 
-    bool IsCustom() const override
-    {
-        return true;
-    }
-
-    void SetSingleFrameModifier(bool value) override
-    {
-        isSingleFrameModifier_ = value;
-    }
-
-    bool GetSingleFrameModifier() const override
-    {
-        return isSingleFrameModifier_;
-    }
-
-    void Apply(RSPaintFilterCanvas* canvas, RSProperties& properties) override;
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+    void Purge() override;
 
 protected:
-    bool isSingleFrameModifier_ = false;
+    bool OnApply(RSModifierContext& context) override;
+    void OnSync() override;
+
+    bool needClearOp_ = false;
+
+    bool isCanvasNode_ = false;
+    bool stagingIsCanvasNode_ = false;
+
+    // TBD
+    Gravity gravity_ = Gravity::DEFAULT;
+    Gravity stagingGravity_ = Gravity::DEFAULT;
+
+    // friend class RSDisplayListModifierUpdater;
 
 private:
-    void OnSetDirty() override;
 };
 
 class RSB_EXPORT RSFilterRenderModifier : public RSRenderModifier {
+public:
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+    void Purge() override;
+
 protected:
     RSFilterRenderModifier() = default;
     ~RSFilterRenderModifier() override = default;
@@ -294,6 +335,63 @@ protected:
     {
         return false;
     }
+
+    bool NeedBlurFuzed();
+    void ClearFilterCache();
+    std::shared_ptr<Drawing::ColorFilter> GetMaterialColorFilter(float sat, float brightness);
+    bool needDrawBehindWindow_ = false;
+    bool stagingNeedDrawBehindWindow_ = false;
+    // flags for clearing filter cache
+    // All stagingXXX variables should be read & written by render_service thread
+    bool stagingForceUseCache_ = false;
+    bool stagingForceClearCache_ = false;
+    bool stagingFilterHashChanged_ = false;
+    bool stagingFilterRegionChanged_ = false;
+    bool stagingFilterInteractWithDirty_ = false;
+    bool stagingRotationChanged_ = false;
+    bool stagingForceClearCacheForLastFrame_ = false;
+    bool stagingIsAIBarInteractWithHWC_ = false;
+    bool stagingIsEffectNode_ = false;
+    bool stagingIntersectWithDRM_ = false;
+    bool stagingIsDarkColorMode_ = false;
+    int stagingUpdateInterval_ = 0;
+    FilterCacheType stagingLastCacheType_ = FilterCacheType::NONE;
+
+    // clear one of snapshot cache and filtered cache after drawing
+    // All renderXXX variables should be read & written by render_thread or OnSync() function
+    bool renderClearFilteredCacheAfterDrawing_ = false;
+    bool renderFilterHashChanged_ = false;
+    bool renderForceClearCacheForLastFrame_ = false;
+    bool renderIsEffectNode_ = false;
+    bool renderIsSkipFrame_ = false;
+    bool renderIntersectWithDRM_ = false;
+    bool renderIsDarkColorMode_ = false;
+    // the type cache needed clear before drawing
+    FilterCacheType stagingClearType_ = FilterCacheType::NONE;
+    FilterCacheType renderClearType_ = FilterCacheType::NONE;
+    FilterCacheType lastCacheType_ = FilterCacheType::NONE;
+    bool stagingIsOccluded_ = false;
+
+    // force cache with cacheUpdateInterval_
+    bool stagingIsLargeArea_ = false;
+    bool canSkipFrame_ = false;
+    bool stagingIsSkipFrame_ = false;
+    bool isFilterCacheValid_ = false; // catch status in current frame
+    bool pendingPurge_ = false;
+    uint32_t stagingCachedFilterHash_ = 0;
+    RSFilter::FilterType filterType_ = RSFilter::NONE;
+    int cacheUpdateInterval_ = 0;
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId renderNodeId_ = INVALID_NODEID;
+    std::string stagingNodeName_ = "invalid0";
+    std::string renderNodeName_ = "invalid0";
+
+    std::shared_ptr<RSFilter> filter_;
+    std::shared_ptr<RSFilter> stagingFilter_;
+    std::unique_ptr<RSFilterCacheManager> cacheManager_;
+    RectI drawBehindWindowRegion_;
+    RectI stagingDrawBehindWindowRegion_;
+    void OnSync() override;
 };
 } // namespace ModifierNG
 } // namespace OHOS::Rosen

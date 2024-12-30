@@ -28,6 +28,7 @@
 #include "common/rs_rect.h"
 #include "drawable/rs_property_drawable.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "modifier_ng/background/rs_useeffect_render_modifier.h"
 #include "recording/recording_canvas.h"
 #include "utils/rect.h"
 
@@ -46,6 +47,9 @@ class RSDirtyRegionManager;
 class RSDrawWindowCache;
 namespace Drawing {
 class Canvas;
+}
+namespace ModifierNG {
+class RSUseEffectRenderModifier;
 }
 
 struct DrawCmdIndex {
@@ -339,7 +343,7 @@ protected:
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
     bool hasChildInBlackList_ = false;
-    
+
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
@@ -362,6 +366,7 @@ private:
     friend class RSUseEffectDrawable;
     friend class RSRenderNodeDrawable;
     friend class OHOS::Rosen::RSDrawWindowCache;
+    friend class ModifierNG::RSUseEffectRenderModifier;
 };
 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.

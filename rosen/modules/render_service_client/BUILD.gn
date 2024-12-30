@@ -113,6 +113,27 @@ template("render_service_client_source_set") {
       "core/modifier/rs_property_modifier.cpp",
       "core/modifier/rs_showing_properties_freezer.cpp",
 
+      #modifier_ng
+      "core/modifier_ng/appearance/rs_alpha_modifier.cpp",
+      "core/modifier_ng/appearance/rs_blend_modifier.cpp",
+      "core/modifier_ng/appearance/rs_env_foreground_color_modifier.cpp",
+      "core/modifier_ng/appearance/rs_foreground_filter_modifier.cpp",
+      "core/modifier_ng/appearance/rs_visibility_modifier.cpp",
+      "core/modifier_ng/geometry/rs_bounds_clip_modifier.cpp",
+      "core/modifier_ng/geometry/rs_bounds_modifier.cpp",
+      "core/modifier_ng/geometry/rs_frame_clip_modifier.cpp",
+      "core/modifier_ng/geometry/rs_frame_modifier.cpp",
+      "core/modifier_ng/rs_appearance_modifier.cpp",
+      "core/modifier_ng/rs_background_modifier.cpp",
+      "core/modifier_ng/rs_content_modifier.cpp",
+      "core/modifier_ng/rs_extended_modifier.cpp",
+      "core/modifier_ng/rs_foreground_modifier.cpp",
+      "core/modifier_ng/rs_modifier_manager.cpp",
+      "core/modifier_ng/rs_modifier_ng.cpp",
+      "core/modifier_ng/rs_node_modifier_data.cpp",
+      "core/modifier_ng/rs_overlay_modifier.cpp",
+      "core/modifier_ng/rs_transition_modifier.cpp",
+
       #pipeline
       "core/pipeline/rs_node_map.cpp",
       "core/pipeline/rs_node_map_v2.cpp",

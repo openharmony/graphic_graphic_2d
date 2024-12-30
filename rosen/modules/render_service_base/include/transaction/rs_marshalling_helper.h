@@ -90,12 +90,16 @@ template<typename T>
 class RectT;
 template<typename T>
 class RRectT;
-struct PixelMapInfo;
+namespace ModifierNG {
+class RSRenderModifier;
+}
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
     static constexpr size_t UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
     // default marshalling and unmarshalling method for POD types
+    // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
+
     template<typename T>
     struct is_shared_ptr : std::false_type {};
 
@@ -110,7 +114,8 @@ public:
     {
         return parcel.WriteUnpadBuffer(&val, sizeof(T));
     }
-    template<typename T, typename = is_not_pointer_or_shared_ptr<T>>
+
+    template<typename T>
     static bool Unmarshalling(Parcel& parcel, T& val)
     {
         if (const uint8_t* buff = parcel.ReadUnpadBuffer(sizeof(T))) {
@@ -138,6 +143,7 @@ public:
         }
         return true;
     }
+
     static bool Unmarshalling(Parcel& parcel, std::string& val)
     {
         if (!parcel.ReadString(val)) {
@@ -154,6 +160,7 @@ public:
         }
         return parcel.WriteUnpadBuffer(val, count * sizeof(T));
     }
+
     template<typename T>
     static bool UnmarshallingArray(Parcel& parcel, T*& val, int count)
     {
@@ -265,6 +272,7 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderTransitionEffect>)
 
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSRenderModifier>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<ModifierNG::RSRenderModifier>)
 #undef DECLARE_FUNCTION_OVERLOAD
 
     // reloaded marshalling & unmarshalling function for animation
@@ -304,6 +312,7 @@ public:
         }
         return true;
     }
+
     template<typename T, typename P>
     static bool Unmarshalling(Parcel& parcel, std::map<T, P>& val)
     {
@@ -343,6 +352,7 @@ public:
         }
         return true;
     }
+
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::vector<T>& val, size_t maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
     {
@@ -381,6 +391,7 @@ public:
         }
         return Marshalling(parcel, val.value());
     }
+
     template<typename T>
     static bool Unmarshalling(Parcel& parcel, std::optional<T>& val)
     {
@@ -401,6 +412,7 @@ public:
     {
         return Marshalling(parcel, val.first) && Marshalling(parcel, val.second);
     }
+
     template<class T1, class T2>
     static bool Unmarshalling(Parcel& parcel, std::pair<T1, T2>& val)
     {
@@ -412,6 +424,7 @@ public:
     {
         return Marshalling(parcel, first) && Marshalling(parcel, args...);
     }
+
     template<typename T, typename... Args>
     static bool Unmarshalling(Parcel& parcel, T& first, Args&... args)
     {
@@ -452,7 +465,6 @@ private:
     friend class RSProfiler;
 #endif
 };
-
 } // namespace Rosen
 } // namespace OHOS
 

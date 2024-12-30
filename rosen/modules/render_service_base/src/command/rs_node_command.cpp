@@ -14,7 +14,8 @@
  */
 
 #include "command/rs_node_command.h"
-#include "pipeline/rs_surface_render_node.h"
+
+#include "modifier_ng/rs_render_modifier_ng.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -215,37 +216,55 @@ void RSNodeCommandHelper::SetCommitDumpNodeTreeProcessor(CommitDumpNodeTreeProce
     gCommitDumpNodeTreeProcessor = processor;
 }
 
-void RSNodeCommandHelper::SetUIToken(RSContext& context, NodeId nodeId, uint64_t token)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode(nodeId);
-    if (node) {
-        node->SetUIContextToken(token);
-    }
-}
-
-void RSNodeCommandHelper::SetDrawNodeType(RSContext& context, NodeId nodeId, DrawNodeType nodeType)
+void RSNodeCommandHelper::AddModifierNG(RSContext& context, NodeId nodeId,
+    const std::shared_ptr<ModifierNG::RSRenderModifier>& modifier)
 {
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
     if (node) {
-        node->SetDrawNodeType(nodeType);
+        node->AddModifier(modifier);
     }
 }
 
-void RSNodeCommandHelper::UpdateOcclusionCullingStatus(RSContext& context, NodeId nodeId,
-    bool enable, NodeId keyOcclusionNodeId)
+void RSNodeCommandHelper::RemoveModifierNG(
+    RSContext& context, NodeId nodeId, ModifierNG::RSModifierType type, ModifierId id)
 {
     auto& nodeMap = context.GetNodeMap();
-    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
-        auto instanceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetInstanceRootNode());
-        if (instanceNode == nullptr) {
-            return;
-        }
-        if (auto occlusionParams = instanceNode->GetOcclusionParams()) {
-            occlusionParams->UpdateOcclusionCullingStatus(enable, keyOcclusionNodeId);
-        }
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->RemoveModifier(type, id);
     }
+}
+
+void RSNodeCommandHelper::ModifierNGAttachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
+    ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType,
+    std::shared_ptr<RSRenderPropertyBase> prop)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    auto modifier = node->GetModifierNG(modifierType, modifierId);
+    if (!modifier) {
+        return;
+    }
+    modifier->AttachProperty(propertyType, prop);
+}
+
+void RSNodeCommandHelper::ModifierNGDetachProperty(RSContext& context, NodeId nodeId, ModifierId modifierId,
+    ModifierNG::RSModifierType modifierType, ModifierNG::RSPropertyType propertyType)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (!node) {
+        return;
+    }
+    auto modifier = node->GetModifierNG(modifierType, modifierId);
+    if (!modifier) {
+        return;
+    }
+    modifier->DetachProperty(propertyType);
 }
 } // namespace Rosen
 } // namespace OHOS

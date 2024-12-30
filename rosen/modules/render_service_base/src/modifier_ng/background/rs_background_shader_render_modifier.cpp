@@ -15,6 +15,11 @@
 
 #include "modifier_ng/background/rs_background_shader_render_modifier.h"
 
+#include "drawable/rs_property_drawable_utils.h"
+#include "modifier_ng/rs_render_modifier_utils.h"
+#include "pipeline/rs_recording_canvas.h"
+#include "property/rs_properties_painter.h"
+
 namespace OHOS::Rosen::ModifierNG {
 const RSBackgroundShaderRenderModifier::LegacyPropertyApplierMap
     RSBackgroundShaderRenderModifier::LegacyPropertyApplierMap_ = {
@@ -23,15 +28,37 @@ const RSBackgroundShaderRenderModifier::LegacyPropertyApplierMap
         { RSPropertyType::BACKGROUND_SHADER_PROGRESS,
             RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetBackgroundShaderProgress,
                 &RSProperties::GetBackgroundShaderProgress> },
-        { RSPropertyType::COMPLEX_SHADER_PARAM,
-            RSRenderModifier::PropertyApplyHelperAdd<std::vector<float>, &RSProperties::SetComplexShaderParam,
-                &RSProperties::GetComplexShaderParam> },
     };
 
 void RSBackgroundShaderRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetBackgroundShader(nullptr);
+    properties.SetBackgroundShader({});
     properties.SetBackgroundShaderProgress(0.f);
-    properties.SetComplexShaderParam({});
+}
+
+bool RSBackgroundShaderRenderModifier::OnApply(RSModifierContext& context)
+{
+    if (!HasProperty(RSPropertyType::BACKGROUND_SHADER)) {
+        return false;
+    }
+    const auto& bgShader = Getter<std::shared_ptr<RSShader>>(RSPropertyType::BACKGROUND_SHADER, nullptr);
+    if (!bgShader) {
+        return false;
+    }
+
+    // regenerate stagingDrawCmdList_
+    RSDisplayListModifierUpdater updater(this);
+    Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
+    Drawing::Brush brush;
+    auto shaderEffect = bgShader->GetDrawingShader();
+    // do not draw if shaderEffect is nullptr and keep RSShader behavior consistent
+    if (shaderEffect == nullptr && bgShader->GetShaderType() != RSShader::ShaderType::DRAWING) {
+        return false;
+    }
+    brush.SetShaderEffect(shaderEffect);
+    canvas.AttachBrush(brush);
+    canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(context.GetBoundsRect()));
+    canvas.DetachBrush();
+    return true;
 }
 } // namespace OHOS::Rosen::ModifierNG

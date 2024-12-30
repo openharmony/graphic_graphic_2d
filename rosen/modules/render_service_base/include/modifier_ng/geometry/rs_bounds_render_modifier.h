@@ -24,8 +24,8 @@ public:
     RSBoundsRenderModifier() = default;
     ~RSBoundsRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::BOUNDS;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::BOUNDS;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
@@ -37,7 +37,7 @@ private:
         return LegacyPropertyApplierMap_;
     }
 
-    void OnSetDirty() override {}
+    bool OnApply(RSModifierContext& context) override;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_RENDER_MODIFIER_H

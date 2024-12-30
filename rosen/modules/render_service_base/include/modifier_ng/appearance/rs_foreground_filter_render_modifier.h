@@ -17,20 +17,48 @@
 #define RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_FOREGROUND_FILTER_RENDER_MODIFIER_H
 
 #include "modifier_ng/rs_render_modifier_ng.h"
+// TODO: remove it
+#include "render/rs_shadow.h"
 
-namespace OHOS::Rosen::ModifierNG {
+namespace OHOS::Rosen {
+class RSMotionBlurFilter;
+class RSForegroundEffectFilter;
+class RSSpherizeEffectFilter;
+class RSFlyOutShaderFilter;
+class RSAttractionEffectFilter;
+class RSColorfulShadowFilter;
+class RSDistortionFilter;
+
+namespace ModifierNG {
+class RSB_EXPORT RSBeginForegroundFilterDrawable : public RSDrawable {
+public:
+    RSBeginForegroundFilterDrawable() = default;
+    ~RSBeginForegroundFilterDrawable() override = default;
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+    void Purge() override {};
+    void SetBoundsRect(const RectF& boundsRect);
+
+private:
+    void OnSync() override;
+    RectF boundsRect_;
+    RectF stagingBoundsRect_;
+};
+
 class RSB_EXPORT RSForegroundFilterRenderModifier : public RSRenderModifier {
 public:
     RSForegroundFilterRenderModifier() = default;
     ~RSForegroundFilterRenderModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::FOREGROUND_FILTER;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::FOREGROUND_FILTER;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
 
-    static void ResetProperties(RSProperties& properties);
+    void Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect) override;
+    std::shared_ptr<RSBeginForegroundFilterDrawable> GetBeginForegroundFilterDrawable();
+
+    void ResetProperties(RSProperties& properties) override;
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;
@@ -38,6 +66,32 @@ private:
     {
         return LegacyPropertyApplierMap_;
     }
+
+    static const bool IS_UNI_RENDER;
+    std::shared_ptr<RSMotionBlurFilter> GenerateMotionBlurFilterIfValid();
+    std::shared_ptr<RSForegroundEffectFilter> GenerateForegroundEffectFilterIfValid();
+    std::shared_ptr<RSSpherizeEffectFilter> GenerateSphereEffectFilterIfValid();
+    std::shared_ptr<RSFlyOutShaderFilter> GenerateFlyOutShaderFilterIfValid();
+    std::shared_ptr<RSAttractionEffectFilter> GenerateAttractionEffectFilterIfValid(const RSModifierContext& context);
+    std::shared_ptr<RSColorfulShadowFilter> GenerateColorfulShadowFilterIfValid(const RSModifierContext& context);
+    std::shared_ptr<RSDistortionFilter> GenerateDistortionFilterIfValid();
+    bool OnApply(RSModifierContext& context) override;
+    void OnSync() override;
+
+    std::shared_ptr<OHOS::Rosen::RSFilter> filter_;
+    std::shared_ptr<OHOS::Rosen::RSFilter> stagingFilter_;
+    std::shared_ptr<RSBeginForegroundFilterDrawable> beginForegroundFilterDrawable_;
+
+    // TODO: remove it
+    std::optional<RSShadow> shadow_;
+    RectI attractionEffectCurrentDirtyRegion_ = { 0, 0, 0, 0 };
+    float GetShadowElevation() const;
+    float GetShadowRadius() const;
+    std::shared_ptr<RSPath> GetShadowPath() const;
+    float GetShadowOffsetX() const;
+    float GetShadowOffsetY() const;
+    bool GetShadowIsFilled() const;
 };
-} // namespace OHOS::Rosen::ModifierNG
+} // namespace ModifierNG
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_MODIFIER_NG_APPEARANCE_RS_FOREGROUND_FILTER_RENDER_MODIFIER_H

@@ -51,11 +51,8 @@ public:
         const std::shared_ptr<RSRenderPropertyBase>& initialVelocity,
         const std::shared_ptr<RSRenderPropertyBase>& value) const;
 
-    std::string ParseRenderPropertyValue(const std::shared_ptr<RSRenderPropertyBase>& value) const;
-
-    void AddAnimationCancelTrace(const uint64_t nodeId, const uint64_t propertyId) const;
-    void AddChangeAnimationValueTrace(
-        const uint64_t propertyId, const std::shared_ptr<RSRenderPropertyBase>& endValue) const;
+    std::string ParseRenderPropertyVaule(const std::shared_ptr<RSRenderPropertyBase>& value,
+        const RSPropertyType type = RSPropertyType::INVALID) const;
 
 private:
     RSAnimationTraceUtils();
@@ -63,7 +60,8 @@ private:
     RSAnimationTraceUtils(const RSAnimationTraceUtils&) = delete;
     RSAnimationTraceUtils& operator=(const RSAnimationTraceUtils&) = delete;
 
-    std::string ParseRenderPropertyValueInner(const std::shared_ptr<RSRenderPropertyBase>& value) const;
+    std::string ParseRenderPropertyVauleInner(const std::shared_ptr<RSRenderPropertyBase>& value,
+        const RSPropertyType type = RSPropertyType::INVALID) const;
 
     std::string GetColorString(const Color& value) const;
 

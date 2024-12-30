@@ -24,18 +24,11 @@ public:
     RSAlphaModifier() = default;
     ~RSAlphaModifier() override = default;
 
-    static inline constexpr auto Type = RSModifierType::ALPHA;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::ALPHA;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     };
-
-    void MarkNodeDirty() override
-    {
-        if (auto node = node_.lock()) {
-            node->MarkDirty(NodeDirtyType::APPEARANCE, true);
-        }
-    }
 
     void SetAlpha(float alpha);
     float GetAlpha() const;

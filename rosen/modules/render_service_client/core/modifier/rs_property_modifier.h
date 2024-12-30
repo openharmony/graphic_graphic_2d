@@ -1827,11 +1827,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-/**
- * @class RSBackgroundBlurRadiusModifier
- *
- * @brief The class for background blur radius modifiers.
- */
 class RSC_EXPORT RSBackgroundBlurRadiusModifier : public RSBackgroundModifier {
 public:
     /**
@@ -3221,11 +3216,6 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
-/**
- * @class RSFrameGravityModifier
- *
- * @brief The class for frame gravity modifiers.
- */
 class RSC_EXPORT RSFrameGravityModifier : public RSAppearanceModifier {
 public:
     /**

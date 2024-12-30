@@ -15,13 +15,40 @@
 
 #include "modifier_ng/appearance/rs_visibility_render_modifier.h"
 
+#include "property/rs_properties.h"
+
 namespace OHOS::Rosen::ModifierNG {
 const RSVisibilityRenderModifier::LegacyPropertyApplierMap RSVisibilityRenderModifier::LegacyPropertyApplierMap_ = {
     { RSPropertyType::VISIBLE, RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetVisible> }
 };
 
+void RSVisibilityRenderModifier::Draw(RSPaintFilterCanvas& canvas, Drawing::Rect& rect)
+{
+    // TODO:??
+}
+
 void RSVisibilityRenderModifier::ResetProperties(RSProperties& properties)
 {
     properties.SetVisible(true);
+}
+
+/*
+ * Protected Methods
+ */
+bool RSVisibilityRenderModifier::OnApply(RSModifierContext& context)
+{
+    // TODO: the if-else can be written as a template - later
+    if (properties_.count(RSPropertyType::VISIBLE)) {
+        stagingVisibility_ =
+            std::static_pointer_cast<RSRenderProperty<bool>>(properties_.at(RSPropertyType::VISIBLE))->Get();
+    } else {
+        stagingVisibility_ = false;
+    }
+    return true;
+}
+
+void RSVisibilityRenderModifier::OnSync()
+{
+    std::swap(stagingVisibility_, renderVisibility_);
 }
 } // namespace OHOS::Rosen::ModifierNG

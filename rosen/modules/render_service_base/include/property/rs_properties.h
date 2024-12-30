@@ -227,6 +227,9 @@ public:
     std::shared_ptr<RSImage> GetBgImage() const;
     void SetBgImageInnerRect(const Vector4f& rect);
     Vector4f GetBgImageInnerRect() const;
+    void SetBgImageDstRect(const Vector4f& rect);
+    const Vector4f GetBgImageDstRect();
+    const RectF& GetBgImageRect() const;
     void SetBgImageWidth(float width);
     void SetBgImageHeight(float height);
     void SetBgImagePositionX(float positionX);
@@ -667,7 +670,6 @@ private:
     bool NeedBlurFuzed();
     bool NeedLightBlur(bool disableSystemAdaptation);
 
-    const RectF& GetBgImageRect() const;
     void GenerateRRect();
     RectI GetDirtyRect() const;
     // added for update dirty region dfx

@@ -16,28 +16,25 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_MODIFIER_H
 
+#include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "modifier_ng/rs_modifier_ng.h"
 
-namespace OHOS::Rosen::ModifierNG {
+namespace OHOS::Rosen {
+namespace ModifierNG {
 class RSC_EXPORT RSFrameModifier : public RSModifier {
 public:
     RSFrameModifier() = default;
     ~RSFrameModifier() = default;
 
-    static inline constexpr auto Type = RSModifierType::FRAME;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::FRAME;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     }
 
-    void MarkNodeDirty() override
-    {
-        if (auto node = node_.lock()) {
-            node->MarkDirty(NodeDirtyType::GEOMETRY, true);
-        }
-    }
-
     void SetFrame(Vector4f frame);
+    void SetFrameGravity(const Gravity& gravity);
     void SetFrameSize(Vector2f size);
     void SetFrameWidth(float width);
     void SetFrameHeight(float height);
@@ -45,6 +42,7 @@ public:
     void SetFramePositionX(float positionX);
     void SetFramePositionY(float positionY);
     Vector4f GetFrame() const;
+    Gravity GetFrameGravity() const;
     Vector2f GetFrameSize() const;
     float GetFrameWidth() const;
     float GetFrameHeight() const;
@@ -52,5 +50,6 @@ public:
     float GetFramePositionX() const;
     float GetFramePositionY() const;
 };
-} // namespace OHOS::Rosen::ModifierNG
+} // namespace ModifierNG
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_MODIFIER_H

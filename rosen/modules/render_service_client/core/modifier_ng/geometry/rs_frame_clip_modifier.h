@@ -16,30 +16,25 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_CLIP_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_CLIP_MODIFIER_H
 
+#include "common/rs_common_def.h"
+#include "common/rs_macros.h"
 #include "modifier_ng/rs_modifier_ng.h"
 
-namespace OHOS::Rosen::ModifierNG {
+namespace OHOS::Rosen {
+namespace ModifierNG {
 class RSC_EXPORT RSFrameClipModifier : public RSModifier {
 public:
     RSFrameClipModifier() = default;
     ~RSFrameClipModifier() = default;
 
-    static inline constexpr auto Type = RSModifierType::CLIP_TO_FRAME;
-    RSModifierType GetType() const override
+    static inline constexpr auto Type = ModifierNG::RSModifierType::CLIP_TO_FRAME;
+    ModifierNG::RSModifierType GetType() const override
     {
         return Type;
     }
-
-    void MarkNodeDirty() override
-    {
-        if (auto node = node_.lock()) {
-            node->MarkDirty(NodeDirtyType::APPEARANCE, true);
-        }
-    }
-
     void SetClipToFrame(bool clipToFrame);
     void SetCustomClipToFrame(const Vector4f& customClipToFrame);
-    void SetFrameGravity(const Gravity& gravity);
 };
-} // namespace OHOS::Rosen::ModifierNG
+} // namespace ModifierNG
+} // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_FRAME_CLIP_MODIFIER_H
