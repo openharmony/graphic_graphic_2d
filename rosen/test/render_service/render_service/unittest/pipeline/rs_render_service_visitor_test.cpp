@@ -474,6 +474,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -488,6 +489,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -502,6 +504,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -516,6 +519,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -530,6 +534,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -544,6 +549,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -558,6 +564,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -572,6 +579,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.PrepareRootRenderNode(node);
 }
@@ -585,6 +593,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareRootRenderNode008, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren001, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsRenderServiceVisitor.ProcessChildren(rsSurfaceRenderNode);
@@ -599,6 +608,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren001, TestSize.Level1)
 HWTEST_F(RSRenderServiceVisitorTest, ProcessChildren002, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsRenderServiceVisitor.ProcessChildren(rsSurfaceRenderNode);
@@ -812,6 +822,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessDisplayRenderNode010, TestSize.Level
 HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode001, TestSize.Level1)
 {
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsRenderServiceVisitor.ProcessSurfaceRenderNode(rsSurfaceRenderNode);
@@ -904,6 +915,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode001, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -918,6 +930,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode002, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -932,6 +945,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode003, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -946,6 +960,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode004, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -960,6 +975,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode005, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -974,6 +990,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode006, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -988,6 +1005,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode007, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -1002,6 +1020,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessCanvasRenderNode008, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSCanvasRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessCanvasRenderNode(node);
 }
@@ -1016,6 +1035,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1030,6 +1050,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[2];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1044,6 +1065,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode003, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1058,6 +1080,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1072,6 +1095,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode005, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[5];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1086,6 +1110,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode006, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[6];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1100,6 +1125,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode007, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[7];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }
@@ -1114,6 +1140,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessRootRenderNode008, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor;
+    ASSERT_FALSE(rsRenderServiceVisitor.doAnimate_);
     RSRootRenderNode node(nodeId);
     rsRenderServiceVisitor.ProcessRootRenderNode(node);
 }

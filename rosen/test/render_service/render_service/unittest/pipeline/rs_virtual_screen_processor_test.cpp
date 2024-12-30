@@ -153,6 +153,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, PostProcess001, TestSize.Level1)
 HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
+    ASSERT_FALSE(config.isSync);
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     RSVirtualScreenProcessor rsVirtualScreenProcessor;
     rsVirtualScreenProcessor.ProcessSurface(rsSurfaceRenderNode);
@@ -169,6 +170,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessDisplaySurfaceTest, TestSize.Level
 {
     RSDisplayNodeConfig config;
     NodeId id = 0;
+    ASSERT_FALSE(config.isSync);
     RSDisplayRenderNode rsDisplayRenderNode(id, config);
     RSVirtualScreenProcessor rsVirtualScreenProcessor;
     rsVirtualScreenProcessor.ProcessDisplaySurface(rsDisplayRenderNode);
@@ -185,6 +187,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
     NodeId id = 0;
     RCDSurfaceType type = RCDSurfaceType::BOTTOM;
     RSRcdSurfaceRenderNode node(id, type);
+    ASSERT_TRUE(node.surface_ == nullptr);
     RSVirtualScreenProcessor rsVirtualScreenProcessor;
     rsVirtualScreenProcessor.ProcessRcdSurface(node);
 }
