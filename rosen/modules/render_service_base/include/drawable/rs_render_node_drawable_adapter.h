@@ -331,7 +331,6 @@ private:
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
     friend class RSUseEffectDrawable;
-    friend class RSRenderNodeDrawable;
 };
 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.
