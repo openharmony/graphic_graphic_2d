@@ -163,8 +163,8 @@ void RSSurfaceBufferCallbackManager::EnqueueSurfaceBufferId(
 void RSSurfaceBufferCallbackManager::RequestNextVSync()
 {
     if (vSyncFuncs_.isRequestedNextVSync && !std::invoke(vSyncFuncs_.isRequestedNextVSync)) {
-        if (vSyncFuncs_.requestNextVsync) {
-            std::invoke(vSyncFuncs_.requestNextVsync);
+        if (vSyncFuncs_.requestNextVSync) {
+            std::invoke(vSyncFuncs_.requestNextVSync);
         }
     }
 }
