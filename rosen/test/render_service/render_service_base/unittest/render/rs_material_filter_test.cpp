@@ -413,5 +413,7 @@ HWTEST_F(RSMaterialFilterTest, GetDetailedDescription001, TestSize.Level1)
     RSMaterialFilter rsMaterialFilter = RSMaterialFilter(style, dipScale, mode, ratio);
 
     rsMaterialFilter.GetDetailedDescription();
+    ASSERT_EQ(rsMaterialFilter.colorMode_, mode);
+    ASSERT_EQ(rsMaterialFilter.type_, RSDrawingFilterOriginal::FilterType::MATERIAL);
 }
 } // namespace OHOS::Rosen
