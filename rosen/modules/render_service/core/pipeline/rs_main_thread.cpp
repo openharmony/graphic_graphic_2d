@@ -1129,6 +1129,9 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
+    if (!effectiveTransactionDataIndexMap_.empty() && transactionDataEffective == nullptr) {
+        transactionDataEffective = std::make_shared<TransactionDataMap>();
+    }
     for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
         auto pid = rsTransactionElem.first;
         auto& lastIndex = rsTransactionElem.second.first;
@@ -1179,7 +1182,7 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
 void RSMainThread::ProcessCommandForUniRender()
 {
 #ifdef RS_ENABLE_GPU
-    std::shared_ptr<TransactionDataMap> transactionDataEffective = std::make_shared<TransactionDataMap>();
+    std::shared_ptr<TransactionDataMap> transactionDataEffective = nullptr;
     std::string transactionFlags;
     bool isNeedCacheCmd = CheckParallelSubThreadNodesStatus();
     {
@@ -1198,7 +1201,8 @@ void RSMainThread::ProcessCommandForUniRender()
         }
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
-    if (!transactionDataEffective->empty() || RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
+    if ((transactionDataEffective != nullptr && !transactionDataEffective->empty()) ||
+        RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
@@ -1222,19 +1226,18 @@ void RSMainThread::ProcessCommandForUniRender()
     if (transactionFlags != "") {
         transactionFlags_ = transactionFlags;
     }
-    for (auto& rsTransactionElem: *transactionDataEffective) {
-        for (auto& rsTransaction: rsTransactionElem.second) {
-            if (rsTransaction) {
-                if (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0) {
+    if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
+        for (auto& rsTransactionElem : *transactionDataEffective) {
+            for (auto& rsTransaction : rsTransactionElem.second) {
+                if (rsTransaction &&
+                    (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0)) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
-                    continue;
+                } else if (rsTransaction) {
+                    ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
                 }
-                ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
             }
         }
-    }
-    if (!transactionDataEffective->empty()) {
-        RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
+        RSBackgroundThread::Instance().PostTask([transactionDataEffective]() {
             RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
             transactionDataEffective->clear();
         });

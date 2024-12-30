@@ -990,10 +990,10 @@ bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
         surfaceBuffer->buffer = returnValue.buffer;
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
-        RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
+        RS_LOGD_IF(DEBUG_PIPELINE,
+            "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
-            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,
-            surfaceBuffer->buffer->GetSeqNum());
+            surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp, surfaceBuffer->buffer->GetSeqNum());
         RS_TRACE_NAME_FMT("RsDebug surfaceHandler(id: %" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%" PRIu64 ", buffer timestamp = %" PRId64 ", seq = %" PRIu32 ".",
             surfaceHandler.GetNodeId(), acquireTimeStamp, surfaceBuffer->timestamp,

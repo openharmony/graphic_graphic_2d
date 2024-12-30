@@ -959,7 +959,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         return VSYNC_ERROR_NULLPTR;
     }
 
-    ScopedBytrace func(connection->info_.name_ + "_RequestNextVSync");
+    RS_TRACE_NAME_FMT("%s_RequestNextVSync", connection->info_.name_.c_str());
     std::unique_lock<std::mutex> locker(mutex_);
 
 #if defined(RS_ENABLE_DVSYNC)

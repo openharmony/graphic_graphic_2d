@@ -97,15 +97,15 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
-        node.GetName().c_str(), layerInfo.zOrder,
-        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
+        node.GetName().c_str(), layerInfo.zOrder, layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w,
+        layerInfo.srcRect.h, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());

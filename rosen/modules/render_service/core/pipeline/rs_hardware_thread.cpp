@@ -217,7 +217,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
         RS_TRACE_NAME_FMT("RSHardwareThread::CommitAndReleaseLayers rate: %u, now: %" PRIu64 ", " \
             "vsyncId: %" PRIu64 ", size: %zu", currentRate, param.frameTimestamp, param.vsyncId, layers.size());
-        RS_LOGD("RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseLayers rate:%{public}u, " \
             "now:%{public}" PRIu64 ", vsyncId:%{public}" PRIu64 ", size:%{public}zu, %{public}s",
             currentRate, param.frameTimestamp, param.vsyncId, layers.size(), surfaceName.c_str());
         ExecuteSwitchRefreshRate(output, param.rate);
@@ -238,7 +238,7 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
         }
 
         unExecuteTaskNum_--;
-        RS_LOGD("RSHardwareThread::CommitAndReleaseData unExecuteTaskNum_:%{public}d,"
+        RS_LOGD_IF(DEBUG_COMPOSER, "RSHardwareThread::CommitAndReleaseData unExecuteTaskNum_:%{public}d,"
             " HARDWARE_THREAD_TASK_NUM:%{public}d, %{public}s",
             unExecuteTaskNum_.load(), HARDWARE_THREAD_TASK_NUM, surfaceName.c_str());
         if (unExecuteTaskNum_ <= HARDWARE_THREAD_TASK_NUM) {
@@ -388,8 +388,9 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         "period: %" PRId64 "",
         pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period);
-    RS_LOGD("RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "",
-        period, delayTime_);
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
+        delayTime_);
 }
 
 int64_t RSHardwareThread::GetCurTimeCount()
