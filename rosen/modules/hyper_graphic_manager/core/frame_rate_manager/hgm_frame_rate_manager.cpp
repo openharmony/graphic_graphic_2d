@@ -1420,7 +1420,7 @@ bool HgmFrameRateManager::ProcessRefreshRateVote(std::vector<std::string>::itera
         return false;
     }
     if (voter == "VOTER_GAMES") {
-        if (!gameScenes_.empty()) {
+        if (!gameScenes_.empty() || !multiAppStrategy_.CheckPidValid(curVoteInfo.pid, true)) {
             ProcessVoteLog(curVoteInfo, true);
             return false;
         }
