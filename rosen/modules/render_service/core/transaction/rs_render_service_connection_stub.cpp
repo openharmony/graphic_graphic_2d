@@ -820,7 +820,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SyncFrameRateRange(id, {min, max, preferred, type, static_cast<ComponentScene>(componentScene)},
-            animatorExpectedFrameRate);
+                animatorExpectedFrameRate);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER): {
