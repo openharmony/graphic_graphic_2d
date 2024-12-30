@@ -340,14 +340,6 @@ public:
         return surfaceCountForMultiLayersPerf_;
     }
 
-    const std::vector<NodeId>& GetLastSurfaceIds() const {
-        return lastSurfaceIds_;
-    }
-
-    void SetLastSurfaceIds(std::vector<NodeId> lastSurfaceIds) {
-        lastSurfaceIds_ = std::move(lastSurfaceIds);
-    }
-
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
     {
         oldScbPids_ = oldScbPids;
