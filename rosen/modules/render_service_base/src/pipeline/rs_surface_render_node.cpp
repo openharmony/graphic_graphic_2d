@@ -252,8 +252,8 @@ void RSSurfaceRenderNode::PrepareRenderBeforeChildren(RSPaintFilterCanvas& canva
     // Extract srcDest and dstRect from Drawing::Canvas, localCLipBounds as SrcRect, deviceClipBounds as DstRect
     auto deviceClipRect = canvas.GetDeviceClipBounds();
     UpdateSrcRect(canvas, deviceClipRect);
-    RectI dstRect = { deviceClipRect.GetLeft() + offsetX_, deviceClipRect.GetTop() + offsetY_,
-        deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
+    RectI dstRect = {
+        deviceClipRect.GetLeft(), deviceClipRect.GetTop(), deviceClipRect.GetWidth(), deviceClipRect.GetHeight() };
     SetDstRect(dstRect);
 
     // Save TotalMatrix and GlobalAlpha for compositor

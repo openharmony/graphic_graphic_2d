@@ -23,21 +23,6 @@ using namespace OHOS;
 namespace OHOS {
 namespace Rosen {
 
-class BufferConsumerListener : public IBufferConsumerListener {
-public:
-    explicit BufferConsumerListener(HdiFramebufferSurface& fbSurface) : fbSurface_(fbSurface) {}
-
-    ~BufferConsumerListener() {}
-
-private:
-    void OnBufferAvailable() override
-    {
-        fbSurface_.OnBufferAvailable();
-    }
-
-    HdiFramebufferSurface& fbSurface_;
-};
-
 HdiFramebufferSurface::HdiFramebufferSurface()
 {
 }
@@ -50,7 +35,7 @@ sptr<HdiFramebufferSurface> HdiFramebufferSurface::CreateFramebufferSurface()
 {
     sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
 
-    SurfaceError ret = fbSurface->CreateSurface();
+    SurfaceError ret = fbSurface->CreateSurface(fbSurface);
     if (ret != SURFACE_ERROR_OK) {
         HLOGE("FramebufferSurface CreateSurface failed, ret is %{public}d", ret);
         return nullptr;
@@ -65,7 +50,7 @@ sptr<HdiFramebufferSurface> HdiFramebufferSurface::CreateFramebufferSurface()
     return fbSurface;
 }
 
-SurfaceError HdiFramebufferSurface::CreateSurface()
+SurfaceError HdiFramebufferSurface::CreateSurface(sptr<HdiFramebufferSurface> &fbSurface)
 {
     consumerSurface_ = IConsumerSurface::Create("FrameBuffer");
     if (consumerSurface_ == nullptr) {
@@ -75,8 +60,8 @@ SurfaceError HdiFramebufferSurface::CreateSurface()
     sptr<IBufferProducer> producer = consumerSurface_->GetProducer();
     producerSurface_ = Surface::CreateSurfaceAsProducer(producer);
 
-    listener_ = new BufferConsumerListener(*this);
-    SurfaceError ret = consumerSurface_->RegisterConsumerListener(listener_);
+    sptr<IBufferConsumerListener> listener = fbSurface;
+    SurfaceError ret = consumerSurface_->RegisterConsumerListener(listener);
     if (ret != SURFACE_ERROR_OK) {
         return SURFACE_ERROR_NO_CONSUMER;
     }
