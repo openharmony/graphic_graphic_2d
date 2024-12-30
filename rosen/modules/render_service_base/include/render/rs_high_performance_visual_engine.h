@@ -18,6 +18,7 @@
 
 #include "draw/canvas.h"
 #include "image/image.h"
+#include <mutex>
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
@@ -49,6 +50,7 @@ public:
 private:
     HveFilter() = default;
     std::vector<SurfaceNodeInfo> surfaceNodeInfo_;
+    mutable std::mutex hveFilterMtx_;
 };
 } // namespace Rosen
 } // namespace OHOS
