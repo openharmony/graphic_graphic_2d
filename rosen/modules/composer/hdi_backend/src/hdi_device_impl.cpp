@@ -120,6 +120,12 @@ int32_t HdiDeviceImpl::SetScreenConstraint(uint32_t screenId, uint64_t frameId, 
     return g_composer->SetDisplayConstraint(screenId, frameId, timestamp, type);
 }
 
+int32_t HdiDeviceImpl::GetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t& propertyValue)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->GetDisplayProperty(screenId, propertyId, propertyValue);
+}
+
 int32_t HdiDeviceImpl::SetScreenVsyncEnabled(uint32_t screenId, bool enabled)
 {
     HLOGD("SetScreenVsyncEnabled, screenId:%{public}u, enabled:%{public}d", screenId, enabled);

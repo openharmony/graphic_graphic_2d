@@ -68,6 +68,7 @@
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -1495,6 +1496,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
                 selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
+                RSPointerWindowManager::Instance().SetHardCursorNodeInfo(surfaceNode);
             }
 
             if (!surfaceNode->GetDoDirectComposition()) {
@@ -1964,6 +1966,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 }
             }
             WaitUntilUploadTextureTaskFinishedForGL();
+            renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
             return;
         }
     }
@@ -1986,6 +1989,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+        renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
@@ -2075,6 +2079,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             params->SetBufferSynced(true);
         }
     }
+    RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
@@ -3788,6 +3793,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
         selfDrawables_.clear();
+        RSPointerWindowManager::Instance().ResetHardCursorDrawables();
     }
 }
 
