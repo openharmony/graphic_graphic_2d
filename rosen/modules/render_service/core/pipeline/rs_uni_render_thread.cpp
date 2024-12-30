@@ -831,7 +831,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             this->clearMemoryFinished_ = true;
         } else {
             this->isDefaultCleanTaskFinished_ = true;
-            if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
+            {
                 RS_TRACE_NAME_FMT("Purge unlocked resources when clear memory");
                 grContext->PurgeUnlockedResources(false);
             }
