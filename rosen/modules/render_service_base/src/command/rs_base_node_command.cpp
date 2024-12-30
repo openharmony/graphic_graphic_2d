@@ -91,6 +91,13 @@ void BaseNodeCommandHelper::RemoveCrossParentChild(RSContext& context, NodeId no
     }
 }
 
+void BaseNodeCommandHelper::SetIsCrossNode(RSContext& context, NodeId nodeId, bool isCrossNode)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode(nodeId)) {
+        node->SetIsCrossNode(isCrossNode);
+    }
+}
+
 void BaseNodeCommandHelper::RemoveFromTree(RSContext& context, NodeId nodeId)
 {
     auto& nodeMap = context.GetNodeMap();

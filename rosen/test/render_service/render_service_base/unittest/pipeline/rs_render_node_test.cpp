@@ -2773,10 +2773,10 @@ HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
 {
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
-    renderNode->IncreaseCrossScreenNum();
+    renderNode->SetIsCrossNode(true);
     ASSERT_TRUE(renderNode->isCrossNode_);
 
-    renderNode->DecreaseCrossScreenNum();
+    renderNode->SetIsCrossNode(false);
     ASSERT_FALSE(renderNode->isCrossNode_);
 }
 
