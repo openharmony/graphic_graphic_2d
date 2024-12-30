@@ -36,6 +36,7 @@ struct AdaptiveImageInfo {
     int32_t width = 0;
     int32_t height = 0;
     uint32_t dynamicRangeMode = 0;
+    int32_t rotateDegree = 0;
     Rect frameRect;
 };
 }
@@ -92,6 +93,7 @@ public:
         const Drawing::SamplingOptions& samplingOptions, bool isBackground = false);
     void SetImageFit(int fitNum);
     void SetImageRepeat(int repeatNum);
+    void SetImageRotateDegree(int32_t degree);
     void SetRadius(const std::vector<Drawing::Point>& radius);
     void SetScale(double scale);
     void SetInnerRect(const std::optional<Drawing::RectI>& innerRect) { innerRect_ = innerRect;}
@@ -104,7 +106,7 @@ public:
     void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 
     void SetNodeId(NodeId nodeId);
-    
+
     void ApplyImageFit();
     ImageFit GetImageFit();
     Drawing::AdaptiveImageInfo GetAdaptiveImageInfoWithCustomizedFrameRect(const Drawing::Rect& frameRect) const;
@@ -136,14 +138,17 @@ private:
     bool HasRadius() const;
     void ApplyCanvasClip(Drawing::Canvas& canvas);
     void UploadGpu(Drawing::Canvas& canvas);
+    std::pair<float, float> CalculateByDegree(const Drawing::Rect& rect);
+    void DrawImageWithRotateDegree(
+            Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
     void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
     void DrawImageOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw);
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
-    static bool UnmarshalImageProperties(
-        Parcel& parcel, int& fitNum, int& repeatNum, std::vector<Drawing::Point>& radius, double& scale);
+    static bool UnmarshalImageProperties(Parcel& parcel, int& fitNum, int& repeatNum,
+        std::vector<Drawing::Point>& radius, double& scale, int32_t& degree);
     static void ProcessImageAfterCreation(RSImage* rsImage, const uint64_t uniqueId, const bool useSkImage,
         const std::shared_ptr<Media::PixelMap>& pixelMap);
 #endif
@@ -156,6 +161,7 @@ private:
     RectF frameRect_;
     double scale_ = 1.0;
     NodeId nodeId_ = 0;
+    int32_t rotateDegree_;
     Drawing::Paint paint_;
     uint32_t dynamicRangeMode_ = 0;
 };
