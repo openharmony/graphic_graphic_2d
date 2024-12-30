@@ -757,6 +757,12 @@ void RSNode::SetPositionZ(float positionZ)
     SetProperty<RSPositionZModifier, RSAnimatableProperty<float>>(RSModifierType::POSITION_Z, positionZ);
 }
 
+void RSNode::SetPositionZApplicableCamera3D(bool isApplicable)
+{
+    SetProperty<RSPositionZApplicableCamera3DModifier, RSProperty<bool>>(
+        RSModifierType::POSITION_Z_APPLICABLE_CAMERA3D, isApplicable);
+}
+
 // pivot
 void RSNode::SetPivot(const Vector2f& pivot)
 {
@@ -2407,6 +2413,19 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
     }
 }
 
+void RSNode::SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch)
+{
+    if (uiFirstSwitch_ == uiFirstSwitch) {
+        return;
+    }
+    uiFirstSwitch_ = uiFirstSwitch;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetUIFirstSwitch>(GetId(), uiFirstSwitch);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, IsRenderServiceNode());
+    }
+}
+
 void RSNode::SetGrayScale(float grayScale)
 {
     SetProperty<RSGrayScaleModifier, RSAnimatableProperty<float>>(RSModifierType::GRAY_SCALE, grayScale);
@@ -2571,7 +2590,7 @@ void RSNode::AddChild(SharedPtr child, int index)
         return;
     }
     NodeId childId = child->GetId();
-    if (child->parent_ != 0 && !child->isTextureExportNode_) {
+    if (child->parent_ != 0) {
         child->RemoveFromTree();
     }
 
@@ -2730,6 +2749,18 @@ void RSNode::RemoveCrossParentChild(SharedPtr child, NodeId newParentId)
     childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeRemoveCrossParentChild>(id_, childId, newParentId);
     transactionProxy->AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
+}
+
+void RSNode::SetIsCrossNode(bool isCrossNode)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGE("transactionProxy is null, SetIsCrossNode failed !");
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSBaseNodeSetIsCrossNode>(GetId(), isCrossNode);
+    transactionProxy->AddCommand(command);
 }
 
 void RSNode::RemoveChildById(NodeId childId)

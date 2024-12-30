@@ -31,34 +31,24 @@
 #include "drawing_pen.h"
 #include "drawing_point.h"
 #include "drawing_text_declaration.h"
-#include "drawing_text_typography.h"
 #include "drawing_text_line.h"
 #include "drawing_text_lineTypography.h"
+#include "drawing_text_typography.h"
 #include "drawing_types.h"
 #include "get_object.h"
 
 #define FUZZ_PROJECT_NAME "drawing_fuzzer"
 
+namespace OHOS::Rosen::Drawing {
 constexpr inline size_t DATA_MIN_SIZE = 8;
 constexpr inline size_t DATA_MAX_ENUM_SIZE1 = 3;
 constexpr inline size_t DATA_MAX_ENUM_SIZE2 = 4;
 constexpr inline size_t DATA_MAX_ENUM_SIZE3 = 5;
 constexpr inline size_t DATA_MAX_ENUM_SIZE4 = 8;
 constexpr inline size_t DATA_MAX_ENUM_SIZE5 = 11;
-namespace OHOS::Rosen::Drawing {
-std::unique_ptr<char[]> GetRandomString();
-OH_Drawing_TypographyStyle* CreateTypographyStyle(OH_Drawing_TypographyStyle* typoStyle);
-void SetTextStyle(OH_Drawing_TextStyle* txtStyle);
-OH_Drawing_TextStyle* CreateTextStyle(OH_Drawing_TextStyle* txtStyle);
-OH_Drawing_TypographyCreate* CreateTypographyHandler(
-    OH_Drawing_TypographyCreate* handler, OH_Drawing_TypographyStyle* typoStyle, OH_Drawing_TextStyle* txtStyle);
-OH_Drawing_Typography* CreateTypography(OH_Drawing_Typography* typography, OH_Drawing_TypographyCreate* handler);
-OH_Drawing_Bitmap* CreateBitmap();
-OH_Drawing_Canvas* CreateCanvas(OH_Drawing_Bitmap* bitmap);
-OH_Drawing_Typography* PrepareCreateTextLine();
-// fuzz test
-void OHDrawingTypographyTest(const uint8_t* data, size_t size);
-void OHDrawingTextRunTest(const uint8_t* data, size_t size);
+constexpr inline size_t DATA_MAX_ENUM_FONTSIZE = 40;
+constexpr inline size_t DATA_MAX_LAYOUT_WIDTH = 100;
+constexpr inline size_t DATA_MAX_RANDOM = 500;
 } // namespace OHOS::Rosen::Drawing
 
 #endif // TEST_FUZZTEST_DRAWING_FUZZER_H

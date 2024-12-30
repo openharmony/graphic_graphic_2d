@@ -44,14 +44,16 @@ public:
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
     void ClearFontFileCache();
 
-private:
-    FontDescriptorMgr();
-    std::string GetSystemLocale();
-    void CheckLocale();
+    void CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName);
+    void DeleteDynamicTypefaceFromCache(const std::string &familyName);
 
+private:
+    FontDescriptorMgr() = default;
+    bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
+    bool AdjustSystemFontTypeNotCustomized(uint32_t fontType);
     FontDescriptorCache descCache_;
     std::mutex parserMtx_;
-    std::string locale_;
+    bool hasParseAllFont = false;
 };
 } // namespace OHOS::Rosen
 #define FontDescriptorMgrInstance OHOS::Rosen::FontDescriptorMgr::GetInstance()

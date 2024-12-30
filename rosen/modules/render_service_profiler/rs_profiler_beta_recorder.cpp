@@ -28,7 +28,6 @@ namespace OHOS::Rosen {
 static constexpr uint32_t INACTIVITY_THRESHOLD_SECONDS = 5u;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
-static std::mutex g_fileSavingMutex;
 static bool g_started = false;
 static double g_inactiveTimestamp = 0.0;
 static double g_recordsTimestamp = 0.0;
@@ -93,26 +92,6 @@ void RSProfiler::LaunchBetaRecordMetricsUpdateThread()
             constexpr int32_t sendInterval = 8;
             std::this_thread::sleep_for(std::chrono::milliseconds(sendInterval));
         }
-    });
-    thread.detach();
-}
-
-void RSProfiler::WriteBetaRecordFileThread(RSFile& file, const std::string& path)
-{
-    std::vector<uint8_t> fileData;
-    if (!file.GetDataCopy(fileData)) {
-        return;
-    }
-    
-    std::thread thread([fileDataCopy{std::move(fileData)}, path]() {
-        const std::lock_guard<std::mutex> fileSavingMutex(g_fileSavingMutex);
-
-        FILE* fileCopy = Utils::FileOpen(path, "wbe");
-        if (!Utils::IsFileValid(fileCopy)) {
-            return;
-        }
-        Utils::FileWrite(fileCopy, fileDataCopy.data(), fileDataCopy.size());
-        Utils::FileClose(fileCopy);
     });
     thread.detach();
 }
@@ -203,7 +182,18 @@ bool RSProfiler::SaveBetaRecordFile(RSFile& file)
 
     constexpr uint32_t maxCacheFiles = 10u;
     static uint32_t index = 0u;
-    WriteBetaRecordFileThread(file, GetBetaRecordFileName(index));
+
+    std::vector<uint8_t> data;
+    if (!file.GetDataCopy(data)) {
+        return false;
+    }
+
+    auto out = Utils::FileOpen(GetBetaRecordFileName(index), "wbe");
+    if (Utils::IsFileValid(out)) {
+        Utils::FileWrite(out, data.data(), data.size());
+        Utils::FileClose(out);
+    }
+
     index++;
     if (index >= maxCacheFiles) {
         index = 0u;

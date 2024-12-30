@@ -20,10 +20,12 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
+
+#include "accesstoken_kit.h"
 #include "event_handler.h"
 #include "graphic_common.h"
-#include "res_sched_client.h"
-#include "res_type.h"
+#include "ipc_skeleton.h"
+#include "parameters.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
 #include "sandbox_utils.h"
@@ -34,6 +36,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr int32_t INVALID_FD = -1;
+static const int32_t APP_VSYNC_PRIORITY = system::GetIntParameter("const.graphic.app_vsync_priority", -1);
 }
 VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     const sptr<IRemoteObject>& token,
@@ -46,6 +49,21 @@ VSyncReceiver::VSyncReceiver(const sptr<IVSyncConnection>& conn,
     name_(name)
 {
 };
+
+void VSyncReceiver::RegisterFileDescriptorListener()
+{
+    auto selfToken = IPCSkeleton::GetSelfTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(static_cast<uint32_t>(selfToken));
+    bool isApp = (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP);
+    if (isApp && (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::VIP) <= APP_VSYNC_PRIORITY) &&
+        (static_cast<int32_t>(AppExecFwk::EventQueue::Priority::IDLE) >= APP_VSYNC_PRIORITY)) {
+        listener_->SetDeamonWaiter();
+        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask",
+            static_cast<AppExecFwk::EventQueue::Priority>(APP_VSYNC_PRIORITY));
+    } else {
+        looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    }
+}
 
 VsyncError VSyncReceiver::Init()
 {
@@ -64,9 +82,8 @@ VsyncError VSyncReceiver::Init()
         }
         looper_ = std::make_shared<AppExecFwk::EventHandler>(runner);
         runner->Run();
-        looper_->PostTask([this] {
+        looper_->PostTask([] {
             SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-            this->ThreadCreateNotify();
         });
     }
 
@@ -99,24 +116,9 @@ VsyncError VSyncReceiver::Init()
         return true;
     });
 
-    looper_->AddFileDescriptorListener(fd_, AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT, listener_, "vSyncTask");
+    RegisterFileDescriptorListener();
     init_ = true;
     return VSYNC_ERROR_OK;
-}
-
-void VSyncReceiver::ThreadCreateNotify()
-{
-    int32_t pid = getprocpid();
-    uint32_t uid = getuid();
-    int32_t tid = static_cast<int32_t>(getproctid());
-    VLOGI("vsync thread pid=%{public}d, tid=%{public}d, uid=%{public}u.", pid, tid, uid);
-
-    std::unordered_map<std::string, std::string> mapPayload;
-    mapPayload["pid"] = std::to_string(pid);
-    mapPayload["uid"] = std::to_string(uid);
-    mapPayload["tid"] = std::to_string(tid);
-    OHOS::ResourceSchedule::ResSchedClient::GetInstance().ReportData(
-        ResourceSchedule::ResType::RES_TYPE_REPORT_VSYNC_TID, tid, mapPayload);
 }
 
 VSyncReceiver::~VSyncReceiver()

@@ -215,7 +215,11 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
     void* fdPtr = new int32_t();
     *static_cast<int32_t*>(fdPtr) = fd;
     pixelmap->SetPixelsAddr(data, fdPtr, size, Media::AllocatorType::SHARE_MEM_ALLOC, nullptr);
-
+    if (colorSpace != nullptr) {
+        pixelmap->InnerSetColorSpace(colorSpace->IsSRGB()?
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB):
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+    }
 #else
     auto data = (uint8_t *)malloc(size);
     if (data == nullptr) {
@@ -235,6 +239,11 @@ bool CopyDataToPixelMap(std::shared_ptr<Drawing::Image> img, const std::unique_p
     }
 
     pixelmap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
+    if (colorSpace != nullptr) {
+        pixelmap->InnerSetColorSpace(colorSpace->IsSRGB()?
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB):
+            OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+    }
 #endif
     return true;
 }

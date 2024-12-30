@@ -165,6 +165,8 @@ public:
      */
     void GetResourceCacheUsage(int* resourceCount, size_t* resourceBytes) const;
 
+    void DumpAllResource(std::stringstream& dump) const;
+
     /**
      * @brief                   Free GPU created by the contetx.
      */

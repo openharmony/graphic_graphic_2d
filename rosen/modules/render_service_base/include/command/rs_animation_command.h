@@ -141,89 +141,89 @@ public:
 
 // animation operation
 ADD_COMMAND(RSAnimationStart,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_START,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_START,
         AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Start>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationPause,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_PAUSE,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_PAUSE,
         AnimationCommandHelper::AnimOp<&RSRenderAnimation::Pause>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationResume,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_RESUME,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_RESUME,
         AnimationCommandHelper::AnimOpReg<&RSRenderAnimation::Resume>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationFinish,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_FINISH,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_FINISH,
         AnimationCommandHelper::AnimOp<&RSRenderAnimation::Finish>, NodeId, AnimationId))
 ADD_COMMAND(RSAnimationReverse,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_REVERSE,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_REVERSE,
         AnimationCommandHelper::AnimOp<bool, &RSRenderAnimation::SetReversed>, NodeId, AnimationId, bool))
 ADD_COMMAND(RSAnimationSetFraction,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_SET_FRACTION,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_SET_FRACTION,
         AnimationCommandHelper::AnimOp<float, &RSRenderAnimation::SetFraction>, NodeId, AnimationId, float))
 ADD_COMMAND(RSAnimationCancel,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CANCEL,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CANCEL,
         AnimationCommandHelper::CancelAnimation, NodeId, PropertyId))
 
 ADD_COMMAND(RSAnimationCallback,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CALLBACK,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CALLBACK,
         AnimationCommandHelper::AnimationCallback, NodeId, AnimationId, AnimationCallbackEvent))
 
 // create curve animation
 ADD_COMMAND(RSAnimationCreateCurve,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_CURVE, AnimationCommandHelper::CreateAnimation,
         NodeId, std::shared_ptr<RSRenderCurveAnimation>))
 
 // create particle animation
 ADD_COMMAND(RSAnimationCreateParticle,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_PARTICLE, AnimationCommandHelper::CreateParticleAnimation, NodeId,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_PARTICLE, AnimationCommandHelper::CreateParticleAnimation, NodeId,
         std::shared_ptr<RSRenderParticleAnimation>))
 
 // create keyframe animation
 ADD_COMMAND(RSAnimationCreateKeyframe,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_KEYFRAME,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_KEYFRAME,
         AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderKeyframeAnimation>))
 
 // create path animation
 ADD_COMMAND(RSAnimationCreatePath,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_PATH,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_PATH,
         AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderPathAnimation>))
 
 // create transition animation
 ADD_COMMAND(RSAnimationCreateTransition,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_TRANSITION,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_TRANSITION,
         AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderTransition>))
 
 // create spring animation
 ADD_COMMAND(RSAnimationCreateSpring,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_SPRING,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_SPRING,
         AnimationCommandHelper::CreateAnimation, NodeId, std::shared_ptr<RSRenderSpringAnimation>))
 
 // create interpolating spring animation
 ADD_COMMAND(RSAnimationCreateInterpolatingSpring,
-    ARG(NO_INTERCEPTION, ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation,
+    ARG(PERMISSION_APP, ANIMATION, ANIMATION_CREATE_INTERPOLATING_SPRING, AnimationCommandHelper::CreateAnimation,
         NodeId, std::shared_ptr<RSRenderInterpolatingSpringAnimation>))
 
 // interactive implict animator operation
 ADD_COMMAND(RSInteractiveAnimatorCreate,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_CREATE,
         AnimationCommandHelper::CreateInteractiveAnimator, InteractiveImplictAnimatorId,
         std::vector<std::pair<NodeId, AnimationId>>, bool))
 ADD_COMMAND(RSInteractiveAnimatorDestory,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_DESTORY,
         AnimationCommandHelper::DestoryInteractiveAnimator, InteractiveImplictAnimatorId))
 ADD_COMMAND(RSInteractiveAnimatorPause,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_PAUSE,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_PAUSE,
         AnimationCommandHelper::PauseInteractiveAnimator, InteractiveImplictAnimatorId))
 ADD_COMMAND(RSInteractiveAnimatorContinue,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_CONTINUE,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_CONTINUE,
         AnimationCommandHelper::ContinueInteractiveAnimator, InteractiveImplictAnimatorId))
 ADD_COMMAND(RSInteractiveAnimatorFinish,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_FINISH,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_FINISH,
         AnimationCommandHelper::FinishInteractiveAnimator, InteractiveImplictAnimatorId,
         RSInteractiveAnimationPosition))
 ADD_COMMAND(RSInteractiveAnimatorReverse,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_REVERSE,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_REVERSE,
         AnimationCommandHelper::ReverseInteractiveAnimator, InteractiveImplictAnimatorId))
 ADD_COMMAND(RSInteractiveAnimatorSetFraction,
-    ARG(NO_INTERCEPTION, ANIMATION, INTERACTIVE_ANIMATOR_SET_FRACTION,
+    ARG(PERMISSION_APP, ANIMATION, INTERACTIVE_ANIMATOR_SET_FRACTION,
         AnimationCommandHelper::SetFractionInteractiveAnimator, InteractiveImplictAnimatorId, float))
 } // namespace Rosen
 } // namespace OHOS

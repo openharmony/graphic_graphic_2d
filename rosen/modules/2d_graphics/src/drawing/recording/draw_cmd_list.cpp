@@ -125,6 +125,16 @@ void DrawCmdList::SetHeight(int32_t height)
     height_ = height;
 }
 
+bool DrawCmdList::GetNoNeedUICaptured() const
+{
+    return noNeedUICaptured_;
+}
+
+void DrawCmdList::SetNoNeedUICaptured(bool noNeedUICaptured)
+{
+    noNeedUICaptured_ = noNeedUICaptured;
+}
+
 bool DrawCmdList::IsEmpty() const
 {
     if (mode_ == DrawCmdList::UnmarshalMode::DEFERRED) {
@@ -321,6 +331,10 @@ void DrawCmdList::UnmarshallingDrawOps(uint32_t* opItemCount)
 
 void DrawCmdList::Playback(Canvas& canvas, const Rect* rect)
 {
+    if (canvas.GetUICapture() && noNeedUICaptured_) {
+        return;
+    }
+
     if (width_ <= 0 || height_ <= 0) {
         return;
     }

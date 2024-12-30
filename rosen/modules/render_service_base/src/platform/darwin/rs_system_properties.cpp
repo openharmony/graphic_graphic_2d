@@ -190,15 +190,6 @@ bool RSSystemProperties::GetScreenSwitchStatus()
     return false;
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {
@@ -334,6 +325,11 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
+}
+
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()

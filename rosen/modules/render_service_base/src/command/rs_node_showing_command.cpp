@@ -96,6 +96,19 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
     }
 }
 
+bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
+    const RSRenderNodeMap& nodeMap) const
+{
+    if (ExtractPid(targetId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(targetId_)) {
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid, "
+                "callingPid [%{public}d] no permission "
+                "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                static_cast<int>(callingPid), targetId_);
+        return false;
+    }
+    return true;
+}
+
 bool RSNodeGetShowingPropertiesAndCancelAnimation::Marshalling(Parcel& parcel) const
 {
     bool result = RSMarshallingHelper::Marshalling(parcel, commandType) &&
@@ -165,6 +178,22 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
     }
 }
 
+bool RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
+    const RSRenderNodeMap& nodeMap) const
+{
+    for (auto& [key, _] : propertiesMap_) {
+        auto& nodeId = key.first;
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+            ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid, "
+                "callingPid [%{public}d] no permission "
+                "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                static_cast<int>(callingPid), nodeId);
+            return false;
+        }
+    }
+    return true;
+}
+
 bool RSNodeGetAnimationsValueFraction::Marshalling(Parcel& parcel) const
 {
     bool result = RSMarshallingHelper::Marshalling(parcel, commandType) &&
@@ -229,6 +258,19 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
     }
     success_ = true;
     fraction_ = animation->GetValueFraction();
+}
+
+bool RSNodeGetAnimationsValueFraction::IsCallingPidValid(pid_t callingPid,
+    const RSRenderNodeMap& nodeMap) const
+{
+    if (ExtractPid(nodeId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId_)) {
+        ROSEN_LOGE("RSNodeGetAnimationsValueFraction::IsCallingPidValid, "
+                "callingPid [%{public}d] no permission "
+                "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                static_cast<int>(callingPid), nodeId_);
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

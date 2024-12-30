@@ -129,7 +129,7 @@ void ExtendRecordingCanvas::DrawSurfaceBuffer(const DrawingSurfaceBufferInfo& su
         Drawing::CmdListHelper::AddSurfaceBufferEntryToCmdList(*cmdList_, surfaceBufferEntry),
         surfaceBufferInfo.dstRect_.GetLeft(), surfaceBufferInfo.dstRect_.GetTop(),
         surfaceBufferInfo.dstRect_.GetWidth(), surfaceBufferInfo.dstRect_.GetHeight(), surfaceBufferInfo.pid_,
-        surfaceBufferInfo.uid_, srcRect);
+        surfaceBufferInfo.uid_, surfaceBufferInfo.transform_, srcRect);
 }
 #endif
 

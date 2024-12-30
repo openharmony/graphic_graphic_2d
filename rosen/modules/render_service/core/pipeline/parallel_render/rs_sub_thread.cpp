@@ -332,13 +332,16 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
         handler->ConfigureContext(&options, vulkanVersion.c_str(), size);
         bool useHBackendContext = false;
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
-        useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+        if (!RSSystemProperties::IsPcType() || threadIndex_ != 0) {
+            useHBackendContext = RSSystemProperties::GetVkQueuePriorityEnable();
+        }
 #endif
         if (!gpuContext->BuildFromVK(RsVulkanContext::GetSingleton().GetGrVkBackendContext(useHBackendContext),
             options)) {
             RS_LOGE("nullptr gpuContext is null");
             return nullptr;
         }
+        MemoryManager::SetGpuMemoryLimit(gpuContext.get());
         return gpuContext;
     }
 #endif
@@ -352,10 +355,11 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         return;
     }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
-    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
-        bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
-            RSMainThread::Instance()->IsUIFirstOn();
-        bool isNeedFP16 = nodeDrawable->GetHDRPresent() || isScRGBEnable;
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool isNeedFP16 = nodeDrawable->GetHDRPresent() || isScRGBEnable;
+    bool bufferFormatNeedUpdate = nodeDrawable->BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
+    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface() || bufferFormatNeedUpdate) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_, isNeedFP16);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
@@ -377,6 +381,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->SetScreenId(nodeDrawable->GetScreenId());
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
+    rscanvas->SetHdrOn(nodeDrawable->GetHDRPresent());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
     bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;

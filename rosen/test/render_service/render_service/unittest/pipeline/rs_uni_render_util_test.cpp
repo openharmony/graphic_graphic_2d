@@ -60,6 +60,19 @@ std::shared_ptr<Drawing::Image> CreateSkImage()
     return surface->GetImageSnapshot();
 }
 
+RSDisplayRenderNodeDrawable* GenerateDisplayDrawableById(NodeId id, RSDisplayNodeConfig config)
+{
+    std::shared_ptr<RSDisplayRenderNode> renderNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    if (!renderNode) {
+        return nullptr;
+    }
+    RSRenderNodeDrawableAdapter* displayAdapter = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
+    if (!displayAdapter) {
+        return nullptr;
+    }
+    return static_cast<RSDisplayRenderNodeDrawable*>(displayAdapter);
+}
+
 void RSUniRenderUtilTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
@@ -323,48 +336,48 @@ HWTEST_F(RSUniRenderUtilTest, GetRotationDegreeFromMatrix, Function | SmallTest 
 }
 
 /*
- * @tc.name: Is3DRotation_001
+ * @tc.name: HasNonZRotationTransform_001
  * @tc.desc:
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUniRenderUtilTest, Is3DRotation_001, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, HasNonZRotationTransform_001, Function | SmallTest | Level2)
 {
-    bool is3DRotation;
+    bool hasNonZRotationTransform;
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_FALSE(is3DRotation);
+    hasNonZRotationTransform = RSUniRenderUtil::HasNonZRotationTransform(matrix);
+    ASSERT_FALSE(hasNonZRotationTransform);
 }
 
 /*
- * @tc.name: Is3DRotation_002
- * @tc.desc: test Is3DRotation with ScaleX and ScaleY have same sign
+ * @tc.name: HasNonZRotationTransform_002
+ * @tc.desc: test HasNonZRotationTransform with ScaleX and ScaleY have same sign
  * @tc.type: FUNC
  * @tc.require: #IANUEG
  */
-HWTEST_F(RSUniRenderUtilTest, Is3DRotation_002, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, HasNonZRotationTransform_002, Function | SmallTest | Level2)
 {
-    bool is3DRotation;
+    bool hasNonZRotationTransform;
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, -1, 0, 0, 0, 1);
-    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_FALSE(is3DRotation);
+    hasNonZRotationTransform = RSUniRenderUtil::HasNonZRotationTransform(matrix);
+    ASSERT_FALSE(hasNonZRotationTransform);
 }
 
 /*
- * @tc.name: Is3DRotation_003
- * @tc.desc: Test Is3DRotation when ScaleX and ScaleY have different sign
+ * @tc.name: HasNonZRotationTransform_003
+ * @tc.desc: Test HasNonZRotationTransform when ScaleX and ScaleY have different sign
  * @tc.type: FUNC
  * @tc.require: issueIAJOWI
  */
-HWTEST_F(RSUniRenderUtilTest, Is3DRotation_003, Function | SmallTest | Level2)
+HWTEST_F(RSUniRenderUtilTest, HasNonZRotationTransform_003, Function | SmallTest | Level2)
 {
-    bool is3DRotation;
+    bool hasNonZRotationTransform;
     Drawing::Matrix matrix = Drawing::Matrix();
     matrix.SetMatrix(-1, 0, 0, 0, 1, 0, 0, 0, 1);
-    is3DRotation = RSUniRenderUtil::Is3DRotation(matrix);
-    ASSERT_TRUE(is3DRotation);
+    hasNonZRotationTransform = RSUniRenderUtil::HasNonZRotationTransform(matrix);
+    ASSERT_TRUE(hasNonZRotationTransform);
 }
 
 /*
@@ -907,6 +920,44 @@ HWTEST_F(RSUniRenderUtilTest, DrawRectForDfxTest, Function | SmallTest | Level2)
 }
 
 /*
+ * @tc.name: GetConsumerTransformTest
+ * @tc.desc: Verify function GetConsumerTransform
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, GetConsumerTransformTest, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    auto consumerTransform = RSUniRenderUtil::GetConsumerTransform(node);
+    ASSERT_EQ(consumerTransform, GRAPHIC_ROTATE_NONE);
+}
+
+/*
+ * @tc.name: CalcSrcRectByBufferRotationTest
+ * @tc.desc: Verify function CalcSrcRectByBufferRotation
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderUtilTest, CalcSrcRectByBufferRotationTest, Function | SmallTest | Level2)
+{
+    constexpr uint32_t default_frame_width = 800;
+    constexpr uint32_t default_frame_height = 600;
+    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
+    surfaceBuffer->SetSurfaceBufferWidth(default_frame_width);
+    surfaceBuffer->SetSurfaceBufferHeight(default_frame_height);
+    GraphicTransformType consumerTransformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+    int left = 1;
+    int top = 1;
+    int width = 1;
+    int height = 1;
+    RectI srcRect(left, top, width, height);
+    RectI newSrcRect = RSUniRenderUtil::CalcSrcRectByBufferRotation(*surfaceBuffer, consumerTransformType, srcRect);
+    ASSERT_EQ(newSrcRect, srcRect);
+}
+
+/*
  * @tc.name: DealWithNodeGravityTest
  * @tc.desc: Verify function DealWithNodeGravity
  * @tc.type: FUNC
@@ -914,23 +965,25 @@ HWTEST_F(RSUniRenderUtilTest, DrawRectForDfxTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest, Function | SmallTest | Level2)
 {
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     ScreenInfo screenInfo;
     node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     node.renderContent_->renderProperties_.frameGravity_ = Gravity::DEFAULT;
     node.renderContent_->renderProperties_.boundsGeo_->SetHeight(-1.0f);
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     node.renderContent_->renderProperties_.boundsGeo_->SetWidth(-1.0f);
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_90;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_270;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
@@ -942,11 +995,13 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest, Function | SmallTest | Le
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest002, Function | SmallTest | Level2)
 {
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
     ScreenInfo screenInfo;
     node.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
@@ -958,16 +1013,18 @@ HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest002, Function | SmallTest |
  */
 HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityTest003, Function | SmallTest | Level2)
 {
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
     NodeId id = 1;
     RSSurfaceRenderNode node(id);
     node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     ScreenInfo screenInfo;
     screenInfo.rotation = ScreenRotation::ROTATION_90;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_270;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     screenInfo.rotation = ScreenRotation::ROTATION_180;
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo);
+    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo, matrix);
     EXPECT_TRUE(screenInfo.width == 0);
 }
 
@@ -1357,10 +1414,12 @@ HWTEST_F(RSUniRenderUtilTest, LayerScaleDownTest, TestSize.Level1)
 {
     RSUniRenderUtil rsUniRenderUtil;
     auto nodesTest1 = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_NE(nodesTest1, nullptr);
     nodesTest1->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
     rsUniRenderUtil.LayerScaleDown(*nodesTest1);
 
     auto nodesTest2 = std::make_shared<RSSurfaceRenderNode>(1);
+    ASSERT_NE(nodesTest2, nullptr);
     nodesTest2->GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
     nodesTest2->GetRSSurfaceHandler()->consumer_ = nullptr;
     rsUniRenderUtil.LayerScaleDown(*nodesTest2);
@@ -2407,5 +2466,106 @@ HWTEST_F(RSUniRenderUtilTest, MultiLayersPerf, TestSize.Level1)
         num++;
     }
     EXPECT_TRUE(num == total);
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryForDrawable001
+ * @tc.desc: test results of MergeDirtyHistoryForDrawable if surface drawable invalid
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable001, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    bool aligned = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters{nullptr};
+
+    NodeId defaultSurfaceId = 10;
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    // default surface
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryForDrawable002
+ * @tc.desc: test results of MergeDirtyHistoryForDrawable if app drawable is first-cross node or not
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable002, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = false;
+    bool aligned = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters;
+
+    NodeId defaultSurfaceId = 10;
+    // normal appwindow
+    std::shared_ptr<RSSurfaceRenderNode> renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId++);
+    renderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    // cross appwindow but not first visited
+    renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    renderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(surfaceAdapter, nullptr);
+    surfaceAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
+    surfaceAdapter->renderParams_->isFirstLevelCrossNode_ = true;
+    surfaceAdapters.emplace_back(surfaceAdapter);
+
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
+}
+
+/**
+ * @tc.name: MergeDirtyHistoryForDrawable003
+ * @tc.desc: test results of MergeDirtyHistoryForDrawable if app drawable first visited within first cross display
+ * @tc.type: FUNC
+ * @tc.require: #IBDJVI
+ */
+HWTEST_F(RSUniRenderUtilTest, MergeDirtyHistoryForDrawable003, TestSize.Level1)
+{
+    NodeId defaultDisplayId = 5;
+    RSDisplayNodeConfig config;
+    RSDisplayRenderNodeDrawable* displayDrawable = GenerateDisplayDrawableById(defaultDisplayId, config);
+    ASSERT_NE(displayDrawable, nullptr);
+    int32_t bufferAge = 0;
+    std::unique_ptr<RSDisplayRenderParams> params = std::make_unique<RSDisplayRenderParams>(defaultDisplayId);
+    params->isFirstVisitCrossNodeDisplay_ = true;
+    bool aligned = false;
+    std::vector<std::shared_ptr<RSRenderNodeDrawableAdapter>> surfaceAdapters;
+
+    NodeId defaultSurfaceId = 10;
+    // cross appwindow
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(defaultSurfaceId);
+    renderNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    auto surfaceAdapter = RSSurfaceRenderNodeDrawable::OnGenerate(renderNode);
+    ASSERT_NE(surfaceAdapter, nullptr);
+    surfaceAdapter->renderParams_ = std::make_unique<RSSurfaceRenderParams>(defaultSurfaceId);
+    surfaceAdapter->renderParams_->isFirstLevelCrossNode_ = true;
+    surfaceAdapters.emplace_back(surfaceAdapter);
+    
+    params->SetAllMainAndLeashSurfaceDrawables(surfaceAdapters);
+    RSUniRenderUtil::MergeDirtyHistoryForDrawable(*displayDrawable, bufferAge, *params, aligned);
+    displayDrawable = nullptr;
 }
 } // namespace OHOS::Rosen

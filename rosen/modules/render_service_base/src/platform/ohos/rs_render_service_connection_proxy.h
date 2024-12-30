@@ -129,6 +129,8 @@ public:
 
     void MarkPowerOffNeedProcessOneFrame() override;
 
+    void RepaintEverything() override;
+
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
@@ -136,8 +138,15 @@ public:
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
+
+    void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig) override;
+
+    bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
+
+    bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
 
     void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
@@ -229,7 +238,7 @@ public:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
-    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
 
     void SetAppWindowNum(uint32_t num) override;
@@ -247,6 +256,8 @@ public:
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
+
+    void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
 
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
@@ -269,8 +280,6 @@ public:
 
     void SetScreenSwitchStatus(bool flag) override;
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
@@ -282,6 +291,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo() override;
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() override;
+
+    int64_t GetHdrOnDuration() override;
 
     void SetVmaCacheStatus(bool flag) override;
 

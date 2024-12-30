@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cinttypes>
 
+#include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
@@ -148,9 +149,11 @@ void RSScreen::PhysicalScreenInit() noexcept
                    back_inserter(supportedPhysicalHDRFormats_),
                    [](GraphicHDRFormat item) -> ScreenHDRFormat {return HDI_HDR_FORMAT_TO_RS_MAP[item];});
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
-    if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
-        RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
-            __func__, id_);
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        if (hdiScreen_->SetScreenPowerStatus(status) < 0) {
+            RS_LOGE("RSScreen %{public}s: RSScreen(id %{public}" PRIu64 ") failed to SetScreenPowerStatus.",
+                __func__, id_);
+        }
     }
     auto activeMode = GetActiveMode();
     if (activeMode) {
@@ -322,17 +325,21 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         return StatusCode::HDI_ERROR;
     }
     if (hdiScreen_ == nullptr) {
-        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr",  __func__);
+        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
     
     if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
-        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed",  __func__);
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, "
+            "activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+            __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
         return StatusCode::HDI_ERROR;
-    } else {
-        activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-        return StatusCode::SUCCESS;
     }
+
+    activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    RS_LOGI("RSScreen %{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
+        "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    return StatusCode::SUCCESS;
 }
 
 void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
@@ -391,7 +398,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         return;
     }
 
-    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
+    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
@@ -408,7 +415,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
-    RS_LOGW("[UL_POWER]RSScreen_%{pubilc}" PRIu64 " SetPowerStatus done", id_);
+    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus_);
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
@@ -899,34 +906,46 @@ const RSScreenType& RSScreen::GetScreenType() const
 
 void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     skipFrameInterval_ = skipFrameInterval;
     skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
 }
 
 void RSScreen::SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     expectedRefreshRate_ = expectedRefreshRate;
     skipFrameStrategy_ = SKIP_FRAME_BY_REFRESH_RATE;
 }
 
+void RSScreen::SetEqualVsyncPeriod(bool isEqualVsyncPeriod)
+{
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
+    isEqualVsyncPeriod_ = isEqualVsyncPeriod;
+}
+
 uint32_t RSScreen::GetScreenSkipFrameInterval() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return skipFrameInterval_;
 }
 
 uint32_t RSScreen::GetScreenExpectedRefreshRate() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return expectedRefreshRate_;
 }
 
 SkipFrameStrategy RSScreen::GetScreenSkipFrameStrategy() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return skipFrameStrategy_;
+}
+
+bool RSScreen::GetEqualVsyncPeriod() const
+{
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
+    return isEqualVsyncPeriod_;
 }
 
 void RSScreen::SetScreenVsyncEnabled(bool enabled) const

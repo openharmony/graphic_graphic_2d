@@ -30,22 +30,29 @@ RSHgmConfigData::~RSHgmConfigData() noexcept
 RSHgmConfigData* RSHgmConfigData::Unmarshalling(Parcel& parcel)
 {
     auto data = new RSHgmConfigData();
-    data->ppi_ = parcel.ReadFloat();
-    data->xDpi_ = parcel.ReadFloat();
-    data->yDpi_ = parcel.ReadFloat();
-    auto size = parcel.ReadUint32();
+    uint32_t size;
+    if (!parcel.ReadFloat(data->ppi_) || !parcel.ReadFloat(data->xDpi_) || !parcel.ReadFloat(data->yDpi_) ||
+        !parcel.ReadUint32(size)) {
+        RS_LOGE("RSHgmConfigData Unmarshalling read failed");
+        return data;
+    }
     size_t readableSize = parcel.GetReadableBytes() / sizeof(uint64_t);
     size_t len = static_cast<size_t>(size);
     if (len > readableSize || len > data->configData_.max_size()) {
         RS_LOGE("RSHgmConfigData Unmarshalling Failed read vector, size:%zu, readableSize:%zu", len, readableSize);
         return data;
     }
+    std::string type;
+    std::string name;
+    int32_t minSpeed;
+    int32_t maxSpeed;
+    int32_t preferredFps;
     for (uint32_t i = 0; i < size; i++) {
-        std::string type = parcel.ReadString();
-        std::string name = parcel.ReadString();
-        auto minSpeed = parcel.ReadInt32();
-        auto maxSpeed = parcel.ReadInt32();
-        auto preferredFps = parcel.ReadInt32();
+        if (!parcel.ReadString(type) || !parcel.ReadString(name) || !parcel.ReadInt32(minSpeed) ||
+            !parcel.ReadInt32(maxSpeed) || !parcel.ReadInt32(preferredFps)) {
+            RS_LOGE("RSHgmConfigData Unmarshalling read data failed");
+            return data;
+        }
         AnimDynamicItem item = {type, name, minSpeed, maxSpeed, preferredFps};
         data->AddAnimDynamicItem(item);
     }

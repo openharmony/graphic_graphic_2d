@@ -34,10 +34,10 @@ public:
         std::shared_ptr<RSDisplayRenderNode>& curDisplayNode);
 
     struct BoundParam {
-        float x;
-        float y;
-        float z;
-        float w;
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        float w = 0.0f;
     };
     
     bool IsNeedForceCommitByPointer() const
@@ -153,7 +153,7 @@ private:
     std::atomic<bool> isPointerEnableHwc_ = true;
     std::atomic<bool> isPointerCanSkipFrame_ = false;
     std::atomic<bool> boundHasUpdate_ = false;
-    BoundParam bound_;
+    BoundParam bound_ = {0.0f, 0.0f, 0.0f, 0.0f};
     int64_t rsNodeId_ = -1;
 };
 } // namespace Rosen

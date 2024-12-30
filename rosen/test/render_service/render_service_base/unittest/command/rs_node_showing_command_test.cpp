@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "command/rs_node_showing_command.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,6 +46,19 @@ void RSNodeGetShowingPropertiesAndCancelAnimationTest::SetUpTestCase() {}
 void RSNodeGetShowingPropertiesAndCancelAnimationTest::TearDownTestCase() {}
 void RSNodeGetShowingPropertiesAndCancelAnimationTest::SetUp() {}
 void RSNodeGetShowingPropertiesAndCancelAnimationTest::TearDown() {}
+
+class RSNodeGetAnimationsValueFractionTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
+};
+
+void RSNodeGetAnimationsValueFractionTest::SetUpTestCase() {}
+void RSNodeGetAnimationsValueFractionTest::TearDownTestCase() {}
+void RSNodeGetAnimationsValueFractionTest::SetUp() {}
+void RSNodeGetAnimationsValueFractionTest::TearDown() {}
 
 /**
  * @tc.name: Marshalling001
@@ -310,5 +324,85 @@ HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, Process003, TestSize.
 
     animation.nodeId_ = 1;
     animation.Process(context);
+}
+
+/**
+ * @tc.name: IsCallingPidValid001
+ * @tc.desc: test results of IsCallingPidValid
+ * @tc.type: FUNC
+ * @tc.require: issueIBAUG4
+ */
+HWTEST_F(RSNodeGetShowingPropertiesAndCancelAnimationTest, IsCallingPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    uint64_t timeoutNS = 0;
+    RSNodeGetShowingPropertiesAndCancelAnimation animation(timeoutNS);
+    NodeId nodeId = 0;
+    PropertyId propertyId = 0;
+    auto renderProperty = std::make_shared<RSRenderPropertyBase>();
+    std::vector<AnimationId> animationIds = { 0 };
+    std::pair<std::pair<NodeId, PropertyId>, std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        newEntry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+    animation.propertiesMap_.insert(newEntry);
+    EXPECT_TRUE(animation.IsCallingPidValid(0, context.GetNodeMap()));
+    EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+
+    pid_t pid = 1;
+    nodeId = (static_cast<NodeId>(pid) << 32) | 1;
+    propertyId = 1;
+    std::pair<std::pair<NodeId, PropertyId>, std::pair<std::shared_ptr<RSRenderPropertyBase>, std::vector<AnimationId>>>
+        entry(std::make_pair(nodeId, propertyId), std::make_pair(renderProperty, animationIds));
+    animation.propertiesMap_.insert(entry);
+    animation.Process(context);
+    EXPECT_FALSE(animation.IsCallingPidValid(0, context.GetNodeMap()));
+    EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
+    EXPECT_FALSE(animation.IsCallingPidValid(0, context.GetNodeMap()));
+    EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid001
+ * @tc.desc: test results of IsCallingPidValid
+ * @tc.type: FUNC
+ * @tc.require: issueIBAUG4
+ */
+HWTEST_F(RSNodeGetShowingPropertyAndCancelAnimationTest, IsCallingPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId targetId = 0;
+    PropertyId id = 0;
+    auto property = std::make_shared<RSRenderPropertyBase>(id);
+    RSNodeGetShowingPropertyAndCancelAnimation animation(targetId, property);
+    animation.Process(context);
+    EXPECT_TRUE(animation.IsCallingPidValid(0, context.GetNodeMap()));
+    EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
+    EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+}
+
+/**
+ * @tc.name: IsCallingPidValid001
+ * @tc.desc: test results of IsCallingPidValid
+ * @tc.type: FUNC
+ * @tc.require: issueIBAUG4
+ */
+HWTEST_F(RSNodeGetAnimationsValueFractionTest, IsCallingPidValid001, TestSize.Level1)
+{
+    RSContext context;
+    RSNodeGetAnimationsValueFraction animation(0);
+    animation.nodeId_ = 0;
+    animation.animationId_ = 0;
+    EXPECT_TRUE(animation.IsCallingPidValid(0, context.GetNodeMap()));
+    EXPECT_FALSE(animation.IsCallingPidValid(1, context.GetNodeMap()));
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0);
+    surfaceNode->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    context.nodeMap.AddUIExtensionSurfaceNode(surfaceNode);
+    EXPECT_TRUE(animation.IsCallingPidValid(1, context.GetNodeMap()));
 }
 } // namespace OHOS::Rosen

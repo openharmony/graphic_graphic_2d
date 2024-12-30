@@ -77,8 +77,8 @@ private:
     std::unique_ptr<SkPictureRecorder> recorder_;
     std::unique_ptr<SkNWayCanvas> nwayCanvas_;
 
-    const uint32_t MAX_RENDERED_FRAMES = 50;
-    const uint32_t DEFAULT_DISPLAY_ID = 0;
+    const uint32_t maxRenderedFrames_ = 50;
+    const uint32_t defaultDisplayId_ = 0;
 };
 
 } // namespace OHOS::Rosen

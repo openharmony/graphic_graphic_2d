@@ -20,8 +20,9 @@
 #include <unistd.h>
 
 #include "ashmem.h"
+#include "ipc_file_descriptor.h"
+#include "ipc_types.h"
 #include "platform/common/rs_log.h"
-#include "rs_profiler.h"
 #include "rs_trace.h"
 #include "securec.h"
 #include "sys_binder.h"
@@ -31,6 +32,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr size_t LARGE_MALLOC = 200000000;
+thread_local bool g_isUnmarshalThread = false;
 }
 std::unique_ptr<AshmemAllocator> AshmemAllocator::CreateAshmemAllocator(size_t size, int mapType)
 {
@@ -180,6 +182,142 @@ void* AshmemAllocator::Realloc(void* data, size_t newSize)
     return data_;
 }
 
+AshmemFdContainer& AshmemFdContainer::Instance()
+{
+    static AshmemFdContainer instance;
+    return instance;
+}
+
+void AshmemFdContainer::SetIsUnmarshalThread(bool isUnmarshalThread)
+{
+    g_isUnmarshalThread = isUnmarshalThread;
+}
+
+int AshmemFdContainer::ReadSafeFd(Parcel &parcel, std::function<int(Parcel&)> readFdDefaultFunc)
+{
+    if (!g_isUnmarshalThread || !isUseFdContainer_) {
+        if (readFdDefaultFunc == nullptr) {
+            return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+        }
+        return readFdDefaultFunc(parcel);
+    }
+
+    size_t offset = parcel.GetReadPosition();
+    sptr<IPCFileDescriptor> descriptor = parcel.ReadObject<IPCFileDescriptor>();
+
+    int containerFd = INVALID_FD;
+    auto it = fds_.find(offset);
+    if (it != fds_.end()) {
+        containerFd = it->second;
+        fds_.erase(it);
+    } else {
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: offset %{public}zu not found", offset);
+    }
+    if (containerFd < 0) {
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd failed: containerFd = %{public}d", containerFd);
+        return INVALID_FD;
+    }
+
+    int safeFd = dup(containerFd);
+    if (safeFd < 0) {
+        ROSEN_LOGE("AshmemFdContainer::ReadSafeFd dup failed: containerFd = %{public}d, errno = %{public}d",
+            containerFd, errno);
+        return safeFd;
+    }
+
+    if (descriptor == nullptr) {
+        ROSEN_LOGW("AshmemFdContainer::ReadSafeFd ReadObject failed");
+    } else {
+        int parcelFd = descriptor->GetFd();
+        if (parcelFd != containerFd) {
+            ROSEN_LOGW("AshmemFdContainer::ReadSafeFd inconsistent parcelFd = %{public}d, containerFd = %{public}d",
+                parcelFd, containerFd);
+        }
+    }
+
+    return safeFd;
+}
+
+void AshmemFdContainer::Merge(const std::unordered_map<binder_size_t, int>& fds)
+{
+    if (!g_isUnmarshalThread) {
+        return;
+    }
+    isUseFdContainer_ = true;
+    fds_ = fds;
+}
+
+void AshmemFdContainer::Clear()
+{
+    if (!g_isUnmarshalThread) {
+        return;
+    }
+    isUseFdContainer_ = false;
+    if (!fds_.empty()) {
+        ROSEN_LOGW_IF(DEBUG_IPC, "AshmemFdContainer::Clear not empty, fds = %{public}s", PrintFds().c_str());
+        fds_.clear();
+    }
+}
+
+std::string AshmemFdContainer::PrintFds() const
+{
+    std::string ret = "{";
+    for (const auto& [offset, fd]: fds_) {
+        ret += std::to_string(offset);
+        ret += ":";
+        ret += std::to_string(fd);
+        ret += ", ";
+    }
+    ret += "}";
+    return ret;
+}
+
+AshmemFdWorker::~AshmemFdWorker()
+{
+    if (needManualCloseFds_) {
+        for (const int fd : fdsToBeClosed_) {
+            if (fd > 0) {
+                ::close(fd);
+            }
+        }
+    }
+    if (!isFdContainerUpdated_) {
+        return;
+    }
+    AshmemFdContainer::Instance().Clear();
+}
+
+void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shouldCloseFd)
+{
+    if (shouldCloseFd) {
+        fdsToBeClosed_.insert(fd);
+    }
+    if (isFdContainerUpdated_) {
+        return;
+    }
+    auto [it, isNewElement] = fds_.try_emplace(offset, fd);
+    if (isNewElement) {
+        return;
+    }
+    ROSEN_LOGW("AshmemFdWorker::InsertFdWithOffset existed offset %{public}" PRIu64 "is overriden, "
+        "old fd = %{public}d, new fd = %{public}d", static_cast<uint64_t>(offset), it->second, fd);
+    it->second = fd;
+}
+
+void AshmemFdWorker::PushFdsToContainer()
+{
+    if (isFdContainerUpdated_) {
+        return;
+    }
+    AshmemFdContainer::Instance().Merge(fds_);
+    isFdContainerUpdated_ = true;
+}
+
+void AshmemFdWorker::EnableManualCloseFds()
+{
+    needManualCloseFds_ = true;
+}
+
 void RSAshmemHelper::CopyFileDescriptor(
     MessageParcel* ashmemParcel, std::shared_ptr<MessageParcel>& dataParcel)
 {
@@ -196,17 +334,20 @@ void RSAshmemHelper::CopyFileDescriptor(
     }
 }
 
-void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel)
+void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataParcel, MessageParcel* ashmemParcel,
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker)
 {
+    ashmemFdWorker = std::make_unique<AshmemFdWorker>();
     binder_size_t* object = reinterpret_cast<binder_size_t*>(dataParcel->GetObjectOffsets());
     size_t objectNum = dataParcel->GetOffsetsSize();
     uintptr_t data = dataParcel->GetData();
     for (size_t i = 0; i < objectNum; i++) {
-        if (object[i] + sizeof(flat_binder_object) > dataParcel->GetDataSize()) {
+        binder_size_t offset = object[i];
+        if (offset + sizeof(flat_binder_object) > dataParcel->GetDataSize()) {
             ROSEN_LOGW("RSAshmemHelper::InjectFileDescriptor offset invalid");
             continue;
         }
-        flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + object[i]);
+        flat_binder_object* flat = reinterpret_cast<flat_binder_object*>(data + offset);
         if (flat->hdr.type == BINDER_TYPE_FD || flat->hdr.type == BINDER_TYPE_FDR) {
             int32_t val = ashmemParcel->ReadFileDescriptor();
             if (val < 0) {
@@ -214,6 +355,10 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
                     flat->handle);
             }
             flat->handle = static_cast<uint32_t>(val);
+            if (ashmemFdWorker) {
+                bool shouldCloseFd = flat->hdr.type == BINDER_TYPE_FD;
+                ashmemFdWorker->InsertFdWithOffset(val, offset, shouldCloseFd);
+            }
         }
     }
 }
@@ -239,7 +384,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
     int fd = ashmemAllocator->GetFd();
     std::shared_ptr<MessageParcel> ashmemParcel = std::make_shared<MessageParcel>();
     ashmemParcel->WriteInt32(1); // 1: indicate ashmem parcel
-    ashmemParcel->WriteInt32(dataSize);
+    ashmemParcel->WriteUint32(dataSize);
     ashmemParcel->WriteFileDescriptor(fd);
 
     // 2. save fds and their offsets
@@ -257,33 +402,22 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
     return ashmemParcel;
 }
 
-std::shared_ptr<MessageParcel> RSAshmemHelper::CopyParcel(MessageParcel& old)
+std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParcel* ashmemParcel,
+    std::unique_ptr<AshmemFdWorker>& ashmemFdWorker,
+    std::shared_ptr<AshmemFlowControlUnit> &ashmemFlowControlUnit, pid_t callingPid)
 {
-    RS_TRACE_NAME("RSAshmemHelper::CopyParcel");
-    auto dataSize = old.GetDataSize();
-    void* base = malloc(dataSize);
-    if (base == nullptr) {
-        RS_LOGE("RSAshmemHelper::CopyParcel malloc failed");
-        return nullptr;
-    }
-    if (memcpy_s(base, dataSize, reinterpret_cast<void*>(old.GetData()), dataSize) != 0) {
-        RS_LOGE("RSAshmemHelper::CopyParcel copy parcel data failed");
-        free(base);
-        return nullptr;
-    }
-    auto parcelCopied = RS_PROFILER_COPY_PARCEL(old);
-    if (!parcelCopied->ParseFrom(reinterpret_cast<uintptr_t>(base), dataSize)) {
-        RS_LOGE("RSAshmemHelper::CopyParcel ParseFrom failed");
-        free(base);
-        return nullptr;
-    }
-    return parcelCopied;
-}
-
-std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParcel* ashmemParcel)
-{
-    int32_t dataSize = ashmemParcel->ReadInt32();
+    uint32_t dataSize = ashmemParcel->ReadUint32();
     RS_TRACE_NAME("ParseFromAshmemParcel data size:" + std::to_string(dataSize));
+    // ashmem parcel flow control begins
+    ashmemFlowControlUnit = AshmemFlowControlUnit::CheckOverflowAndCreateInstance(callingPid, dataSize);
+    if (ashmemFlowControlUnit == nullptr) {
+        // discard this ashmem parcel since callingPid is submitting too many data to RS simultaneously
+        RS_TRACE_NAME_FMT("RSAshmemHelper::ParseFromAshmemParcel reject ashmem buffer size %" PRIu32
+            " from pid %d", dataSize, static_cast<int>(callingPid));
+        ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel reject ashmem buffer size %{public}" PRIu32
+            " from pid %{public}d", dataSize, static_cast<int>(callingPid));
+        return nullptr;
+    }
 
     int fd = ashmemParcel->ReadFileDescriptor();
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, dataSize, PROT_READ | PROT_WRITE);
@@ -294,7 +428,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
     void* data = ashmemAllocator->GetData();
     auto dataParcel = std::make_shared<MessageParcel>(ashmemAllocator.release());
     dataParcel->ParseFrom(reinterpret_cast<uintptr_t>(data), dataSize);
-    auto copiedParcel = CopyParcel(*std::move(dataParcel));
+
     int32_t offsetSize = ashmemParcel->ReadInt32();
     if (offsetSize > 0) {
         auto* offsets = ashmemParcel->ReadBuffer(sizeof(binder_size_t) * offsetSize);
@@ -303,17 +437,17 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
             return nullptr;
         }
         // restore array that record the offsets of all fds
-        copiedParcel->InjectOffsets(reinterpret_cast<binder_size_t>(offsets), offsetSize);
+        dataParcel->InjectOffsets(reinterpret_cast<binder_size_t>(offsets), offsetSize);
         // restore all fds
-        InjectFileDescriptor(copiedParcel, ashmemParcel);
+        InjectFileDescriptor(dataParcel, ashmemParcel, ashmemFdWorker);
     }
 
-    if (copiedParcel->ReadInt32() != 0) { // identify normal parcel
+    if (dataParcel->ReadInt32() != 0) { // identify normal parcel
         ROSEN_LOGE("RSAshmemHelper::ParseFromAshmemParcel failed");
         return nullptr;
     }
 
-    return copiedParcel;
+    return dataParcel;
 }
 } // namespace Rosen
 } // namespace OHOS

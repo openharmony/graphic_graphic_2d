@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +17,7 @@
 #include "ge_kawase_blur_shader_filter.h"
 #include "ge_system_properties.h"
 #include "get_object.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -79,10 +79,7 @@ std::shared_ptr<Drawing::Image> ScaleAndAddRandomColorFuzzTest(const uint8_t *da
     if (data == nullptr) {
         return nullptr;
     }
-    // initialize
-    GETest::g_data = data;
-    GETest::g_size = size;
-    GETest::g_pos = 0;
+    FuzzedDataProvider fdp(data, size);
 
     Drawing::GEKawaseBlurShaderFilterParams params { 1 };
     auto shaderFilter = std::make_shared<GEKawaseBlurShaderFilter>(params);
@@ -98,10 +95,12 @@ std::shared_ptr<Drawing::Image> ScaleAndAddRandomColorFuzzTest(const uint8_t *da
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     auto imageBlur = bmp.MakeImage();
 
-    Drawing::Rect src = GETest::GetPlainData<Drawing::Rect>();
-    Drawing::Rect dst = GETest::GetPlainData<Drawing::Rect>();
-    int width = GETest::GetPlainData<int>();
-    int height = GETest::GetPlainData<int>();
+    Drawing::Rect src{fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
+    Drawing::Rect dst{fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
+        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
+    int width = fdp.ConsumeIntegral<int32_t>();
+    int height = fdp.ConsumeIntegral<int32_t>();
 
     auto res = shaderFilter->ScaleAndAddRandomColor(canvas, image, imageBlur, src, dst, width, height);
     return res;

@@ -121,7 +121,11 @@ std::shared_ptr<RSPropertyBase> operator+(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return a->Clone()->Add(b);
+    const auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Add(b);
 }
 
 std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSPropertyBase>& a,
@@ -131,7 +135,11 @@ std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return a->Clone()->Minus(b);
+    const auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Minus(b);
 }
 
 std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSPropertyBase>& value, const float scale)
@@ -140,7 +148,11 @@ std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return value->Clone()->Multiply(scale);
+    const auto clone = value->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Multiply(scale);
 }
 
 bool operator==(const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b)

@@ -193,6 +193,11 @@ template("render_service_client_source_set") {
         defines += [ "WINDOWS_PLATFORM" ]
       }
     }
+
+    if (is_arkui_x) {
+      defines += [ "ARKUI_X_ENABLE" ]
+    }
+
     if (rosen_is_ohos) {
       deps += [
         "$graphic_2d_root/rosen/modules/frame_analyzer:libframe_analyzer",
@@ -200,6 +205,8 @@ template("render_service_client_source_set") {
       ]
 
       external_deps = [
+        "bundle_framework:appexecfwk_base",
+        "bundle_framework:appexecfwk_core",
         "c_utils:utils",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",

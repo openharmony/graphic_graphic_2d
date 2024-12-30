@@ -68,11 +68,13 @@ ohos_executable("drawing_engine_sample") {
     "include",
     "drawing_engine",
     "drawing_engine/drawing_surface",
+    "foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/include/common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform/ohos/backend",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
   ]
 
   sources += [
@@ -114,6 +116,7 @@ ohos_executable("drawing_engine_sample") {
     "$graphic_2d_root:libvulkan",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
+  public_external_deps = [ "openssl:libcrypto_shared" ]
   external_deps += [
     "c_utils:utils",
     "eventhandler:libeventhandler",
@@ -123,7 +126,6 @@ ohos_executable("drawing_engine_sample") {
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
-  public_external_deps = [ "openssl:libcrypto_shared" ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"
@@ -141,6 +143,7 @@ ohos_executable("drawing_sample_rs") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_client",
     "$graphic_2d_root/rosen/include/common",
+    "$window_base_path/interfaces/innerkits/wm",
   ]
 
   deps = [
@@ -153,6 +156,7 @@ ohos_executable("drawing_sample_rs") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "zlib:libz",
   ]
 
   part_name = "graphic_2d"

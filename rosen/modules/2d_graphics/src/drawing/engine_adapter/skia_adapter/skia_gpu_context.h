@@ -74,6 +74,8 @@ public:
 
     void DumpGpuStats(std::string& out) override;
 
+    void DumpAllResource(std::stringstream& dump) override;
+
     void ReleaseResourcesAndAbandonContext() override;
 
     void PurgeUnlockedResources(bool scratchResourcesOnly) override;

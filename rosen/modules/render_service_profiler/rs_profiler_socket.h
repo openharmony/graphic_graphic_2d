@@ -24,7 +24,7 @@ namespace OHOS::Rosen {
 enum class SocketState {
     INITIAL,
     CREATE,
-    ACCEPT,
+    CONNECTED,
     SHUTDOWN
 };
 
@@ -38,14 +38,14 @@ public:
     ~Socket();
 
     SocketState GetState() const;
-    void SetState(SocketState state);
+    bool Connected() const;
     void Shutdown();
     void Open(uint16_t port);
     void AcceptClient();
 
-    void SendWhenReady(const void* data, size_t size);
+    bool SendWhenReady(const void* data, size_t size);
 
-    size_t Available() const;
+    size_t Available();
     bool Receive(void* data, size_t& size);
     bool ReceiveWhenReady(void* data, size_t size);
 

@@ -17,6 +17,7 @@
 
 #include "common/rs_macros.h"
 #include "utils/drawing_macros.h"
+#include "utils/rect.h"
 #include <memory>
 #include <vector>
 
@@ -30,12 +31,19 @@ public:
     SDFShapeBase() {};
     virtual ~SDFShapeBase() {};
 
-    virtual std::string Getshader() const = 0;
+    virtual const std::string& Getshader() const = 0;
     virtual float GetSize() const = 0;
     virtual void SetSize(float size) = 0;
     virtual void SetTranslate(float dx, float dy) = 0;
     virtual float GetTranslateX() const = 0;
     virtual float GetTranslateY() const = 0;
+    virtual void SetBoundsRect(const Rect& rect) = 0;
+    virtual Rect GetBoundsRect() const = 0;
+    virtual int GetShapeId() const = 0;
+    virtual void SetTransparent(int transparent) = 0;
+    virtual int GetTransparent() const = 0;
+    virtual std::vector<float> GetPaintPara() const = 0;
+    virtual std::vector<float> GetPointAndColorPara() const = 0;
 
     virtual int GetParaNum() const = 0;
     virtual int GetFillType() const = 0;
@@ -46,6 +54,13 @@ public:
 
     virtual void UpdateTime(float time) = 0;
     virtual void BuildShader() = 0;
+    
+    template <typename T>
+    T Build() const
+    {
+        T t;
+        return t;
+    }
 
 private:
 

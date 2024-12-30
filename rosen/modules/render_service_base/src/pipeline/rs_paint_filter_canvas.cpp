@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 #include <algorithm>
@@ -366,7 +365,7 @@ bool RSPaintFilterCanvasBase::OpCalculateBefore(const Matrix& matrix)
     return false;
 }
 
-std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Rect& bound)
+std::shared_ptr<Drawing::OpListHandle> RSPaintFilterCanvasBase::OpCalculateAfter(const Drawing::Rect& bound)
 {
     if (canvas_ != nullptr && OnFilter()) {
         return canvas_->OpCalculateAfter(bound);
@@ -934,7 +933,7 @@ bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const D
     }
 #else
     if (canvas_ != nullptr) {
-        result |= canvas_->DrawBlurImage(image, blurParams);
+        result = canvas_->DrawBlurImage(image, blurParams);
     }
 #endif
     return result;
@@ -1288,6 +1287,7 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     brightnessRatio_ = other.brightnessRatio_;
     screenId_ = other.screenId_;
     targetColorGamut_ = other.targetColorGamut_;
+    isHdrOn_ = other.isHdrOn_;
 }
 
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
@@ -1506,13 +1506,13 @@ void RSPaintFilterCanvas::SaveLayer(const Drawing::SaveLayerOps& saveLayerOps)
     RSPaintFilterCanvasBase::SaveLayer(saveLayerOps);
 }
 
-bool RSPaintFilterCanvas::IsCapture() const
+bool RSPaintFilterCanvas::IsOnMultipleScreen() const
 {
-    return isCapture_;
+    return multipleScreen_;
 }
-void RSPaintFilterCanvas::SetCapture(bool isCapture)
+void RSPaintFilterCanvas::SetOnMultipleScreen(bool multipleScreen)
 {
-    isCapture_ = isCapture;
+    multipleScreen_ = multipleScreen;
 }
 
 ScreenId RSPaintFilterCanvas::GetScreenId() const

@@ -491,13 +491,16 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     captureConfig.useDma = false;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     captureConfig.isSync = true;
-    proxy->TakeSurfaceCapture(id, callback, captureConfig);
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    blurParam.blurRadius = 10;
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, captureConfig);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -1022,6 +1025,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.
 }
 
 /**
+ * @tc.name: GetHdrOnDuration Test
+ * @tc.desc: GetHdrOnDuration Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    EXPECT_GE(proxy->GetHdrOnDuration(), 0);
+}
+
+/**
  * @tc.name: RegisterUIExtensionCallback Test
  * @tc.desc: RegisterUIExtensionCallback Test, with empty/non-empty callback.
  * @tc.type:FUNC
@@ -1049,7 +1064,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     proxy->SetLayerTop(nodeIdStr, true);
     proxy->SetLayerTop(nodeIdStr, false);
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(proxy);
 }
 
 /**
@@ -1062,7 +1077,7 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.
 {
     proxy->SetFreeMultiWindowStatus(true);
     proxy->SetFreeMultiWindowStatus(false);
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(proxy);
 }
 } // namespace Rosen
 } // namespace OHOS

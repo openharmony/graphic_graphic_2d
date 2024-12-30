@@ -79,7 +79,8 @@ void RSUnmarshalThread::PostTask(const std::function<void()>& task)
     }
 }
 
-void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid)
+void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid,
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker, std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
 {
     if (!handler_ || !parcel) {
         RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
@@ -87,22 +88,29 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         return;
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
-    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid]() {
+    RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
+        ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit]() {
+        RSMarshallingHelper::SetCallingPid(callingPid);
+        AshmemFdContainer::SetIsUnmarshalThread(true);
+        if (ashmemFdWorker) {
+            ashmemFdWorker->PushFdsToContainer();
+        }
         SetFrameParam(REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
         SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
         SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
+        if (ashmemFdWorker) {
+            // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
+            parcel->FlushBuffer();
+            ashmemFdWorker->EnableManualCloseFds();
+        }
         if (!transData) {
             return;
         }
         if (isNonSystemAppCalling) {
             const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-            pid_t conflictCommandPid = 0;
-            std::string commandMapDesc = "";
-            if (!transData->IsCallingPidValid(callingPid, nodeMap, conflictCommandPid, commandMapDesc)) {
-                RS_LOGE("RSUnmarshalThread::RecvParcel non-system callingPid %{public}d"
-                        " is denied to access commandPid %{public}d, commandMap = %{public}s",
-                        callingPid, conflictCommandPid, commandMapDesc.c_str());
+            if (!transData->IsCallingPidValid(callingPid, nodeMap)) {
+                RS_LOGE("RSUnmarshalThread::RecvParcel IsCallingPidValid check failed");
             }
             bool shouldDrop = ReportTransactionDataStatistics(callingPid, transData.get(), isNonSystemAppCalling);
             if (shouldDrop) {
@@ -118,6 +126,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (isPendingUnmarshal) {
             RSMainThread::Instance()->RequestNextVSync();
         }
+        // ashmem parcel flow control ends in the destructor of ashmemFlowControlUnit
     };
     {
         ffrt::task_handle handle;

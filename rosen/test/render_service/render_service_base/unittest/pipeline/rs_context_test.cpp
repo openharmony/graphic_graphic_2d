@@ -114,6 +114,7 @@ HWTEST_F(RSContextTest, TaskRunnerTest004, TestSize.Level1)
 
     // Set Task Runner
     auto taskRunner = [](const std::function<void()>& task, bool isSyncTask) {};
+    ASSERT_NE(taskRunner, nullptr);
     rSContext.SetTaskRunner(taskRunner);
     auto taskRunnerTest = []() {};
     rSContext.PostTask(taskRunnerTest, true);
@@ -134,6 +135,8 @@ HWTEST_F(RSContextTest, InitializeTest005, TestSize.Level1)
 {
     RSContext rSContext;
     rSContext.Initialize();
+    std::shared_ptr<RSRenderNode> nodePtr = std::make_shared<RSRenderNode>(INVALID_NODEID);
+    EXPECT_NE(nodePtr, nullptr);
 }
 
 /**

@@ -301,6 +301,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
     auto &map = HdiOutputTest::hdiOutput_->layerIdMap_;
     for (auto &layer : map) {
         layer.second->GetLayerInfo()->SetIsSupportedPresentTimestamp(true);
+        EXPECT_EQ(layer.second->GetLayerInfo()->IsSupportedPresentTimestamp(), true);
     }
     sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
     HdiOutputTest::hdiOutput_->ReleaseLayers(fbFence);
@@ -570,6 +571,79 @@ HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
     hdiOutput->ClearFpsDump(result, arg);
     EXPECT_EQ(
         result, static_cast<std::string>("\n\n The fps info of surface [xcomponentIdSurface] Id[0] is cleared.\n"));
+}
+
+/*
+ * Function: GetComposeClientLayers001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call GetComposeClientLayers with layer is nullptr
+ *                  2.check clientLayers size
+ */
+HWTEST_F(HdiOutputTest, GetComposeClientLayers001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    layerIdMap[id] = nullptr;
+    std::vector<LayerPtr> clientLayers;
+    hdiOutput->GetComposeClientLayers(clientLayers);
+    EXPECT_EQ(clientLayers.size(), 0);
+}
+
+/*
+ * Function: GetComposeClientLayers002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call GetComposeClientLayers with layerInfo is nullptr
+ *                  2.check clientLayers size
+ */
+HWTEST_F(HdiOutputTest, GetComposeClientLayers002, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    LayerPtr layer = std::make_shared<HdiLayer>(id);
+    layer->layerInfo_ = nullptr;
+    layerIdMap[id] = layer;
+    std::vector<LayerPtr> clientLayers;
+    hdiOutput->GetComposeClientLayers(clientLayers);
+    EXPECT_EQ(clientLayers.size(), 0);
+}
+
+/*
+ * Function: ReleaseSurfaceBuffer001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call ReleaseSurfaceBuffer with layer or layerInfo or layer's cSurface is nullptr
+ *                  2.check ret
+ */
+HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer001, Function | MediumTest | Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    auto& layerIdMap = hdiOutput->layerIdMap_;
+    uint64_t id = 0;
+    layerIdMap[id] = nullptr;
+    auto& layersId = hdiOutput->layersId_;
+    EXPECT_EQ(layersId.size(), 0);
+    sptr<SyncFence> releaseFence = nullptr;
+    hdiOutput->ReleaseSurfaceBuffer(releaseFence);
+    EXPECT_EQ(releaseFence, nullptr);
+
+    LayerPtr layer = std::make_shared<HdiLayer>(id);
+    layer->layerInfo_ = nullptr;
+    layerIdMap[id] = layer;
+    hdiOutput->ReleaseSurfaceBuffer(releaseFence);
+    EXPECT_EQ(releaseFence, nullptr);
+
+    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    layer->layerInfo_ = layerInfo;
+    layer->layerInfo_->cSurface_ = nullptr;
+    hdiOutput->ReleaseSurfaceBuffer(releaseFence);
+    EXPECT_EQ(releaseFence, nullptr);
 }
 } // namespace
 } // namespace Rosen

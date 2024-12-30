@@ -30,6 +30,7 @@ ohos_fuzztest("RSRenderServiceClientFuzzTest") {
     "../../../../../../../modules/render_service/core",
     "../../../../../../../modules/render_service_base/src",
     "../../../../../../../modules/render_service_base/src/ipc_callback",
+    "../../../../../../../modules/render_service_client",
   ]
   deps = [
     "../../../../../../../modules/2d_graphics:2d_graphics",

@@ -74,9 +74,9 @@ public:
         animationStart_ = animationStart;
     }
 
-    void SetAnimationReset(bool animationReset)
+    void SetCurrentAnimationHasPlayed(bool currentAnimationHasPlayed)
     {
-        animationReset_ = animationReset;
+        currentAnimationHasPlayed_ = currentAnimationHasPlayed;
     }
 
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
@@ -98,7 +98,7 @@ private:
         animationFunc_ = nullptr;
     uint64_t symblSpanId_ = 0;
     bool animationStart_ = false;
-    bool animationReset_ = true;
+    bool currentAnimationHasPlayed_ = false;
 };
 }
 }

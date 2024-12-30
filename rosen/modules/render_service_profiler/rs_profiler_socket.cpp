@@ -72,32 +72,19 @@ static void SetCloseOnExec(int32_t socket, bool enable)
     fcntl(socket, F_SETFD, ToggleFlag(fcntl(socket, F_GETFD, 0), FD_CLOEXEC, enable));
 }
 
-static fd_set GetFdSet(int32_t socket)
-{
-    fd_set set;
-    FD_ZERO(&set);
-    FD_SET(socket, &set);
-    return set;
-}
-
-static bool IsFdSet(int32_t socket, const fd_set& set)
-{
-    return FD_ISSET(socket, &set);
-}
-
 Socket::~Socket()
 {
     Shutdown();
 }
 
+bool Socket::Connected() const
+{
+    return (socket_ != -1) && (client_ != -1) && (state_ == SocketState::CONNECTED);
+}
+
 SocketState Socket::GetState() const
 {
     return state_;
-}
-
-void Socket::SetState(SocketState state)
-{
-    state_ = state;
 }
 
 void Socket::Shutdown()
@@ -152,28 +139,33 @@ void Socket::AcceptClient()
         if ((errno != EWOULDBLOCK) && (errno != EAGAIN) && (errno != EINTR)) {
             Shutdown();
         }
-    } else {
-        SetBlocking(client_, false);
-        SetCloseOnExec(client_, true);
-
-        int32_t nodelay = 1;
-        setsockopt(client_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&nodelay), sizeof(nodelay));
-
-        state_ = SocketState::ACCEPT;
+        return;
     }
+
+    SetBlocking(client_, false);
+    SetCloseOnExec(client_, true);
+
+    int32_t nodelay = 1;
+    setsockopt(client_, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&nodelay), sizeof(nodelay));
+
+    state_ = SocketState::CONNECTED;
 }
 
-size_t Socket::Available() const
+size_t Socket::Available()
 {
     int32_t size = 0;
-    const auto error = ioctl(client_, FIONREAD, &size);
-    return (error != -1) ? static_cast<size_t>(size) : 0u;
+    const auto result = ioctl(client_, FIONREAD, &size);
+    if (result == -1) {
+        HRPE("Socket: Available failed: %d", errno);
+        return 0u;
+    }
+    return static_cast<size_t>(size);
 }
 
-void Socket::SendWhenReady(const void* data, size_t size)
+bool Socket::SendWhenReady(const void* data, size_t size)
 {
     if (!data || (size == 0)) {
-        return;
+        return true;
     }
 
     SetBlocking(client_, true);
@@ -190,7 +182,7 @@ void Socket::SendWhenReady(const void* data, size_t size)
         if ((sentBytes <= 0) && (errno != EINTR)) {
             HRPE("Socket: SendWhenReady: Invoke shutdown: %d", errno);
             Shutdown();
-            return;
+            return false;
         }
         auto actualSentBytes = static_cast<size_t>(sentBytes);
         sent += actualSentBytes;
@@ -199,6 +191,7 @@ void Socket::SendWhenReady(const void* data, size_t size)
 
     SetTimeout(client_, previousTimeout);
     SetBlocking(client_, false);
+    return true;
 }
 
 bool Socket::Receive(void* data, size_t& size)

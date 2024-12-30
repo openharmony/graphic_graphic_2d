@@ -146,7 +146,6 @@ public:
     VSyncReceiver &operator=(const VSyncReceiver &) = delete;
 
     virtual VsyncError Init();
-    void ThreadCreateNotify();
     virtual VsyncError RequestNextVSync(FrameCallback callback);
     virtual VsyncError SetVSyncRate(FrameCallback callback, int32_t rate);
     virtual VsyncError GetVSyncPeriod(int64_t &period);
@@ -167,6 +166,7 @@ public:
     virtual VsyncError RequestNextVSyncWithMultiCallback(FrameCallback callback);
     virtual VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch);
 private:
+    void RegisterFileDescriptorListener();
     VsyncError DestroyLocked();
     void RemoveAndCloseFdLocked();
     sptr<IVSyncConnection> connection_;

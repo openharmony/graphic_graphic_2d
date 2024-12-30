@@ -39,11 +39,11 @@ public:
     void SetSymbolEffect(const RSEffectStrategy& effectStrategy);
 
     // set animation mode: the 1 is whole or iteratuve, 0 is hierarchical or cumulative
-    void SetAnimationMode(const uint16_t animationMode);
+    void SetAnimationMode(uint16_t animationMode);
 
-    void SetRepeatCount(const int repeatCount);
+    void SetRepeatCount(int repeatCount);
 
-    void SetAnimationStart(const bool animationStart);
+    void SetAnimationStart(bool animationStart);
 
     // set common subtype of symbol animation attribute
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType);

@@ -161,7 +161,8 @@ void RSProfiler::DumpNodeSubClassNode(const RSRenderNode& node, JsonWriter& out)
         auto p = node.parent_.lock();
         subclass["Parent"] = p ? p->GetId() : uint64_t(0);
         subclass["Name"] = surfaceNode.GetName();
-        out["hasConsumer"] = surfaceNode.GetRSSurfaceHandler()->HasConsumer();
+        const auto surfaceHandler = surfaceNode.GetRSSurfaceHandler();
+        out["hasConsumer"] = surfaceHandler ? surfaceHandler->HasConsumer() : false;
         std::string contextAlpha = std::to_string(surfaceNode.contextAlpha_);
         std::string propertyAlpha = std::to_string(surfaceNode.GetRenderProperties().GetAlpha());
         subclass["Alpha"] = propertyAlpha + " (include ContextAlpha: " + contextAlpha + ")";
@@ -567,7 +568,7 @@ void RSProfiler::DumpNodeChildrenListUpdate(const RSRenderNode& node, JsonWriter
     if (!node.isFullChildrenListValid_) {
         auto& childrenUpdate = out["children update"];
         childrenUpdate.PushObject();
-        childrenUpdate["current count"] = node.fullChildrenList_->size();
+        childrenUpdate["current count"] = node.fullChildrenList_ ? node.fullChildrenList_->size() : 0;
         std::string expected = std::to_string(node.GetSortedChildren()->size());
         if (!node.disappearingChildren_.empty()) {
             childrenUpdate["disappearing count"] = node.disappearingChildren_.size();

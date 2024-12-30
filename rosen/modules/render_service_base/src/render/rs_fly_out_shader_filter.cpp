@@ -165,25 +165,23 @@ void RSFlyOutShaderFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sha
         Drawing::Point{0.0f, height + segmentHeightTwo}, Drawing::Point{0.0f, height + segmentHeightOne}
     };
 
-    // deformation coordinate
-    CalculateDeformation(flyUp, flyDown, width, imageHeight);
-
     Drawing::Path path;
     // The 0th point is the starting point of drawing.
     path.MoveTo(flyUp[0].GetX(), flyUp[0].GetY());
-    // The 1st, 2nd, and 3rd control points are connected to represent the upper edge.
-    path.CubicTo(flyUp[1], flyUp[2], flyUp[3]);
-    // The 4th, 5th and 6th control points are connected to represent the right edge of upper part.
-    path.CubicTo(flyUp[4], flyUp[5], flyUp[6]);
-    // The 4th, 5th and 6th control points are connected to represent the right edge of lower part.
-    path.CubicTo(flyDown[4], flyDown[5], flyDown[6]);
-    // The 7th, 8th, and 9th control points are connected to represent the bottom edge.
-    path.CubicTo(flyDown[7], flyDown[8], flyDown[9]);
-    // The 0th, 10th, and 11th control points are connected to represent the left edge of lower part.
-    path.CubicTo(flyDown[10], flyDown[11], flyDown[0]);
-    // The 0th, 10th, and 11th control points are connected to represent the left edge upper part.
-    path.CubicTo(flyUp[10], flyUp[11], flyUp[0]);
+    // The 3th point is the upper right corner of the bound.
+    path.LineTo(flyUp[3].GetX(), flyUp[3].GetY());
+    // The 6th point is the bottom right corner of the bound.
+    path.LineTo(flyDown[6].GetX(), flyDown[6].GetY());
+    // The 9th point is the bottom left corner of the bound.
+    path.LineTo(flyDown[9].GetX(), flyDown[9].GetY());
+    // The 0th point is the upper left corner of the bound.
+    path.LineTo(flyUp[0].GetX(), flyUp[0].GetY());
+    // The path is the bound of the original node
     canvas.ClipPath(path, Drawing::ClipOp::INTERSECT, true);
+
+    // calculate deformation coordinate
+    CalculateDeformation(flyUp, flyDown, width, imageHeight);
+
     canvas.DrawPatch(flyUp.data(), nullptr, texCoordsUp.data(), Drawing::BlendMode::SRC_OVER);
     canvas.DrawPatch(flyDown.data(), nullptr, texCoordsDown.data(), Drawing::BlendMode::SRC_OVER);
     canvas.DetachBrush();

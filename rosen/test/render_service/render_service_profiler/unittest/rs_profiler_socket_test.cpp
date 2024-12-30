@@ -30,17 +30,16 @@ public:
 
 /*
  * @tc.name: RSProfilerSocketStateTest
- * @tc.desc: Test state setter/getter
+ * @tc.desc: Test Connected
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSProfilerSocketTest, RSProfilerSocketStateTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSProfilerSocketTest, RSProfilerSocketConnectedTest, testing::ext::TestSize.Level1)
 {
     Socket s;
-    EXPECT_EQ(s.GetState(), SocketState::INITIAL);
-
-    s.SetState(SocketState::CREATE);
-    EXPECT_EQ(s.GetState(), SocketState::CREATE);
+    s.Open(5050);
+    s.Shutdown();
+    EXPECT_FALSE(s.Connected());
 }
 
 /*

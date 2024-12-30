@@ -97,6 +97,10 @@ public:
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
+    bool TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
@@ -106,8 +110,10 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
 
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ,
-        float positionW);
+    bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
@@ -135,6 +141,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 
@@ -245,10 +253,10 @@ public:
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
 
-    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
-    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid);
+    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
 
     void SetAppWindowNum(uint32_t num);
 
@@ -279,8 +287,6 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
-
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
@@ -300,6 +306,8 @@ public:
     LayerComposeInfo GetLayerComposeInfo() const;
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
+
+    int64_t GetHdrOnDuration() const;
 
     void SetVmaCacheStatus(bool flag);
 

@@ -30,9 +30,9 @@
 #include "rs_profiler.h"
 #include "rs_render_service_connection.h"
 #include "vsync_generator.h"
+#include "rs_trace.h"
 
 #include "common/rs_singleton.h"
-#include "graphic_2d_configure.h"
 #include "pipeline/round_corner_display/rs_message_bus.h"
 #ifdef RS_ENABLE_GPU
 #include "pipeline/round_corner_display/rs_rcd_render_manager.h"
@@ -42,6 +42,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 #include "text/font_mgr.h"
 
@@ -56,6 +57,13 @@ constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+#ifdef RS_ENABLE_GPU
+static const int INT_INIT_VAL = 0;
+static const int CREAT_NUM_ONE = 1;
+static const int INIT_EGL_VERSION = 3;
+static EGLDisplay g_tmpDisplay = EGL_NO_DISPLAY;
+static EGLContext g_tmpContext = EGL_NO_CONTEXT;
+#endif
 
 uint32_t GenerateTaskId()
 {
@@ -83,7 +91,6 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 
-    Graphic2dConfigure::Instance();
     RSMainThread::Instance();
     RSUniRenderJudgement::InitUniRenderConfig();
 #ifdef TP_FEATURE_ENABLE
@@ -351,58 +358,101 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump vk texture limit info\n")
 #endif
         .append("flushJankStatsRs")
-        .append("|flush rs jank stats hisysevent\n");
+        .append("|flush rs jank stats hisysevent\n")
+        .append("gles                           ")
+        .append("|inquire gpu info\n");
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
-    if (iter != argSets.end()) {
-        std::string layerArg;
-        argSets.erase(iter);
-        if (!argSets.empty()) {
-            layerArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
-#endif
-        } else {
-            mainThread_->ScheduleTask(
-                [this, &dumpString, &layerArg]() { return screenManager_->FpsDump(dumpString, layerArg); }).wait();
-        }
+    if (iter == argSets.end()) {
+        return ;
     }
+    argSets.erase(iter);
+    if (argSets.empty()) {
+        RS_LOGE("RSRenderService::FPSDUMPProcess layer name is not specified");
+        return ;
+    }
+    RS_TRACE_NAME("RSRenderService::FPSDUMPProcess");
+    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+        .to_bytes(*argSets.begin());
+    std::unordered_set<std::string> args{"DisplayNode", "composer", "UniRender"};
+    if (args.find(fpsArg) != args.end()) {
+        DumpFps(dumpString, fpsArg);
+    } else {
+        DumpSurfaceNodeFps(dumpString, fpsArg);
+    }
+}
+
+void RSRenderService::DumpFps(std::string& dumpString, std::string& fpsArg) const
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &fpsArg]() { return screenManager_->FpsDump(dumpString, fpsArg); }).wait();
+    }
+}
+
+void RSRenderService::DumpSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
+{
+    dumpString += "\n-- The recently fps records info of screens:\n";
+    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.Dump(dumpString, fpsArg);
 }
 
 void RSRenderService::FPSDUMPClearProcess(std::unordered_set<std::u16string>& argSets,
     std::string& dumpString, const std::u16string& arg) const
 {
     auto iter = argSets.find(arg);
-    if (iter != argSets.end()) {
-        std::string layerArg;
-        argSets.erase(iter);
-        if (!argSets.empty()) {
-            layerArg = std::wstring_convert<
-            std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
-        }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString, &layerArg]() {
-                    return screenManager_->ClearFpsDump(dumpString, layerArg);
-                }).wait();
-#endif
-        } else {
-            mainThread_->ScheduleTask(
-                [this, &dumpString, &layerArg]() {
-                    return screenManager_->ClearFpsDump(dumpString, layerArg);
-                }).wait();
-        }
+    if (iter == argSets.end()) {
+        return ;
     }
+    argSets.erase(iter);
+    if (argSets.empty()) {
+        RS_LOGE("RSRenderService::FPSDUMPClearProcess layer name is not specified");
+        return ;
+    }
+    RS_TRACE_NAME("RSRenderService::FPSDUMPClearProcess");
+    std::string fpsArg = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}
+        .to_bytes(*argSets.begin());
+    std::unordered_set<std::string> args{"DisplayNode", "composer"};
+    if (args.find(fpsArg) != args.end()) {
+        ClearFps(dumpString, fpsArg);
+    } else {
+        ClearSurfaceNodeFps(dumpString, fpsArg);
+    }
+}
+
+void RSRenderService::ClearFps(std::string& dumpString, std::string& fpsArg) const
+{
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ScheduleTask(
+            [this, &dumpString, &fpsArg]() {
+                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            }).wait();
+#endif
+    } else {
+        mainThread_->ScheduleTask(
+            [this, &dumpString, &fpsArg]() {
+                return screenManager_->ClearFpsDump(dumpString, fpsArg);
+            }).wait();
+    }
+}
+
+void RSRenderService::ClearSurfaceNodeFps(std::string& dumpString, std::string& fpsArg) const
+{
+    dumpString += "\n-- Clear fps records info of screens:\n";
+    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.ClearDump(dumpString, fpsArg);
 }
 
 void RSRenderService::DumpRSEvenParam(std::string& dumpString) const
@@ -578,6 +628,75 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
     dumpString.append("flush done\n");
 }
 
+#ifdef RS_ENABLE_GPU
+static void InitGLES()
+{
+    g_tmpDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (g_tmpDisplay == EGL_NO_DISPLAY) {
+        RS_LOGE("Failed to get default display.");
+        return;
+    }
+    EGLint major, minor;
+    if (eglInitialize(g_tmpDisplay, &major, &minor) == EGL_FALSE) {
+        RS_LOGE("Failed to initialize EGL.");
+        return;
+    }
+
+    EGLint numConfigs = INT_INIT_VAL;
+    EGLConfig config;
+    if (eglChooseConfig(g_tmpDisplay, nullptr, &config, CREAT_NUM_ONE, &numConfigs) == EGL_FALSE || numConfigs < 1) {
+        RS_LOGE("Failed to choose EGL config.");
+        eglTerminate(g_tmpDisplay);
+        return;
+    }
+    const EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, INIT_EGL_VERSION, EGL_NONE };
+    g_tmpContext = eglCreateContext(g_tmpDisplay, config, EGL_NO_CONTEXT, contextAttribs);
+    if (g_tmpContext == EGL_NO_CONTEXT) {
+        RS_LOGE("Failed to create EGL context.");
+        eglTerminate(g_tmpDisplay);
+        return;
+    }
+    if (eglMakeCurrent(g_tmpDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, g_tmpContext) == EGL_FALSE) {
+        RS_LOGE("Failed to make EGL context current.");
+        eglDestroyContext(g_tmpDisplay, g_tmpContext);
+        eglTerminate(g_tmpDisplay);
+        return;
+    }
+}
+
+static void DestroyGLES()
+{
+    eglDestroyContext(g_tmpDisplay, g_tmpContext);
+    g_tmpContext = EGL_NO_CONTEXT;
+    eglTerminate(g_tmpDisplay);
+    g_tmpDisplay = EGL_NO_DISPLAY;
+}
+
+void RSRenderService::DumpGpuInfo(std::string& dumpString) const
+{
+    InitGLES(); // This is necessary because you cannot query GPU information without initialization.
+    dumpString.append("\n");
+    dumpString.append("-- DumpGpuInfo: \n");
+    auto glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    auto glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto glShadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+    dumpString.append("GL_VENDOR: ");
+    dumpString.append(glVendor ? glVendor : "Unknown");
+    dumpString.append("\n");
+    dumpString.append("GL_RENDERER: ");
+    dumpString.append(glRenderer ? glRenderer : "Unknown");
+    dumpString.append("\n");
+    dumpString.append("GL_VERSION: ");
+    dumpString.append(glesVersion ? glesVersion : "Unknown");
+    dumpString.append("\n");
+    dumpString.append("GL_SHADING_LANGUAGE_VERSION: ");
+    dumpString.append(glShadingLanguageVersion ? glShadingLanguageVersion : "Unknown");
+    dumpString.append("\n");
+    DestroyGLES();
+}
+#endif
+
 #ifdef RS_ENABLE_VK
 void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
 {
@@ -625,6 +744,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
 #ifdef RS_ENABLE_VK
     std::u16string arg22(u"vktextureLimit");
 #endif
+    std::u16string arg23(u"gles");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -719,6 +839,11 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
             }).wait();
         mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
     }
+#ifdef RS_ENABLE_GPU
+    if (argSets.count(arg23) != 0) {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpGpuInfo(dumpString); }).wait();
+    }
+#endif
 #ifdef RS_ENABLE_VK
     if (argSets.count(arg22) != 0) {
         mainThread_->ScheduleTask(

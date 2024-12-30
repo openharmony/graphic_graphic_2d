@@ -152,13 +152,18 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
+    virtual void RepaintEverything() = 0;
+
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
+
+    virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig) = 0;
 
     virtual void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) = 0;
@@ -260,7 +265,7 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
-    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t pid,
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
 
     virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;
@@ -276,6 +281,8 @@ public:
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
+
+    virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
@@ -298,8 +305,6 @@ public:
 
     virtual void SetScreenSwitchStatus(bool flag) = 0;
 
-    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
-
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;
@@ -317,6 +322,8 @@ public:
     virtual LayerComposeInfo GetLayerComposeInfo() = 0;
 
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
+
+    virtual int64_t GetHdrOnDuration() = 0;
 
     virtual void SetVmaCacheStatus(bool flag) = 0;
 

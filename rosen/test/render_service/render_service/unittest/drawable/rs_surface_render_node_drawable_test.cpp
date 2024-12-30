@@ -480,6 +480,39 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, MergeSubSurfaceNodesDirtyRegionForMain
 }
 
 /**
+ * @tc.name: CrossDisplaySurfaceDirtyRegionOffset
+ * @tc.desc: Test CrossDisplaySurfaceDirtyRegionOffset, if node is cross-display, the surface dirty will be offset.
+ * @tc.type: FUNC
+ * @tc.require: issueIB670G
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CrossDisplaySurfaceDirtyRegionOffset_001, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    ASSERT_NE(surfaceDrawable_->GetRenderParams(), nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+    ASSERT_NE(uniParams, nullptr);
+
+    NodeId curDisplayId = 1;
+    int32_t displayOffset = 10;
+    surfaceParams->preparedDisplayOffset_ = { 0, 0 };
+    surfaceParams->crossNodeSkippedDisplayOffsets_.insert({curDisplayId, {displayOffset, displayOffset}});
+    uniParams->SetCurrentVisitDisplayDrawableId(curDisplayId);
+    RectI surfaceDirtyRect = { DEFAULT_RECT.left_, DEFAULT_RECT.top_,
+        DEFAULT_RECT.right_ - DEFAULT_RECT.left_, DEFAULT_RECT.bottom_ - DEFAULT_RECT.top_ };;
+
+    // if surface node is not cross-display node, nothing will happen.
+    surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(false);
+    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionOffset(*uniParams, *surfaceParams, surfaceDirtyRect);
+    ASSERT_EQ(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
+    // if surface node is not cross-display node, the surface dirty region will be offset.
+    surfaceDrawable_->GetRenderParams()->SetFirstLevelCrossNode(true);
+    surfaceDrawable_->CrossDisplaySurfaceDirtyRegionOffset(*uniParams, *surfaceParams, surfaceDirtyRect);
+    ASSERT_NE(surfaceDirtyRect.GetTop(), DEFAULT_RECT.top_);
+}
+
+/**
  * @tc.name: CalculateVisibleDirtyRegion
  * @tc.desc: Test CalculateVisibleDirtyRegion
  * @tc.type: FUNC
@@ -576,6 +609,23 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
 }
 
 /**
+ * @tc.name: BufferFormatNeedUpdate
+ * @tc.desc: Test BufferFormatNeedUpdate
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, BufferFormatNeedUpdateTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    RSPaintFilterCanvas paintFilterCanvas(surface.get());
+    surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
+    EXPECT_TRUE(surfaceDrawable_->BufferFormatNeedUpdate(surface, true));
+    EXPECT_FALSE(surfaceDrawable_->BufferFormatNeedUpdate(surface, false));
+}
+
+/**
  * @tc.name: IsHardwareEnabled
  * @tc.desc: Test IsHardwareEnabled
  * @tc.type: FUNC
@@ -592,14 +642,15 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, IsHardwareEnabled, TestSize.Level1)
     auto rsSurfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(nodePtr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
-        rsSurfaceRenderNode);
+        std::make_pair(0, rsSurfaceRenderNode));
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 
     auto rsRenderNode = std::make_shared<RSRenderNode>(0);
     ASSERT_NE(rsRenderNode, nullptr);
     auto surfaceRenderNode = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsRenderNode);
     surfaceRenderNode->renderParams_ = std::make_unique<RSRenderParams>(0);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(surfaceRenderNode);
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(
+        std::make_pair(0, surfaceRenderNode));
     ASSERT_FALSE(surfaceDrawable_->IsHardwareEnabled());
 }
 

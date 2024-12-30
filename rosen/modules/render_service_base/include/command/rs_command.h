@@ -46,8 +46,8 @@ enum RSCommandType : uint16_t {
 };
 
 enum RSCommandPermissionType : uint16_t {
-    NO_INTERCEPTION = 0,
-    DISALLOW_NONSYSTEM_APP_CALLING = 1,
+    PERMISSION_APP,
+    PERMISSION_SYSTEM,
 };
 
 // [attention]
@@ -68,7 +68,7 @@ public:
 
     virtual RSCommandPermissionType GetAccessPermission() const
     {
-        return RSCommandPermissionType::NO_INTERCEPTION;
+        return RSCommandPermissionType::PERMISSION_SYSTEM;
     }
 
     virtual uint16_t GetType() const
@@ -133,6 +133,10 @@ public:
 
     virtual bool CheckHeader(Parcel& parcel) const = 0;
     virtual bool ReadFromParcel(Parcel& parcel) = 0;
+    virtual bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
+    {
+        return true;
+    }
 
     inline uint64_t GetTimeout() const
     {

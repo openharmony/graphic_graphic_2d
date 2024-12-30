@@ -205,6 +205,33 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
 }
 
+bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
+{
+    if (blurRadius < 1) {
+        ROSEN_LOGW("%{public}s no blur effect", __func__);
+        return TakeSurfaceCapture(node, callback, captureConfig);
+    }
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    blurParam.blurRadius = blurRadius;
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
+}
+
+bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    return renderServiceClient_->SetWindowFreezeImmediately(node->GetId(), isFreeze, callback, captureConfig);
+}
+
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
@@ -389,6 +416,11 @@ void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
 {
     RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame.");
     renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
+}
+
+void RSInterfaces::RepaintEverything()
+{
+    renderServiceClient_->RepaintEverything();
 }
 
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
@@ -624,7 +656,7 @@ int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
     return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
 }
 
-int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid,
+int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
     const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
     if (callback == nullptr) {
@@ -634,7 +666,7 @@ int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t 
     return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
 }
 
-int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(uint32_t dstPid)
+int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid)
 {
     return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
 }
@@ -700,11 +732,6 @@ void RSInterfaces::EnableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(true);
 }
 
-void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
-}
-
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)
 {
     renderServiceClient_->NotifyLightFactorStatus(isSafe);
@@ -767,6 +794,11 @@ HwcDisabledReasonInfos RSInterfaces::GetHwcDisabledReasonInfo() const
 {
     const auto& hwcDisabledReasonInfo = renderServiceClient_->GetHwcDisabledReasonInfo();
     return hwcDisabledReasonInfo;
+}
+
+int64_t RSInterfaces::GetHdrOnDuration() const
+{
+    return renderServiceClient_->GetHdrOnDuration();
 }
 
 void RSInterfaces::SetVmaCacheStatus(bool flag)

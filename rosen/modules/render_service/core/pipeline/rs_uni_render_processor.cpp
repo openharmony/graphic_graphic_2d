@@ -34,7 +34,7 @@
 #include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "platform/common/rs_log.h"
-#include "metadata_helper.h"
+
 namespace OHOS {
 namespace Rosen {
 RSUniRenderProcessor::RSUniRenderProcessor()
@@ -204,6 +204,10 @@ void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRe
         if (layer->GetZorder() > 0) {
             solidColorLayer->SetZorder(layer->GetZorder() - 1);
         }
+        solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        auto dstRect = params.layerInfo_.dstRect;
+        GraphicIRect layerRect = {dstRect.x, dstRect.y, dstRect.w, dstRect.h};
+        solidColorLayer->SetLayerSize(layerRect);
         solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
         solidColorLayer->SetLayerColor({color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()});
         solidColorLayer->SetSurface({});
@@ -227,13 +231,8 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         return true;
     }
     bool forceClientForDRM = false;
-    auto ancestorDrawableMap = params.GetAncestorDisplayDrawable();
-    if (ancestorDrawableMap.empty()) {
-        RS_LOGE("ancestorDrawableMap return empty");
-        return false;
-    }
     auto ancestorDisplayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(ancestorDrawableMap.begin()->second.lock());
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
         uniParam == nullptr) {
@@ -325,16 +324,6 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
     sptr<SurfaceBuffer> buffer)
 {
     auto adaptedSrcRect = layerInfo.srcRect;
-    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
-    if (MetadataHelper::GetCropRectMetadata(buffer, metaRegion) == GSERROR_OK) {
-        RS_LOGD("RSUniRenderProcessor::GetCropRectMetadata success,"
-            "left = %{public}u, right = %{public}u, width = %{public}u, height = %{public}u",
-            metaRegion.left, metaRegion.top, metaRegion.width, metaRegion.height);
-        adaptedSrcRect.x = metaRegion.left;
-        adaptedSrcRect.y = metaRegion.top;
-        adaptedSrcRect.w = metaRegion.width;
-        adaptedSrcRect.h = metaRegion.height;
-    }
     // Because the buffer is mirrored in the horiziontal/vertical directions,
     // srcRect need to be adjusted.
     switch (layerInfo.transformType) {
@@ -343,7 +332,7 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
             // 1. Intersect the left border of the screen.
             // map_x = (buffer_width - buffer_right_x)
             if (adaptedSrcRect.x > 0) {
-                adaptedSrcRect.x = 0;
+                adaptedSrcRect.x = buffer->GetSurfaceBufferWidth() - adaptedSrcRect.x - adaptedSrcRect.w;
             } else if (layerInfo.dstRect.x + layerInfo.dstRect.w >= static_cast<int32_t>(screenInfo_.width)) {
                 // 2. Intersect the right border of the screen.
                 // map_x = (buffer_width - buffer_right_x)
@@ -357,7 +346,7 @@ void RSUniRenderProcessor::ProcessLayerSetCropRect(LayerInfoPtr& layerInfoPtr, R
         case GraphicTransformType::GRAPHIC_FLIP_V_ROT180: {
             // The processing in the vertical direction is similar to that in the horizontal direction.
             if (adaptedSrcRect.y > 0) {
-                adaptedSrcRect.y = 0;
+                adaptedSrcRect.y = buffer->GetSurfaceBufferHeight() - adaptedSrcRect.y - adaptedSrcRect.h;
             } else if (layerInfo.dstRect.y + layerInfo.dstRect.h >= static_cast<int32_t>(screenInfo_.height)) {
                 adaptedSrcRect.y =
                     buffer ? (static_cast<int32_t>(buffer->GetSurfaceBufferHeight()) - adaptedSrcRect.h) : 0;

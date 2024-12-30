@@ -24,8 +24,10 @@
 #include "vsync_generator.h"
 #include "vsync_distributor.h"
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 
 #include <iostream>
 
@@ -34,12 +36,12 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-int32_t appVSyncFlag = 0;
+int32_t g_appVSyncFlag = 0;
 constexpr int32_t SAMPLER_NUMBER = 6;
 static void OnVSyncApp(int64_t time, void *data)
 {
     std::cout << "OnVSyncApp in\n";
-    appVSyncFlag = 1;
+    g_appVSyncFlag = 1;
 }
 }
 class VSyncTest : public testing::Test {
@@ -61,6 +63,7 @@ public:
 
 static void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[2];
     perms[0] = "ohos.permission.DISTRIBUTED_DATASYNC";
@@ -80,10 +83,12 @@ static void InitNativeTokenInfo()
     int32_t ret = Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     ASSERT_EQ(ret, Security::AccessToken::RET_SUCCESS);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));  // wait 50ms
+#endif
 }
 
 void VSyncTest::Process1()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     InitNativeTokenInfo();
     vsyncGenerator = CreateVSyncGenerator();
     vsyncSampler = CreateVSyncSampler();
@@ -110,6 +115,7 @@ void VSyncTest::Process1()
     close(pipeFd[0]);
     close(pipe1Fd[1]);
     exit(0);
+#endif
 }
 
 void VSyncTest::Process2()
@@ -131,8 +137,8 @@ void VSyncTest::Process2()
     std::cout << "RequestNextVSync\n";
     receiver->RequestNextVSync(fcb);
     sleep(1);
-    std::cout << "ChildProcessMain appVSyncFlag is " << appVSyncFlag << std::endl;
-    EXPECT_EQ(appVSyncFlag, 1);
+    std::cout << "ChildProcessMain g_appVSyncFlag is " << g_appVSyncFlag << std::endl;
+    EXPECT_EQ(g_appVSyncFlag, 1);
     int64_t period;
     int64_t timeStamp;
     EXPECT_EQ(receiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp), VSYNC_ERROR_OK);

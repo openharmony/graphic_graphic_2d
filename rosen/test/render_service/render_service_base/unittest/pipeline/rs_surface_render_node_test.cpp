@@ -29,6 +29,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
+#include "luminance/rs_luminance_control.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -567,10 +568,8 @@ HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto displayNode = std::make_shared<RSBaseRenderNode>(0, context);
-    node->SetAncestorDisplayNode(0, displayNode);
-    auto ancestorDisplayNodeMap = node->GetAncestorDisplayNode();
-    ASSERT_FALSE(ancestorDisplayNodeMap.empty());
-    ASSERT_EQ(ancestorDisplayNodeMap.begin()->second.lock(), displayNode);
+    node->SetAncestorDisplayNode(displayNode);
+    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
 }
 
 /**
@@ -1343,6 +1342,29 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HdrVideoTest
+ * @tc.desc: test results of SetHdrVideo, GetHdrVideo and GetHdrVideoType
+ * @tc.type: FUNC
+ * @tc.require: issuesIBANP9
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    testNode->SetHdrVideo(true, HDR_TYPE::VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), true);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
+    testNode->SetHdrVideo(false, HDR_TYPE::VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), false);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
+    testNode->SetHdrVideo(true, HDR_TYPE::AIHDR_VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), true);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
+    testNode->SetHdrVideo(false, HDR_TYPE::AIHDR_VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), false);
+    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
+}
+
+/**
  * @tc.name: SetContextClipRegionTest
  * @tc.desc: test results of GetContextClipRegion
  * @tc.type: FUNC
@@ -1829,11 +1851,21 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStaticFlag, TestSize.
     auto node = std::make_shared<RSSurfaceRenderNode>(id);
     node->InitRenderParams();
     node->addedToPendingSyncList_ = true;
-    node->UpdateSurfaceCacheContentStaticFlag();
-
+    auto params = static_cast<RSSurfaceRenderParams*>(node->stagingRenderParams_.get());
+    EXPECT_NE(params, nullptr);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
-    node->UpdateSurfaceCacheContentStaticFlag();
-    EXPECT_EQ(node->nodeType_, RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    node->UpdateSurfaceCacheContentStaticFlag(true);
+    EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
+    node->UpdateSurfaceCacheContentStaticFlag(false);
+    EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
+
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    node->surfaceCacheContentStatic_ = false;
+    node->UpdateSurfaceCacheContentStaticFlag(false);
+    EXPECT_FALSE(params->GetSurfaceCacheContentStatic());
+    node->surfaceCacheContentStatic_ = true;
+    node->UpdateSurfaceCacheContentStaticFlag(false);
+    EXPECT_TRUE(params->GetSurfaceCacheContentStatic());
 }
 
 /**
@@ -2330,6 +2362,28 @@ HWTEST_F(RSSurfaceRenderNodeTest, IsCurFrameSwitchToPaint, TestSize.Level1)
     ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
     node->shouldPaint_ = true;
     ASSERT_TRUE(node->IsCurFrameSwitchToPaint());
+}
+
+/**
+ * @tc.name: SetForceDisableClipHoleForDRM
+ * @tc.desc: test if node could be forced to disable cliphole for DRM correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIAVLLE
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, SetForceDisableClipHoleForDRM, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->SetForceDisableClipHoleForDRM(true);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_TRUE(surfaceParams->GetForceDisableClipHoleForDRM());
+
+    testNode->SetForceDisableClipHoleForDRM(false);
+    surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetForceDisableClipHoleForDRM());
 }
 } // namespace Rosen
 } // namespace OHOS

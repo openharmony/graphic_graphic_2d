@@ -35,6 +35,7 @@
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #include "platform/drawing/rs_surface.h"
+#include "luminance/rs_luminance_control.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -69,7 +70,7 @@ public:
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {
@@ -366,6 +367,16 @@ public:
         offScreenCacheImgForCapture_ = offScreenCacheImgForCapture;
     }
 
+    void SetHasUniRenderHdrSurface(bool hasUniRenderHdrSurface)
+    {
+        hasUniRenderHdrSurface_ = hasUniRenderHdrSurface;
+    }
+
+    bool GetHasUniRenderHdrSurface() const
+    {
+        return hasUniRenderHdrSurface_;
+    }
+
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     void SetHDRPresent(bool hdrPresent);
@@ -488,6 +499,21 @@ public:
     bool IsZoomStateChange() const;
     void HandleCurMainAndLeashSurfaceNodes();
 
+    // HDR Video
+    void SetHdrVideo(bool hasHdrVideo, HDR_TYPE hdrVideoType) {
+        hasHdrVideo_ = hasHdrVideo;
+        hdrVideoType_ = hdrVideoType;
+    }
+
+    HDR_TYPE GetHdrVideoType() const
+    {
+        return hdrVideoType_;
+    }
+
+    bool GetHdrVideo() const
+    {
+        return hasHdrVideo_;
+    }
 protected:
     void OnSync() override;
 private:
@@ -510,6 +536,7 @@ private:
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
+    bool hasUniRenderHdrSurface_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
     bool preRotationStatus_ = false;
@@ -572,6 +599,10 @@ private:
     bool curZoomState_ = false;
     bool preZoomState_ = false;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
+
+    // HDR Video
+    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
+    bool hasHdrVideo_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

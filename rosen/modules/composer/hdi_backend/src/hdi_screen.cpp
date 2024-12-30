@@ -254,7 +254,10 @@ int32_t HdiScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uin
 
 bool HdiScreen::GetDisplayPropertyForHardCursor(uint32_t screenId)
 {
-    CHECK_DEVICE_NULL(device_);
+    if (device_ == nullptr) {
+        HLOGE("[%{public}s]: HdiDevice is nullptr.", __func__);
+        return false;
+    }
     uint64_t propertyValue = 0;
     if (device_->GetDisplayProperty(screenId,
         HDI::Display::Composer::V1_2::DISPLAY_CAPBILITY_HARDWARE_CURSOR, propertyValue)

@@ -357,7 +357,7 @@ std::string RSRenderNodeDrawable::GetNodeDebugInfo()
         return ret;
     }
     auto& unionRect = opListDrawAreas_.GetOpInfo().unionRect;
-    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d, OpDropped:%d isOpincDrop:%d",
+    AppendFormat(ret, "%llx, rootF:%d record:%d rootS:%d opCan:%d isRD:%d, GetOpDropped:%d, isOpincDropNodeExt:%d",
         params->GetId(), params->OpincGetRootFlag(),
         recordState_, rootNodeStragyType_, opCanCache_, isDrawAreaEnable_, GetOpDropped(), isOpincDropNodeExt_);
     auto& info = opListDrawAreas_.GetOpInfo();

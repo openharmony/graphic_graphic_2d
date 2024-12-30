@@ -84,6 +84,7 @@ class RRectT;
 
 class RSB_EXPORT RSMarshallingHelper {
 public:
+    static constexpr int UNMARSHALLING_MAX_VECTOR_SIZE = 65535;
     // default marshalling and unmarshalling method for POD types
     // [PLANNING]: implement marshalling & unmarshalling methods for other types (e.g. RSImage, drawCMDList)
     template<typename T>
@@ -140,9 +141,9 @@ public:
     template<typename T>
     static bool MarshallingVec(Parcel& parcel, const std::vector<T>& val)
     {
-        int size = val.size();
+        size_t size = val.size();
         Marshalling(parcel, size);
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             if (!Marshalling(parcel, val[i])) {
                 return false;
             }
@@ -151,15 +152,19 @@ public:
     }
 
     template<typename T>
-    static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val)
+    static bool UnmarshallingVec(Parcel& parcel, std::vector<T>& val, int maxSize = UNMARSHALLING_MAX_VECTOR_SIZE)
     {
-        int size = 0;
+        if (maxSize < 0) {
+            return false;
+        }
+        size_t size = 0;
         Unmarshalling(parcel, size);
-        if (size < 0) {
+        if (size > static_cast<size_t>(maxSize)) {
             return false;
         }
         val.clear();
-        for (int i = 0; i < size; i++) {
+        val.reserve(size);
+        for (size_t i = 0; i < size; i++) {
             T tmp;
             if (!Unmarshalling(parcel, tmp)) {
                 return false;
@@ -172,9 +177,9 @@ public:
     template<typename T>
     static bool MarshallingVec2(Parcel& parcel, const std::vector<std::vector<T>>& val)
     {
-        int size = val.size();
+        size_t size = val.size();
         Marshalling(parcel, size);
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             if (!MarshallingVec(parcel, val[i])) {
                 return false;
             }
@@ -185,13 +190,10 @@ public:
     template<typename T>
     static bool UnmarshallingVec2(Parcel& parcel, std::vector<std::vector<T>>& val)
     {
-        int size = 0;
+        size_t size = 0;
         Unmarshalling(parcel, size);
-        if (size < 0) {
-            return false;
-        }
         val.clear();
-        for (int i = 0; i < size; i++) {
+        for (size_t i = 0; i < size; i++) {
             std::vector<T> tmp;
             if (!UnmarshallingVec(parcel, tmp)) {
                 return false;
@@ -417,6 +419,9 @@ public:
     static void EndNoSharedMem();
     static bool GetUseSharedMem(std::thread::id tid);
     static bool CheckReadPosition(Parcel& parcel);
+
+    static void SetCallingPid(pid_t callingPid);
+
 private:
     static bool WriteToParcel(Parcel& parcel, const void* data, size_t size);
     static const void* ReadFromParcel(Parcel& parcel, size_t size, bool& isMalloc);

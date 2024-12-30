@@ -22,6 +22,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "core/transaction/rs_interfaces.h"
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
@@ -436,6 +437,42 @@ bool DoSetVirtualScreenBlackList(const uint8_t* data, size_t size)
     ScreenId id = GetData<ScreenId>();
     std::vector<NodeId> blackListVector;
     client->SetVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoAddVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    client->AddVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoRemoveVirtualScreenBlackList(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    client->RemoveVirtualScreenBlackList(id, blackListVector);
     return true;
 }
 
@@ -1236,6 +1273,46 @@ bool DoRegisterHgmConfigChangeCallback(const uint8_t* data, size_t size)
     client->RegisterHgmRefreshRateModeChangeCallback(callback2);
     HgmRefreshRateUpdateCallback callback3;
     client->RegisterHgmRefreshRateUpdateCallback(callback3);
+    uint32_t dstPid = GetData<uint32_t>();
+    FrameRateLinkerExpectedFpsUpdateCallback callback4;
+    client->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback4);
+
+    return true;
+}
+
+bool DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSInterfaces> rsInterfaces = std::make_shared<RSInterfaces>();
+    uint32_t dstPid = GetData<uint32_t>();
+    FrameRateLinkerExpectedFpsUpdateCallback callback;
+    rsInterfaces->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+
+    return true;
+}
+
+bool DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSInterfaces> rsInterfaces = std::make_shared<RSInterfaces>();
+    uint32_t dstPid = GetData<uint32_t>();
+    rsInterfaces->UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid);
 
     return true;
 }
@@ -1519,9 +1596,7 @@ bool DoSetCacheEnabledForRotation(const uint8_t* data, size_t size)
 
     std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
     bool isEnabled = GetData<bool>();
-    uint32_t offset = GetData<uint32_t>();
     client->SetCacheEnabledForRotation(isEnabled);
-    client->SetDefaultDeviceRotationOffset(offset);
     return true;
 }
 
@@ -1930,6 +2005,48 @@ bool DoSetVirtualScreenBlackList002(const uint8_t *data, size_t size)
     return true;
 }
 
+bool DoAddVirtualScreenBlackList002(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    NodeId nodeId = GetData<ScreenId>();
+    blackListVector.push_back(nodeId);
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+    client->AddVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoRemoveVirtualScreenBlackList002(const uint8_t *data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> blackListVector;
+    NodeId nodeId = GetData<ScreenId>();
+    blackListVector.push_back(nodeId);
+    RSRenderServiceConnectHub::GetInstance()->Destroy();
+    client->RemoveVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
 bool DoSetCastScreenEnableSkipWindow002(const uint8_t *data, size_t size)
 {
     if (data == nullptr) {
@@ -2269,6 +2386,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoRegisterSurfaceOcclusionChangeCallback(data, size);
     OHOS::Rosen::DoRegisterHgmConfigChangeCallback(data, size);
     OHOS::Rosen::DoSetSystemAnimatedScenes(data, size);
+    OHOS::Rosen::DoRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
+    OHOS::Rosen::DoUnRegisterFrameRateLinkerExpectedFpsUpdateCallback(data, size);
     OHOS::Rosen::DoShowWatermark(data, size);
     OHOS::Rosen::DoResizeVirtualScreen(data, size);
     OHOS::Rosen::DoReportJankStats(data, size);

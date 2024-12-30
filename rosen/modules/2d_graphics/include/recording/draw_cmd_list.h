@@ -171,6 +171,16 @@ public:
     void SetHeight(int32_t height);
 
     /**
+     * @brief  Gets whether DrawCmdList needs to be UICaptured.
+     */
+    bool GetNoNeedUICaptured() const;
+
+    /**
+     * @brief  Sets whether DrawCmdList needs to be UICaptured.
+     */
+    void SetNoNeedUICaptured(bool noNeedUICaptured);
+
+    /**
      * @brief   Convert Textblob Op to Image Op, it is different for difference mode
      *          IMMEDIATE: the Image Op will add to the end of buffer, and the mapped offset will be recorded in
      *          replacedOpListForBuffer.
@@ -223,6 +233,7 @@ private:
     bool cachedHighContrast_ = false;
     uint32_t performanceCaculateOpType_ = 0;
     bool isNeedUnmarshalOnDestruct_ = false;
+    bool noNeedUICaptured_ = false;
 };
 
 using DrawCmdListPtr = std::shared_ptr<DrawCmdList>;

@@ -107,6 +107,8 @@ public:
 
     void SetPositionZ(float positionZ);
     float GetPositionZ() const;
+    void SetPositionZApplicableCamera3D(bool isApplicable);
+    bool GetPositionZApplicableCamera3D() const;
 
     void SetPivot(Vector2f pivot);
     void SetPivotX(float pivotX);
@@ -681,7 +683,7 @@ private:
     float foregroundBlurRadiusX_ = 0.f;
     float foregroundBlurRadiusY_ = 0.f;
     std::weak_ptr<RSRenderNode> backref_;
-    
+
     std::optional<Vector4f> aiInvert_;
     std::optional<RRect> clipRRect_;
     int pixelStretchTileMode_ = 0;

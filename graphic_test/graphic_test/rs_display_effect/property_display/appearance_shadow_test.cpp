@@ -143,6 +143,56 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Offset_Test
     }
 }
 
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Offset_Test_3)
+{
+    int nodePos = 500;
+    int nodeOffset = 100;
+    int nodeSize = 400;
+
+    std::vector<Vector4f> radiusList = { { 200, 200, 200, 200 }, { 100, 100, 100, 100 }, { 100, 100, 150, 150 },
+        { 50, 50, 50, 50 }, { 200, 1000, 250, 50 } };
+
+    for (int i = 0; i < FIVE_; i++) {
+        int x = (i % TWO_) * nodePos;
+        int y = (i / TWO_) * nodePos;
+        auto testNodeOffset = RSCanvasNode::Create();
+        testNodeOffset->SetBounds({ x, y, nodeSize, nodeSize });
+        testNodeOffset->SetTranslate(nodeOffset, nodeOffset, 0);
+        testNodeOffset->SetBackgroundColor(0xffc0c0c0);
+        testNodeOffset->SetCornerRadius(radiusList[i]);
+        testNodeOffset->SetShadowColor(0xff000000);
+        testNodeOffset->SetShadowRadius(50);
+
+        switch (i) {
+            case 0: {
+                testNodeOffset->SetShadowOffset(-100, -100);
+                break;
+            }
+            case 1: {
+                testNodeOffset->SetShadowOffset(100, 0);
+                break;
+            }
+            case 2: {
+                testNodeOffset->SetShadowOffset(0, 100);
+                break;
+            }
+            case 3: {
+                testNodeOffset->SetShadowOffset(100, 100);
+                break;
+            }
+            case 4: {
+                testNodeOffset->SetTranslate(0, nodeOffset, 0);
+                testNodeOffset->SetShadowOffset(nodeSize, nodeSize);
+                break;
+            }
+            default:
+                break;
+        }
+        GetRootNode()->AddChild(testNodeOffset);
+        RegisterNode(testNodeOffset);
+    }
+}
+
 // shadow alpha
 GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Alpha_Test_1)
 {

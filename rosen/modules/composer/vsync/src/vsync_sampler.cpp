@@ -77,6 +77,12 @@ void VSyncSampler::ResetErrorLocked()
     }
 }
 
+void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    vsyncEnabledScreenId_ = vsyncEnabledScreenId;
+}
+
 void VSyncSampler::SetVsyncSamplerEnabled(bool enabled)
 {
     RS_TRACE_NAME_FMT("HdiOutput::SetVsyncSamplerEnabled, enableVsyncSample_:%d", enabled);
@@ -308,12 +314,15 @@ void VSyncSampler::UpdateErrorLocked()
     }
 }
 
-bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
+bool VSyncSampler::AddPresentFenceTime(uint32_t screenId, int64_t timestamp)
 {
     if (timestamp < 0) {
         return false;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (screenId != vsyncEnabledScreenId_) {
+        return false;
+    }
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
 
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;

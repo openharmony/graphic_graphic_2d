@@ -76,7 +76,7 @@ HWTEST_F(GEVisualEffectImplTest, SetParam001, TestSize.Level1)
     Drawing::GEVisualEffectImpl geVisualEffectImpl1(Drawing::GE_FILTER_KAWASE_BLUR);
 
     // 1 set for Kawase blur RADIUS, linear gradient blur DIRECTION
-    int32_t paramInt32{1};
+    int32_t paramInt32 { 1 };
     geVisualEffectImpl1.SetParam(Drawing::GE_FILTER_KAWASE_BLUR_RADIUS, paramInt32);
     ASSERT_NE(geVisualEffectImpl1.GetKawaseParams(), nullptr);
     EXPECT_EQ(geVisualEffectImpl1.GetKawaseParams()->radius, paramInt32);
@@ -90,7 +90,7 @@ HWTEST_F(GEVisualEffectImplTest, SetParam001, TestSize.Level1)
     EXPECT_EQ(geVisualEffectImpl2.GetLinearGradientBlurParams()->isOffscreenCanvas, true);
 
     // 1.f is linear gradient blur params：blurRadius,geoWidth,geoHeight,tranX,tranY
-    float paramfloat{1.f};
+    float paramfloat { 1.f };
     geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_RADIUS, paramfloat);
     geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_GEO_WIDTH, paramfloat);
     geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_GEO_HEIGHT, paramfloat);
@@ -101,11 +101,11 @@ HWTEST_F(GEVisualEffectImplTest, SetParam001, TestSize.Level1)
     EXPECT_EQ(geVisualEffectImpl2.GetLinearGradientBlurParams()->geoHeight, paramfloat);
     EXPECT_EQ(geVisualEffectImpl2.GetLinearGradientBlurParams()->tranX, paramfloat);
     EXPECT_EQ(geVisualEffectImpl2.GetLinearGradientBlurParams()->tranY, paramfloat);
-    
+
     auto image = std::make_shared<Drawing::Image>();
     auto colorFilter = std::make_shared<Drawing::ColorFilter>(Drawing::ColorFilter::FilterType::NO_TYPE);
     Drawing::Matrix mat;
-    int64_t paramInt64{1}; // 1 is linear gradient blur params：CANVAS_MAT
+    int64_t paramInt64 { 1 }; // 1 is linear gradient blur params：CANVAS_MAT
     geVisualEffectImpl1.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_CANVAS_MAT, paramInt64);
     geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR, image);
     geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR, colorFilter);
@@ -114,8 +114,8 @@ HWTEST_F(GEVisualEffectImplTest, SetParam001, TestSize.Level1)
     EXPECT_EQ(geVisualEffectImpl2.GetLinearGradientBlurParams()->mat, mat);
 
     // 0.1f, 0.1f is linear gradient blur params: FRACTION_STOPS
-    geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_FRACTION_STOPS, {{0.1f, 0.1f}});
-    std::vector<std::pair<float, float>> expectFraStops {{0.1f, 0.1f}};
+    geVisualEffectImpl2.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_FRACTION_STOPS, { { 0.1f, 0.1f } });
+    std::vector<std::pair<float, float>> expectFraStops { { 0.1f, 0.1f } };
     EXPECT_EQ(geVisualEffectImpl2.GetLinearGradientBlurParams()->fractionStops, expectFraStops);
 }
 
@@ -165,8 +165,8 @@ HWTEST_F(GEVisualEffectImplTest, SetParam003, TestSize.Level1)
     geVisualEffectImpl.SetParam("", blurMat);
     std::vector<std::pair<float, float>> blurFractionStops;
     geVisualEffectImpl.SetParam("", blurFractionStops);
-    geVisualEffectImpl.SetAIBarParams("", 1.0f); // 1.0f invalid params
-    geVisualEffectImpl.SetGreyParams("", 1.0f); // 1.0f invalid params
+    geVisualEffectImpl.SetAIBarParams("", 1.0f);              // 1.0f invalid params
+    geVisualEffectImpl.SetGreyParams("", 1.0f);               // 1.0f invalid params
     geVisualEffectImpl.SetLinearGradientBlurParams("", 1.0f); // 1.0f invalid params
     EXPECT_EQ(geVisualEffectImpl.GetFilterType(), Drawing::GEVisualEffectImpl::FilterType::NONE);
 }
@@ -234,10 +234,10 @@ HWTEST_F(GEVisualEffectImplTest, SetParam006, TestSize.Level1)
     geVisualEffectImpl.SetParam("", mat);
     EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->mat, blurMat);
 
-    std::vector<std::pair<float, float>> blurFractionStops {{0.1f, 0.1f}};
+    std::vector<std::pair<float, float>> blurFractionStops { { 0.1f, 0.1f } };
     geVisualEffectImpl.SetParam(Drawing::GE_FILTER_LINEAR_GRADIENT_BLUR_FRACTION_STOPS, blurFractionStops);
     EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->fractionStops, blurFractionStops);
-    std::vector<std::pair<float, float>> expectFractionStops {{0.2f, 0.2f}};
+    std::vector<std::pair<float, float>> expectFractionStops { { 0.2f, 0.2f } };
     geVisualEffectImpl.SetParam("", expectFractionStops);
     EXPECT_EQ(geVisualEffectImpl.GetLinearGradientBlurParams()->fractionStops, blurFractionStops);
 }
@@ -317,7 +317,7 @@ HWTEST_F(GEVisualEffectImplTest, SetParam011, TestSize.Level1)
     EXPECT_NE(geVisualEffectImplWaterRipple.GetWaterRippleParams()->progress, 0.5);
 
     // test invalid params setting
-    uint32_t paramUint32{1};
+    uint32_t paramUint32 { 1 };
     geVisualEffectImplKawaseBulr.SetParam("GE_FILTER_KAWASE_BLUR_RADIUS", paramUint32);
     ASSERT_NE(geVisualEffectImplKawaseBulr.GetKawaseParams(), nullptr);
     EXPECT_NE(geVisualEffectImplKawaseBulr.GetKawaseParams()->radius, paramUint32);
@@ -354,7 +354,7 @@ HWTEST_F(GEVisualEffectImplTest, SetWaterRippleParams001, TestSize.Level1)
 HWTEST_F(GEVisualEffectImplTest, SetWaterRippleParams002, TestSize.Level1)
 {
     Drawing::GEVisualEffectImpl geVisualEffectImpl(Drawing::GE_FILTER_WATER_RIPPLE);
-    
+
     // test invalid params setting
     geVisualEffectImpl.SetWaterRippleParams("GE_FILTER_WATER_RIPPLE_PROGRESS", 0.5f);
     EXPECT_NE(geVisualEffectImpl.GetWaterRippleParams()->progress, 0.5f);
@@ -404,5 +404,77 @@ HWTEST_F(GEVisualEffectImplTest, GetMESAParams001, TestSize.Level1)
     EXPECT_EQ(geVisualEffectImpl.GetMESAParams()->width, 0.0f);
     EXPECT_EQ(geVisualEffectImpl.GetMESAParams()->height, 0.0f);
 }
+
+/**
+ * @tc.name: SetParam012
+ * @tc.desc: Verify function SetParam for param is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetParam012, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl("");
+    int32_t paramInt32 { 0 }; // 0 invalid params
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::KAWASE_BLUR);
+    geVisualEffectImpl.SetParam("", paramInt32);
+
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR);
+    geVisualEffectImpl.SetParam("", paramInt32);
+
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::MAGNIFIER);
+    geVisualEffectImpl.SetParam("", paramInt32);
+
+    uint32_t paramUint32 { 0 }; // 0 invalid params
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::WATER_RIPPLE);
+    geVisualEffectImpl.SetParam("", paramUint32);
+
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR);
+    geVisualEffectImpl.SetParam("", paramInt32);
+
+    EXPECT_EQ(geVisualEffectImpl.GetFilterType(), Drawing::GEVisualEffectImpl::FilterType::LINEAR_GRADIENT_BLUR);
+}
+
+/**
+ * @tc.name: SetXXXParam001
+ * @tc.desc: Verify function Set XXX Param for param is nullptr
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetXXXParam001, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl("");
+    uint32_t paramUint32 { 0 };
+    float paramFloat { 1.0f };
+    EXPECT_EQ(geVisualEffectImpl.GetMESAParams(), nullptr);
+
+    geVisualEffectImpl.SetMESABlurParams("", paramFloat);
+    geVisualEffectImpl.SetMagnifierParamsFloat("", paramFloat);
+    geVisualEffectImpl.SetMagnifierParamsUint32("", paramUint32);
+    geVisualEffectImpl.SetWaterRippleParams("", paramFloat);
+}
+
+/**
+ * @tc.name: SetXXXParam002
+ * @tc.desc: Verify function Set XXX Param for param is not nullptr and tag is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEVisualEffectImplTest, SetXXXParam002, TestSize.Level1)
+{
+    Drawing::GEVisualEffectImpl geVisualEffectImpl("");
+    uint32_t paramUint32 { 0 };
+    float paramFloat { 1.0f };
+
+    geVisualEffectImpl.MakeMESAParams();
+    EXPECT_NE(geVisualEffectImpl.GetMESAParams(), nullptr);
+    geVisualEffectImpl.SetMESABlurParams("", paramFloat);
+
+    geVisualEffectImpl.MakeMagnifierParams();
+    EXPECT_NE(geVisualEffectImpl.GetMagnifierParams(), nullptr);
+    geVisualEffectImpl.SetMagnifierParamsFloat("", paramFloat);
+    geVisualEffectImpl.SetMagnifierParamsUint32("", paramUint32);
+
+    int32_t paramInt32 { 0 };
+    geVisualEffectImpl.SetFilterType(Drawing::GEVisualEffectImpl::FilterType::MAGNIFIER);
+    geVisualEffectImpl.SetParam("", paramInt32);
+}
+
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

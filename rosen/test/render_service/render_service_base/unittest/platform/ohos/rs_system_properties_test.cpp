@@ -460,18 +460,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDefaultDeviceRotationOffset
- * @tc.desc: GetDefaultDeviceRotationOffset Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDefaultDeviceRotationOffset, TestSize.Level1)
-{
-    RSSystemProperties::SetDefaultDeviceRotationOffset(90);
-    ASSERT_TRUE(RSSystemProperties::GetDefaultDeviceRotationOffset() == 90);
-}
-
-/**
  * @tc.name: GetPrepareParallelRenderingEnabled
  * @tc.desc: GetPrepareParallelRenderingEnabled Test
  * @tc.type:FUNC
@@ -661,6 +649,23 @@ HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
 {
     RSSystemProperties::SetForceHpsBlurDisabled(false);
     ASSERT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
+}
+
+/**
+ * @tc.name: GetHpsBlurNoiseFactor
+ * @tc.desc: GetHpsBlurNoiseFactor Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHpsBlurNoiseFactor, TestSize.Level1)
+{
+    static bool deviceHpsType = system::GetParameter("const.product.devicetype", "pc") == "pc";
+    float epsilon = 0.001f;
+    if (!deviceHpsType) {
+        EXPECT_NEAR(0.f, RSSystemProperties::GetHpsBlurNoiseFactor(), epsilon);
+    } else {
+        ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
+    }
 }
 
 /**

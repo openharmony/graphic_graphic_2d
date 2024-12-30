@@ -16,94 +16,113 @@
 
 #include "font_descriptor_mgr.h"
 
-#ifdef BUILD_NON_SDK_VER
-#include "parameter.h"
-#endif
-
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-namespace {
-#ifdef BUILD_NON_SDK_VER
-const char* LOCALE_KEY = "persist.global.locale";
-const char* DEFAULT_LOCALE_KEY = "const.global.locale";
-constexpr int CONFIG_LEN = 128;
-#endif
-}
 FontDescriptorMgr& FontDescriptorMgr::GetInstance()
 {
     static FontDescriptorMgr instance;
     return instance;
 }
 
-FontDescriptorMgr::FontDescriptorMgr()
-{
-    ParseAllFontSource();
-}
-
 FontDescriptorMgr::~FontDescriptorMgr() {}
 
 void FontDescriptorMgr::ParseAllFontSource()
 {
-    std::unique_lock<std::mutex> guard(parserMtx_);
-    locale_ = GetSystemLocale();
-    descCache_.SetLocale(locale_);
+    if (hasParseAllFont) {
+        return;
+    }
     descCache_.ParserSystemFonts();
     descCache_.ParserStylishFonts();
+    hasParseAllFont = true;
 }
 
 void FontDescriptorMgr::ClearFontFileCache()
 {
     std::unique_lock<std::mutex> guard(parserMtx_);
     descCache_.ClearFontFileCache();
+    hasParseAllFont = false;
+}
+
+bool FontDescriptorMgr::ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType)
+{
+    if ((static_cast<uint32_t>(systemFontType) & (TextEngine::FontParser::SystemFontType::ALL |
+        TextEngine::FontParser::SystemFontType::GENERIC |
+        TextEngine::FontParser::SystemFontType::STYLISH |
+        TextEngine::FontParser::SystemFontType::INSTALLED |
+        TextEngine::FontParser::SystemFontType::CUSTOMIZED)) != systemFontType) {
+        TEXT_LOGE("SystemFontType is invalid, systemFontType: %{public}d", systemFontType);
+        return false;
+    }
+    fontType = systemFontType;
+    if (static_cast<uint32_t>(systemFontType) & TextEngine::FontParser::SystemFontType::ALL) {
+        fontType = TextEngine::FontParser::SystemFontType::GENERIC |
+            TextEngine::FontParser::SystemFontType::STYLISH |
+            TextEngine::FontParser::SystemFontType::INSTALLED |
+            TextEngine::FontParser::SystemFontType::CUSTOMIZED;
+    }
+    return true;
+}
+
+bool FontDescriptorMgr::AdjustSystemFontTypeNotCustomized(uint32_t fontType)
+{
+    if ((fontType & TextEngine::FontParser::SystemFontType::GENERIC) ||
+        (fontType & TextEngine::FontParser::SystemFontType::STYLISH) ||
+        (fontType & TextEngine::FontParser::SystemFontType::INSTALLED)) {
+        return true;
+    }
+    return false;
 }
 
 void FontDescriptorMgr::MatchFontDescriptors(FontDescSharedPtr desc, std::set<FontDescSharedPtr>& descs)
 {
-    CheckLocale();
     std::unique_lock<std::mutex> guard(parserMtx_);
+    ParseAllFontSource();
     descCache_.MatchFromFontDescriptor(desc, descs);
 }
 
 void FontDescriptorMgr::GetFontDescSharedPtrByFullName(const std::string& fullName,
     const int32_t& systemFontType, FontDescSharedPtr& result)
 {
-    CheckLocale();
+    int32_t fontType = 0;
+    if (!ProcessSystemFontType(systemFontType, fontType)) {
+        result = nullptr;
+        return;
+    }
     std::unique_lock<std::mutex> guard(parserMtx_);
+    if (AdjustSystemFontTypeNotCustomized(static_cast<uint32_t>(fontType))) {
+        ParseAllFontSource();
+    }
     descCache_.GetFontDescSharedPtrByFullName(fullName, systemFontType, result);
 }
 
 void FontDescriptorMgr::GetSystemFontFullNamesByType(
     const int32_t &systemFontType, std::unordered_set<std::string> &fontList)
 {
-    CheckLocale();
+    int32_t fontType = 0;
+    if (!ProcessSystemFontType(systemFontType, fontType)) {
+        fontList.clear();
+        return;
+    }
     std::unique_lock<std::mutex> guard(parserMtx_);
+    if (AdjustSystemFontTypeNotCustomized(static_cast<uint32_t>(fontType))) {
+        ParseAllFontSource();
+    }
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
 }
 
-std::string FontDescriptorMgr::GetSystemLocale()
+void FontDescriptorMgr::CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName)
 {
-#ifdef BUILD_NON_SDK_VER
-    char param[CONFIG_LEN] = { 0 };
-    if (GetParameter(LOCALE_KEY, "", param, CONFIG_LEN - 1) > 0) {
-        TEXT_LOGD("Current system locale: %{public}s", param);
-        return std::string(param);
-    }
-
-    if (GetParameter(DEFAULT_LOCALE_KEY, "", param, CONFIG_LEN - 1) > 0) {
-        TEXT_LOGD("Current system default locale: %{public}s", param);
-        return std::string(param);
-    }
-#endif
-    return TextEngine::SIMPLIFIED_CHINESE;
-}
-
-void FontDescriptorMgr::CheckLocale()
-{
-    if (GetSystemLocale() == locale_) {
+    if (typeface == nullptr) {
         return;
     }
-    ClearFontFileCache();
-    ParseAllFontSource();
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.CacheDynamicTypeface(typeface, familyName);
+}
+
+void FontDescriptorMgr::DeleteDynamicTypefaceFromCache(const std::string &familyName)
+{
+    std::unique_lock<std::mutex> guard(parserMtx_);
+    descCache_.DeleteDynamicTypefaceFromCache(familyName);
 }
 } // namespace OHOS::Rosen

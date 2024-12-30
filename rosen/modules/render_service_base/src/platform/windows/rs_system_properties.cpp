@@ -182,15 +182,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
@@ -333,6 +324,11 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
+}
+
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()

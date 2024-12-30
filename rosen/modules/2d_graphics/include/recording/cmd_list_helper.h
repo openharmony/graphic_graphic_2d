@@ -30,6 +30,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+constexpr size_t MAX_VECTORSIZE = 170000;
 class DrawOpItem;
 class DRAWING_API CmdListHelper {
 public:
@@ -148,6 +149,10 @@ public:
         std::vector<Type> ret;
         const auto* values = static_cast<const Type*>(cmdList.GetCmdListData(info.first, info.second));
         auto size = info.second / sizeof(Type);
+        if (size > MAX_VECTORSIZE) {
+            LOGE("GetVectorFromCmdList size is too large, an empty vector is returned!");
+            return ret;
+        }
         if (values != nullptr && size > 0) {
             for (size_t i = 0; i < size; i++) {
                 ret.push_back(*values);

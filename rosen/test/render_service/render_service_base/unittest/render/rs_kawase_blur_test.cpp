@@ -50,7 +50,7 @@ HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
     KawaseParameter param = KawaseParameter(src, dst, 1);
     std::shared_ptr<Drawing::Image> image;
 
-    kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param);
+    EXPECT_FALSE(kawaseBlurFilter->ApplyKawaseBlur(canvas, image, param));
 }
 
 /**

@@ -95,11 +95,15 @@ VSyncConnection::VSyncConnection(
     if (err != 0) {
         RS_TRACE_NAME_FMT("Create socket channel failed, errno = %d", errno);
     }
+    proxyPid_ = GetCallingPid();
+    isDead_ = false;
+}
+
+void VSyncConnection::RegisterDeathRecipient()
+{
     if (token_ != nullptr) {
         token_->AddDeathRecipient(vsyncConnDeathRecipient_);
     }
-    proxyPid_ = GetCallingPid();
-    isDead_ = false;
 }
 
 VSyncConnection::~VSyncConnection()
@@ -170,6 +174,8 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         RS_TRACE_NAME_FMT("socketPair is null, conn: %s", info_.name_.c_str());
         return ERRNO_OTHER;
     }
+
+    std::unique_lock<std::mutex> lockerPostEvent(postEventMutex_);
     RS_TRACE_NAME_FMT("SendVsyncTo conn: %s, now:%ld, refreshRate:%d", info_.name_.c_str(), now, refreshRate_);
     // 3 is array size.
     int64_t data[3];
@@ -355,13 +361,20 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     connectionCounter_[proxyPid]++;
     if (windowNodeId != 0) {
         connectionsMap_[windowNodeId].push_back(connection);
+        uint32_t tmpPid;
+        if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+            std::vector<uint64_t> tmpVec = pidWindowIdMap_[tmpPid];
+            if (std::find(tmpVec.begin(), tmpVec.end(), windowNodeId) == tmpVec.end()) {
+                pidWindowIdMap_[tmpPid].push_back(windowNodeId);
+            }
+        }
     } else {
         uint32_t tmpPid;
         if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
             connectionsMap_[tmpPid].push_back(connection);
         }
     }
-    
+    connection->RegisterDeathRecipient();
     return VSYNC_ERROR_OK;
 }
 
@@ -385,6 +398,7 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     connectionsMap_.erase(connection->windowNodeId_);
     uint32_t tmpPid;
     if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+        pidWindowIdMap_.erase(tmpPid);
         auto iter = connectionsMap_.find(tmpPid);
         if (iter == connectionsMap_.end()) {
             return VSYNC_ERROR_OK;
@@ -569,6 +583,9 @@ void VSyncDistributor::EnableVSync()
         controller_->SetCallback(this);
         controller_->SetEnable(true, vsyncEnabled_);
     }
+#if defined(RS_ENABLE_DVSYNC)
+    dvsync_->RecordEnableVsync();
+#endif
 }
 
 void VSyncDistributor::DisableVSync()
@@ -1097,6 +1114,19 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
     return VSYNC_ERROR_OK;
 }
 
+VsyncError VSyncDistributor::SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene)
+{
+    std::vector<uint64_t> tmpVec = pidWindowIdMap_[pid];
+    for (const auto& windowId : tmpVec) {
+        VsyncError ret = SetQosVSyncRate(windowId, rate, isSystemAnimateScene);
+        if (ret != VSYNC_ERROR_OK) {
+            VLOGD("windowId:%{public}" PRUint " is not exit", windowId);
+            return VSYNC_ERROR_INVALID_ARGUMENTS;
+        }
+    }
+    return VSYNC_ERROR_OK;
+}
+
 constexpr pid_t VSyncDistributor::ExtractPid(uint64_t id)
 {
     constexpr uint32_t bits = 32u;
@@ -1247,7 +1277,7 @@ void VSyncDistributor::RecordVsyncModeChange(uint32_t refreshRate, int64_t perio
 #endif
 }
 
-bool VSyncDistributor::IsUiDvsyncOn()
+bool  VSyncDistributor::IsUiDvsyncOn()
 {
 #if defined(RS_ENABLE_DVSYNC)
     return dvsync_->IsUiDvsyncOn();
@@ -1255,7 +1285,6 @@ bool VSyncDistributor::IsUiDvsyncOn()
     return false;
 #endif
 }
-
 int64_t VSyncDistributor::GetUiCommandDelayTime()
 {
 #if defined(RS_ENABLE_DVSYNC)

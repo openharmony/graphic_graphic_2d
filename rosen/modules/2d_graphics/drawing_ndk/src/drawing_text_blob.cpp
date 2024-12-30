@@ -19,6 +19,7 @@
 #include <unordered_map>
 
 #include "drawing_canvas_utils.h"
+#include "drawing_font_utils.h"
 
 #include "text/text_blob_builder.h"
 #include "utils/log.h"
@@ -35,9 +36,9 @@ static TextBlobBuilder* CastToTextBlobBuilder(OH_Drawing_TextBlobBuilder* cTextB
     return reinterpret_cast<TextBlobBuilder*>(cTextBlobBuilder);
 }
 
-static const Font& CastToFont(const OH_Drawing_Font& cFont)
+static const Font* CastToFont(const OH_Drawing_Font* cFont)
 {
-    return reinterpret_cast<const Font&>(cFont);
+    return reinterpret_cast<const Font*>(cFont);
 }
 
 static TextBlob* CastToTextBlob(OH_Drawing_TextBlob* cTextBlob)
@@ -76,9 +77,13 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromText(const void* text, size_t 
         g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
-    const Font& font = CastToFont(*cFont);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(text,
-        byteLength, font, static_cast<TextEncoding>(cTextEncoding));
+        byteLength, *font, static_cast<TextEncoding>(cTextEncoding));
     if (textBlob == nullptr) {
         return nullptr;
     }
@@ -98,8 +103,12 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size
         g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
-    const Font& font = CastToFont(*cFont);
-    const int count = font.CountText(text, byteLength, static_cast<TextEncoding>(cTextEncoding));
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    const int count = font->CountText(text, byteLength, static_cast<TextEncoding>(cTextEncoding));
     if (count <= 0) {
         return nullptr;
     }
@@ -111,7 +120,7 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromPosText(const void* text, size
         pts[i] = CastToPoint(cPoints[i]);
     }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromPosText(text, byteLength,
-        pts, font, static_cast<TextEncoding>(cTextEncoding));
+        pts, *font, static_cast<TextEncoding>(cTextEncoding));
     if (textBlob == nullptr) {
         delete [] pts;
         return nullptr;
@@ -133,9 +142,13 @@ OH_Drawing_TextBlob* OH_Drawing_TextBlobCreateFromString(const char* str,
         g_drawingErrorCode = OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
         return nullptr;
     }
-    const Font& font = CastToFont(*cFont);
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromString(str,
-        font, static_cast<TextEncoding>(cTextEncoding));
+        *font, static_cast<TextEncoding>(cTextEncoding));
     if (textBlob == nullptr) {
         return nullptr;
     }
@@ -186,7 +199,12 @@ const OH_Drawing_RunBuffer* OH_Drawing_TextBlobBuilderAllocRunPos(OH_Drawing_Tex
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
-    return (const OH_Drawing_RunBuffer*)&textBlobBuilder->AllocRunPos(CastToFont(*cFont), count, CastToRect(cRect));
+    const Font* font = CastToFont(cFont);
+    std::shared_ptr<Font> themeFont = DrawingFontUtils::GetThemeFont(font);
+    if (themeFont != nullptr) {
+        font = themeFont.get();
+    }
+    return (const OH_Drawing_RunBuffer*)&textBlobBuilder->AllocRunPos(*font, count, CastToRect(cRect));
 }
 
 OH_Drawing_TextBlob* OH_Drawing_TextBlobBuilderMake(OH_Drawing_TextBlobBuilder* cTextBlobBuilder)

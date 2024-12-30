@@ -14,6 +14,7 @@
  */
 
 #include "command/rs_node_command.h"
+#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -114,6 +115,14 @@ void RSNodeCommandHelper::ForceUifirstNode(RSContext& context, NodeId nodeId, bo
     }
 }
 
+void RSNodeCommandHelper::SetUIFirstSwitch(RSContext& context, NodeId nodeId, RSUIFirstSwitch uiFirstSwitch)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->SetUIFirstSwitch(uiFirstSwitch);
+    }
+}
+
 void RSNodeCommandHelper::SetDrawRegion(RSContext& context, NodeId nodeId, std::shared_ptr<RectF> rect)
 {
     auto& nodeMap = context.GetNodeMap();
@@ -138,6 +147,12 @@ void RSNodeCommandHelper::RegisterGeometryTransitionPair(RSContext& context, Nod
     auto inNode = nodeMap.GetRenderNode<RSRenderNode>(inNodeId);
     auto outNode = nodeMap.GetRenderNode<RSRenderNode>(outNodeId);
     if (inNode == nullptr || outNode == nullptr) {
+        return;
+    }
+    if (inNode->GetInstanceRootNodeId() == 0 || outNode->GetInstanceRootNodeId() == 0) {
+        ROSEN_LOGE("SharedTransition:Register SharedTransition failed due to invalid instanceRootNodeId,"
+            " inNode:[%{public}" PRIu64 "], outNode:[%{public}" PRIu64 "]",
+            inNode->GetInstanceRootNodeId(), outNode->GetInstanceRootNodeId());
         return;
     }
     auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode);

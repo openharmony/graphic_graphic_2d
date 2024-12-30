@@ -64,7 +64,8 @@ namespace OHOS {
         // test
         sptr<Rosen::VSyncSampler> vsyncSampler = Rosen::CreateVSyncSampler();
         vsyncSampler->AddSample(timestamp);
-        vsyncSampler->AddPresentFenceTime(timestamp);
+        vsyncSampler->SetVsyncEnabledScreenId(0);
+        vsyncSampler->AddPresentFenceTime(0, timestamp);
         vsyncSampler->SetHardwareVSyncStatus(enabled);
 
         return true;

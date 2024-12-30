@@ -69,6 +69,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ResetSurfaceOpaqueRegion03, TestSize.Level1
     RectI screenRect { 0, 0, 2560, 1600 };
     RectI absRect { 0, 100, 400, 500 };
     surfaceRenderNode.SetAbilityBGAlpha(255);
+    ASSERT_EQ(surfaceRenderNode.GetAbilityBgAlpha(), 255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     surfaceRenderNode.parent_ = std::make_shared<RSRenderNode>(1);
@@ -919,14 +920,16 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, QuerySubAssignable, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     bool isRotation = true;
     bool res = node->QuerySubAssignable(isRotation);
-    ASSERT_FALSE(res);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     node->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    EXPECT_FALSE(node->QuerySubAssignable(isRotation));
+    res = node->QuerySubAssignable(isRotation);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     std::shared_ptr<RSSurfaceRenderNode> rssNode = std::make_shared<RSSurfaceRenderNode>(0);
     std::vector<std::shared_ptr<RSRenderNode>> children;
     children.push_back(rssNode);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
-    EXPECT_FALSE(node->QuerySubAssignable(isRotation));
+    res = node->QuerySubAssignable(isRotation);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
     std::shared_ptr<RSSurfaceRenderNode> nodeF = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_FALSE(nodeF->QuerySubAssignable(isRotation));
 }

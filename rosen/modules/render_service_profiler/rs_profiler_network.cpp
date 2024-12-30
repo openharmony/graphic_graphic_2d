@@ -35,6 +35,7 @@ namespace OHOS::Rosen {
 std::atomic<bool> Network::isRunning_ = false;
 std::atomic<bool> Network::forceShutdown_ = false;
 std::atomic<bool> Network::blockBinary_ = false;
+std::chrono::steady_clock::time_point Network::ping_;
 
 std::mutex Network::incomingMutex_ {};
 std::queue<std::vector<std::string>> Network::incoming_ {};
@@ -55,6 +56,29 @@ static void AwakeRenderServiceThread()
 bool Network::IsRunning()
 {
     return isRunning_;
+}
+
+void Network::ResetPing()
+{
+    ping_ = std::chrono::steady_clock::now();
+}
+
+void Network::Ping(Socket& socket)
+{
+    if (!socket.Connected()) {
+        return;
+    }
+
+    using namespace std::chrono_literals;
+    const std::chrono::milliseconds period = 1s;
+    const auto now = std::chrono::steady_clock::now();
+    if (now <= ping_ + period) {
+        return;
+    }
+
+    Packet packet(Packet::COMMAND);
+    packet.Write("ping");
+    SendPacket(packet);
 }
 
 void Network::Run()
@@ -80,7 +104,8 @@ void Network::Run()
             socket->Open(port);
         } else if (state == SocketState::CREATE) {
             socket->AcceptClient();
-        } else if (state == SocketState::ACCEPT) {
+        } else if (state == SocketState::CONNECTED) {
+            Ping(*socket);
             Send(*socket);
             Receive(*socket);
         } else if (state == SocketState::SHUTDOWN) {
@@ -97,11 +122,11 @@ void Network::Stop()
     isRunning_ = false;
 }
 
-void Network::SendPacket(const Packet& packet)
+void Network::SendPacket(Packet& packet)
 {
     if (isRunning_) {
         const std::lock_guard<std::mutex> guard(outgoingMutex_);
-        outgoing_.emplace(const_cast<Packet&>(packet).Release());
+        outgoing_.emplace(packet.Release());
     }
 }
 
@@ -271,18 +296,22 @@ void Network::Send(Socket& socket)
 {
     std::vector<char> data;
 
-    bool nothingToSend = false;
-    while (!nothingToSend) {
+    while (socket.Connected()) {
+        data.clear();
+
         outgoingMutex_.lock();
-        nothingToSend = outgoing_.empty();
-        if (!nothingToSend) {
+        if (!outgoing_.empty()) {
             data.swap(outgoing_.front());
             outgoing_.pop();
         }
         outgoingMutex_.unlock();
 
-        if (!nothingToSend) {
-            socket.SendWhenReady(data.data(), data.size());
+        if (data.empty()) {
+            break;
+        }
+        
+        if (socket.SendWhenReady(data.data(), data.size())) {
+            ResetPing();
         }
     }
 }
@@ -331,13 +360,11 @@ void Network::Shutdown(Socket*& socket)
     AwakeRenderServiceThread();
 
     HRPE("Network: Shutdown");
-    RSSystemProperties::SetProfilerDisabled();
-    HRPE("Network: persist.graphic.profiler.enabled 0");
 }
 
 void Network::Receive(Socket& socket)
 {
-    if (!socket.Available()) {
+    if (!socket.Connected() || !socket.Available()) {
         return;
     }
 
@@ -364,6 +391,8 @@ void Network::Receive(Socket& socket)
     } else if (packet.IsCommand()) {
         ProcessCommand(data.data(), data.size());
     }
+
+    ResetPing();
 }
 
 } // namespace OHOS::Rosen

@@ -20,15 +20,10 @@
 #include <scoped_bytrace.h>
 #include <fcntl.h>
 #include <hitrace_meter.h>
-#include "event_handler.h"
 #include "graphic_common.h"
-#include "res_sched_client.h"
-#include "res_type.h"
 #include "rs_frame_report_ext.h"
 #include "vsync_log.h"
-#include "sandbox_utils.h"
 #include <rs_trace.h>
-#include "qos.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -136,7 +131,7 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
 int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
 {
     int64_t expectedEnd = 0;
-    if (now < 0 || period_ < 0 || now < period_ || now > INT64_MAX - period_) {
+    if (period_ < 0 || now < period_ || now > INT64_MAX - period_) {
         RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
         return 0;

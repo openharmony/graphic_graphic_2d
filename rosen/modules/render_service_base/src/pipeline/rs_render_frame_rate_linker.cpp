@@ -142,6 +142,7 @@ void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
 
     // if this listener has registered a callback before, replace it.
     expectedFpsChangeCallbacks_[listener] = callback;
+    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), expectedRange_.preferred_);
 }
 
 } // namespace Rosen

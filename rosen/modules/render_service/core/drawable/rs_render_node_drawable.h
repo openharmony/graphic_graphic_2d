@@ -111,10 +111,18 @@ public:
         return isOpincRootNode_;
     }
 
+    void SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image);
+
+    std::shared_ptr<Drawing::Image> GetCacheImageByCapture() const;
+
     // dfx
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
 
+    virtual bool HasCache() const
+    {
+        return false;
+    }
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
@@ -172,8 +180,10 @@ protected:
 private:
     std::atomic<DrawableCacheType> cacheType_ = DrawableCacheType::NONE;
     mutable std::recursive_mutex cacheMutex_;
+    mutable std::mutex freezeByCaptureMutex_;
     std::shared_ptr<Drawing::Surface> cachedSurface_ = nullptr;
     std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
+    std::shared_ptr<Drawing::Image> cachedImageByCapture_ = nullptr;
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cachedBackendTexture_;
 #ifdef RS_ENABLE_VK
@@ -187,6 +197,7 @@ private:
     static inline std::unordered_map<NodeId, int32_t> drawingCacheUpdateTimeMap_;
 
     static thread_local bool isOpDropped_;
+    static thread_local bool isOffScreenWithClipHole_;
     static inline std::atomic<int> totalProcessedNodeCount_ = 0;
     static inline std::atomic<int> processedNodeCount_ = 0;
     // used foe render group cache
@@ -216,13 +227,12 @@ private:
     bool isOpincRootNode_ = false;
     bool isOpincDropNodeExtTemp_ = true;
     bool isOpincCaculateStart_ = false;
-    bool isOpincMarkCached_ = false;
-    bool OpincGetCachedMark() const
+    bool OpincGetCachedMark()
     {
         return isOpincMarkCached_;
     }
+    bool isOpincMarkCached_ = false;
     bool IsOpincNodeInScreenRect(RSRenderParams& params);
-    static thread_local bool isOffScreenWithClipHole_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

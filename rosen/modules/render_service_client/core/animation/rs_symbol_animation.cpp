@@ -117,7 +117,7 @@ bool RSSymbolAnimation::SetSymbolAnimation(
         return true; // pre code already clear nodes.
     }
 
-    if (symbolAnimationConfig->animationReset) {
+    if (!symbolAnimationConfig->currentAnimationHasPlayed) {
         NodeProcessBeforeAnimation(symbolAnimationConfig);
     }
 
@@ -270,6 +270,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
     Drawing::DrawingEffectStrategy effectStrategy = Drawing::DrawingEffectStrategy::REPLACE_APPEAR;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters,
         effectStrategy);
+    bool isMaskSymbol = IsMaskSymbol(symbolAnimationConfig);
     for (uint32_t n = 0; n < nodeNum; n++) {
         auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         auto canvasNode = RSCanvasNode::Create();
@@ -298,6 +299,7 @@ bool RSSymbolAnimation::SetReplaceAppear(
             continue;
         }
         SpliceAnimation(canvasNode, parameters[symbolNode.animationIndex], Drawing::DrawingEffectStrategy::APPEAR);
+        canvasNode->MarkNodeGroup(!isMaskSymbol);
     }
     return true;
 }
@@ -378,6 +380,18 @@ bool RSSymbolAnimation::ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
     }
 }
 
+// Check the symbol is a mask symbol
+bool RSSymbolAnimation::IsMaskSymbol(
+    const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
+{
+    for (const auto& symbolNode: symbolAnimationConfig->symbolNodes) {
+        if (symbolNode.isMask) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSSymbolAnimation::SetPublicAnimation(
     const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
 {
@@ -395,8 +409,9 @@ bool RSSymbolAnimation::SetPublicAnimation(
     std::vector<std::vector<Drawing::DrawingPiecewiseParameter>> parameters;
     bool res = GetAnimationGroupParameters(symbolAnimationConfig, parameters, symbolAnimationConfig->effectStrategy);
 
+    bool isMaskSymbol = IsMaskSymbol(symbolAnimationConfig);
     for (uint32_t n = 0; n < nodeNum; n++) {
-        bool isCreateNode = false;
+        bool createNewNode = false;
         auto& symbolNode = symbolAnimationConfig->symbolNodes[n];
         auto symbolBounds = Vector4f(offsets[0], offsets[1], // 0: offsetX of newMode 1: offsetY
             symbolNode.nodeBoundary[NODE_WIDTH], symbolNode.nodeBoundary[NODE_HEIGHT]);
@@ -406,15 +421,15 @@ bool RSSymbolAnimation::SetPublicAnimation(
             if (outerIter == rsNode_->canvasNodesListMap.end()) {
                 outerIter = rsNode_->canvasNodesListMap.insert({symbolSpanId,
                     std::unordered_map<NodeId, std::shared_ptr<RSNode>>()}).first;
-                isCreateNode = true;
+                createNewNode = true;
             }
 
-            if (isCreateNode || outerIter->second.find(n) == outerIter->second.end()) {
+            if (createNewNode || outerIter->second.find(n) == outerIter->second.end()) {
                 auto childNode = RSCanvasNode::Create();
                 outerIter->second.insert({n, childNode});
                 SetSymbolGeometry(childNode, symbolBounds);
                 rsNode_->AddChild(childNode, -1);
-                isCreateNode = true;
+                createNewNode = true;
             } else {
                 UpdateSymbolGeometry(rsNode_->canvasNodesListMap[symbolSpanId][n], symbolBounds);
             }
@@ -427,8 +442,9 @@ bool RSSymbolAnimation::SetPublicAnimation(
             continue;
         }
 
-        if (isCreateNode) {
+        if (createNewNode) {
             ChooseAnimation(canvasNode, parameters[symbolNode.animationIndex], symbolAnimationConfig);
+            canvasNode->MarkNodeGroup(!isMaskSymbol);
         }
     }
     return true;
@@ -563,11 +579,7 @@ void RSSymbolAnimation::GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvas
     // drawing a symbol or a path group
     auto recordingCanvas = canvasNode->BeginRecording(symbolNode.nodeBoundary[NODE_WIDTH],
                                                       symbolNode.nodeBoundary[NODE_HEIGHT]);
-    if (isMultiLayer) {
-        DrawPathOnCanvas(recordingCanvas, symbolNode, offsets);
-    } else {
-        DrawSymbolOnCanvas(recordingCanvas, symbolNode, offsets);
-    }
+    DrawPathOnCanvas(recordingCanvas, symbolNode, offsets);
     canvasNode->FinishRecording();
 }
 

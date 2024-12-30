@@ -130,8 +130,12 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                 success = false;
             }
         }
-        if (!success && command != nullptr) {
-            ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
+        if (!success) {
+            if (command != nullptr) {
+                ROSEN_LOGE("failed RSTransactionData::Marshalling type:%{public}s", command->PrintType().c_str());
+            } else {
+                ROSEN_LOGE("failed RSTransactionData::Marshalling, pparcel write error");
+            }
             return false;
         }
         ++marshallingIndex_;
@@ -295,8 +299,7 @@ bool RSTransactionData::UnmarshallingCommand(Parcel& parcel)
         parcel.ReadUint64(index_) && parcel.ReadUint64(syncId_) && parcel.ReadInt32(parentPid_);
 }
 
-bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap, pid_t& conflictCommandPid,
-    std::string& commandMapDesc) const
+bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const
 {
     // Since GetCallingPid interface always returns 0 in asynchronous binder in Linux kernel system,
     // we temporarily add a white list to avoid abnormal functionality or abnormal display.
@@ -306,7 +309,7 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
     }
 
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::set<
-        std::pair<uint16_t, uint16_t>>>> conflictPidToCommandMap;
+        std::pair<uint16_t, uint16_t>>>> inaccessibleCommandMap;
     std::unique_lock<std::mutex> lock(commandMutex_);
     for (auto& [_, followType, command] : payload_) {
         if (command == nullptr) {
@@ -314,24 +317,21 @@ bool RSTransactionData::IsCallingPidValid(pid_t callingPid, const RSRenderNodeMa
         }
         const NodeId nodeId = command->GetNodeId();
         const pid_t commandPid = ExtractPid(nodeId);
-        if (command->GetAccessPermission() == RSCommandPermissionType::NO_INTERCEPTION) {
-            if (callingPid == commandPid) {
-                continue;
-            }
-            if (nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
-                continue;
-            }
+        bool allowNonSystemAppCalling = command->GetAccessPermission() != RSCommandPermissionType::PERMISSION_SYSTEM;
+        if (allowNonSystemAppCalling && (callingPid == commandPid || nodeMap.IsUIExtensionSurfaceNode(nodeId))) {
+            continue;
         }
-        conflictPidToCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
+        inaccessibleCommandMap[commandPid][nodeId].insert(command->GetUniqueType());
         command->SetCallingPidValid(false);
     }
     lock.unlock();
-    for (const auto& [commandPid, commandTypeMap] : conflictPidToCommandMap) {
-        conflictCommandPid = commandPid;
-        commandMapDesc = PrintCommandMapDesc(commandTypeMap);
-        return false;
+    for (const auto& [commandPid, commandTypeMap] : inaccessibleCommandMap) {
+        std::string commandMapDesc = PrintCommandMapDesc(commandTypeMap);
+        RS_LOGE("RSTransactionData::IsCallingPidValid check failed: callingPid = %{public}d, commandPid = %{public}d, "
+                "commandMap = %{public}s", static_cast<int>(callingPid), static_cast<int>(commandPid),
+                commandMapDesc.c_str());
     }
-    return true;
+    return inaccessibleCommandMap.empty();
 }
 
 std::string RSTransactionData::PrintCommandMapDesc(

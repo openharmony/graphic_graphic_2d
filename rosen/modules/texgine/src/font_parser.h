@@ -73,6 +73,7 @@ public:
         GENERIC = 1 << 1,
         STYLISH = 1 << 2,
         INSTALLED = 1 << 3,
+        CUSTOMIZED = 1 << 4
     };
 
     struct FontDescriptor {
@@ -99,12 +100,12 @@ public:
     std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
         const std::string locale = SIMPLIFIED_CHINESE);
     
-    std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
+    std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
     std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
-        const std::string& path, const std::string& locale = SIMPLIFIED_CHINESE);
+        const std::string& path, const std::string& locale = ENGLISH);
     std::vector<std::shared_ptr<FontDescriptor>> CreateFontDescriptors(
         const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces,
-        const std::string& locale = SIMPLIFIED_CHINESE);
+        const std::string& locale = ENGLISH);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,

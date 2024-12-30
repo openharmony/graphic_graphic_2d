@@ -35,16 +35,18 @@ struct CaptureParam {
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
+    bool isNeedBlur_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
+        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
         scaleY_(scaleY),
         isFirstNode_(isFirstNode),
-        isSystemCalling_(isSystemCalling) {}
+        isSystemCalling_(isSystemCalling),
+        isNeedBlur_(isNeedBlur) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
@@ -52,6 +54,9 @@ struct HardCursorInfo {
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
+    using DrawablesVec = std::vector<std::pair<NodeId,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
 
@@ -120,7 +125,7 @@ public:
         isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
     }
 
-    CrossNodeOffScreenRenderDebugType GetCrossNodeOffscreenDebugEnabled() const
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
     {
         return isCrossNodeOffscreenOn_;
     }
@@ -185,7 +190,7 @@ public:
         return selfDrawables_;
     }
 
-    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
+    const DrawablesVec& GetHardwareEnabledTypeDrawables() const
     {
         return hardwareEnabledTypeDrawables_;
     }
@@ -440,6 +445,14 @@ public:
     {
         compositeType_ = type;
     }
+    NodeId GetCurrentVisitDisplayDrawableId() const
+    {
+        return currentVisitDisplayDrawableId_;
+    }
+    void SetCurrentVisitDisplayDrawableId(NodeId displayId)
+    {
+        currentVisitDisplayDrawableId_ = displayId;
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -472,9 +485,10 @@ private:
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
     bool isScreenSwitching_ = false;
+    NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    DrawablesVec hardwareEnabledTypeDrawables_;
     HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;

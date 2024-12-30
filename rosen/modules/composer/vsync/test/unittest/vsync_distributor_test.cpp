@@ -169,6 +169,21 @@ HWTEST_F(VSyncDistributorTest, RequestNextVSync004, Function | MediumTest| Level
 }
 
 /*
+* Function: RequestNextVSync005
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. new VSyncConnection(nullptr, "VSyncDistributorTest")
+*                  2. call RequestNextVSync
+*                  3. return VSYNC_ERROR_NULLPTR
+ */
+HWTEST_F(VSyncDistributorTest, RequestNextVSync005, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
+    ASSERT_EQ(conn->RequestNextVSync("unknown", 0), VSYNC_ERROR_NULLPTR);
+}
+
+/*
 * Function: SetVSyncRate001
 * Type: Function
 * Rank: Important(2)
@@ -222,6 +237,21 @@ HWTEST_F(VSyncDistributorTest, SetVSyncRate004, Function | MediumTest| Level3)
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_OK);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->SetVSyncRate(1, conn), VSYNC_ERROR_INVALID_ARGUMENTS);
     ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->RemoveConnection(conn), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetVSyncRate005
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. set conn.distributor_ = nullptr
+*                  2. call SetVSyncRate
+*                  3. return VSYNC_ERROR_NULLPTR
+ */
+HWTEST_F(VSyncDistributorTest, SetVSyncRate005, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
+    ASSERT_EQ(conn->SetVSyncRate(1), VSYNC_ERROR_NULLPTR);
 }
 
 /*
@@ -413,6 +443,22 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest, Function | MediumTest| Lev
 }
 
 /*
+* Function: SetUiDvsyncSwitchTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. new VSyncConnection(nullptr, "VSyncDistributorTest")
+*                 2. call SetUiDvsyncSwitch
+*                3. return VSYNC_ERROR_NULLPTR
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncSwitchTest001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(true), VSYNC_ERROR_NULLPTR);
+    ASSERT_EQ(conn->SetUiDvsyncSwitch(false), VSYNC_ERROR_NULLPTR);
+}
+
+/*
 * Function: SetUiDvsyncConfigTest
 * Type: Function
 * Rank: Important(2)
@@ -423,6 +469,21 @@ HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest, Function | MediumTest| Lev
 {
     sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
     ASSERT_EQ(conn->SetUiDvsyncConfig(1), VSYNC_ERROR_OK);
+}
+
+/*
+* Function: SetUiDvsyncConfigTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. new VSyncConnection(nullptr, "VSyncDistributorTest")
+*                 2. call SetUiDvsyncConfig
+*                3. return VSYNC_ERROR_NULLPTR
+ */
+HWTEST_F(VSyncDistributorTest, SetUiDvsyncConfigTest001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(nullptr, "VSyncDistributorTest");
+    ASSERT_EQ(conn->SetUiDvsyncConfig(1), VSYNC_ERROR_NULLPTR);
 }
 
 /*
@@ -721,6 +782,28 @@ HWTEST_F(VSyncDistributorTest, SetQosVSyncRateTest003, Function | MediumTest| Le
     ASSERT_EQ(vsyncDistributor->AddConnection(conn), VSYNC_ERROR_OK);
     conns.emplace_back(conn);
     ASSERT_EQ(vsyncDistributor->SetQosVSyncRate(0x1ffffffff, 1, true), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
+
+/*
+* Function: SetQosVSyncRateByPidPublicTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPidPublic
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidPublicTest001, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(0, 1, false), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(0, 2, false), VSYNC_ERROR_OK);
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }

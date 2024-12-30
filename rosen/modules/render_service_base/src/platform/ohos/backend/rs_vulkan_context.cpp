@@ -556,12 +556,14 @@ RsVulkanContext::RsVulkanContext()
     rsVulkanInterface.Init();
     // Init drawingContext_ bind to backendContext
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
+#ifdef IS_ENABLE_DRM
     isProtected_ = true;
     rsProtectedVulkanInterface.Init(isProtected_);
     // DRM needs to adapt vkQueue in the future.
     protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
         false, isProtected_);
     isProtected_ = false;
+#endif
 }
 
 RsVulkanContext& RsVulkanContext::GetSingleton()
@@ -660,6 +662,10 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext()
 void RsVulkanContext::SetIsProtected(bool isProtected)
 {
     if (isProtected_ != isProtected) {
+        RS_LOGW("RsVulkanContext switch, isProtected: %{public}d.", isProtected);
+        if (isProtected) {
+            RS_TRACE_NAME("RsVulkanContext switch to protected GPU context");
+        }
         ClearGrContext(isProtected);
     }
 }

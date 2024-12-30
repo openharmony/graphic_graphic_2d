@@ -244,20 +244,6 @@ HWTEST_F(RSInterfacesTest, ReportEventJankFrame001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDefaultDeviceRotationOffset001
- * @tc.desc: test results of SetDefaultDeviceRotationOffset
- * @tc.type: FUNC
- * @tc.require: issueIAS4B8
- */
-HWTEST_F(RSInterfacesTest, SetDefaultDeviceRotationOffset001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.SetDefaultDeviceRotationOffset(90);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
-}
-
-/**
  * @tc.name: ReportGameStateData001
  * @tc.desc: test results of ReportGameStateData
  * @tc.type: FUNC
@@ -340,6 +326,20 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.GetHwcDisabledReasonInfo();
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: GetHdrOnDuration001
+ * @tc.desc: test results of GetHdrOnDuration
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSInterfacesTest, GetHdrOnDuration001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_GE(instance.GetHdrOnDuration(), 0);
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 

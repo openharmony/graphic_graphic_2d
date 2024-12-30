@@ -25,6 +25,7 @@ ohos_unittest("RSRenderClientPipelineTest") {
     "rs_divided_ui_capture_test.cpp",
     "rs_node_map_test.cpp",
     "rs_render_thread_test.cpp",
+    "rs_render_thread_util_test.cpp",
     "rs_render_thread_visitor_test.cpp",
   ]
 

@@ -92,7 +92,8 @@ HWTEST_F(RSBorderTest, LifeCycle002, TestSize.Level1)
     border->SetStyleFour(vectorStyle);
     border->GetStyleFour();
     border->SetStyle(BorderStyle::DOTTED);
-    border->ToString();
+    EXPECT_EQ(
+        border->ToString(), "colors: 4278255873, 4278321666, 4278387459, 4278453252, widths: 1, 2, 3, 4, styles: 2, ");
 }
 
 /**
@@ -674,6 +675,7 @@ HWTEST_F(RSBorderTest, DrawBordersTest001, TestSize.Level1)
     Vector4<Color> vectorColor5(color1, color1, color1, color1);
     border->SetColorFour(vectorColor5);
     border->DrawBorders(canvas, pen, borderGeo);
+    EXPECT_NE(&pen, nullptr);
 }
 
 /**
@@ -737,6 +739,7 @@ HWTEST_F(RSBorderTest, DrawBordersTest002, TestSize.Level1)
     Vector4<Color> vectorColor5(color1, color1, color1, color1);
     border->SetColorFour(vectorColor5);
     border->DrawBorders(canvas, pen, borderGeo);
+    EXPECT_NE(&pen, nullptr);
 }
 
 /**
@@ -754,6 +757,263 @@ HWTEST_F(RSBorderTest, DrawBordersTest003, TestSize.Level1)
     Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
     Vector4f radius(65.0f, 65.0f, 65.0f, 65.0f);
     border->SetStyle(BorderStyle::DASHED);
+    Color color1(255, 0, 0); // red
+    Color color2(0, 0, 0);   // black
+    Color color3(0, 0, 255); // blue
+    Color color4(0, 255, 0); // green
+
+    // init border object
+    border->SetDashWidth(1.0f);
+    border->SetDashGap(1.0f);
+    border->SetWidthFour(width);
+    border->SetRadiusFour(radius);
+
+    // init borderGeo
+    RSBorderGeo borderGeo;
+    borderGeo.rrect.rect_.SetLeft(rect.GetLeft());
+    borderGeo.rrect.rect_.SetTop(rect.GetTop());
+    borderGeo.rrect.rect_.SetRight(rect.GetRight());
+    borderGeo.rrect.rect_.SetBottom(rect.GetBottom());
+    borderGeo.innerRRect.rect_.SetLeft(rect.GetLeft() + width[RSBorder::LEFT]);
+    borderGeo.innerRRect.rect_.SetTop(rect.GetTop() + width[RSBorder::TOP]);
+    borderGeo.innerRRect.rect_.SetRight(rect.GetRight() + width[RSBorder::RIGHT]);
+    borderGeo.innerRRect.rect_.SetBottom(rect.GetBottom() + width[RSBorder::BOTTOM]);
+    borderGeo.center = { (borderGeo.innerRRect.rect_.GetLeft() + borderGeo.innerRRect.rect_.GetRight()) * 0.5,
+        (borderGeo.innerRRect.rect_.GetTop() + borderGeo.innerRRect.rect_.GetBottom()) * 0.5 };
+
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    Vector4<Color> vectorColor1(color1, color2, color3, color4);
+    border->SetColorFour(vectorColor1);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor2(color1, color1, color3, color4);
+    border->SetColorFour(vectorColor2);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor3(color1, color1, color1, color4);
+    border->SetColorFour(vectorColor3);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor4(color4, color2, color3, color4);
+    border->SetColorFour(vectorColor4);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor5(color1, color1, color1, color1);
+    border->SetColorFour(vectorColor5);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: DrawBordersTest004
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, DrawBordersTest004, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>(false);
+
+    // set test para
+    RectF rect(-65.0f, -97.5f, 821.0f, 747.5f);
+    Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
+    Vector4f radius(65.0f, 65.0f, 65.0f, 65.0f);
+    border->SetStyleFour({ 1, 0, 1, 0 });
+    Color color1(255, 0, 0); // red
+    Color color2(0, 0, 0);   // black
+    Color color3(0, 0, 255); // blue
+    Color color4(0, 255, 0); // green
+
+    // init border object
+    border->SetDashWidth(1.0f);
+    border->SetDashGap(1.0f);
+    border->SetWidthFour(width);
+    border->SetRadiusFour(radius);
+
+    // init borderGeo
+    RSBorderGeo borderGeo;
+    borderGeo.rrect.rect_.SetLeft(rect.GetLeft());
+    borderGeo.rrect.rect_.SetTop(rect.GetTop());
+    borderGeo.rrect.rect_.SetRight(rect.GetRight());
+    borderGeo.rrect.rect_.SetBottom(rect.GetBottom());
+    borderGeo.innerRRect.rect_.SetLeft(rect.GetLeft() + width[RSBorder::LEFT]);
+    borderGeo.innerRRect.rect_.SetTop(rect.GetTop() + width[RSBorder::TOP]);
+    borderGeo.innerRRect.rect_.SetRight(rect.GetRight() + width[RSBorder::RIGHT]);
+    borderGeo.innerRRect.rect_.SetBottom(rect.GetBottom() + width[RSBorder::BOTTOM]);
+    borderGeo.center = { (borderGeo.innerRRect.rect_.GetLeft() + borderGeo.innerRRect.rect_.GetRight()) * 0.5,
+        (borderGeo.innerRRect.rect_.GetTop() + borderGeo.innerRRect.rect_.GetBottom()) * 0.5 };
+
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    Vector4<Color> vectorColor1(color1, color2, color3, color4);
+    border->SetColorFour(vectorColor1);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor2(color1, color1, color3, color4);
+    border->SetColorFour(vectorColor2);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor3(color1, color1, color1, color4);
+    border->SetColorFour(vectorColor3);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor4(color4, color2, color3, color4);
+    border->SetColorFour(vectorColor4);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor5(color1, color1, color1, color1);
+    border->SetColorFour(vectorColor5);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: DrawBordersTest005
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, DrawBordersTest005, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>(false);
+
+    // set test para
+    RectF rect(-65.0f, -97.5f, 821.0f, 747.5f);
+    Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
+    Vector4f radius(65.0f, 65.0f, 65.0f, 65.0f);
+    border->SetStyleFour({ 0, 0, 1, 1 });
+    Color color1(255, 0, 0); // red
+    Color color2(0, 0, 0);   // black
+    Color color3(0, 0, 255); // blue
+    Color color4(0, 255, 0); // green
+
+    // init border object
+    border->SetDashWidth(1.0f);
+    border->SetDashGap(1.0f);
+    border->SetWidthFour(width);
+    border->SetRadiusFour(radius);
+
+    // init borderGeo
+    RSBorderGeo borderGeo;
+    borderGeo.rrect.rect_.SetLeft(rect.GetLeft());
+    borderGeo.rrect.rect_.SetTop(rect.GetTop());
+    borderGeo.rrect.rect_.SetRight(rect.GetRight());
+    borderGeo.rrect.rect_.SetBottom(rect.GetBottom());
+    borderGeo.innerRRect.rect_.SetLeft(rect.GetLeft() + width[RSBorder::LEFT]);
+    borderGeo.innerRRect.rect_.SetTop(rect.GetTop() + width[RSBorder::TOP]);
+    borderGeo.innerRRect.rect_.SetRight(rect.GetRight() + width[RSBorder::RIGHT]);
+    borderGeo.innerRRect.rect_.SetBottom(rect.GetBottom() + width[RSBorder::BOTTOM]);
+    borderGeo.center = { (borderGeo.innerRRect.rect_.GetLeft() + borderGeo.innerRRect.rect_.GetRight()) * 0.5,
+        (borderGeo.innerRRect.rect_.GetTop() + borderGeo.innerRRect.rect_.GetBottom()) * 0.5 };
+
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    Vector4<Color> vectorColor1(color1, color2, color3, color4);
+    border->SetColorFour(vectorColor1);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor2(color1, color1, color3, color4);
+    border->SetColorFour(vectorColor2);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor3(color1, color1, color1, color4);
+    border->SetColorFour(vectorColor3);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor4(color4, color2, color3, color4);
+    border->SetColorFour(vectorColor4);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor5(color1, color1, color1, color1);
+    border->SetColorFour(vectorColor5);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+/**
+ * @tc.name: DrawBordersTest006
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, DrawBordersTest006, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>(false);
+
+    // set test para
+    RectF rect(-65.0f, -97.5f, 821.0f, 747.5f);
+    Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
+    Vector4f radius(65.0f, 65.0f, 65.0f, 65.0f);
+    border->SetStyleFour({ 1, 1, 0, 0 });
+    Color color1(255, 0, 0); // red
+    Color color2(0, 0, 0);   // black
+    Color color3(0, 0, 255); // blue
+    Color color4(0, 255, 0); // green
+
+    // init border object
+    border->SetDashWidth(1.0f);
+    border->SetDashGap(1.0f);
+    border->SetWidthFour(width);
+    border->SetRadiusFour(radius);
+
+    // init borderGeo
+    RSBorderGeo borderGeo;
+    borderGeo.rrect.rect_.SetLeft(rect.GetLeft());
+    borderGeo.rrect.rect_.SetTop(rect.GetTop());
+    borderGeo.rrect.rect_.SetRight(rect.GetRight());
+    borderGeo.rrect.rect_.SetBottom(rect.GetBottom());
+    borderGeo.innerRRect.rect_.SetLeft(rect.GetLeft() + width[RSBorder::LEFT]);
+    borderGeo.innerRRect.rect_.SetTop(rect.GetTop() + width[RSBorder::TOP]);
+    borderGeo.innerRRect.rect_.SetRight(rect.GetRight() + width[RSBorder::RIGHT]);
+    borderGeo.innerRRect.rect_.SetBottom(rect.GetBottom() + width[RSBorder::BOTTOM]);
+    borderGeo.center = { (borderGeo.innerRRect.rect_.GetLeft() + borderGeo.innerRRect.rect_.GetRight()) * 0.5,
+        (borderGeo.innerRRect.rect_.GetTop() + borderGeo.innerRRect.rect_.GetBottom()) * 0.5 };
+
+    Drawing::Canvas canvas;
+    Drawing::Pen pen;
+    pen.SetAntiAlias(true);
+    Vector4<Color> vectorColor1(color1, color2, color3, color4);
+    border->SetColorFour(vectorColor1);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor2(color1, color1, color3, color4);
+    border->SetColorFour(vectorColor2);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor3(color1, color1, color1, color4);
+    border->SetColorFour(vectorColor3);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor4(color4, color2, color3, color4);
+    border->SetColorFour(vectorColor4);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    Vector4<Color> vectorColor5(color1, color1, color1, color1);
+    border->SetColorFour(vectorColor5);
+    border->DrawBorders(canvas, pen, borderGeo);
+
+    EXPECT_FALSE(border->styles_.empty());
+}
+
+
+/**
+ * @tc.name: DrawBordersTest007
+ * @tc.desc: Verify function
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBorderTest, DrawBordersTest007, TestSize.Level1)
+{
+    auto border = std::make_shared<RSBorder>(false);
+
+    // set test para
+    RectF rect(-65.0f, -97.5f, 821.0f, 747.5f);
+    Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
+    Vector4f radius(65.0f, 65.0f, 65.0f, 65.0f);
+    border->SetStyleFour({ 1, 0, 0, 1 });
     Color color1(255, 0, 0); // red
     Color color2(0, 0, 0);   // black
     Color color3(0, 0, 255); // blue

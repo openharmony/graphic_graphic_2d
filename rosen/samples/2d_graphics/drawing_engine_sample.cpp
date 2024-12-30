@@ -216,16 +216,11 @@ SurfaceError DrawingEngineSample::DoDraw()
     std::unique_ptr<SurfaceFrame> surfaceFrame;
 
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        // For skia and DDGR by Nativewindow
-        surfaceFrame = surface_->NativeRequestFrame(drawingWidth, drawingHeight);
-        if (surfaceFrame == nullptr) {
-            std::cout << "Request Frame Failed" << std::endl;
-            return SURFACE_ERROR_ERROR;
-        }
-    } else {
-        // For DDGR by flutter vulkan swapchian and skia-gl by swapbuffer
-        surfaceFrame = surface_->RequestFrame(drawingWidth, drawingHeight);
+    // For skia and DDGR by Nativewindow
+    surfaceFrame = surface_->NativeRequestFrame(drawingWidth, drawingHeight);
+    if (surfaceFrame == nullptr) {
+        std::cout << "Request Frame Failed" << std::endl;
+        return SURFACE_ERROR_ERROR;
     }
 #else
     // For DDGR by flutter vulkan swapchian and skia-gl by swapbuffer
@@ -234,13 +229,8 @@ SurfaceError DrawingEngineSample::DoDraw()
     Drawing::Canvas* drcanvas = surface_->GetCanvas(surfaceFrame);
     ExcuteBenchMark(drcanvas);
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::IsUseVulkan()) {
-        // For skia and DDGR by Nativewindow
-        surface_->NativeFlushFrame(surfaceFrame);
-    } else {
-        // For DDGR by flutter and skia-gl by swapbuffer
-        surface_->FlushFrame(surfaceFrame);
-    }
+    // For skia and DDGR by Nativewindow
+    surface_->NativeFlushFrame(surfaceFrame);
 #else
     // For DDGR by flutter and skia-gl by swapbuffer
     surface_->FlushFrame(surfaceFrame);

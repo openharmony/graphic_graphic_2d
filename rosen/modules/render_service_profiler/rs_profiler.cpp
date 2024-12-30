@@ -194,17 +194,16 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
     g_context = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
+    RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
     bool isEnabled = RSSystemProperties::GetProfilerEnabled();
     bool isBetaRecord = RSSystemProperties::GetBetaRecordingMode() != 0;
-    HRPD("Profiler flags changed enabled=%{public}d beta_record=%{public}d", isEnabled ? 1 : 0, isBetaRecord ? 1 : 0);
+    HRPI("Profiler flags changed enabled=%{public}d beta_record=%{public}d", isEnabled ? 1 : 0, isBetaRecord ? 1 : 0);
 
     if (!IsEnabled()) {
         return;
     }
-
-    OnWorkModeChanged();
 }
 
 void RSProfiler::StartNetworkThread()
@@ -408,10 +407,10 @@ void RSProfiler::ProcessSignalFlag()
             newBetaRecord ? 1 : 0);
         if (enabled_ && !newEnabled) {
             const ArgList dummy;
-            if (GetMode() == Mode::READ) {
+            if (IsReadMode()) {
                 PlaybackStop(dummy);
             }
-            if (GetMode() == Mode::WRITE) {
+            if (IsWriteMode()) {
                 RecordStop(dummy);
             }
         }
@@ -520,11 +519,7 @@ void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 
 bool RSProfiler::ShouldBlockHWCNode()
 {
-    if (!IsEnabled()) {
-        return false;
-    }
-
-    return GetMode() == Mode::READ;
+    return IsEnabled() && IsReadMode();
 }
 
 void RSProfiler::OnFrameBegin()
@@ -550,13 +545,13 @@ void RSProfiler::ProcessPauseMessage()
     uint64_t pauseAtTime = TimePauseGet();
     uint64_t nowTime = RawNowNano();
     if (pauseAtTime > 0 && nowTime > pauseAtTime) {
-        const double recordPlayTime = Now() - g_playbackStartTime;
-        if (recordPlayTime > g_replayLastPauseTimeReported) {
-            int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
+        const double deltaTime = PlaybackDeltaTime();
+        if (deltaTime > g_replayLastPauseTimeReported) {
+            int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime);
             if (vsyncId) {
-                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
             }
-            g_replayLastPauseTimeReported = recordPlayTime;
+            g_replayLastPauseTimeReported = deltaTime;
         }
     }
 }
@@ -648,7 +643,7 @@ void RSProfiler::RenderServiceTreeDump(JsonWriter& out, pid_t pid)
         return;
     }
 
-    const bool useMockPid = pid > 0 && GetMode() == Mode::READ;
+    const bool useMockPid = (pid > 0) && IsReadMode();
     if (useMockPid) {
         pid = Utils::GetMockPid(pid);
     }
@@ -712,12 +707,12 @@ double RSProfiler::Now()
 
 bool RSProfiler::IsRecording()
 {
-    return IsEnabled() && (GetMode() == Mode::WRITE) && g_recordFile.IsOpen() && (g_recordStartTime > 0);
+    return IsEnabled() && IsWriteMode() && g_recordFile.IsOpen() && (g_recordStartTime > 0);
 }
 
 bool RSProfiler::IsPlaying()
 {
-    return IsEnabled() && (GetMode() == Mode::READ) && g_playbackFile.IsOpen() && !g_playbackShouldBeTerminated;
+    return IsEnabled() && IsReadMode() && g_playbackFile.IsOpen() && !g_playbackShouldBeTerminated;
 }
 
 void RSProfiler::ScheduleTask(std::function<void()> && task)
@@ -763,7 +758,7 @@ std::shared_ptr<RSRenderNode> RSProfiler::GetRenderNode(uint64_t id)
 
 bool RSProfiler::IsLoadSaveFirstScreenInProgress()
 {
-    return (GetMode() == Mode::WRITE_EMUL || GetMode() == Mode::READ_EMUL);
+    return IsWriteEmulationMode() || IsReadEmulationMode();
 }
 
 void RSProfiler::HiddenSpaceTurnOn()
@@ -1018,8 +1013,8 @@ void RSProfiler::RecordUpdate()
         return;
     }
 
-    constexpr size_t maxConsumption = 1024 * 1024 * 1024;
-    if (ImageCache::Consumption() > maxConsumption) {
+    if (IsRecordAbortRequested()) {
+        recordAbortRequested_ = false;
         SendMessage("Record: Exceeded memory limit. Abort"); // DO NOT TOUCH!
         RecordStop(ArgList{});
         return;
@@ -1063,6 +1058,46 @@ void RSProfiler::RecordUpdate()
     WriteBetaRecordMetrics(g_recordFile, timeSinceRecordStart);
 }
 
+void RSProfiler::RecordSave()
+{
+    SendMessage("Record: Prepping data for sending...");
+
+    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+    // DOUBLE WORK - send header of file
+    const char headerType = 0;
+    stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
+    stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
+
+    const uint32_t pidCount = g_recordFile.GetHeaderPids().size();
+    stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
+    for (auto item : g_recordFile.GetHeaderPids()) {
+        stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
+    }
+
+    // FIRST FRAME HEADER
+    const uint32_t sizeFirstFrame = static_cast<uint32_t>(g_recordFile.GetHeaderFirstFrame().size());
+    stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
+    stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
+
+    // ANIME START TIMES
+    const auto headerAnimeStartTimes = AnimeGetStartTimesFlattened(g_recordStartTime);
+
+    const uint32_t startTimesSize = headerAnimeStartTimes.size();
+    stream.write(reinterpret_cast<const char*>(&startTimesSize), sizeof(startTimesSize));
+    stream.write(reinterpret_cast<const char*>(headerAnimeStartTimes.data()),
+        startTimesSize * sizeof(std::pair<uint64_t, int64_t>));
+
+    const auto imageCacheConsumption = ImageCache::Consumption();
+    SendMessage("Record: Image cache memory usage: %.2fMB (%zu)", Utils::Megabytes(imageCacheConsumption),
+        imageCacheConsumption);
+    ImageCache::Serialize(stream);
+
+    const auto binary = stream.str();
+    Network::SendBinary(binary);
+
+    SendMessage("Record: Sent: %.2fMB (%zu)", Utils::Megabytes(binary.size()), binary.size());
+}
+
 // Deprecated: Use SendMessage instead
 void RSProfiler::Respond(const std::string& message)
 {
@@ -1104,7 +1139,10 @@ void RSProfiler::Reset(const ArgList& args)
 
     Utils::FileDelete(RSFile::GetDefaultPath());
 
-    Respond("Reset");
+    SendMessage("Reset");
+
+    RSSystemProperties::SetProfilerDisabled();
+    HRPI("Reset: persist.graphic.profiler.enabled 0");
 }
 
 void RSProfiler::DumpSystemParameters(const ArgList& args)
@@ -1618,7 +1656,10 @@ void RSProfiler::CalcPerfNodeAllStep()
 
         for (auto it : g_nodeListPerf) {
             const auto node = GetRenderNode(it.first);
-            const auto parent = node ? node->GetParent().lock() : nullptr;
+            if (!node) {
+                continue;
+            }
+            const auto parent = node->GetParent().lock();
             if (!parent || !g_mapNode2UpTime.count(node->id_) || !g_mapNode2UpDownTime.count(node->id_)) {
                 Respond("CALC_RESULT [" + std::to_string(node->id_) + "] error");
                 Network::SendRSTreeSingleNodePerf(node->id_, 0);
@@ -1668,8 +1709,8 @@ void RSProfiler::TestSwitch(const ArgList& args)
 
 void RSProfiler::RecordStart(const ArgList& args)
 {
-    if (IsPlaying() || !g_childOfDisplayNodes.empty()) {
-        SendMessage("Record: Start failed. Playback is in progress");
+    if (!IsNoneMode() || !g_childOfDisplayNodes.empty()) {
+        SendMessage("Record: Start failed. Playback/Saving is in progress");
         return;
     }
 
@@ -1727,68 +1768,38 @@ void RSProfiler::RecordStop(const ArgList& args)
         return;
     }
 
-    SendMessage("Record: Prepping stop...");
-    SetMode(Mode::NONE);
-    g_recordFile.SetWriteTime(g_recordStartTime);
+    SetMode(Mode::SAVING);
 
-    if (!IsBetaRecordStarted()) {
-        SendMessage("Record: Prepping data for sending...");
-        std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-        // DOUBLE WORK - send header of file
-        const char headerType = 0;
-        stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
-        stream.write(reinterpret_cast<const char*>(&g_recordStartTime), sizeof(g_recordStartTime));
+    std::thread thread([]() {
+        g_recordFile.SetWriteTime(g_recordStartTime);
 
-        const uint32_t pidCount = g_recordFile.GetHeaderPids().size();
-        stream.write(reinterpret_cast<const char*>(&pidCount), sizeof(pidCount));
-        for (auto item : g_recordFile.GetHeaderPids()) {
-            stream.write(reinterpret_cast<const char*>(&item), sizeof(item));
+        if (IsBetaRecordStarted()) {
+            SaveBetaRecordFile(g_recordFile);
+        } else {
+            RecordSave();
         }
 
-        // FIRST FRAME HEADER
-        uint32_t sizeFirstFrame = static_cast<uint32_t>(g_recordFile.GetHeaderFirstFrame().size());
-        stream.write(reinterpret_cast<const char*>(&sizeFirstFrame), sizeof(sizeFirstFrame));
-        stream.write(reinterpret_cast<const char*>(&g_recordFile.GetHeaderFirstFrame()[0]), sizeFirstFrame);
+        g_recordFile.Close();
+        g_recordStartTime = 0.0;
+        g_lastCacheImageCount = 0;
 
-        // ANIME START TIMES
-        std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes;
-        std::unordered_map<AnimationId, std::vector<int64_t>> &headerAnimeStartTimesMap = AnimeGetStartTimes();
-        for (const auto& item : headerAnimeStartTimesMap) {
-            for (const auto time : item.second) {
-                headerAnimeStartTimes.push_back({
-                    Utils::PatchNodeId(item.first),
-                    time - Utils::ToNanoseconds(g_recordStartTime)
-                });
-            }
-        }
+        ImageCache::Reset();
 
-        uint32_t startTimesSize = headerAnimeStartTimes.size();
-        stream.write(reinterpret_cast<const char*>(&startTimesSize), sizeof(startTimesSize));
-        stream.write(reinterpret_cast<const char*>(headerAnimeStartTimes.data()),
-            startTimesSize * sizeof(std::pair<uint64_t, int64_t>));
+        SendMessage("Record: Stopped");
+        SendMessage("Network: record_vsync_range %lu %lu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
 
-        const auto imageCacheConsumption = ImageCache::Consumption();
-        SendMessage("Record: Image cache memory usage: %.2fMB (%zu)", Utils::Megabytes(imageCacheConsumption),
-            imageCacheConsumption);
-        ImageCache::Serialize(stream);
-
-        const auto binary = stream.str();
-        Network::SendBinary(binary);
-        SendMessage("Record: Sent: %.2fMB (%zu)", Utils::Megabytes(binary.size()), binary.size());
-    }
-    SaveBetaRecordFile(g_recordFile);
-    g_recordFile.Close();
-    g_recordStartTime = 0.0;
-
-    ImageCache::Reset();
-    g_lastCacheImageCount = 0;
-
-    SendMessage("Record: Stopped");
-    SendMessage("Network: record_vsync_range %llu %llu", g_recordMinVsync, g_recordMaxVsync); // DO NOT TOUCH!
+        SetMode(Mode::NONE);
+    });
+    thread.detach();
 }
 
 void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
 {
+    if (!IsNoneMode()) {
+        SendMessage("Playback: PrepareFirstFrame failed. Record/Saving is in progress");
+        return;
+    }
+
     if (g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
         Respond("FAILED: rsrecord_replay_prepare was already called");
         return;
@@ -1821,17 +1832,7 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
         g_playbackPauseTime = g_playbackFile.ConvertVsyncId2Time(args.Int64(1));
     }
 
-    const auto& fileAnimeStartTimes = g_playbackFile.GetAnimeStartTimes();
-    for (const auto& item : fileAnimeStartTimes) {
-        if (animeMap.count(item.first)) {
-            animeMap[Utils::PatchNodeId(item.first)].push_back(item.second);
-        } else {
-            std::vector<int64_t> list;
-            list.push_back(item.second);
-            animeMap.insert({ Utils::PatchNodeId(item.first), list });
-        }
-    }
-
+    AnimeGetStartTimesFromFile(animeMap);
     std::string dataFirstFrame = g_playbackFile.GetHeaderFirstFrame();
 
     // get first frame data
@@ -1849,6 +1850,20 @@ void RSProfiler::PlaybackPrepareFirstFrame(const ArgList& args)
     AwakeRenderServiceThread();
 }
 
+void RSProfiler::AnimeGetStartTimesFromFile(std::unordered_map<AnimationId, std::vector<int64_t>>& animeMap)
+{
+    const auto& fileAnimeStartTimes = g_playbackFile.GetAnimeStartTimes();
+    for (const auto& item : fileAnimeStartTimes) {
+        if (animeMap.count(item.first)) {
+            animeMap[Utils::PatchNodeId(item.first)].push_back(item.second);
+        } else {
+            std::vector<int64_t> list;
+            list.push_back(item.second);
+            animeMap.insert({ Utils::PatchNodeId(item.first), list });
+        }
+    }
+}
+
 void RSProfiler::RecordSendBinary(const ArgList& args)
 {
     bool flag = args.Int8(0);
@@ -1862,6 +1877,11 @@ void RSProfiler::RecordSendBinary(const ArgList& args)
 
 void RSProfiler::PlaybackStart(const ArgList& args)
 {
+    if (!IsNoneMode()) {
+        SendMessage("Playback: Start failed. Record/Saving is in progress");
+        return;
+    }
+
     if (!g_playbackFile.IsOpen() || !g_childOfDisplayNodes.empty()) {
         Respond("FAILED: rsrecord_replay was already called");
         return;
@@ -1893,8 +1913,7 @@ void RSProfiler::PlaybackStart(const ArgList& args)
         while (IsPlaying()) {
             const int64_t timestamp = static_cast<int64_t>(RawNowNano());
 
-            const double deltaTime = Now() - g_playbackStartTime;
-            const double readTime = PlaybackUpdate(deltaTime);
+            PlaybackUpdate(PlaybackDeltaTime());
 
             const int64_t timeout = timeoutLimit - static_cast<int64_t>(RawNowNano()) + timestamp;
             if (timeout > 0) {
@@ -1902,9 +1921,8 @@ void RSProfiler::PlaybackStart(const ArgList& args)
             }
         }
         if (g_playbackFile.IsOpen()) {
-            const double deltaTime = Now() - g_playbackStartTime;
-            if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(deltaTime)) {
-                SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+            if (auto vsyncId = g_playbackFile.ConvertTime2VsyncId(PlaybackDeltaTime())) {
+                SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
             }
             g_playbackFile.Close();
         }
@@ -1944,6 +1962,11 @@ void RSProfiler::PlaybackStop(const ArgList& args)
     g_replayLastPauseTimeReported = 0;
 
     SendMessage("Playback stop"); // DO NOT TOUCH!
+}
+
+double RSProfiler::PlaybackDeltaTime()
+{
+    return Now() - g_playbackStartTime;
 }
 
 double RSProfiler::PlaybackUpdate(double deltaTime)
@@ -2027,7 +2050,7 @@ void RSProfiler::PlaybackPause(const ArgList& args)
 
     int64_t vsyncId = g_playbackFile.ConvertTime2VsyncId(recordPlayTime);
     if (vsyncId) {
-        SendMessage("Replay timer paused vsyncId=%lld", vsyncId); // DO NOT TOUCH!
+        SendMessage("Replay timer paused vsyncId=%" PRId64 "", vsyncId); // DO NOT TOUCH!
     }
     g_replayLastPauseTimeReported = recordPlayTime;
 }
@@ -2127,10 +2150,13 @@ void RSProfiler::BlinkNodeUpdate()
         }
     } else {
         // remove node
-        const auto parentNode = g_blinkSavedParentChildren[0];
         auto blinkNode = GetRenderNode(g_blinkNodeId);
-        parentNode->RemoveChild(blinkNode);
-        blinkNode->ResetParent();
+        if (const auto parentNode = g_blinkSavedParentChildren[0]) {
+            parentNode->RemoveChild(blinkNode);
+        }
+        if (blinkNode) {
+            blinkNode->ResetParent();
+        }
     }
 
     g_blinkNodeCount++;
@@ -2169,4 +2195,18 @@ void RSProfiler::CalcPerfNodeUpdate()
     AwakeRenderServiceThread();
 }
 
+std::vector<std::pair<uint64_t, int64_t>> RSProfiler::AnimeGetStartTimesFlattened(double recordStartTime)
+{
+    std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes;
+    std::unordered_map<AnimationId, std::vector<int64_t>> &headerAnimeStartTimesMap = AnimeGetStartTimes();
+    for (const auto& item : headerAnimeStartTimesMap) {
+        for (const auto time : item.second) {
+            headerAnimeStartTimes.push_back({
+                Utils::PatchNodeId(item.first),
+                time - Utils::ToNanoseconds(recordStartTime)
+            });
+        }
+    }
+    return headerAnimeStartTimes;
+}
 } // namespace OHOS::Rosen

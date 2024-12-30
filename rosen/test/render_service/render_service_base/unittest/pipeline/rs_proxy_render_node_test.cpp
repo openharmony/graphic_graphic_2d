@@ -51,6 +51,7 @@ HWTEST_F(RSProxyRenderNodeTest, LifeCycel001, TestSize.Level1)
     auto target = std::make_shared<RSSurfaceRenderNode>(config);
     auto node = std::make_shared<RSProxyRenderNode>(id, target, targetId);
     std::shared_ptr<RSNodeVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
+    ASSERT_NE(visitor, nullptr);
     node->Prepare(visitor);
     node->Process(visitor);
     auto matrix = Drawing::Matrix();

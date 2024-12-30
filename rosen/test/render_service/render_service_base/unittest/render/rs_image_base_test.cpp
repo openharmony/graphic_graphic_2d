@@ -297,6 +297,249 @@ HWTEST_F(RSImageBaseTest, ProcessYUVImageTest, TestSize.Level1)
     EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
 }
 
+
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is ARGB_8888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest013, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::ARGB_8888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGB_565
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest012, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_565;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGBA_8888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest011, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_8888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is BGRA_8888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest010, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::BGRA_8888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGB_888
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest009, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGB_888;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is ALPHA_8
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest008, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::ALPHA_8;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGBA_F16
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest007, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_F16;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is NV21
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest006, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::NV21;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is CMYK
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::CMYK;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is YCBCR_P010
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::YCBCR_P010;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is YCRCB_P010
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest003, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::YCRCB_P010;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+/**
+ * @tc.name: ProcessYUVImageTest001
+ * @tc.desc: pixelFormat is RGBA_1010102
+ * @tc.type:FUNC
+ * @tc.require: issuesI9TOXM
+ */
+HWTEST_F(RSImageBaseTest, ProcessYUVImageTest002, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    ASSERT_NE(imageBase, nullptr);
+    std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
+    imageBase->ProcessYUVImage(gpuContext);
+    gpuContext = std::make_shared<Drawing::GPUContext>();
+    imageBase->ProcessYUVImage(gpuContext);
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->imageInfo_.pixelFormat = Media::PixelFormat::RGBA_1010102;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->ProcessYUVImage(gpuContext);
+    EXPECT_EQ(RSPixelMapUtil::ConvertYUVPixelMapToDrawingImage(gpuContext, pixelMap), nullptr);
+}
+
 /**
  * @tc.name: MarkRenderServiceImageTest001
  * @tc.desc: Verify function MarkRenderServiceImage
@@ -326,6 +569,60 @@ HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest002, TestSize.Level1)
     auto imageBase = std::make_shared<RSImageBase>();
     auto pixelMap = std::make_shared<Media::PixelMap>();
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest103
+ * @tc.desc: allocatorType_ is DEFAULT
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest103, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::DEFAULT;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest004
+ * @tc.desc: allocatorType_ is CUSTOM_ALLOC
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest004, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::CUSTOM_ALLOC;
+    pixelMap->editable_ = true;
+    pixelMap->isAstc_ = true;
+    imageBase->SetPixelMap(pixelMap);
+    imageBase->MarkRenderServiceImage();
+    EXPECT_TRUE(imageBase->renderServiceImage_);
+}
+
+/**
+ * @tc.name: MarkRenderServiceImageTest005
+ * @tc.desc: allocatorType_ is DMA_ALLOC
+ * @tc.type:FUNC
+ * @tc.require: issue#IB2B3G
+ */
+HWTEST_F(RSImageBaseTest, MarkRenderServiceImageTest005, TestSize.Level1)
+{
+    auto imageBase = std::make_shared<RSImageBase>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     pixelMap->editable_ = true;
     pixelMap->isAstc_ = true;
     imageBase->SetPixelMap(pixelMap);

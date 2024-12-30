@@ -31,11 +31,13 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
     auto availableBufferCnt = node.GetAvailableBufferCount();
     if (availableBufferCnt <= 0) {
         // this node has no new buffer, try use old buffer.
+        RS_LOGI("RSRcdRenderVisitor no availablebuffer(%{public}d) use old buffer!", availableBufferCnt);
         return true;
     }
 
     auto consumer = node.GetConsumer();
     if (consumer == nullptr) {
+        RS_LOGE("RSRcdRenderVisitor no consumer is null!");
         return false;
     }
 
@@ -65,7 +67,9 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
 void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRenderNode& node, bool resourceChanged)
 {
     if (uniProcessor_ == nullptr || node.IsInvalidSurface() || resourceChanged) {
-        RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid or resource is changed!");
+        RS_LOGE("RSRcdRenderVisitor RSProcessor null, node invalid, resource changed %{public}d %{public}d %{public}d",
+            static_cast<int>(uniProcessor_ == nullptr), static_cast<int>(node.IsInvalidSurface()),
+            static_cast<int>(resourceChanged));
         return;
     }
 
@@ -74,6 +78,7 @@ void RSRcdRenderVisitor::ProcessRcdSurfaceRenderNodeMainThread(RSRcdSurfaceRende
         uniProcessor_->ProcessRcdSurface(node);
         return;
     }
+    RS_LOGD_IF(DEBUG_PIPELINE, "RSRcdRenderVisitor node buffer is null!");
 }
 
 bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
@@ -81,7 +86,8 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
 {
     std::lock_guard<std::mutex> lock(bufferMut_);
     if (uniProcessor_ == nullptr || node.IsInvalidSurface() || renderEngine_ == nullptr) {
-        RS_LOGE("RSRcdRenderVisitor RSProcessor is null or node invalid!");
+        RS_LOGE("RSRcdRenderVisitor ProcessRcd NG %{public}d %{public}d %{public}d", static_cast<int>(uniProcessor_ ==
+            nullptr), static_cast<int>(node.IsInvalidSurface()), static_cast<int>(renderEngine_ == nullptr));
         return false;
     }
 
@@ -130,6 +136,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     }
 
     uniProcessor_->ProcessRcdSurface(node);
+    node.PrintRcdNodeInfo();
     return true;
 }
 

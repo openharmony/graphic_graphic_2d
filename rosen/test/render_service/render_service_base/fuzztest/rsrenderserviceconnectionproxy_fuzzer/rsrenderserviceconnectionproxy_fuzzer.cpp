@@ -31,6 +31,8 @@
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
 #include "platform/ohos/rs_render_service_connection_proxy.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -101,6 +103,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t uid = GetData<int32_t>();
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
+    int32_t expectedFps = GetData<int32_t>();
     int32_t x = GetData<int32_t>();
     int32_t y = GetData<int32_t>();
     int32_t w = GetData<int32_t>();
@@ -132,6 +135,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     sptr<RSIOcclusionChangeCallback> rsIOcclusionChangeCallback = iface_cast<RSIOcclusionChangeCallback>(remoteObject);
     sptr<RSISurfaceOcclusionChangeCallback> callbackTwo = iface_cast<RSISurfaceOcclusionChangeCallback>(remoteObject);
     sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> rsIFrameRateLinkerExpectedFpsUpdateCallback =
+        iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
     std::vector<ScreenColorGamut> mode;
     std::vector<ScreenHDRMetadataKey> keys;
     std::vector<ScreenHDRFormat> hdrFormats;
@@ -152,6 +157,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     GameStateData gameStateDataInfo;
     MessageParcel messageParcel;
     MessageParcel reply;
+    RSFrameRateLinkerExpectedFpsUpdateCallbackProxy rsFrameRateLinkerExpectedFpsUpdateCallbackProxy(remoteObject);
     RSRenderServiceConnectionProxy rsRenderServiceConnectionProxy(remoteObject);
     rsRenderServiceConnectionProxy.CommitTransaction(transactionData);
     rsRenderServiceConnectionProxy.ExecuteSynchronousTask(task);
@@ -243,6 +249,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.GetGlobalDirtyRegionInfo();
     rsRenderServiceConnectionProxy.GetLayerComposeInfo();
     rsRenderServiceConnectionProxy.GetHwcDisabledReasonInfo();
+    rsRenderServiceConnectionProxy.GetHdrOnDuration();
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(true);
     rsRenderServiceConnectionProxy.SetVmaCacheStatus(false);
     rsRenderServiceConnectionProxy.SetVirtualScreenUsingStatus(true);
@@ -253,6 +260,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsRenderServiceConnectionProxy.ReportGameStateDataRs(messageParcel, reply, option, gameStateDataInfo);
     rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(true);
     rsRenderServiceConnectionProxy.SetFreeMultiWindowStatus(false);
+    rsRenderServiceConnectionProxy.RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid1,
+        rsIFrameRateLinkerExpectedFpsUpdateCallback);
+    rsFrameRateLinkerExpectedFpsUpdateCallbackProxy.OnFrameRateLinkerExpectedFpsUpdate(pid, expectedFps);
     return true;
 }
 

@@ -66,7 +66,6 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//third_party/googletest/googletest/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src",
-    "//commonlibrary/c_utils/base/include",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing/engine_adapter",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/src/drawing",
   ]
@@ -76,6 +75,7 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
   ]
 
   external_deps = [
+    "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
     "jsoncpp:jsoncpp",

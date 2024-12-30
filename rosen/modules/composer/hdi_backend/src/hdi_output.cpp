@@ -133,9 +133,9 @@ void HdiOutput::SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos)
             continue;
         }
         if (layerInfo->GetSurface() == nullptr) {
-            int32_t ret = CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
-            if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-                HLOGE("HdiOutput::SetLayerInfo failed %{public}zu.", surfaceIdMap_.size());
+            if (layerInfo->GetCompositionType() ==
+                GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+                CreateLayerLocked(SOLID_SURFACE_COUNT++, layerInfo);
             }
             continue;
         }
@@ -226,7 +226,7 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &lay
         (arsrPreEnabled_ && CheckSupportArsrPreMetadata() && CheckIfDoArsrPre(layerInfo))) {
         const std::vector<int8_t> valueBlob{static_cast<int8_t>(1)};
         if (device_->SetLayerPerFrameParameter(screenId_,
-            layerId, GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob) != 0) {
+            layerId, GENERIC_METADATA_KEY_ARSR_PRE_NEEDED, valueBlob) != GRAPHIC_DISPLAY_SUCCESS) {
             HLOGE("SetLayerPerFrameParameter Fail!");
         }
     }
@@ -248,7 +248,7 @@ void HdiOutput::GetComposeClientLayers(std::vector<LayerPtr>& clientLayers)
 {
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto &[first, layer] : layerIdMap_) {
-        if (layer == nullptr) {
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr) {
             continue;
         }
         if (layer->GetLayerInfo()->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT ||
@@ -369,7 +369,7 @@ int32_t HdiOutput::UpdateLayerCompType()
 
 bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index)
 {
-    uint32_t bufferCahceSize = (uint32_t)bufferCache_.size();
+    uint32_t bufferCahceSize = static_cast<uint32_t>(bufferCache_.size());
     for (uint32_t i = 0; i < bufferCahceSize; i++) {
         if (bufferCache_[i] == buffer) {
             index = i;
@@ -382,7 +382,7 @@ bool HdiOutput::CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint
         ClearBufferCache();
     }
 
-    index = (uint32_t)bufferCache_.size();
+    index = static_cast<uint32_t>(bufferCache_.size());
     bufferCache_.push_back(buffer);
     return false;
 }
@@ -517,7 +517,7 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     bool startSample = false;
     if (timestamp != SyncFence::FENCE_PENDING_TIMESTAMP) {
-        startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(timestamp);
+        startSample = sampler_->GetVsyncSamplerEnabled() && sampler_->AddPresentFenceTime(screenId_, timestamp);
         RecordCompositionTime(timestamp);
         bool presentTimeUpdated = false;
         LayerPtr uniRenderLayer = nullptr;
@@ -610,8 +610,9 @@ void HdiOutput::ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence)
         // When release fence's size is 0, the output may invalid, release all buffer
         // This situation may happen when killing composer_host
         for (const auto& [id, layer] : layerIdMap_) {
-            if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
-                HLOGW("HdiOutput::ReleaseLayers: layer or layer's cSurface is nullptr");
+            if (layer == nullptr || layer->GetLayerInfo() == nullptr ||
+                layer->GetLayerInfo()->GetSurface() == nullptr) {
+                HLOGW("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
                 continue;
             }
             auto preBuffer = layer->GetLayerInfo()->GetPreBuffer();
@@ -650,8 +651,8 @@ void HdiOutput::ReleaseLayers(sptr<SyncFence>& releaseFence)
     // get present timestamp from and set present timestamp to cSurface
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [id, layer] : layerIdMap_) {
-        if (layer == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
-            HLOGW("HdiOutput::ReleaseLayers: layer or layer's cSurface is nullptr");
+        if (layer == nullptr || layer->GetLayerInfo() == nullptr || layer->GetLayerInfo()->GetSurface() == nullptr) {
+            HLOGW("HdiOutput::ReleaseLayers: layer or layerInfo or layer's cSurface is nullptr");
             continue;
         }
         layerPresentTimestamp(layer->GetLayerInfo(), layer->GetLayerInfo()->GetSurface());
@@ -756,7 +757,7 @@ void HdiOutput::DumpFps(std::string &result, const std::string &arg) const
         result += "The fps of screen [Id:" + std::to_string(screenId_) + "] is:\n";
         const int32_t offset = compTimeRcdIndex_;
         for (uint32_t i = 0; i < COMPOSITION_RECORDS_NUM; i++) {
-            uint32_t order = (offset + i) % COMPOSITION_RECORDS_NUM;
+            uint32_t order = (offset + COMPOSITION_RECORDS_NUM - i - 1) % COMPOSITION_RECORDS_NUM;
             result += std::to_string(compositionTimeRecords_[order]) + "\n";
         }
         return;

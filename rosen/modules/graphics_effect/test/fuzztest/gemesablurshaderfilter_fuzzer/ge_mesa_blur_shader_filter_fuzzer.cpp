@@ -16,6 +16,7 @@
 #include "ge_mesa_blur_shader_filter_fuzzer.h"
 #include "ge_mesa_blur_shader_filter.h"
 #include "get_object.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace Rosen {
@@ -83,12 +84,8 @@ int GetRadiusFuzzTest(const uint8_t *data, size_t size)
     if (data == nullptr) {
         return 0;
     }
-    // initialize
-    GETest::g_data = data;
-    GETest::g_size = size;
-    GETest::g_pos = 0;
-
-    int radius = GETest::GetPlainData<int>();
+    FuzzedDataProvider fdp(data, size);
+    int radius = fdp.ConsumeIntegral<int32_t>();
     Drawing::GEMESABlurShaderFilterParams params{radius, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f};
     auto shaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
     return shaderFilter->GetRadius();

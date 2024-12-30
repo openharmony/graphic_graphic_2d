@@ -214,6 +214,15 @@ void SkiaGPUContext::DumpGpuStats(std::string& out)
     out = stat.c_str();
 }
 
+void SkiaGPUContext::DumpAllResource(std::stringstream& dump)
+{
+    if (!grContext_) {
+        LOGD("SkiaGPUContext::DumpAllResource, grContext_ is nullptr");
+        return;
+    }
+    grContext_->dumpAllResource(dump);
+}
+
 void SkiaGPUContext::ReleaseResourcesAndAbandonContext()
 {
     if (!grContext_) {

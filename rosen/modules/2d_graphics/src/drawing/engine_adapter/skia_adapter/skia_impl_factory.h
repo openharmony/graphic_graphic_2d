@@ -36,6 +36,7 @@
 #include "impl_interface/matrix44_impl.h"
 #include "impl_interface/path_effect_impl.h"
 #include "impl_interface/path_impl.h"
+#include "impl_interface/path_iterator_impl.h"
 #include "impl_interface/picture_impl.h"
 #include "impl_interface/region_impl.h"
 #include "impl_interface/resource_holder_impl.h"
@@ -70,6 +71,7 @@ public:
     static std::unique_ptr<ImageImpl> CreateImage(void* rawImg);
     static std::unique_ptr<PictureImpl> CreatePicture();
     static std::unique_ptr<PathImpl> CreatePath();
+    static std::unique_ptr<PathIteratorImpl> CreatePathIterator(const Path& path);
     static std::unique_ptr<ColorFilterImpl> CreateColorFilter();
     static std::unique_ptr<MaskFilterImpl> CreateMaskFilter();
     static std::unique_ptr<ImageFilterImpl> CreateImageFilter();

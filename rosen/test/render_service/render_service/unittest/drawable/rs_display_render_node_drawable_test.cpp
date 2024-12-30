@@ -187,6 +187,7 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, InitTranslateForWallpaper, TestSize.Le
     auto& rtThread = RSUniRenderThread::Instance();
     EXPECT_EQ(rtThread.wallpaperTranslate_.first, 21);
     EXPECT_EQ(rtThread.wallpaperTranslate_.second, 21);
+    system::SetParameter("const.cache.optimize.rotate.enable", "false");
 }
 
 /**
@@ -209,8 +210,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable2 = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2);
     surfaceNode2->InitRenderParams();
-    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable1);
-    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable2);
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(std::make_pair(1, drawable1));
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(std::make_pair(1, drawable2));
     ASSERT_NE(renderNode_, nullptr);
     renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
     renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
@@ -871,54 +872,58 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest007, TestSize.L
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest001
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate 0
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 0
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest001, TestSize.Level1)
 {
-    uint32_t refreshRate = 0;
-    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = 0;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest002
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate UINT32_MAX
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate UINT32_MAX
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest002, TestSize.Level1)
 {
-    uint32_t refreshRate = UINT32_MAX;
-    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = UINT32_MAX;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest003
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate 60
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 60
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest003, TestSize.Level1)
 {
     uint32_t refreshRate = 60; // 60hz
-    displayDrawable_->SkipFrameByRefreshRate(refreshRate);
+    uint32_t expectedRefreshRate = 60; // 60hz
+    displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate);
     usleep(5000); // 5000us == 5ms
-    ASSERT_TRUE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest004
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate 60
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 60
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest004, TestSize.Level1)
 {
     uint32_t refreshRate = 60; // 60hz
-    displayDrawable_->SkipFrameByRefreshRate(refreshRate);
+    uint32_t expectedRefreshRate = 60; // 60hz
+    displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate);
     usleep(100000); // 100000us == 100ms
-    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
@@ -1341,6 +1346,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
     ASSERT_NE(params, nullptr);
     displayDrawable_->FindHardwareEnabledNodes(*params);
     ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.size(), 2);
+}
+
+/**
+ * @tc.name: MakeBrightnessAdjustmentShader
+ * @tc.desc: Test MakeBrightnessAdjustmentShader
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, MakeBrightnessAdjustmentShader, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::SamplingOptions sampling;
+    ASSERT_NE(displayDrawable_->MakeBrightnessAdjustmentShader(image, sampling, 0.5f), nullptr);
 }
 
 /**

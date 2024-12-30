@@ -169,6 +169,16 @@ std::unique_ptr<PathImpl> ImplFactory::CreatePathImpl()
     return EngineImplFactory::CreatePath();
 }
 
+std::unique_ptr<PathIteratorImpl> ImplFactory::CreatePathIteratorImpl(const Path& path)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreatePathIterator();
+    }
+#endif
+    return EngineImplFactory::CreatePathIterator(path);
+}
+
 std::unique_ptr<ColorFilterImpl> ImplFactory::CreateColorFilterImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

@@ -350,16 +350,6 @@ public:
         return needRequestNextVsyncAnimate_;
     }
 
-    bool GetNextDVsyncDrawBehindWindowFlag() const
-    {
-        return needRequestNextVsyncDrawBehindWindow_;
-    }
-
-    void SetNextDVsyncDrawBehindWindowFlag(bool flag)
-    {
-        needRequestNextVsyncDrawBehindWindow_ = flag;
-    }
-
     bool IsFirstFrameOfPartialRender() const
     {
         return isFirstFrameOfPartialRender_;
@@ -396,14 +386,15 @@ public:
     {
         return hasWiredMirrorDisplay_;
     }
-
-    void UpdateFrameRateLinker(const RSRenderFrameRateLinker& linker)
+    uint64_t GetCurrentVsyncTime() const
     {
-        postHgmTaskFlag_ = true;
+        return curTime_;
     }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
+    using DrawablesVec = std::vector<std::pair<NodeId,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     RSMainThread();
     ~RSMainThread() noexcept;
@@ -414,6 +405,7 @@ private:
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
     void ProcessCommand();
+    void UpdateSubSurfaceCnt();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void CollectInfoForHardwareComposer();
@@ -640,9 +632,8 @@ private:
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
     bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
-#ifdef RS_ENABLE_GPU
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledDrwawables_;
-#endif
+    DrawablesVec hardwareEnabledDrwawables_;
+
     // for client node tree dump
     struct NodeTreeDumpTask {
         size_t count = 0;
@@ -663,7 +654,6 @@ private:
     bool hasProtectedLayer_ = false;
 
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
-    bool postHgmTaskFlag_ = false;
     pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
@@ -712,8 +702,6 @@ private:
     // for dvsync (animate requestNextVSync after mark rsnotrendering)
     bool needRequestNextVsyncAnimate_ = false;
 
-    bool needRequestNextVsyncDrawBehindWindow_ = false;
-
     bool forceUIFirstChanged_ = false;
 
     // uiextension
@@ -757,6 +745,10 @@ private:
     bool isRegionDebugEnabledOfLastFrame_ = false;
 
     bool isForceRefresh_ = false;
+
+#ifdef RS_ENABLE_VK
+    bool needCreateVkPipeline_ = true;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

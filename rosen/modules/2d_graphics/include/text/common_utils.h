@@ -25,9 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-const uint16_t LOW_BYTE_MASK = 0x00FF;
-const uint16_t HIGH_BYTE_MASK = 0xFF00;
-const int BYTE_SHIFT = 8;
 
 [[maybe_unused]] static bool IsUtf8(const char* text, uint32_t len)
 {
@@ -58,12 +55,6 @@ const int BYTE_SHIFT = 8;
     return true;
 }
 
-[[maybe_unused]] static inline bool IsBigEndian()
-{
-    int num = 1;
-    return (*(reinterpret_cast<uint8_t*>(&num)) == 0);
-}
-
 [[maybe_unused]] static bool ConvertToString(const uint8_t* data, size_t len, std::string& fullNameString)
 {
     if (data == nullptr || len == 0) {
@@ -73,18 +64,9 @@ const int BYTE_SHIFT = 8;
     size_t utf16Len = len / sizeof(char16_t);
     std::unique_ptr<char16_t[]> utf16Str = std::make_unique<char16_t[]>(utf16Len);
 
-    if (IsBigEndian()) {
-        errno_t ret = memcpy_s(utf16Str.get(), utf16Len * sizeof(char16_t), data, len);
-        if (ret != EOK) {
-            return false;
-        }
-    } else {
-        for (size_t i = 0; i < utf16Len; ++i) {
-            const char16_t* utf16Data = reinterpret_cast<const char16_t*>(data);
-            uint16_t temp = static_cast<uint16_t>(utf16Data[i]);
-            utf16Str[i] = static_cast<char16_t>((temp & LOW_BYTE_MASK) << BYTE_SHIFT |
-                (temp & HIGH_BYTE_MASK) >> BYTE_SHIFT);
-        }
+    errno_t ret = memcpy_s(utf16Str.get(), utf16Len * sizeof(char16_t), data, len);
+    if (ret != EOK) {
+        return false;
     }
 
     std::u16string utf16String(utf16Str.get(), utf16Len);

@@ -606,9 +606,10 @@ void RSBaseRenderEngine::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffe
         RS_OPTIONAL_TRACE_END();
         return;
     }
-    if (params.isHdrRedraw || RSUniRenderThread::GetCaptureParam().isSnapshot_ ||
-        RSUniRenderThread::GetCaptureParam().isMirror_) {
-        parameter.disableHeadRoom = true;
+    if (params.isHdrRedraw) {
+        parameter.disableHdrFloatHeadRoom = true;
+    } else if (params.isHdrToSdr) {
+        parameter.tmoNits = parameter.sdrNits;
     }
 
     std::shared_ptr<Drawing::ShaderEffect> outputShader;
@@ -646,6 +647,7 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorGamutToDraw
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
             break;
         default:
+            colorSpace = Drawing::ColorSpace::CreateSRGB();
             break;
     }
 
@@ -756,12 +758,17 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         return;
     }
 
-    if (parameter.inputColorSpace.colorSpaceInfo.primaries == parameter.outputColorSpace.colorSpaceInfo.primaries
-        && parameter.inputColorSpace.colorSpaceInfo.transfunc == parameter.outputColorSpace.colorSpaceInfo.transfunc) {
+    if (parameter.inputColorSpace.colorSpaceInfo.primaries == parameter.outputColorSpace.colorSpaceInfo.primaries &&
+        parameter.inputColorSpace.colorSpaceInfo.transfunc == parameter.outputColorSpace.colorSpaceInfo.transfunc &&
+        !canvas.GetHdrOn()) {
         RS_LOGD("RSBaseRenderEngine::DrawImage primaries and transfunc equal.");
         DrawImageRect(canvas, image, params, samplingOptions);
         return;
     }
+
+    // HDR to SDR, tmoNits equal sdrNits
+    params.isHdrToSdr = canvas.IsOnMultipleScreen() || !canvas.GetHdrOn();
+
     Drawing::Matrix matrix;
     auto srcWidth = params.srcRect.GetWidth();
     auto srcHeight = params.srcRect.GetHeight();

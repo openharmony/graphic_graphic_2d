@@ -40,20 +40,20 @@ public:
 };
 
 ADD_COMMAND(RSRootNodeCreate,
-    ARG(NO_INTERCEPTION, ROOT_NODE, ROOT_NODE_CREATE,
+    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_CREATE,
         RootNodeCommandHelper::Create, NodeId, bool))
 ADD_COMMAND(RSRootNodeAttachRSSurfaceNode,
-    ARG(NO_INTERCEPTION, ROOT_NODE, ROOT_NODE_ATTACH,
+    ARG(PERMISSION_APP, ROOT_NODE, ROOT_NODE_ATTACH,
         RootNodeCommandHelper::AttachRSSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeSetEnableRender,
-    ARG(NO_INTERCEPTION, ROOT_NODE, SET_ENABLE_RENDER,
+    ARG(PERMISSION_APP, ROOT_NODE, SET_ENABLE_RENDER,
         RootNodeCommandHelper::SetEnableRender, NodeId, bool))
 // unirender
 ADD_COMMAND(RSRootNodeAttachToUniSurfaceNode,
-    ARG(NO_INTERCEPTION, ROOT_NODE, ATTACH_TO_UNI_SURFACENODE,
+    ARG(PERMISSION_APP, ROOT_NODE, ATTACH_TO_UNI_SURFACENODE,
         RootNodeCommandHelper::AttachToUniSurfaceNode, NodeId, NodeId))
 ADD_COMMAND(RSRootNodeUpdateSuggestedBufferSize,
-    ARG(NO_INTERCEPTION, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
+    ARG(PERMISSION_APP, ROOT_NODE, UPDATE_SUGGESTED_BUFFER_SIZE,
         RootNodeCommandHelper::UpdateSuggestedBufferSize, NodeId, float, float))
 
 } // namespace Rosen

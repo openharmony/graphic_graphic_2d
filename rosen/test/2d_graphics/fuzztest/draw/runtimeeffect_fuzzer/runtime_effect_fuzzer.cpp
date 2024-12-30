@@ -45,6 +45,7 @@ bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
     for (size_t i = 0; i < length; i++) {
         text[i] = GetObject<char>();
     }
+    text[length - 1] = '\0';
     std::shared_ptr<RuntimeEffect> runtimeEffect = RuntimeEffect::CreateForShader(std::string(text));
     runtimeEffect->GetDrawingType();
     bool isOpaque = GetObject<bool>();
@@ -54,7 +55,7 @@ bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
         dataText[i] = GetObject<char>();
     }
     dataText[length - 1] = '\0';
-    dataVal->BuildWithoutCopy(dataText, length);
+    dataVal->BuildWithoutCopy(dataText, length - 1);
     runtimeEffect->MakeShader(nullptr, nullptr, 0, nullptr, isOpaque);
     Matrix matrix;
     matrix.SetMatrix(

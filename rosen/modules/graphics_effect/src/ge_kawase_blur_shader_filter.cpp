@@ -169,18 +169,13 @@ std::shared_ptr<Drawing::Image> GEKawaseBlurShaderFilter::ProcessImage(Drawing::
     }
 
     auto input = image;
-    if (!input) {
-        return image;
-    }
     CheckInputImage(canvas, image, input, src);
     ComputeRadiusAndScale(radius_);
 
     float tmpRadius = static_cast<float>(blurRadius_ / DILATED_CONVOLUTION_LARGE_RADIUS);
     int numberOfPasses =
         std::min(MAX_PASSES_LARGE_RADIUS, std::max(static_cast<int>(ceil(tmpRadius)), 1)); // 1 : min pass num
-    if (numberOfPasses < 1) {                                                              // 1 : min pass num
-        numberOfPasses = 1;                                                                // 1 : min pass num
-    }
+
     float radiusByPasses = tmpRadius / numberOfPasses;
 
     auto width = std::max(static_cast<int>(std::ceil(dst.GetWidth())), input->GetWidth());

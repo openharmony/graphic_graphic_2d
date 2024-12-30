@@ -199,18 +199,15 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
+            GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+            rsImage_->SetDmaImage(image_);
         }
 #endif
 #if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan()) {
-            if (GetRsImageCache(canvas, pixelMap,
-                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
-                rsImage_->SetDmaImage(image_);
-            }
+        if (RSSystemProperties::IsUseVukan() &&
+            GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            rsImage_->SetDmaImage(image_);
         }
 #endif
         return;
@@ -735,7 +732,10 @@ DrawSurfaceBufferOpItem::DrawSurfaceBufferOpItem(
       surfaceBufferInfo_(nullptr, handle->surfaceBufferInfo.dstRect_.GetLeft(),
           handle->surfaceBufferInfo.dstRect_.GetTop(), handle->surfaceBufferInfo.dstRect_.GetWidth(),
           handle->surfaceBufferInfo.dstRect_.GetHeight(), handle->surfaceBufferInfo.pid_,
-          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.srcRect_)
+          handle->surfaceBufferInfo.uid_, nullptr, handle->surfaceBufferInfo.transform_,
+          handle->surfaceBufferInfo.srcRect_),
+      isNeedDrawDirectly_(!IsValidRemoteAddress(handle->surfaceBufferInfo.pid_,
+          handle->surfaceBufferInfo.uid_))
 {
     auto surfaceBufferEntry = CmdListHelper::GetSurfaceBufferEntryFromCmdList(cmdList, handle->surfaceBufferId);
     if (surfaceBufferEntry) {
@@ -765,7 +765,7 @@ void DrawSurfaceBufferOpItem::Marshalling(DrawCmdList& cmdList)
     cmdList.AddOp<ConstructorHandle>(CmdListHelper::AddSurfaceBufferEntryToCmdList(cmdList, surfaceBufferEntry),
         surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
         surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), surfaceBufferInfo_.pid_,
-        surfaceBufferInfo_.uid_, surfaceBufferInfo_.srcRect_, paintHandle);
+        surfaceBufferInfo_.uid_, surfaceBufferInfo_.transform_, surfaceBufferInfo_.srcRect_, paintHandle);
 }
 
 namespace {
@@ -785,10 +785,24 @@ void DrawSurfaceBufferOpItem::SetIsUniRender(bool isUniRender)
     contextIsUniRender = isUniRender;
 }
 
+void DrawSurfaceBufferOpItem::OnBeforeDraw()
+{
+    switch (MapGraphicTransformType(surfaceBufferInfo_.transform_)) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90 :
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_ROTATE_270 : {
+            isNeedRotateDstRect_ = true;
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void DrawSurfaceBufferOpItem::OnAfterDraw()
 {
     isRendered_ = true;
-    if (contextIsUniRender) {
+    if (contextIsUniRender || IsNeedDrawDirectly()) {
         return;
     }
     rootNodeId_ = getRootNodeIdForRT ? std::invoke(getRootNodeIdForRT) : INVALID_NODEID;
@@ -817,6 +831,9 @@ void DrawSurfaceBufferOpItem::OnAfterDraw()
 
 void DrawSurfaceBufferOpItem::ReleaseBuffer()
 {
+    if (IsNeedDrawDirectly()) {
+        return;
+    }
     if (surfaceBufferFinishCb && surfaceBufferInfo_.surfaceBuffer_) {
         RS_TRACE_NAME_FMT("DrawSurfaceBufferOpItem::ReleaseBuffer %s Release, isNeedTriggerCbDirectly = %d",
             std::to_string(surfaceBufferInfo_.surfaceBuffer_->GetSeqNum()).c_str(),
@@ -835,6 +852,9 @@ void DrawSurfaceBufferOpItem::ReleaseBuffer()
 
 void DrawSurfaceBufferOpItem::OnAfterAcquireBuffer()
 {
+    if (IsNeedDrawDirectly()) {
+        return;
+    }
     if (surfaceBufferAfterAcquireCb && surfaceBufferInfo_.surfaceBuffer_) {
         std::invoke(surfaceBufferAfterAcquireCb, DrawSurfaceBufferAfterAcquireCbData {
             .uid = surfaceBufferInfo_.uid_,
@@ -883,6 +903,7 @@ void DrawSurfaceBufferOpItem::Playback(Canvas* canvas, const Rect* rect)
     }
 #endif
     canvas->AttachPaint(paint_);
+    DealWithRotate(canvas);
     Draw(canvas);
 }
 
@@ -907,8 +928,46 @@ void DrawSurfaceBufferOpItem::Clear()
 #endif
 }
 
+void DrawSurfaceBufferOpItem::DealWithRotate(Canvas* canvas)
+{
+    // The first step rotates the center of the buffer by the corresponding
+    // number of degrees, and in the second step we translate according to
+    // the relative coordinates.
+    // The purpose of our translation is to align the 'upper left corner'
+    // of the relative coordinates to ensure that after rotating the buffer,
+    // the buffer can be drawn in the correct viewport.
+    auto halfW = surfaceBufferInfo_.dstRect_.GetWidth() / 2.f;
+    auto halfH = surfaceBufferInfo_.dstRect_.GetHeight() / 2.f;
+    auto halfWHDiff = halfW - halfH;
+    switch (MapGraphicTransformType(surfaceBufferInfo_.transform_)) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90 : {
+            canvas->Rotate(-90,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_0) + halfW,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_1) + halfH);
+            canvas->Translate(halfWHDiff, -halfWHDiff);
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_180 : {
+            canvas->Rotate(-180,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_0) + halfW,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_1) + halfH);
+            break;
+        }
+        case GraphicTransformType::GRAPHIC_ROTATE_270 : {
+            canvas->Rotate(-270,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_0) + halfW,
+                canvas->GetTotalMatrix().Get(Drawing::Matrix::PERSP_1) + halfH);
+            canvas->Translate(halfWHDiff, -halfWHDiff);
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 {
+    OnBeforeDraw();
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         DrawWithVulkan(canvas);
@@ -924,10 +983,83 @@ void DrawSurfaceBufferOpItem::Draw(Canvas* canvas)
 
 Drawing::BitmapFormat DrawSurfaceBufferOpItem::CreateBitmapFormat(int32_t bufferFormat)
 {
-    bool isRgbx = bufferFormat == OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888;
-    return { isRgbx ? Drawing::ColorType::COLORTYPE_RGB_888X : Drawing::ColorType::COLORTYPE_RGBA_8888,
-        isRgbx ? Drawing::AlphaType::ALPHATYPE_OPAQUE : Drawing::AlphaType::ALPHATYPE_PREMUL };
+    switch (bufferFormat) {
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_8888 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGBA_8888,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBX_8888 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGB_888X,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_BGRA_8888 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_BGRA_8888,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGB_565 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGB_565,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_OPAQUE,
+            };
+        }
+        case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_1010102 : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGBA_1010102,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+        default : {
+            return {
+                .colorType = Drawing::ColorType::COLORTYPE_RGBA_8888,
+                .alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL,
+            };
+        }
+    }
 }
+
+#ifdef RS_ENABLE_GL
+GLenum DrawSurfaceBufferOpItem::GetGLTextureFormatByBitmapFormat(Drawing::ColorType colorType)
+{
+    switch (colorType) {
+        case Drawing::ColorType::COLORTYPE_ALPHA_8 : {
+            return GL_ALPHA8_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGB_888X : {
+            return GL_RGBA8_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGB_565 : {
+            return GL_RGB565_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGBA_1010102 : {
+            return GL_RGB10_A2_EXT;
+        }
+        case Drawing::ColorType::COLORTYPE_BGRA_8888 : {
+            return GL_BGRA8_EXT;
+        }
+        case Drawing::ColorType::COLORTYPE_RGBA_8888 : {
+            return GL_RGBA8_OES;
+        }
+        case Drawing::ColorType::COLORTYPE_RGBA_F16 : {
+            return GL_RGBA16F_EXT;
+        }
+        case Drawing::ColorType::COLORTYPE_GRAY_8 :
+            [[fallthrough]];
+        case Drawing::ColorType::COLORTYPE_ARGB_4444 :
+            [[fallthrough]];
+        case Drawing::ColorType::COLORTYPE_N32 :
+            [[fallthrough]];
+        default : {
+            return GL_RGBA8_OES;
+        }
+    }
+}
+#endif
 
 void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
 {
@@ -961,7 +1093,15 @@ void DrawSurfaceBufferOpItem::DrawWithVulkan(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, surfaceBufferInfo_.dstRect_, Drawing::SamplingOptions());
+    auto rotatedRect = surfaceBufferInfo_.dstRect_;
+    if (isNeedRotateDstRect_) {
+        auto width = rotatedRect.GetWidth();
+        auto height = rotatedRect.GetHeight();
+        std::swap(width, height);
+        rotatedRect.SetRight(rotatedRect.GetLeft() + width);
+        rotatedRect.SetBottom(rotatedRect.GetTop() + height);
+    }
+    canvas->DrawImageRect(*image, surfaceBufferInfo_.srcRect_, rotatedRect, Drawing::SamplingOptions());
 #endif
 }
 
@@ -980,19 +1120,23 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
     if (!CreateEglTextureId()) {
         return;
     }
-    GrGLTextureInfo textureInfo = { GL_TEXTURE_EXTERNAL_OES, texId_, GL_RGBA8_OES };
+    auto rotatedRect = surfaceBufferInfo_.dstRect_;
+    if (isNeedRotateDstRect_) {
+        auto width = rotatedRect.GetWidth();
+        auto height = rotatedRect.GetHeight();
+        std::swap(width, height);
+        rotatedRect.SetRight(rotatedRect.GetLeft() + width);
+        rotatedRect.SetBottom(rotatedRect.GetTop() + height);
+    }
 
-    GrBackendTexture backendTexture(
-        surfaceBufferInfo_.dstRect_.GetWidth(), surfaceBufferInfo_.dstRect_.GetHeight(), GrMipMapped::kNo, textureInfo);
-
+    Drawing::BitmapFormat bitmapFormat = CreateBitmapFormat(surfaceBufferInfo_.surfaceBuffer_->GetFormat());
     Drawing::TextureInfo externalTextureInfo;
-    externalTextureInfo.SetWidth(surfaceBufferInfo_.dstRect_.GetWidth());
-    externalTextureInfo.SetHeight(surfaceBufferInfo_.dstRect_.GetHeight());
+    externalTextureInfo.SetWidth(rotatedRect.GetWidth());
+    externalTextureInfo.SetHeight(rotatedRect.GetHeight());
     externalTextureInfo.SetIsMipMapped(false);
     externalTextureInfo.SetTarget(GL_TEXTURE_EXTERNAL_OES);
     externalTextureInfo.SetID(texId_);
-    externalTextureInfo.SetFormat(GL_RGBA8_OES);
-    Drawing::BitmapFormat bitmapFormat = CreateBitmapFormat(surfaceBufferInfo_.surfaceBuffer_->GetFormat());
+    externalTextureInfo.SetFormat(GetGLTextureFormatByBitmapFormat(bitmapFormat.colorType));
     if (!canvas->GetGPUContext()) {
         LOGE("DrawSurfaceBufferOpItem::Draw: gpu context is nullptr");
         return;
@@ -1008,9 +1152,44 @@ void DrawSurfaceBufferOpItem::DrawWithGles(Canvas* canvas)
         LOGE("DrawSurfaceBufferOpItem::Draw: image BuildFromTexture failed");
         return;
     }
-    canvas->DrawImage(*newImage, surfaceBufferInfo_.dstRect_.GetLeft(), surfaceBufferInfo_.dstRect_.GetTop(),
-        Drawing::SamplingOptions());
+    canvas->DrawImage(*newImage, rotatedRect.GetLeft(), rotatedRect.GetTop(), Drawing::SamplingOptions());
 #endif // RS_ENABLE_GL
+}
+
+GraphicTransformType DrawSurfaceBufferOpItem::MapGraphicTransformType(GraphicTransformType origin)
+{
+    GraphicTransformType rotation;
+    switch (origin) {
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_90;
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_180;
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
+            [[fallthrough]];
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270:
+            rotation = GraphicTransformType::GRAPHIC_ROTATE_270;
+            break;
+        default:
+            rotation = origin;
+            break;
+    }
+    return rotation;
+}
+
+bool DrawSurfaceBufferOpItem::IsNeedDrawDirectly() const
+{
+    return isNeedDrawDirectly_;
+}
+
+bool DrawSurfaceBufferOpItem::IsValidRemoteAddress(pid_t pid, uint64_t uid)
+{
+    return pid != 0 && uid != 0ull;
 }
 
 bool DrawSurfaceBufferOpItem::CreateEglTextureId()
@@ -1065,6 +1244,7 @@ void DrawSurfaceBufferOpItem::DumpItems(std::string& out) const
     out += " height:" + std::to_string(surfaceBufferInfo_.dstRect_.GetHeight());
     out += " offSetX:" + std::to_string(surfaceBufferInfo_.dstRect_.GetLeft());
     out += " offSetY:" + std::to_string(surfaceBufferInfo_.dstRect_.GetTop());
+    out += " transform: " + std::to_string(surfaceBufferInfo_.transform_);
     out += "]";
 #ifdef RS_ENABLE_GL
     out += " texId:" + std::to_string(texId_);

@@ -128,7 +128,13 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam)
+{
+    return false;
+}
+
+bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     return false;
 }
@@ -253,6 +259,10 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
 }
 
 void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
+{
+}
+
+void RSRenderServiceClient::RepaintEverything()
 {
 }
 
@@ -505,7 +515,7 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
 }
 
 int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
-    uint32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+    int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
     return {};
 }
@@ -586,10 +596,6 @@ void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
 {
 }
 
-void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
@@ -612,6 +618,11 @@ LayerComposeInfo RSRenderServiceClient::GetLayerComposeInfo()
 HwcDisabledReasonInfos RSRenderServiceClient::GetHwcDisabledReasonInfo()
 {
     return {};
+}
+
+int64_t RSRenderServiceClient::GetHdrOnDuration()
+{
+    return 0;
 }
 
 void RSRenderServiceClient::SetVmaCacheStatus(bool flag)

@@ -101,6 +101,7 @@ enum class DrawSkipType : uint8_t {
     CHECK_MATCH_AND_WAIT_NOTIFY_FAIL = 27,
     DEAL_WITH_CACHED_WINDOW = 28,
     MULTI_ACCESS = 29,
+    RENDER_SKIP_IF_SCREEN_SWITCHING = 30,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
@@ -345,7 +346,15 @@ public:
     {
         return locked_;
     }
-
+    struct MultiAccessReportInfo {
+        bool drawableNotNull = false;
+        bool paramNotNull = false;
+        RSRenderNodeType nodeType = RSRenderNodeType::UNKNOW;
+        NodeId nodeId = INVALID_NODEID;
+        NodeId uifirstRootNodeId = INVALID_NODEID;
+        NodeId firstLevelNodeId = INVALID_NODEID;
+    };
+    void DrawableOnDrawMultiAccessEventReport(const std::string& func) const;
 private:
     RSRenderNodeDrawableAdapter* drawable_;
     const bool locked_;

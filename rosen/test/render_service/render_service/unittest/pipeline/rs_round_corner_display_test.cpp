@@ -376,6 +376,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
         std::cout << "RSRoundCornerDisplayTest: current os less rcd source" << std::endl;
         return;
     }
+    EXPECT_TRUE(imgBottomPortrait != nullptr);
     rcdInstance.DecodeBitmap(imgBottomPortrait, bitmapBottomPortrait);
 
     auto& rcdCfg = RSSingleton<rs_rcd::RCDConfig>::GetInstance();
@@ -393,6 +394,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
         return;
     }
     rcdInstance.rog_ = rog;
+    EXPECT_TRUE(rcdInstance.rog_ != nullptr);
     rcdInstance.GetTopSurfaceSource();
     rcdInstance.GetBottomSurfaceSource();
     rcdInstance.rog_ = nullptr;
@@ -403,6 +405,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ProcessRcdSurfaceRenderNode1, TestSize.Level1
         std::cout << "RSRoundCornerDisplayTest: current os less bottomLayer source" << std::endl;
         return;
     }
+    EXPECT_TRUE(portrait != std::nullopt);
     hardInfo.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>(portrait->layerDown);
     hardInfo.bottomLayer->layerWidth = width;
     hardInfo.bottomLayer->layerHeight = height;
@@ -1072,6 +1075,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RcdChooseHardwareResourceTest, TestSize.Level
     rcdInstance.RcdChooseHardwareResource();
 
     EXPECT_EQ(rcdInstance.showResourceType_, type);
+    rcdInstance.rog_ = nullptr;
     GTEST_LOG_(INFO) << "RSSymbolAnimationTest RcdChooseHardwareResourceTest end";
 }
 
@@ -1451,5 +1455,38 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRoundCornerDirtyRegion, TestSize.Level1)
     flag = rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::TOP);
     flag |= rcdInstance.HandleRoundCornerDirtyRect(id, dirtyRect, RoundCornerDisplayManager::RCDLayerType::BOTTOM);
     EXPECT_TRUE(!flag && dirtyRect.IsEmpty());
+}
+
+/*
+ * @tc.name: RoundCornerDisplayPrintRCD
+ * @tc.desc: Test RoundCornerDisplayPrintRCD printrcd
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayPrintRCD, TestSize.Level1)
+{
+    auto& rcdInstance = RSSingleton<RoundCornerDisplay>::GetInstance();
+    rcdInstance.lcdModel_ = nullptr;
+    rcdInstance.rog_ = nullptr;
+    rcdInstance.hardInfo_.topLayer = nullptr;
+    rcdInstance.hardInfo_.topLayer = nullptr;
+    rcdInstance.PrintRCDInfo();
+    EXPECT_TRUE(rcdInstance.lcdModel_ == nullptr);
+    rcdInstance.lcdModel_ = new rs_rcd::LCDModel();
+    rcdInstance.PrintRCDInfo();
+    EXPECT_TRUE(rcdInstance.lcdModel_ != nullptr);
+    rcdInstance.rog_ = new rs_rcd::ROGSetting();
+    rcdInstance.PrintRCDInfo();
+    EXPECT_TRUE(rcdInstance.rog_ != nullptr);
+    rcdInstance.hardInfo_.topLayer = std::make_shared<rs_rcd::RoundCornerLayer>();
+    rcdInstance.PrintRCDInfo();
+    EXPECT_TRUE(rcdInstance.hardInfo_.topLayer != nullptr);
+    rcdInstance.hardInfo_.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>();
+    rcdInstance.PrintRCDInfo();
+    EXPECT_TRUE(rcdInstance.hardInfo_.bottomLayer != nullptr);
+    delete rcdInstance.lcdModel_;
+    rcdInstance.lcdModel_ = nullptr;
+    delete rcdInstance.rog_;
+    rcdInstance.rog_ = nullptr;
 }
 } // OHOS::Rosen

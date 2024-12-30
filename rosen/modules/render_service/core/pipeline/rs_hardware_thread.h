@@ -80,6 +80,7 @@ private:
     void PerformSetActiveMode(OutputPtr output, uint64_t timestamp, uint64_t constraintRelativeTime);
     void ExecuteSwitchRefreshRate(const OutputPtr& output, uint32_t refreshRate);
     void AddRefreshRateCount(const OutputPtr& output);
+    void RecordTimestamp(const std::vector<LayerInfoPtr>& layers);
     int64_t GetCurTimeCount();
     bool IsInAdaptiveMode(const OutputPtr &output);
 
@@ -91,7 +92,6 @@ private:
     std::shared_ptr<RSSurfaceOhos> CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface);
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
-    void ReportFrameToRSS();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -120,6 +120,7 @@ private:
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
     bool isLastAdaptive_ = false;
+    std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

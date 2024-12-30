@@ -12,7 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#ifndef RS_MEMORY_MANAGER_H
+#define RS_MEMORY_MANAGER_H
 #include <vector>
 
 #include "image/gpu_context.h"
@@ -29,7 +30,6 @@ class MemoryManager {
 public:
     static void DumpMemoryUsage(DfxString& log, std::string& type);
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
-    static MemoryGraphic CountSubMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     // Count memory for hidumper
@@ -47,7 +47,8 @@ public:
     static void ReleaseUnlockGpuResource(Drawing::GPUContext* grContext, bool scratchResourcesOnly = true);
     static void ReleaseUnlockAndSafeCacheGpuResource(Drawing::GPUContext* grContext);
     static float GetAppGpuMemoryInMB(Drawing::GPUContext* gpuContext);
-    static void InitMemoryLimit(Drawing::GPUContext* gpuContext);
+    static void InitMemoryLimit();
+    static void SetGpuMemoryLimit(Drawing::GPUContext* gpuContext);
     static void MemoryOverCheck(Drawing::GPUContext* gpuContext);
     static void MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu);
     static void VmaDefragment(Drawing::GPUContext* gpuContext);
@@ -78,6 +79,8 @@ private:
     static std::unordered_map<pid_t, std::pair<std::string, uint64_t>> pidInfo_;
     static uint32_t frameCount_;
     static uint64_t memoryWarning_;
+    static uint64_t gpuMemoryControl_;
     static uint64_t totalMemoryReportTime_;
 };
 } // namespace OHOS::Rosen
+#endif
