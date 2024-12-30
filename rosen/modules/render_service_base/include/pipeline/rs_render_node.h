@@ -763,9 +763,12 @@ public:
 
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
+    void UpdateDrawableBehindWindow();
+    virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
     virtual void RemoveChildBlurBehindWindow(NodeId id) {}
+    virtual void CalDrawBehindWindowRegion() {}
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);

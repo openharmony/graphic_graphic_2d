@@ -3113,6 +3113,7 @@ int RSProperties::GetUseEffectType() const
 void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 {
     needDrawBehindWindow_ = needDrawBehindWindow;
+    UpdateFilter();
 }
 
 bool RSProperties::GetNeedDrawBehindWindow() const

@@ -552,6 +552,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
         needSync_ = true;
         stagingFilter_ = behindWindowFilter;
         stagingNeedDrawBehindWindow_ = true;
+        stagingDrawBehindWindowRegion_ = node.GetFilterRect();
         return true;
     }
     return false;
@@ -591,6 +592,7 @@ void RSBackgroundFilterDrawable::OnSync()
     if (needSync_) {
         needDrawBehindWindow_ = stagingNeedDrawBehindWindow_;
     }
+    drawBehindWindowRegion_ = stagingDrawBehindWindowRegion_;
     RSFilterDrawable::OnSync();
 }
 
