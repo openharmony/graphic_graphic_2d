@@ -311,7 +311,7 @@ HWTEST(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
 
 /**
  * @tc.name: CreateImageFromBuffer
- * @tc.desc: Test CreateImageFromBuffrt
+ * @tc.desc: Test CreateImageFromBuffer
  * @tc.type: FUNC
  * @tc.require:
  */
