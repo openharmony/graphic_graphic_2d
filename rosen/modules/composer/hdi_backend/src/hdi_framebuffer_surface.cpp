@@ -35,7 +35,7 @@ sptr<HdiFramebufferSurface> HdiFramebufferSurface::CreateFramebufferSurface()
 {
     sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
 
-    SurfaceError ret = fbSurface->CreateSurface();
+    SurfaceError ret = fbSurface->CreateSurface(fbSurface);
     if (ret != SURFACE_ERROR_OK) {
         HLOGE("FramebufferSurface CreateSurface failed, ret is %{public}d", ret);
         return nullptr;
