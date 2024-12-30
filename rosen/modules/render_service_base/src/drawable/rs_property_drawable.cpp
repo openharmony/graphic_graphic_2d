@@ -135,7 +135,8 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
-    } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation()) {
+    } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation() &&
+        node.ReinterpretCastTo<RSSurfaceRenderNode>()->IsAppWindow()) {
         Drawing::Rect rect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
         Drawing::RectI iRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
         canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
