@@ -2572,12 +2572,21 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyBySurfaceChanged() const
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const
 {
     if (surfaceNode.GetRenderProperties().IsAttractionValid()) {
-        auto attractionDirtyRect_ = surfaceNode.GetRenderProperties().GetAttractionEffectCurrentDirtyRegion();
+        auto attractionDirtyRect = surfaceNode.GetRenderProperties().GetAttractionEffectCurrentDirtyRegion();
         RS_LOGD("CheckMergeDisplayDirtyByAttraction global merge attraction %{public}s: global dirty %{public}s,"
             "add rect %{public}s", surfaceNode.GetName().c_str(),
             curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
-            attractionDirtyRect_.ToString().c_str());
-        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(attractionDirtyRect_);
+            attractionDirtyRect.ToString().c_str());
+        auto boundsGeometry = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
+        if (boundsGeometry) {
+            Drawing::Rect rect(attractionDirtyRect.GetLeft(), attractionDirtyRect.GetTop(),
+                attractionDirtyRect.GetRight(), attractionDirtyRect.GetBottom());
+            Drawing::Rect tempRect;
+            boundsGeometry->GetMatrix().MapRect(tempRect, rect);
+            attractionDirtyRect =
+                RectI(tempRect.GetLeft(), tempRect.GetTop(), tempRect.GetWidth(), tempRect.GetHeight());
+        }
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(attractionDirtyRect);
     }
 }
 
