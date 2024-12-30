@@ -115,6 +115,8 @@ HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
     FontParser fontParser;
     std::unique_ptr<FontParser::FontDescriptor> font =
         fontParser.GetVisibilityFontByName("Noto Sans Regular");
+    ASSERT_NE(font, nullptr);
+    EXPECT_EQ(font->fontFamily, "Noto Sans");
 }
 
 /**
@@ -238,19 +240,21 @@ HWTEST_F(FontParserTest, PostTableParserTest1, TestSize.Level1)
  */
 HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
 {
-    char test[4] = {'a', 'b', 'c', 'd'};
+    char test[] = {'a', 'b', 'c', 'd', 0};
     struct OpenTypeBasicType::Tag tag;
-    tag.Get();
+    EXPECT_EQ(tag.Get(), "\0\0\0\0");
     struct OpenTypeBasicType::Int16 int16;
-    int16.Get();
+    EXPECT_EQ(int16.Get(), 0);
     struct OpenTypeBasicType::Uint16 uint16;
+    EXPECT_EQ(uint16.Get(), 0);
     struct OpenTypeBasicType::Int32 int32;
-    int32.Get();
+    EXPECT_EQ(int32.Get(), 0);
     struct OpenTypeBasicType::Uint32 uint32;
+    EXPECT_EQ(uint32.Get(), 0);
     struct OpenTypeBasicType::Fixed fixed;
+    EXPECT_EQ(fixed.Get(), 0);
     std::copy(std::begin(test), std::end(test), std::begin(tag.tags));
-    int16.data = (int16_t)uint16.data;
-    fixed.data.data = int32.data = (int32_t)uint32.data;
+    EXPECT_EQ(tag.Get(), test);
 }
 
 /**
