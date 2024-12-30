@@ -57,7 +57,7 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
         return false;
     }
     if (width > EDGE_WIDTH_LIMIT) {
-        RS_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 " width:%{public}d height:%{public}d",
+        ROSEN_LOGI("RSCanvasDrawingNode::ResetSurface id:%{public}" PRIu64 " width:%{public}d height:%{public}d",
             GetId(), width, height);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasDrawingNodeResetSurface>(GetId(), width, height);
@@ -138,7 +138,7 @@ bool RSCanvasDrawingNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap,
         }
         bool ret = renderServiceClient->GetPixelmap(GetId(), pixelmap, rect, drawCmdList);
         if (!ret || !pixelmap) {
-            ROSEN_LOGE("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
+            ROSEN_LOGD("RSCanvasDrawingNode::GetPixelmap: GetPixelmap failed");
             return false;
         }
     } else {
