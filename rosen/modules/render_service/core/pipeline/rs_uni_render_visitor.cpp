@@ -944,7 +944,7 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
 {
     RSSurfaceRenderNode::SharedPtr sourceNode = node.GetSourceCrossNode().lock() ?
             node.GetSourceCrossNode().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-    if (node.IsCrossCloneNode()) {
+    if (node.IsCloneCrossNode()) {
         if (sourceNode == nullptr) {
             RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode source node of clone node %{public}"
                 PRIu64 " is null", node.GetId());
@@ -953,6 +953,7 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
     }
     if (CheckSkipCrossNode(node)) {
         if (sourceNode != nullptr) {
+            // when skip cloneCrossNode prepare, we need switch to record sourceNode dirty info
             PrepareForSkippedCrossNode(*sourceNode);
         } else {
             PrepareForSkippedCrossNode(node);
@@ -960,7 +961,7 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
         return true;
     }
 
-    if (node.IsCrossCloneNode() && curDisplayNode_->IsFirstVisitCrossNodeDisplay()) {
+    if (node.IsCloneCrossNode() && curDisplayNode_->IsFirstVisitCrossNodeDisplay()) {
         isSwitchToSourceCrossNodePrepare_ = true;
         sourceNode->SetCurCloneNodeParent(node.GetParent().lock());
         sourceNode->QuickPrepare(shared_from_this());

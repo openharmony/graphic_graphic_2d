@@ -115,19 +115,6 @@ public:
         return isCloneCrossNode_;
     }
 
-    // Only used in PC extend screen
-    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1);
-    void RemoveCrossScreenChild(const SharedPtr& child);
-
-    WeakPtr GetSourceCrossNode() const
-    {
-        return sourceCrossNode_;
-    }
-
-    bool IsCrossCloneNode()
-    {
-        return isCloneCrossNode_;
-    }
     void SetCurCloneNodeParent(SharedPtr node)
     {
         curCloneNodeParent_ = node;

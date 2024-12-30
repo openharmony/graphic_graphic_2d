@@ -2958,7 +2958,7 @@ void RSRenderNode::UpdateShouldPaint()
     // Besides, if one node has sharedTransitionParam, it should be painted no matter what alpha it has.
     shouldPaint_ = ((ROSEN_GNE(GetRenderProperties().GetAlpha(), 0.0f)) &&
                    (GetRenderProperties().GetVisible() || HasDisappearingTransition(false))) ||
-                   sharedTransitionParam_ || IsCrossCloneNode();
+                   sharedTransitionParam_ || IsCloneCrossNode();
     if (!shouldPaint_ && HasBlurFilter()) { // force clear blur cache
         RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] is invisible", GetId());
         MarkForceClearFilterCacheWithInvisible();
