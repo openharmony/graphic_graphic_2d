@@ -254,6 +254,26 @@ void RSCanvasDrawingRenderNodeDrawable::CheckAndSetThreadIdx(uint32_t& threadIdx
     }
 }
 
+bool RSCanvasDrawingRenderNodeDrawable::CheckPostplaybackParamValid(NodeId nodeId, pid_t threadId)
+{
+    if (!IsNeedDraw()) {
+        return false;
+    }
+
+    if (!renderParams_) {
+        RS_LOGE("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] renderParams null", nodeId);
+        return false;
+    }
+
+    if (threadId != threadId_) {
+        RS_LOGE("PostPlaybackInCorrespondThread ThreadId Error NodeId[%{public}" PRIu64 "],"
+            "threadId[%{public}d], threadId_[%{public}d]", nodeId, threadId, threadId_.load());
+        return false;
+    }
+
+    return true;
+}
+
 void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 {
     auto canvasDrawingPtr = shared_from_this();
@@ -263,18 +283,14 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
         auto nodeId = GetId();
         // default in unirenderthread
-        if (!IsNeedDraw()) {
+        if (!CheckPostplaybackParamValid(nodeId, threadId)) {
             return;
         }
 
-        if (!renderParams_) {
-            RS_LOGE("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] renderParams null", nodeId);
-            return;
-        }
-
-        if (threadId != threadId_) {
-            RS_LOGE("PostPlaybackInCorrespondThread ThreadId Error NodeId[%{public}" PRIu64 "],"
-                "threadId[%{public}d], threadId_[%{public}d]", nodeId, threadId, threadId_.load());
+        RSRenderNodeSingleDrawableLocker singleLocker(this);
+        if (UNLIKELY(!singleLocker.IsLocked())) {
+            singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+            RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Postplayback node %{public}" PRIu64 " playback!!!", GetId());
             return;
         }
 

@@ -260,7 +260,7 @@ void RoundCornerDisplay::UpdateDisplayParameter(uint32_t width, uint32_t height)
 {
     std::unique_lock<std::shared_mutex> lock(resourceMut_);
     if (CheckResolutionChanged(width, height)) {
-        RS_LOGI("[%{public}s] displayWidth_ updated from %{public}u -> %{public}u,"
+        RS_LOGI("[%{public}s] rcd displayWidth_ updated from %{public}u -> %{public}u,"
             "displayHeight_ updated from %{public}u -> %{public}u \n", __func__,
             displayWidth_, width, displayHeight_, height);
         PrintRCDInfo();
@@ -290,7 +290,7 @@ void RoundCornerDisplay::UpdateNotchStatus(int status)
         RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] NotchStatus do not change \n", __func__);
         return;
     }
-    RS_LOGI("[%{public}s] notchStatus change from %{public}d to %{public}d \n", __func__,
+    RS_LOGI("[%{public}s] rcd notchStatus change from %{public}d to %{public}d \n", __func__,
         notchStatus_, status);
     PrintRCDInfo();
     notchStatus_ = status;
@@ -306,12 +306,13 @@ void RoundCornerDisplay::UpdateOrientationStatus(ScreenRotation orientation)
         RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] OrientationStatus do not change \n", __func__);
         return;
     }
+    RS_LOGI("[%{public}s] rcd Orientation change from %{public}d to %{public}d \n", __func__,
+        curOrientation_, orientation);
+    PrintRCDInfo();
     lastOrientation_ = curOrientation_;
     curOrientation_ = orientation;
     rcdDirtyType_ = static_cast<RoundCornerDirtyType>(
         static_cast<uint8_t>(RoundCornerDirtyType::RCD_DIRTY_TOP) | static_cast<uint8_t>(rcdDirtyType_));
-    RS_LOGD_IF(DEBUG_PIPELINE, "[%{public}s] curOrientation_ = %{public}d, lastOrientation_ = %{public}d \n",
-        __func__, curOrientation_, lastOrientation_);
     updateFlag_["orientation"] = true;
 }
 

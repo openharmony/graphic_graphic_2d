@@ -45,7 +45,7 @@ private:
 
     PathVerb nextInternal();
     PathVerb getReturnVerb(const PathVerb& cachedVerb);
-    
+
     static thread_local napi_ref constructor_;
     PathIterator* m_iter = nullptr;
     PathVerb m_verb = PathVerb::UNINIT;

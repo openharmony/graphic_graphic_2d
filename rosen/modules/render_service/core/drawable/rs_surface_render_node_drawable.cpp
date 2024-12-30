@@ -843,6 +843,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         surfaceParams.HasProtectedLayer() || surfaceParams.GetHDRPresent() || hasHidePrivacyContent) &&
         DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
+        if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+            RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
+        }
         return;
     }
     if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
@@ -1142,6 +1145,15 @@ void RSSurfaceRenderNodeDrawable::EnableGpuOverDrawDrawBufferOptimization(Drawin
     canvas.Translate(radius.x_, radius.y_);
     canvas.DrawRect(Drawing::Rect {0, 0, bounds.GetWidth() - 2 * radius.x_, bounds.GetHeight() - 2 * radius.y_});
     canvas.DetachBrush();
+}
+
+bool RSSurfaceRenderNodeDrawable::BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface,
+    bool isNeedFP16)
+{
+    bool bufferFormatNeedUpdate = cacheSurface ? isNeedFP16 &&
+        cacheSurface->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16 : false;
+    RS_LOGD("RSSurfaceRenderNodeDrawable::BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
+    return bufferFormatNeedUpdate;
 }
 
 const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetVisibleDirtyRegion() const

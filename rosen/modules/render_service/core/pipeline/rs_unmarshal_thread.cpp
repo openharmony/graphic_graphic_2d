@@ -99,6 +99,11 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
         SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
+        if (ashmemFdWorker) {
+            // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
+            parcel->FlushBuffer();
+            ashmemFdWorker->EnableManualCloseFds();
+        }
         if (!transData) {
             return;
         }

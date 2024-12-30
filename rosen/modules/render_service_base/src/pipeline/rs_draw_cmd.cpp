@@ -199,18 +199,15 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
+            GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+            rsImage_->SetDmaImage(image_);
         }
 #endif
 #if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan()) {
-            if (GetRsImageCache(canvas, pixelMap,
-                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
-                rsImage_->SetDmaImage(image_);
-            }
+        if (RSSystemProperties::IsUseVukan() &&
+            GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            rsImage_->SetDmaImage(image_);
         }
 #endif
         return;

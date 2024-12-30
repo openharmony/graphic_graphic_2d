@@ -74,14 +74,17 @@ public:
     AshmemFdWorker() = default;
     ~AshmemFdWorker();
 
-    void InsertFdWithOffset(int fd, binder_size_t offset);
+    void InsertFdWithOffset(int fd, binder_size_t offset, bool shouldCloseFd);
     void PushFdsToContainer();
+    void EnableManualCloseFds();
 
 private:
     DISALLOW_COPY_AND_MOVE(AshmemFdWorker);
 
     std::unordered_map<binder_size_t, int> fds_;
+    std::unordered_set<int> fdsToBeClosed_;
     bool isFdContainerUpdated_ = false;
+    bool needManualCloseFds_ = false;
 };
 
 class RSB_EXPORT RSAshmemHelper {

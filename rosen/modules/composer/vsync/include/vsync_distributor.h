@@ -125,6 +125,7 @@ public:
     VsyncError SetVSyncRate(int32_t rate, const sptr<VSyncConnection>& connection);
     VsyncError SetHighPriorityVSyncRate(int32_t highPriorityRate, const sptr<VSyncConnection>& connection);
     VsyncError SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene = false);
+    VsyncError SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene);
 
     // used by DVSync
     bool IsDVsyncOn();
@@ -193,6 +194,7 @@ private:
     std::condition_variable con_;
     std::vector<sptr<VSyncConnection> > connections_;
     std::map<uint64_t, std::vector<sptr<VSyncConnection>>> connectionsMap_;
+    std::map<uint64_t, std::vector<uint64_t>> pidWindowIdMap_;
     VSyncEvent event_;
     bool vsyncEnabled_;
     std::string name_;

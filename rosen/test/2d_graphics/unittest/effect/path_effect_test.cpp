@@ -309,6 +309,25 @@ HWTEST_F(PathEffectTest, ArgsConstructor008, TestSize.Level1)
     auto pathEffect = std::make_unique<PathEffect>(PathEffect::PathEffectType::SUM, pathEffect1, pathEffect2);
     ASSERT_TRUE(pathEffect != nullptr);
 }
+
+/**
+ * @tc.name: CreateDiscretePathEffect001
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: AR000GGNV3
+ * @tc.author:
+ */
+HWTEST_F(PathEffectTest, CreateDiscretePathEffect001, TestSize.Level1)
+{
+    // for test
+    float segLength = 1.0;
+    // for test
+    float dev = 1.0;
+    // for test
+    uint32_t seedAssist = 1;
+    auto pathEffect = PathEffect::CreateDiscretePathEffect(segLength, dev, seedAssist);
+    ASSERT_TRUE(pathEffect != nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

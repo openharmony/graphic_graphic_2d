@@ -71,8 +71,6 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_manager",
     "access_token:libaccesstoken_sdk",
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
     "c_utils:utils",
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
@@ -82,6 +80,15 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  defines = []
+  if (graphic_2d_support_access_token) {
+    external_deps += [
+      "access_token:libnativetoken",
+      "access_token:libtoken_setproc",
+    ]
+    defines += [ "SUPPORT_ACCESS_TOKEN" ]
+  }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

@@ -33,6 +33,7 @@ public:
 
     void Purge() override;
     void CheckAndSetThreadIdx(uint32_t& threadIdx);
+    bool CheckPostplaybackParamValid(NodeId, pid_t);
     void PostPlaybackInCorrespondThread();
     void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
     {

@@ -22,6 +22,7 @@
 
 #include "common/rs_common_def.h"
 #include "rs_round_corner_display.h"
+#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,6 +34,11 @@ enum class RCDLayerType : uint32_t {
     TOP = 1,
     BOTTOM = 2
 };
+
+static bool CheckRcdRenderEnable(const ScreenInfo& screenInfo)
+{
+    return screenInfo.state == ScreenState::HDI_OUTPUT_ENABLE;
+}
 
 public:
     using RoundCornerDisplayMap = std::unordered_map<NodeId, std::shared_ptr<RoundCornerDisplay>>;

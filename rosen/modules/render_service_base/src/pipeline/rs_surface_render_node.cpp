@@ -1901,7 +1901,7 @@ void RSSurfaceRenderNode::UpdateOccludedByFilterCache(bool val)
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
+void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag(bool isAccessibilityChanged)
 {
 #ifdef RS_ENABLE_GPU
     auto contentStatic = false;
@@ -1912,6 +1912,7 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
     } else {
         contentStatic = surfaceCacheContentStatic_;
     }
+    contentStatic = contentStatic && !isAccessibilityChanged;
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
         stagingSurfaceParams->SetSurfaceCacheContentStatic(contentStatic, lastFrameSynced_);
@@ -1920,8 +1921,9 @@ void RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag()
         AddToPendingSyncList();
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateSurfaceCacheContentStaticFlag: "
-        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] forceUpdate:[%d]",
-        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst());
+        "[%d] name:[%s] Id:[%" PRIu64 "] subDirty:[%d] contentDirty:[%d] forceUpdate:[%d] accessibilityChanged:[%d]",
+        contentStatic, GetName().c_str(), GetId(), IsSubTreeDirty(), IsContentDirty(), GetForceUpdateByUifirst(),
+        isAccessibilityChanged);
 #endif
 }
 
@@ -3228,10 +3230,9 @@ void RSSurfaceRenderNode::SetNeedCacheSurface(bool needCacheSurface)
 #endif
 }
 
-bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
+bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow() const
 {
     bool needDrawBehindWindow = NeedDrawBehindWindow();
-    GetMutableRenderProperties().SetNeedDrawBehindWindow(needDrawBehindWindow);
     return needDrawBehindWindow != oldNeedDrawBehindWindow_;
 }
 

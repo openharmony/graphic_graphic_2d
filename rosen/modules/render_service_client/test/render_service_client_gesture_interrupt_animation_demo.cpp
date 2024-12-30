@@ -22,8 +22,10 @@
 #include "window.h"
 
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 #include "modifier/rs_extended_modifier.h"
 #include "modifier/rs_property_modifier.h"
 #include "render/rs_border.h"
@@ -105,6 +107,7 @@ private:
 
 void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
@@ -122,10 +125,12 @@ void InitNativeTokenInfo()
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     std::cout << "init native token for float window" << std::endl;
+#endif
 }
 
 int main()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     int cnt = 0;
     InitNativeTokenInfo();
     // Init demo env
@@ -255,5 +260,6 @@ int main()
 
     window->Hide();
     window->Destroy();
+#endif
     return 0;
 }

@@ -169,7 +169,10 @@ ohos_shared_library("librender_service") {
   }
 
   if (graphic_2d_feature_enable_vulkan) {
-    sources += [ "core/pipeline/rs_vk_image_manager.cpp" ]
+    sources += [
+      "core/pipeline/rs_vk_image_manager.cpp",
+      "core/pipeline/rs_vk_pipeline_config.cpp",
+    ]
   }
 
   if (rs_enable_parallel_render && rs_enable_gpu) {
@@ -287,6 +290,7 @@ ohos_shared_library("librender_service") {
   }
 
   public_external_deps += [
+    "config_policy:configpolicy_util",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "libxml2:libxml2",
   ]
@@ -358,10 +362,7 @@ ohos_shared_library("librender_service") {
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
     defines += [ "ENABLE_IPC_SECURITY" ]
-    external_deps += [
-      "access_token:libaccesstoken_sdk",
-      "access_token:libtokenid_sdk",
-    ]
+    external_deps += [ "access_token:libaccesstoken_sdk" ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&

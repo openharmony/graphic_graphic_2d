@@ -27,6 +27,7 @@
 #include "draw/pen.h"
 #include "draw/shadow.h"
 #include "effect/mask_filter.h"
+#include "effect/path_effect.h"
 #include "text/font_types.h"
 #include "utils/region.h"
 #include "utils/sampling_options.h"
@@ -166,6 +167,12 @@ static const std::vector<struct JsEnumInt> g_pathDirection = {
     { "COUNTER_CLOCKWISE", static_cast<int32_t>(PathDirection::CCW_DIRECTION) },
 };
 
+static const std::vector<struct JsEnumInt> g_pathDashStyle = {
+    { "TRANSLATE", static_cast<int32_t>(PathDashStyle::TRANSLATE) },
+    { "ROTATE", static_cast<int32_t>(PathDashStyle::ROTATE) },
+    { "MORPH", static_cast<int32_t>(PathDashStyle::MORPH) },
+};
+
 static const std::vector<struct JsEnumInt> g_pathFillType = {
     { "WINDING", 0 }, // 0: PathFillType::WINDING, conflict with define WINDING
     { "EVEN_ODD", static_cast<int32_t>(PathFillType::EVENTODD) },
@@ -251,6 +258,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "FontHinting", g_fontHinting },
     { "PointMode", g_pointMode },
     { "PathDirection", g_pathDirection },
+    { "PathDashStyle", g_pathDashStyle },
     { "PathFillType", g_pathFillType },
     { "PathMeasureMatrixFlags", g_pathMeasureMatrixFlags },
     { "PathOp", g_pathOp },

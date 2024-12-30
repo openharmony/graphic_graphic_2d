@@ -121,18 +121,18 @@ HWTEST_F(UtilTest, UtilTest_002, TestSize.Level1)
 HWTEST_F(UtilTest, UtilTest_003, TestSize.Level1)
 {
     BootAnimationConfig config;
-    std::string jsonStr1 = "[nullptr]";
+    std::string jsonStr1 = "{}";
     cJSON* jsonData1 = cJSON_Parse(jsonStr1.c_str());
     OHOS::ParseVideoExtraPath(jsonData1, config);
 
-    std::string jsonStr2 = "[1]";
+    std::string jsonStr2 = "[]";
     cJSON* jsonData2 = cJSON_Parse(jsonStr2.c_str());
     OHOS::ParseVideoExtraPath(jsonData2, config);
 
-    std::string jsonStr3 = "[\"abc\"]";
+    std::string jsonStr3 = "{\"1\":\"abc\"}";
     cJSON* jsonData3 = cJSON_Parse(jsonStr3.c_str());
     OHOS::ParseVideoExtraPath(jsonData3, config);
-    EXPECT_EQ(config.videoExtPath.front(), "abc");
+    EXPECT_EQ(config.videoExtPath.size(), 1);
 }
 
 /**

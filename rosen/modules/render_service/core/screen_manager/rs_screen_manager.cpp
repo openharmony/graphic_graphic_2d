@@ -404,18 +404,25 @@ void RSScreenManager::OnHwcDeadEvent()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     for (const auto &[id, screen] : screens_) {
-        if (screen) {
-            // In sceneboard, we should not notify the WMS to remove node from RSTree
-            if (screen->IsVirtual()) {
-                continue;
-            } else {
-#ifdef RS_ENABLE_GPU
-                RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
-#endif
-            }
+        if (!screen) {
+            continue;
         }
+        // In sceneboard, we should not notify the WMS to remove node from RSTree
+        if (screen->IsVirtual()) {
+            continue;
+        }
+        for (auto& cb : screenChangeCallbacks_) {
+            cb->OnScreenChanged(id, ScreenEvent::DISCONNECTED);
+        }
+#ifdef RS_ENABLE_GPU
+        RSHardwareThread::Instance().ClearFrameBuffers(screen->GetOutput());
+#endif
     }
     isHwcDead_ = true;
+    pendingHotPlugEvents_.clear();
+    screenPowerStatus_.clear();
+    screenBacklight_.clear();
+    screenCorrection_.clear();
     screens_.clear();
     defaultScreenId_ = INVALID_SCREEN_ID;
 }
@@ -517,11 +524,8 @@ void RSScreenManager::ProcessScreenHotPlugEvents()
         }
     }
     for (auto id : connectedIds_) {
-        for (auto &cb : screenChangeCallbacks_) {
-            if (!isHwcDead_) {
-                cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
-                continue;
-            }
+        for (auto& cb : screenChangeCallbacks_) {
+            cb->OnScreenChanged(id, ScreenEvent::CONNECTED);
         }
         auto screenIt = screens_.find(id);
         if (screenIt == screens_.end() || screenIt->second == nullptr) {

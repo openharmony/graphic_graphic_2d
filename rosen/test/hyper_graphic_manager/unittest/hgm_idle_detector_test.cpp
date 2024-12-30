@@ -137,25 +137,29 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
     idleDetector->bufferFpsMap_.clear();
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
     ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
-    idleDetector->surfaceTimeMap_.clear();
-
-    // success case: fits all && match bufferName
-    idleDetector->SetAppSupportedState(true);
-    idleDetector->bufferFpsMap_[bufferName] = fps120HZ;
+    idleDetector->bufferFpsMap_[otherSurface] = 0;
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
-    ASSERT_FALSE(idleDetector->GetSurfaceIdleState());
-    idleDetector->surfaceTimeMap_.clear();
-
-    // success case: fits all && match otherSurface
-    idleDetector->SetAppSupportedState(true);
-    idleDetector->bufferFpsMap_.clear();
+    ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
     idleDetector->bufferFpsMap_[otherSurface] = fps120HZ;
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
     ASSERT_FALSE(idleDetector->GetSurfaceIdleState());
     idleDetector->surfaceTimeMap_.clear();
 
+    // success case: fits all && match bufferName
+    idleDetector->bufferFpsMap_[bufferName] = fps120HZ;
+    idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
+    ASSERT_FALSE(idleDetector->GetSurfaceIdleState());
+    idleDetector->surfaceTimeMap_.clear();
+
+    // fail case: black list
+    idleDetector->bufferFpsMap_.clear();
+    idleDetector->bufferFpsMap_[bufferName] = 0;
+    idleDetector->bufferFpsMap_[otherSurface] = fps120HZ;
+    idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_SURFACE);
+    ASSERT_TRUE(idleDetector->GetSurfaceIdleState());
+    idleDetector->surfaceTimeMap_.clear();
+
     // fail case: not match otherSurface
-    idleDetector->SetAppSupportedState(true);
     idleDetector->bufferFpsMap_.clear();
     idleDetector->bufferFpsMap_[otherSurface] = fps120HZ;
     idleDetector->UpdateSurfaceTime(bufferName, currTime, Pid, UIFWKType::FROM_UNKNOWN);
@@ -163,12 +167,12 @@ HWTEST_F(HgmIdleDetectorTest, SetAndGetSurfaceTimeState, Function | SmallTest | 
 }
 
 /**
- * @tc.name: ThirdFrameNeedHighRefresh
+ * @tc.name: GetTouchUpExpectedFPS001
  * @tc.desc: Verify the result of ThirdFrameNeedHighRefresh function
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, ThirdFrameNeedHighRefresh, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS001, Function | SmallTest | Level1)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
 
@@ -202,12 +206,12 @@ HWTEST_F(HgmIdleDetectorTest, ThirdFrameNeedHighRefresh, Function | SmallTest | 
 }
 
 /**
- * @tc.name: GetTouchUpExpectedFPS
+ * @tc.name: GetTouchUpExpectedFPS002
  * @tc.desc: Verify the result of GetTouchUpExpectedFPS function
  * @tc.type: FUNC
  * @tc.require: IAFG2V
  */
-HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS, Function | SmallTest | Level1)
+HWTEST_F(HgmIdleDetectorTest, GetTouchUpExpectedFPS002, Function | SmallTest | Level1)
 {
     std::unique_ptr<HgmIdleDetector> idleDetector = std::make_unique<HgmIdleDetector>();
     ASSERT_NE(idleDetector, nullptr);

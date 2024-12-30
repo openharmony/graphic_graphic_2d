@@ -14,8 +14,6 @@
  */
 #include "xml_parser.h"
 #include <algorithm>
-#include <sstream>
-#include <regex>
 
 #include "config_policy_utils.h"
 
@@ -293,7 +291,7 @@ void XMLParser::ParseBufferStrategyList(xmlNode &node, PolicyConfigData::Strateg
             strategy.bufferFpsMap[name] = FPS_MAX;
         } else if (IsNumber(fpsStr)) {
             auto fpsNum = std::stoi(fpsStr);
-            if (fpsNum > 0) {
+            if (fpsNum >= 0) {
                 strategy.bufferFpsMap[name] = fpsNum;
             }
         }
@@ -605,21 +603,27 @@ bool XMLParser::IsNumber(const std::string& str)
     return number == str.length() || (str.compare(0, 1, "-") == 0 && number == str.length() - 1);
 }
 
-std::vector<uint32_t> XMLParser::StringToVector(const std::string &str)
+std::vector<uint32_t> XMLParser::StringToVector(const std::string &str, const std::string &pattern)
 {
-    // valid format: string consisting of only numbers and spaces
-    if (!std::regex_match(str, std::regex("^\\s*(\\d+(\\s+\\d+)*)\\s*$"))) {
-        HGM_LOGD("Input invalid format.");
-        return {};
+    std::vector<std::string> vstr;
+    std::string::size_type wordBegin = 0;
+    std::string::size_type wordEnd = str.find(pattern);
+    while (wordEnd != std::string::npos) {
+        vstr.push_back(str.substr(wordBegin, wordEnd - wordBegin));
+        wordBegin = wordEnd + pattern.size();
+        wordEnd = str.find(pattern, wordBegin);
+    }
+    if (wordBegin != str.length()) {
+        vstr.push_back(str.substr(wordBegin));
     }
 
-    std::istringstream isstr(str);
     std::vector<uint32_t> vec;
-    uint32_t num;
-    while (isstr >> num) {
-        vec.push_back(num);
+    for (const auto& s : vstr) {
+        if (!IsNumber(s)) {
+            continue;
+        }
+        vec.emplace_back(std::stoi(s));
     }
-
     return vec;
 }
 

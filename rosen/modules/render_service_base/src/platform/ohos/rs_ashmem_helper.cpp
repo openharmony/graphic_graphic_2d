@@ -254,7 +254,7 @@ void AshmemFdContainer::Clear()
     }
     isUseFdContainer_ = false;
     if (!fds_.empty()) {
-        ROSEN_LOGD_IF(DEBUG_IPC, "AshmemFdContainer::Clear not empty: fds = %{public}s", PrintFds().c_str());
+        ROSEN_LOGW_IF(DEBUG_IPC, "AshmemFdContainer::Clear not empty, fds = %{public}s", PrintFds().c_str());
         fds_.clear();
     }
 }
@@ -274,14 +274,24 @@ std::string AshmemFdContainer::PrintFds() const
 
 AshmemFdWorker::~AshmemFdWorker()
 {
+    if (needManualCloseFds_) {
+        for (const int fd : fdsToBeClosed_) {
+            if (fd > 0) {
+                ::close(fd);
+            }
+        }
+    }
     if (!isFdContainerUpdated_) {
         return;
     }
     AshmemFdContainer::Instance().Clear();
 }
 
-void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset)
+void AshmemFdWorker::InsertFdWithOffset(int fd, binder_size_t offset, bool shouldCloseFd)
 {
+    if (shouldCloseFd) {
+        fdsToBeClosed_.insert(fd);
+    }
     if (isFdContainerUpdated_) {
         return;
     }
@@ -301,6 +311,11 @@ void AshmemFdWorker::PushFdsToContainer()
     }
     AshmemFdContainer::Instance().Merge(fds_);
     isFdContainerUpdated_ = true;
+}
+
+void AshmemFdWorker::EnableManualCloseFds()
+{
+    needManualCloseFds_ = true;
 }
 
 void RSAshmemHelper::CopyFileDescriptor(
@@ -341,7 +356,8 @@ void RSAshmemHelper::InjectFileDescriptor(std::shared_ptr<MessageParcel>& dataPa
             }
             flat->handle = static_cast<uint32_t>(val);
             if (ashmemFdWorker) {
-                ashmemFdWorker->InsertFdWithOffset(val, offset);
+                bool shouldCloseFd = flat->hdr.type == BINDER_TYPE_FD;
+                ashmemFdWorker->InsertFdWithOffset(val, offset, shouldCloseFd);
             }
         }
     }

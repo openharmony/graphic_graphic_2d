@@ -60,5 +60,175 @@ HWTEST_F(RSAIBarShaderFilterTest, GenerateGEVisualEffectTest, TestSize.Level1)
     rsAIBarShaderFilter->GenerateGEVisualEffect(visualEffectContainer);
     EXPECT_FALSE(visualEffectContainer->filterVec_.empty());
 }
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest001
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest001, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, 0.4, 1.6, 45.0 };
+    EXPECT_TRUE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest002
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest002, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 1.0, 0.0, 0.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest003
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest003, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { -1.0, 1.0, 0.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest004
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest004, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 2.0, 1.0, 0.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest005
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest005, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, -1.0, 0.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest006
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest006, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 2.0, 0.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest007
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest007, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, -0.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest008
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest008, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 1.55, 0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest009
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest009, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, -0.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest010
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest010, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, 1.4, 1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest011
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest011, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, 0.4, -1.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest012
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest012, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, 0.4, 2.6, 45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
+/**
+ * @tc.name: IsAiInvertCoefValidTest013
+ * @tc.desc: Verify function IsAiInvertCoefValid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSAIBarShaderFilterTest, IsAiInvertCoefValidTest013, TestSize.Level1)
+{
+    auto rsAIBarShaderFilter = std::make_shared<RSAIBarShaderFilter>();
+    // Configure AiInvertCoef: Low, High, Threshold, Opacity, Saturation, Filter Radius.
+    std::vector<float> aiInvertCoef = { 0.0, 1.0, 0.55, 0.4, 1.6, -45.0 };
+    EXPECT_FALSE(rsAIBarShaderFilter->IsAiInvertCoefValid(aiInvertCoef));
+}
+
 } // namespace Rosen
 } // namespace OHOS

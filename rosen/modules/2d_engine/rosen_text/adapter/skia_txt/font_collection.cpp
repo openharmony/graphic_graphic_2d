@@ -16,6 +16,7 @@
 #include "font_collection.h"
 
 #include "convert.h"
+#include "texgine/src/font_descriptor_mgr.h"
 #include "text/typeface.h"
 #include "utils/text_log.h"
 
@@ -59,8 +60,14 @@ FontCollection::~FontCollection()
     std::unique_lock<std::mutex> lock(mutex_);
     for (const auto& [id, typeface] : typefaces_) {
         Drawing::Typeface::GetTypefaceUnRegisterCallBack()(typeface);
+        auto it = familyNames_.find(id);
+        if (it != familyNames_.end()) {
+            std::string familyName = it->second;
+            FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
+        }
     }
     typefaces_.clear();
+    familyNames_.clear();
 }
 
 void FontCollection::DisableFallback()
@@ -107,6 +114,8 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         TEXT_LOGE("Failed to register typeface %{public}s", familyName.c_str());
         return nullptr;
     }
+    FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, familyName);
+    familyNames_.emplace(typeface->GetUniqueID(), familyName);
     fontCollection_->ClearFontFamilyCache();
     return typeface;
 }
@@ -126,10 +135,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
     std::shared_ptr<Drawing::Typeface> face = CreateTypeFace(data, datalen);
     if (face != nullptr) {
         std::string name = face->GetFamilyName();
+        uint32_t faceHash = face->GetHash();
         for (auto item : typefaces_) {
-            if (name == item.second->GetFamilyName()) {
-                TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u",
-                    name.c_str(), item.second->GetUniqueID());
+            if (faceHash == item.second->GetHash()) {
+                TEXT_LOGI("Find same theme font:family name:%{public}s, uniqueid:%{public}u, hash:%{public}u",
+                    name.c_str(), item.second->GetUniqueID(), faceHash);
                 dfmanager_->LoadThemeFont(OHOS_THEME_FONT, item.second);
                 fontCollection_->ClearFontFamilyCache();
                 return item.second;

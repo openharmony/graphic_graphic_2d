@@ -164,9 +164,11 @@ napi_value JsPathIterator::CreateJsPathIterator(napi_env env, PathIterator* iter
 
 JsPathIterator::~JsPathIterator()
 {
-    if (m_iter != nullptr) {
+    if (m_points != nullptr) {
         delete [] m_points;
         m_points = nullptr;
+    }
+    if (m_iter != nullptr) {
         delete m_iter;
         m_iter = nullptr;
     }
@@ -231,7 +233,7 @@ napi_value JsPathIterator::OnNext(napi_env env, napi_callback_info info)
             return nullptr;
         }
     }
-    
+
     return CreateJsNumber(env, static_cast<uint32_t>(returnVerb));
 }
 

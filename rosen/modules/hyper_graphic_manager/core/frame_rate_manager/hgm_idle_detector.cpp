@@ -40,7 +40,8 @@ void HgmIdleDetector::SetAppSupportedState(bool appSupported)
 
 void HgmIdleDetector::SetAceAnimatorIdleState(bool aceAnimatorIdleState)
 {
-    if (!appSupported_ || bufferFpsMap_.find(ACE_ANIMATOR_NAME) == bufferFpsMap_.end()) {
+    if (!appSupported_ || bufferFpsMap_.find(ACE_ANIMATOR_NAME) == bufferFpsMap_.end() ||
+        bufferFpsMap_[ACE_ANIMATOR_NAME] == 0) {
         // only if bufferFpsMap_ contains ACE_ANIMATOR_NAME, aceAnimatorIdleState_ can be set to false
         aceAnimatorIdleState_ = true;
         return;
@@ -86,10 +87,14 @@ void HgmIdleDetector::UpdateSurfaceTime(const std::string& surfaceName, uint64_t
 bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
     std::string& uiFwkType)
 {
-    for (const auto& [supportedAppBuffer, _] : bufferFpsMap_) {
+    for (const auto& [supportedAppBuffer, fps] : bufferFpsMap_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
-            uiFwkType = supportedAppBuffer;
-            return true;
+            if (fps > 0) {
+                uiFwkType = supportedAppBuffer;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
     return false;
@@ -98,13 +103,18 @@ bool HgmIdleDetector::GetUnknownFrameworkState(const std::string& surfaceName,
 bool HgmIdleDetector::GetSurfaceFrameworkState(const std::string& surfaceName,
     std::string& validSurfaceName)
 {
-    for (const auto& [supportedAppBuffer, _] : bufferFpsMap_) {
+    for (const auto& [supportedAppBuffer, fps] : bufferFpsMap_) {
         if (surfaceName.rfind(supportedAppBuffer, 0) == 0) {
-            validSurfaceName = supportedAppBuffer;
-            return true;
+            if (fps > 0) {
+                validSurfaceName = supportedAppBuffer;
+                return true;
+            } else {
+                return false;
+            }
         }
     }
-    if (bufferFpsMap_.find(OTHER_SURFACE) != bufferFpsMap_.end()) {
+    if (bufferFpsMap_.find(OTHER_SURFACE) != bufferFpsMap_.end() &&
+        bufferFpsMap_[OTHER_SURFACE] > 0) {
         validSurfaceName = OTHER_SURFACE;
         return true;
     }

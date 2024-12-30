@@ -786,6 +786,28 @@ HWTEST_F(VSyncDistributorTest, SetQosVSyncRateTest003, Function | MediumTest| Le
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
 }
+
+/*
+* Function: SetQosVSyncRateByPidPublicTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test SetQosVSyncRateByPidPublic
+ */
+HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidPublicTest001, Function | MediumTest| Level3)
+{
+    std::vector<sptr<VSyncConnection>> conns;
+    for (int i = 0; i < 10; i++) { // add 10 connections
+        sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "WM_" + std::to_string(i+1));
+        ASSERT_EQ(vsyncDistributor->AddConnection(conn, 1), VSYNC_ERROR_OK);
+        conns.emplace_back(conn);
+    }
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(0, 1, false), VSYNC_ERROR_OK);
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(0, 2, false), VSYNC_ERROR_OK);
+    for (int i = 0; i < conns.size(); i++) {
+        ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
+    }
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

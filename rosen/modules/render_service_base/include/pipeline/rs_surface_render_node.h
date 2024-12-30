@@ -176,7 +176,7 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
             (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
-                name_ == "VMLinuxXComponentSurface" || name_ == "oh_flutter_1Surface" ||
+                name_ == "VMLinuxXComponentSurface" || name_.find("oh_flutter") != std::string::npos ||
                 name_.find("HwStylusFeature") != std::string::npos);
     }
 
@@ -1096,7 +1096,7 @@ public:
         return false;
     }
 
-    void UpdateSurfaceCacheContentStaticFlag();
+    void UpdateSurfaceCacheContentStaticFlag(bool isAccessibilityChanged);
 
     void UpdateSurfaceSubTreeDirtyFlag();
 
@@ -1317,7 +1317,7 @@ public:
         subThreadAssignable_ = subThreadAssignable;
     }
 
-    bool NeedUpdateDrawableBehindWindow();
+    bool NeedUpdateDrawableBehindWindow() const override;
     void SetOldNeedDrawBehindWindow(bool val);
     bool NeedDrawBehindWindow() const override;
     bool GetBehindWindowFilterEnabled() const;

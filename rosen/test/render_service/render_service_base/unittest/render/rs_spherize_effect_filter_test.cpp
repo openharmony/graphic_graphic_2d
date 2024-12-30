@@ -127,6 +127,17 @@ HWTEST_F(RSSpherizeEffectFilterTest, IsValidTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsValidTest001
+ * @tc.desc: test results of IsValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSpherizeEffectFilterTest, IsValidTest001, TestSize.Level1)
+{
+    RSSpherizeEffectFilter effectFilter(1.f);
+    EXPECT_TRUE(effectFilter.IsValid());
+}
+
+/**
  * @tc.name: DrawImageRect_002
  * @tc.desc: Verify function DrawImageRect
  * @tc.type:FUNC

@@ -1349,6 +1349,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
 }
 
 /**
+ * @tc.name: MakeBrightnessAdjustmentShader
+ * @tc.desc: Test MakeBrightnessAdjustmentShader
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, MakeBrightnessAdjustmentShader, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::SamplingOptions sampling;
+    ASSERT_NE(displayDrawable_->MakeBrightnessAdjustmentShader(image, sampling, 0.5f), nullptr);
+}
+
+/**
  * @tc.name: FinishOffscreenRender
  * @tc.desc: Test FinishOffscreenRender
  * @tc.type: FUNC

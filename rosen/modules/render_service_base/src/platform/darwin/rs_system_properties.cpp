@@ -574,11 +574,6 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetDisableHebcEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;

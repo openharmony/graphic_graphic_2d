@@ -17,7 +17,7 @@
 #define FRAMEWORKS_BOOTANIMATION_INCLUDE_BOOT_ANIMATION_CONFIG_H
 
 #include <string>
-#include <vector>
+#include <map>
 
 #include "screen_manager/screen_types.h"
 
@@ -30,7 +30,7 @@ struct BootAnimationConfig {
     int32_t rotateScreenId = -1;
     int32_t rotateDegree = 0;
     Rosen::ScreenId screenId = Rosen::INVALID_SCREEN_ID;
-    std::vector<std::string> videoExtPath;
+    std::map<std::string, std::string> videoExtPath;
 };
 } // namespace OHOS
 

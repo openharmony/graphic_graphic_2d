@@ -75,6 +75,7 @@ namespace Rosen {
 namespace {
 constexpr int SLEEP_TIME_US = 1000;
 const std::string REGISTER_NODE = "RegisterNode";
+const std::string APS_SET_VSYNC = "APS_SET_VSYNC";
 }
 // we guarantee that when constructing this object,
 // all these pointers are valid, so will not check them.
@@ -929,9 +930,15 @@ void RSRenderServiceConnection::MarkPowerOffNeedProcessOneFrame()
 
 void RSRenderServiceConnection::RepaintEverything()
 {
-    RS_LOGI("RepaintEverything, call SetDirtyflag, ForceRefreshForUni");
-    RSMainThread::Instance()->SetDirtyFlag();
-    RSMainThread::Instance()->ForceRefreshForUni();
+    if (mainThread_ == nullptr) {
+        RS_LOGE("RepaintEverything, mainThread_ is null, return");
+    }
+    auto task = []() -> void {
+        RS_LOGI("RepaintEverything, setDirtyflag, forceRefresh in mainThread");
+        RSMainThread::Instance()->SetDirtyFlag();
+        RSMainThread::Instance()->ForceRefreshForUni();
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
@@ -1945,7 +1952,13 @@ uint32_t RSRenderServiceConnection::SetScreenActiveRect(
         .w = activeRect.w,
         .h = activeRect.h,
     };
-    return screenManager_->SetScreenActiveRect(id, dstActiveRect);
+    auto result = screenManager_->SetScreenActiveRect(id, dstActiveRect);
+    if (result == StatusCode::SUCCESS) {
+        HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
+            OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
+        });
+    }
+    return result;
 }
 
 int32_t RSRenderServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
@@ -2160,6 +2173,14 @@ void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInf
             frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
         }
     });
+}
+
+void RSRenderServiceConnection::NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount)
+{
+    if (!appVSyncDistributor_) {
+        return;
+    }
+    appVSyncDistributor_->SetQosVSyncRateByPidPublic(pid, rateDiscount, true);
 }
 
 void RSRenderServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)

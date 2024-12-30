@@ -119,7 +119,9 @@ bool ConvertFromAdaptHexJsColor(napi_env env, napi_value jsValue, Drawing::Color
         }
         jsColor = Color::ColorQuadSetARGB(argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
     } else {
-        napi_get_value_uint32(env, jsValue, &jsColor);
+        if (napi_get_value_uint32(env, jsValue, &jsColor) != napi_ok) {
+            return false;
+        }
     }
     return true;
 }

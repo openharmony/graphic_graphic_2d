@@ -73,6 +73,7 @@ public:
         GENERIC = 1 << 1,
         STYLISH = 1 << 2,
         INSTALLED = 1 << 3,
+        CUSTOMIZED = 1 << 4
     };
 
     struct FontDescriptor {
