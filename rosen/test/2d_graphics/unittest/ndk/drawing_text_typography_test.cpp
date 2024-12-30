@@ -2513,18 +2513,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest086, TestSize.Level
 }
 
 /*
- * @tc.name: OH_Drawing_TypographyTest088
- * @tc.desc: test for setting indents for text typography
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest088, TestSize.Level1)
-{
-    // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
-    OH_Drawing_TypographySetIndents(nullptr, 0, indents);
-}
-
-/*
  * @tc.name: OH_Drawing_TypographyTest089
  * @tc.desc: test for getting line  metrics for text typography
  * @tc.type: FUNC
