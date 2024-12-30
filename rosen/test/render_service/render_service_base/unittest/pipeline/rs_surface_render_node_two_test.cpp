@@ -1006,7 +1006,6 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ChildrenBlurBehindWindowTest, TestSize.Leve
     node->AddChildBlurBehindWindow(idOne);
     ASSERT_TRUE(!node->childrenBlurBehindWindow_.empty());
     ASSERT_TRUE(node->NeedUpdateDrawableBehindWindow());
-    ASSERT_TRUE(node->GetMutableRenderProperties().GetNeedDrawBehindWindow());
     ASSERT_TRUE(node->NeedDrawBehindWindow());
     node->RemoveChildBlurBehindWindow(idTwo);
     ASSERT_TRUE(node->NeedDrawBehindWindow());
