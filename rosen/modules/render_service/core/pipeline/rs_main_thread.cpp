@@ -541,7 +541,7 @@ void RSMainThread::Init()
         RSHardwareThread::Instance().PostTask(task);
     });
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVsync = []() {
+        .requestNextVSync = []() {
             RSMainThread::Instance()->RequestNextVSync();
         },
         .isRequestedNextVSync = []() {

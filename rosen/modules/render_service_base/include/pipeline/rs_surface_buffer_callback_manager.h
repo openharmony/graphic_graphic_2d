@@ -37,7 +37,7 @@ struct DrawSurfaceBufferAfterAcquireCbData;
 class RSB_EXPORT RSSurfaceBufferCallbackManager {
 public:
     struct VSyncFuncs {
-        std::function<void()> requestNextVsync;
+        std::function<void()> requestNextVSync;
         std::function<bool()> isRequestedNextVSync;
     };
  
