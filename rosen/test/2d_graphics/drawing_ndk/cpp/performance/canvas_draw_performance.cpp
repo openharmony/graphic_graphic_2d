@@ -196,9 +196,9 @@ void PerformanceDrawRegion::OnTestPerformance(OH_Drawing_Canvas* canvas)
             OH_Drawing_RoundRect* roundRect = OH_Drawing_RoundRectCreate(rect, xRad, yRad);
             int even = 2;
             if (j % even) {
-			    OH_Drawing_CanvasDrawRect(canvas, rect);
+                OH_Drawing_CanvasDrawRect(canvas, rect);
             } else {
-                OH_Drawing_CanvasDrawRoundRect(canvas, roundRect);  
+                OH_Drawing_CanvasDrawRoundRect(canvas, roundRect);
             }
             OH_Drawing_RectDestroy(rect);
             OH_Drawing_RoundRectDestroy(roundRect);
