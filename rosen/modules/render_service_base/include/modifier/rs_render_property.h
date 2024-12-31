@@ -22,6 +22,7 @@
 #include "common/rs_rect.h"
 #include "modifier/rs_animatable_arithmetic.h"
 #include "modifier/rs_modifier_type.h"
+#include "property/rs_properties_def.h"
 #include "recording/draw_cmd_list.h"
 #include "transaction/rs_marshalling_helper.h"
 
