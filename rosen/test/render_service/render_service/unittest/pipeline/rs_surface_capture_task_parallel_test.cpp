@@ -93,6 +93,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CreatePixelMapBySurfaceNode, TestSize
     const float imgWidth = 1.0f;
     const float imgHeight = 1.0f;
     node->GetGravityTranslate(imgWidth, imgHeight);
+    task.surfaceNode_ = node;
     auto pxiemap = task.CreatePixelMapBySurfaceNode(node);
     ASSERT_EQ(pxiemap, nullptr);
 }

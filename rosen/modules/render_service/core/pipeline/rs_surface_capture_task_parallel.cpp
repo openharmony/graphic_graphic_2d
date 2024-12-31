@@ -162,6 +162,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     }
 
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        surfaceNode_ = surfaceNode;
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
@@ -297,9 +298,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " useDma: [%{public}d], useCurWindow: [%{public}d],"
-        " isOnTheTree: [%{public}d]",
+        " isOnTheTree: [%{public}d], isVisible: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
-        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree());
+        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
+        !surfaceNode_->GetVisibleRegion().IsEmpty());
     return Media::PixelMap::Create(opts);
 }
 
