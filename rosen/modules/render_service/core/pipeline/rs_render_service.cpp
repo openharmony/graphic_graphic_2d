@@ -54,6 +54,15 @@ constexpr int64_t UNI_RENDER_VSYNC_OFFSET = 5000000; // ns
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = -3300000; // ns
 const std::string BOOTEVENT_RENDER_SERVICE_READY = "bootevent.renderservice.ready";
 constexpr size_t CLIENT_DUMP_TREE_TIMEOUT = 2000; // 2000ms
+static const int INT_INIT_VAL = 0;
+static const int RGB_SIZE = 8;
+static const int CREAT_NUM_ONE = 1;
+static const int INIT_WIDTH = 480;
+static const int INIT_HEIGHT = 800;
+static const int INIT_EGL_VERSION = 3;
+static EGLDisplay g_tmpDisplay = EGL_NO_DISPLAY;
+static EGLContext g_tmpContext = EGL_NO_CONTEXT;
+static EGLSurface g_tmpSurface = EGL_NO_SURFACE;
 
 uint32_t GenerateTaskId()
 {
@@ -343,7 +352,9 @@ void RSRenderService::DumpHelpInfo(std::string& dumpString) const
         .append("|dump vk texture limit info\n")
 #endif
         .append("flushJankStatsRs")
-        .append("|flush rs jank stats hisysevent\n");
+        .append("|flush rs jank stats hisysevent\n")
+        .append("gles                           ")
+        .append("|inquire gpu info\n");
 }
 
 void RSRenderService::FPSDUMPProcess(std::unordered_set<std::u16string>& argSets,
@@ -530,6 +541,62 @@ void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
     dumpString.append("flush done\n");
 }
 
+static void InitGLES()
+{
+    g_tmpDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGLint major, minor;
+    eglInitialize(g_tmpDisplay, &major, &minor);
+    EGLint numConfigs = INT_INIT_VAL;
+    const EGLint configAttribs[] = {
+        EGL_RED_SIZE, RGB_SIZE,
+        EGL_GREEN_SIZE, RGB_SIZE,
+        EGL_BLUE_SIZE, RGB_SIZE,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+        EGL_NONE
+    };
+    EGLConfig config;
+    eglChooseConfig(g_tmpDisplay, configAttribs, &config, CREAT_NUM_ONE, &numConfigs);
+    const EGLint surfaceAttribs[] = { EGL_WIDTH, INIT_WIDTH, EGL_HEIGHT, INIT_HEIGHT, EGL_NONE };
+    g_tmpSurface = eglCreatePbufferSurface(g_tmpDisplay, config, surfaceAttribs);
+    const EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, INIT_EGL_VERSION, EGL_NONE };
+    g_tmpContext = eglCreateContext(g_tmpDisplay, config, EGL_NO_CONTEXT, contextAttribs);
+    eglMakeCurrent(g_tmpDisplay, g_tmpSurface, g_tmpSurface, g_tmpContext);
+}
+
+static void DestroyGLES()
+{
+    eglDestroySurface(g_tmpDisplay, g_tmpSurface);
+    g_tmpSurface = EGL_NO_SURFACE;
+    eglDestroyContext(g_tmpDisplay, g_tmpContext);
+    g_tmpContext = EGL_NO_CONTEXT;
+    eglTerminate(g_tmpDisplay);
+    g_tmpDisplay = EGL_NO_DISPLAY;
+}
+
+void RSRenderService::DumpGpuInfo(std::string& dumpString) const
+{
+    InitGLES(); // This is necessary because you cannot query GPU information without initialization.
+    dumpString.append("\n");
+    dumpString.append("-- DumpGpuInfo: \n");
+    auto glVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    auto glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    auto glesVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    auto glShadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+    dumpString.append("GL_VENDOR: ");
+    dumpString.append(glVendor ? glVendor : "Unknown");
+    dumpString.append("\n");
+    dumpString.append("GL_RENDERER: ");
+    dumpString.append(glRenderer ? glRenderer : "Unknown");
+    dumpString.append("\n");
+    dumpString.append("GL_VERSION: ");
+    dumpString.append(glesVersion ? glesVersion : "Unknown");
+    dumpString.append("\n");
+    dumpString.append("GL_SHADING_LANGUAGE_VERSION: ");
+    dumpString.append(glShadingLanguageVersion ? glShadingLanguageVersion : "Unknown");
+    dumpString.append("\n");
+    DestroyGLES();
+}
+
 #ifdef RS_ENABLE_VK
 void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
 {
@@ -576,6 +643,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
 #ifdef RS_ENABLE_VK
     std::u16string arg22(u"vktextureLimit");
 #endif
+    std::u16string arg23(u"gles");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -664,6 +732,9 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
                 mainThread_->SendClientDumpNodeTreeCommands(taskId);
             }).wait();
         mainThread_->CollectClientNodeTreeResult(taskId, dumpString, CLIENT_DUMP_TREE_TIMEOUT);
+    }
+    if (argSets.count(arg23) != 0) {
+        mainThread_->ScheduleTask([this, &dumpString]() { DumpGpuInfo(dumpString); }).wait();
     }
 #ifdef RS_ENABLE_VK
     if (argSets.count(arg22) != 0) {
