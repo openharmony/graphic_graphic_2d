@@ -724,6 +724,10 @@ private:
     bool isRegionDebugEnabledOfLastFrame_ = false;
 
     bool isForceRefresh_ = false;
+
+#ifdef RS_ENABLE_VK
+    bool needCreateVkPipeline_ = true;
+#endif
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

@@ -80,6 +80,9 @@
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
 #include "pipeline/rs_unmarshal_thread.h"
+#ifdef RS_ENABLE_VK
+#include "pipeline/rs_vk_pipeline_config.h"
+#endif
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/sk_resource_manager.h"
@@ -476,6 +479,15 @@ void RSMainThread::Init()
         RSTypefaceCache::Instance().HandleDelayDestroyQueue();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
         ConnectChipsetVsyncSer();
+#endif
+#ifdef RS_ENABLE_VK
+        if (needCreateVkPipeline_) {
+            needCreateVkPipeline_ = false;
+            RSBackgroundThread::Instance().PostTask([]() {
+                Rosen::RDC::RDCConfig rdcConfig;
+                rdcConfig.LoadAndAnalyze(std::string(Rosen::RDC::CONFIG_XML_FILE));
+            });
+        }
 #endif
         RS_LOGI("DoComposition end time:%{public}" PRIu64, curTime_);
         RS_PROFILER_ON_FRAME_END();
