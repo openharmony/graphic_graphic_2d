@@ -58,7 +58,7 @@ uint32_t CacheData::CrcGen(const uint8_t *buffer, size_t bufferSize)
 bool CacheData::IsValidFile(uint8_t *buffer, size_t bufferSize)
 {
     if (buffer == nullptr) {
-        LOGE("abandon, because of buffer is nullprt");
+        LOGE("abandon, because of buffer is nullptr");
         return false;
     }
     if (memcmp(buffer, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
@@ -176,6 +176,7 @@ void CacheData::WriteToFile()
     if (memcpy_s(buffer, bufferSize, RS_CACHE_MAGIC_HEAD, RS_CACHE_MAGIC_HEAD_LEN) != 0) {
         delete[] buffer;
         close(fd);
+        unlink(cacheDir_.c_str());
         return;
     }
     uint32_t *crc = reinterpret_cast<uint32_t*>(buffer + RS_CACHE_MAGIC_HEAD_LEN);
