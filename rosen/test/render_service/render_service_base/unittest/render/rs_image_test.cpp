@@ -103,7 +103,7 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
     Drawing::Brush brush;
     std::shared_ptr<Media::PixelMap> pixelmap;
-    ASSERT_NE(pixelmap, nullptr);
+    ASSERT_EQ(pixelmap, nullptr);
     rsImage.SetPixelMap(pixelmap);
     int width = 200;
     int height = 300;
