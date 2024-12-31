@@ -209,7 +209,6 @@ static_assert(g_propertyResetterLUT.back() != nullptr);
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
-
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
 const bool RSProperties::FilterCacheEnabled =
@@ -2016,6 +2015,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     // node content would not be affected
     contentDirty_ = true;
 }
+
 
 const Color& RSProperties::GetShadowColor() const
 {
