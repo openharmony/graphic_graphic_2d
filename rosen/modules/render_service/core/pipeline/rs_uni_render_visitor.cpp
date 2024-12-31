@@ -953,12 +953,8 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
 
     // skip CrossNode not on first display
     if (CheckSkipCrossNode(node)) {
-        if (sourceNode != nullptr) {
-            // when skip cloneCrossNode prepare, we need switch to record sourceNode dirty info
-            PrepareForSkippedCrossNode(*sourceNode);
-        } else {
-            PrepareForSkippedCrossNode(node);
-        }
+        // when skip cloneCrossNode prepare, we need switch to record sourceNode dirty info
+        PrepareForSkippedCrossNode(sourceNode ? *sourceNode : node);
         return true;
     }
 

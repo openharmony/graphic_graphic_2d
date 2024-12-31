@@ -52,7 +52,6 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "visitor/rs_node_visitor.h"
 #include "rs_profiler.h"
-#include "pipeline/rs_render_node_gc.h"
 
 #ifdef RS_ENABLE_VK
 #include "include/gpu/GrBackendSurface.h"
