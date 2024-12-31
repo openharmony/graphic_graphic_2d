@@ -80,7 +80,6 @@ private:
     sptr<VSyncDistributor> appVSyncDistributor_;
 
     bool isRcdServiceRegister_ = false;
-
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
