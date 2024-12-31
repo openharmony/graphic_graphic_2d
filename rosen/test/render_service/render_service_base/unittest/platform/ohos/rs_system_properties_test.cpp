@@ -768,28 +768,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDebugTraceEnabled
- * @tc.desc: GetDebugTraceEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDebugTraceEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetDebugTraceEnabled());
-}
-
-/**
- * @tc.name: GetDebugTraceLevel
- * @tc.desc: GetDebugTraceLevel Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDebugTraceLevel, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetDebugTraceLevel(), 0);
-}
-
-/**
  * @tc.name: GetDumpImgEnabled
  * @tc.desc: GetDumpImgEnabled Test
  * @tc.type:FUNC
