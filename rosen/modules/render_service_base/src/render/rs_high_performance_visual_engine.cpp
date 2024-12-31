@@ -36,12 +36,12 @@ void HveFilter::PushSurfaceNodeInfo(SurfaceNodeInfo& surfaceNodeInfo)
     surfaceNodeInfo_.push_back(surfaceNodeInfo);
 }
 
-std::vector<SurfaceNodeInfo> HveFilter::GetSurfaceNodeInfo()
+std::vector<SurfaceNodeInfo> HveFilter::GetSurfaceNodeInfo() const
 {
     return surfaceNodeInfo_;
 }
 
-int HveFilter::GetSurfaceNodeSize()
+int HveFilter::GetSurfaceNodeSize() const
 {
     std::lock_guard<std::mutex> lock(hveFilterMtx_);
     return surfaceNodeInfo_.size();
