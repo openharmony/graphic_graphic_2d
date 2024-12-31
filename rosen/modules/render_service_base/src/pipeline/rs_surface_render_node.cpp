@@ -1005,7 +1005,25 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
 {
-    return hasHdrPresent_;
+    return hdrNum_ > 0;
+}
+
+void RSSurfaceRenderNode::IncreaseHDRNum()
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    hdrNum_++;
+    RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
+}
+
+void RSSurfaceRenderNode::ReduceHDRNum()
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    if (hdrNum_ == 0) {
+        ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+        return;
+    }
+    hdrNum_--;
+    RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)

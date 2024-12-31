@@ -746,6 +746,8 @@ public:
         return childrenHasUIExtension_;
     }
 
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
+
     // temporary used for dfx/surfaceHandler/canvas drawing render node
     DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable() const
     {

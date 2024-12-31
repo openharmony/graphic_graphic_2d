@@ -519,6 +519,9 @@ public:
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
 
+    void IncreaseHDRNum();
+    void ReduceHDRNum();
+
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
 
@@ -1289,6 +1292,7 @@ private:
     std::mutex mutexUI_;
     std::mutex mutexClear_;
     std::mutex mutex_;
+    std::mutex mutexHDR_;
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
@@ -1307,6 +1311,7 @@ private:
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    int hdrNum_ = 0;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;

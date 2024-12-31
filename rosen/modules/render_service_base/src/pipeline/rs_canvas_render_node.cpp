@@ -269,5 +269,18 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
             canvas);
     }
 }
+
+void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
+{
+    RS_LOGD("RSCanvasRenderNode::SetHDRPresent HDRClient id: %{public}" PRIu64, GetId());
+    hasHdrPresent_ = hasHdrPresent;
+}
+
+bool RSCanvasRenderNode::GetHDRPresent() const
+{
+    RS_LOGD("RSCanvasRenderNode::GetHDRPresent HDRClient id: %{public}" PRIu64, GetId());
+    return hasHdrPresent_;
+}
+
 } // namespace Rosen
 } // namespace OHOS

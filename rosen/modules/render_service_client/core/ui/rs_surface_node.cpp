@@ -37,7 +37,6 @@
 #endif
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_hdr_manager.h"
 #include "ui/rs_proxy_node.h"
 #include "rs_trace.h"
 
@@ -65,10 +64,6 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
-    if (type == RSSurfaceNodeType::APP_WINDOW_NODE) {
-        auto callback = &RSSurfaceNode::SetHDRPresent;
-        RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
-    }
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = {
@@ -638,7 +633,6 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 
 RSSurfaceNode::~RSSurfaceNode()
 {
-    RSHDRManager::Instance().UnRegisterSetHDRPresent(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
