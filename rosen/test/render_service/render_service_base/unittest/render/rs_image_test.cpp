@@ -103,6 +103,7 @@ HWTEST_F(RSImageTest, LifeCycle001, TestSize.Level1)
     Drawing::Rect rect { fLeft, ftop, fRight, fBottom };
     Drawing::Brush brush;
     std::shared_ptr<Media::PixelMap> pixelmap;
+    ASSERT_NE(pixelmap, nullptr);
     rsImage.SetPixelMap(pixelmap);
     int width = 200;
     int height = 300;
@@ -145,6 +146,7 @@ HWTEST_F(RSImageTest, CanvasDrawImageTest, TestSize.Level1)
     Drawing::Brush brush;
     // for test
     std::shared_ptr<Media::PixelMap> pixelmap = CreatePixelMap(200, 300);
+    ASSERT_NE(pixelmap, nullptr);
     Drawing::SamplingOptions samplingOptions;
     rsImage.pixelMap_ = pixelmap;
     rsImage.pixelMap_->SetAstc(true);
@@ -345,7 +347,7 @@ HWTEST_F(RSImageTest, TestRSImage001, TestSize.Level1)
 {
     RSImage image;
     RSImage other;
-    image.IsEqual(other);
+    ASSERT_TRUE(image.IsEqual(other));
 }
 
 /**
@@ -366,6 +368,7 @@ HWTEST_F(RSImageTest, TestRSImage002, TestSize.Level1)
     isBackground = true;
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
+    EXPECT_NE(&canvas, nullptr);
 }
 
 /**
@@ -401,6 +404,7 @@ HWTEST_F(RSImageTest, TestRSImage003, TestSize.Level1)
     image.SetImageFit(8);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions(), isBackground);
     canvas.DetachBrush();
+    EXPECT_NE(&canvas, nullptr);
 }
 
 /**
@@ -425,6 +429,7 @@ HWTEST_F(RSImageTest, TestRSImage004, TestSize.Level1)
     image.SetImageRepeat(3);
     image.CanvasDrawImage(canvas, rect, Drawing::SamplingOptions());
     canvas.DetachBrush();
+    EXPECT_NE(&canvas, nullptr);
 }
 
 /**
