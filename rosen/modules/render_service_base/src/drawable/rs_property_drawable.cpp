@@ -481,12 +481,12 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
     stagingIsAIBarInteractWithHWC_ = false;
 }
 
-bool RSFilterDrawable::IsAIBarFilter()
+bool RSFilterDrawable::IsAIBarFilter() const
 {
     return filterType_ == RSFilter::AIBAR;
 }
 
-bool RSFilterDrawable::IsAIBarCacheValid() const
+bool RSFilterDrawable::IsAIBarCacheValid()
 {
     if (filterType_ != RSFilter::AIBAR) {
         return false;
