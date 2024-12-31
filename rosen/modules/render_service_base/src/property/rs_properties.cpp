@@ -2016,6 +2016,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
 }
 
+
 const Color& RSProperties::GetShadowColor() const
 {
     static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
