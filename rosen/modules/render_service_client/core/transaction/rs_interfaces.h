@@ -263,8 +263,6 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
-
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
