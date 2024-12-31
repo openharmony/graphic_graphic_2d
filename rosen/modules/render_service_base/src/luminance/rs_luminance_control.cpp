@@ -266,9 +266,10 @@ double RSLuminanceControl::GetHdrBrightnessRatio(ScreenId screenId, int32_t mode
     return (initStatus_ && getNonlinearRatio_ != nullptr) ? getNonlinearRatio_(screenId, mode) : 1.0;
 }
 
-float RSLuminanceControl::CalScaler(const float& maxContentLightLevel)
+float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, const float& ratio)
 {
-    return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel) : HDR_DEFAULT_SCALER;
+    return (initStatus_ && calScaler_ != nullptr) ? calScaler_(maxContentLightLevel, ratio) :
+        HDR_DEFAULT_SCALER * ratio;
 }
 
 bool RSLuminanceControl::IsHdrPictureOn()
