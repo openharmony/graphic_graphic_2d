@@ -943,7 +943,7 @@ void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& node)
 bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& node)
 {
     RSSurfaceRenderNode::SharedPtr sourceNode = node.GetSourceCrossNode().lock() ?
-            node.GetSourceCrossNode().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+        node.GetSourceCrossNode().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
     // CloneCrossNode must have a source node.
     if (node.IsCloneCrossNode() && sourceNode == nullptr) {
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode source node of clone node %{public}"
