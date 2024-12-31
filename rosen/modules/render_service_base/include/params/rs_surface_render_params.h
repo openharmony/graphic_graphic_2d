@@ -604,7 +604,7 @@ public:
         needSync_ = true;
     }
 
-    bool GetIsBufferFlushed()
+    bool GetIsBufferFlushed() const
     {
         return isBufferFlushed_;
     }
