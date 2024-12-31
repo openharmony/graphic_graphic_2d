@@ -267,18 +267,18 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
         }
     });
 }
- 
+
 #ifdef RS_ENABLE_VK
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
         return;
     }
- 
+
     if (GetSurfaceBufferCallbackSize() == 0) {
         return;
     }
- 
+
     // Step 1: Extract BufferQueueData by RootNodeId
     std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
     {
@@ -313,7 +313,7 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
             data.rootNodeIds.resize(resizeSize);
         }
     }
- 
+
     // step 2: Send BufferQueueData to Arkui
     bool isNeedRequestNextVSync = false;
     for (auto& [code, data] : surfaceBufferIds) {
