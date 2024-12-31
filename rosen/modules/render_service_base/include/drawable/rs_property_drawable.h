@@ -146,8 +146,6 @@ public:
 
     bool IsFilterCacheValidForOcclusion();
 
-    void SetDrawBehindWindowRegion(RectI region);
-
 private:
     void ClearFilterCache();
     void UpdateFlags(FilterCacheType type, bool cacheValid);
@@ -161,8 +159,6 @@ protected:
 
     bool needDrawBehindWindow_ = false;
     bool stagingNeedDrawBehindWindow_ = false;
-    RectI drawBehindWindowRegion_;
-    RectI stagingDrawBehindWindowRegion_;
 
     // flags for clearing filter cache
     // All stagingXXX variables should be read & written by render_service thread

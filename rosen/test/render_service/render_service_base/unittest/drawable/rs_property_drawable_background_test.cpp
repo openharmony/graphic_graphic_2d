@@ -421,11 +421,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
     ASSERT_NE(filterDrawable->stagingFilter_, nullptr);
     ASSERT_TRUE(filterDrawable->needSync_);
     ASSERT_TRUE(filterDrawable->stagingNeedDrawBehindWindow_);
-    RectI region(0, 0, 1, 1);
-    filterDrawable->stagingDrawBehindWindowRegion_ = region;
     filterDrawable->OnSync();
     ASSERT_TRUE(filterDrawable->needDrawBehindWindow_);
-    ASSERT_TRUE(filterDrawable->drawBehindWindowRegion_ == filterDrawable->stagingDrawBehindWindowRegion_);
 }
 
 /**

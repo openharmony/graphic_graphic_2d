@@ -2974,9 +2974,10 @@ void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
     apiCompatibleVersion_ = apiCompatibleVersion;
 }
 
-bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow() const
+bool RSSurfaceRenderNode::NeedUpdateDrawableBehindWindow()
 {
-    bool needDrawBehindWindow = NeedDrawBehindWindow();
+    bool needDrawBehindWindow = !childrenBlurBehindWindow_.empty();
+    GetMutableRenderProperties().SetNeedDrawBehindWindow(needDrawBehindWindow);
     return needDrawBehindWindow != oldNeedDrawBehindWindow_;
 }
 
@@ -2987,7 +2988,7 @@ void RSSurfaceRenderNode::SetOldNeedDrawBehindWindow(bool val)
 
 bool RSSurfaceRenderNode::NeedDrawBehindWindow() const
 {
-    return !GetRenderProperties().GetBackgroundFilter() && !childrenBlurBehindWindow_.empty();
+    return !childrenBlurBehindWindow_.empty();
 }
 
 void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
@@ -2998,37 +2999,6 @@ void RSSurfaceRenderNode::AddChildBlurBehindWindow(NodeId id)
 void RSSurfaceRenderNode::RemoveChildBlurBehindWindow(NodeId id)
 {
     childrenBlurBehindWindow_.erase(id);
-}
-
-void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
-{
-    auto context = GetContext().lock();
-    if (!context) {
-        RS_LOGE("RSSurfaceRenderNode::CalDrawBehindWindowRegion, invalid context");
-    }
-    RectI region;
-    for (auto& id : childrenBlurBehindWindow_) {
-        if (auto child = context->GetNodeMap().GetRenderNode<RSRenderNode>(id)) {
-            auto childRect = child->GetMutableRenderProperties().GetBoundsGeometry()->GetAbsRect();
-            region = region.JoinRect(childRect);
-        } else {
-            RS_LOGE("RSSurfaceRenderNode::CalDrawBehindWindowRegion, get child failed");
-            return;
-        }
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
-        GetId(), region.ToString().c_str());
-    drawBehindWindowRegion_ = region;
-    auto filterDrawable = GetFilterDrawable(false);
-    if (!filterDrawable) {
-        return;
-    }
-    filterDrawable->SetDrawBehindWindowRegion(region);
-}
-
-RectI RSSurfaceRenderNode::GetFilterRect() const
-{
-    return NeedDrawBehindWindow() ? drawBehindWindowRegion_ : RSRenderNode::GetFilterRect();
 }
 } // namespace Rosen
 } // namespace OHOS
