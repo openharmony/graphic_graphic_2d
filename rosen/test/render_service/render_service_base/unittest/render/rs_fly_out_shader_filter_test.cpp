@@ -163,6 +163,626 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageRect406
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_F16, AlphaType is ALPHATYPE_OPAQUE
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect406, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4061
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_F16, AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4061, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4062
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_F16, AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4062, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4063
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_F16, AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4063, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect407
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_N32, AlphaType is ALPHATYPE_OPAQUE
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect407, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4071
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_N32, AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4071, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4072
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_N32, AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4072, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4073
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_N32, AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4073, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect408
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_1010102, AlphaType is ALPHATYPE_OPAQUE
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect408, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4081
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_1010102, AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4081, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4082
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_1010102, AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4082, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4083
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGBA_1010102, AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4083, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect409
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_GRAY_8, AlphaType is ALPHATYPE_OPAQUE
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect409, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4091
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_GRAY_8, AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4091, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4092
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_GRAY_8, AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4092, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4093
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_GRAY_8, AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4093, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect410
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGB_888X, AlphaType is ALPHATYPE_OPAQUE
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect410, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4101
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGB_888X, AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4101, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4102
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGB_888X, AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4102, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
+ * @tc.name: DrawImageRect4103
+ * @tc.desc: test results of DrawImageRect,ColorType is COLORTYPE_RGB_888X, AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAH2TY
+ */
+HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4103, TestSize.Level1)
+{
+    RSFlyOutShaderFilter effectFilter(0.f, 0);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    // if image->GetHeight() <= 0
+    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth() == 0);
+    EXPECT_TRUE(image->GetHeight() == 0);
+}
+
+/**
  * @tc.name: GetFunc001
  * @tc.desc: test getFunc
  * @tc.type: FUNC
