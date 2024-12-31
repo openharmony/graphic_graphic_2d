@@ -72,6 +72,10 @@ public:
         return shaderPointers_.size();
     }
 
+    bool IsValidFile(uint8_t *buffer, size_t bufferSize);
+
+    uint32_t CrcGen(const uint8_t *buffer, size_t bufferSize);
+
 private:
     CacheData(const CacheData&);
     void operator=(const CacheData&);
@@ -171,6 +175,7 @@ private:
     const size_t cleanLevel_ = 2;
     static const size_t ALIGN_FOUR = 3;
     static const int ERR_NUMBER = -1;
+    static const int TIME_MAX_LEN = 80;
     const int randShift_ = 16;
     const int randLength_ = 3;
 
