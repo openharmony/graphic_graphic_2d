@@ -563,6 +563,7 @@ public:
     void SyncSnapshotSkipInfoToFirstLevelNode();
     void SyncProtectedInfoToFirstLevelNode();
     void SyncPrivacyContentInfoToFirstLevelNode();
+    void SyncColorGamutInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
