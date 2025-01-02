@@ -24,6 +24,7 @@
 #include "image/image.h"
 
 namespace OHOS {
+// codes only for arkui-x start
 namespace Rosen {
 class RSPaintFilterCanvas;
 class RSSurfaceExt : public std::enable_shared_from_this<RSSurfaceExt> {
@@ -57,7 +58,7 @@ public:
 #ifdef USE_SURFACE_TEXTURE
 using RSSurfaceTexture = RSSurfaceExt;
 #endif
-}
+} // codes only for arkui-x end
 }
 #endif // #define RENDER_SERVICE_BASE_COMMON_RS_SURFACE_EXT_H
 
