@@ -37,6 +37,7 @@ public:
     MOCK_METHOD2(RegHwcDeadCallback, bool(OnHwcDeadCallback, void*));
     MOCK_METHOD2(RegScreenVBlankIdleCallback, int32_t(OnVBlankIdleCallback, void*));
     MOCK_METHOD4(SetScreenConstraint, int32_t(uint32_t, uint64_t, uint64_t, uint32_t));
+    MOCK_METHOD3(GetDisplayProperty, int32_t(uint32_t, uint32_t, uint64_t&));
     MOCK_METHOD2(GetScreenCapability, int32_t(uint32_t, GraphicDisplayCapability&));
     MOCK_METHOD2(GetScreenSupportedModes, int32_t(uint32_t, std::vector<GraphicDisplayModeInfo>&));
     MOCK_METHOD2(GetScreenMode, int32_t(uint32_t, uint32_t&));

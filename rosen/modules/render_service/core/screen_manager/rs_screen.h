@@ -114,6 +114,8 @@ public:
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
     virtual const std::unordered_set<uint64_t>& GetBlackList() const = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
+    virtual bool GetDisplayPropertyForHardCursor() = 0;
+    virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
 };
@@ -201,6 +203,8 @@ public:
     const std::unordered_set<uint64_t>& GetBlackList() const override;
     bool GetCastScreenEnableSkipWindow() override;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type) override;
+    bool GetDisplayPropertyForHardCursor() override;
+    void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
 
@@ -270,6 +274,7 @@ private:
     std::vector<uint64_t> securityExemptionList_ = {};
     std::atomic<bool> skipWindow_ = false;
     mutable std::mutex mutex_;
+    bool isHardCursorSupport_ = false;
 };
 } // namespace impl
 } // namespace Rosen

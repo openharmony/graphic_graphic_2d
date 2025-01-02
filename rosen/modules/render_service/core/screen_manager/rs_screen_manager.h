@@ -232,6 +232,8 @@ public:
     virtual void ClearFrameBufferIfNeed() = 0;
 
     virtual int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) = 0;
+
+    virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId) = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -444,6 +446,8 @@ public:
     void ClearFrameBufferIfNeed() override;
 
     int32_t SetScreenConstraint(ScreenId id, uint64_t timestamp, ScreenConstraintType type) override;
+
+    bool GetDisplayPropertyForHardCursor(uint32_t screenId) override;
 
 private:
     RSScreenManager();

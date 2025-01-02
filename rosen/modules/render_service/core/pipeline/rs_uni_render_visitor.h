@@ -354,6 +354,7 @@ private:
     bool isScreenRotationAnimating_ = false;
     bool displayNodeRotationChanged_ = false;
     std::vector<std::string> dfxTargetSurfaceNames_;
+
     PartialRenderType partialRenderType_;
     DirtyRegionDebugType dirtyRegionDebugType_;
     SurfaceRegionDebugType surfaceRegionDebugType_;

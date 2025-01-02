@@ -110,10 +110,10 @@ public:
         return isNodeDirty_;
     }
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+    bool IsHardwareEnabledTopSurface() const;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const;
+    bool GetHardCursorLastStatus() const;
 
     void SetLayerTop(bool isTop);
 
@@ -129,7 +129,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface() || IsLayerTop();
+            IsLayerTop();
     }
 
     bool IsDynamicHardwareEnable() const
@@ -426,7 +426,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsSCBNode() const;
-    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
@@ -1515,6 +1515,10 @@ private:
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+
+    // point window
+    bool isHardCursor_ = false;
+    bool isLastHardCursor_ = false;
 
     bool needDrawFocusChange_ = false;
 

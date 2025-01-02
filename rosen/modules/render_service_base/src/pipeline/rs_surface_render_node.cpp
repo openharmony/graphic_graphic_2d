@@ -1079,6 +1079,38 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
     AddToPendingSyncList();
 }
 
+bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
+{
+    return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+}
+
+void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
+{
+    if (isHardCursor_ == status) {
+        isLastHardCursor_ = isHardCursor_;
+        return;
+    }
+    RS_LOGI("RSSurfaceRenderNode::SetHardCursorStatus status:%{public}d", status);
+    isLastHardCursor_ = isHardCursor_;
+    isHardCursor_ = status;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetHardCursorStatus(status);
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::GetHardCursorStatus() const
+{
+    return isHardCursor_;
+}
+
+bool RSSurfaceRenderNode::GetHardCursorLastStatus() const
+{
+    return isLastHardCursor_;
+}
+
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
     colorSpace_ = colorSpace;
@@ -1476,7 +1508,7 @@ bool RSSurfaceRenderNode::IsSCBNode() const
     return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
 }
 
-void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
+void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
