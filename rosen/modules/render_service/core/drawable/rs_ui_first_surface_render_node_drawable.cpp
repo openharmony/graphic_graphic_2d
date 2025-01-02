@@ -222,8 +222,7 @@ void RSSurfaceRenderNodeDrawable::ClearCacheSurfaceOnly()
 
 Vector2f RSSurfaceRenderNodeDrawable::GetGravityTranslate(float imgWidth, float imgHeight)
 {
-    auto surfaceParams = GetRenderParams() ?
-        static_cast<RSSurfaceRenderParams*>(GetRenderParams().get()) : nullptr;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::GetGravityTranslate surfaceParams is nullptr");
         return Vector2f{};
@@ -588,7 +587,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
     static constexpr int REQUEST_FRAME_AWARE_LOAD = 90;
     static constexpr int REQUEST_FRAME_STANDARD_LOAD = 50;
     if (!HasCachedTexture()) {
-        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %lld", canSkipWait, nodeId_);
+        RS_TRACE_NAME_FMT("HandleSubThreadNode wait %d %" PRIu64 "", canSkipWait, nodeId_);
         if (canSkipWait) {
             return false; // draw nothing
         }
@@ -611,7 +610,7 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
 
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id)
 {
-    RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%lld", HasCachedTexture(), id);
+    RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%" PRIu64 "", HasCachedTexture(), id);
     const auto& params = GetRenderParams();
     if (!params) {
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");

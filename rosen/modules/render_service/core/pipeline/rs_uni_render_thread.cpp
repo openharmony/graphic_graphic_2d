@@ -378,7 +378,6 @@ void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
                 }
                 continue;
             }
-            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
             auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
                                    useReleaseFence = surfaceParams->GetLastFrameHardwareEnabled(),
                                    acquireFence = acquireFence_]() mutable {
