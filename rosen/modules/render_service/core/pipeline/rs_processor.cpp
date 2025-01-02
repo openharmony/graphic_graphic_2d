@@ -97,7 +97,7 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
     switch (layerLevel) {
         case PERF_LEVEL_0: {
             // do nothing
-            RS_LOGD("RsDebug RSProcessor::Perf: perf do nothing");
+            RS_LOGD("RsDebug RSProcessor::perf do nothing");
             break;
         }
         case PERF_LEVEL_1: {

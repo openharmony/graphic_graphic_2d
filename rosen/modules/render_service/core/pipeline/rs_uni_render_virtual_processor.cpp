@@ -133,15 +133,15 @@ void RSUniRenderVirtualProcessor::CanvasInit(DrawableV2::RSDisplayRenderNodeDraw
 {
     // Save the initial canvas state
     canvas_->Save();
-    // displayDrawable.GetRenderParams() not null incaller
+    // displayDrawable.GetRenderParams() not null in caller
     if (displayDrawable.IsFirstTimeToProcessor() || canvasRotation_) {
         if (displayDrawable.IsFirstTimeToProcessor()) {
-            RS_LOGI("RSUniRenderVirtualProcessor::CanvasInit, id: %{public}" PRIu64 ", "
+            RS_LOGI("RSUniRenderVirtualProcessor::FirstInit, id: %{public}" PRIu64 ", "
                 "screen(%{public}f, %{public}f, %{public}f, %{public}f), "
                 "rotation: %{public}d, correction: %{public}d, needRotation: %{public}d, scaleMode: %{public}d",
-            displayDrawable.GetRenderParams()->GetScreenId(), virtualScreenWidth_, virtualScreenHeight_,
-            mirroredScreenWidth_, mirroredScreenHeight_, screenRotation_, screenCorrection_, canvasRotation_,
-            scaleMode_);
+                displayDrawable.GetRenderParams()->GetScreenId(), virtualScreenWidth_, virtualScreenHeight_,
+                mirroredScreenWidth_, mirroredScreenHeight_, screenRotation_, screenCorrection_, canvasRotation_,
+                scaleMode_);
         }
         displayDrawable.SetOriginScreenRotation(screenRotation_);
     }
