@@ -295,7 +295,8 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
         const auto& bufferDamage = params.GetBufferDamage();
-        GraphicIRect dirtyRect = GraphicIRect { bufferDamage.x, bufferDamage.y, bufferDamage.w, bufferDamage.h };
+        GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
+            bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
         dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect));
     } else {
         dirtyRegions.emplace_back(layerInfo.srcRect);

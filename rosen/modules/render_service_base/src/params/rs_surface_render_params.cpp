@@ -565,6 +565,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->preparedDisplayOffset_ = preparedDisplayOffset_;
     targetSurfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     RSRenderParams::OnSync(target);
 }
 

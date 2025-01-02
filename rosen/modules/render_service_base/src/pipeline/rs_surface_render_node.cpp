@@ -1353,6 +1353,7 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
     surfaceParams->SetBuffer(buffer, damageRect);
     surfaceParams->SetAcquireFence(acquireFence);
     surfaceParams->SetBufferSynced(false);
+    surfaceParams->SetIsBufferFlushed(true);
     AddToPendingSyncList();
 #endif
 }
@@ -3372,6 +3373,21 @@ void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
     AddToPendingSyncList();
 
     apiCompatibleVersion_ = apiCompatibleVersion;
+}
+
+void RSSurfaceRenderNode::ResetIsBufferFlushed()
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::ResetIsBufferFlushed: stagingRenderPrams is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::ResetIsBufferFlushed: surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetIsBufferFlushed(false);
+    AddToPendingSyncList();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -2385,5 +2385,27 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetForceDisableClipHoleForDRM, TestSize.Level1
     surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetForceDisableClipHoleForDRM());
 }
+
+/**
+ * @tc.name: ResetIsBufferFlushed
+ * @tc.desc: test if node could be marked IsBufferFlushed correctly
+ * @tc.type: FUNC
+ * @tc.require: issueIBEBTA
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ResetIsBufferFlushed, TestSize.Level1)
+{
+    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+    testNode->stagingRenderParams_ = nullptr;
+    ASSERT_EQ(testNode->stagingRenderParams_, nullptr);
+    testNode->ResetIsBufferFlushed();
+
+    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
+    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
+
+    testNode->ResetIsBufferFlushed();
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
+    ASSERT_FALSE(surfaceParams->GetIsBufferFlushed());
+}
 } // namespace Rosen
 } // namespace OHOS

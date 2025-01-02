@@ -597,6 +597,20 @@ public:
         return apiCompatibleVersion_;
     }
 
+    void SetIsBufferFlushed(bool isBufferFlushed)
+    {
+        if (isBufferFlushed_ == isBufferFlushed) {
+            return;
+        }
+        isBufferFlushed_ = isBufferFlushed;
+        needSync_ = true;
+    }
+
+    bool GetIsBufferFlushed() const
+    {
+        return isBufferFlushed_;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -709,6 +723,8 @@ private:
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;
+
+    bool isBufferFlushed_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H
