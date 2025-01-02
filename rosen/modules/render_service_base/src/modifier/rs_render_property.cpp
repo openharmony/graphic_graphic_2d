@@ -390,29 +390,6 @@ void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const
 }
 
 template<>
-void RSRenderProperty<Vector4f<uint32_t>>::Dump(std::string& out) const
-{
-    Vector4f v4f = Get();
-    switch (modifierType_) {
-        case RSModifierType::BORDER_STYLE;
-        case RSModifierType::OUTLINE_STYLE: {
-            out += "[left:" + std::to_string(v4f.x_);
-            out += " top:" + std::to_string(v4f.y_);
-            out += " right:" + std::to_string(v4f.z_);
-            out += " bottom:" + std::to_string(v4f.w_) + "]";
-            break;
-        }
-        default: {
-            out += "[x:" + std::to_string(v4f.x_) + " y:";
-            out += std::to_string(v4f.y_) + " z:";
-            out += std::to_string(v4f.z_) + " w:";
-            out += std::to_string(v4f.w_) + "]";
-            break;
-        }
-    }
-}
-
-template<>
 void RSRenderProperty<Vector4f>::Dump(std::string& out) const
 {
     Vector4f v4f = Get();
