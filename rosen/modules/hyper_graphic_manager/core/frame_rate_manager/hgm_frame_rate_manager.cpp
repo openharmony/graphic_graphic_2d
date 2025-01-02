@@ -560,7 +560,7 @@ void HgmFrameRateManager::GetStylusVec(const std::shared_ptr<PolicyConfigData>& 
     if (iter == supportedModeConfig.end() || iter->second.empty()) {
         return;
     }
-    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
+    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_);
     stylusVec_.clear();
     for (auto rate : iter->second) {
         auto it = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), rate);
