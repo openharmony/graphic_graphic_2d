@@ -49,6 +49,7 @@ public:
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
+    void FilterHardCursor(const RSSurfaceRenderParams& surfaceParams);
     bool CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams);
     void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
     void ResetVirtualScreenWhiteListRootId(NodeId id);
