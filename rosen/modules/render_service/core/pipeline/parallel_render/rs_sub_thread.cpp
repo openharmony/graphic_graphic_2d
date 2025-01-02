@@ -355,9 +355,14 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         return;
     }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
+    bool isHdrSurface = false;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+    if (surfaceParams != nullptr) {
+        isHdrSurface = surfaceParams->GetHDRPresent();
+    }
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
         RSMainThread::Instance()->IsUIFirstOn();
-    bool isNeedFP16 = nodeDrawable->GetHDRPresent() || isScRGBEnable;
+    bool isNeedFP16 = isHdrSurface || isScRGBEnable;
     bool bufferFormatNeedUpdate = nodeDrawable->BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
     if (!cacheSurface || nodeDrawable->NeedInitCacheSurface() || bufferFormatNeedUpdate) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
