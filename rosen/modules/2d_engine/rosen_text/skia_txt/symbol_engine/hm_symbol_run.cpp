@@ -109,11 +109,11 @@ void HMSymbolRun::SetSymbolRenderColor(const RSSymbolRenderingStrategy& renderMo
 void HMSymbolRun::DrawSymbol(RSCanvas* canvas, const RSPoint& offset)
 {
     if (!textBlob_) {
-        TEXT_LOGD("HmSymbol: the textBlob is nullptr");
+        TEXT_LOGD("HmSymbol: the textBlob_ is nullptr");
         return;
     }
 
-    if (canvas == nullptr) {
+    if (!canvas) {
         TEXT_LOGD("HmSymbol: the canvas is nullptr");
         return;
     }

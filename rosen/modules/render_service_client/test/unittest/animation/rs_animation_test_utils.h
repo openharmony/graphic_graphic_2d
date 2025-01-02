@@ -77,7 +77,7 @@ const float END_FRACTION_DATA[] = {0.6f, 0.7f, 0.8f, 0.9f, 1.0f};
 constexpr uint32_t SUCCESS_INT = 1;
 const std::string SUCCESS_STRING = "success";
 constexpr bool SUCCESS_BOOL = true;
-const unsigned int INVALID_STATUS = -1;  // invalid status label for replace animation
+const unsigned int INVALID_STATUS = 0;  // invalid status label for replace animation
 const unsigned int APPEAR_STATUS = 1 ;   // appear status label for replace animation
 
 const Drawing::DrawingPiecewiseParameter BOUNCE_FIRST_PHASE_PARAS = {
