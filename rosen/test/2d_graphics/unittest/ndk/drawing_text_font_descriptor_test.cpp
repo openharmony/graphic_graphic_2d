@@ -328,8 +328,9 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest013, TestSi
 
     OH_Drawing_Array *ttfs = OH_Drawing_GetSystemFontFullNamesByType(ALL);
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
-    EXPECT_EQ(num, 141);
+    EXPECT_EQ(num, 142);
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 
 /*
@@ -353,6 +354,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest014, TestSi
         ASSERT_STREQ(fd->fullName, "FTToken");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 
 /*
@@ -380,6 +382,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest015, TestSi
         ASSERT_STREQ(fd->fullName, "FTToken");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 
 /*
@@ -403,6 +406,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest016, TestSi
         ASSERT_STREQ(fd->fullName, "Noto Sans CJK JP");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 
 /*
@@ -429,6 +433,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest017, TestSi
         ASSERT_STREQ(fd->fullName, "Birch std");
     }
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 
 /*
@@ -447,6 +452,7 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest018, TestSi
     size_t num = OH_Drawing_GetDrawingArraySize(ttfs);
     EXPECT_EQ(num, 0);
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 
 /*
@@ -476,5 +482,6 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest019, TestSi
     size_t num1 = OH_Drawing_GetDrawingArraySize(ttfs1);
     EXPECT_EQ(num1, 0);
     FontDescriptorMgrInstance.ClearFontFileCache();
+    OH_Drawing_DestroyFontCollection(fc);
 }
 }
