@@ -489,8 +489,7 @@ void RSRenderNode::ClearCloneCrossNode()
     }
 
     for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
-        auto parent = (*it)->GetParent().lock();
-        if (parent) {
+        if (auto parent = (*it)->GetParent().lock()) {
             parent->RemoveChild(*it, true);
         }
     }
