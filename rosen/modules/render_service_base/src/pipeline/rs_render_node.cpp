@@ -610,8 +610,6 @@ void RSRenderNode::RemoveCrossScreenChild(const SharedPtr& child)
         return;
     }
     RemoveChild(*cloneIt, true);
-
-
     child->cloneCrossNodeVec_.erase(cloneIt);
 }
 
