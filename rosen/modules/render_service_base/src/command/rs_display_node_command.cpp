@@ -23,8 +23,6 @@
 namespace OHOS {
 namespace Rosen {
 
-ScreenStatusNotifyTask DisplayNodeCommandHelper::screenStatusNotifyTask_;
-
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
     auto node = std::shared_ptr<RSDisplayRenderNode>(new RSDisplayRenderNode(id,
@@ -77,16 +75,10 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
         node->SetScreenId(screenId);
         if (screenStatusNotifyTask_) {
-            RS_TRACE_NAME("SwitchScreenId [" %{public} "], set screenSwitchStatus false", screenId);
+            RS_TRACE_NAME("set screenSwitchStatus false");
             screenStatusNotifyTask_(false);
         }
     }
-}
-
-
-void DisplayNodeCommandHelper::SetScreenStatusNotifyTask(ScreenStatusNotifyTask callback)
-{
-    screenStatusNotifyTask_ = callback;
 }
 
 void DisplayNodeCommandHelper::SetRogSize(RSContext& context, NodeId id, uint32_t rogWidth, uint32_t rogHeight)
@@ -152,6 +144,11 @@ void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
         ROSEN_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
         node->SetScbNodePid(oldScbPids, currentScbPid);
     }
+}
+
+void DisplayNodeCommandHelper::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
+{
+    screenStatusNotifyTask_ = task;
 }
 } // namespace Rosen
 } // namespace OHOS

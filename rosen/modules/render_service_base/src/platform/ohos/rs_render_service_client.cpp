@@ -1532,14 +1532,6 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
     }
 }
 
-void RSRenderServiceClient::NotifyScreenSwitched()
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->NotifyScreenSwitched();
-    }
-}
-
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1805,6 +1797,14 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
+
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyScreenSwitched();
     }
 }
 } // namespace Rosen

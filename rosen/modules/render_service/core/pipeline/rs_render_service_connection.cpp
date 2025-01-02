@@ -2276,13 +2276,6 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
     mainThread_->PostTask(task);
 }
 
-void RSRenderServiceConnection::NotifyScreenSwitched()
-{
-    RS_LOGD("RSRenderServiceConnection::NotifyScreenSwitched");
-    RS_TRACE_NAME_FMT("NotifyScreenSwitched");
-    screenManager_->SetScreenSwitchStatus(true);
-}
-
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()
 {
 #ifdef RS_ENABLE_GPU
@@ -2497,6 +2490,13 @@ void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool i
         connection->mainThread_->RequestNextVSync();
     };
     mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::NotifyScreenSwitched()
+{
+    RS_LOGD("RSRenderServiceConnection::NotifyScreenSwitched");
+    RS_TRACE_NAME_FMT("NotifyScreenSwitched");
+    screenManager_->SetScreenSwitchStatus(true);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -474,7 +474,6 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
-    bool isScreenSwitching_ = false;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;

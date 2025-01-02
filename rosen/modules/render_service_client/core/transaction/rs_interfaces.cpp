@@ -762,6 +762,11 @@ void RSInterfaces::DisableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(false);
 }
 
+void RSInterfaces::SetScreenSwitching(bool flag)
+{
+    renderServiceClient_->NotifyScreenSwitched();
+}
+
 void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
@@ -876,6 +881,11 @@ bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
+}
+
+void RSInterfaces::NotifyScreenSwitched()
+{
+    renderServiceClient_->NotifyScreenSwitched();
 }
 } // namespace Rosen
 } // namespace OHOS

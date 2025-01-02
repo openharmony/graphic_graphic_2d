@@ -3181,24 +3181,6 @@ void RSRenderServiceConnectionProxy::SetCacheEnabledForRotation(bool isEnabled)
     }
 }
 
-void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSRenderServiceConnectionProxy::NotifyScreenSwitched: Write InterfaceToken val err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("%{public}s SendRequest() error[%{public}d]", __func__, err);
-        return;
-    }
-}
-
 void RSRenderServiceConnectionProxy::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     OnRemoteDiedCallback_ = callback;
@@ -3629,6 +3611,24 @@ int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel
         return static_cast<int32_t>(RSInterfaceErrorCode::NULLPTR_ERROR);
     }
     return Remote()->SendRequest(code, data, reply, option);
+}
+
+void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: Send Request error.", __func__);
+        return;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

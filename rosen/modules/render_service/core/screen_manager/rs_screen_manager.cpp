@@ -243,16 +243,6 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
-void RSScreenManager::SetScreenSwitchStatus(bool flag)
-{
-    isScreenSwitching_ = flag;
-}
-
-bool GetScreenSwitchStatus()
-{
-    return isScreenSwitching_;
-}
-
 bool RSScreenManager::IsAllScreensPowerOff() const
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -2356,6 +2346,16 @@ bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId)
         return false;
     }
     return screensIt->second->GetDisplayPropertyForHardCursor();
+}
+
+void RSScreenManager::SetScreenSwitchStatus(bool flag)
+{
+    isScreenSwitching_ = flag;
+}
+
+bool RSScreenManager::GetScreenSwitchStatus()
+{
+    return isScreenSwitching_;
 }
 } // namespace impl
 

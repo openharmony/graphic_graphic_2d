@@ -644,12 +644,12 @@ void RSMainThread::Init()
 #endif
 
     RSDisplayRenderNode::SetReleaseTask(&impl::RSScreenManager::ReleaseScreenDmaBuffer);
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSMainThread::Init screenManager is nullptr");
-        return false;
-    }
-    DisplayNodeCommandHelper::SetScreenStatusNotifyTask([screenManager](bool status) {
+    DisplayNodeCommandHelper::SetScreenStatusNotifyTask([](bool status) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            RS_LOGE("RSMainThread::Init screenManager is nullptr");
+            return;
+        }
         screenManager->SetScreenSwitchStatus(status);
     });
     auto delegate = RSFunctionalDelegate::Create();

@@ -300,8 +300,6 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void NotifyScreenSwitched() override;
-
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
@@ -336,6 +334,8 @@ private:
     void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
         sptr<RSISurfaceBufferCallback> callback) override;
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
+    void NotifyScreenSwitched() override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

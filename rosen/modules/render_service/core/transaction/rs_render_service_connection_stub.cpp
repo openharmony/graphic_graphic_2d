@@ -2267,10 +2267,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetCacheEnabledForRotation(isEnabled);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS) : {
-            NotifyScreenSwitched();
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
@@ -2532,6 +2528,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetLayerTop(nodeIdStr, isTop);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS) : {
+            NotifyScreenSwitched();
             break;
         }
         default: {

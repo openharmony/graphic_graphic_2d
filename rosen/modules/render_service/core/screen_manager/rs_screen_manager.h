@@ -212,10 +212,6 @@ public:
 
     /* only used for mock tests */
     virtual void MockHdiScreenConnected(std::unique_ptr<impl::RSScreen>& rsScreen) = 0;
-    
-    virtual void SetScreenSwitchStatus(bool flag) = 0;
-
-    virtual bool GetScreenSwitchStatus() = 0;
 
     virtual bool IsAllScreensPowerOff() const = 0;
 
@@ -251,6 +247,10 @@ public:
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 
     virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId) = 0;
+
+    virtual void SetScreenSwitchStatus(bool flag) = 0;
+
+    virtual bool GetScreenSwitchStatus() = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -442,10 +442,6 @@ public:
         screens_[rsScreen->Id()] = std::move(rsScreen);
     }
 
-    void SetScreenSwitchStatus(bool flag) override;
-
-    bool GetScreenSwitchStatus() override;
-
     bool IsAllScreensPowerOff() const override;
 
     // used to skip render frame or render only one frame when screen power is off.
@@ -487,6 +483,10 @@ public:
     {
         return currentVirtualScreenNum_;
     }
+
+    void SetScreenSwitchStatus(bool flag) override;
+
+    bool GetScreenSwitchStatus() override;
 
 private:
     RSScreenManager();

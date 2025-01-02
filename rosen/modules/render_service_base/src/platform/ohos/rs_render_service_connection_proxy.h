@@ -276,8 +276,6 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void NotifyScreenSwitched() override;
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
@@ -313,6 +311,8 @@ public:
         sptr<RSISurfaceBufferCallback> callback) override;
 
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
+    void NotifyScreenSwitched() override;
 
 private:
     bool FillParcelWithTransactionData(
