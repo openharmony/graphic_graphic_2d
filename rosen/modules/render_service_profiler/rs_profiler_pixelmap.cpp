@@ -442,8 +442,8 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMap(Parcel& parcel,
     PIXEL_MAP_ERR error;
     auto map = PixelMap::StartUnmarshalling(parcel, info, memory, error);
 
-    size_t skipBytes = 0u;
     if (IsReadMode() || IsReadEmulationMode()) {
+        size_t skipBytes = 0u;
         if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
             parcel.SkipBytes(skipBytes);
             return PixelMap::FinishUnmarshalling(map, parcel, info, memory, error);

@@ -124,7 +124,7 @@ public:
 
     void CacheVsyncId2Time(uint32_t layer);
     double ConvertVsyncId2Time(int64_t vsyncId);
-    int64_t ConvertTime2VsyncId(double time);
+    int64_t ConvertTime2VsyncId(double time) const;
 
 private:
     void WriteHeaders();

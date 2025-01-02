@@ -63,7 +63,7 @@ void Network::ResetPing()
     ping_ = std::chrono::steady_clock::now();
 }
 
-void Network::Ping(Socket& socket)
+void Network::Ping(const Socket& socket)
 {
     if (!socket.Connected()) {
         return;
