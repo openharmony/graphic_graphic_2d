@@ -54,6 +54,7 @@ private:
     void NotifyClearGpuCache();
     void JankStatsRenderFrameAfterSync(bool doJankStats);
     void JankStatsRenderFrameEnd(bool doJankStats);
+    bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
 
     RSUniRenderThread& unirenderInstance_;
 
@@ -61,6 +62,7 @@ private:
     std::condition_variable frameCV_;
     bool canUnblockMainThread = false;
     std::unique_ptr<RSRenderThreadParams> stagingRenderThreadParams_ = nullptr;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> stagingSyncCanvasDrawingNodes_;
     RsParallelType rsParallelType_;
     static bool debugTraceEnabled_;
 };

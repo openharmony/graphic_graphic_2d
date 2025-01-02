@@ -20,6 +20,7 @@
 
 #include "rs_trace.h"
 
+#include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "memory/rs_memory_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -149,14 +150,38 @@ void RSDrawFrame::PostDirectCompositionJankStats(const JankDurationParams& rsPar
     }
 }
 
+bool RSDrawFrame::CheckCanvasSkipSync(std::shared_ptr<RSRenderNode> node)
+{
+    if (node->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
+        auto nodeDrawable =
+            std::static_pointer_cast<DrawableV2::RSCanvasDrawingRenderNodeDrawable>(node->GetRenderDrawable());
+        if (nodeDrawable == nullptr) {
+            return true;
+        }
+        if (nodeDrawable->IsNeedDraw()) {
+            stagingSyncCanvasDrawingNodes_.emplace(node->GetId(), node);
+            return false;
+        }
+    }
+    return true;
+}
+
 void RSDrawFrame::Sync()
 {
     RS_TRACE_NAME_FMT("Sync");
     RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode()->Sync();
 
     auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+    for (auto [id, weakPtr] : stagingSyncCanvasDrawingNodes_) {
+        pendingSyncNodes.emplace(id, weakPtr);
+    }
+    stagingSyncCanvasDrawingNodes_.clear();
     for (auto& [id, weakPtr] : pendingSyncNodes) {
         if (auto node = weakPtr.lock()) {
+            if (!CheckCanvasSkipSync(node)) {
+                node->SkipSync();
+                continue;
+            }
             if (!RSUifirstManager::Instance().CollectSkipSyncNode(node)) {
                 node->Sync();
             } else {
