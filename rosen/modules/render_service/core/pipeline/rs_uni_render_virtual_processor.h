@@ -87,17 +87,12 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
-    float mirrorWidth_ = 0.f;
-    float mirrorHeight_ = 0.f;
-    float mainWidth_ = 0.f;
-    float mainHeight_ = 0.f;
     float originalVirtualScreenWidth_ = 0.f; // used for recording the original virtual screen width
     float originalVirtualScreenHeight_ = 0.f; // used for recording the original virtual screen height
     float virtualScreenWidth_ = 0.f;
     float virtualScreenHeight_ = 0.f;
     float mirroredScreenWidth_ = 0.f;
     float mirroredScreenHeight_ = 0.f;
-    bool updateFlag_ = false;
     bool canvasRotation_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
