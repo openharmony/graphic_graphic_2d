@@ -426,7 +426,8 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect408, TestSize.Level1)
     Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
     Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
     // if image->GetHeight() <= 0
-    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    Drawing::ImageInfo imageInfo(
+        1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_OPAQUE);
     auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int addr1 = 1;
     int* addr = &addr1;
@@ -457,7 +458,8 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4081, TestSize.Level1)
     Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
     Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
     // if image->GetHeight() <= 0
-    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    Drawing::ImageInfo imageInfo(
+        1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
     auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int addr1 = 1;
     int* addr = &addr1;
@@ -488,7 +490,8 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4082, TestSize.Level1)
     Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
     Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
     // if image->GetHeight() <= 0
-    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    Drawing::ImageInfo imageInfo(
+        1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_PREMUL);
     auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int addr1 = 1;
     int* addr = &addr1;
@@ -519,7 +522,8 @@ HWTEST_F(RSFlyOutShaderFilterTest, DrawImageRect4083, TestSize.Level1)
     Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
     Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
     // if image->GetHeight() <= 0
-    Drawing::ImageInfo imageInfo(1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    Drawing::ImageInfo imageInfo(
+        1, 0, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
     auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
     int addr1 = 1;
     int* addr = &addr1;
