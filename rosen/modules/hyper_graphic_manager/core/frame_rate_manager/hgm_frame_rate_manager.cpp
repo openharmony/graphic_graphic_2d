@@ -52,6 +52,7 @@ namespace {
     const static std::string ENERGY_ASSURANCE_TASK_ID = "ENERGY_ASSURANCE_TASK_ID";
     const static std::string UI_ENERGY_ASSURANCE_TASK_ID = "UI_ENERGY_ASSURANCE_TASK_ID";
     const static std::string UP_TIME_OUT_TASK_ID = "UP_TIME_OUT_TASK_ID";
+    const static std::string STYLUS_PEN = "StylusPen";
     // CAUTION: with priority
     const std::string VOTER_NAME[] = {
         "VOTER_THERMAL",
@@ -66,6 +67,15 @@ namespace {
         "VOTER_SCENE",
         "VOTER_VIDEO",
         "VOTER_IDLE"
+    };
+
+    constexpr int32_t STYLUS_NO_LINK = 0;
+    constexpr int32_t STYLUS_LINK_UNUSED = 1;
+    constexpr int32_t STYLUS_LINK_WRITE = 2;
+    const std::unordered_map<std::string, int32_t> STYLUS_STATUS_MAP = {
+        { "STYLUS_NO_LINK", STYLUS_NO_LINK },
+        { "STYLUS_LINK_UNUSED", STYLUS_LINK_UNUSED },
+        { "STYLUS_LINK_WRITE", STYLUS_LINK_WRITE }
     };
 }
 
@@ -97,6 +107,7 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
             curRefreshRateMode_ = configData->SettingModeId2XmlModeId(curRefreshRateMode_);
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        GetStylusVec(configData);
         UpdateEnergyConsumptionConfig();
         multiAppStrategy_.CalcVote();
         HandleIdleEvent(ADD_VOTE);
@@ -534,6 +545,31 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp)
     HgmTaskHandleThread::Instance().PostTask(task);
 }
 
+void HgmFrameRateManager::GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData)
+{
+    if (!configData) {
+        return;
+    }
+
+    // refresh rate for stylus pen
+    if (configData->supportedModeConfigs_.find(curScreenStrategyId_) == configData->supportedModeConfigs_.end()) {
+        return;
+    }
+    auto supportedModeConfig = configData->supportedModeConfigs_[curScreenStrategyId_];
+    auto iter = supportedModeConfig.find(STYLUS_PEN);
+    if (iter == supportedModeConfig.end() || iter->second.empty()) {
+        return;
+    }
+    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(curScreenId_.load());
+    stylusVec_.clear();
+    for (auto rate : iter->second) {
+        auto it = std::find(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), rate);
+        if (it != supportRefreshRateVec.end()) {
+            stylusVec_.push_back(rate);
+        }
+    }
+}
+
 void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRange& range)
 {
     // Find current refreshRate by FrameRateRange. For example:
@@ -541,7 +577,14 @@ void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRang
     // of current screen are {30, 60, 90}, the result should be 30, not 60.
     // 2. FrameRateRange[min, max, preferred] is [150, 150, 150], supported refreshRates
     // of current screen are {30, 60, 90}, the result will be 90.
-    auto supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    std::vector<uint32_t> supportRefreshRateVec;
+    bool stylusFlag = (stylusMode_ == STYLUS_LINK_WRITE && !stylusVec_.empty());
+    if (stylusFlag) {
+        supportRefreshRateVec = stylusVec_;
+        HGM_LOGD("stylusVec size = %{public}zu", stylusVec_.size());
+    } else {
+        supportRefreshRateVec = HgmCore::Instance().GetScreenSupportedRefreshRates(id);
+    }
     if (supportRefreshRateVec.empty()) {
         return;
     }
@@ -549,6 +592,9 @@ void HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRateRang
     auto iter = std::lower_bound(supportRefreshRateVec.begin(), supportRefreshRateVec.end(), range.preferred_);
     if (iter != supportRefreshRateVec.end()) {
         currRefreshRate_ = *iter;
+        if (stylusFlag) {
+            return;
+        }
         if (currRefreshRate_ > static_cast<uint32_t>(range.max_) &&
             (iter - supportRefreshRateVec.begin()) > 0) {
             iter--;
@@ -901,6 +947,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
         multiAppStrategy_.UpdateXmlConfigCache();
+        GetStylusVec(configData);
         UpdateEnergyConsumptionConfig();
     }
 
@@ -923,6 +970,15 @@ void HgmFrameRateManager::HandleSceneEvent(pid_t pid, EventInfo eventInfo)
     auto screenSetting = multiAppStrategy_.GetScreenSetting();
     auto &gameSceneList = screenSetting.gameSceneList;
     auto &ancoSceneList = screenSetting.ancoSceneList;
+
+    // control the list of supported frame rates for stylus pen, not control frame rate directly
+    if (STYLUS_STATUS_MAP.find(sceneName) != STYLUS_STATUS_MAP.end()) {
+        if (stylusMode_ != STYLUS_STATUS_MAP.at(sceneName)) {
+            HGM_LOGI("pid %{public}d, %{public}s", pid, sceneName.c_str());
+        }
+        stylusMode_ = STYLUS_STATUS_MAP.at(sceneName);
+        return;
+    }
 
     std::lock_guard<std::mutex> locker(pkgSceneMutex_);
     std::lock_guard<std::mutex> lock(voteMutex_);

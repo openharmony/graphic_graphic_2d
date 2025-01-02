@@ -190,6 +190,7 @@ private:
     void HandleVirtualDisplayEvent(pid_t pid, EventInfo eventInfo);
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
 
+    void GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData);
     void DeliverRefreshRateVote(const VoteInfo& voteInfo, bool eventStatus);
     void MarkVoteChange();
     // merge [VOTER_LTPO, VOTER_IDLE)
@@ -215,6 +216,7 @@ private:
     std::shared_ptr<HgmVSyncGeneratorController> controller_ = nullptr;
     std::mutex appChangeDataMutex_;
     std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData_;
+    std::vector<uint32_t> stylusVec_;
 
     std::function<void(bool, bool)> forceUpdateCallback_ = nullptr;
     std::unordered_map<ScreenId, std::shared_ptr<HgmOneShotTimer>> screenTimerMap_;
@@ -242,6 +244,7 @@ private:
     std::string curScreenStrategyId_ = "LTPO-DEFAULT";
     bool isLtpo_ = true;
     bool isRefreshNeed_ = true;
+    int32_t stylusMode_ = -1;
     int32_t idleFps_ = 60;
     VoteInfo lastVoteInfo_;
     HgmMultiAppStrategy multiAppStrategy_;
