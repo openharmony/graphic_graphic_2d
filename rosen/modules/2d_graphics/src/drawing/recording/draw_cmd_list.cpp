@@ -681,6 +681,21 @@ void DrawCmdList::SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct)
     isNeedUnmarshalOnDestruct_ = isNeedUnmarshalOnDestruct;
 }
 
+size_t DrawCmdList::GetSize()
+{
+    size_t totoalSize = sizeof(this);
+
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        totoalSize += opAllocator_.GetSize() + imageAllocator_.GetSize() + bitmapAllocator_.GetSize();
+        for (auto op : drawOpItems_) {
+            if (op) {
+                totoalSize += op->GetOpSize();
+            }
+        }
+    }
+    return totoalSize;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

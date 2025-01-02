@@ -4756,5 +4756,25 @@ void RSRenderNode::UpdateDrawableBehindWindow()
     }
 #endif
 }
+
+size_t RSRenderNode::GetAllModifierSize()
+{
+    size_t totalSize = 0;
+    for (auto& [type, modifier] : modifiers_) {
+        if (modifier) {
+            totalSize += modifier->GetSize();
+        }
+    }
+
+    for (auto& [type, modifiers] : renderContent_->drawCmdModifiers_) {
+        for (auto& modifier : modifiers) {
+            if (modifier != nullptr) {
+                totalSize += modifier->GetSize();
+            }
+        }
+    }
+
+    return totalSize;
+}
 } // namespace Rosen
 } // namespace OHOS

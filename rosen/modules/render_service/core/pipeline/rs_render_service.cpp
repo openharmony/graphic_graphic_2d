@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include "hgm_core.h"
+#include "memory/rs_memory_manager.h"
 #include "parameter.h"
 #include "rs_main_thread.h"
 #include "rs_profiler.h"
@@ -714,6 +715,26 @@ void RSRenderService::DumpVkTextureLimit(std::string& dumpString) const
 }
 #endif
 
+void RSRenderService::DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n---------------\n Not in UniRender and no information");
+        return;
+    }
+
+    std::string type;
+    if (!argSets.empty()) {
+        type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+    }
+    int pid = 0;
+    if (!type.empty() && IsNumber(type)) {
+        pid = std::atoi(type.c_str());
+        MemoryManager::DumpExitPidMem(dumpString, pid);
+    } else {
+        dumpString.append("\n---------------\n Pid is error \n" + type);
+    }
+}
+
 void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
 {
     if (!mainThread_ || !screenManager_) {
@@ -745,6 +766,7 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
     std::u16string arg22(u"vktextureLimit");
 #endif
     std::u16string arg23(u"gles");
+    std::u16string arg24(u"dumpExistPidMem");
     if (argSets.count(arg9) || argSets.count(arg1) != 0) {
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
@@ -814,6 +836,10 @@ void RSRenderService::DoDump(std::unordered_set<std::u16string>& argSets, std::s
                 dumpString.append("Failed to set flag: " + logFlag + "\n");
             }
         }
+    }
+    if (argSets.count(arg24) != 0) {
+        argSets.erase(arg24);
+        DumpExistPidMem(argSets, dumpString);
     }
     if (argSets.size() == 0 || argSets.count(arg8) != 0 || dumpString.empty()) {
         mainThread_->ScheduleTask(

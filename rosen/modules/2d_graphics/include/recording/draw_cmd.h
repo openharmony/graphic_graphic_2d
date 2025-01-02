@@ -121,6 +121,8 @@ public:
     static std::function<std::shared_ptr<Drawing::Typeface>(uint64_t)> customTypefaceQueryfunc_;
 
     virtual void Purge() {}
+
+    size_t GetOpSize();
 };
 
 class DRAWING_API UnmarshallingHelper {

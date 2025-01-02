@@ -66,6 +66,14 @@ public:
         }
     }
 
+    size_t GetSize() {
+        auto property = GetProperty();
+        if (property != nullptr) {
+            return property->GetSize();
+        }
+        return 0;
+    }
+
     virtual RSModifierType GetType()
     {
         return RSModifierType::INVALID;
