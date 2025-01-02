@@ -331,80 +331,12 @@ public:
         return dirtySurfaceNodeMap_;
     }
 
-    void ClearSurfaceSrcRect()
-    {
-        surfaceSrcRects_.clear();
-    }
-
-    void ClearSurfaceDstRect()
-    {
-        surfaceDstRects_.clear();
-    }
-
-    void ClearSurfaceTotalMatrix()
-    {
-        surfaceTotalMatrix_.clear();
-    }
-
-    void SetSurfaceSrcRect(NodeId id, RectI rect)
-    {
-        surfaceSrcRects_[id] = rect;
-    }
-
-    void SetSurfaceDstRect(NodeId id, RectI rect)
-    {
-        surfaceDstRects_[id] = rect;
-    }
-
-    void SetSurfaceTotalMatrix(NodeId id, const Drawing::Matrix& totalMatrix)
-    {
-        surfaceTotalMatrix_[id] = totalMatrix;
-    }
-
-    RectI GetSurfaceSrcRect(NodeId id) const
-    {
-        auto iter = surfaceSrcRects_.find(id);
-        if (iter == surfaceSrcRects_.cend()) {
-            return RectI();
-        }
-
-        return iter->second;
-    }
-
-    RectI GetSurfaceDstRect(NodeId id) const
-    {
-        auto iter = surfaceDstRects_.find(id);
-        if (iter == surfaceDstRects_.cend()) {
-            return {};
-        }
-
-        return iter->second;
-    }
-
-    Drawing::Matrix GetSurfaceTotalMatrix(NodeId id) const
-    {
-        auto iter = surfaceTotalMatrix_.find(id);
-        if (iter == surfaceTotalMatrix_.cend()) {
-            return {};
-        }
-
-        return iter->second;
-    }
-
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     // Use in MultiLayersPerf
     size_t GetSurfaceCountForMultiLayersPerf() const
     {
         return surfaceCountForMultiLayersPerf_;
-    }
-
-    const std::vector<NodeId>& GetLastSurfaceIds() const {
-        return lastSurfaceIds_;
-    }
-
-    void SetLastSurfaceIds(std::vector<NodeId> lastSurfaceIds) {
-        lastSurfaceIds_ = std::move(lastSurfaceIds);
     }
 
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
@@ -491,13 +423,6 @@ private:
     size_t surfaceCountForMultiLayersPerf_ = 0;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
-
-	// support multiscreen
-    std::map<NodeId, RectI> surfaceSrcRects_;
-    std::map<NodeId, RectI> surfaceDstRects_;
-    std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
-
-    std::vector<NodeId> lastSurfaceIds_;
 
     std::vector<int32_t> oldScbPids_ {};
     int32_t currentScbPid_ = -1;

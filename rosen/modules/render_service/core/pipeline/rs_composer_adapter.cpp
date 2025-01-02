@@ -75,45 +75,6 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     return true;
 }
 
-bool RSComposerAdapter::Init(const RSDisplayRenderNode& node, const ScreenInfo& screenInfo,
-    const ScreenInfo& mirroredScreenInfo, float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
-{
-    hdiBackend_ = HdiBackend::GetInstance();
-    if (hdiBackend_ == nullptr) {
-        RS_LOGE("RSComposerAdapter::Init: hdiBackend is nullptr");
-        return false;
-    }
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSComposerAdapter::Init: ScreenManager is nullptr");
-        return false;
-    }
-    output_ = screenManager->GetOutput(ToScreenPhysicalId(screenInfo.id));
-    if (output_ == nullptr) {
-        RS_LOGE("RSComposerAdapter::Init: output_ is nullptr");
-        return false;
-    }
-
-    fallbackCb_ = cb;
-    auto onPrepareCompleteFunc = [this](auto& surface, const auto& param, void* data) {
-        OnPrepareComplete(surface, param, data);
-    };
-    hdiBackend_->RegPrepareComplete(onPrepareCompleteFunc, this);
-
-    offsetX_ = node.GetDisplayOffsetX();
-    offsetY_ = node.GetDisplayOffsetY();
-    screenInfo_ = screenInfo;
-    mirroredScreenInfo_ = mirroredScreenInfo;
-    mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
-
-    GraphicIRect damageRect { 0, 0, static_cast<int32_t>(screenInfo_.width), static_cast<int32_t>(screenInfo_.height) };
-    std::vector<GraphicIRect> damageRects;
-    damageRects.emplace_back(damageRect);
-    output_->SetOutputDamages(damageRects);
-
-    return true;
-}
-
 void RSComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
 {
     if (hdiBackend_ == nullptr) {
@@ -329,25 +290,14 @@ bool RSComposerAdapter::GetComposerInfoNeedClient(const ComposeInfo& info, RSSur
 // private func, for RSSurfaceRenderNode.
 ComposeInfo RSComposerAdapter::BuildComposeInfo(RSSurfaceRenderNode& node, bool isTunnelCheck) const
 {
-    float offsetX = 0.0f;
-    float offsetY = 0.0f;
-    if (mirroredScreenInfo_.id != INVALID_SCREEN_ID) {
-        // align center
-        offsetX =
-            (screenInfo_.GetRotatedWidth() - mirroredScreenInfo_.GetRotatedWidth() * mirrorAdaptiveCoefficient_) / 2.0f;
-        offsetY =
-            (screenInfo_.GetRotatedHeight() - mirroredScreenInfo_.GetRotatedHeight() * mirrorAdaptiveCoefficient_) /
-            2.0f;
-    }
-
     const auto& dstRect = node.GetDstRect();
     const auto& srcRect = node.GetSrcRect();
     ComposeInfo info {};
     auto surfaceHandler = node.GetRSSurfaceHandler();
     info.srcRect = GraphicIRect {srcRect.left_, srcRect.top_, srcRect.width_, srcRect.height_};
     info.dstRect = GraphicIRect {
-        static_cast<int32_t>(static_cast<float>(dstRect.left_) * mirrorAdaptiveCoefficient_ + offsetX),
-        static_cast<int32_t>(static_cast<float>(dstRect.top_) * mirrorAdaptiveCoefficient_ + offsetY),
+        static_cast<int32_t>(static_cast<float>(dstRect.left_) * mirrorAdaptiveCoefficient_),
+        static_cast<int32_t>(static_cast<float>(dstRect.top_) * mirrorAdaptiveCoefficient_),
         static_cast<int32_t>(static_cast<float>(dstRect.width_) * mirrorAdaptiveCoefficient_),
         static_cast<int32_t>(static_cast<float>(dstRect.height_) * mirrorAdaptiveCoefficient_)
     };
@@ -845,11 +795,5 @@ void RSComposerAdapter::SetHdiBackendDevice(HdiDevice* device)
         hdiBackend_->SetHdiBackendDevice(device);
     }
 }
-
-void RSComposerAdapter::SetMirroredScreenInfo(const ScreenInfo& mirroredScreenInfo)
-{
-    mirroredScreenInfo_ = mirroredScreenInfo;
-}
-
 } // namespace Rosen
 } // namespace OHOS

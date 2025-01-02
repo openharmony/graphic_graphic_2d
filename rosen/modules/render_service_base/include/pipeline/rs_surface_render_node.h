@@ -378,7 +378,7 @@ public:
         return surfaceWindowType_;
     }
 
-    int32_t GetOffSetX() const
+    int32_t GetOffSetX()
     {
         return offsetX_;
     }
@@ -388,7 +388,7 @@ public:
         offsetY_ = offset;
     }
 
-    int32_t GetOffSetY() const
+    int32_t GetOffSetY()
     {
         return offsetY_;
     }

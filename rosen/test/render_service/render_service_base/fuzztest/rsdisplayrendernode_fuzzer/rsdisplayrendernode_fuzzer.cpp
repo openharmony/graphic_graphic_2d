@@ -146,19 +146,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsDisplayRenderNode.GetOffScreenCacheImgForCapture();
     rsDisplayRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     rsDisplayRenderNode.GetDirtySurfaceNodeMap();
-    rsDisplayRenderNode.ClearSurfaceSrcRect();
-    rsDisplayRenderNode.ClearSurfaceDstRect();
-    rsDisplayRenderNode.ClearSurfaceTotalMatrix();
-    rsDisplayRenderNode.SetSurfaceSrcRect(id, dirtyShadow);
-    rsDisplayRenderNode.SetSurfaceDstRect(id, dirtyShadow);
-    rsDisplayRenderNode.SetSurfaceTotalMatrix(id, matrix);
-    rsDisplayRenderNode.GetSurfaceSrcRect(id);
-    rsDisplayRenderNode.GetSurfaceDstRect(id);
-    rsDisplayRenderNode.GetSurfaceTotalMatrix(id);
-    rsDisplayRenderNode.GetLastSurfaceIds();
     std::vector<NodeId> lastSurfaceIds;
     lastSurfaceIds.push_back(id);
-    rsDisplayRenderNode.SetLastSurfaceIds(lastSurfaceIds);
     rsDisplayRenderNode.OnSync();
     return true;
 }

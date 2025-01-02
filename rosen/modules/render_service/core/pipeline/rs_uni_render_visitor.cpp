@@ -1173,7 +1173,7 @@ bool RSUniRenderVisitor::InitDisplayInfo(RSDisplayRenderNode& node)
     auto mirrorNode = node.GetMirrorSource().lock();
     node.SetIsMirrorScreen(mirrorNode != nullptr);
     switch (screenInfo_.state) {
-        case ScreenState::SOFTWARE_OUTPUT_ENABLE:
+        case ScreenState::PRODUCER_SURFACE_ENABLE:
             node.SetCompositeType(mirrorNode ?
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_MIRROR_COMPOSITE :
                 RSDisplayRenderNode::CompositeType::UNI_RENDER_EXPAND_COMPOSITE);

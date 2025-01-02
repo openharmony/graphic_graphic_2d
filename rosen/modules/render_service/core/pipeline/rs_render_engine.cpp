@@ -184,6 +184,20 @@ void RSRenderEngine::RSSurfaceNodeCommonPostProcess(RSSurfaceRenderNode& node, R
 void RSRenderEngine::DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node,
     BufferDrawParam& params)
 {
+    const float adaptiveDstWidth = params.dstRect.GetWidth() * mirrorAdaptiveCoefficient_;
+    const float adaptiveDstHeight = params.dstRect.GetHeight() * mirrorAdaptiveCoefficient_;
+    params.dstRect = Drawing::Rect(0, 0, adaptiveDstWidth, adaptiveDstHeight);
+    const float translateX = params.matrix.Get(Drawing::Matrix::Index::TRANS_X) * mirrorAdaptiveCoefficient_;
+    const float translateY = params.matrix.Get(Drawing::Matrix::Index::TRANS_Y) * mirrorAdaptiveCoefficient_;
+    params.matrix.Set(Drawing::Matrix::Index::TRANS_X, translateX);
+    params.matrix.Set(Drawing::Matrix::Index::TRANS_Y, translateY);
+    const auto& clipRect = params.clipRect;
+    auto clipLeft = clipRect.GetLeft() * mirrorAdaptiveCoefficient_;
+    auto clipTop = clipRect.GetTop() * mirrorAdaptiveCoefficient_;
+    params.clipRect = Drawing::Rect(
+        clipLeft, clipTop, clipLeft + clipRect.GetWidth() * mirrorAdaptiveCoefficient_,
+        clipTop + clipRect.GetHeight() * mirrorAdaptiveCoefficient_);
+
     DrawSurfaceNodeWithParams(canvas, node, params, nullptr, nullptr);
 }
 
