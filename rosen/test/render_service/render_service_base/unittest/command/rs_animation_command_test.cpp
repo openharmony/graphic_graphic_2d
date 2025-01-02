@@ -70,9 +70,11 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
     NodeId targetId = static_cast<NodeId>(-1);
     std::shared_ptr<RSRenderParticleAnimation> animation = nullptr;
     AnimationCommandHelper::CreateParticleAnimation(context, targetId, animation);
+    ASSERT_EQ(targetId, static_cast<NodeId>(-1));
 
     NodeId id = static_cast<NodeId>(1);
     RSContext context2;
+    ASSERT_EQ(id, static_cast<NodeId>(1));
 
     std::shared_ptr<RSBaseRenderNode> node = std::make_shared<RSBaseRenderNode>(id);
     context2.GetMutableNodeMap().RegisterRenderNode(node);
@@ -82,6 +84,7 @@ HWTEST_F(RSAnimationCommandTest, CreateParticleAnimation001, TestSize.Level1)
     AnimationCommandHelper::CreateParticleAnimation(context2, id, animation2);
 
     AnimationCommandHelper::CancelAnimation(context2, id, 0);
+    EXPECT_NE(node, nullptr);
 }
 
 /**

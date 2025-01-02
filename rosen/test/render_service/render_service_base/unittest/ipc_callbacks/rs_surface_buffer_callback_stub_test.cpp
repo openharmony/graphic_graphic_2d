@@ -25,7 +25,8 @@ class RSSurfaceBufferCallbackStubMock : public RSSurfaceBufferCallbackStub {
 public:
     RSSurfaceBufferCallbackStubMock() = default;
     virtual ~RSSurfaceBufferCallbackStubMock() = default;
-    void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override {};
+    void OnFinish(const FinishCallbackRet& ret) override {}
+    void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) override {}
 };
 
 class RSSurfaceBufferCallbackStubTest : public testing::Test {

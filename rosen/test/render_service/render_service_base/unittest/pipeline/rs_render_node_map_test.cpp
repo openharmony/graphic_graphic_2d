@@ -79,7 +79,9 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
     surfaceNode->name_ = "SCBNegativeScreen";
     rsRenderNodeMap.ObtainLauncherNodeId(surfaceNode);
+    ASSERT_EQ(rsRenderNodeMap.entryViewNodeId_, 1);
     ASSERT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 1);
+    ASSERT_EQ(rsRenderNodeMap.negativeScreenNodeId_, 1);
 }
 
 /**
@@ -165,7 +167,7 @@ HWTEST_F(RSRenderNodeMapTest, MoveRenderNodeMap, TestSize.Level1)
     NodeId id = 1;
     auto node = std::make_shared<OHOS::Rosen::RSRenderNode>(id);
     RSRenderNodeMap rsRenderNodeMap;
-    std::shared_ptr<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>> subRenderNodeMap;
+    auto subRenderNodeMap = std::make_shared<std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>>();
     pid_t pid = 1;
     rsRenderNodeMap.MoveRenderNodeMap(subRenderNodeMap, pid);
     rsRenderNodeMap.renderNodeMap_[pid][id] = node;

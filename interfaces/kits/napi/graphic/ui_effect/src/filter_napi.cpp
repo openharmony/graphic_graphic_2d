@@ -49,21 +49,19 @@ thread_local napi_ref FilterNapi::sConstructor_ = nullptr;
 
 napi_value TileModeInit(napi_env env)
 {
-    if (env == nullptr) {
-        FILTER_LOG_E("[NAPI] FilterNapi Engine is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(env != nullptr, nullptr, FILTER_LOG_E("FilterNapi TileModeInit env is nullptr"));
     napi_value object = nullptr;
-    napi_create_object(env, &object);
-    if (object == nullptr) {
-        FILTER_LOG_E("[NAPI] FilterNapi Failed to get object");
-        return nullptr;
-    }
+    napi_status status = napi_create_object(env, &object);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi TileModeInit fail to get object"));
 
-    for (auto& [TileModeName, TileMode] : STRING_TO_JS_MAP) {
+    for (auto& [tileModeName, tileMode] : STRING_TO_JS_MAP) {
         napi_value value = nullptr;
-        napi_create_int32(env, static_cast<int32_t>(TileMode), &value);
-        napi_set_named_property(env, object, TileModeName.c_str(), value);
+        status = napi_create_int32(env, static_cast<int32_t>(tileMode), &value);
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            FILTER_LOG_E("FilterNapi TileModeInit fail to create int32"));
+        status = napi_set_named_property(env, object, tileModeName.c_str(), value);
+        UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+            FILTER_LOG_E("FilterNapi TileModeInit fail to set tileModeName"));
     }
     return object;
 }
@@ -81,28 +79,28 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
                                            nullptr,
                                            sizeof(static_prop) / sizeof(static_prop[0]), static_prop,
                                            &constructor);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("define class fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init define class fail"));
 
     status = napi_create_reference(env, constructor, 1, &sConstructor_);
-    if (!UIEFFECT_IS_OK(status)) {
-        FILTER_LOG_I("FilterNapi Init napi_create_reference falid");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init create reference fail"));
+
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("Init:get global fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init get global fail"));
 
     status = napi_set_named_property(env, global, CLASS_NAME.c_str(), constructor);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("Init:set global named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi Init set global named property fail"));
 
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("set named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init set named property fail"));
 
     status = napi_define_properties(env, exports, UIEFFECT_ARRAY_SIZE(static_prop), static_prop);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("define properties fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init define properties fail"));
 
     auto tileModeFormat = TileModeInit(env);
-    napi_set_named_property(env, exports, "TileMode", tileModeFormat);
+    status = napi_set_named_property(env, exports, "TileMode", tileModeFormat);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Init set TileMode fail"));
     return exports;
 }
 
@@ -111,46 +109,38 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     size_t argCount = 0;
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
-    if (status != napi_ok) {
-        FILTER_LOG_E("failed to napi_get_cb_info");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, FILTER_LOG_E("FilterNapi Constructor parsing input fail"));
 
     FilterNapi *filterNapi = new(std::nothrow) FilterNapi();
-    if (filterNapi == nullptr) {
-        FILTER_LOG_E("new filterNapi is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(filterNapi != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi Constructor filterNapi is nullptr"));
     status = napi_wrap(env, jsThis, filterNapi, FilterNapi::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete filterNapi;
-        filterNapi = nullptr;
-        FILTER_LOG_E("Failed to wrap native instance");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterNapi,
+        FILTER_LOG_E("FilterNapi Constructor wrap fail"));
     return jsThis;
 }
 
 void FilterNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
-    FilterNapi *filterNapi = reinterpret_cast<FilterNapi*>(nativeObject);
+    FilterNapi *filterNapi = static_cast<FilterNapi*>(nativeObject);
+    UIEFFECT_NAPI_CHECK_RET_VOID_D(filterNapi != nullptr,
+        FILTER_LOG_E("FilterNapi Destructor nativeObject is nullptr"));
 
-    if (UIEFFECT_NOT_NULL(filterNapi)) {
-        filterNapi->~FilterNapi();
-    }
+    delete filterNapi;
+    filterNapi = nullptr;
 }
 
 napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
 {
     Filter* filterObj = new(std::nothrow) Filter();
-    if (filterObj == nullptr) {
-        FILTER_LOG_E("new filterNapi is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi CreateFilter filterObj is nullptr"));
 
     napi_value object = nullptr;
-    napi_create_object(env, &object);
-    napi_wrap(
+    napi_status status = napi_create_object(env, &object);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+        FILTER_LOG_E("FilterNapi CreateFilter create object fail"));
+    status = napi_wrap(
         env, object, filterObj,
         [](napi_env env, void* data, void* hint) {
             Filter* filterObj = (Filter*)data;
@@ -158,6 +148,8 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
             filterObj = nullptr;
         },
         nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+        FILTER_LOG_E("FilterNapi CreateFilter wrap fail"));
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("blur", SetBlur),
         DECLARE_NAPI_FUNCTION("pixelStretch", SetPixelStretch),
@@ -165,42 +157,36 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("flyInFlyOutEffect", SetFlyOut),
         DECLARE_NAPI_FUNCTION("distort", SetDistort),
     };
-    NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
+    status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
+        FILTER_LOG_E("FilterNapi CreateFilter define properties fail"));
     return object;
 }
 
 napi_value FilterNapi::SetBlur(napi_env env, napi_callback_info info)
 {
-    size_t argc = 1;
-    napi_value argv[1];
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
     napi_value _this;
     napi_status status;
-    UIEFFECT_JS_ARGS(env, info, status, argc, argv, _this);
-    if (!UIEFFECT_IS_OK(status)) {
-        FILTER_LOG_I("FilterNapi parse input falid");
-        return _this;
-    }
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, _this);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlur parsing input fail"));
+
     float radius = 0.0f;
-    if (argc != 1) {
-        return _this;
-    }
-    if (UIEffectNapiUtils::getType(env, argv[0]) == napi_number) {
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_0]) == napi_number) {
         double tmp = 0.0f;
-        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[0], &tmp))) {
+        if (napi_get_value_double(env, argv[NUM_0], &tmp) == napi_ok) {
             radius = static_cast<float>(tmp);
         }
     }
     Filter* filterObj = nullptr;
-    NAPI_CALL(env, napi_unwrap(env, _this, reinterpret_cast<void**>(&filterObj)));
-    if (filterObj == nullptr) {
-        FILTER_LOG_E("filterNapi is nullptr");
-        return _this;
-    }
+    status = napi_unwrap(env, _this, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetBlur napi_unwrap fail"));
     std::shared_ptr<FilterBlurPara> para = std::make_shared<FilterBlurPara>();
-    if (para == nullptr) {
-        FILTER_LOG_E("para is nullptr");
-        return _this;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetBlur para is nullptr"));
     para->SetRadius(radius);
     filterObj->AddPara(para);
 
@@ -223,7 +209,7 @@ static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arrayS
 static bool GetStretchPercent(napi_env env, napi_value param, std::shared_ptr<PixelStretchPara>& para)
 {
     napi_valuetype valueType = napi_undefined;
-    valueType = UIEffectNapiUtils::getType(env, param);
+    valueType = UIEffectNapiUtils::GetType(env, param);
     if (valueType == napi_undefined) {
         return true;
     }
@@ -270,29 +256,26 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
     napi_value argValue[NUM_3] = {0};
     size_t argCount = NUM_3;
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_cb_info"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetPixelStretch parsing input fail"));
 
     Drawing::TileMode tileMode = Drawing::TileMode::CLAMP;
     std::shared_ptr<PixelStretchPara> para = std::make_shared<PixelStretchPara>();
-    if (para == nullptr) {
-        FILTER_LOG_E("FilterNapi SetPixelStretch: para is nullptr");
-        return thisVar;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetPixelStretch para is nullptr"));
 
     if (argCount >= NUM_1) {
-        UIEFFECT_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para),
-            nullptr, FILTER_LOG_E("fail to parse coordinates"));
+        UIEFFECT_NAPI_CHECK_RET_D(GetStretchPercent(env, argValue[NUM_0], para), nullptr,
+            FILTER_LOG_E("FilterNapi SetPixelStretch parsing coordinates fail"));
     }
     if (argCount >= NUM_2) {
         tileMode = ParserArgumentType(env, argValue[NUM_1]);
     }
     para->SetTileMode(tileMode);
     Filter* filterObj = nullptr;
-    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
-    if (filterObj == nullptr) {
-        FILTER_LOG_E("filterNapi is nullptr");
-        return thisVar;
-    }
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetPixelStretch napi_unwrap fail"));
     filterObj->AddPara(para);
 
     return thisVar;
@@ -301,8 +284,8 @@ napi_value FilterNapi::SetPixelStretch(napi_env env, napi_callback_info info)
 float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
 {
     double tmp = 0.0f;
-    if (UIEffectNapiUtils::getType(env, argValue) == napi_number &&
-        UIEFFECT_IS_OK(napi_get_value_double(env, argValue, &tmp)) && tmp >= 0) {
+    if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
+        napi_get_value_double(env, argValue, &tmp) == napi_ok && tmp >= 0) {
             return static_cast<float>(tmp);
     }
     return tmp;
@@ -311,8 +294,8 @@ float FilterNapi::GetSpecialValue(napi_env env, napi_value argValue)
 uint32_t FilterNapi::GetSpecialIntValue(napi_env env, napi_value argValue)
 {
     uint32_t tmp = 0;
-    if (UIEffectNapiUtils::getType(env, argValue) == napi_number &&
-        UIEFFECT_IS_OK(napi_get_value_uint32(env, argValue, &tmp))) {
+    if (UIEffectNapiUtils::GetType(env, argValue) == napi_number &&
+        napi_get_value_uint32(env, argValue, &tmp) == napi_ok) {
             return tmp;
     }
     return tmp;
@@ -333,13 +316,12 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
     napi_value argValue[NUM_5] = {0};
     size_t argCount = NUM_5;
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_water_ripple_info"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetWaterRipple parsing input fail"));
 
     std::shared_ptr<WaterRipplePara> para = std::make_shared<WaterRipplePara>();
-    if (para == nullptr) {
-        FILTER_LOG_E("FilterNapi SetWaterRipple: para is nullptr");
-        return thisVar;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetWaterRipple para is nullptr"));
 
     float progress = 0.0f;
     uint32_t waveCount = 0;
@@ -365,11 +347,9 @@ napi_value FilterNapi::SetWaterRipple(napi_env env, napi_callback_info info)
     para->SetRippleMode(rippleMode);
 
     Filter* filterObj = nullptr;
-    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
-    if (filterObj == nullptr) {
-        FILTER_LOG_E("filterNapi is nullptr");
-        return thisVar;
-    }
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetWaterRipple napi_unwrap fail"));
     filterObj->AddPara(para);
 
     return thisVar;
@@ -390,13 +370,11 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
     napi_value argValue[NUM_2] = {0};
     size_t argCount = NUM_2;
     UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_fly_out_info"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        FILTER_LOG_E("FilterNapi SetFlyOut parsing input fail"));
 
     std::shared_ptr<FlyOutPara> para = std::make_shared<FlyOutPara>();
-    if (para == nullptr) {
-        FILTER_LOG_E("FlyOutPara is nullptr");
-        return thisVar;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetFlyOut para is nullptr"));
 
     if (argCount != NUM_2) {
         FILTER_LOG_E("Args number less than 2");
@@ -410,11 +388,9 @@ napi_value FilterNapi::SetFlyOut(napi_env env, napi_callback_info info)
     para->SetFlyMode(flyMode);
 
     Filter* filterObj = nullptr;
-    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
-    if (filterObj == nullptr) {
-        FILTER_LOG_E("filterNapi is nullptr");
-        return thisVar;
-    }
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetWaterRipple napi_unwrap fail"));
     filterObj->AddPara(para);
 
     return thisVar;
@@ -428,31 +404,29 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
             "FilterNapi SetDistort failed, is not system app");
         return nullptr;
     }
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
     napi_status status;
-    size_t argc = NUM_1;
     napi_value argv[NUM_1] = {0};
     napi_value thisVar = nullptr;
-    UIEFFECT_JS_ARGS(env, info, status, argc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, FILTER_LOG_E("fail to napi_get_distort_info"));
-    if (argc != NUM_1) {
-        return thisVar;
-    }
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi SetDistort parsing input fail"));
     float distortionK = 0.0f;
-    if (UIEffectNapiUtils::getType(env, argv[NUM_0]) == napi_number) {
+    if (UIEffectNapiUtils::GetType(env, argv[NUM_0]) == napi_number) {
         double tmp = 0.0f;
-        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv[NUM_0], &tmp))) {
+        if (napi_get_value_double(env, argv[NUM_0], &tmp) == napi_ok) {
             distortionK = static_cast<float>(tmp);
         }
     }
     Filter* filterObj = nullptr;
-    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj)));
-    if (filterObj == nullptr) {
-        FILTER_LOG_E("filterNapi is nullptr");
-        return thisVar;
-    }
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi SetDistort napi_unwrap fail"));
     std::shared_ptr<DistortPara> para = std::make_shared<DistortPara>();
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr, FILTER_LOG_E("FilterNapi SetDistort para is nullptr"));
     para->SetDistortionK(distortionK);
     filterObj->AddPara(para);
     return thisVar;
@@ -460,9 +434,9 @@ napi_value FilterNapi::SetDistort(napi_env env, napi_callback_info info)
 
 Drawing::TileMode FilterNapi::ParserArgumentType(napi_env env, napi_value argv)
 {
-    if (UIEffectNapiUtils::getType(env, argv) == napi_number) {
+    if (UIEffectNapiUtils::GetType(env, argv) == napi_number) {
         double tmp = 0.0f;
-        if (UIEFFECT_IS_OK(napi_get_value_double(env, argv, &tmp))) {
+        if (napi_get_value_double(env, argv, &tmp) == napi_ok) {
             int32_t mode = static_cast<int32_t>(tmp);
             auto iter = INDEX_TO_TILEMODE.find(mode);
             if (iter != INDEX_TO_TILEMODE.end()) {

@@ -27,7 +27,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 /*
  * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
@@ -48,6 +47,20 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
+
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+} // namespace
 
 bool DoCreate(const uint8_t* data, size_t size)
 {
@@ -667,7 +680,7 @@ bool DoNeedForcedSendToRemoteAndCreateTextureExportRenderNodeInRT(const uint8_t*
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     surfaceNode->NeedForcedSendToRemote();
-    surfaceNode->CreateTextureExportRenderNodeInRT();
+    surfaceNode->CreateRenderNodeForTextureExportSwitch();
     return true;
 }
 
@@ -705,7 +718,17 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    RSSurfaceRenderNodeConfig config1 = GetData<RSSurfaceRenderNodeConfig>();
+    NodeId id = GetData<NodeId>();
+    std::string name = GetData<std::string>();
+    RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
+    bool isTextureExportNode = GetData<bool>();
+    bool isSync = GetData<bool>();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = id;
+    config1.name = name;
+    config1.nodeType = type;
+    config1.isTextureExportNode = isTextureExportNode;
+    config1.isSync = isSync;
     surfaceNode->CreateNode(config1);
     return true;
 }
@@ -724,7 +747,17 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     // test
     RSSurfaceNodeConfig config;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    RSSurfaceRenderNodeConfig config1 = GetData<RSSurfaceRenderNodeConfig>();
+    NodeId id = GetData<NodeId>();
+    std::string name = GetData<std::string>();
+    RSSurfaceNodeType type = GetData<RSSurfaceNodeType>();
+    bool isTextureExportNode = GetData<bool>();
+    bool isSync = GetData<bool>();
+    RSSurfaceRenderNodeConfig config1;
+    config1.id = id;
+    config1.name = name;
+    config1.nodeType = type;
+    config1.isTextureExportNode = isTextureExportNode;
+    config1.isSync = isSync;
     SurfaceId surfaceId = GetData<SurfaceId>();
     surfaceNode->CreateNodeAndSurface(config1, surfaceId);
     return true;
@@ -934,6 +967,25 @@ bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
     surfaceNode->SetHidePrivacyContent(needHidePrivacyContent);
     return true;
 }
+
+bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool hardwareEnable = GetData<bool>();
+    surfaceNode->SetHardwareEnableHint(hardwareEnable);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -985,6 +1037,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetSkipDraw(data, size);
     OHOS::Rosen::DoGetAbilityState(data, size);
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
+    OHOS::Rosen::DoSetHardwareEnableHint(data, size);
     return 0;
 }
 

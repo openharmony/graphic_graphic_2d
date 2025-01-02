@@ -152,6 +152,8 @@ void RSKeyframeAnimation::OnStart()
         }
     }
     if (isCustom_) {
+        SetPropertyValue(originValue_);
+        property_->UpdateCustomAnimation();
         animation->AttachRenderProperty(property_->GetRenderProperty());
         StartUIAnimation(animation);
     } else {

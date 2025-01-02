@@ -105,6 +105,20 @@ HWTEST_F(RSUniRenderThreadTest, PostTask001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWallpaperTranslate
+ * @tc.desc: Test SetWallpaperTranslate
+ * @tc.type: FUNC
+ * @tc.require: issueIB5JZQ
+ */
+HWTEST_F(RSUniRenderThreadTest, SetWallpaperTranslate, TestSize.Level1)
+{
+    RSUniRenderThread& instance = RSUniRenderThread::Instance();
+    instance.SetWallpaperTranslate(1, 1);
+    EXPECT_EQ(instance.wallpaperTranslate_.first, 1);
+    EXPECT_EQ(instance.wallpaperTranslate_.second, 1);
+}
+
+/**
  * @tc.name: PostRTTask001
  * @tc.desc: Test PostRTTask
  * @tc.type: FUNC

@@ -95,6 +95,7 @@ public:
         float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoef);
+    static std::shared_ptr<Drawing::Blender> MakeLightUpEffectBlender(const float lightUpDeg);
 
     // EffectView and useEffect
     static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -110,6 +111,7 @@ private:
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool isOutline);
     static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
@@ -122,12 +124,11 @@ private:
     static void DrawBorderLight(const RSProperties& properties, Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
         const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray);
-    static std::shared_ptr<Drawing::ShaderEffect> MakeLightUpEffectShader(
-        float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(
         float dynamicDimDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
-        float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+        float thresholdLow, float thresholdHigh,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::RuntimeEffect> MakeGreyAdjustmentEffect();
 
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,
@@ -136,7 +137,7 @@ private:
 
     static std::shared_ptr<Drawing::RuntimeEffect> greyAdjustEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;
-    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectBlender_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicBrightnessBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;

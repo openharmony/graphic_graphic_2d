@@ -24,6 +24,11 @@
 #include <unistd.h>
 #include <unordered_map>
 
+#include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
+#include "nativetoken_kit.h"
+#include "token_setproc.h"
+#endif
 #include "ipc_object_proxy.h"
 #include "ipc_object_stub.h"
 #include "iremote_object.h"
@@ -51,7 +56,6 @@ namespace {
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
-} // namespace
 
 template<class T>
 T GetData()
@@ -68,6 +72,20 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
+
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+} // namespace
 
 bool Init(const uint8_t* data, size_t size)
 {
@@ -394,6 +412,26 @@ bool DoSetScreenActiveMode()
     return true;
 }
 
+bool DoSetScreenActiveRect()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    ScreenId id = GetData<uint64_t>();
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
+    rsConn_->SetScreenActiveRect(id, activeRect);
+    return true;
+}
+
 bool DoSetRefreshRateMode()
 {
     if (rsConn_ == nullptr) {
@@ -504,12 +542,29 @@ bool DoRegisterOcclusionChangeCallback()
 
 bool DoShowWatermark()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     if (rsConn_ == nullptr) {
         return false;
     }
+    const char *perms[1];
+    perms[0] = "ohos.permission.UPDATE_CONFIGURATION";
+    NativeTokenInfoParams infoInstance = {
+        .dcapsNum = 0,
+        .permsNum = 1,
+        .aclsNum = 0,
+        .dcaps = NULL,
+        .perms = perms,
+        .acls = NULL,
+        .processName = "DoShowWatermark",
+        .aplStr = "system_core",
+    };
+    uint64_t tokenId = GetAccessTokenId(&infoInstance);
+    SetSelfTokenID(tokenId);
+    Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
     bool isShow = GetData<bool>();
     std::shared_ptr<Media::PixelMap> pixelMap1;
     rsConn_->ShowWatermark(pixelMap1, isShow);
+#endif
     return true;
 }
 
@@ -529,6 +584,20 @@ bool DoTakeSurfaceCapture()
     captureConfig.captureType = (SurfaceCaptureType)type;
     captureConfig.isSync = GetData<bool>();
     rsConn_->TakeSurfaceCapture(nodeId, callback, captureConfig);
+    return true;
+}
+
+bool DoSetHwcNodeBounds()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    uint64_t nodeId = GetData<uint64_t>();
+    float positionX = GetData<float>();
+    float positionY = GetData<float>();
+    float positionZ = GetData<float>();
+    float positionW = GetData<float>();
+    rsConn_->SetHwcNodeBounds(nodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 
@@ -1062,16 +1131,6 @@ bool DOSetCacheEnabledForRotation()
     return true;
 }
 
-bool DOSetDefaultDeviceRotationOffset()
-{
-    if (rsConn_ == nullptr) {
-        return false;
-    }
-    uint32_t offset = GetData<uint32_t>();
-    rsConn_->SetDefaultDeviceRotationOffset(offset);
-    return true;
-}
-
 bool DOSetOnRemoteDiedCallback()
 {
     if (rsConn_ == nullptr) {
@@ -1100,7 +1159,8 @@ bool DOSetTpFeatureConfig()
     }
     int32_t feature = GetData<int32_t>();
     char config = GetData<char>();
-    rsConn_->SetTpFeatureConfig(feature, &config);
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
+    rsConn_->SetTpFeatureConfig(feature, &config, tpFeatureConfigType);
     return true;
 }
 #endif
@@ -1147,6 +1207,49 @@ bool DOSetLayerTop()
     return true;
 }
 
+bool DOSetFreeMultiWindowStatus()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+
+    bool enable = GetData<bool>();
+    rsConn_->SetFreeMultiWindowStatus(enable);
+    return true;
+}
+
+bool DoNotifySoftVsyncEvent()
+{
+    auto rsConn  = RSRenderServiceConnectHub::GetRenderService();
+    if (rsConn == nullptr) {
+        return false;
+    }
+    uint32_t pid = GetData<uint32_t>();
+    uint32_t rateDiscount = GetData<uint32_t>();
+    rsConn->NotifySoftVsyncEvent(pid, rateDiscount);
+    return true;
+}
+
+bool DoCreatePixelMapFromSurface()
+{
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("FuzzTest");
+    sptr<IBufferProducer> bp = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
+    if (pSurface == nullptr) {
+        return false;
+    }
+
+    auto srcRect = Rect {
+        .x = GetData<int32_t>(),
+        .y = GetData<int32_t>(),
+        .w = GetData<int32_t>(),
+        .h = GetData<int32_t>(),
+    };
+
+    rsConn_->CreatePixelMapFromSurface(pSurface, srcRect);
+    return true;
+}
+
 void DoFuzzerTest1()
 {
     DoRegisterApplicationAgent();
@@ -1173,6 +1276,7 @@ void DoFuzzerTest1()
     DoUnRegisterPointerLuminanceChangeCallback();
 #endif
     DoSetScreenActiveMode();
+    DoSetScreenActiveRect();
     DoSetRefreshRateMode();
     DoCreateVSyncConnection();
     DoSetScreenRefreshRate();
@@ -1181,8 +1285,11 @@ void DoFuzzerTest1()
     DoGetScreenData();
     DoGetScreenHDRCapability();
     DoRegisterOcclusionChangeCallback();
+#ifdef SUPPORT_ACCESS_TOKEN
     DoShowWatermark();
+#endif
     DoTakeSurfaceCapture();
+    DoSetHwcNodeBounds();
     DoSetScreenChangeCallback();
     DoSetFocusAppInfo();
     DoSetAncoForceDoDirect();
@@ -1231,7 +1338,6 @@ void DoFuzzerTest2()
     DONotifyTouchEvent();
     DONotifyDynamicModeEvent();
     DOSetCacheEnabledForRotation();
-    DOSetDefaultDeviceRotationOffset();
     DOSetOnRemoteDiedCallback();
     DOSetVmaCacheStatus();
 #ifdef TP_FEATURE_ENABLE
@@ -1241,6 +1347,13 @@ void DoFuzzerTest2()
     DOSetCurtainScreenUsingStatus();
     DOSetVirtualScreenStatus();
     DOSetLayerTop();
+    DOSetFreeMultiWindowStatus();
+}
+
+void DoFuzzerTest3()
+{
+    DoNotifySoftVsyncEvent();
+    DoCreatePixelMapFromSurface();
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -1254,5 +1367,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::DoFuzzerTest1();
     OHOS::Rosen::DoFuzzerTest2();
+    OHOS::Rosen::DoFuzzerTest3();
     return 0;
 }

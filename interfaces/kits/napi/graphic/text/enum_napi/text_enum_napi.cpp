@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
+#include "text_enum_napi.h"
+
 #include <map>
 #include <vector>
-
 #include "font_parser.h"
-#include "text_enum_napi.h"
-#include "utils/log.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Rosen {
 struct JsEnumInt {
@@ -26,7 +26,7 @@ struct JsEnumInt {
     size_t enumInt;
 };
 
-static const std::vector<struct JsEnumInt> g_textAlign = {
+const std::vector<struct JsEnumInt> TEXT_ALIGN = {
     { "LEFT", static_cast<size_t>(TextAlign::LEFT) },
     { "RIGHT", static_cast<size_t>(TextAlign::RIGHT) },
     { "CENTER", static_cast<size_t>(TextAlign::CENTER) },
@@ -35,7 +35,7 @@ static const std::vector<struct JsEnumInt> g_textAlign = {
     { "END", static_cast<size_t>(TextAlign::END) },
 };
 
-static const std::vector<struct JsEnumInt> g_textDecorationStyle = {
+const std::vector<struct JsEnumInt> TEXT_DECORATION_STYLE = {
     { "SOLID", static_cast<size_t>(TextDecorationStyle::SOLID) },
     { "DOUBLE", static_cast<size_t>(TextDecorationStyle::DOUBLE) },
     { "DOTTED", static_cast<size_t>(TextDecorationStyle::DOTTED) },
@@ -43,7 +43,7 @@ static const std::vector<struct JsEnumInt> g_textDecorationStyle = {
     { "WAVY", static_cast<size_t>(TextDecorationStyle::WAVY) },
 };
 
-static const std::vector<struct JsEnumInt> g_fontWeight = {
+const std::vector<struct JsEnumInt> FONT_WEIGHT = {
     { "W100", static_cast<size_t>(FontWeight::W100) },
     { "W200", static_cast<size_t>(FontWeight::W200) },
     { "W300", static_cast<size_t>(FontWeight::W300) },
@@ -55,48 +55,49 @@ static const std::vector<struct JsEnumInt> g_fontWeight = {
     { "W900", static_cast<size_t>(FontWeight::W900) },
 };
 
-static const std::vector<struct JsEnumInt> g_fontStyle = {
+const std::vector<struct JsEnumInt> FONT_STYLE = {
     { "NORMAL", static_cast<size_t>(FontStyle::NORMAL) },
     { "ITALIC", static_cast<size_t>(FontStyle::ITALIC) },
     { "OBLIQUE", static_cast<size_t>(FontStyle::OBLIQUE) },
 };
 
-static const std::vector<struct JsEnumInt> g_textBaseline = {
+const std::vector<struct JsEnumInt> TEXT_BASE_LINE = {
     { "ALPHABETIC", static_cast<size_t>(TextBaseline::ALPHABETIC) },
     { "IDEOGRAPHIC", static_cast<size_t>(TextBaseline::IDEOGRAPHIC) },
 };
 
-static const std::vector<struct JsEnumInt> g_textDirection = {
+const std::vector<struct JsEnumInt> TEXT_DIRECTION = {
     { "RTL", static_cast<size_t>(TextDirection::RTL) },
     { "LTR", static_cast<size_t>(TextDirection::LTR) },
 };
 
-static const std::vector<struct JsEnumInt> g_wordBreakType = {
+const std::vector<struct JsEnumInt> WORD_BREAK_TYPE = {
     { "NORMAL", static_cast<size_t>(WordBreakType::NORMAL) },
     { "BREAK_ALL", static_cast<size_t>(WordBreakType::BREAK_ALL) },
     { "BREAK_WORD", static_cast<size_t>(WordBreakType::BREAK_WORD) },
+    { "BREAK_HYPHEN", static_cast<size_t>(WordBreakType::BREAK_HYPHEN) },
 };
 
-static const std::vector<struct JsEnumInt> g_breakStrategy = {
+const std::vector<struct JsEnumInt> BREAK_STRATEGY = {
     { "GREEDY", static_cast<size_t>(BreakStrategy::GREEDY) },
     { "HIGH_QUALITY", static_cast<size_t>(BreakStrategy::HIGH_QUALITY) },
     { "BALANCED", static_cast<size_t>(BreakStrategy::BALANCED) },
 };
 
-static const std::vector<struct JsEnumInt> g_ellipsisModal = {
+const std::vector<struct JsEnumInt> ELLIPSIS_MODAL = {
     { "START", static_cast<size_t>(EllipsisModal::HEAD) },
     { "MIDDLE", static_cast<size_t>(EllipsisModal::MIDDLE) },
     { "END", static_cast<size_t>(EllipsisModal::TAIL) },
 };
 
-static const std::vector<struct JsEnumInt> g_textDecoration = {
+const std::vector<struct JsEnumInt> TEXT_DECORATION = {
     { "NONE", static_cast<size_t>(TextDecoration::NONE) },
     { "UNDERLINE", static_cast<size_t>(TextDecoration::UNDERLINE) },
     { "OVERLINE", static_cast<size_t>(TextDecoration::OVERLINE) },
     { "LINE_THROUGH", static_cast<size_t>(TextDecoration::LINE_THROUGH) },
 };
 
-static const std::vector<struct JsEnumInt> g_placeholderVerticalAlignment = {
+const std::vector<struct JsEnumInt> PLACEHOLDER_ALIGNMENT = {
     { "OFFSET_AT_BASELINE", static_cast<size_t>(PlaceholderVerticalAlignment::OFFSET_AT_BASELINE) },
     { "ABOVE_BASELINE", static_cast<size_t>(PlaceholderVerticalAlignment::ABOVE_BASELINE) },
     { "BELOW_BASELINE", static_cast<size_t>(PlaceholderVerticalAlignment::BELOW_BASELINE) },
@@ -105,12 +106,12 @@ static const std::vector<struct JsEnumInt> g_placeholderVerticalAlignment = {
     { "CENTER_OF_ROW_BOX", static_cast<size_t>(PlaceholderVerticalAlignment::CENTER_OF_ROW_BOX) },
 };
 
-static const std::vector<struct JsEnumInt> g_rectWidthStyle = {
+const std::vector<struct JsEnumInt> RECT_WIDTH_STYLE = {
     { "TIGHT", static_cast<size_t>(TextRectWidthStyle::TIGHT) },
     { "MAX", static_cast<size_t>(TextRectWidthStyle::MAX) },
 };
 
-static const std::vector<struct JsEnumInt> g_rectHeightStyle = {
+const std::vector<struct JsEnumInt> RECT_HEIGHT_STYLE = {
     { "TIGHT", static_cast<size_t>(TextRectHeightStyle::TIGHT) },
     { "MAX", static_cast<size_t>(TextRectHeightStyle::COVER_TOP_AND_BOTTOM) },
     { "INCLUDE_LINE_SPACE_MIDDLE", static_cast<size_t>(TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM) },
@@ -119,12 +120,12 @@ static const std::vector<struct JsEnumInt> g_rectHeightStyle = {
     { "STRUT", static_cast<size_t>(TextRectHeightStyle::FOLLOW_BY_STRUT) },
 };
 
-static const std::vector<struct JsEnumInt> g_affinity = {
+static const std::vector<struct JsEnumInt> AFFINITY = {
     { "UPSTREAM", static_cast<size_t>(Affinity::PREV) },
     { "DOWNSTREAM", static_cast<size_t>(Affinity::NEXT) },
 };
 
-static const std::vector<struct JsEnumInt> g_fontWidth = {
+static const std::vector<struct JsEnumInt> FONTWIDTH = {
     { "ULTRA_CONDENSED", static_cast<size_t>(FontWidth::ULTRA_CONDENSED) },
     { "EXTRA_CONDENSED", static_cast<size_t>(FontWidth::EXTRA_CONDENSED) },
     { "CONDENSED", static_cast<size_t>(FontWidth::CONDENSED) },
@@ -136,7 +137,7 @@ static const std::vector<struct JsEnumInt> g_fontWidth = {
     { "ULTRA_EXPANDED", static_cast<size_t>(FontWidth::ULTRA_EXPANDED) },
 };
 
-static const std::vector<struct JsEnumInt> g_textHeightBehavior = {
+static const std::vector<struct JsEnumInt> TEXTHEIGHTBEHAVIOR = {
     { "ALL", static_cast<size_t>(TextHeightBehavior::ALL) },
     { "DISABLE_FIRST_ASCENT", static_cast<size_t>(TextHeightBehavior::DISABLE_FIRST_ASCENT) },
     { "DISABLE_LAST_ASCENT", static_cast<size_t>(TextHeightBehavior::DISABLE_LAST_ASCENT) },
@@ -148,31 +149,32 @@ static const std::vector<struct JsEnumInt> g_systemFontType = {
     { "GENERIC", static_cast<size_t>(TextEngine::FontParser::SystemFontType::GENERIC) },
     { "STYLISH", static_cast<size_t>(TextEngine::FontParser::SystemFontType::STYLISH) },
     { "INSTALLED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::INSTALLED) },
+    { "CUSTOMIZED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::CUSTOMIZED) },
 };
 
-static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
-    { "TextAlign", g_textAlign },
-    { "TextDecorationStyle", g_textDecorationStyle },
-    { "FontWeight", g_fontWeight },
-    { "FontStyle", g_fontStyle },
-    { "TextBaseline", g_textBaseline },
-    { "TextDirection", g_textDirection },
-    { "WordBreak", g_wordBreakType },
-    { "BreakStrategy", g_breakStrategy },
-    { "EllipsisMode", g_ellipsisModal },
-    { "TextDecorationType", g_textDecoration },
-    { "PlaceholderAlignment", g_placeholderVerticalAlignment },
-    { "RectWidthStyle", g_rectWidthStyle },
-    { "RectHeightStyle", g_rectHeightStyle },
-    { "Affinity", g_affinity },
-    { "FontWidth", g_fontWidth },
-    { "TextHeightBehavior", g_textHeightBehavior },
+const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {
+    { "TextAlign", TEXT_ALIGN },
+    { "TextDecorationStyle", TEXT_DECORATION_STYLE },
+    { "FontWeight", FONT_WEIGHT },
+    { "FontStyle", FONT_STYLE },
+    { "TextBaseline", TEXT_BASE_LINE },
+    { "TextDirection", TEXT_DIRECTION },
+    { "WordBreak", WORD_BREAK_TYPE },
+    { "BreakStrategy", BREAK_STRATEGY },
+    { "EllipsisMode", ELLIPSIS_MODAL },
+    { "TextDecorationType", TEXT_DECORATION },
+    { "PlaceholderAlignment", PLACEHOLDER_ALIGNMENT },
+    { "RectWidthStyle", RECT_WIDTH_STYLE },
+    { "RectHeightStyle", RECT_HEIGHT_STYLE },
+    { "Affinity", AFFINITY },
+    { "FontWidth", FONTWIDTH },
+    { "TextHeightBehavior", TEXTHEIGHTBEHAVIOR },
     { "SystemFontType", g_systemFontType },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
 {
-    for (auto it = g_intEnumClassMap.begin(); it != g_intEnumClassMap.end(); it++) {
+    for (auto it = INT_ENUM_CLASS_MAP.begin(); it != INT_ENUM_CLASS_MAP.end(); it++) {
         auto &enumClassName = it->first;
         auto &enumItemVec = it->second;
         auto vecSize = enumItemVec.size();
@@ -199,13 +201,13 @@ napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
         napi_status napiStatus = napi_define_class(env, enumClassName.data(), NAPI_AUTO_LENGTH, napiConstructor,
             nullptr, property.size(), property.data(), &result);
         if (napiStatus != napi_ok) {
-            LOGE("napi_define_class falied");
+            TEXT_LOGE("napi_define_class falied");
             return nullptr;
         }
 
         napiStatus = napi_set_named_property(env, exports, enumClassName.data(), result);
         if (napiStatus != napi_ok) {
-            LOGE("napi_set_named_property falied");
+            TEXT_LOGE("napi_set_named_property falied");
             return nullptr;
         }
     }

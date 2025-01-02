@@ -30,7 +30,6 @@ namespace {
 constexpr size_t ELEMENT_SIZE = 9;
 constexpr size_t ARRAY_MAX_SIZE = 5000;
 constexpr size_t MATH_TWO = 2;
-constexpr size_t MATH_ONE = 1;
 constexpr size_t MATH_FORE = 4;
 constexpr size_t MATH_NINE = 9;
 } // namespace
@@ -137,15 +136,17 @@ void MatrixFuzzTest002(const uint8_t* data, size_t size)
     uint32_t array_size = GetObject<uint32_t>() % ARRAY_MAX_SIZE;
 
     Matrix matrix;
-    std::vector<Point> dst = { {xRad, yRad} };
-    std::vector<Point> src = { {xRad, yRad} };
+    std::vector<Point> dst;
+    std::vector<Point> src;
     Point src1[array_size];
     Point dst1[array_size];
     for (size_t i = 0; i< array_size; i++) {
-        src1[i].Set(xRad, yRad);
-        dst1[i].Set(xRad, yRad);
+        src1[i].Set(GetObject<scalar>(), GetObject<scalar>());
+        dst1[i].Set(GetObject<scalar>(), GetObject<scalar>());
+        dst.push_back({GetObject<scalar>(), GetObject<scalar>()});
+        src.push_back({GetObject<scalar>(), GetObject<scalar>()});
     }
-    matrix.MapPoints(dst, src, MATH_ONE);
+    matrix.MapPoints(dst, src, array_size);
     matrix.SetPolyToPoly(src1, dst1, array_size);
     Matrix::Buffer buffer;
     for (size_t i = 0; i < Matrix::MATRIX_SIZE; i++) {

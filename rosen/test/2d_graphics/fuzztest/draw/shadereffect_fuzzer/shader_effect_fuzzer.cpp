@@ -47,10 +47,22 @@ bool ShaderEffectFuzzTest001(const uint8_t* data, size_t size)
 
     ColorQuad color = GetObject<ColorQuad>();
     std::shared_ptr<ShaderEffect> shaderEffect = ShaderEffect::CreateColorShader(color);
-    shaderEffect->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_ARRAY_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    shaderEffect->Deserialize(dataVal);
     shaderEffect->Serialize();
     shaderEffect->GetType();
     shaderEffect->GetDrawingType();
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
 
     return true;
 }

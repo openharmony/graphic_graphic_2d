@@ -34,9 +34,18 @@ BootPicturePlayer::BootPicturePlayer(const PlayerParams& params)
 void BootPicturePlayer::Play()
 {
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
-    while (receiver_ == nullptr) {
+    int waitVsyncReceiverCreateTime = 0;
+    while (receiver_ == nullptr && waitVsyncReceiverCreateTime < MAX_WAIT_VSYNCRECEIVER_CREATE_TIME) {
         LOGI("receiver is nullptr, try create again");
         receiver_ = rsClient.CreateVSyncReceiver("BootAnimation", AppExecFwk::EventHandler::Current());
+        usleep(SLEEP_TIME_US);
+        waitVsyncReceiverCreateTime += SLEEP_TIME_US;
+    }
+
+    if (receiver_ == nullptr) {
+        LOGI("receiver create fail");
+        Stop();
+        return;
     }
 
     VsyncError ret = receiver_->Init();

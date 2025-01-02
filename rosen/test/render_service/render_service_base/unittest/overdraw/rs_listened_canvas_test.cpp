@@ -203,8 +203,10 @@ HWTEST_F(RSListenedCanvasTest, onDrawOval001, TestSize.Level1)
     Drawing::Rect rect;
     RSListenedCanvas listenedCanvas(canvas);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
+    EXPECT_NE(listener, nullptr);
     listenedCanvas.DrawOval(rect);
     listenedCanvas.SetListener(listener);
+    EXPECT_TRUE(listenedCanvas.listener_);
     listenedCanvas.DrawOval(rect);
 }
 
@@ -222,8 +224,10 @@ HWTEST_F(RSListenedCanvasTest, onDrawArc001, TestSize.Level1)
     Drawing::scalar sweepAngle = 0.2;
     RSListenedCanvas listenedCanvas(canvas);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
+    EXPECT_NE(listener, nullptr);
     listenedCanvas.DrawArc(rect, startAngle, sweepAngle);
     listenedCanvas.SetListener(listener);
+    EXPECT_TRUE(listenedCanvas.listener_);
     listenedCanvas.DrawArc(rect, startAngle, sweepAngle);
 }
 
@@ -239,8 +243,10 @@ HWTEST_F(RSListenedCanvasTest, onDrawPath001, TestSize.Level1)
     Drawing::Path path;
     RSListenedCanvas listenedCanvas(canvas);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
+    EXPECT_NE(listener, nullptr);
     listenedCanvas.DrawPath(path);
     listenedCanvas.SetListener(listener);
+    EXPECT_TRUE(listenedCanvas.listener_);
     listenedCanvas.DrawPath(path);
 }
 
@@ -282,7 +288,9 @@ HWTEST_F(RSListenedCanvasTest, onDrawPoints001, TestSize.Level1)
     RSListenedCanvas listenedCanvas(canvas);
     listenedCanvas.DrawPoint(point);
     auto listener = std::make_shared<MockRSCanvasListener>(canvas);
+    EXPECT_NE(listener, nullptr);
     listenedCanvas.SetListener(listener);
+    EXPECT_TRUE(listenedCanvas.listener_);
     listenedCanvas.DrawPoint(point);
 }
 

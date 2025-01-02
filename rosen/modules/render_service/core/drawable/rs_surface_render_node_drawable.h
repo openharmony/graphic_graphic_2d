@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_SURFACE_RENDER_NODE_DRAWABLE_H
 
-#include <unordered_map>
-
 #ifndef ROSEN_CROSS_PLATFORM
 #include <ibuffer_consumer_listener.h>
 #include <iconsumer_surface.h>
@@ -27,7 +25,6 @@
 
 #include "common/rs_common_def.h"
 #include "drawable/rs_render_node_drawable.h"
-#include "include/gpu/GrBackendSemaphore.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_engine.h"
 #include "params/rs_display_render_params.h"
@@ -104,13 +101,8 @@ public:
         return res;
     }
 
+    bool BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface, bool isNeedFP16);
     void UpdateCompletedCacheSurface();
-#ifdef RS_ENABLE_GL
-    // only use in RT thread
-    void FlushSemaphore(RSPaintFilterCanvas& canvas);
-    // only use in RSSubThread
-    void WaitSemaphore();
-#endif
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
 
@@ -127,6 +119,7 @@ public:
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
+        drawWindowCache_.ClearCache();
         if (isNotClearCompleteCacheSurface) {
             ClearCacheSurfaceOnly();
         } else {
@@ -136,7 +129,7 @@ public:
 
     bool IsCurFrameStatic(DeviceType deviceType);
 
-    Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+    Drawing::Matrix GetGravityMatrix(float imgWidth, float imgHeight);
 
     bool HasCachedTexture() const;
 
@@ -222,7 +215,7 @@ public:
     const Occlusion::Region& GetVisibleDirtyRegion() const;
     void SetVisibleDirtyRegion(const Occlusion::Region& region);
     void SetAlignedVisibleDirtyRegion(const Occlusion::Region& region);
-    void SetGlobalDirtyRegion(const RectI& rect);
+    void SetGlobalDirtyRegion(Occlusion::Region region);
     const Occlusion::Region& GetGlobalDirtyRegion() const;
     void SetDirtyRegionAlignedEnable(bool enable);
     void SetDirtyRegionBelowCurrentLayer(Occlusion::Region& region);
@@ -252,22 +245,34 @@ public:
     {
         return cacheSurface_ ? true : false;
     }
+
+    bool HasCache() const override
+    {
+        return drawWindowCache_.HasCache();
+    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool DealWithUIFirstCache(
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
-    void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);
+    void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams, bool isSelfDrawingSurface);
     void CaptureSurface(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 
     void MergeDirtyRegionBelowCurSurface(RSRenderThreadParams& uniParam, Drawing::Region& region);
-    Drawing::Region CalculateVisibleRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    void MergeSubSurfaceNodesDirtyRegionForMainWindow(
+        RSSurfaceRenderParams& surfaceParams, Occlusion::Region& surfaceDirtyRegion) const;
+    Drawing::Region CalculateVisibleDirtyRegion(RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
         RSSurfaceRenderNodeDrawable& surfaceDrawable, bool isOffscreen) const;
+    void CrossDisplaySurfaceDirtyRegionOffset(
+        const RSRenderThreadParams& uniParam, const RSSurfaceRenderParams& surfaceParam, RectI& surfaceDirtyRect) const;
     bool HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const;
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::SURFACE_NODE, OnGenerate>;
     static Registrar instance_;
 
     bool DrawUIFirstCache(RSPaintFilterCanvas& rscanvas, bool canSkipWait);
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
+    bool CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
+        RSRenderThreadParams& uniParams) const;
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -308,10 +313,6 @@ private:
 #ifdef RS_ENABLE_GPU
     Drawing::BackendTexture cacheBackendTexture_;
     Drawing::BackendTexture cacheCompletedBackendTexture_;
-#ifdef RS_ENABLE_GL
-    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRT_;
-    std::unordered_map<void*, GrBackendSemaphore> semaphoresForRSSub_;
-#endif
 #ifdef RS_ENABLE_VK
     NativeBufferUtils::VulkanCleanupHelper* cacheCleanupHelper_ = nullptr;
     NativeBufferUtils::VulkanCleanupHelper* cacheCompletedCleanupHelper_ = nullptr;
@@ -355,6 +356,9 @@ private:
 
     RSDrawWindowCache drawWindowCache_;
     friend class OHOS::Rosen::RSDrawWindowCache;
+    bool vmaCacheOff_ = false;
+
+    static inline bool isInRotationFixed_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -31,14 +31,10 @@ public:
     float pivotZ_ { 0.0f };
     float scaleX_ { 1.0f };
     float scaleY_ { 1.0f };
-    float scaleZ_ { 1.0f };
     float skewX_ {0.0f};
     float skewY_ {0.0f};
-    float skewZ_ {0.0f};
     float perspX_ {0.0f};
     float perspY_ {0.0f};
-    float perspZ_ {0.0f};
-    float perspW_ {1.0f};
     float rotation_ { 0.0f };
     float rotationX_ { 0.0f };
     float rotationY_ { 0.0f };
@@ -51,7 +47,8 @@ public:
 
 class RSObjGeometry {
 public:
-    RSObjGeometry() : x_(-INFINITY), y_(-INFINITY), z_(0.0f), width_(-INFINITY), height_(-INFINITY) {}
+    RSObjGeometry() : x_(-INFINITY), y_(-INFINITY), z_(0.0f), width_(-INFINITY), height_(-INFINITY),
+        isZApplicableCamera3D_(true) {}
 
     virtual ~RSObjGeometry() = default;
 
@@ -130,23 +127,10 @@ public:
         }
         trans_->scaleY_ = y;
     }
-    void SetScaleZ(float z)
-    {
-        if (!trans_) {
-            trans_ = std::make_optional<RSTransform>();
-        }
-        trans_->scaleZ_ = z;
-    }
     void SetScale(float x, float y)
     {
         SetScaleX(x);
         SetScaleY(y);
-    }
-    void SetScale(float x, float y, float z)
-    {
-        SetScaleX(x);
-        SetScaleY(y);
-        SetScaleZ(z);
     }
     void SetSkewX(float x)
     {
@@ -162,23 +146,10 @@ public:
         }
         trans_->skewY_ = y;
     }
-    void SetSkewZ(float z)
-    {
-        if (!trans_) {
-            trans_ = std::make_optional<RSTransform>();
-        }
-        trans_->skewZ_ = z;
-    }
     void SetSkew(float x, float y)
     {
         SetSkewX(x);
         SetSkewY(y);
-    }
-    void SetSkew(float x, float y, float z)
-    {
-        SetSkewX(x);
-        SetSkewY(y);
-        SetSkewZ(z);
     }
     void SetPerspX(float x)
     {
@@ -194,31 +165,10 @@ public:
         }
         trans_->perspY_ = y;
     }
-    void SetPerspZ(float z)
-    {
-        if (!trans_) {
-            trans_ = std::make_optional<RSTransform>();
-        }
-        trans_->perspZ_ = z;
-    }
-    void SetPerspW(float w)
-    {
-        if (!trans_) {
-            trans_ = std::make_optional<RSTransform>();
-        }
-        trans_->perspW_ = w;
-    }
     void SetPersp(float x, float y)
     {
         SetPerspX(x);
         SetPerspY(y);
-    }
-    void SetPersp(float x, float y, float z, float w)
-    {
-        SetPerspX(x);
-        SetPerspY(y);
-        SetPerspZ(z);
-        SetPerspW(w);
     }
     void SetRotation(float rotation)
     {
@@ -278,6 +228,10 @@ public:
         }
         trans_->quaternion_ = quaternion;
     }
+    void SetZApplicableCamera3D(bool isApplicable)
+    {
+        isZApplicableCamera3D_ = isApplicable;
+    }
 
     float GetX() const
     {
@@ -319,10 +273,6 @@ public:
     {
         return trans_ ? trans_->scaleY_ : 1.f;
     }
-    float GetScaleZ() const
-    {
-        return trans_ ? trans_->scaleZ_ : 1.f;
-    }
     float GetSkewX() const
     {
         return trans_ ? trans_->skewX_ : 0.f;
@@ -331,10 +281,6 @@ public:
     {
         return trans_ ? trans_->skewY_ : 0.f;
     }
-    float GetSkewZ() const
-    {
-        return trans_ ? trans_->skewZ_ : 0.f;
-    }
     float GetPerspX() const
     {
         return trans_ ? trans_->perspX_ : 0.f;
@@ -342,14 +288,6 @@ public:
     float GetPerspY() const
     {
         return trans_ ? trans_->perspY_ : 0.f;
-    }
-    float GetPerspZ() const
-    {
-        return trans_ ? trans_->perspZ_ : 0.f;
-    }
-    float GetPerspW() const
-    {
-        return trans_ ? trans_->perspW_ : 1.f;
     }
     float GetRotation() const
     {
@@ -387,6 +325,10 @@ public:
     {
         return width_ <= 0 && height_ <= 0;
     }
+    bool GetZApplicableCamera3D() const
+    {
+        return isZApplicableCamera3D_;
+    }
     void Round()
     {
         x_ = std::floor(x_);
@@ -408,6 +350,7 @@ protected:
     float z_;
     float width_;
     float height_;
+    bool isZApplicableCamera3D_;
     std::optional<RSTransform> trans_;
 };
 } // namespace Rosen

@@ -54,33 +54,38 @@ public:
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_CREATE, DisplayNodeCommandHelper::Create, NodeId, RSDisplayNodeConfig))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_CREATE,
+        DisplayNodeCommandHelper::Create, NodeId, RSDisplayNodeConfig))
 ADD_COMMAND(RSDisplayNodeSetScreenId,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ID, DisplayNodeCommandHelper::SetScreenId, NodeId, uint64_t))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ID,
+        DisplayNodeCommandHelper::SetScreenId, NodeId, uint64_t))
 ADD_COMMAND(RSDisplayNodeSetDisplayOffset,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_OFFSET, DisplayNodeCommandHelper::SetDisplayOffset, NodeId,
-    int32_t, int32_t))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_OFFSET,
+        DisplayNodeCommandHelper::SetDisplayOffset, NodeId, int32_t, int32_t))
 ADD_COMMAND(RSDisplayNodeSetSecurityDisplay,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SECURITY_DISPLAY, DisplayNodeCommandHelper::SetSecurityDisplay, NodeId, bool))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_SECURITY_DISPLAY,
+        DisplayNodeCommandHelper::SetSecurityDisplay, NodeId, bool))
 ADD_COMMAND(RSDisplayNodeSetDisplayMode,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_MODE, DisplayNodeCommandHelper::SetDisplayMode, NodeId,
-    RSDisplayNodeConfig))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_DISPLAY_MODE,
+        DisplayNodeCommandHelper::SetDisplayMode, NodeId, RSDisplayNodeConfig))
 ADD_COMMAND(RSDisplayNodeSetScreenRotation,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ROTATION, DisplayNodeCommandHelper::SetScreenRotation, NodeId,
-    ScreenRotation))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ROTATION,
+        DisplayNodeCommandHelper::SetScreenRotation, NodeId, ScreenRotation))
 ADD_COMMAND(RSDisplayNodeSetBootAnimation,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_BOOT_ANIMATION, DisplayNodeCommandHelper::SetBootAnimation,
-    NodeId, bool))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_BOOT_ANIMATION,
+        DisplayNodeCommandHelper::SetBootAnimation, NodeId, bool))
 ADD_COMMAND(RSDisplayNodeSetRogSize,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_ROG_SIZE, DisplayNodeCommandHelper::SetRogSize,
-    NodeId, uint32_t, uint32_t))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_ROG_SIZE,
+        DisplayNodeCommandHelper::SetRogSize, NodeId, uint32_t, uint32_t))
 ADD_COMMAND(RSDisplayNodeAddToTree,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_ADD_TO_TREE, DisplayNodeCommandHelper::AddDisplayNodeToTree, NodeId))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_ADD_TO_TREE,
+        DisplayNodeCommandHelper::AddDisplayNodeToTree, NodeId))
 ADD_COMMAND(RSDisplayNodeRemoveFromTree,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_REMOVE_FROM_TREE, DisplayNodeCommandHelper::RemoveDisplayNodeFromTree, NodeId))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_REMOVE_FROM_TREE,
+        DisplayNodeCommandHelper::RemoveDisplayNodeFromTree, NodeId))
 ADD_COMMAND(RSDisplayNodeSetNodePid,
-    ARG(DISPLAY_NODE, DISPLAY_NODE_SET_NODE_PID, DisplayNodeCommandHelper::SetScbNodePid,
-    NodeId, std::vector<int32_t>, int32_t))
+    ARG(PERMISSION_SYSTEM, DISPLAY_NODE, DISPLAY_NODE_SET_NODE_PID,
+        DisplayNodeCommandHelper::SetScbNodePid, NodeId, std::vector<int32_t>, int32_t))
 } // namespace Rosen
 } // namespace OHOS
 

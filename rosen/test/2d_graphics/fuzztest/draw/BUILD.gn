@@ -25,6 +25,7 @@ group("fuzztest") {
     "imagefilter_fuzzer:fuzztest",
     "paint_fuzzer:fuzztest",
     "path_fuzzer:fuzztest",
+    "pathiterator_fuzzer:fuzztest",
     "pen_fuzzer:fuzztest",
     "rsxform_fuzzer:fuzztest",
     "runtimeeffect_fuzzer:fuzztest",

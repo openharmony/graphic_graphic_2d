@@ -313,7 +313,7 @@ HWTEST_F(RSImageCacheTest, IncreasePixelMapCacheRefCountTest001, TestSize.Level1
     auto pixelMap = std::make_shared<Media::PixelMap>();
     imageCache.CachePixelMap(1, pixelMap);
     imageCache.IncreasePixelMapCacheRefCount(1);
-    EXPECT_TRUE(true);
+    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -329,7 +329,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest001, TestSize.Level1)
     auto pixelMap = std::make_shared<Media::PixelMap>();
     imageCache.CachePixelMap(1, pixelMap);
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -346,7 +346,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest002, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(1, std::make_pair(nullptr, 0));
     pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -363,7 +363,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest003, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(1, std::make_pair(nullptr, 1));
     pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -380,7 +380,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest004, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 0));
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -397,7 +397,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest005, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 1));
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -428,7 +428,7 @@ HWTEST_F(RSImageCacheTest, ReleaseDrawingImageCacheByPixelMapIdTest001, TestSize
     auto img = std::make_shared<Drawing::Image>();
     imageCache.CacheRenderDrawingImageByPixelMapId(1, img, 0);
     imageCache.ReleaseDrawingImageCacheByPixelMapId(1);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapIdRelatedDrawingImageCache_.clear();
 }
 
@@ -634,7 +634,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest006, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(1, std::make_pair(pixelMap, 1));
     pixelMap->allocatorType_ = Media::AllocatorType::SHARE_MEM_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -651,7 +651,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest007, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(0, std::make_pair(pixelMap, 1));
     pixelMap->allocatorType_ = Media::AllocatorType::DMA_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 
@@ -668,7 +668,7 @@ HWTEST_F(RSImageCacheTest, ReleasePixelMapCacheTest008, TestSize.Level1)
     imageCache.pixelMapCache_.emplace(0, std::make_pair(pixelMap, 0));
     pixelMap->allocatorType_ = Media::AllocatorType::HEAP_ALLOC;
     imageCache.ReleasePixelMapCache(1);
-    EXPECT_TRUE(true);
+    EXPECT_FALSE(imageCache.pixelMapCache_.empty());
     imageCache.pixelMapCache_.clear();
 }
 } // namespace OHOS::Rosen

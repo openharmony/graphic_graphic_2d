@@ -26,9 +26,12 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-std::unique_ptr<Typography> g_Typography = nullptr;
-thread_local napi_ref JsParagraph::constructor_ = nullptr;
+namespace {
 const std::string CLASS_NAME = "Paragraph";
+}
+
+std::unique_ptr<Typography> JsParagraph::g_Typography = nullptr;
+thread_local napi_ref JsParagraph::constructor_ = nullptr;
 
 napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
 {
@@ -41,7 +44,7 @@ napi_value JsParagraph::Constructor(napi_env env, napi_callback_info info)
     }
 
     if (!g_Typography) {
-        TEXT_LOGE("JsParagraph::Constructor g_Typography is nullptr");
+        TEXT_LOGE("Typography is null");
         return nullptr;
     }
 
@@ -142,10 +145,11 @@ napi_value JsParagraph::OnLayout(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     double width = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], width))) {
+    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], width))) {
         TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
+
     paragraph_->Layout(width);
     return NapiGetUndefined(env);
 }
@@ -169,12 +173,17 @@ napi_value JsParagraph::OnPaint(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("Argv is invalid");
+        return NapiGetUndefined(env);
+    }
     Drawing::JsCanvas* jsCanvas = nullptr;
     double x = 0.0;
     double y = 0.0;
     napi_unwrap(env, argv[0], reinterpret_cast<void **>(&jsCanvas));
     if (!jsCanvas || !jsCanvas->GetCanvas() ||
-        !(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
+        !(argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], x) &&
+         argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         TEXT_LOGE("Failed to get paint parameter");
         return NapiGetUndefined(env);
     }
@@ -376,11 +385,20 @@ napi_value JsParagraph::OnGetRectsForRange(napi_env env, napi_callback_info info
     TextRectWidthStyle wstyle;
     TextRectHeightStyle hstyle;
     napi_get_named_property(env, argv[0], "start", &tempValue);
+    if (tempValue == nullptr) {
+        TEXT_LOGE("Get start property failed");
+        return NapiGetUndefined(env);
+    }
     bool isStartOk = ConvertFromJsValue(env, tempValue, start);
+    tempValue = nullptr;
     napi_get_named_property(env, argv[0], "end", &tempValue);
+    if (tempValue == nullptr) {
+        TEXT_LOGE("Get end property failed");
+        return NapiGetUndefined(env);
+    }
     bool isEndOk = ConvertFromJsValue(env, tempValue, end);
-    if (!(isStartOk && isEndOk && ConvertFromJsValue(env, argv[ARGC_ONE], wstyle) &&
-        ConvertFromJsValue(env, argv[ARGC_TWO], hstyle))) {
+    if (!(isStartOk && isEndOk && argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], wstyle) &&
+        argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], hstyle))) {
         TEXT_LOGE("Failed to convert, start ok:%{public}d, end ok:%{public}d", isStartOk, isEndOk);
         return NapiGetUndefined(env);
     }
@@ -413,7 +431,9 @@ napi_value JsParagraph::OnGetRectsForPlaceholders(napi_env env, napi_callback_in
     int num = static_cast<int>(rectsForPlaceholders.size());
     for (int index = 0; index < num; ++index) {
         napi_value tempValue = CreateTextRectJsValue(env, rectsForPlaceholders[index]);
-        NAPI_CALL(env, napi_set_element(env, returnPlaceholders, index, tempValue));
+        if (tempValue != nullptr) {
+            NAPI_CALL(env, napi_set_element(env, returnPlaceholders, index, tempValue));
+        }
     }
     return returnPlaceholders;
 }
@@ -439,7 +459,8 @@ napi_value JsParagraph::OnGetGlyphPositionAtCoordinate(napi_env env, napi_callba
     }
     double dx = 0.0;
     double dy = 0.0;
-    if (!(ConvertFromJsValue(env, argv[0], dx) && ConvertFromJsValue(env, argv[1], dy))) {
+    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], dx) && argv[1] != nullptr &&
+        ConvertFromJsValue(env, argv[1], dy))) {
         TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
@@ -467,7 +488,7 @@ napi_value JsParagraph::OnGetWordBoundary(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     size_t offset = 0;
-    if (!(ConvertFromJsValue(env, argv[0], offset))) {
+    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], offset))) {
         TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
@@ -511,7 +532,7 @@ napi_value JsParagraph::OnGetLineHeight(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
-    if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
+    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], lineNumber))) {
         TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }
@@ -539,7 +560,7 @@ napi_value JsParagraph::OnGetLineWidth(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
-    if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
+    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], lineNumber))) {
         TEXT_LOGE("Failed to convert line number");
         return NapiGetUndefined(env);
     }
@@ -668,7 +689,7 @@ napi_value JsParagraph::OnGetFontMetricsByTextStyle(napi_env env, napi_callback_
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        TEXT_LOGE("Argc is invalid: %{public}zu", argc);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     TextStyle textStyle;
@@ -697,12 +718,12 @@ napi_value JsParagraph::OnGetLineFontMetrics(napi_env env, napi_callback_info in
     napi_value argv[ARGC_ONE] = {nullptr};
     napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
     if (status != napi_ok || argc < ARGC_ONE) {
-        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
+        TEXT_LOGE("Argc is invalid: %{public}zu", argc);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     int lineNumber = 0;
     if (!(ConvertFromJsValue(env, argv[0], lineNumber))) {
-        TEXT_LOGE("Failed to convert line number");
+        TEXT_LOGE("Argv is invalid");
         return NapiGetUndefined(env);
     }
 
@@ -711,7 +732,7 @@ napi_value JsParagraph::OnGetLineFontMetrics(napi_env env, napi_callback_info in
     size_t fontMetricsSize = 0;
     std::vector<Drawing::FontMetrics> grabFontMetrics;
     if (!paragraph_->GetLineFontMetrics(lineNumber, fontMetricsSize, grabFontMetrics)) {
-        TEXT_LOGE("Failed to get line font metrics");
+        TEXT_LOGE("GetLineFontMetrics failed");
         return returnFontMetrics;
     }
 
@@ -730,6 +751,12 @@ JsParagraph::JsParagraph(std::shared_ptr<Typography> typography)
 
 JsParagraph::~JsParagraph()
 {
+}
+
+std::shared_ptr<Typography> JsParagraph::GetParagraph()
+{
+    std::shared_ptr<Typography> typography = std::move(paragraph_);
+    return typography;
 }
 
 napi_value JsParagraph::CreateJsTypography(napi_env env, std::unique_ptr<Typography> typography)

@@ -49,6 +49,7 @@ public:
     bool ReadFromParcel(Parcel& parcel) override;
 
     void Process(RSContext& context) override;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const override;
     std::shared_ptr<RSRenderPropertyBase> GetProperty() const
     {
         return property_;
@@ -85,6 +86,7 @@ public:
     bool ReadFromParcel(Parcel& parcel) override;
 
     void Process(RSContext& context) override;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const override;
 
     const PropertiesMap& GetProperties() const
     {
@@ -115,6 +117,7 @@ public:
     bool ReadFromParcel(Parcel& parcel) override;
 
     void Process(RSContext& context) override;
+    bool IsCallingPidValid(pid_t callingPid, const RSRenderNodeMap& nodeMap) const override;
 
     float GetFraction() const
     {

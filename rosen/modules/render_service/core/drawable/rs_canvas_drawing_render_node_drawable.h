@@ -33,6 +33,7 @@ public:
 
     void Purge() override;
     void CheckAndSetThreadIdx(uint32_t& threadIdx);
+    bool CheckPostplaybackParamValid(NodeId, pid_t);
     void PostPlaybackInCorrespondThread();
     void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
     {
@@ -72,11 +73,10 @@ private:
     void DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect);
     bool ResetSurfaceForGL(int width, int height, RSPaintFilterCanvas& canvas);
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
-#if defined(RS_ENABLE_GL)
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
-#endif
-#if defined(RS_ENABLE_VK)
-    bool GpuContextResetVk(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+    bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+#ifdef RS_ENABLE_VK
+    bool ReleaseSurfaceVK(int width, int height);
 #endif
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
@@ -103,6 +103,8 @@ private:
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
     bool isPurge_ = false;
+    bool isPurgeMatrix_ = false;
+    Drawing::Matrix purgeMatrix_;
     Drawing::BackendTexture backendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* vulkanCleanupHelper_ = nullptr;
 #endif

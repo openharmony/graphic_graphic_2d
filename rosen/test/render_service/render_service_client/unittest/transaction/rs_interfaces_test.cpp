@@ -244,20 +244,6 @@ HWTEST_F(RSInterfacesTest, ReportEventJankFrame001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetDefaultDeviceRotationOffset001
- * @tc.desc: test results of SetDefaultDeviceRotationOffset
- * @tc.type: FUNC
- * @tc.require: issueIAS4B8
- */
-HWTEST_F(RSInterfacesTest, SetDefaultDeviceRotationOffset001, TestSize.Level1)
-{
-    RSInterfaces& instance = RSInterfaces::GetInstance();
-    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
-    instance.SetDefaultDeviceRotationOffset(90);
-    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
-}
-
-/**
  * @tc.name: ReportGameStateData001
  * @tc.desc: test results of ReportGameStateData
  * @tc.type: FUNC
@@ -344,6 +330,20 @@ HWTEST_F(RSInterfacesTest, GetHardwareComposeDisabledReasonInfo001, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetHdrOnDuration001
+ * @tc.desc: test results of GetHdrOnDuration
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSInterfacesTest, GetHdrOnDuration001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    EXPECT_GE(instance.GetHdrOnDuration(), 0);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
  * @tc.name: SetVmaCacheStatus001
  * @tc.desc: test results of SetVmaCacheStatus
  * @tc.type: FUNC
@@ -372,6 +372,22 @@ HWTEST_F(RSInterfacesTest, SetTpFeatureConfig001, TestSize.Level1)
     std::string config = "config";
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
     instance.SetTpFeatureConfig(feature, config.c_str());
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
+
+/**
+ * @tc.name: SetTpFeatureConfig002
+ * @tc.desc: test results of SetTpFeatureConfig
+ * @tc.type: FUNC
+ * @tc.require: issueIB39L8
+ */
+HWTEST_F(RSInterfacesTest, SetTpFeatureConfig002, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    int32_t feature = 1;
+    std::string config = "config";
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    instance.SetTpFeatureConfig(feature, config.c_str(), TpFeatureConfigType::AFT_TP_FEATURE);
     EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
 }
 #endif
@@ -461,7 +477,8 @@ HWTEST_F(RSInterfacesTest, RegisterSurfaceBufferCallback001, TestSize.Level1)
 {
     class TestSurfaceBufferCallback : public SurfaceBufferCallback {
     public:
-        void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) override {}
+        void OnFinish(const FinishCallbackRet& ret) {}
+        void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) {}
     };
     RSInterfaces& instance = RSInterfaces::GetInstance();
     instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();

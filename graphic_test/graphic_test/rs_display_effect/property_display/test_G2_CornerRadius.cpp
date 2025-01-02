@@ -23,8 +23,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -50,7 +50,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
-        testNodeBackGround->SetBounds({ x, y, 500, 300 });
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(normalRadius[i]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -63,7 +63,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
-        testNodeBackGround->SetBounds({ x, y, 500, 300 });
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(asymmetryRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -77,7 +77,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_DrawRoundRect
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBackgroundColor(0xff0000ff);
-        testNodeBackGround->SetBounds({ x, y, 500, 300 });
+        testNodeBackGround->SetBounds({ x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(capsuleRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -99,7 +99,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     for (; i < 2; i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(normalRadius[i]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -111,7 +111,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     for (; i < 4; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(asymmetryRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -123,7 +123,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     for (; i < 7; i++, j++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+        auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
         testNodeBackGround->SetCornerRadius(capsuleRadius[j]);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
@@ -132,7 +132,7 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_ClipRoundRect
     i = 7;
     int x = (i % columnCount) * sizeX;
     int y = (i / columnCount) * sizeY;
-    auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 500, 300 });
+    auto testNodeBackGround = SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, 400, 300 });
     testNodeBackGround->SetCornerRadius({ 160, 180, 200, 220 });
     GetRootNode()->AddChild(testNodeBackGround);
     RegisterNode(testNodeBackGround);
@@ -189,6 +189,148 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G2_CornerRadius_FromDTS_1)
         RegisterNode(testNodeBackGround2);
         testNodeBackGround2->AddChild(testNodeBackGround1);
         GetRootNode()->AddChild(testNodeBackGround2);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_DrawRoundRect_Test_01)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // get the smaller one between node's width and height
+    int nodeSize = sizeX < sizeY ? sizeX - 10 : sizeY - 10;
+    float radiusMultiplier[] = { 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        Vector4f cornerRadiusVal = { nodeSize / radiusMultiplier[i], 0, 0, 0 };
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround = RSCanvasNode::Create();
+        testNodeBackGround->SetBackgroundColor(0xff0000ff);
+        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetCornerRadius(cornerRadiusVal);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_DrawRoundRect_Test_02)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // get the smaller one between node's width and height
+    int nodeSize = sizeX < sizeY ? sizeX - 10 : sizeY - 10;
+    float radiusMultiplier[] = { 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        Vector4f cornerRadiusVal = { nodeSize / (2 * radiusMultiplier[i]), nodeSize / (2 * radiusMultiplier[i]), 0, 0 };
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround = RSCanvasNode::Create();
+        testNodeBackGround->SetBackgroundColor(0xff0000ff);
+        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetCornerRadius(cornerRadiusVal);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_DrawRoundRect_Test_03)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // get the smaller one between node's width and height
+    int nodeSize = sizeX < sizeY ? sizeX - 10 : sizeY - 10;
+    float radiusMultiplier[] = { 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround = RSCanvasNode::Create();
+        testNodeBackGround->SetBackgroundColor(0xff0000ff);
+        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetCornerRadius(nodeSize / (2 * radiusMultiplier[i]));
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_ClipRoundRect_Test_01)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // get the smaller one between node's width and height
+    int nodeSize = sizeX < sizeY ? sizeX - 10 : sizeY - 10;
+    float radiusMultiplier[] = { 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        Vector4f cornerRadiusVal = { nodeSize / radiusMultiplier[i], 0, 0, 0 };
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetCornerRadius(cornerRadiusVal);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_ClipRoundRect_Test_02)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // get the smaller one between node's width and height
+    int nodeSize = sizeX < sizeY ? sizeX - 10 : sizeY - 10;
+    float radiusMultiplier[] = { 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        Vector4f cornerRadiusVal = { nodeSize / (2 * radiusMultiplier[i]), nodeSize / (2 * radiusMultiplier[i]), 0, 0 };
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetCornerRadius(cornerRadiusVal);
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, G1_To_G2_ClipRoundRect_Test_03)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // get the smaller one between node's width and height
+    int nodeSize = sizeX < sizeY ? sizeX - 10 : sizeY - 10;
+    float radiusMultiplier[] = { 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0, 3.5, 4.0 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetCornerRadius(nodeSize / (2 * radiusMultiplier[i]));
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
     }
 }
 

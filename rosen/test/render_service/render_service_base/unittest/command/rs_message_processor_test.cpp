@@ -124,7 +124,9 @@ HWTEST_F(RSMessageProcessorTest, GetTransaction001, TestSize.Level1)
     auto transactionData = std::make_shared<RSTransactionData>();
     RSMessageProcessor::Instance().transactionMap_[pid] = transactionData;
     EXPECT_NE(nullptr, RSMessageProcessor::Instance().GetTransaction(pid));
-    EXPECT_EQ(RSMessageProcessor::Instance().transactionMap_, RSMessageProcessor::Instance().GetAllTransactions());
+    EXPECT_FALSE(RSMessageProcessor::Instance().transactionMap_.empty());
+    EXPECT_FALSE(RSMessageProcessor::Instance().GetAllTransactions().empty());
+    EXPECT_TRUE(RSMessageProcessor::Instance().transactionMap_.empty());
 }
 
 /**

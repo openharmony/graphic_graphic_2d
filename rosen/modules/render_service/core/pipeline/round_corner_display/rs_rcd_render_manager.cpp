@@ -172,9 +172,10 @@ void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& in
     }
     auto visitor = std::make_shared<RSRcdRenderVisitor>();
     visitor->SetUniProcessor(info.uniProcessor);
-    visitor->ProcessRcdSurfaceRenderNode(*GetBottomRenderNode(id), info.bottomLayer, info.resourceChanged);
-    visitor->ProcessRcdSurfaceRenderNode(*GetTopRenderNode(id), info.topLayer, info.resourceChanged);
-    if (info.resourceChanged) {
+    auto bottomRes = visitor->ProcessRcdSurfaceRenderNode(*GetBottomRenderNode(id), info.bottomLayer,
+        info.resourceChanged);
+    auto topRes = visitor->ProcessRcdSurfaceRenderNode(*GetTopRenderNode(id), info.topLayer, info.resourceChanged);
+    if (info.resourceChanged && bottomRes && topRes) {
         RSSingleton<RsMessageBus>::GetInstance().SendMsg<NodeId, bool>(TOPIC_RCD_DISPLAY_HWRESOURCE, id, true);
     }
     RS_TRACE_END();

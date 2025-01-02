@@ -250,6 +250,32 @@ HWTEST_F(RSBlurFilterTest, CanSkipFrameTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanSkipFrameTest001
+ * @tc.desc: Verify function CanSkipFrame
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlurFilterTest, CanSkipFrameTest001, TestSize.Level1)
+{
+    float blurRadiusX = 0.0f;
+    float blurRadiusY = 26.0f;
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    EXPECT_FALSE(blurFilter->CanSkipFrame());
+}
+
+/**
+ * @tc.name: CanSkipFrameTest002
+ * @tc.desc: Verify function CanSkipFrame
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSBlurFilterTest, CanSkipFrameTest002, TestSize.Level1)
+{
+    float blurRadiusX = 27.0f;
+    float blurRadiusY = 0.0f;
+    auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    EXPECT_FALSE(blurFilter->CanSkipFrame());
+}
+
+/**
  * @tc.name: GetDetailedDescriptionTest
  * @tc.desc: Verify function GetDetailedDescription
  * @tc.type:FUNC
@@ -260,10 +286,13 @@ HWTEST_F(RSBlurFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
     float blurRadiusY = 26.0f;
     auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
     blurFilter->GetDetailedDescription();
+    EXPECT_EQ(blurFilter->GetDetailedDescription(),
+        "RSBlurFilterBlur, radius: 27.000000 sigma, greyCoef1: 0.000000, greyCoef2: 0.000000");
 
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     blurFilter->SetGreyCoef(greyCoef);
-    blurFilter->GetDetailedDescription();
+    EXPECT_EQ(blurFilter->GetDetailedDescription(),
+        "RSBlurFilterBlur, radius: 27.000000 sigma, greyCoef1: 1.000000, greyCoef2: 1.000000");
 }
 
 /**
@@ -324,8 +353,11 @@ HWTEST_F(RSBlurFilterTest, DrawImageRect, TestSize.Level1)
     Drawing::Rect dst;
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     rsBlurFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(rsBlurFilter.greyCoef_.has_value());
+
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     rsBlurFilter.SetGreyCoef(greyCoef);
     rsBlurFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_NE(&rsBlurFilter, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -76,17 +76,11 @@ void RsVulkanInterface::Init(bool isProtected)
     SelectPhysicalDevice(isProtected);
     CreateDevice(isProtected);
     std::unique_lock<std::mutex> lock(vkMutex_);
+    CreateSkiaBackendContext(&backendContext_, false, isProtected);
 #ifdef RS_ENABLE_VKQUEUE_PRIORITY
     if (RSSystemProperties::GetVkQueuePriorityEnable()) {
-        if (!isProtected) {
-            CreateSkiaBackendContext(&backendContext_, false, isProtected);
-        }
         CreateSkiaBackendContext(&hbackendContext_, true, isProtected);
-    } else {
-        CreateSkiaBackendContext(&backendContext_, false, isProtected);
     }
-#else
-    CreateSkiaBackendContext(&backendContext_, false, isProtected);
 #endif
 }
 
@@ -562,17 +556,14 @@ RsVulkanContext::RsVulkanContext()
     rsVulkanInterface.Init();
     // Init drawingContext_ bind to backendContext
     drawingContext_ = rsVulkanInterface.CreateDrawingContext();
+#ifdef IS_ENABLE_DRM
     isProtected_ = true;
     rsProtectedVulkanInterface.Init(isProtected_);
-#ifdef RS_ENABLE_VKQUEUE_PRIORITY
-    // Init protectedDrawingContext_ bind to hbackendContext
-    protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
-        RSSystemProperties::GetVkQueuePriorityEnable(), isProtected_);
-#else
+    // DRM needs to adapt vkQueue in the future.
     protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
         false, isProtected_);
-#endif
     isProtected_ = false;
+#endif
 }
 
 RsVulkanContext& RsVulkanContext::GetSingleton()
@@ -605,11 +596,14 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSubmit(VkQueue queue, uint32_t
         RS_LOGD("%{public}s hardware queue", __func__);
         RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue", __func__);
         return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+    } else if (queue == vkInterface.GetQueue()) {
+        std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
+        RS_LOGD("%{public}s queue", __func__);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
+        return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
     }
-    std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-    RS_LOGD("%{public}s queue", __func__);
-    RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
-    return vkInterface.vkQueueSubmit(queue, submitCount, pSubmits, fence);
+    RS_LOGE("%s abnormal queue occured", __func__);
+    return VK_ERROR_UNKNOWN;
 }
 
 VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue queue, uint32_t waitSemaphoreCount,
@@ -622,21 +616,37 @@ VKAPI_ATTR VkResult RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(VkQueue
         RS_OPTIONAL_TRACE_NAME_FMT("%s hardware queue", __func__);
         return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount,
             pWaitSemaphores, image, pNativeFenceFd);
+    } else if (queue == vkInterface.GetQueue()) {
+        std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
+        RS_LOGD("%{public}s queue", __func__);
+        RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
+        return vkInterface.vkQueueSignalReleaseImageOHOS(queue,
+            waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
     }
-    std::lock_guard<std::mutex> lock(vkInterface.graphicsQueueMutex_);
-    RS_LOGD("%{public}s queue", __func__);
-    RS_OPTIONAL_TRACE_NAME_FMT("%s queue", __func__);
-    return vkInterface.vkQueueSignalReleaseImageOHOS(queue, waitSemaphoreCount, pWaitSemaphores, image, pNativeFenceFd);
+    RS_LOGE("%s abnormal queue occured", __func__);
+    return VK_ERROR_UNKNOWN;
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext(bool independentContext)
 {
-    auto& drawingContext = isProtected_ ? protectedDrawingContext_ : drawingContext_;
-    if (drawingContext != nullptr && !independentContext) {
-        return drawingContext;
+    // only used in drm scene
+    if (isProtected_) {
+        if (protectedDrawingContext_) {
+            return protectedDrawingContext_;
+        }
+        protectedDrawingContext_ = GetRsVulkanInterface().CreateDrawingContext(independentContext, isProtected_);
+        return protectedDrawingContext_;
     }
-    drawingContext = GetRsVulkanInterface().CreateDrawingContext(independentContext, isProtected_);
-    return drawingContext;
+    // only used in redraw scene
+    if (independentContext) {
+        return GetRsVulkanInterface().CreateDrawingContext(independentContext, isProtected_);
+    }
+
+    if (drawingContext_ == nullptr) {
+        drawingContext_ = GetRsVulkanInterface().CreateDrawingContext(independentContext, isProtected_);
+        return drawingContext_;
+    }
+    return drawingContext_;
 }
 
 std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext()
@@ -652,6 +662,10 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext()
 void RsVulkanContext::SetIsProtected(bool isProtected)
 {
     if (isProtected_ != isProtected) {
+        RS_LOGW("RsVulkanContext switch, isProtected: %{public}d.", isProtected);
+        if (isProtected) {
+            RS_TRACE_NAME("RsVulkanContext switch to protected GPU context");
+        }
         ClearGrContext(isProtected);
     }
 }

@@ -19,7 +19,7 @@
 #include "rosen_text/typography_create.h"
 #include "skia_txt/text_line_base.h"
 #include "skia_txt/txt/paragraph_line_fetcher.h"
-#include "utils/log.h"
+#include "utils/text_log.h"
 
 using namespace OHOS::Rosen;
 typedef OHOS::Rosen::AdapterTxt::TextLineBaseImpl LineImpl;
@@ -27,13 +27,13 @@ typedef OHOS::Rosen::AdapterTxt::TextLineBaseImpl LineImpl;
 OH_Drawing_LineTypography* OH_Drawing_CreateLineTypography(OH_Drawing_TypographyCreate* handler)
 {
     if (handler == nullptr) {
-        LOGE("Param is null.");
+        TEXT_LOGE("Param is null.");
         return nullptr;
     }
     TypographyCreate* rosenHandler = reinterpret_cast<TypographyCreate*>(handler);
-    auto lineTypography = rosenHandler->CreateLineTypography();
+    std::unique_ptr<LineTypography> lineTypography = rosenHandler->CreateLineTypography();
     if (lineTypography == nullptr) {
-        LOGE("Create line typography failed.");
+        TEXT_LOGE("Create line typography failed.");
         return nullptr;
     }
     return reinterpret_cast<OH_Drawing_LineTypography*>(lineTypography.release());
@@ -60,28 +60,28 @@ OH_Drawing_TextLine* OH_Drawing_LineTypographyCreateLine(OH_Drawing_LineTypograp
     LineTypography* innerlineTypography = reinterpret_cast<LineTypography*>(lineTypograph);
     size_t limitSize = innerlineTypography->GetUnicodeSize();
     if (startIndex >= limitSize || count + startIndex > limitSize) {
-        LOGE("Param is invalid.");
+        TEXT_LOGE("Param is invalid.");
         return nullptr;
     }
     void* lineFetcher = innerlineTypography->GetLineFetcher();
     if (lineFetcher == nullptr) {
-        LOGE("Get line fetcher failed.");
+        TEXT_LOGE("Get line fetcher failed.");
         return nullptr;
     }
     SPText::ParagraphLineFetcher* spLineFetcher = reinterpret_cast<SPText::ParagraphLineFetcher*>(lineFetcher);
     auto line = spLineFetcher->CreateLine(startIndex, count);
     if (line == nullptr) {
-        LOGE("Line fetcher create line failed.");
+        TEXT_LOGE("Line fetcher create line failed.");
         return nullptr;
     }
     LineImpl* lineImpl = new (std::nothrow) LineImpl(std::move(line));
     if (lineImpl == nullptr) {
-        LOGE("New text line failed.");
+        TEXT_LOGE("New text line failed.");
         return nullptr;
     }
     LineObject* lineObject = new (std::nothrow) LineObject();
     if (lineObject == nullptr) {
-        LOGE("New LineObject failed.");
+        TEXT_LOGE("New LineObject failed.");
         delete lineImpl;
         return nullptr;
     }

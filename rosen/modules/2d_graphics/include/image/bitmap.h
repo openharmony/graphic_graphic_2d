@@ -31,7 +31,8 @@ class DRAWING_API Bitmap {
 public:
     Bitmap();
     virtual ~Bitmap();
-    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0);
+    bool Build(int32_t width, int32_t height, const BitmapFormat& format, int32_t stride = 0,
+        std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr);
     bool Build(const ImageInfo& imageInfo, int32_t stride = 0);
 
     /**
@@ -218,7 +219,7 @@ public:
      */
     Pixmap GetPixmap() const;
 
-    /*
+    /**
      * @brief  Make new image from Bitmap but never copy Pixels
      * @note the function never copy Pixels, make sure Pixels is available during using the image
      */
@@ -252,12 +253,15 @@ private:
 
 inline void Bitmap::Dump(std::string& out) const
 {
-    out += "[width:" + std::to_string(bmpImplPtr->GetWidth());
-    out += " height:" + std::to_string(bmpImplPtr->GetHeight());
-    out += " rowBytes:" + std::to_string(bmpImplPtr->GetRowBytes());
-    out += " colorType:" + std::to_string(static_cast<int>(bmpImplPtr->GetColorType()));
-    out += " alphaType:" + std::to_string(static_cast<int>(bmpImplPtr->GetAlphaType()));
-    out += "]";
+    out += '[';
+    if (bmpImplPtr != nullptr) {
+        out += "width:" + std::to_string(bmpImplPtr->GetWidth());
+        out += " height:" + std::to_string(bmpImplPtr->GetHeight());
+        out += " rowBytes:" + std::to_string(bmpImplPtr->GetRowBytes());
+        out += " colorType:" + std::to_string(static_cast<int>(bmpImplPtr->GetColorType()));
+        out += " alphaType:" + std::to_string(static_cast<int>(bmpImplPtr->GetAlphaType()));
+    }
+    out += ']';
 }
 } // namespace Drawing
 } // namespace Rosen

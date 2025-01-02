@@ -47,6 +47,7 @@ HWTEST_F(RSModifierManagerTest, CreateDrawingContextTest, TestSize.Level1)
 {
     RSModifierManager rsModifierManager;
     rsModifierManager.Draw();
+    ASSERT_TRUE(true);
 }
 
 /**

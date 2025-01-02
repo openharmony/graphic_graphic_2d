@@ -56,6 +56,7 @@ namespace OHOS {
 namespace Rosen {
 using namespace OHOS::Media;
 
+#ifdef RS_ENABLE_GPU
 static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_t &height,
     const std::unique_ptr<Media::PixelMap>& pixelmap)
 {
@@ -94,6 +95,7 @@ static sptr<SurfaceBuffer> LocalDmaMemAlloc(const uint32_t &width, const uint32_
     return surfaceBuffer;
 #endif
 }
+#endif
 
 #if defined(RS_ENABLE_GL)
 class DmaMem {
@@ -294,7 +296,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreatePixelMapForGL(
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (pixelMap == nullptr) {
-        RS_LOGE("create pixelMap fail");
+        RS_LOGE("create pixelMap fail in CreatePixelMapForGL");
         return nullptr;
     }
 
@@ -371,9 +373,11 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
 {
 #if defined(RS_ENABLE_VK)
     ScopedBytrace trace1(__func__);
-    Drawing::BackendTexture backendTextureTmp =
-        NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBufferTmp,
-        surfaceBufferTmp->GetWidth(), surfaceBufferTmp->GetHeight());
+    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+        return false;
+    }
+    Drawing::BackendTexture backendTextureTmp = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(
+        nativeWindowBufferTmp, surfaceBufferTmp->GetWidth(), surfaceBufferTmp->GetHeight());
     if (!backendTextureTmp.IsValid()) {
         return false;
     }
@@ -408,10 +412,8 @@ bool PixelMapFromSurface::DrawImageRectVK(const std::shared_ptr<Drawing::Image> 
         OHOS::Rosen::Drawing::Rect(0, 0, srcRect.width, srcRect.height),
         Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
         OHOS::Rosen::Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-    {
-        ScopedBytrace trace2("FlushAndSubmit");
-        drawingSurface->FlushAndSubmit(true);
-    }
+    ScopedBytrace trace2("FlushAndSubmit");
+    drawingSurface->FlushAndSubmit(true);
     return true;
 #else
     return false;
@@ -422,6 +424,9 @@ std::shared_ptr<Drawing::Image> PixelMapFromSurface::CreateDrawingImage()
 {
 #if defined(RS_ENABLE_VK) && defined(RS_ENABLE_UNI_RENDER)
     ScopedBytrace trace(__func__);
+    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+        return nullptr;
+    }
     backendTexture_ = NativeBufferUtils::MakeBackendTextureFromNativeBuffer(nativeWindowBuffer_,
         surfaceBuffer_->GetWidth(), surfaceBuffer_->GetHeight());
     if (!backendTexture_.IsValid()) {
@@ -485,7 +490,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::CreateForVK(const sp
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
     if (!pixelMap) {
-        RS_LOGE("create pixelMap fail");
+        RS_LOGE("create pixelMap fail in CreateForVK");
         return nullptr;
     }
 
@@ -526,17 +531,18 @@ OHNativeWindowBuffer *PixelMapFromSurface::GetNativeWindowBufferFromSurface(
         0, 0, 1, 0,
         0, 0, 0, 1
     };
-    int ret = surface->AcquireLastFlushedBuffer(surfaceBuffer, fence, matrix, 16, false); // 16 : matrix size
+    GSError ret = surface->AcquireLastFlushedBuffer(surfaceBuffer, fence, matrix, 16, false); // 16 : matrix size
     if (ret != OHOS::GSERROR_OK || surfaceBuffer == nullptr) {
-        RS_LOGE("GetLastFlushedBuffer fail");
+        RS_LOGE("GetLastFlushedBuffer fail, ret = %{public}d", ret);
         return nullptr;
     }
 
-    int bufferWidth = surfaceBuffer->GetWidth();
-    int bufferHeight = surfaceBuffer->GetHeight();
+    int32_t bufferWidth = surfaceBuffer->GetWidth();
+    int32_t bufferHeight = surfaceBuffer->GetHeight();
     if (srcRect.width > bufferWidth || srcRect.height > bufferHeight ||
         srcRect.left >= bufferWidth || srcRect.top >= bufferHeight ||
-        srcRect.left + srcRect.width > bufferWidth || srcRect.top + srcRect.height > bufferHeight) {
+        static_cast<int64_t>(srcRect.left) + static_cast<int64_t>(srcRect.width) > static_cast<int64_t>(bufferWidth) ||
+        static_cast<int64_t>(srcRect.top) + static_cast<int64_t>(srcRect.height) > static_cast<int64_t>(bufferHeight)) {
         RS_LOGE("invalid argument: srcRect[%{public}d, %{public}d, %{public}d, %{public}d],"
             "bufferWidth=%{public}d, bufferHeight=%{public}d",
             srcRect.left, srcRect.top, srcRect.width, srcRect.height, bufferWidth, bufferHeight);
@@ -642,6 +648,7 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
 {
     ScopedBytrace trace(__func__);
     if (surface == nullptr) {
+        RS_LOGE("invalid argument: surface is nullptr");
         return nullptr;
     }
     if (srcRect.left < 0 || srcRect.top < 0 || srcRect.width <= 0 || srcRect.height <= 0) {
@@ -649,6 +656,14 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(sptr<Surface> surface, con
             srcRect.left, srcRect.top, srcRect.width, srcRect.height);
         return nullptr;
     }
+#if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
+    if (RSBackgroundThread::Instance().GetShareGPUContext() == nullptr) {
+        RS_LOGE("check GPUContext fail");
+        return nullptr;
+    }
+#endif
+    RS_LOGI("PixelMapFromSurface::Create in, srcRect[%{public}d, %{public}d, %{public}d, %{public}d]",
+        srcRect.left, srcRect.top, srcRect.width, srcRect.height);
     surface_ = surface;
 
     std::unique_ptr<PixelMap> pixelMap = nullptr;
@@ -679,6 +694,7 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> s
     auto helper = std::make_unique<PixelMapFromSurface>();
     return helper->Create(surface, srcRect);
 #else
+    RS_LOGE("CreatePixelMapFromSurface fail");
     return nullptr;
 #endif
 }

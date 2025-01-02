@@ -41,6 +41,7 @@ public:
     MOCK_METHOD2(GetScreenSupportedModes, int32_t(uint32_t, std::vector<GraphicDisplayModeInfo>&));
     MOCK_METHOD2(GetScreenMode, int32_t(uint32_t, uint32_t&));
     MOCK_METHOD2(SetScreenMode, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD2(SetScreenActiveRect, int32_t(uint32_t, const GraphicIRect&));
     MOCK_METHOD3(SetScreenOverlayResolution, int32_t(uint32_t, uint32_t, uint32_t));
     MOCK_METHOD2(GetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus&));
     MOCK_METHOD2(SetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus));
@@ -84,6 +85,8 @@ public:
     MOCK_METHOD0(GetSupportedLayerPerFrameParameterKey, std::vector<std::string>&());
     MOCK_METHOD4(SetLayerPerFrameParameter,
                  int32_t(uint32_t, uint32_t, const std::string&, const std::vector<int8_t>&));
+     MOCK_METHOD4(SetLayerPerFrameParameterSmq,
+                  int32_t(uint32_t, uint32_t, const std::string&, const std::vector<int8_t>&));
     MOCK_METHOD3(SetLayerTunnelHandle, int32_t(uint32_t, uint32_t, GraphicExtDataHandle *));
     MOCK_METHOD3(GetSupportedPresentTimestampType, int32_t(uint32_t, uint32_t, GraphicPresentTimestampType&));
     MOCK_METHOD3(GetPresentTimestamp, int32_t(uint32_t, uint32_t, GraphicPresentTimestamp&));

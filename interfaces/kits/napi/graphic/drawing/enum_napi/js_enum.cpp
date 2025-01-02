@@ -22,10 +22,12 @@
 #include "draw/blend_mode.h"
 #include "draw/clip.h"
 #include "draw/core_canvas.h"
+#include "draw/path_iterator.h"
 #include "draw/path.h"
 #include "draw/pen.h"
 #include "draw/shadow.h"
 #include "effect/mask_filter.h"
+#include "effect/path_effect.h"
 #include "text/font_types.h"
 #include "utils/region.h"
 #include "utils/sampling_options.h"
@@ -165,6 +167,12 @@ static const std::vector<struct JsEnumInt> g_pathDirection = {
     { "COUNTER_CLOCKWISE", static_cast<int32_t>(PathDirection::CCW_DIRECTION) },
 };
 
+static const std::vector<struct JsEnumInt> g_pathDashStyle = {
+    { "TRANSLATE", static_cast<int32_t>(PathDashStyle::TRANSLATE) },
+    { "ROTATE", static_cast<int32_t>(PathDashStyle::ROTATE) },
+    { "MORPH", static_cast<int32_t>(PathDashStyle::MORPH) },
+};
+
 static const std::vector<struct JsEnumInt> g_pathFillType = {
     { "WINDING", 0 }, // 0: PathFillType::WINDING, conflict with define WINDING
     { "EVEN_ODD", static_cast<int32_t>(PathFillType::EVENTODD) },
@@ -223,6 +231,16 @@ static const std::vector<struct JsEnumInt> g_pathOp = {
     { "REVERSE_DIFFERENCE", static_cast<int32_t>(PathOp::REVERSE_DIFFERENCE) },
 };
 
+static const std::vector<struct JsEnumInt> g_pathiteratorVerb = {
+    { "MOVE", static_cast<int32_t>(PathVerb::MOVE) },
+    { "LINE", static_cast<int32_t>(PathVerb::LINE) },
+    { "QUAD", static_cast<int32_t>(PathVerb::QUAD) },
+    { "CONIC", static_cast<int32_t>(PathVerb::CONIC) },
+    { "CUBIC", static_cast<int32_t>(PathVerb::CUBIC) },
+    { "CLOSE", static_cast<int32_t>(PathVerb::CLOSE) },
+    { "DONE", static_cast<int32_t>(PathVerb::DONE) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -240,12 +258,14 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "FontHinting", g_fontHinting },
     { "PointMode", g_pointMode },
     { "PathDirection", g_pathDirection },
+    { "PathDashStyle", g_pathDashStyle },
     { "PathFillType", g_pathFillType },
     { "PathMeasureMatrixFlags", g_pathMeasureMatrixFlags },
     { "PathOp", g_pathOp },
     { "SrcRectConstraint", g_srcRectConstraint },
     { "ScaleToFit", g_scaleToFit },
     { "CornerPos", g_cornerPos },
+    { "PathIteratorVerb", g_pathiteratorVerb },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
@@ -254,15 +274,10 @@ napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)
         auto &enumClassName = it->first;
         auto &enumItemVec = it->second;
         auto vecSize = enumItemVec.size();
-        std::vector<napi_value> value;
-        value.resize(vecSize);
+        std::vector<napi_value> value(vecSize);
+        std::vector<napi_property_descriptor> property(vecSize);
         for (size_t index = 0; index < vecSize; ++index) {
             napi_create_int32(env, enumItemVec[index].enumInt, &value[index]);
-        }
-
-        std::vector<napi_property_descriptor> property;
-        property.resize(vecSize);
-        for (size_t index = 0; index < vecSize; ++index) {
             property[index] = napi_property_descriptor DECLARE_NAPI_STATIC_PROPERTY(
                 enumItemVec[index].enumName.data(), value[index]);
         }

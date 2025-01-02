@@ -197,8 +197,20 @@ bool RSSystemProperties::GetRSScreenRoundCornerEnable()
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
 {
-    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "1") != "0";
+    static bool isPurgeable = system::GetParameter("persist.rosen.rendernode.purge.enabled", "0") != "0";
     return isPurgeable;
+}
+
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    static bool isPurgeable = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
+    return isPurgeable;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
+{
+    static bool isClosePixelMapFd = system::GetParameter("persist.rosen.rsimage.purge.enabled", "0") != "0";
+    return isClosePixelMapFd;
 }
 
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
@@ -440,14 +452,14 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
 {
-    defaultDeviceRotationOffset_ = offset;
+    isScreenSwitching_ = flag;
 }
 
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+bool RSSystemProperties::GetScreenSwitchStatus()
 {
-    return defaultDeviceRotationOffset_;
+    return isScreenSwitching_;
 }
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
@@ -606,6 +618,14 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
     forceHpsBlurDisabled_ = flag;
 }
 
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    static bool deviceHpsType = RSSystemProperties::IsPcType();
+    static float noiseFactor = deviceHpsType ?
+        std::atof((system::GetParameter("persist.sys.graphic.HpsBlurNoiseFactor", "1.75")).c_str()) : 0.f;
+    return noiseFactor;
+}
+
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     static bool hpsBlurEnabled =
@@ -695,6 +715,20 @@ bool RSSystemProperties::GetProxyNodeDebugEnabled()
 {
     static bool proxyNodeDebugEnabled = system::GetParameter("persist.sys.graphic.proxyNodeDebugEnabled", "0") != "0";
     return proxyNodeDebugEnabled;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    static bool debugEnable = system::GetBoolParameter("const.cache.optimize.rotate.enable", false);
+    return debugEnable;
+}
+
+CrossNodeOffScreenRenderDebugType RSSystemProperties::GetCrossNodeOffScreenStatus()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.crossnode.offscreen.render.enabled", "1");
+    int chanded = 0;
+    const char *type = CachedParameterGetChanged(g_Handle, &chanded);
+    return static_cast<CrossNodeOffScreenRenderDebugType>(ConvertToInt(type, 1));
 }
 
 bool RSSystemProperties::GetUIFirstEnabled()
@@ -1165,6 +1199,13 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
     int changed = 0;
     const char *num = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(num, 0);
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
+{
+    static bool hveFilterEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.HveFilterEnable", "1")).c_str()) != 0;
+    return hveFilterEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

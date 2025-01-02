@@ -36,7 +36,7 @@ struct ImageCacheSeq {
     EGLSyncKHR eglSync_;
 };
 
-static constexpr int64_t TRANSFORM_MATRIX_ELE_COUNT = 16;
+static constexpr uint32_t TRANSFORM_MATRIX_ELE_COUNT = 16;
 typedef void (*OnBufferAvailableListener)(void *context);
 
 class SurfaceImage : public ConsumerSurface {
@@ -71,6 +71,7 @@ public:
 
     SurfaceError GetTransformMatrix(float matrix[16]);
     SurfaceError GetTransformMatrixV2(float matrix[16]);
+    SurfaceError GetBufferMatrix(float matrix[16]);
     SurfaceError SetOnBufferAvailableListener(void *context, OnBufferAvailableListener listener);
     SurfaceError UnsetOnBufferAvailableListener();
     OnBufferAvailableListener listener_ = nullptr;
@@ -82,11 +83,13 @@ public:
     SurfaceError SetDefaultUsage(uint64_t usage);
     SurfaceError SetDefaultSize(int32_t width, int32_t height);
 private:
+    void UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t timestamp);
+    Rect GetBufferCropRegion(const sptr<OHOS::SurfaceBuffer>& buffer);
     SurfaceError ValidateEglState();
     EGLImageKHR CreateEGLImage(EGLDisplay disp, const sptr<SurfaceBuffer>& buffer);
     SurfaceError UpdateEGLImageAndTexture(const sptr<SurfaceBuffer>& buffer);
-    void UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
-                           int64_t timestamp, Rect damage);
+    void UpdateSurfaceInfo(sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
+                           int64_t timestamp, const Rect& damage);
     void CheckImageCacheNeedClean(uint32_t seqNum);
     void DestroyEGLImage(EGLImageKHR &eglImage);
     void DestroyEGLSync(EGLSyncKHR &eglSync);
@@ -106,11 +109,69 @@ private:
     uint32_t currentSurfaceImage_ = UINT_MAX;
     sptr<SurfaceBuffer> currentSurfaceBuffer_;
     int64_t currentTimeStamp_;
-    Rect currentCrop_ = {};
-    GraphicTransformType currentTransformType_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     float currentTransformMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     float currentTransformMatrixV2_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
+    float currentBufferMatrix_[TRANSFORM_MATRIX_ELE_COUNT] = {0.0};
     uint64_t uniqueId_ = 0;
+
+    /**
+     * @brief Represents the properties of a graphics buffer frame
+     *
+     * This structure encapsulates essential information about a graphics buffer frame,
+     * including its effective region, dimensions, and transformation settings. It is used
+     * to track and compare buffer states for efficient graphics rendering and processing.
+     */
+    struct BufferProperties {
+        /**
+         * @brief Defines the valid/effective region within the buffer
+         * Represents the actual usable area of the buffer that contains valid content,
+         * which may be smaller than the full buffer dimensions
+         */
+        Rect crop = {0, 0, 0, 0};
+
+        /**
+         * @brief Rotation/transformation type applied to the buffer
+         * Specifies how the buffer content should be transformed during rendering
+         */
+        GraphicTransformType transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
+
+        /**
+         * @brief Width of the buffer in pixels
+         * Represents the horizontal dimension of the graphics buffer
+         */
+        uint32_t bufferWidth = 0;
+
+        /**
+         * @brief Height of the buffer in pixels
+         * Represents the vertical dimension of the graphics buffer
+         */
+        uint32_t bufferHeight = 0;
+
+        /**
+         * @brief Equality comparison operator
+         * @param other The BufferProperties object to compare with
+         * @return true if all properties match, false otherwise
+         */
+        bool operator==(const BufferProperties& other) const
+        {
+            return crop == other.crop &&
+                transformType == other.transformType &&
+                bufferWidth == other.bufferWidth &&
+                bufferHeight == other.bufferHeight;
+        }
+
+        /**
+         * @brief Inequality comparison operator
+         * @param other The BufferProperties object to compare with
+         * @return true if any property differs, false if all match
+         */
+        bool operator!=(const BufferProperties& other) const
+        {
+            return !(*this == other);
+        }
+    };
+    BufferProperties bufferProperties_;
+    BufferProperties preBufferProperties_;
 };
 
 class SurfaceImageListener : public IBufferConsumerListener {

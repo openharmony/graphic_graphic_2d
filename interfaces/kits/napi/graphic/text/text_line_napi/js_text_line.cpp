@@ -20,8 +20,11 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-thread_local napi_ref JsTextLine::constructor_ = nullptr;
+namespace {
 const std::string CLASS_NAME = "TextLine";
+}
+thread_local napi_ref JsTextLine::constructor_ = nullptr;
+
 napi_value JsTextLine::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = 0;
@@ -267,6 +270,10 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
         TEXT_LOGE("Failed to get paramter, argc %{public}zu, ret %{public}d", argc, status);
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
+    if (argv[0] == nullptr) {
+        TEXT_LOGE("JsTextLine::OnPaint argv[0] is invalid");
+        return NapiGetUndefined(env);
+    }
     Drawing::JsCanvas* jsCanvas = nullptr;
     napi_unwrap(env, argv[0], reinterpret_cast<void**>(&jsCanvas));
     if (!jsCanvas || !jsCanvas->GetCanvas()) {
@@ -275,7 +282,8 @@ napi_value JsTextLine::OnPaint(napi_env env, napi_callback_info info)
     }
     double x = 0.0;
     double y = 0.0;
-    if (!(ConvertFromJsValue(env, argv[ARGC_ONE], x) && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
+    if (!(argv[ARGC_ONE] != nullptr && ConvertFromJsValue(env, argv[ARGC_ONE], x) &&
+        argv[ARGC_TWO] != nullptr && ConvertFromJsValue(env, argv[ARGC_TWO], y))) {
         return NapiGetUndefined(env);
     }
     textLine_->Paint(jsCanvas->GetCanvas(), x, y);
@@ -501,10 +509,8 @@ bool CallJsFunc(napi_env env, napi_value callback, int32_t index, double leftOff
 
 napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info info)
 {
-    if (textLine_ == nullptr) {
-        TEXT_LOGE("TextLine is nullptr");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
+    TEXT_ERROR_CHECK(textLine_ != nullptr,
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params."), "TextLine is nullptr");
 
     size_t argc = ARGC_ONE;
     napi_value argv[ARGC_ONE];
@@ -521,6 +527,11 @@ napi_value JsTextLine::OnEnumerateCaretOffsets(napi_env env, napi_callback_info 
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     napi_ref refCallback = nullptr;
+    std::unique_ptr<napi_ref, std::function<void(napi_ref*)>> refCallbackGuard(&refCallback, [env](napi_ref* ref) {
+        if (ref != nullptr && *ref != nullptr) {
+            TEXT_CHECK(napi_delete_reference(env, *ref) == napi_ok, TEXT_LOGE("Failed to release ref callback"));
+        }
+    });
     status = napi_create_reference(env, argv[0], 1, &refCallback);
     if (status != napi_ok) {
         TEXT_LOGE("Failed to napi_create_reference");

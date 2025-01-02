@@ -20,12 +20,19 @@
 
 namespace OHOS::Rosen {
 
+std::atomic_uint64_t ImageCache::id_ = 0u;
 std::mutex ImageCache::mutex_;
 std::map<uint64_t, Image> ImageCache::cache_;
+std::atomic_size_t ImageCache::consumption_;
 
 bool Image::IsValid() const
 {
     return (!data.empty()) && (data.size() < maxSize);
+}
+
+size_t Image::Size() const
+{
+    return data.size();
 }
 
 void Image::Serialize(Archive& archive)
@@ -43,8 +50,7 @@ void Image::Serialize(Archive& archive)
 // ImageCache
 uint64_t ImageCache::New()
 {
-    static uint32_t id = 0u;
-    return Utils::ComposeNodeId(Utils::GetPid(), id++);
+    return Utils::ComposeNodeId(Utils::GetPid(), id_++);
 }
 
 bool ImageCache::Exists(uint64_t id)
@@ -56,6 +62,7 @@ bool ImageCache::Exists(uint64_t id)
 bool ImageCache::Add(uint64_t id, Image&& image)
 {
     if (image.IsValid() && !Exists(id)) {
+        consumption_ += image.Size();
         const std::lock_guard<std::mutex> guard(mutex_);
         cache_.insert({ id, image });
         return true;
@@ -76,8 +83,15 @@ size_t ImageCache::Size()
     return cache_.size();
 }
 
+size_t ImageCache::Consumption()
+{
+    return consumption_;
+}
+
 void ImageCache::Reset()
 {
+    id_ = 0;
+    consumption_ = 0u;
     const std::lock_guard<std::mutex> guard(mutex_);
     cache_.clear();
 }

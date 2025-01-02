@@ -26,23 +26,6 @@ const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;
 const uint32_t usleepTime = 1000;
-} // namespace
-
-class SurfaceCaptureFuture : public SurfaceCaptureCallback {
-    public:
-         SurfaceCaptureFuture() = default;
-        ~SurfaceCaptureFuture() {};
-        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
-        {
-            pixelMap_ = pixelmap;
-        }
-        std::shared_ptr<Media::PixelMap> GetPixelMap()
-        {
-            return pixelMap_;
-        }
-    private:
-        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
-};
 
 /*
  * describe: get data from outside untrusted data(g_data) which size is according to sizeof(T)
@@ -63,6 +46,36 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
+
+template<>
+std::string GetData()
+{
+    size_t objectSize = GetData<uint8_t>();
+    std::string object(objectSize, '\0');
+    if (g_data == nullptr || objectSize > g_size - g_pos) {
+        return object;
+    }
+    object.assign(reinterpret_cast<const char*>(g_data + g_pos), objectSize);
+    g_pos += objectSize;
+    return object;
+}
+} // namespace
+
+class SurfaceCaptureFuture : public SurfaceCaptureCallback {
+    public:
+        SurfaceCaptureFuture() = default;
+        ~SurfaceCaptureFuture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
+        {
+            pixelMap_ = pixelmap;
+        }
+        std::shared_ptr<Media::PixelMap> GetPixelMap()
+        {
+            return pixelMap_;
+        }
+    private:
+        std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
+};
 
 bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 {
@@ -92,6 +105,16 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     int64_t interval = GetData<int64_t>();
     int32_t rangeSize = GetData<int32_t>();
 #endif
+    int32_t x = GetData<int32_t>();
+    int32_t y = GetData<int32_t>();
+    int32_t w = GetData<int32_t>();
+    int32_t h = GetData<int32_t>();
+    Rect activeRect {
+        .x = x,
+        .y = y,
+        .w = w,
+        .h = h
+    };
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
@@ -101,6 +124,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
 #endif
     rsInterfaces.SetScreenActiveMode(static_cast<ScreenId>(id), modeId);
+    rsInterfaces.SetScreenActiveRect(static_cast<ScreenId>(id), activeRect);
     rsInterfaces.SetScreenPowerStatus(static_cast<ScreenId>(id), static_cast<ScreenPowerStatus>(status));
     rsInterfaces.SetScreenBacklight(static_cast<ScreenId>(id), level);
     rsInterfaces.SetScreenColorGamut(static_cast<ScreenId>(id), modeIdx);
@@ -136,9 +160,14 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     std::vector<NodeId> blackListVector = {};
     blackListVector.push_back(id);
     rsInterfaces.SetVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.AddVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
+    rsInterfaces.RemoveVirtualScreenBlackList(static_cast<ScreenId>(id), blackListVector);
     std::vector<NodeId> secExemptionList = {};
     secExemptionList.emplace_back(id);
     rsInterfaces.SetVirtualScreenSecurityExemptionList(static_cast<ScreenId>(id), secExemptionList);
+
+    Rect rect = {GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>(), GetData<int32_t>()};
+    rsInterfaces.SetMirrorScreenVisibleRect(static_cast<ScreenId>(id), rect);
 
     auto callback1 = std::make_shared<SurfaceCaptureFuture>();
     rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
@@ -171,6 +200,8 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
     rsInterfaces.SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
 
+    rsInterfaces.SetHwcNodeBounds(static_cast<NodeId>(id), 1.0f, 1.0f, 1.0f, 1.0f);
+
     rsInterfaces.MarkPowerOffNeedProcessOneFrame();
     rsInterfaces.DisablePowerOffRenderControl(static_cast<ScreenId>(id));
     UIExtensionCallback uiExtensionCallback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {};
@@ -201,13 +232,58 @@ bool OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(const uint8_t* data, size_t size)
     // get data
     int32_t tpFeature = GetData<int32_t>();
     std::string tpConfig = GetData<std::string>();
+    auto tpFeatureConfigType = static_cast<TpFeatureConfigType>(GetData<uint8_t>());
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig);
+    rsInterfaces.SetTpFeatureConfig(tpFeature, tpConfig.c_str(), tpFeatureConfigType);
     return true;
 }
 #endif
+
+bool DoSetFreeMultiWindowStatus(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    bool enable = GetData<bool>();
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.SetFreeMultiWindowStatus(enable);
+    return true;
+}
+
+bool DoDropFrameByPid(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // get data
+    std::vector<int32_t> pidList;
+    uint8_t pidListSize = GetData<uint8_t>();
+    for (size_t i = 0; i < pidListSize; i++) {
+        pidList.push_back(GetData<int32_t>());
+    };
+
+    // test
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.DropFrameByPid(pidList);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -219,5 +295,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 #ifdef TP_FEATURE_ENABLE
     OHOS::Rosen::DoSetTpFeatureConfigFuzzTest(data, size);
 #endif
+    OHOS::Rosen::DoSetFreeMultiWindowStatus(data, size);
+    OHOS::Rosen::DoDropFrameByPid(data, size);
     return 0;
 }

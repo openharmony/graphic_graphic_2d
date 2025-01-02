@@ -103,15 +103,15 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdateChildHardwareEnabledNode, TestSize.
 }
 
 /**
- * @tc.name: SetHwcChildrenDisabledStateByUifirst
- * @tc.desc: test results of SetHwcChildrenDisabledStateByUifirst
+ * @tc.name: SetHwcChildrenDisabledState
+ * @tc.desc: test results of SetHwcChildrenDisabledState
  * @tc.type: FUNC
  * @tc.require: issueI9L0VL
  */
-HWTEST_F(RSSurfaceRenderNodeThreeTest, SetHwcChildrenDisabledStateByUifirst, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeThreeTest, SetHwcChildrenDisabledState, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->SetHwcChildrenDisabledStateByUifirst();
+    node->SetHwcChildrenDisabledState();
     ASSERT_TRUE(node->childHardwareEnabledNodes_.size() == 0);
 }
 
@@ -303,7 +303,7 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, QuerySubAssignable, TestSize.Level1)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
     bool isRotation = true;
     bool res = node->QuerySubAssignable(isRotation);
-    ASSERT_FALSE(res);
+    ASSERT_EQ(res, RSSystemProperties::GetCacheOptimizeRotateEnable());
 }
 
 /**

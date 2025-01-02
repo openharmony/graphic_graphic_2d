@@ -19,6 +19,7 @@
 #include <malloc.h>
 #include <sstream>
 #include <string>
+#include <sys/prctl.h>
 #include "include/core/SkGraphics.h"
 #include "rs_trace.h"
 #include "third_party/cJSON/cJSON.h"
@@ -28,6 +29,7 @@
 #include "skia_adapter/skia_graphics.h"
 #include "memory/rs_memory_graphic.h"
 #include "include/gpu/GrDirectContext.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 #include "src/gpu/GrDirectContextPriv.h"
 
 #include "common/rs_background_thread.h"
@@ -48,6 +50,20 @@
 #include "pipeline/rs_vk_image_manager.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_sched_kill_reason.h"
+#endif
+static inline const char* GetThreadName()
+{
+    static constexpr int nameLen = 16;
+    static thread_local char threadName[nameLen + 1] = "";
+    if (threadName[0] == 0) {
+        prctl(PR_GET_NAME, threadName);
+        threadName[nameLen] = 0;
+    }
+    return threadName;
+}
 
 namespace OHOS::Rosen {
 namespace {
@@ -67,6 +83,7 @@ std::mutex MemoryManager::mutex_;
 std::unordered_map<pid_t, std::pair<std::string, uint64_t>> MemoryManager::pidInfo_;
 uint32_t MemoryManager::frameCount_ = 0;
 uint64_t MemoryManager::memoryWarning_ = UINT64_MAX;
+uint64_t MemoryManager::gpuMemoryControl_ = UINT64_MAX;
 uint64_t MemoryManager::totalMemoryReportTime_ = 0;
 
 void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type)
@@ -201,14 +218,15 @@ void MemoryManager::SetGpuCacheSuppressWindowSwitch(Drawing::GPUContext* gpuCont
 #endif
 }
 
-void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(Drawing::GPUContext* gpuContext, bool enabled)
+void MemoryManager::SetGpuMemoryAsyncReclaimerSwitch(
+    Drawing::GPUContext* gpuContext, bool enabled, const std::function<void()>& setThreadPriority)
 {
 #if defined(RS_ENABLE_VK)
     if (!gpuContext) {
         RS_LOGE("SetGpuMemoryAsyncReclaimerSwitch fail, gpuContext is nullptr");
         return;
     }
-    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled);
+    gpuContext->SetGpuMemoryAsyncReclaimerSwitch(enabled, setThreadPriority);
 #endif
 }
 
@@ -264,17 +282,6 @@ void MemoryManager::DumpPidMemory(DfxString& log, int pid, const Drawing::GPUCon
     log.AppendFormat("GPU Mem(MB):%f\n", mem.GetGpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("CPU Mem(KB):%f\n", mem.GetCpuMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
     log.AppendFormat("Total Mem(MB):%f\n", mem.GetTotalMemorySize() / (MEMUNIT_RATE * MEMUNIT_RATE));
-}
-
-MemoryGraphic MemoryManager::CountSubMemory(int pid, const Drawing::GPUContext* gpuContext)
-{
-    MemoryGraphic memoryGraphic;
-    auto subThreadManager = RSSubThreadManager::Instance();
-    std::vector<MemoryGraphic> subMems = subThreadManager->CountSubMem(pid);
-    for (const auto& mem : subMems) {
-        memoryGraphic += mem;
-    }
-    return memoryGraphic;
 }
 
 MemoryGraphic MemoryManager::CountPidMemory(int pid, const Drawing::GPUContext* gpuContext)
@@ -473,8 +480,8 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
     std::string stat;
     gpuContext->DumpGpuStats(stat);
 
-    int statIndex = 0;
-    int statLength = stat.length();
+    size_t statIndex = 0;
+    size_t statLength = stat.length();
     while (statIndex < statLength) {
         std::string statSubStr;
         if (statLength - statIndex > DUPM_STRING_BUF_SIZE) {
@@ -487,6 +494,18 @@ void MemoryManager::DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuC
         log.AppendFormat("%s", statSubStr.c_str());
     }
     log.AppendFormat("\ndumpGpuStats end\n---------------\n");
+#if defined (SK_VULKAN) && defined (SKIA_DFX_FOR_RECORD_VKIMAGE)
+    if (ParallelDebug::IsVkImageDfxEnabled()) {
+        static thread_local int tid = gettid();
+        log.AppendFormat("\n------------------\n[%s:%d] dumpAllResource:\n", GetThreadName(), tid);
+        std::stringstream allResources;
+        gpuContext->DumpAllResource(allResources);
+        std::string s;
+        while (std::getline(allResources, s, '\n')) {
+            log.AppendFormat("%s\n", s.c_str());
+        }
+    }
+#endif
 }
 
 void MemoryManager::DumpMallocStat(std::string& log)
@@ -533,10 +552,14 @@ uint64_t ParseMemoryLimit(const cJSON* json, const char* name)
     return UINT64_MAX;
 }
 
-void MemoryManager::InitMemoryLimit(Drawing::GPUContext* gpuContext)
+void MemoryManager::InitMemoryLimit()
 {
     std::ifstream configFile;
     configFile.open(KERNEL_CONFIG_PATH);
+    if (!configFile.is_open()) {
+        RS_LOGE("MemoryManager::InitMemoryLimit can not open config file");
+        return;
+    }
     std::stringstream filterParamsStream;
     filterParamsStream << configFile.rdbuf();
     configFile.close();
@@ -570,15 +593,21 @@ void MemoryManager::InitMemoryLimit(Drawing::GPUContext* gpuContext)
     // error threshold for cpu memory of a single process
     uint64_t cpuMemoryControl = ParseMemoryLimit(rsWatchPoint, "process_cpu_control_threshold");
     // error threshold for gpu memory of a single process
-    uint64_t gpuMemoryControl = ParseMemoryLimit(rsWatchPoint, "process_gpu_control_threshold");
+    gpuMemoryControl_ = ParseMemoryLimit(rsWatchPoint, "process_gpu_control_threshold");
     // threshold for the total memory of all processes in renderservice
     uint64_t totalMemoryWarning = ParseMemoryLimit(rsWatchPoint, "total_threshold");
     cJSON_Delete(root);
 
-    if (gpuContext != nullptr) {
-        gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl);
-    }
     MemorySnapshot::Instance().InitMemoryLimit(MemoryOverflow, memoryWarning_, cpuMemoryControl, totalMemoryWarning);
+}
+
+void MemoryManager::SetGpuMemoryLimit(Drawing::GPUContext* gpuContext)
+{
+    if (gpuContext == nullptr || gpuMemoryControl_ == UINT64_MAX) {
+        RS_LOGW("MemoryManager::SetGpuMemoryLimit gpuContext is nullptr or gpuMemoryControl_ is uninitialized");
+        return;
+    }
+    gpuContext->InitGpuMemoryLimit(MemoryOverflow, gpuMemoryControl_);
 }
 
 void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
@@ -635,6 +664,29 @@ void MemoryManager::MemoryOverCheck(Drawing::GPUContext* gpuContext)
 #endif
 }
 
+static void KillProcessByPid(const pid_t pid, const std::string& processName, const std::string& reason)
+{
+#ifdef RES_SCHED_ENABLE
+    std::unordered_map<std::string, std::string> killInfo;
+    killInfo["pid"] = std::to_string(pid);
+    killInfo["processName"] = processName;
+    killInfo["killReason"] = reason;
+    if (pid > 0) {
+        int32_t eventWriteStatus = -1;
+        int32_t killStatus = ResourceSchedule::ResSchedClient::GetInstance().KillProcess(killInfo);
+        if (killStatus == 0) {
+            eventWriteStatus = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::FRAMEWORK, "PROCESS_KILL",
+                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PROCESS_NAME", processName,
+                "MSG", reason, "FOREGROUND", false);
+        }
+        // To prevent the print from being filtered, use RS_LOGE.
+        RS_LOGE("KillProcessByPid, pid: %{public}d, process name: %{public}s, "
+            "killStatus: %{public}d, eventWriteStatus: %{public}d, reason: %{public}s",
+            static_cast<int32_t>(pid), processName.c_str(), killStatus, eventWriteStatus, reason.c_str());
+    }
+#endif
+}
+
 void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
 {
     MemorySnapshotInfo info;
@@ -646,21 +698,40 @@ void MemoryManager::MemoryOverflow(pid_t pid, size_t overflowMemory, bool isGpu)
     std::string bundleName;
     auto& appMgrClient = RSSingleton<AppExecFwk::AppMgrClient>::GetInstance();
     appMgrClient.GetBundleNameByPid(pid, bundleName, uid);
+    RSMainThread::Instance()->PostTask([]() {
+        RS_TRACE_NAME_FMT("RSMem Dump Task");
+        std::unordered_set<std::u16string> argSets;
+        std::string dumpString = "";
+        std::string type = MEM_SNAPSHOT;
+        RSMainThread::Instance()->DumpMem(argSets, dumpString, type, 0);
+        RS_LOGI("=======================RSMem Dump Info=======================");
+        std::istringstream stream(dumpString);
+        std::string line;
+        while (std::getline(stream, line)) {
+            RS_LOGI("%{public}s", line.c_str());
+        }
+        RS_LOGI("=============================================================");
+    });
+    std::string reason = "RENDER_MEMORY_OVER_ERROR: cpu[" + std::to_string(info.cpuMemory)
+        + "], gpu[" + std::to_string(info.gpuMemory) + "], total["
+        + std::to_string(info.TotalMemory()) + "]";
     MemoryOverReport(pid, info, bundleName, "RENDER_MEMORY_OVER_ERROR");
+    KillProcessByPid(pid, bundleName, reason);
     RS_LOGE("RSMemoryOverflow pid[%{public}d] cpu[%{public}zu] gpu[%{public}zu]", pid, info.cpuMemory, info.gpuMemory);
 }
 
 void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& info, const std::string& bundleName,
     const std::string& reportName)
 {
-    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+    int ret = HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
         OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "PID", pid,
         "BUNDLE_NAME", bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory());
-    RS_LOGW("RSMemoryOverReport pid[%d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
-        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());
+    RS_LOGW("RSMemoryOverReport pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] "
+        "gpu[%{public}zu] total[%{public}zu] ret[%{public}d]",
+        pid, bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory(), ret);
 }
 
 void MemoryManager::TotalMemoryOverReport(const std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap)

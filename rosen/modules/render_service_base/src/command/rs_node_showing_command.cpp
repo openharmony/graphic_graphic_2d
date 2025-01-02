@@ -78,11 +78,14 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
     auto node = nodeMap.GetRenderNode<RSRenderNode>(targetId_);
     if (!node || !property_) {
         success_ = false;
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, "
+            "node [%{public}" PRIu64 "] or property is null!", targetId_);
         return;
     }
     auto modifier = node->GetModifier(property_->GetId());
     if (!modifier) {
         success_ = false;
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::Process, modifier is null!");
         return;
     }
     property_ = modifier->GetProperty();
@@ -91,6 +94,19 @@ void RSNodeGetShowingPropertyAndCancelAnimation::Process(RSContext& context)
         auto& animationManager = node->GetAnimationManager();
         animationManager.CancelAnimationByPropertyId(property_->GetId());
     }
+}
+
+bool RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
+    const RSRenderNodeMap& nodeMap) const
+{
+    if (ExtractPid(targetId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(targetId_)) {
+        ROSEN_LOGE("RSNodeGetShowingPropertyAndCancelAnimation::IsCallingPidValid, "
+                "callingPid [%{public}d] no permission "
+                "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                static_cast<int>(callingPid), targetId_);
+        return false;
+    }
+    return true;
 }
 
 bool RSNodeGetShowingPropertiesAndCancelAnimation::Marshalling(Parcel& parcel) const
@@ -150,6 +166,8 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         auto& [property, animations] = value;
         auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
         if (!node) {
+            ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::Process, "
+                "node [%{public}" PRIu64 "] is null!", nodeId);
             continue;
         }
         auto modifier = node->GetModifier(propertyId);
@@ -158,6 +176,22 @@ void RSNodeGetShowingPropertiesAndCancelAnimation::Process(RSContext& context)
         }
         node->GetAnimationManager().AttemptCancelAnimationByAnimationId(animations);
     }
+}
+
+bool RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid(pid_t callingPid,
+    const RSRenderNodeMap& nodeMap) const
+{
+    for (auto& [key, _] : propertiesMap_) {
+        auto& nodeId = key.first;
+        if (ExtractPid(nodeId) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId)) {
+            ROSEN_LOGE("RSNodeGetShowingPropertiesAndCancelAnimation::IsCallingPidValid, "
+                "callingPid [%{public}d] no permission "
+                "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                static_cast<int>(callingPid), nodeId);
+            return false;
+        }
+    }
+    return true;
 }
 
 bool RSNodeGetAnimationsValueFraction::Marshalling(Parcel& parcel) const
@@ -214,14 +248,29 @@ void RSNodeGetAnimationsValueFraction::Process(RSContext& context)
     auto& nodeMap = context.GetNodeMap();
     auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId_);
     if (node == nullptr) {
+        ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, node is null!");
         return;
     }
     auto animation = node->GetAnimationManager().GetAnimation(animationId_);
     if (animation == nullptr) {
+        ROSEN_LOGE("RSNodeGetAnimationsValueFraction::Process, animation is null!");
         return;
     }
     success_ = true;
     fraction_ = animation->GetValueFraction();
+}
+
+bool RSNodeGetAnimationsValueFraction::IsCallingPidValid(pid_t callingPid,
+    const RSRenderNodeMap& nodeMap) const
+{
+    if (ExtractPid(nodeId_) != callingPid && !nodeMap.IsUIExtensionSurfaceNode(nodeId_)) {
+        ROSEN_LOGE("RSNodeGetAnimationsValueFraction::IsCallingPidValid, "
+                "callingPid [%{public}d] no permission "
+                "EXECUTE_SYNCHRONOUS_TASK on node [%{public}" PRIu64 "] ",
+                static_cast<int>(callingPid), nodeId_);
+        return false;
+    }
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -24,14 +24,16 @@
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
+#include "pipeline/rs_render_thread_util.h"
 #include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/drawing/rs_surface_converter.h"
 #endif
+#ifdef RS_ENABLE_GPU
 #include "render_context/render_context.h"
+#endif
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_hdr_manager.h"
 #include "ui/rs_proxy_node.h"
 #include "rs_trace.h"
 
@@ -64,12 +66,6 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
 
     SharedPtr node(new RSSurfaceNode(surfaceNodeConfig, isWindow));
     RSNodeMap::MutableInstance().RegisterNode(node);
-    RS_LOGD("RSSurfaceNode::Create HDRClient name: %{public}s, type: %{public}hhu, id: %{public}" PRIu64,
-        node->name_.c_str(), type, node->GetId());
-    if (type == RSSurfaceNodeType::APP_WINDOW_NODE || type == RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
-        auto callback = &RSSurfaceNode::SetHDRPresent;
-        RSHDRManager::Instance().RegisterSetHDRPresent(callback, node->GetId());
-    }
 
     // create node in RS
     RSSurfaceRenderNodeConfig config = {
@@ -77,7 +73,7 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         .name = node->name_,
         .additionalData = surfaceNodeConfig.additionalData,
         .isTextureExportNode = surfaceNodeConfig.isTextureExportNode,
-        .isSync = isWindow && surfaceNodeConfig.isSync,
+        .isSync = surfaceNodeConfig.isSync,
         .surfaceWindowType = surfaceNodeConfig.surfaceWindowType,
     };
     config.nodeType = type;
@@ -356,21 +352,26 @@ void RSSurfaceNode::SetColorSpace(GraphicColorGamut colorSpace)
     }
 }
 
-void RSSurfaceNode::CreateTextureExportRenderNodeInRT()
+void RSSurfaceNode::CreateRenderNodeForTextureExportSwitch()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
-        RSSurfaceNodeType::SELF_DRAWING_NODE, true);
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
     }
-    transactionProxy->AddCommand(command, false);
-    command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
-    transactionProxy->AddCommand(command, false);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSurfaceNodeCreate>(GetId(),
+        RSSurfaceNodeType::SELF_DRAWING_NODE, isTextureExportNode_);
+    transactionProxy->AddCommand(command, IsRenderServiceNode());
+    if (!IsRenderServiceNode()) {
+        hasCreateRenderNodeInRT_ = true;
+        command = std::make_unique<RSSurfaceNodeConnectToNodeInRenderService>(GetId());
+        transactionProxy->AddCommand(command, false);
 
-    RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
-    command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
-    transactionProxy->AddCommand(command, false);
+        RSRTRefreshCallback::Instance().SetRefresh([] { RSRenderThread::Instance().RequestNextVSync(); });
+        command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(GetId(), true);
+        transactionProxy->AddCommand(command, false);
+    } else {
+        hasCreateRenderNodeInRS_ = true;
+    }
 }
 
 void RSSurfaceNode::SetIsTextureExportNode(bool isTextureExportNode)
@@ -393,12 +394,15 @@ void RSSurfaceNode::SetTextureExport(bool isTextureExportNode)
         return;
     }
     isTextureExportNode_ = isTextureExportNode;
+    if (!IsUniRenderEnabled()) {
+        return;
+    }
     if (!isTextureExportNode_) {
         SetIsTextureExportNode(isTextureExportNode);
         DoFlushModifier();
         return;
     }
-    CreateTextureExportRenderNodeInRT();
+    CreateRenderNodeForTextureExportSwitch();
     SetIsTextureExportNode(isTextureExportNode);
     SetSurfaceIdToRenderNode();
     DoFlushModifier();
@@ -647,7 +651,6 @@ RSSurfaceNode::RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderSer
 
 RSSurfaceNode::~RSSurfaceNode()
 {
-    RSHDRManager::Instance().UnRegisterSetHDRPresent(GetId());
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
         return;
@@ -722,6 +725,20 @@ void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
+#ifdef ROSEN_OHOS
+    std::lock_guard<std::mutex> lock(apiInitMutex_);
+    static bool apiCompatibleVersionInitialized = false;
+    if (apiCompatibleVersionInitialized) {
+        return;
+    }
+    uint32_t apiCompatibleVersion = RSRenderThreadUtil::GetApiCompatibleVersion();
+    if (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && transactionProxy != nullptr) {
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSSurfaceNodeSetApiCompatibleVersion>(GetId(), apiCompatibleVersion);
+        transactionProxy->AddCommand(command, true);
+        apiCompatibleVersionInitialized = true;
+    }
+#endif
 }
 
 void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
@@ -982,6 +999,16 @@ RSInterfaceErrorCode RSSurfaceNode::SetHidePrivacyContent(bool needHidePrivacyCo
             renderServiceClient->SetHidePrivacyContent(GetId(), needHidePrivacyContent));
     }
     return RSInterfaceErrorCode::UNKNOWN_ERROR;
+}
+
+void RSSurfaceNode::SetHardwareEnableHint(bool enable)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetHardwareEnableHint>(GetId(), enable);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

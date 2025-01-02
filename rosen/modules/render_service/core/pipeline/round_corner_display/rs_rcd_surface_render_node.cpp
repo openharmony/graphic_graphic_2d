@@ -27,6 +27,7 @@ namespace Rosen {
 const unsigned long long PRIV_USAGE_FBC_CLD_LAYER = 1ULL << 56; // 56 means the buffer usage is hardware
 const float RCD_LAYER_Z_TOP1 = static_cast<float>(0x7FFFFFFF); // toppest
 const float RCD_LAYER_Z_TOP2 = static_cast<float>(0x7FFFFEFF); // not set toppest - 1, float only 6 significant digits
+const int32_t BUFFER_TIME_OUT = 500;
 
 RSRcdSurfaceRenderNode::RSRcdSurfaceRenderNode(
     NodeId id, RCDSurfaceType type, const std::weak_ptr<RSContext>& context)
@@ -146,7 +147,7 @@ BufferRequestConfig RSRcdSurfaceRenderNode::GetHardenBufferRequestConfig() const
         | PRIV_USAGE_FBC_CLD_LAYER;
     RS_LOGD("RCD: GetHardenBufferRequestConfig Buffer usage %{public}" PRIu64 ", width %{public}d, height %{public}d",
         config.usage, config.width, config.height);
-    config.timeout = 0;
+    config.timeout = BUFFER_TIME_OUT; // ms
     return config;
 }
 
@@ -211,8 +212,8 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
         return false;
     }
     if (!FillHardwareResource(cldLayerInfo, layerBitmap.GetHeight(), layerBitmap.GetWidth())) {
-            RS_LOGE("RSRcdSurfaceRenderNode:: copy hardware resource to buffer failed");
-            return false;
+        RS_LOGE("RSRcdSurfaceRenderNode:: copy hardware resource to buffer failed");
+        return false;
     }
     return true;
 }
@@ -267,6 +268,18 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
         return false;
     }
     return true;
+}
+
+void RSRcdSurfaceRenderNode::PrintRcdNodeInfo()
+{
+    std::string surfaceName = (IsTopSurface() ? "RCDTopSurfaceNode" : "RCDBottomSurfaceNode")  +
+        std::to_string(renerTargetId_);
+    RS_LOGI("[%{public}s] %{public}s node info", __func__, surfaceName.c_str());
+    RS_LOGI("[%{public}s] rcd layerBitmap size %{public}d X %{public}d", __func__,
+        layerBitmap.GetWidth(), layerBitmap.GetHeight());
+    RS_LOGI("[%{public}s] rcd cld info %{public}u, %{public}u, %{public}u, %{public}u, %{public}u, %{public}u",
+        __func__, cldInfo_.cldSize, cldInfo_.cldWidth, cldInfo_.cldHeight, cldInfo_.cldStride, cldInfo_.exWidth,
+        cldInfo_.exHeight);
 }
 
 bool RSRcdSurfaceRenderNode::IsSurfaceCreated() const

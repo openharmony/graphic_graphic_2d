@@ -147,21 +147,6 @@ bool DoSetRadius(const uint8_t* data, size_t size)
     rsShadow->SetRadius(radius);
     return true;
 }
-bool DoSetPath(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    auto path = std::make_shared<RSPath>();
-    rsShadow->SetPath(path);
-    return true;
-}
 bool DoSetMask(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -207,30 +192,6 @@ bool DoSetColorStrategy(const uint8_t* data, size_t size)
     rsShadow->SetColorStrategy(colorStrategy);
     return true;
 }
-bool DoNoParameter(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    // initialize
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
-    rsShadow->GetColor();
-    rsShadow->GetOffsetX();
-    rsShadow->GetOffsetY();
-    rsShadow->GetAlpha();
-    rsShadow->GetElevation();
-    rsShadow->GetRadius();
-    rsShadow->GetPath();
-    rsShadow->GetMask();
-    rsShadow->GetIsFilled();
-    rsShadow->GetColorStrategy();
-    rsShadow->IsValid();
-    return true;
-}
 } // namespace Rosen
 } // namespace OHOS
 /* Fuzzer entry point */
@@ -243,10 +204,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetAlpha(data, size);
     OHOS::Rosen::DoSetElevation(data, size);
     OHOS::Rosen::DoSetRadius(data, size);
-    OHOS::Rosen::DoSetPath(data, size);
     OHOS::Rosen::DoSetMask(data, size);
     OHOS::Rosen::DoSetIsFilled(data, size);
     OHOS::Rosen::DoSetColorStrategy(data, size);
-    OHOS::Rosen::DoNoParameter(data, size);
     return 0;
 }

@@ -439,12 +439,12 @@ HWTEST_F(RSRenderDrawableTest, PrepareOffscreenRenderExtTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CalculateVisibleRegionExtTest
- * @tc.desc: Test CalculateVisibleRegion
+ * @tc.name: CalculateVisibleDirtyRegionExtTest
+ * @tc.desc: Test CalculateVisibleDirtyRegion
  * @tc.type: FUNC
  * @tc.require: #IA940V
  */
-HWTEST_F(RSRenderDrawableTest, CalculateVisibleRegionExtTest, TestSize.Level1)
+HWTEST_F(RSRenderDrawableTest, CalculateVisibleDirtyRegionExtTest, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
@@ -454,20 +454,20 @@ HWTEST_F(RSRenderDrawableTest, CalculateVisibleRegionExtTest, TestSize.Level1)
     surfaceParams->isMainWindowType_ = false;
     surfaceParams->isLeashWindow_ = true;
     surfaceParams->isAppWindow_ = false;
-    Drawing::Region result = surfaceDrawable_->CalculateVisibleRegion(*uniParams,
+    Drawing::Region result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams,
         *surfaceParams, *surfaceDrawable_, true);
     ASSERT_TRUE(result.IsEmpty());
 
     surfaceParams->isMainWindowType_ = true;
     surfaceParams->isLeashWindow_ = false;
     surfaceParams->isAppWindow_ = false;
-    result = surfaceDrawable_->CalculateVisibleRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, true);
     ASSERT_FALSE(result.IsEmpty());
 
     uniParams->SetOcclusionEnabled(true);
     Occlusion::Region region;
     surfaceParams->SetVisibleRegion(region);
-    result = surfaceDrawable_->CalculateVisibleRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
+    result = surfaceDrawable_->CalculateVisibleDirtyRegion(*uniParams, *surfaceParams, *surfaceDrawable_, false);
     ASSERT_TRUE(result.IsEmpty());
 }
 

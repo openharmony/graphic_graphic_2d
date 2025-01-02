@@ -123,7 +123,7 @@ HWTEST_F(SKImageFilterFactoryUnittest, BrightnessTest002, TestSize.Level1)
     GTEST_LOG_(INFO) << "SKImageFilterFactoryUnittest BrightnessTest002 start";
     // -1 brightness for test
     auto filter = Rosen::SKImageFilterFactory::Brightness(-1);
-    EXPECT_TRUE(filter != nullptr);
+    EXPECT_TRUE(filter == nullptr);
 }
 
 /**

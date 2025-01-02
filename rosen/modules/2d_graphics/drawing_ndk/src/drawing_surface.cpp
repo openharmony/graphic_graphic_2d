@@ -35,15 +35,16 @@ static Surface* CastToSurface(OH_Drawing_Surface* cSurface)
 {
     return reinterpret_cast<Surface*>(cSurface);
 }
-
+#ifdef RS_ENABLE_GPU
 static GPUContext* CastToGpuContext(OH_Drawing_GpuContext* cGpuContext)
 {
     return reinterpret_cast<GPUContext*>(cGpuContext);
 }
-
+#endif
 OH_Drawing_Surface* OH_Drawing_SurfaceCreateFromGpuContext(OH_Drawing_GpuContext* cGpuContext,
     bool budgeted, OH_Drawing_Image_Info cImageInfo)
 {
+#ifdef RS_ENABLE_GPU
     if (cGpuContext == nullptr) {
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
@@ -58,6 +59,9 @@ OH_Drawing_Surface* OH_Drawing_SurfaceCreateFromGpuContext(OH_Drawing_GpuContext
     std::lock_guard<std::mutex> lock(g_surfaceMutex);
     g_surfaceMap.insert({surface.get(), surface});
     return (OH_Drawing_Surface*)(surface.get());
+#else
+    return nullptr;
+#endif
 }
 
 OH_Drawing_Canvas* OH_Drawing_SurfaceGetCanvas(OH_Drawing_Surface* cSurface)

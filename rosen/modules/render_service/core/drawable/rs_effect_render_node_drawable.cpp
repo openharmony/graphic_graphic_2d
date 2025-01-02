@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_uni_render_thread.h"
 #include "platform/common/rs_log.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 RSEffectRenderNodeDrawable::Registrar RSEffectRenderNodeDrawable::instance_;
@@ -32,6 +33,7 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+#ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
@@ -45,6 +47,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
         return;
     }
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kAll);
 
@@ -62,12 +65,21 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        return;
+    }
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
+#endif
 }
 
 bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams* effectParams,
     Drawing::Canvas& canvas, const Drawing::Rect& bounds, RSPaintFilterCanvas* paintFilterCanvas)
 {
+#ifdef RS_ENABLE_GPU
     if (drawCmdIndex_.childrenIndex_ == -1) {
         // case 0: No children, skip
         return false;
@@ -115,6 +127,9 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         }
     }
     return true;
+#else
+    return false;
+#endif
 }
 
 void RSEffectRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)

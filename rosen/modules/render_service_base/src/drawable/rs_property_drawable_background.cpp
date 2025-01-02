@@ -41,6 +41,7 @@
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "include/gpu/GrBackendSemaphore.h"
 #endif
+#include "common/rs_rect.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {
@@ -236,7 +237,6 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
             properties.GetBgBrightnessParams().value());
         brush.SetBlender(blender);
     }
-
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {
         bool antiAlias = RSPropertiesPainter::GetBgAntiAlias() || !properties.GetCornerRadius().IsZero();
@@ -245,7 +245,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
         canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     }
     canvas.DetachBrush();
     return true;
@@ -281,7 +281,7 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
         canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
     } else {
         canvas.AttachBrush(brush);
-        canvas.DrawRoundRect(RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()));
+        canvas.DrawRect(RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect()));
     }
     canvas.DetachBrush();
     return true;
@@ -532,6 +532,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
         needSync_ = true;
         stagingFilter_ = behindWindowFilter;
         stagingNeedDrawBehindWindow_ = true;
+        stagingDrawBehindWindowRegion_ = node.GetFilterRect();
         return true;
     }
     return false;
@@ -571,6 +572,7 @@ void RSBackgroundFilterDrawable::OnSync()
     if (needSync_) {
         needDrawBehindWindow_ = stagingNeedDrawBehindWindow_;
     }
+    drawBehindWindowRegion_ = stagingDrawBehindWindowRegion_;
     RSFilterDrawable::OnSync();
 }
 
@@ -611,11 +613,19 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         paintFilterCanvas->ClipRect(*rect);
         Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
         canvas->GetTotalMatrix().MapRect(absRect, *rect);
-        Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetRight()),
-            std::ceil(absRect.GetBottom()));
+        auto surface = canvas->GetSurface();
+        if (!surface) {
+            return;
+        }
+        RectI deviceRect(0, 0, surface->Width(), surface->Height());
+        RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+            std::ceil(absRect.GetHeight()));
+        bounds = bounds.IntersectRect(deviceRect);
+        Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_, bounds);
+            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, ptr->renderClearFilteredCacheAfterDrawing_,
+            boundsRect);
     };
 }
 

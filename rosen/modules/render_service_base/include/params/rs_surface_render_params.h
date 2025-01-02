@@ -101,6 +101,10 @@ public:
     {
         return alpha_;
     }
+    bool IsCrossNode() const
+    {
+        return isCrossNode_;
+    }
     bool IsSpherizeValid() const
     {
         return isSpherizeValid_;
@@ -332,8 +336,12 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetNeedMakeImage(bool enabled);
+    bool GetNeedMakeImage() const override;
     void SetHardCursorStatus(bool status);
     bool GetHardCursorStatus() const override;
+    void SetPreSubHighPriorityType(bool enabledType);
+    bool GetPreSubHighPriorityType() const;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -465,12 +473,40 @@ public:
         needSync_ = true;
     }
 
+    void SetForceDisableClipHoleForDRM(bool isForceDisable)
+    {
+        if (isForceDisableClipHoleForDRM_ == isForceDisable) {
+            return;
+        }
+        isForceDisableClipHoleForDRM_ = isForceDisable;
+        needSync_ = true;
+    }
+
+    bool GetForceDisableClipHoleForDRM() const
+    {
+        return isForceDisableClipHoleForDRM_;
+    }
+
     const std::vector<float>& GetCornerRadiusInfoForDRM() const
     {
         return drmCornerRadiusInfo_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetHDRPresent(bool hasHdrPresent)
+    {
+        if (hasHdrPresent_ == hasHdrPresent) {
+            return;
+        }
+        hasHdrPresent_ = hasHdrPresent;
+        needSync_ = true;
+    }
+
+    bool GetHDRPresent() const
+    {
+        return hasHdrPresent_;
+    }
+
+    void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
             return;
@@ -479,12 +515,12 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         if (ROSEN_EQ(displayNit_, displayNit)) {
             return;
@@ -493,7 +529,7 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -512,8 +548,54 @@ public:
         return brightnessRatio_;
     }
 
+    bool GetIsHwcEnabledBySolidLayer()
+    {
+        return isHwcEnabledBySolidLayer_;
+    }
+
+    void SetIsHwcEnabledBySolidLayer(bool isHwcEnabledBySolidLayer)
+    {
+        isHwcEnabledBySolidLayer_ = isHwcEnabledBySolidLayer;
+    }
+
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
+    void SetUifirstStartingFlag(bool flag);
+    bool GetUifirstStartingFlag() const;
+
+    inline bool HasSubSurfaceNodes() const
+    {
+        return hasSubSurfaceNodes_;
+    }
+    const std::unordered_set<NodeId>& GetAllSubSurfaceNodeIds() const
+    {
+        return allSubSurfaceNodeIds_;
+    }
+    int32_t GetPreparedDisplayOffsetX() const
+    {
+        return preparedDisplayOffset_.x_;
+    }
+    int32_t GetPreparedDisplayOffsetY() const
+    {
+        return preparedDisplayOffset_.y_;
+    }
+    const std::unordered_map<NodeId, Vector2<int32_t>>& GetCrossNodeSkippedDisplayOffsets() const
+    {
+        return crossNodeSkippedDisplayOffsets_;
+    }
+
+    void SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
+    {
+        if (ROSEN_EQ(apiCompatibleVersion_, apiCompatibleVersion)) {
+            return;
+        }
+        apiCompatibleVersion_ = apiCompatibleVersion;
+        needSync_ = true;
+    }
+    uint32_t GetApiCompatibleVersion() const
+    {
+        return apiCompatibleVersion_;
+    }
 
 protected:
 private:
@@ -526,6 +608,7 @@ private:
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
 
     float alpha_ = 0;
+    bool isCrossNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;
@@ -534,6 +617,8 @@ private:
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
     bool uiFirstParentFlag_ = false;
     Color backgroundColor_ = RgbPalette::Transparent();
+    bool isHwcEnabledBySolidLayer_ = false;
+    bool uifirstStartingFlag_ = false;
 
     RectI dstRect_;
     RectI oldDirtyInSurface_;
@@ -568,8 +653,10 @@ private:
     bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
+    bool needMakeImage_ = false;
     bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
+    bool subHighPriorityType_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
@@ -600,15 +687,25 @@ private:
     int32_t layerSource_ = 0;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
+    bool isForceDisableClipHoleForDRM_ = false;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
     // hdr
-    int32_t sdrNit_ = 500; // default sdrNit
-    int32_t displayNit_ = 500; // default displayNit_
-    float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    bool hasHdrPresent_ = false;
+    float sdrNit_ = 500.0f; // default sdrNit
+    float displayNit_ = 500.0f; // default displayNit_
+    float brightnessRatio_ = 1.0f; // 1.0f means no discount.
     bool needCacheSurface_ = false;
+    
+    bool hasSubSurfaceNodes_ = false;
+    std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};
+    std::unordered_map<NodeId, Vector2<int32_t>> crossNodeSkippedDisplayOffsets_ = {};
+    Vector2<int32_t> preparedDisplayOffset_ = { 0, 0 };
+
+    uint32_t apiCompatibleVersion_ = 0;
+
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;

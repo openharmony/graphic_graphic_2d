@@ -77,6 +77,42 @@ void VSyncSampler::ResetErrorLocked()
     }
 }
 
+void VSyncSampler::SetVsyncEnabledScreenId(uint64_t vsyncEnabledScreenId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    vsyncEnabledScreenId_ = vsyncEnabledScreenId;
+}
+
+void VSyncSampler::SetVsyncSamplerEnabled(bool enabled)
+{
+    RS_TRACE_NAME_FMT("HdiOutput::SetVsyncSamplerEnabled, enableVsyncSample_:%d", enabled);
+    VLOGI("Change enableVsyncSample_, value is %{public}d", enabled);
+    enableVsyncSample_.store(enabled);
+}
+
+bool VSyncSampler::GetVsyncSamplerEnabled()
+{
+    return enableVsyncSample_.load();
+}
+
+int32_t VSyncSampler::StartSample(bool forceReSample)
+{
+    RS_TRACE_NAME_FMT("HdiOutput::StartVSyncSampler, forceReSample:%d", forceReSample);
+    if (!enableVsyncSample_.load()) {
+        RS_TRACE_NAME_FMT("disabled vsyncSample");
+        return VSYNC_ERROR_API_FAILED;
+    }
+    bool alreadyStartSample = GetHardwareVSyncStatus();
+    if (!forceReSample && alreadyStartSample) {
+        VLOGD("Already Start Sample.");
+        return VSYNC_ERROR_OK;
+    }
+    VLOGD("Enable Screen Vsync");
+    SetScreenVsyncEnabledInRSMainThread(true);
+    BeginSample();
+    return VSYNC_ERROR_OK;
+}
+
 void VSyncSampler::BeginSample()
 {
     ScopedBytrace func("BeginSample");
@@ -278,12 +314,15 @@ void VSyncSampler::UpdateErrorLocked()
     }
 }
 
-bool VSyncSampler::AddPresentFenceTime(int64_t timestamp)
+bool VSyncSampler::AddPresentFenceTime(uint32_t screenId, int64_t timestamp)
 {
     if (timestamp < 0) {
         return false;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    if (screenId != vsyncEnabledScreenId_) {
+        return false;
+    }
     presentFenceTime_[presentFenceTimeOffset_] = timestamp;
 
     presentFenceTimeOffset_ = (presentFenceTimeOffset_ + 1) % NUM_PRESENT;

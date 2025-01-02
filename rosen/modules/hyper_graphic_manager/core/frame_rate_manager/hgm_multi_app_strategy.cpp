@@ -29,7 +29,6 @@ namespace Rosen {
 namespace {
     static PolicyConfigData::ScreenSetting defaultScreenSetting;
     static PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
-    static int32_t curThreadId = -1;
     const std::string NULL_STRATEGY_CONFIG_NAME = "null";
 }
 
@@ -67,6 +66,9 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
         configCallbackManager->SyncHgmConfigChangeCallback(foregroundPidAppMap_);
     }
 
+    if (!pkgs_.empty()) {
+        touchInfo_.pkgName = std::get<0>(AnalyzePkgParam(pkgs_.front()));
+    }
     CalcVote();
 
     return EXEC_SUCCESS;
@@ -74,10 +76,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
 void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
 {
-    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState);
-    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState);
+    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d, upExpectFps:%d",
+        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
+    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d, upExpectFps:%{public}d",
+        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
     touchInfo_ = { touchInfo.pkgName, touchInfo.touchState, touchInfo.upExpectFps };
     if (touchInfo.pkgName == "" && !pkgs_.empty()) {
         auto [focusPkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
@@ -97,16 +99,19 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
     CalcVote();
 }
 
+void HgmMultiAppStrategy::HandleLowAmbientStatus(bool isEffect)
+{
+    RS_TRACE_NAME_FMT("[HandleLowAmbientStatus] isEffect: %d", isEffect);
+    if (lowAmbientStatus_ == isEffect) {
+        return;
+    }
+    lowAmbientStatus_ = isEffect;
+}
+
 void HgmMultiAppStrategy::CalcVote()
 {
     RS_TRACE_FUNC();
-    if (auto newTid = gettid(); curThreadId != newTid) {
-        // -1 means default curThreadId
-        if (curThreadId != -1) {
-            HGM_LOGE("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId, newTid);
-        }
-        curThreadId = newTid;
-    }
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     voteRes_ = { HGM_ERROR, {
         .min = OLED_NULL_HZ, .max = OLED_120_HZ, .dynamicMode = DynamicModeType::TOUCH_ENABLED,
         .idleFps = OLED_60_HZ, .isFactor = false, .drawMin = OLED_NULL_HZ,
@@ -152,17 +157,15 @@ HgmErrCode HgmMultiAppStrategy::GetVoteRes(PolicyConfigData::StrategyConfig& str
     return voteRes_.first;
 }
 
-void HgmMultiAppStrategy::RegisterStrategyChangeCallback(const StrategyChangeCallback& callback)
-{
-    strategyChangeCallbacks_.emplace_back(callback);
-}
-
-bool HgmMultiAppStrategy::CheckPidValid(pid_t pid)
+bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 {
     auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData != nullptr && !configData->safeVoteEnabled) {
+    if ((configData != nullptr && !configData->safeVoteEnabled) || disableSafeVote_) {
         // disable safe vote
         return true;
+    }
+    if (onlyCheckForegroundApp) {
+        return foregroundPidAppMap_.find(pid) != foregroundPidAppMap_.end();
     }
     return !backgroundPid_.Existed(pid);
 }
@@ -188,26 +191,6 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
 {
     auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.empty() ? "" : pkgs_.front());
     return GetAppStrategyConfig(pkgName, strategyRes);
-}
-
-std::unordered_map<std::string, std::pair<pid_t, int32_t>> HgmMultiAppStrategy::GetPidAppType() const
-{
-    return pidAppTypeMap_;
-}
-
-std::unordered_map<pid_t, std::pair<int32_t, std::string>> HgmMultiAppStrategy::GetForegroundPidApp() const
-{
-    return foregroundPidAppMap_;
-}
-
-HgmLRUCache<pid_t> HgmMultiAppStrategy::GetBackgroundPid() const
-{
-    return backgroundPid_;
-}
-
-std::vector<std::string> HgmMultiAppStrategy::GetPackages() const
-{
-    return pkgs_;
 }
 
 void HgmMultiAppStrategy::CleanApp(pid_t pid)
@@ -245,26 +228,6 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     }
 
     screenSettingCache_ = screenConfig[curRefreshRateMode];
-}
-
-PolicyConfigData::ScreenSetting HgmMultiAppStrategy::GetScreenSetting() const
-{
-    return screenSettingCache_;
-}
-
-void HgmMultiAppStrategy::SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting)
-{
-    screenSettingCache_ = screenSetting;
-}
-
-PolicyConfigData::StrategyConfigMap HgmMultiAppStrategy::GetStrategyConfigs() const
-{
-    return strategyConfigMapCache_;
-}
-
-void HgmMultiAppStrategy::SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs)
-{
-    strategyConfigMapCache_ = strategyConfigs;
 }
 
 HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
@@ -370,7 +333,9 @@ std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(con
 
 void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const
 {
-    if (lightFactorStatus_ && strategyRes.isFactor) {
+    HGM_LOGD("lightFactorStatus:%{public}u, isFactor:%{public}u, lowAmbientStatus:%{public}u",
+        lightFactorStatus_.load(), strategyRes.isFactor, lowAmbientStatus_);
+    if (lightFactorStatus_ && strategyRes.isFactor && !lowAmbientStatus_) {
         RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
         strategyRes.min = strategyRes.max;
     }
@@ -448,7 +413,7 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
     rsCommonHook.SetVideoSurfaceFlag(false);
     rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
     rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
-    rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(false);
+    rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
     std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
     std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
     if (videoConfigFromHgm.empty() || solidLayerConfigFromHgm.empty() || pkgs.size() > 1) {
@@ -463,9 +428,11 @@ void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string
         } else if (videoConfigFromHgm[pkgNameForCheck] == "2") {
             rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
             rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
-        // solidLayerConfigFromHgm 1 means enable hardware by solid color layer
-        } else if (solidLayerConfigFromHgm[pkgNameForCheck] == "1") {
-            rsCommonHook.SetHardwareEnabledBySolidColorLayerFlag(true);
+        }
+        // 1 means enable dss by solid color layer
+        if (auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
+            iter != solidLayerConfigFromHgm.end() && iter->second == "1") {
+            rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
         }
     }
 }

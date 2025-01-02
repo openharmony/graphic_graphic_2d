@@ -17,6 +17,7 @@
 #include "boot_animation_utils.h"
 #include "log.h"
 #include <media_errors.h>
+#include <parameters.h>
 
 using namespace OHOS;
 BootSoundPlayer::BootSoundPlayer(const PlayerParams& params)
@@ -40,6 +41,12 @@ void BootSoundPlayer::Play()
         return;
     }
 
+    int customizedVolume = system::GetIntParameter(BOOT_SOUND, INVALID_VOLUME, MIN_VOLUME, MAX_VOLUME);
+    if (customizedVolume == MIN_VOLUME) {
+        LOGI("boot animation sound set volume 0");
+        return;
+    }
+
     int waitMediaCreateTime = 0;
     while ((mediaPlayer_ = Media::PlayerFactory::CreatePlayer()) == nullptr
         && waitMediaCreateTime < MAX_WAIT_MEDIA_CREATE_TIME) {
@@ -51,6 +58,10 @@ void BootSoundPlayer::Play()
     if (mediaPlayer_ == nullptr) {
         LOGI("mediaPlayer create fail");
         return;
+    }
+
+    if (customizedVolume != INVALID_VOLUME) {
+        SetCustomizedVolume(customizedVolume);
     }
 
     std::string path = GetResPath(TYPE_SOUND);

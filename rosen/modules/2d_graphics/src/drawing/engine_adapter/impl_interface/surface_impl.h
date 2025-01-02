@@ -38,8 +38,6 @@ class Surface;
 struct FlushInfo;
 #ifdef RS_ENABLE_GPU
 struct FrameBuffer;
-class ImageInfo;
-class GPUContext;
 #endif
 enum class BackendAccess;
 

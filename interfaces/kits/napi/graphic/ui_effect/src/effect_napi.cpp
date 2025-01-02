@@ -50,25 +50,24 @@ napi_value EffectNapi::Init(napi_env env, napi_value exports)
                                            nullptr,
                                            sizeof(static_prop) / sizeof(static_prop[0]), static_prop,
                                            &constructor);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("define class fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, UIEFFECT_LOG_E("EffectNapi Init define class fail"));
  
     status = napi_create_reference(env, constructor, 1, &sConstructor_);
-    if (!UIEFFECT_IS_OK(status)) {
-        UIEFFECT_LOG_I("EffectNapi Init napi_create_reference falid");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, UIEFFECT_LOG_E("EffectNapi Init create reference fail"));
+
     napi_value global = nullptr;
     status = napi_get_global(env, &global);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("Init:get global fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, UIEFFECT_LOG_E("EffectNapi Init get global fail"));
  
     status = napi_set_named_property(env, global, CLASS_NAME.c_str(), constructor);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("Init:set global named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        UIEFFECT_LOG_E("EffectNapi Init set global named property fail"));
  
     status = napi_set_named_property(env, exports, CLASS_NAME.c_str(), constructor);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("set named property fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, UIEFFECT_LOG_E("EffectNapi Init set named property fail"));
  
     status = napi_define_properties(env, exports, UIEFFECT_ARRAY_SIZE(static_prop), static_prop);
-    UIEFFECT_NAPI_CHECK_RET_D(UIEFFECT_IS_OK(status), nullptr, UIEFFECT_LOG_E("define properties fail"));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, UIEFFECT_LOG_E("EffectNapi Init define properties fail"));
     return exports;
 }
  
@@ -77,45 +76,39 @@ napi_value EffectNapi::Constructor(napi_env env, napi_callback_info info)
     size_t argCount = 0;
     napi_value jsThis = nullptr;
     napi_status status = napi_get_cb_info(env, info, &argCount, nullptr, &jsThis, nullptr);
-    if (status != napi_ok) {
-        UIEFFECT_LOG_E("failed to napi_get_cb_info");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr, UIEFFECT_LOG_E("EffectNapi Constructor parsing input fail"));
  
     EffectNapi *effectNapi = new(std::nothrow) EffectNapi();
-    if (effectNapi == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi Constructor is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(effectNapi != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi Constructor effectNapi is nullptr"));
+    
     status = napi_wrap(env, jsThis, effectNapi, EffectNapi::Destructor, nullptr, nullptr);
-    if (status != napi_ok) {
-        delete effectNapi;
-        effectNapi = nullptr;
-        UIEFFECT_LOG_E("Failed to wrap native instance");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectNapi,
+        UIEFFECT_LOG_E("EffectNapi Constructor wrap fail"));
     return jsThis;
 }
  
 void EffectNapi::Destructor(napi_env env, void* nativeObject, void* finalize)
 {
-    EffectNapi *effectNapi = reinterpret_cast<EffectNapi*>(nativeObject);
+    EffectNapi *effectNapi = static_cast<EffectNapi*>(nativeObject);
+    UIEFFECT_NAPI_CHECK_RET_VOID_D(effectNapi != nullptr,
+        UIEFFECT_LOG_E("EffectNapi Destructor nativeObject is nullptr"));
  
-    if (UIEFFECT_NOT_NULL(effectNapi)) {
-        effectNapi->~EffectNapi();
-    }
+    delete effectNapi;
+    effectNapi = nullptr;
 }
  
 napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
 {
     VisualEffect* effectObj = new(std::nothrow) VisualEffect();
-    if (effectObj == nullptr) {
-        UIEFFECT_LOG_E("CreateEffect effectObj is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(effectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateEffect effectObj is nullptr"));
+
     napi_value object = nullptr;
-    napi_create_object(env, &object);
-    napi_wrap(
+    napi_status status = napi_create_object(env, &object);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
+        UIEFFECT_LOG_E("EffectNapi CreateEffect create object fail"));
+    status = napi_wrap(
         env, object, effectObj,
         [](napi_env env, void* data, void* hint) {
             VisualEffect* effectObj = (VisualEffect*)data;
@@ -123,10 +116,14 @@ napi_value EffectNapi::CreateEffect(napi_env env, napi_callback_info info)
             effectObj = nullptr;
         },
         nullptr, nullptr);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
+        UIEFFECT_LOG_E("EffectNapi CreateEffect wrap fail"));
     napi_property_descriptor resultFuncs[] = {
-        DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetbackgroundColorBlender),
+        DECLARE_NAPI_FUNCTION("backgroundColorBlender", SetBackgroundColorBlender),
     };
-    NAPI_CALL(env, napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs));
+    status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, effectObj,
+        UIEFFECT_LOG_E("EffectNapi CreateEffect define properties fail"));
     return object;
 }
 
@@ -184,47 +181,36 @@ napi_value EffectNapi::CreateBrightnessBlender(napi_env env, napi_callback_info 
         return nullptr;
     }
 
-    size_t argc = 1;
-    napi_value argv[1];
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
+    napi_value argv[NUM_1];
     napi_value thisVar = nullptr;
-    napi_get_cb_info(env, info, &argc, argv, &thisVar, nullptr);
-    if (argc != 1) {
-        UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, argc number is not 1.");
-        return nullptr;
-    }
+    napi_status status;
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender parsing input fail"));
 
     napi_value nativeObj = argv[0];
-    if (nativeObj == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi  SetbackgroundColorBlender input check failed, nativeObj is nullptr.");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(nativeObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender nativeObj is nullptr"));
 
     BrightnessBlender* blender = new(std::nothrow) BrightnessBlender();
-    if (blender == nullptr) {
-        UIEFFECT_LOG_E("CreateBrightnessBlender blender is nullptr");
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender blender is nullptr"));
 
-    if (!CheckCreateBrightnessBlender(env, nativeObj) || !ParseBrightnessBlender(env, nativeObj, blender)) {
-        UIEFFECT_LOG_E("EffectNapi  CheckCreateBrightnessBlender failed.");
-        delete blender;
-        blender = nullptr;
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(CheckCreateBrightnessBlender(env, nativeObj) &&
+        ParseBrightnessBlender(env, nativeObj, blender), nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender fail"));
 
-    napi_status status = napi_wrap(
+    status = napi_wrap(
         env, nativeObj, blender,
         [](napi_env env, void* data, void* hint) {
             BrightnessBlender* blenderObj = (BrightnessBlender*)data;
             delete blenderObj;
         },
         nullptr, nullptr);
-    if (status != napi_ok) {
-        UIEFFECT_LOG_E("EffectNapi  Wrap native instance failed.");
-        delete blender;
-        blender = nullptr;
-        return nullptr;
-    }
+    UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, blender,
+        UIEFFECT_LOG_E("EffectNapi CreateBrightnessBlender wrap fail"));
 
     return nativeObj;
 }
@@ -271,7 +257,7 @@ bool ParseJsVec3Value(napi_value jsObject, napi_env env, const std::string& name
         return false;
     }
     napi_valuetype valueType = napi_undefined;
-    valueType = UIEffectNapiUtils::getType(env, param);
+    valueType = UIEffectNapiUtils::GetType(env, param);
     if (valueType == napi_undefined) {
         return true;
     }
@@ -341,52 +327,38 @@ bool EffectNapi::ParseBrightnessBlender(napi_env env, napi_value jsObject, Brigh
     return (parseTimes == NUM_8);
 }
  
-napi_value EffectNapi::SetbackgroundColorBlender(napi_env env, napi_callback_info info)
+napi_value EffectNapi::SetBackgroundColorBlender(napi_env env, napi_callback_info info)
 {
     if (!UIEffectNapiUtils::IsSystemApp()) {
-        UIEFFECT_LOG_E("SetbackgroundColorBlender failed");
+        UIEFFECT_LOG_E("SetBackgroundColorBlender failed");
         napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
-            "EffectNapi SetbackgroundColorBlender failed, is not system app");
+            "EffectNapi SetBackgroundColorBlender failed, is not system app");
         return nullptr;
     }
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_1;
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argValue[NUM_1] = {0};
-    size_t argCount = NUM_1;
-    UIEFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
- 
-    if (status != napi_ok) {
-        UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender parsr input Faild");
-        return thisVar;
-    }
-    if (argCount != NUM_1) {
-        UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender the argCount does not equal NUM_1");
-        return thisVar;
-    }
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argValue, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender parsing input fail"));
  
     std::shared_ptr<BrightnessBlender> blender = std::make_shared<BrightnessBlender>();
-    if (blender == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender blender is nullptr");
-        return thisVar;
-    }
-    if (!ParseBrightnessBlender(env, argValue[0], blender.get())) {
-        UIEFFECT_LOG_E("  SetbackgroundColorBlender input check fails");
-        return thisVar;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(blender != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender blender is nullptr"));
+    UIEFFECT_NAPI_CHECK_RET_D(ParseBrightnessBlender(env, argValue[0], blender.get()), nullptr,
+        UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender blender is nullptr"));
  
     std::shared_ptr<BackgroundColorEffectPara> para = std::make_shared<BackgroundColorEffectPara>();
-    if (para == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender para is nullptr");
-        return thisVar;
-    }
+    UIEFFECT_NAPI_CHECK_RET_D(para != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender para is nullptr"));
     para->SetBlender(blender);
  
     VisualEffect* effectObj = nullptr;
-    NAPI_CALL(env, napi_unwrap(env, thisVar, reinterpret_cast<void**>(&effectObj)));
-    if (effectObj == nullptr) {
-        UIEFFECT_LOG_E("EffectNapi SetbackgroundColorBlender effectObj is nullptr");
-        return thisVar;
-    }
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&effectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && effectObj != nullptr, nullptr,
+        UIEFFECT_LOG_E("EffectNapi SetBackgroundColorBlender effectObj is nullptr"));
     effectObj->AddPara(para);
     return thisVar;
 }

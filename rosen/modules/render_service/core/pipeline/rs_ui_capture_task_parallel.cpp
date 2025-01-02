@@ -52,6 +52,10 @@
 namespace OHOS {
 namespace Rosen {
 
+namespace {
+    const std::string UICAPTURE_TASK_PREFIX = "uicapture_task_";
+};
+
 #ifdef RS_ENABLE_GPU
 static inline void DrawCapturedImg(Drawing::Image& image,
     Drawing::Surface& surface, const Drawing::BackendTexture& backendTexture,
@@ -91,7 +95,7 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         ProcessUiCaptureCallback(callback, id, nullptr);
         return;
     }
-
+    auto taskName = UICAPTURE_TASK_PREFIX + std::to_string(id);
     std::function<void()> captureTask = [captureHandle, id, callback]() -> void {
         RSSystemProperties::SetForceHpsBlurDisabled(true);
         if (!captureHandle->Run(callback)) {
@@ -99,7 +103,8 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
         }
         RSSystemProperties::SetForceHpsBlurDisabled(false);
     };
-    RSUniRenderThread::Instance().PostTask(captureTask);
+    // Make the priority of uicapture task is lower than render task
+    RSUniRenderThread::Instance().PostTask(captureTask, taskName, 0, AppExecFwk::EventQueue::Priority::HIGH);
 }
 
 bool RSUiCaptureTaskParallel::CreateResources()
@@ -128,7 +133,7 @@ bool RSUiCaptureTaskParallel::CreateResources()
     float nodeBoundsHeight = node->GetRenderProperties().GetBoundsHeight();
     int32_t width = ceil(nodeBoundsWidth * captureConfig_.scaleX);
     int32_t height = ceil(nodeBoundsHeight * captureConfig_.scaleY);
-    if (width * height > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) {
+    if (width > 0 && static_cast<int32_t>(OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) / width < height) {
         RS_LOGE("RSUiCaptureTaskParallel::CreateResources: image is too large, width:%{public}d, height::%{public}d",
             width, height);
         return false;

@@ -251,8 +251,12 @@ std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::ApplyGreyAdjustme
     builder.SetChild("imageShader", prevShader);
     builder.SetUniform("coefficient1", greyCoef1_);
     builder.SetUniform("coefficient2", greyCoef2_);
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpBlur(builder.MakeImage(
         canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpBlur(builder.MakeImage(nullptr, nullptr, scaledInfo, false));
+#endif
     return GetShaderEffect(tmpBlur, linear, Drawing::Matrix());
 }
 
@@ -283,7 +287,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling2X(Drawing::
     }
     blurBuilder.SetChild("imageInput", tmpShader);
     blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
+#ifdef RS_ENABLE_GPU
     return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
 }
 
 std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling4X(Drawing::Canvas& canvas,
@@ -304,7 +312,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling4X(Drawing::
         blurBuilder.SetChild("imageInput", tmpShader);
         blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
     }
+#ifdef RS_ENABLE_GPU
     return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
 }
 
 std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling8X(Drawing::Canvas& canvas,
@@ -319,8 +331,12 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling8X(Drawing::
     blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
         tileMode_, tileMode_, linear, inputMatrix));
     blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(canvas.GetGPUContext().get(),
         nullptr, middleInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false));
+#endif
     if (!tmpBlur_pre) {
         return nullptr;
     }
@@ -337,7 +353,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling8X(Drawing::
         blurBuilder.SetChild("imageInput", tmpShader);
         blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
     } else {
+#ifdef RS_ENABLE_GPU
         tmpBlur_pre = simpleBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+        tmpBlur_pre = simpleBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
         if (!tmpBlur_pre) {
             return nullptr;
         }
@@ -345,7 +365,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling8X(Drawing::
             Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
         blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
     }
+#ifdef RS_ENABLE_GPU
     return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
 }
 
 std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingMoreX(Drawing::Canvas& canvas,
@@ -360,8 +384,12 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingMoreX(Drawin
     blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
         tileMode_, tileMode_, linear, inputMatrix));
     blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(canvas.GetGPUContext().get(),
         nullptr, middleInfo, false));
+#else
+    std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false));
+#endif
     if (!tmpBlur_pre) {
         return nullptr;
     }
@@ -374,15 +402,27 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingMoreX(Drawin
         builder.SetChild("imageShader", blurBuilder.MakeShader(nullptr, input->IsOpaque()));
         builder.SetUniform("coefficient1", greyCoef1_);
         builder.SetUniform("coefficient2", greyCoef2_);
+#ifdef RS_ENABLE_GPU
         tmpBlur_pre = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo2, false);
+#else
+        tmpBlur_pre = builder.MakeImage(nullptr, nullptr, middleInfo2, false);
+#endif
     } else {
+#ifdef RS_ENABLE_GPU
         tmpBlur_pre = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo2, false);
+#else
+        tmpBlur_pre = blurBuilder.MakeImage(nullptr, nullptr, middleInfo2, false);
+#endif
     }
     Drawing::Matrix blurMatrix2 = BuildMiddleMatrix(scaledInfo, middleInfo2);
     blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
         Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix2));
     blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
+#ifdef RS_ENABLE_GPU
     return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
 }
 
 std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling(Drawing::Canvas& canvas,
@@ -451,7 +491,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
         blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
             Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
         blurBuilder.SetUniform("in_blurOffset", blur.offsets[stride * i], blur.offsets[stride * i + 1]);
+#ifdef RS_ENABLE_GPU
         tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+        tmpBlur = blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
     }
 
     auto output = ScaleAndAddRandomColor(canvas, input, tmpBlur, src, dst, width, height);
@@ -652,6 +696,7 @@ bool GEMESABlurShaderFilter::InitGreyAdjustmentEffect()
 void GEMESABlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     std::shared_ptr<Drawing::Image>& checkedImage, const Drawing::Rect& src) const
 {
+#ifdef RS_ENABLE_GPU
     auto srcRect = Drawing::RectI(src.GetLeft(), src.GetTop(), src.GetRight(), src.GetBottom());
     if (image->GetImageInfo().GetBound() != srcRect) {
         auto resizedImage = std::make_shared<Drawing::Image>();
@@ -667,6 +712,7 @@ void GEMESABlurShaderFilter::CheckInputImage(Drawing::Canvas& canvas, const std:
             LOGD("GEMESABlurShaderFilter::resize image failed, use original image");
         }
     }
+#endif
 }
 
 std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::OutputImageWithoutBlur(Drawing::Canvas& canvas,
@@ -693,12 +739,20 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::OutputImageWithoutBlur(D
         builder.SetChild("imageShader", inputShader);
         builder.SetUniform("coefficient1", greyCoef1_);
         builder.SetUniform("coefficient2", greyCoef2_);
+#ifdef RS_ENABLE_GPU
         output = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, imageInfo, false);
+#else
+        output = builder.MakeImage(nullptr, nullptr, imageInfo, false);
+#endif
     } else {
         Drawing::RuntimeShaderBuilder builder(g_simpleFilter);
         auto inputShader = Drawing::ShaderEffect::CreateImageShader(*image, tileMode_, tileMode_, linear, inputMatrix);
         builder.SetChild("imageInput", inputShader);
+#ifdef RS_ENABLE_GPU
         output = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, imageInfo, false);
+#else
+        output = builder.MakeImage(nullptr, nullptr, imageInfo, false);
+#endif
     }
     if (!output) {
         LOGE("GEMESABlurShaderFilter::OutputImageWithoutBlur make image error");
@@ -745,7 +799,11 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ScaleAndAddRandomColor(D
     static auto factor = 1.75; // 1.75 from experience
 
     mixBuilder.SetUniform("inColorFactor", factor);
+#ifdef RS_ENABLE_GPU
     auto output = mixBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    auto output = mixBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
     return output;
 }
 

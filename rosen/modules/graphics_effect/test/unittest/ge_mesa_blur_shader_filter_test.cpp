@@ -76,6 +76,52 @@ HWTEST_F(GEMESABlurShaderFilterTest, GetRadius001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRadius002
+ * @tc.desc: Verify function GetRadius
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEMESABlurShaderFilterTest, GetRadius002, TestSize.Level1)
+{
+    // 8000, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f valid MESA blur params
+    Drawing::GEMESABlurShaderFilterParams params{8000, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f};
+    auto geMESABlurShaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
+    ASSERT_TRUE(geMESABlurShaderFilter != nullptr);
+
+    EXPECT_EQ(geMESABlurShaderFilter->GetRadius(), params.radius);
+}
+
+/**
+ * @tc.name: GetRadius003
+ * @tc.desc: Verify function GetRadius
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEMESABlurShaderFilterTest, GetRadius003, TestSize.Level1)
+{
+    // 10000, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f valid MESA blur params
+    Drawing::GEMESABlurShaderFilterParams params{10000, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f};
+    auto geMESABlurShaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
+    ASSERT_TRUE(geMESABlurShaderFilter != nullptr);
+
+    EXPECT_EQ(geMESABlurShaderFilter->GetRadius(), 8000);
+}
+
+/**
+ * @tc.name: GetRadius004
+ * @tc.desc: Verify function GetRadius
+ * @tc.type:FUNC
+ */
+HWTEST_F(GEMESABlurShaderFilterTest, GetRadius004, TestSize.Level1)
+{
+    // 0, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f valid MESA blur params
+    Drawing::GEMESABlurShaderFilterParams params{0, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f};
+    auto geMESABlurShaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
+    ASSERT_TRUE(geMESABlurShaderFilter != nullptr);
+
+    EXPECT_EQ(geMESABlurShaderFilter->GetRadius(), 0);
+}
+
+
+/**
  * @tc.name: ProcessImage001
  * @tc.desc: Verify function ProcessImage
  * @tc.type:FUNC

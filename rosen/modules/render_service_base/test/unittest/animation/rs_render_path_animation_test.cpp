@@ -450,6 +450,27 @@ HWTEST_F(RSRenderPathAnimationTest, OnAnimate005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnAnimate006
+ * @tc.desc: Verify the OnAnimate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderPathAnimationTest, OnAnimate006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate006 start";
+    auto property = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_DEFAULT_VALUE);
+    auto property1 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_START_VALUE);
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<Vector2f>>(PATH_ANIMATION_END_VALUE);
+    auto path = RSPath::CreateRSPath(ANIMATION_PATH);
+    auto renderPathAnimation = std::make_shared<RSRenderPathAnimationMock>(ANIMATION_ID, PROPERTY_ID,
+        property, property1, property2, 1.0f, path);
+    EXPECT_TRUE(renderPathAnimation != nullptr);
+    renderPathAnimation->originValue_.reset();
+    EXPECT_TRUE(renderPathAnimation->GetOriginValue() == nullptr);
+    renderPathAnimation->OnAnimate(1.0f);
+    GTEST_LOG_(INFO) << "RSRenderPathAnimationTest OnAnimate006 end";
+}
+
+/**
  * @tc.name: OnDetach001
  * @tc.desc: Verify the OnDetach
  * @tc.type:FUNC

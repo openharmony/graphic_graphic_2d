@@ -14,7 +14,6 @@
  */
 
 #include "screen_manager/rs_screen_data.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {

@@ -128,7 +128,7 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, SetEnergyConsumptionAssuranceModeTest3,
     SetIdleStateEnable(false);
     SetIdleStateEnable(true);
     ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isAnimationEnergyAssuranceEnable_, false);
-    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, false);
+    ASSERT_EQ(HgmEnergyConsumptionPolicy::Instance().isTouchIdle_, true);
 }
 
 /**
@@ -257,13 +257,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetUiAnimationIdleFpsTest1, TestSize.Le
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, UI_ANIMATION_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 30);
     ASSERT_EQ(rsRange.min_, 30);
     ASSERT_EQ(rsRange.preferred_, 30);
@@ -279,13 +279,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySyncIdleFpsTest1, TestSize.Le
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SYNC_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 31);
     ASSERT_EQ(rsRange.min_, 31);
     ASSERT_EQ(rsRange.preferred_, 31);
@@ -301,13 +301,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetAceComponentIdleFpsTest1, TestSize.L
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, ACE_COMPONENT_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 32);
     ASSERT_EQ(rsRange.min_, 32);
     ASSERT_EQ(rsRange.preferred_, 32);
@@ -323,13 +323,13 @@ HWTEST_F(HgmEnergyConsumptionPolicyTest, GetDisplaySoloistIdleFpsTest1, TestSize
 {
     FrameRateRange rsRange = { DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DEFAULT_MAX_FPS, DISPLAY_SOLOIST_FRAME_RATE_TYPE };
     SetConfigEnable("false");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_FALSE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.min_, DEFAULT_MAX_FPS);
     ASSERT_EQ(rsRange.preferred_, DEFAULT_MAX_FPS);
 
     SetConfigEnable("true");
-    HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange);
+    ASSERT_TRUE(HgmEnergyConsumptionPolicy::Instance().GetUiIdleFps(rsRange));
     ASSERT_EQ(rsRange.max_, 33);
     ASSERT_EQ(rsRange.min_, 33);
     ASSERT_EQ(rsRange.preferred_, 33);

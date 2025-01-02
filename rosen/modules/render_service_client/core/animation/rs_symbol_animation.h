@@ -53,6 +53,7 @@ private:
     bool GetAnimationGroupParameters(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig,
         std::vector<std::vector<Drawing::DrawingPiecewiseParameter>>& parameters,
         Drawing::DrawingEffectStrategy& effectStrategy);
+    void UpdateSymbolGeometry(const std::shared_ptr<RSNode>& rsNode, const Vector4f& bounds);
     // choose the animation is a public animation or special animation
     bool ChooseAnimation(const std::shared_ptr<RSNode>& rsNode,
         std::vector<Drawing::DrawingPiecewiseParameter>& parameters,

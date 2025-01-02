@@ -153,6 +153,10 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    void SetHardwareEnableHint(bool enable);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);
@@ -171,7 +175,7 @@ private:
     void OnBoundsSizeChanged() const override;
     // this function is only used in texture export
     void SetSurfaceIdToRenderNode();
-    void CreateTextureExportRenderNodeInRT() override;
+    void CreateRenderNodeForTextureExportSwitch() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
     std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
     std::shared_ptr<RSSurface> surface_;
@@ -198,6 +202,8 @@ private:
     sptr<SurfaceDelegate> surfaceDelegate_;
     sptr<SurfaceDelegate::ISurfaceCallback> surfaceCallback_;
 #endif
+
+    std::mutex apiInitMutex_;
 
     friend class RSUIDirector;
     friend class RSAnimation;

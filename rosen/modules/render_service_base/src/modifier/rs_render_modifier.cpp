@@ -104,6 +104,15 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             return modifier;
         },
     },
+    { RSModifierType::HDR_BRIGHTNESS, [](Parcel& parcel) -> RSRenderModifier* {
+            std::shared_ptr<RSRenderAnimatableProperty<float>> prop;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                return nullptr;
+            }
+            auto modifier = new RSHDRBrightnessRenderModifier(prop);
+            return modifier;
+        },
+    },
     { RSModifierType::GEOMETRYTRANS, [](Parcel& parcel) -> RSRenderModifier* {
             std::shared_ptr<RSRenderProperty<Drawing::Matrix>> prop;
             int16_t type;
@@ -112,6 +121,15 @@ static std::unordered_map<RSModifierType, ModifierUnmarshallingFunc> funcLUT = {
             }
             auto modifier = new RSGeometryTransRenderModifier(prop);
             modifier->SetType(static_cast<RSModifierType>(type));
+            return modifier;
+        },
+    },
+    { RSModifierType::BEHIND_WINDOW_FILTER_ENABLED, [](Parcel& parcel) -> RSRenderModifier* {
+            std::shared_ptr<RSRenderProperty<bool>> prop;
+            if (!RSMarshallingHelper::Unmarshalling(parcel, prop)) {
+                return nullptr;
+            }
+            auto modifier = new RSBehindWindowFilterEnabledRenderModifier(prop);
             return modifier;
         },
     },
@@ -288,6 +306,23 @@ void RSCustomClipToFrameRenderModifier::Update(const std::shared_ptr<RSRenderPro
     }
 }
 
+bool RSHDRBrightnessRenderModifier::Marshalling(Parcel& parcel)
+{
+    auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
+    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::HDR_BRIGHTNESS)) &&
+        RSMarshallingHelper::Marshalling(parcel, renderProperty);
+}
+
+void RSHDRBrightnessRenderModifier::Apply(RSModifierContext& context) const {}
+
+void RSHDRBrightnessRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
+{
+    if (auto property = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(prop)) {
+        auto renderProperty = std::static_pointer_cast<RSRenderAnimatableProperty<float>>(property_);
+        renderProperty->Set(property->Get());
+    }
+}
+
 void RSGeometryTransRenderModifier::Apply(RSModifierContext& context) const
 {
     auto& geoPtr = (context.properties_.GetBoundsGeometry());
@@ -305,6 +340,21 @@ bool RSGeometryTransRenderModifier::Marshalling(Parcel& parcel)
 {
     return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::GEOMETRYTRANS)) &&
            RSMarshallingHelper::Marshalling(parcel, property_) && parcel.WriteInt16(static_cast<int16_t>(GetType()));
+}
+
+void RSBehindWindowFilterEnabledRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)
+{
+    if (auto property = std::static_pointer_cast<RSRenderProperty<bool>>(prop)) {
+        auto renderProperty = std::static_pointer_cast<RSRenderProperty<bool>>(property_);
+        renderProperty->Set(property->GetRef());
+    }
+}
+
+bool RSBehindWindowFilterEnabledRenderModifier::Marshalling(Parcel& parcel)
+{
+    auto renderProperty = std::static_pointer_cast<RSRenderProperty<bool>>(property_);
+    return parcel.WriteInt16(static_cast<int16_t>(RSModifierType::BEHIND_WINDOW_FILTER_ENABLED)) &&
+        RSMarshallingHelper::Marshalling(parcel, renderProperty);
 }
 
 void RSBehindWindowFilterRadiusRenderModifier::Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta)

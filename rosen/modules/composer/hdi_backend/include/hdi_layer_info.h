@@ -21,7 +21,6 @@
 #include <surface.h>
 #include <sync_fence.h>
 #include "graphic_error.h"
-#include "hdi_log.h"
 #include "hdi_display_type.h"
 
 namespace OHOS {
@@ -403,12 +402,12 @@ public:
         presentTimestamp_ = timestamp;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -418,12 +417,12 @@ public:
         return brightnessRatio_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(float sdrNit)
     {
         sdrNit_ = sdrNit;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         displayNit_ = displayNit;
     }
@@ -565,7 +564,6 @@ public:
             case LayerMask::LAYER_MASK_HBM_SYNC:
                 break;
             default:
-                HLOGE("Invalid argument [mask:%{public}d]", static_cast<int32_t>(mask));
                 return ROSEN_ERROR_INVALID_ARGUMENTS;
         }
 

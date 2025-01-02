@@ -218,4 +218,39 @@ HWTEST_F(RSFilterTest, SetSnapshotOutset, TestSize.Level1)
     rSFilter.SetSnapshotOutset(1);
     EXPECT_EQ(rSFilter.NeedSnapshotOutset(), 1);
 }
+
+/**
+ * @tc.name: CreateBlurFilter001
+ * @tc.desc: blurRadiusX is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, CreateBlurFilter001, TestSize.Level1)
+{
+    float blurRadiusX = -1.0f;
+    float blurRadiusY = 1.0f;
+    auto filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+    ASSERT_NE(filter, nullptr);
+
+    float dipScale = 1.0f;
+    float ratio = 1.0f;
+    auto filter2 = RSFilter::CreateMaterialFilter(0, dipScale, BLUR_COLOR_MODE::DEFAULT, ratio);
+    ASSERT_NE(filter2, nullptr);
+}
+
+/**
+ * @tc.name: CreateBlurFilter002
+ * @tc.desc: blurRadiusY is invalid
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, CreateBlurFilter002, TestSize.Level1)
+{
+    float blurRadiusX = 1.0f;
+    float blurRadiusY = 1.0f;
+    auto filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
+    ASSERT_NE(filter, nullptr);
+    float dipScale = 1.0f;
+    float ratio = 1.0f;
+    auto filter2 = RSFilter::CreateMaterialFilter(0, dipScale, BLUR_COLOR_MODE::DEFAULT, ratio);
+    ASSERT_NE(filter2, nullptr);
+}
 } // namespace OHOS::Rosen

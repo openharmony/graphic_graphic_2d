@@ -86,8 +86,23 @@ bool ColorMatrixFuzzTest003(const uint8_t* data, size_t size)
     g_pos = 0;
 
     ColorMatrix colorMatrix;
+    scalar src[MATRIX_SIZE];
+    for (size_t i = 0; i < MATRIX_SIZE; i++) {
+        src[i] = GetObject<scalar>();
+    }
+    colorMatrix.SetArray(src);
     ColorMatrix colorMatrixOne;
+    scalar src2[MATRIX_SIZE];
+    for (size_t i = 0; i < MATRIX_SIZE; i++) {
+        src2[i] = GetObject<scalar>();
+    }
+    colorMatrixOne.SetArray(src2);
     ColorMatrix colorMatrixTwo;
+    scalar src3[MATRIX_SIZE];
+    for (size_t i = 0; i < MATRIX_SIZE; i++) {
+        src3[i] = GetObject<scalar>();
+    }
+    colorMatrixTwo.SetArray(src3);
     colorMatrix.SetConcat(colorMatrixOne, colorMatrixTwo);
     colorMatrix.PreConcat(colorMatrixOne);
     colorMatrix.PostConcat(colorMatrixOne);

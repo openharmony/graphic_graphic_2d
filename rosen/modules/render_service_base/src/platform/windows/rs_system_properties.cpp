@@ -77,6 +77,16 @@ bool RSSystemProperties::GetRenderNodePurgeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
+{
+    return false;
+}
+
 DirtyRegionDebugType RSSystemProperties::GetDirtyRegionDebugType()
 {
     return {};
@@ -172,18 +182,18 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
+}
+
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
+{
+}
+
+bool RSSystemProperties::GetScreenSwitchStatus()
+{
+    return false;
 }
 
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
@@ -234,6 +244,11 @@ bool RSSystemProperties::GetAnimationCacheEnabled()
 float RSSystemProperties::GetAnimationScale()
 {
     return 1.f;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
@@ -309,6 +324,11 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
+}
+
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
@@ -548,6 +568,11 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }

@@ -124,6 +124,15 @@ int32_t OH_NativeImage_GetTransformMatrixV2(OH_NativeImage* image, float matrix[
     return image->consumer->GetTransformMatrixV2(matrix);
 }
 
+int32_t OH_NativeImage_GetBufferMatrix(OH_NativeImage* image, float matrix[16])
+{
+    if (image == nullptr || image->consumer == nullptr || matrix == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->GetBufferMatrix(matrix);
+}
+
 int32_t OH_NativeImage_GetSurfaceId(OH_NativeImage* image, uint64_t* surfaceId)
 {
     if (image == nullptr || surfaceId == nullptr || image->consumer == nullptr) {
@@ -190,6 +199,9 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer* nativeWindowBuffer, int32_t fenceFd)
 {
     if (image == nullptr || image->consumer == nullptr) {
+        if (fenceFd >= 0) {
+            close(fenceFd);
+        }
         BLOGE("parameter error");
         return SURFACE_ERROR_INVALID_PARAM;
     }

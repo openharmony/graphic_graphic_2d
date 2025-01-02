@@ -68,6 +68,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSPositionZApplicableCamera3DModifier : public RSGeometryModifier {
+public:
+    explicit RSPositionZApplicableCamera3DModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSPositionZApplicableCamera3DModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSSandBoxModifier : public RSGeometryModifier {
 public:
     explicit RSSandBoxModifier(const std::shared_ptr<RSPropertyBase>& property);
@@ -151,16 +160,6 @@ class RSC_EXPORT RSScaleModifier : public RSGeometryModifier {
 public:
     explicit RSScaleModifier(const std::shared_ptr<RSPropertyBase>& property);
     virtual ~RSScaleModifier() = default;
-protected:
-    RSModifierType GetModifierType() const override;
-    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
-    void Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry) override;
-};
-
-class RSC_EXPORT RSScaleZModifier : public RSGeometryModifier {
-public:
-    explicit RSScaleZModifier(const std::shared_ptr<RSPropertyBase>& property);
-    virtual ~RSScaleZModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
@@ -867,6 +866,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RS_EXPORT RSHDRBrightnessModifier : public RSForegroundModifier {
+public:
+    explicit RSHDRBrightnessModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSHDRBrightnessModifier() = default;
+
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
 
 class RSC_EXPORT RSVisibleModifier : public RSAppearanceModifier {
 public:
@@ -1187,6 +1195,15 @@ class RSC_EXPORT RSUseEffectTypeModifier : public RSBackgroundModifier {
 public:
     explicit RSUseEffectTypeModifier(const std::shared_ptr<RSPropertyBase>& property);
     virtual ~RSUseEffectTypeModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
+class RSC_EXPORT RSBehindWindowFilterEnabledModifier : public RSBackgroundModifier {
+public:
+    explicit RSBehindWindowFilterEnabledModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBehindWindowFilterEnabledModifier() = default;
 protected:
     RSModifierType GetModifierType() const override;
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;

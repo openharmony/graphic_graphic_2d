@@ -64,7 +64,13 @@ public:
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 
+    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
+
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
@@ -91,6 +97,10 @@ public:
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
+    bool TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
+
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
 
@@ -100,8 +110,10 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
 
-    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ,
-        float positionW);
+    bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+
+    bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     bool UnRegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
@@ -129,6 +141,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 
@@ -209,6 +223,8 @@ public:
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr);
@@ -217,7 +233,8 @@ public:
         const std::string& name,
         uint64_t id,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
 
@@ -235,6 +252,11 @@ public:
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
+
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
+
+    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
 
     void SetAppWindowNum(uint32_t num);
 
@@ -265,15 +287,17 @@ public:
 
     void ReportGameStateData(GameStateData info);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
-
     void EnableCacheForRotation();
 
     void DisableCacheForRotation();
 
+    void SetScreenSwitching(bool flag);
+
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
+    void DropFrameByPid(const std::vector<int32_t> pidList);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
 
@@ -283,10 +307,13 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo() const;
 
+    int64_t GetHdrOnDuration() const;
+
     void SetVmaCacheStatus(bool flag);
 
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config);
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
 

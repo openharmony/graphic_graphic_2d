@@ -15,17 +15,21 @@
 
 #include "render/rs_hps_blur.h"
 
+#include <mutex>
+
+#include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "draw/surface.h"
 #include "effect/runtime_shader_builder.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 
-
 namespace OHOS {
 namespace Rosen {
 
 static constexpr uint32_t MAX_SURFACE_SIZE = 10000;
+static std::shared_ptr<Drawing::RuntimeEffect> g_mixEffect;
+std::mutex g_mixEffectMutex;
 
 Drawing::Matrix HpsBlurFilter::GetShaderTransform(const Drawing::Rect& blurRect, float scaleW, float scaleH)
 {
@@ -35,6 +39,37 @@ Drawing::Matrix HpsBlurFilter::GetShaderTransform(const Drawing::Rect& blurRect,
     translateMatrix.Translate(blurRect.GetLeft(), blurRect.GetTop());
     matrix.PostConcat(translateMatrix);
     return matrix;
+}
+
+std::shared_ptr<Drawing::RuntimeEffect> HpsBlurFilter::GetMixEffect() const
+{
+    static const std::string mixString(R"(
+        uniform shader blurredInput;
+        uniform float inColorFactor;
+
+        highp float random(float2 xy) {
+            float t = dot(xy, float2(78.233, 12.9898));
+            return fract(sin(t) * 43758.5453);
+        }
+        half4 main(float2 xy) {
+            highp float noiseGranularity = inColorFactor / 255.0;
+            half4 finalColor = blurredInput.eval(xy);
+            float noise  = mix(-noiseGranularity, noiseGranularity, random(xy));
+            finalColor.rgb += noise;
+            return finalColor;
+        }
+    )");
+
+    if (g_mixEffect == nullptr) {
+        std::unique_lock<std::mutex> lock(g_mixEffectMutex);
+        if (g_mixEffect == nullptr) {
+            g_mixEffect = Drawing::RuntimeEffect::CreateForShader(mixString);
+            if (g_mixEffect == nullptr) {
+                return nullptr;
+            }
+        }
+    }
+    return g_mixEffect;
 }
 
 bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
@@ -71,23 +106,49 @@ bool HpsBlurFilter::ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         return false;
     }
     auto dst = param.dst;
+    Drawing::Brush brush;
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     const auto blurMatrix = GetShaderTransform(dst, dst.GetWidth() / imageCache->GetWidth(),
         dst.GetHeight() / imageCache->GetHeight());
     const auto blurShader = Drawing::ShaderEffect::CreateImageShader(*imageCache, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, linear, blurMatrix);
-    Drawing::Brush brush;
+    if (!SetShaderEffect(brush, blurShader, imageCache)) { return false; }
     if (colorFilter != nullptr) {
         Drawing::Filter filter;
         filter.SetColorFilter(colorFilter);
         brush.SetFilter(filter);
     }
     brush.SetAlphaF(alpha);
-    brush.SetShaderEffect(blurShader);
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();
     return true;
 }
+
+bool HpsBlurFilter::SetShaderEffect(Drawing::Brush& brush, std::shared_ptr<Drawing::ShaderEffect> blurShader,
+    std::shared_ptr<Drawing::Image> imageCache) const
+{
+    if (blurShader == nullptr || imageCache == nullptr) {
+        return false;
+    }
+    static auto factor = RSSystemProperties::GetHpsBlurNoiseFactor();
+    ROSEN_LOGD("HpsBlurFilter::ApplyHpsBlur HpsBlurNoise %{public}f", factor);
+    static constexpr float epsilon = 0.1f;
+    if (!ROSEN_LE(factor, epsilon)) {
+        auto mixEffect = GetMixEffect();
+        if (mixEffect == nullptr) {
+            return false;
+        }
+        Drawing::RuntimeShaderBuilder mixBuilder(mixEffect);
+        mixBuilder.SetChild("blurredInput", blurShader);
+        ROSEN_LOGD("HpsBlurFilter::HpsBlurNoise factor : %{public}f", factor);
+        mixBuilder.SetUniform("inColorFactor", factor);
+        brush.SetShaderEffect(mixBuilder.MakeShader(nullptr, imageCache->IsOpaque()));
+    } else {
+        brush.SetShaderEffect(blurShader);
+    }
+    return true;
+}
+
 } // namespace Rosen
 } // namespace OHOS

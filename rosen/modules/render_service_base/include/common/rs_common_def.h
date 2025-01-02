@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#include <utils/rect.h>
 
 #include "common/rs_macros.h"
 
@@ -174,6 +175,7 @@ enum DrawAreaEnableState : uint8_t {
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread
     SUB_FOCUSNODE_PRIORITY, // node render in sub thread with the highest priority
+    SUB_VIDEO_PRIORITY, // node render in sub thread with the second highest priority
     SUB_HIGH_PRIORITY, // node render in sub thread with the second priority
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
@@ -202,6 +204,14 @@ enum class SurfaceCaptureType : uint8_t {
     UICAPTURE,
 };
 
+#ifdef TP_FEATURE_ENABLE
+// the type of TpFeatureConfig
+enum class TpFeatureConfigType : uint8_t {
+    DEFAULT_TP_FEATURE = 0,
+    AFT_TP_FEATURE,
+};
+#endif
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -209,6 +219,12 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    Drawing::Rect mainScreenRect = {};
+};
+
+struct RSSurfaceCaptureBlurParam {
+    bool isNeedBlur = false;
+    float blurRadius = 1E-6;
 };
 
 struct RSSurfaceCapturePermissions {
@@ -279,14 +295,26 @@ enum class UiFirstModeType : uint8_t {
     MULTI_WINDOW_MODE,
 };
 
+enum class RSUIFirstSwitch {
+    NONE,               // follow RS rules
+    MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst
+};
+
 enum class SelfDrawingNodeType : uint8_t {
     DEFAULT,
     VIDEO,
+    XCOM,
 };
 
 enum class SurfaceWindowType : uint8_t {
     DEFAULT_WINDOW = 0,
     SYSTEM_SCB_WINDOW = 1,
+};
+
+enum class SurfaceHwcNodeType : uint8_t {
+    DEFAULT_HWC_TYPE = 0,
+    DEFAULT_HWC_VIDEO = 1,
+    DEFAULT_HWC_ROSENWEB = 2,
 };
 
 struct RSSurfaceRenderNodeConfig {
@@ -328,9 +356,16 @@ enum class RSSurfaceNodeAbilityState : uint8_t {
     FOREGROUND,
 };
 
+struct SubSurfaceCntUpdateInfo {
+    int updateCnt_ = 0;
+    NodeId preParentId_ = INVALID_NODEID;
+    NodeId curParentId_ = INVALID_NODEID;
+};
+
 constexpr int64_t NS_TO_S = 1000000000;
 constexpr int64_t NS_PER_MS = 1000000;
 constexpr uint32_t SIZE_UPPER_LIMIT = 1000;
+constexpr uint32_t PARTICLE_EMMITER_UPPER_LIMIT = 2000;
 constexpr uint32_t PARTICLE_UPPER_LIMIT = 1000000;
 
 #if defined(M_PI)
@@ -436,10 +471,11 @@ enum class AncoHebcStatus : int32_t {
 enum class RSInterfaceErrorCode : uint32_t {
 #undef NO_ERROR
     NO_ERROR = 0,
-    NOT_SELF_CALLING,
     NONSYSTEM_CALLING,
-    UNKNOWN_ERROR,
+    NOT_SELF_CALLING,
     WRITE_PARCEL_ERROR,
+    UNKNOWN_ERROR,
+    NULLPTR_ERROR,
 };
 
 } // namespace Rosen

@@ -104,6 +104,7 @@ void RSGraphicTest::TearDown()
         isManualTest = (extInfo->testMode == RSGraphicTestMode::MANUAL);
     } else {
         LOGE("RSGraphicTest no testinfo %{public}s-%{public}s", testInfo->test_case_name(), testInfo->name());
+        return;
     }
 
     if (isManualTest) {

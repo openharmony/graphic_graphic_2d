@@ -62,6 +62,7 @@ void RSDisplaySoloist::OnVsync(TimestampType timestamp, void* client)
 
 void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
 {
+#ifdef RS_ENABLE_GPU
     {
         std::lock_guard<std::mutex> lock(mtx_);
         hasRequestedVsync_ = false;
@@ -73,28 +74,42 @@ void RSDisplaySoloist::VsyncCallbackInner(TimestampType timestamp)
     }
 
     if (JudgeWhetherSkip(timestamp)) {
-        if (callback_.first) {
-            RS_TRACE_NAME_FMT("SubDisplaySoloistId: %d, RefreshRate: %d, FrameRateRange: {%d, %d, %d}, "
-                "drawFPS: %d, rate: %d, count: %d", instanceId_, GetVSyncRate(),
-                frameRateRange_.min_, frameRateRange_.max_, frameRateRange_.preferred_, drawFPS_,
-                currRate_, currCnt_);
-            ROSEN_LOGD("SubDisplaySoloistId: %{public}d, RefreshRate: %{public}d, "
-                "FrameRateRange: {%{public}d, %{public}d, %{public}d}, "
-                "drawFPS: %{public}d, rate: %{public}d, count: %{public}d", instanceId_, GetVSyncRate(),
-                frameRateRange_.min_, frameRateRange_.max_, frameRateRange_.preferred_, drawFPS_,
-                currRate_, currCnt_);
-            callback_.first(timestamp_, targetTimestamp_, callback_.second);
-        }
+        TriggerCallback();
     }
 
     if (callback_.first) {
         RequestNextVSync();
     }
     FlushFrameRate(frameRateRange_.preferred_);
+#endif
+}
+
+void RSDisplaySoloist::TriggerCallback()
+{
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    if (callback_.first) {
+        RS_TRACE_NAME_FMT("SubDisplaySoloistId: %d, RefreshRate: %d, FrameRateRange: {%d, %d, %d}, "
+            "drawFPS: %d, rate: %d, count: %d", instanceId_, GetVSyncRate(),
+            frameRateRange_.min_, frameRateRange_.max_, frameRateRange_.preferred_, drawFPS_,
+            currRate_, currCnt_);
+        ROSEN_LOGD("SubDisplaySoloistId: %{public}d, RefreshRate: %{public}d, "
+            "FrameRateRange: {%{public}d, %{public}d, %{public}d}, "
+            "drawFPS: %{public}d, rate: %{public}d, count: %{public}d", instanceId_, GetVSyncRate(),
+            frameRateRange_.min_, frameRateRange_.max_, frameRateRange_.preferred_, drawFPS_,
+            currRate_, currCnt_);
+        callback_.first(timestamp_, targetTimestamp_, callback_.second);
+    }
+}
+
+void RSDisplaySoloist::SetCallback(DisplaySoloistOnFrameCallback cb, void* params)
+{
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+    callback_ = {cb, params};
 }
 
 void RSDisplaySoloist::Init()
 {
+#ifdef RS_ENABLE_GPU
     if (useExclusiveThread_ && (!subReceiver_ || !hasInitVsyncReceiver_)) {
         if (!subVsyncHandler_) {
             subVsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
@@ -110,10 +125,12 @@ void RSDisplaySoloist::Init()
         subStatus_ = ActiveStatus::ACTIVE;
         hasInitVsyncReceiver_ = true;
     }
+#endif
 }
 
 void RSDisplaySoloist::RequestNextVSync()
 {
+#ifdef RS_ENABLE_GPU
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (destroyed_) {
@@ -134,6 +151,7 @@ void RSDisplaySoloist::RequestNextVSync()
         subReceiver_->RequestNextVSync(subFrameCallback_);
         hasRequestedVsync_ = true;
     }
+#endif
 }
 
 void RSDisplaySoloist::OnVsyncTimeOut()
@@ -364,32 +382,31 @@ RSDisplaySoloistManager& RSDisplaySoloistManager::GetInstance() noexcept
 
 RSDisplaySoloistManager::~RSDisplaySoloistManager() noexcept {}
 
-bool RSDisplaySoloistManager::InitVsyncReceiver()
+void RSDisplaySoloistManager::InitVsyncReceiver()
 {
-    if (hasInitVsyncReceiver_) {
-        return false;
-    }
+#ifdef RS_ENABLE_GPU
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, [this]() {
+        if (!vsyncHandler_) {
+            vsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
+                AppExecFwk::EventRunner::Create("OS_MainDisplaySoloist"));
+        }
+        auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
+        frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
+        while (!receiver_) {
+            receiver_ = rsClient.CreateVSyncReceiver("MainDisplaySoloist",
+                frameRateLinker_->GetId(), vsyncHandler_);
+        }
 
-    if (!vsyncHandler_) {
-        vsyncHandler_ = std::make_shared<AppExecFwk::EventHandler>(
-            AppExecFwk::EventRunner::Create("OS_MainDisplaySoloist"));
-    }
-    auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
-    frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
-    while (!receiver_) {
-        receiver_ = rsClient.CreateVSyncReceiver("MainDisplaySoloist",
-            frameRateLinker_->GetId(), vsyncHandler_);
-    }
-
-    receiver_->Init();
-    hasInitVsyncReceiver_ = true;
-    managerStatus_ = ActiveStatus::ACTIVE;
-
-    return true;
+        receiver_->Init();
+        managerStatus_ = ActiveStatus::ACTIVE;
+    });
+#endif
 }
 
 void RSDisplaySoloistManager::RequestNextVSync()
 {
+#ifdef RS_ENABLE_GPU
     if (receiver_ == nullptr) {
         ROSEN_LOGE("%{public}s, VSyncReceiver is null.", __func__);
         return;
@@ -409,6 +426,7 @@ void RSDisplaySoloistManager::RequestNextVSync()
     }
 
     receiver_->RequestNextVSync(managerFrameCallback_);
+#endif
 }
 
 void RSDisplaySoloistManager::OnVsync(TimestampType timestamp, void* client)
@@ -458,21 +476,7 @@ void RSDisplaySoloistManager::DispatchSoloistCallback(TimestampType timestamp)
 
         if (displaySoloist && displaySoloist->JudgeWhetherSkip(timestamp) &&
             displaySoloist->subStatus_ == ActiveStatus::ACTIVE) {
-            if (displaySoloist->callback_.first) {
-                RS_TRACE_NAME_FMT("DisplaySoloistId: %d, RefreshRate: %d, FrameRateRange: {%d, %d, %d}, "
-                    "drawFPS: %d, rate: %d, count: %d",
-                    displaySoloist->instanceId_, displaySoloist->GetVSyncRate(), displaySoloist->frameRateRange_.min_,
-                    displaySoloist->frameRateRange_.max_, displaySoloist->frameRateRange_.preferred_,
-                    displaySoloist->drawFPS_, displaySoloist->currRate_, displaySoloist->currCnt_);
-                ROSEN_LOGD("DisplaySoloistId: %{public}d, RefreshRate: %{public}d, "
-                    "FrameRateRange: {%{public}d, %{public}d, %{public}d}, "
-                    "drawFPS: %{public}d, rate: %{public}d, count: %{public}d",
-                    displaySoloist->instanceId_, displaySoloist->GetVSyncRate(), displaySoloist->frameRateRange_.min_,
-                    displaySoloist->frameRateRange_.max_, displaySoloist->frameRateRange_.preferred_,
-                    displaySoloist->drawFPS_, displaySoloist->currRate_, displaySoloist->currCnt_);
-                displaySoloist->callback_.first(displaySoloist->timestamp_, displaySoloist->targetTimestamp_,
-                                                displaySoloist->callback_.second);
-            }
+            displaySoloist->TriggerCallback();
             if (displaySoloist->frameRateRange_.IsValid()) {
                 frameRateRange_.Merge(displaySoloist->frameRateRange_);
             }
@@ -543,7 +547,7 @@ void RSDisplaySoloistManager::InsertOnVsyncCallback(SoloistIdType id, DisplaySol
     if (!idToSoloistMap_.count(id)) {
         idToSoloistMap_[id] = std::make_shared<RSDisplaySoloist>(id);
     }
-    idToSoloistMap_[id]->callback_ = { cb, data };
+    idToSoloistMap_[id]->SetCallback(cb, data);
     lock.unlock();
     ROSEN_LOGD("%{public}s, SoloistId:%{public}d.", __func__, id);
     return;

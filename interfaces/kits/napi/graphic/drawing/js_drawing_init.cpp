@@ -26,6 +26,7 @@
 #include "mask_filter_napi/js_mask_filter.h"
 #include "matrix_napi/js_matrix.h"
 #include "path_effect_napi/js_path_effect.h"
+#include "path_iterator_napi/js_path_iterator.h"
 #include "path_napi/js_path.h"
 #include "pen_napi/js_pen.h"
 #include "region_napi/js_region.h"
@@ -34,6 +35,7 @@
 #include "shader_effect_napi/js_shader_effect.h"
 #include "shadow_layer_napi/js_shadow_layer.h"
 #include "text_blob_napi/js_text_blob.h"
+#include "tool_napi/js_tool.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -53,11 +55,13 @@ napi_value DrawingInit(napi_env env, napi_value exportObj)
     JsMaskFilter::Init(env, exportObj);
     JsLattice::Init(env, exportObj);
     JsPathEffect::Init(env, exportObj);
+    JsPathIterator::Init(env, exportObj);
     JsRegion::Init(env, exportObj);
     JsRoundRect::Init(env, exportObj);
     JsShaderEffect::Init(env, exportObj);
     JsShadowLayer::Init(env, exportObj);
     JsMatrix::Init(env, exportObj);
+    JsTool::Init(env, exportObj);
     return exportObj;
 }
 } // namespace Drawing

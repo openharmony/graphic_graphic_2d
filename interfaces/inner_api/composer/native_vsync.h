@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-#ifndef NDK_INCLUDE_NATIVE_VSYNC_H_
-#define NDK_INCLUDE_NATIVE_VSYNC_H_
-
 /**
  * @addtogroup NativeVsync
  * @{
@@ -36,6 +33,9 @@
  * @since 9
  * @version 1.0
  */
+
+#ifndef NDK_INCLUDE_NATIVE_VSYNC_H_
+#define NDK_INCLUDE_NATIVE_VSYNC_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,10 +59,24 @@ typedef void (*OH_NativeVSync_FrameCallback)(long long timestamp, void *data);
 OH_NativeVSync* OH_NativeVSync_Create(const char* name, unsigned int length);
 
 /**
+ * @brief Creates a associated with Xcomponentid <b>NativeVsync</b> instance.\n
+ * A new associated with Xcomponentid<b>NativeVsync</b> instance is created each time this function is called.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
+ * @param windowID Indicates the Xcomponentid of the associated window.
+ * @param name Indicates the vsync connection name.
+ * @param length Indicates the name's length.
+ * @return Returns the pointer to the <b>NativeVsync</b> instance created.
+ * @since 14
+ * @version 1.0
+ */
+OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, const char* name, unsigned int length);
+
+/**
  * @brief Delete the NativeVsync instance.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
- * @param window Indicates the pointer to a <b>NativeVsync</b> instance.
+ * @param nativeVsync Indicates the pointer to a <b>NativeVsync</b> instance.
  * @since 9
  * @version 1.0
  */
@@ -103,6 +117,8 @@ int OH_NativeVSync_RequestFrameWithMultiCallback(
 
 /**
  * @brief Get vsync period.
+ * This interface uses a prerequisite that the OH_NativeVSync object in the input parameter
+ * has called OH_NativeVSync_RequestFrame() and received a signal callback.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeVsync
  * @param nativeVsync Indicates the pointer to a NativeVsync.
@@ -125,6 +141,7 @@ int OH_NativeVSync_GetPeriod(OH_NativeVSync* nativeVsync, long long* period);
  * after the animation frame associated with the previous VSync is complete. In addition, the self-drawing frames must
  * carry timestamps that align with VSync.
  * After the animation ends, disable DVSync.
+ * Only phones and tablets support DVSync.
  * On a platform that does not support DVSync or if another application has enabled DVSync, the attempt to enable it
  * will not take effect, and the application still receives normal VSync signals.
  *
@@ -142,4 +159,5 @@ int OH_NativeVSync_DVSyncSwitch(OH_NativeVSync* nativeVsync, bool enable);
 }
 #endif
 
+/** @} */
 #endif

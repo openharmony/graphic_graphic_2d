@@ -31,6 +31,7 @@ declare_args() {
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
@@ -43,12 +44,13 @@ declare_args() {
   player_framework_enable = true
   graphic_2d_feature_drivers_interface_display_enable = true
   graphic_2d_feature_tp_switch_enbale = false
-  graphic_2d_feature_enable_recording_dcl = true
   graphic_2d_feature_use_igraphics_extend_hooks = false
   graphic_2d_feature_use_aps_igameservice_func = false
   graphic_2d_feature_enable_chipset_vsync = false
   graphic_2d_feature_enable_rspipeline = true
   graphic_2d_feature_enable_prefetch = true
+  graphic_2d_feature_bootanimation_ext_enable = "default"
+  graphic_2d_support_access_token = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -110,12 +112,10 @@ if (graphic_2d_feature_ace_enable_gpu) {
     gpu_defines += [ "DDGR_ENABLE_FEATURE_OPINC" ]
   }
 
-  if (graphic_2d_feature_enable_recording_dcl) {
-    rs_enable_recording_dcl = true
-    gpu_defines += [ "ENABLE_RECORDING_DCL" ]
-  } else {
-    rs_enable_recording_dcl = false
+  if (graphic_2d_feature_rs_enable_profiler) {
+    gpu_defines += [ "SKP_RECORDING_ENABLED" ]
   }
+
   ace_enable_gpu = true
   rs_enable_gpu = true
   surface_enable_gpu = true
@@ -161,12 +161,14 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   graphic_2d_feature_enable_dvsync = true
+  graphic_2d_feature_enable_sdf = true
   if (graphic_2d_feature_product == "phone") {
     graphic_2d_feature_enable_chipset_vsync = true
   }
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 } else {
   graphic_2d_feature_enable_dvsync = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_chipset_vsync = false
 }
 
@@ -365,7 +367,6 @@ adapters = exec_script("$ace_root/build/search.py",
                        "list lines")
 if (defined(use_clang_coverage) && use_clang_coverage) {
   graphic_2d_feature_rs_enable_profiler = false
-  graphic_2d_feature_enable_recording_dcl = false
 }
 
 if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
@@ -374,4 +375,9 @@ if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
 
 if (defined(graphic_2d_feature_enable_prefetch)) {
   gpu_defines += [ "RS_ENABLE_PREFETCH" ]
+}
+
+if (defined(global_parts_info) &&
+    !defined(global_parts_info.security_access_token)) {
+  graphic_2d_support_access_token = false
 }

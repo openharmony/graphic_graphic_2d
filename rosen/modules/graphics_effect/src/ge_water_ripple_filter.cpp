@@ -80,8 +80,11 @@ std::shared_ptr<Drawing::Image> GEWaterRippleFilter::ProcessImage(Drawing::Canva
     builder.SetUniform("progress", progress_);
     builder.SetUniform("waveCount", static_cast<float>(waveCount_));
     builder.SetUniform("rippleCenter", rippleCenterX_, rippleCenterY_);
- 
+#ifdef RS_ENABLE_GPU
     auto invertedImage = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, imageInfo, false);
+#else
+    auto invertedImage = builder.MakeImage(nullptr, nullptr, imageInfo, false);
+#endif
     if (invertedImage == nullptr) {
         LOGE("GEWaterRippleFilter::ProcessImage make image failed");
         return nullptr;

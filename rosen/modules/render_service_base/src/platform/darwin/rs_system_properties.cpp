@@ -19,6 +19,7 @@
 
 namespace OHOS {
 namespace Rosen {
+
 #if (defined (ACE_ENABLE_GL) && defined (ACE_ENABLE_VK)) || (defined (RS_ENABLE_GL) && defined (RS_ENABLE_VK))
 const GpuApiType RSSystemProperties::systemGpuApiType_ = GpuApiType::OPENGL;
 #elif defined (ACE_ENABLE_GL) || defined (RS_ENABLE_GL)
@@ -78,6 +79,16 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 }
 
 bool RSSystemProperties::GetRenderNodePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetRSImagePurgeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetClosePixelMapFdEnabled()
 {
     return false;
 }
@@ -170,13 +181,13 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
+void RSSystemProperties::SetScreenSwitchStatus(bool flag)
 {
 }
 
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
+bool RSSystemProperties::GetScreenSwitchStatus()
 {
-    return {};
+    return false;
 }
 
 #ifndef NEW_SKIA
@@ -237,6 +248,11 @@ float RSSystemProperties::GetAnimationScale()
 }
 
 bool RSSystemProperties::GetProxyNodeDebugEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetCacheOptimizeRotateEnable()
 {
     return false;
 }
@@ -309,6 +325,11 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 bool RSSystemProperties::GetHpsBlurEnabled()
 {
     return false;
+}
+
+float RSSystemProperties::GetHpsBlurNoiseFactor()
+{
+    return 0.f;
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
@@ -549,6 +570,11 @@ std::string RSSystemProperties::GetVersionType()
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }

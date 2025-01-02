@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "fontcollection_napi/js_fontcollection.h"
+
 #include "js_paragraph_builder.h"
+#include "fontcollection_napi/js_fontcollection.h"
 #include "line_typeset_napi/js_line_typeset.h"
 #include "napi_common.h"
 #include "paragraph_napi/js_paragraph.h"
@@ -21,9 +22,12 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen {
-std::unique_ptr<Typography> drawingTypography;
-thread_local napi_ref JsParagraphBuilder::constructor_ = nullptr;
+namespace {
 const std::string CLASS_NAME = "ParagraphBuilder";
+}
+
+thread_local napi_ref JsParagraphBuilder::constructor_ = nullptr;
+
 napi_value JsParagraphBuilder::Constructor(napi_env env, napi_callback_info info)
 {
     size_t argCount = ARGC_TWO;

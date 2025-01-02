@@ -19,6 +19,7 @@
 #include <vector>
 #include <atomic>
 #include "image/bitmap.h"
+#include "metadata_helper.h"
 #include "params/rs_surface_render_params.h"
 #include "utils/matrix.h"
 #include "utils/rect.h"
@@ -52,14 +53,15 @@ struct ComposeInfo {
     int32_t displayNit { 0 };
     float brightnessRatio { 0.0 };
 };
-
+#ifdef RS_ENABLE_GPU
 class RSSurfaceRenderParams;
+#endif
 class RSTransactionData;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 constexpr float DEFAULT_SCREEN_LIGHT_NITS = 500;
 constexpr float DEFAULT_BRIGHTNESS_RATIO = 1.0f;
 #endif
-constexpr uint32_t CONSUME_DIRECTLY = 0;
+constexpr uint64_t CONSUME_DIRECTLY = 0;
 struct BufferDrawParam {
     sptr<OHOS::SurfaceBuffer> buffer;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
@@ -67,6 +69,8 @@ struct BufferDrawParam {
     Drawing::Matrix matrix; // for moving canvas to layer(surface)'s leftTop point.
     Drawing::Rect srcRect; // surface's bufferSize
     Drawing::Rect dstRect; // surface's boundsSize
+    bool hasCropMetadata = false;
+    HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion metaRegion;
 
     Vector4f cornerRadius;
     RRect clipRRect;
@@ -92,7 +96,9 @@ struct BufferDrawParam {
     float displayNits = DEFAULT_SCREEN_LIGHT_NITS;
     float brightnessRatio = DEFAULT_BRIGHTNESS_RATIO;
     bool isHdrRedraw = false;
+    bool isHdrToSdr = false;
 #endif
+    bool preRotation = false;
 };
 
 using WriteToPngParam = struct {
@@ -130,14 +136,17 @@ public:
         const sptr<IConsumerSurface>& consumer, const sptr<SurfaceBuffer>& buffer);
     static Drawing::Matrix GetSurfaceTransformMatrix(GraphicTransformType rotationTransform, const RectF &bounds,
         const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
-    static Drawing::Matrix GetGravityMatrix(Gravity gravity, const sptr<SurfaceBuffer>& buffer, const RectF& bounds);
+    static Drawing::Matrix GetSurfaceTransformMatrixForRotationFixed(GraphicTransformType rotationTransform,
+        const RectF &bounds, const RectF &bufferBounds = {0.0f, 0.0f, 0.0f, 0.0f}, Gravity gravity = Gravity::RESIZE);
+    static Drawing::Matrix GetGravityMatrix(Gravity gravity, const RectF& bufferSize, const RectF& bounds);
 
     static void SetPropertiesForCanvas(RSPaintFilterCanvas& canvas, const BufferDrawParam& params);
     static Drawing::ColorType GetColorTypeFromBufferFormat(int32_t pixelFmt);
     static Drawing::BitmapFormat GenerateDrawingBitmapFormat(const sptr<OHOS::SurfaceBuffer>& buffer);
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
-    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY);
+    static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler,
+        uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
@@ -160,8 +169,11 @@ public:
     static bool WriteSurfaceBufferToPng(sptr<SurfaceBuffer>& buffer, uint64_t id = 0);
 
     static bool WritePixelMapToPng(Media::PixelMap& pixelMap);
+    static int32_t GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams);
+#ifdef RS_ENABLE_GPU
     static void DealWithSurfaceRotationAndGravity(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params, RSSurfaceRenderParams* nodeParams = nullptr);
+#endif
     static void FlipMatrix(GraphicTransformType transform, BufferDrawParam& params);
 
     // GraphicTransformType has two attributes: rotation and flip, it take out one of the attributes separately
@@ -192,6 +204,7 @@ private:
         const std::vector<GraphicHDRMetaData>& metaDatas = {});
     static bool CreateBitmap(sptr<OHOS::SurfaceBuffer> buffer, Drawing::Bitmap& bitmap);
     static bool WriteToPng(const std::string &filename, const WriteToPngParam &param);
+    static ScreenId GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams);
 
     static bool enableClient;
 

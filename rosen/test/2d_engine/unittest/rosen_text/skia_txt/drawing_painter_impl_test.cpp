@@ -240,7 +240,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest009, TestSize
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
     EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecord);
+    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob, offset, paintRecord);
 }
 
 /*
@@ -400,7 +400,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest020, TestSize
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
     EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecord_);
+    canvasParagraphPainter_->DrawSymbolSkiaTxt(textBlob, offset, paintRecord_);
 }
 
 /*
@@ -415,7 +415,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest021, TestSize
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
     EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainterWithoutPen_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecordWithoutPen_);
+    canvasParagraphPainterWithoutPen_->DrawSymbolSkiaTxt(textBlob, offset, paintRecordWithoutPen_);
 }
 
 /*
@@ -430,7 +430,7 @@ HWTEST_F(RSCanvasParagraphPainterTest, RSCanvasParagraphPainterTest022, TestSize
     Font font;
     std::shared_ptr<TextBlob> textBlob = TextBlob::MakeFromText(str.c_str(), str.length(), font);
     EXPECT_EQ(textBlob != nullptr, true);
-    canvasParagraphPainterWithoutBrush_->DrawSymbolSkiaTxt(textBlob.get(), offset, paintRecordWithoutBrush_);
+    canvasParagraphPainterWithoutBrush_->DrawSymbolSkiaTxt(textBlob, offset, paintRecordWithoutBrush_);
 }
 
 /*

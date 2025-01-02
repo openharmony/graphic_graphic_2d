@@ -63,6 +63,7 @@ private:
 
 class RSC_EXPORT RSDisplaySoloist {
 public:
+    RSDisplaySoloist() = default;
     RSDisplaySoloist(SoloistIdType instanceId);
     ~RSDisplaySoloist()
     {
@@ -70,19 +71,19 @@ public:
         destroyed_ = true;
     }
 
-    void Init();
     bool JudgeWhetherSkip(TimestampType timestamp);
     void RequestNextVSync();
-
-    void FlushFrameRate(int32_t rate);
     void SetSubFrameRateLinkerEnable(bool enabled);
+    void TriggerCallback();
+    void SetCallback(DisplaySoloistOnFrameCallback cb, void* params);
+    static void OnVsync(TimestampType timestamp, void* client);
+    void VsyncCallbackInner(TimestampType timestamp);
 
-    int64_t GetVSyncPeriod();
-    bool SetVSyncRate(int32_t vsyncRate);
-    int32_t GetVSyncRate();
-
-    RSDisplaySoloist() = default;
-
+    enum ActiveStatus subStatus_ = ActiveStatus::INACTIVE;
+    bool useExclusiveThread_ = false;
+    FrameRateRange frameRateRange_;
+private:
+    void Init();
     bool IsCommonDivisor(int32_t expectedRate, int32_t vsyncRate);
     std::vector<int32_t> FindRefreshRateFactors(int32_t refreshRate);
     void FindAllRefreshRateFactors();
@@ -91,17 +92,20 @@ public:
     int32_t SearchMatchedRate(const FrameRateRange& frameRateRange, int32_t vsyncRate,
                               int32_t iterCount = 1);
 
+    void FlushFrameRate(int32_t rate);
+    int64_t GetVSyncPeriod();
+    bool SetVSyncRate(int32_t vsyncRate);
+    int32_t GetVSyncRate();
+
     std::shared_ptr<AppExecFwk::EventHandler> subVsyncHandler_ = nullptr;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> subReceiver_ = nullptr;
-    std::pair<DisplaySoloistOnFrameCallback, void*> callback_;
-    static void OnVsync(TimestampType timestamp, void* client);
-    void VsyncCallbackInner(TimestampType timestamp);
     VSyncReceiver::FrameCallback subFrameCallback_ = {
         .userData_ = this,
         .callback_ = OnVsync,
     };
-    enum ActiveStatus subStatus_ = ActiveStatus::INACTIVE;
+#ifdef RS_ENABLE_GPU
     bool hasInitVsyncReceiver_ = false;
+#endif
 
     int32_t sourceVsyncRate_ = 0;
     int32_t drawFPS_ = 0;
@@ -111,8 +115,6 @@ public:
     TimestampType targetTimestamp_ = 0;
 
     SoloistIdType instanceId_ = 0;
-    bool useExclusiveThread_ = false;
-    FrameRateRange frameRateRange_;
     std::shared_ptr<RSFrameRateLinker> frameRateLinker_;
 
     void OnVsyncTimeOut();
@@ -120,8 +122,13 @@ public:
     bool hasRequestedVsync_ = false;
     bool destroyed_ = false;
     std::string vsyncTimeoutTaskName_ = "";
+#ifdef RS_ENABLE_GPU
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
+#endif
+
+    std::mutex callbackMutex_;
+    std::pair<DisplaySoloistOnFrameCallback, void*> callback_;
 };
 
 using IdToSoloistMapType = std::unordered_map<SoloistIdType, std::shared_ptr<RSDisplaySoloist>>;
@@ -129,7 +136,6 @@ using IdToSoloistMapType = std::unordered_map<SoloistIdType, std::shared_ptr<RSD
 class RSC_EXPORT RSDisplaySoloistManager {
 public:
     static RSDisplaySoloistManager& GetInstance() noexcept;
-    bool InitVsyncReceiver();
     void RequestNextVSync();
 
     void Start(SoloistIdType id);
@@ -159,6 +165,7 @@ private:
     RSDisplaySoloistManager(const RSDisplaySoloistManager&&) = delete;
     RSDisplaySoloistManager& operator=(const RSDisplaySoloistManager&) = delete;
     RSDisplaySoloistManager& operator=(const RSDisplaySoloistManager&&) = delete;
+    void InitVsyncReceiver();
 
     std::shared_ptr<AppExecFwk::EventHandler> vsyncHandler_ = nullptr;
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_ = nullptr;
@@ -171,7 +178,6 @@ private:
     };
 
     enum ActiveStatus managerStatus_ = ActiveStatus::INACTIVE;
-    bool hasInitVsyncReceiver_ = false;
     int32_t sourceVsyncRate_ = 0;
 
     FrameRateRange frameRateRange_;
@@ -182,8 +188,10 @@ private:
     std::mutex mtx_;
     std::mutex dataUpdateMtx_;
     std::string vsyncTimeoutTaskName_ = "soloist_manager_time_out_task";
+#ifdef RS_ENABLE_GPU
     AppExecFwk::EventHandler::Callback vsyncTimeoutCallback_ =
         [this] { this->OnVsyncTimeOut(); };
+#endif
 };
 
 } // namespace Rosen

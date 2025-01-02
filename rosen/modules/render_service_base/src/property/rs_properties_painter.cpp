@@ -65,7 +65,7 @@ const bool RSPropertiesPainter::FOREGROUND_FILTER_ENABLED = RSSystemProperties::
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::greyAdjustEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::binarizationShaderEffect_ = nullptr;
-std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::lightUpEffectShaderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::lightUpEffectBlender_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicBrightnessBlenderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicLightUpBlenderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::dynamicDimShaderEffect_ = nullptr;
@@ -507,6 +507,7 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertiesPainter::MakeGreyAdjustmentE
 std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing::Canvas& canvas,
     const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoeff)
 {
+#ifdef RS_ENABLE_GPU
     if (image == nullptr) {
         ROSEN_LOGE("RSPropertiesPainter::DrawGreyAdjustment image is null");
         return nullptr;
@@ -527,6 +528,9 @@ std::shared_ptr<Drawing::Image> RSPropertiesPainter::DrawGreyAdjustment(Drawing:
     builder->SetUniform("coefficient1", greyCoeff.x_);
     builder->SetUniform("coefficient2", greyCoeff.y_);
     return builder->MakeImage(canvas.GetGPUContext().get(), nullptr, image->GetImageInfo(), false);
+#else
+    return nullptr;
+#endif
 }
 
 void RSPropertiesPainter::DrawForegroundFilter(const RSProperties& properties, RSPaintFilterCanvas& canvas)
@@ -593,8 +597,8 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
         brush.SetAntiAlias(true);
         Drawing::Filter filterForBrush;
         auto imageFilter = filter->GetImageFilter();
-        // Since using Kawase blur (shader) in the screenshot scene would lead to failure;
-        // a Gussian blue filter (imageFilter) is regenerated here instead;
+        // Since using Kawase blur (shader) in the screenshot scene would lead to failure,
+        // a Gaussian blur filter (imageFilter) is regenerated here instead.
         std::shared_ptr<RSShaderFilter> kawaseShaderFilter =
             filter->GetShaderFilterWithType(RSShaderFilter::KAWASE);
         if (kawaseShaderFilter != nullptr) {
@@ -687,10 +691,10 @@ void RSPropertiesPainter::DrawFilter(const RSProperties& properties, RSPaintFilt
 void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     RS_TRACE_FUNC();
-    auto boundsRect = properties.GetBoundsRect();
 
     // Optional use cacheManager to draw filter, cache is valid, skip drawing background image
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    auto boundsRect = properties.GetBoundsRect();
     if (auto& cacheManager = properties.GetFilterCacheManager(false);
         cacheManager != nullptr && !canvas.GetDisableFilterCache() && cacheManager->IsCacheValid()) {
         // no need to validate parameters, the caller already do it
@@ -722,7 +726,8 @@ void RSPropertiesPainter::DrawBackgroundImageAsEffect(const RSProperties& proper
     canvas.SetEffectData(offscreenCanvas->GetEffectData());
 }
 
-void RSPropertiesPainter::DrawBackgroundEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas)
+void RSPropertiesPainter::DrawBackgroundEffect(
+    const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
     auto& RSFilter = properties.GetBackgroundFilter();
     if (RSFilter == nullptr) {
@@ -863,7 +868,7 @@ void RSPropertiesPainter::GetPixelStretchDirtyRect(RectI& dirtyPixelStretch,
     auto scaledBounds = RectF(boundsRect.left_ - pixelStretch->x_, boundsRect.top_ - pixelStretch->y_,
         boundsRect.width_ + pixelStretch->x_ + pixelStretch->z_,
         boundsRect.height_ + pixelStretch->y_ + pixelStretch->w_);
-    auto& geoPtr = properties.GetBoundsGeometry();
+    auto geoPtr = properties.GetBoundsGeometry();
     Drawing::Matrix matrix = (geoPtr && isAbsCoordinate) ? geoPtr->GetAbsMatrix() : Drawing::Matrix();
     auto drawingRect = Rect2DrawingRect(scaledBounds);
     matrix.MapRect(drawingRect, drawingRect);
@@ -886,7 +891,7 @@ void RSPropertiesPainter::GetForegroundEffectDirtyRect(RectI& dirtyForegroundEff
         return;
     }
     float dirtyExtension =
-        std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
+                std::static_pointer_cast<RSForegroundEffectFilter>(foregroundFilter)->GetDirtyExtension();
     auto boundsRect = properties.GetBoundsRect();
     auto scaledBounds = boundsRect.MakeOutset(dirtyExtension);
     auto& geoPtr = properties.GetBoundsGeometry();
@@ -925,6 +930,7 @@ void RSPropertiesPainter::DrawPixelStretch(const RSProperties& properties, RSPai
         ROSEN_LOGE("RSPropertiesPainter::DrawPixelStretch surface null");
         return;
     }
+
     canvas.Save();
     auto bounds = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     canvas.ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
@@ -1321,7 +1327,8 @@ void RSPropertiesPainter::DrawBorderBase(const RSProperties& properties, Drawing
     pen.SetAntiAlias(true);
     if (border->ApplyFillStyle(brush)) {
         auto roundRect = RRect2DrawingRRect(GetRRectForDrawingBorder(properties, border, isOutline));
-        auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(properties, border, isOutline));
+        auto innerRoundRect = RRect2DrawingRRect(GetInnerRRectForDrawingBorder(
+            properties, border, isOutline));
         canvas.AttachBrush(brush);
         canvas.DrawNestedRoundRect(roundRect, innerRoundRect);
         canvas.DetachBrush();
@@ -1644,7 +1651,8 @@ void RSPropertiesPainter::DrawBinarizationShader(const RSProperties& properties,
 }
 
 std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeBinarizationShader(float low, float high,
-    float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+    float thresholdLow, float thresholdHigh,
+    std::shared_ptr<Drawing::ShaderEffect> imageShader)
 {
     static constexpr char prog[] = R"(
         uniform mediump float ubo_low;
@@ -1698,31 +1706,57 @@ void RSPropertiesPainter::DrawLightUpEffect(const RSProperties& properties, RSPa
         canvas.ClipRoundRect(RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
     }
 
-    auto clipBounds = canvas.GetDeviceClipBounds();
-    auto image = surface->GetImageSnapshot(clipBounds);
-    if (image == nullptr) {
-        ROSEN_LOGE("RSPropertiesPainter::DrawLightUpEffect image is null");
-        return;
-    }
-    Drawing::Matrix scaleMat;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(
-        *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP,
-        Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-    auto shader = MakeLightUpEffectShader(properties.GetLightUpEffect(), imageShader);
+    auto blender = MakeLightUpEffectBlender(properties.GetLightUpEffect());
     Drawing::Brush brush;
-    brush.SetShaderEffect(shader);
-    canvas.ResetMatrix();
-    canvas.Translate(clipBounds.GetLeft(), clipBounds.GetTop());
+    brush.SetBlender(blender);
     canvas.DrawBackground(brush);
 }
 
-std::shared_ptr<Drawing::ShaderEffect> RSPropertiesPainter::MakeLightUpEffectShader(
-    float lightUpDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader)
+std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeLightUpEffectBlender(const float lightUpDeg)
 {
-    // Realizations locate in SkiaShaderEffect::InitWithLightUp & DDGRShaderEffect::InitWithLightUp
-    return Drawing::ShaderEffect::CreateLightUp(lightUpDeg, *imageShader);
-}
+    static constexpr char prog[] = R"(
+        uniform half lightUpDeg;
 
+        vec3 rgb2hsv(in vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        vec3 hsv2rgb(in vec3 c)
+        {
+            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+            return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+        vec4 main(vec4 drawing_src, vec4 drawing_dst) {
+            vec3 c = vec3(drawing_dst.r, drawing_dst.g, drawing_dst.b);
+            vec3 hsv = rgb2hsv(c);
+            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
+            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
+            hsv.z += lightUpDeg - 1.0;
+            return vec4(hsv2rgb(hsv), drawing_dst.a);
+        }
+    )";
+    if (lightUpEffectBlender_ == nullptr) {
+        lightUpEffectBlender_ = Drawing::RuntimeEffect::CreateForBlender(prog);
+        if (lightUpEffectBlender_ == nullptr) {
+            return nullptr;
+        }
+    }
+    static std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder_ = nullptr;
+    if (!builder_) {
+        builder_ = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
+        if (!builder_) {
+            ROSEN_LOGE("RSPropertiesPainter::MakeLightUpEffectBlender make builder fail");
+            return nullptr;
+        }
+    }
+    builder_->SetUniform("lightUpDeg", lightUpDeg);
+    return builder_->MakeBlender();
+}
 
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
 {
@@ -1787,7 +1821,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertiesPainter::MakeDynamic
         uniform half ubo_negr;
         uniform half ubo_negg;
         uniform half ubo_negb;
- 
+
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
 
         half3 gray(half3 x, half4 coeff) {
@@ -1801,7 +1835,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertiesPainter::MakeDynamic
             half3 test = mix(negDelta, posDelta, step(0, delta));
             return test;
         }
- 
+
         half4 main(half4 src, half4 dst) {
             half4 coeff = half4(ubo_cubic, ubo_quad, ubo_rate, ubo_degree);
             half3 color = gray(dst.rgb / (dst.a + 0.000001), coeff); // restore alpha-premul first

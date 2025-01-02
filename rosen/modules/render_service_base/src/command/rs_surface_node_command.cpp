@@ -15,6 +15,7 @@
 
 #include "command/rs_surface_node_command.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "common/rs_vector4.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_display_render_node.h"
@@ -30,6 +31,11 @@ namespace Rosen {
 void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
 {
     if (!context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+        if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(id))) {
+            ROSEN_LOGI("SurfaceNodeCommandHelper::Create command is not vaild because there "
+            "have been too many surfaceNodes, nodeId:%{public}" PRIu64 "", id);
+            return;
+        }
         auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
             context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
         node->SetSurfaceNodeType(type);
@@ -45,6 +51,11 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
         .id = nodeId, .name = name,
         .nodeType = static_cast<RSSurfaceNodeType>(type), .surfaceWindowType = windowType
     };
+    if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(nodeId))) {
+        ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfig command is not vaild because there "
+            "have been too many surfaceNodes, nodeId:%{public}" PRIu64 "", nodeId);
+        return;
+    }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     context.GetMutableNodeMap().RegisterRenderNode(node);
@@ -53,6 +64,11 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
 std::shared_ptr<RSSurfaceRenderNode> SurfaceNodeCommandHelper::CreateWithConfigInRS(
     const RSSurfaceRenderNodeConfig& config, RSContext& context)
 {
+    if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(config.id))) {
+        ROSEN_LOGI("SurfaceNodeCommandHelper::CreateWithConfigInRS command is not vaild because there have "
+            "been too many surfaceNodes, nodeId:%{public}" PRIu64 "", config.id);
+        return nullptr;
+    }
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     return node;
@@ -300,10 +316,10 @@ void SurfaceNodeCommandHelper::SetAncoFlags(RSContext& context, NodeId nodeId, u
     }
 }
 
-void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool ancoForceDoDirect)
+void SurfaceNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
-        node->SetHDRPresent(ancoForceDoDirect);
+        node->SetHDRPresent(hdrPresent);
     }
 }
 
@@ -331,6 +347,23 @@ void SurfaceNodeCommandHelper::SetAbilityState(RSContext& context, NodeId nodeId
         return;
     }
     node->SetAbilityState(abilityState);
+}
+
+void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion)
+{
+    auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (!node) {
+        RS_LOGE("SurfaceNodeCommandHelper::SetApiCompatibleVersion node is null!");
+        return;
+    }
+    node->SetApiCompatibleVersion(apiCompatibleVersion);
+}
+
+void SurfaceNodeCommandHelper::SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHardwareEnableHint(enable);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

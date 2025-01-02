@@ -33,11 +33,12 @@ namespace Rosen {
 namespace {
 constexpr int TRACE_LEVEL_TWO = 2;
 constexpr int PARAM_DOUBLE = 2;
-} // namespace
+}
 
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::binarizationShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicDimShaderEffect_ = nullptr;
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::dynamicBrightnessBlenderEffect_ = nullptr;
+std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::lightUpEffectBlender_ = nullptr;
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
 {
@@ -132,7 +133,7 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
     }
     auto scaledImage = GpuScaleImage(canvas, shadowRegionImage);
     if (scaledImage == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn scaledImage is null");
+        ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn GpuScaleImageids null");
         return false;
     }
     std::shared_ptr<Drawing::Pixmap> dst;
@@ -282,10 +283,10 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     }
 
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    auto clipIBounds = canvas->GetDeviceClipBounds();
+    auto clipIBounds = canvas->GetRoundInDeviceClipBounds();
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s",
-        rsFilter->GetFilterType(), rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
+        isForegroundFilter, rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     g_blurCnt++;
 
     auto surface = canvas->GetSurface();
@@ -328,7 +329,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
         if (rsShaderFilter != nullptr) {
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
-            filter->SetSnapshotOutset(false);
         }
         cacheManager->DrawFilter(*paintFilterCanvas, filter, shouldClearFilteredCache);
         cacheManager->CompactFilterCache(shouldClearFilteredCache); // flag for clear witch cache after drawing
@@ -341,7 +341,6 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     if (rsShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
         tmpFilter->IsOffscreenCanvas(true);
-        filter->SetSnapshotOutset(false);
     }
 
     if (imageClipIBounds.IsEmpty()) {
@@ -349,7 +348,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     }
     auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
     if (imageSnapshot == nullptr) {
-        ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter image null");
+        ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter image null");
         return;
     }
     if (RSSystemProperties::GetImageGpuResourceCacheEnable(imageSnapshot->GetWidth(), imageSnapshot->GetHeight())) {
@@ -533,23 +532,56 @@ void RSPropertyDrawableUtils::DrawLightUpEffect(Drawing::Canvas* canvas, const f
         return;
     }
 
-    auto clipBounds = canvas->GetDeviceClipBounds();
-    auto image = surface->GetImageSnapshot(clipBounds);
-    if (image == nullptr) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawLightUpEffect image is null");
-        return;
-    }
-
-    Drawing::Matrix scaleMat;
-    auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), scaleMat);
-    auto shader = Drawing::ShaderEffect::CreateLightUp(lightUpEffectDegree, *imageShader);
+    auto blender = MakeLightUpEffectBlender(lightUpEffectDegree);
     Drawing::Brush brush;
-    brush.SetShaderEffect(shader);
-    Drawing::AutoCanvasRestore acr(*canvas, true);
-    canvas->ResetMatrix();
-    canvas->Translate(clipBounds.GetLeft(), clipBounds.GetTop());
+    brush.SetBlender(blender);
     canvas->DrawBackground(brush);
+}
+
+std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeLightUpEffectBlender(const float lightUpDeg)
+{
+    static constexpr char prog[] = R"(
+        uniform half lightUpDeg;
+
+        vec3 rgb2hsv(in vec3 c)
+        {
+            vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+            vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+            vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+            float d = q.x - min(q.w, q.y);
+            float e = 1.0e-10;
+            return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+        vec3 hsv2rgb(in vec3 c)
+        {
+            vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+            return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+        vec4 main(vec4 drawing_src, vec4 drawing_dst) {
+            vec3 c = vec3(drawing_dst.r, drawing_dst.g, drawing_dst.b);
+            vec3 hsv = rgb2hsv(c);
+            float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
+            hsv.y = mix(satUpper, hsv.y, lightUpDeg);
+            hsv.z += lightUpDeg - 1.0;
+            return vec4(hsv2rgb(hsv), drawing_dst.a);
+        }
+    )";
+    if (lightUpEffectBlender_ == nullptr) {
+        lightUpEffectBlender_ = Drawing::RuntimeEffect::CreateForBlender(prog);
+        if (lightUpEffectBlender_ == nullptr) {
+            return nullptr;
+        }
+    }
+    static std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder_ = nullptr;
+    if (!builder_) {
+        builder_ = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
+        if (!builder_) {
+            ROSEN_LOGE("RSPropertyDrawableUtils::MakeLightUpEffectBlender make builder fail");
+            return nullptr;
+        }
+    }
+    builder_->SetUniform("lightUpDeg", lightUpDeg);
+    return builder_->MakeBlender();
 }
 
 void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree)
@@ -738,6 +770,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
             half3 test = mix(negDelta, posDelta, step(0, delta));
             return test;
         }
+
         half4 main(half4 src, half4 dst) {
             half4 coeff = half4(ubo_cubic, ubo_quad, ubo_rate, ubo_degree);
             half3 color = gray(getUnpremulRGB(dst), coeff);
@@ -792,7 +825,7 @@ void RSPropertyDrawableUtils::DrawPixelStretch(Drawing::Canvas* canvas, const st
     const RectF& boundsRect, const bool boundsGeoValid, const Drawing::TileMode pixelStretchTileMode)
 {
     if (!pixelStretch.has_value()) {
-        ROSEN_LOGE("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawPixelStretch pixelStretch has no value");
         return;
     }
     if (std::isinf(pixelStretch->x_) || std::isinf(pixelStretch->y_) ||
@@ -929,9 +962,6 @@ void RSPropertyDrawableUtils::DrawShadow(Drawing::Canvas* canvas, Drawing::Path&
         "%f, ShadowOffsetY: %f, bounds: %s",
         elevation, offsetX, offsetY, path.GetBounds().ToString().c_str());
     Drawing::AutoCanvasRestore acr(*canvas, true);
-    if (RSSystemProperties::IsPhoneType()) {
-        CeilMatrixTrans(canvas);
-    }
     if (!isFilled) {
         canvas->ClipPath(path, Drawing::ClipOp::DIFFERENCE, true);
     }
@@ -1046,13 +1076,64 @@ void RSPropertyDrawableUtils::BeginBlender(RSPaintFilterCanvas& canvas, std::sha
 
     // save layer mode
     Drawing::Brush blendBrush_;
-    blendBrush_.SetAlphaF(canvas.GetAlpha());
     blendBrush_.SetBlender(blender);
     Drawing::SaveLayerOps maskLayerRec(nullptr, &blendBrush_, 0);
     canvas.SaveLayer(maskLayerRec);
     canvas.SetBlender(nullptr);
     canvas.SaveAlpha();
     canvas.SetAlpha(1.0f);
+}
+
+void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark)
+{
+    Drawing::Brush brush;
+    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
+    RSColor demoColor;
+    if (isDark) {
+        int16_t rgb_dark = 80;
+        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
+    } else {
+        int16_t rgb_light = 235;
+        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
+    }
+
+    float sat = 1.0f;
+    float brightness = 0.9f;
+    float normalizedDegree = brightness - sat;
+    const float brightnessMat[] = {
+        1.0f,
+        0.0f,
+        0.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        1.0f,
+        0.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+        normalizedDegree,
+        0.0f,
+        0.0f,
+        0.0f,
+        1.0f,
+        0.0f,
+    };
+    Drawing::ColorMatrix cm;
+    cm.SetSaturation(sat);
+    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
+    cm.GetArray(cmArray);
+    std::shared_ptr<Drawing::ColorFilter> filterCompose =
+        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
+    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
+    Drawing::Filter filter;
+    filter.SetImageFilter(colorImageFilter);
+    brush.SetFilter(filter);
+    brush.SetColor(demoColor.AsArgbInt());
+    canvas->DrawBackground(brush);
 }
 
 void RSPropertyDrawableUtils::EndBlender(RSPaintFilterCanvas& canvas, int blendModeApplyType)
@@ -1220,58 +1301,6 @@ bool RSPropertyDrawableUtils::GetGravityMatrix(const Gravity& gravity, const Dra
     }
 }
 
-void RSPropertyDrawableUtils::DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark)
-{
-    Drawing::Brush brush;
-    int16_t alpha = 245; // give a nearly opaque mask to replace blur effect
-    RSColor demoColor;
-    if (isDark) {
-        int16_t rgb_dark = 80;
-        demoColor = RSColor(rgb_dark, rgb_dark, rgb_dark, alpha);
-    } else {
-        int16_t rgb_light = 235;
-        demoColor = RSColor(rgb_light, rgb_light, rgb_light, alpha);
-    }
-
-    float sat = 1.0f;
-    float brightness = 0.9f;
-    float normalizedDegree = brightness - sat;
-    const float brightnessMat[] = {
-        1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-        normalizedDegree,
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        0.0f,
-    };
-    Drawing::ColorMatrix cm;
-    cm.SetSaturation(sat);
-    float cmArray[Drawing::ColorMatrix::MATRIX_SIZE];
-    cm.GetArray(cmArray);
-    std::shared_ptr<Drawing::ColorFilter> filterCompose =
-        Drawing::ColorFilter::CreateComposeColorFilter(cmArray, brightnessMat);
-    auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*filterCompose, nullptr);
-    Drawing::Filter filter;
-    filter.SetImageFilter(colorImageFilter);
-    brush.SetFilter(filter);
-    brush.SetColor(demoColor.AsArgbInt());
-    canvas->DrawBackground(brush);
-}
-
 bool RSPropertyDrawableUtils::RSFilterSetPixelStretch(const RSProperties& property,
     const std::shared_ptr<RSFilter>& filter)
 {
@@ -1339,7 +1368,7 @@ std::shared_ptr<RSFilter> RSPropertyDrawableUtils::GenerateBehindWindowFilter(fl
     std::shared_ptr<Drawing::ColorFilter> colorFilter = GenerateMaterialColorFilter(saturation, brightness);
     std::shared_ptr<Drawing::ImageFilter> blurColorFilter =
         Drawing::ImageFilter::CreateColorBlurImageFilter(*colorFilter, radius, radius);
-        std::shared_ptr<RSDrawingFilter> filter = nullptr;
+    std::shared_ptr<RSDrawingFilter> filter = nullptr;
     if (RSSystemProperties::GetKawaseEnabled()) {
         std::shared_ptr<RSKawaseBlurShaderFilter> kawaseBlurFilter = std::make_shared<RSKawaseBlurShaderFilter>(radius);
         auto colorImageFilter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);

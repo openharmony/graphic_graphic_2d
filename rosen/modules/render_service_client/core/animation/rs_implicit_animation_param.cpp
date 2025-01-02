@@ -179,7 +179,12 @@ std::shared_ptr<RSAnimation> RSImplicitKeyframeAnimationParam::CreateAnimation(
     auto keyFrameAnimation = std::make_shared<RSKeyframeAnimation>(property);
     keyFrameAnimation->SetDurationKeyframe(isCreateDurationKeyframe);
     if (isCreateDurationKeyframe) {
-        keyFrameAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+        if (startDuration > INT32_MAX - duration_) {
+            ROSEN_LOGD("RSImplicitKeyframeAnimationParam::AddKeyframe, duration overflow!");
+            keyFrameAnimation->AddKeyFrame(startDuration, INT32_MAX, endValue, timingCurve_);
+        } else {
+            keyFrameAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+        }
     } else {
         keyFrameAnimation->AddKeyFrame(fraction_, endValue, timingCurve_);
     }
@@ -211,7 +216,12 @@ void RSImplicitKeyframeAnimationParam::AddKeyframe(std::shared_ptr<RSAnimation>&
 
     auto keyframeAnimation = std::static_pointer_cast<RSKeyframeAnimation>(animation);
     if (keyframeAnimation != nullptr) {
-        keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+        if (startDuration > INT32_MAX - duration_) {
+            ROSEN_LOGD("RSImplicitKeyframeAnimationParam::AddKeyframe, duration overflow!");
+            keyframeAnimation->AddKeyFrame(startDuration, INT32_MAX, endValue, timingCurve_);
+        } else {
+            keyframeAnimation->AddKeyFrame(startDuration, startDuration + duration_, endValue, timingCurve_);
+        }
     }
 }
 

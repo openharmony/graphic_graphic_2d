@@ -22,8 +22,8 @@ namespace OHOS::Rosen {
 
 class AppearanceTest02 : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests
@@ -56,9 +56,9 @@ GRAPHIC_TEST(AppearanceTest02, CONTENT_DISPLAY_TEST, Appearance_Border_Color_Tes
 
     const int nodeCount = 4;
     const int columnCount = 2;
-    const int nodeSize = 500;
-    const int nodeHalfSize = 250;
-    const int nodePos = 520;
+    const int nodeSize = 400;
+    const int nodeHalfSize = 200;
+    const int nodePos = 420;
     const int testPos = 50;
 
     for (int i = 0; i < nodeCount; i++) {

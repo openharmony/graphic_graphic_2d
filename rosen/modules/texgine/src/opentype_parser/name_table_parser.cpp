@@ -18,7 +18,7 @@
 #include <iomanip>
 #include <string>
 
-#include "texgine/utils/exlog.h"
+#include "utils/text_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +34,7 @@ void NameTableParser::Dump() const
         return;
     }
     const auto& nameTable = *reinterpret_cast<const struct NameTable*>(data_);
-    LOGSO_FUNC_LINE(INFO) << "nameTable size:" << size_ << ", version:" << nameTable.version.Get();
+    TEXT_LOGI("NameTable size: %{public}d, version: %{public}d", size_, nameTable.version.Get());
     auto count = nameTable.count.Get();
     auto strOffset = data_ + nameTable.storageOffset.Get();
     for (auto i = 0; i < count; ++i) {
@@ -45,8 +45,7 @@ void NameTableParser::Dump() const
         auto offset = nameTable.nameRecord[i].stringOffset.Get();
         std::string recordinfo(strOffset + offset, len);
         auto nameId = nameTable.nameRecord[i].nameId.Get();
-        LOGSO_FUNC_LINE(INFO) << "nameId:" << nameId << ", recordinfo:" << std::uppercase << std::hex << std::setw(len)
-            << recordinfo;
+        TEXT_LOGI("NameId: %{public}d, recordinfo: %{public}s", nameId, recordinfo.c_str());
     }
 }
 } // namespace TextEngine

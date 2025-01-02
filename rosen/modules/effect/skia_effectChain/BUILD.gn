@@ -33,7 +33,6 @@ config("effect_SKeffectChian_config") {
 
 config("effect_SKeffectChian_public_config") {
   include_dirs = [
-    "../effectChain/include",
     "../egl/include",
     "$graphic_2d_root/utils/log",
     "include",
@@ -99,14 +98,13 @@ if (is_arkui_x) {
   }
 } else {
   ohos_shared_library("skeffectchain") {
-    public_deps = []
+    public_deps = [ "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect" ]
 
     if (rs_enable_gpu) {
       defines = gpu_defines
       public_deps += [
         "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
         "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
-        "$graphic_2d_root/rosen/modules/effect/egl:libegl_effect",
       ]
     }
 

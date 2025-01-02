@@ -22,7 +22,6 @@
 
 namespace OHOS {
     namespace {
-        constexpr size_t STR_LEN = 10;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -77,7 +76,6 @@ namespace OHOS {
         // get data
         bool enable = GetData<bool>();
         int64_t offset = GetData<int64_t>();
-        std::string name = GetStringFromData(STR_LEN);
         int64_t now = GetData<int64_t>();
         int64_t period = GetData<int64_t>();
         uint32_t refreshRate = GetData<uint32_t>();
@@ -92,8 +90,8 @@ namespace OHOS {
         sptr<Rosen::VSyncController> vsyncController = new Rosen::VSyncController(vsyncGenerator, offset);
         vsyncController->SetEnable(enable, enable);
         vsyncController->SetPhaseOffset(offset);
-        auto* cb = new Rosen::VSyncDistributor(vsyncController, name);
-        vsyncController->SetCallback(cb);
+        sptr<Rosen::VSyncDistributor> vsyncDistributor = new Rosen::VSyncDistributor(vsyncController, "Fuzz");
+        vsyncController->SetCallback(vsyncDistributor);
         vsyncController->OnVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
         vsyncController->OnPhaseOffsetChanged(phaseOffset);
         vsyncController->OnConnsRefreshRateChanged(refreshRates);

@@ -24,6 +24,7 @@
 
 #include <cinttypes>
 #include <atomic>
+#include "metadata_helper.h"
 #include <sync_fence.h>
 #include <unistd.h>
 #include <window.h>
@@ -33,13 +34,15 @@
 #include <GLES/gl.h>
 #include <GLES/glext.h>
 
+using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+
 namespace OHOS {
 namespace {
 // Get a uniqueID in a process
 static int GetProcessUniqueId()
 {
-    static std::atomic<int> g_counter { 0 };
-    return g_counter.fetch_add(1, std::memory_order_relaxed);
+    static std::atomic<int> counter { 0 };
+    return counter.fetch_add(1, std::memory_order_relaxed);
 }
 }
 
@@ -83,8 +86,21 @@ void SurfaceImage::InitSurfaceImage()
     surfaceImageName_ = name;
 }
 
-void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
-                                     int64_t timestamp, Rect damage)
+void SurfaceImage::UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t timestamp)
+{
+    currentSurfaceBuffer_ = buffer;
+    currentTimeStamp_ = timestamp;
+    preBufferProperties_ = bufferProperties_;
+    bufferProperties_ = {
+        GetBufferCropRegion(buffer),
+        ConsumerSurface::GetTransform(),
+        buffer->GetWidth(),
+        buffer->GetHeight()
+    };
+}
+
+void SurfaceImage::UpdateSurfaceInfo(sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
+                                     int64_t timestamp, const Rect& damage)
 {
     // release old buffer
     int releaseFence = -1;
@@ -95,21 +111,37 @@ void SurfaceImage::UpdateSurfaceInfo(uint32_t seqNum, sptr<SurfaceBuffer> buffer
     // There is no need to close this fd, because in function ReleaseBuffer it will be closed.
     ReleaseBuffer(currentSurfaceBuffer_, releaseFence);
 
-    currentSurfaceImage_ = seqNum;
-    currentSurfaceBuffer_ = buffer;
-    currentTimeStamp_ = timestamp;
-    currentCrop_ = damage;
-    currentTransformType_ = ConsumerSurface::GetTransform();
+    currentSurfaceImage_ = buffer->GetSeqNum();
+    UpdateBasicInfo(buffer, timestamp);
+
     auto utils = SurfaceUtils::GetInstance();
     utils->ComputeTransformMatrix(currentTransformMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
-        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+        currentSurfaceBuffer_, bufferProperties_.transformType, damage);
     utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
-        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+        currentSurfaceBuffer_, bufferProperties_.transformType, damage);
+    if (preBufferProperties_ != bufferProperties_) {
+        utils->ComputeBufferMatrix(currentBufferMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
+            currentSurfaceBuffer_, bufferProperties_.transformType, bufferProperties_.crop);
+    }
 
     // wait on this acquireFence.
     if (acquireFence != nullptr) {
         acquireFence->Wait(-1);
     }
+}
+
+Rect SurfaceImage::GetBufferCropRegion(const sptr<OHOS::SurfaceBuffer>& buffer)
+{
+    BufferHandleMetaRegion cropRegion{0, 0, 0, 0};
+
+    if (MetadataHelper::GetCropRectMetadata(buffer, cropRegion) == GSERROR_OK) {
+        BLOGD("GetCropRectMetadata success,"
+            "left: %{public}d, top: %{public}d, width: %{public}d, height: %{public}d",
+            cropRegion.left, cropRegion.top, cropRegion.width, cropRegion.height);
+        return {cropRegion.left, cropRegion.top, cropRegion.width, cropRegion.height};
+    }
+
+    return {0, 0, buffer->GetWidth(), buffer->GetHeight()};
 }
 
 SurfaceError SurfaceImage::UpdateSurfaceImage()
@@ -138,8 +170,7 @@ SurfaceError SurfaceImage::UpdateSurfaceImage()
         return ret;
     }
 
-    uint32_t seqNum = buffer->GetSeqNum();
-    UpdateSurfaceInfo(seqNum, buffer, acquireFence, timestamp, damage);
+    UpdateSurfaceInfo(buffer, acquireFence, timestamp, damage);
     return SURFACE_ERROR_OK;
 }
 
@@ -202,10 +233,10 @@ int64_t SurfaceImage::GetTimeStamp()
     return currentTimeStamp_;
 }
 
-SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
+SurfaceError SurfaceImage::GetTransformMatrix(float matrix[TRANSFORM_MATRIX_ELE_COUNT])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(float) * 16,  // 16 is the length of array
+    auto ret = memcpy_s(matrix, sizeof(float) * TRANSFORM_MATRIX_ELE_COUNT,
                         currentTransformMatrix_, sizeof(currentTransformMatrix_));
     if (ret != EOK) {
         BLOGE("memcpy_s failed ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
@@ -214,14 +245,26 @@ SurfaceError SurfaceImage::GetTransformMatrix(float matrix[16])
     return SURFACE_ERROR_OK;
 }
 
-SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[16])
+SurfaceError SurfaceImage::GetTransformMatrixV2(float matrix[TRANSFORM_MATRIX_ELE_COUNT])
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
-    auto ret = memcpy_s(matrix, sizeof(float) * 16, // 16 is the length of array
+    auto ret = memcpy_s(matrix, sizeof(float) * TRANSFORM_MATRIX_ELE_COUNT,
                         currentTransformMatrixV2_, sizeof(currentTransformMatrixV2_));
     if (ret != EOK) {
         BLOGE("memcpy_s failed ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return SURFACE_ERROR_UNKOWN;
+    }
+    return SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::GetBufferMatrix(float matrix[TRANSFORM_MATRIX_ELE_COUNT])
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    auto ret = memcpy_s(matrix, sizeof(float) * TRANSFORM_MATRIX_ELE_COUNT,
+                        currentBufferMatrix_, sizeof(currentBufferMatrix_));
+    if (ret != EOK) {
+        BLOGE("memcpy_s failed ret: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
+        return SURFACE_ERROR_MEM_OPERATION_ERROR;
     }
     return SURFACE_ERROR_OK;
 }
@@ -426,13 +469,16 @@ SurfaceError SurfaceImage::AcquireNativeWindowBuffer(OHNativeWindowBuffer** nati
         BLOGE("AcquireBuffer failed: %{public}d, uniqueId: %{public}" PRIu64 ".", ret, uniqueId_);
         return ret;
     }
-    currentSurfaceBuffer_ = buffer;
-    currentTimeStamp_ = timestamp;
-    currentCrop_ = damage;
-    currentTransformType_ = ConsumerSurface::GetTransform();
+
+    UpdateBasicInfo(buffer, timestamp);
+
     auto utils = SurfaceUtils::GetInstance();
     utils->ComputeTransformMatrixV2(currentTransformMatrixV2_, TRANSFORM_MATRIX_ELE_COUNT,
-        currentSurfaceBuffer_, currentTransformType_, currentCrop_);
+        currentSurfaceBuffer_, bufferProperties_.transformType, damage);
+    if (bufferProperties_ != preBufferProperties_) {
+        utils->ComputeBufferMatrix(currentBufferMatrix_, TRANSFORM_MATRIX_ELE_COUNT,
+            currentSurfaceBuffer_, bufferProperties_.transformType, bufferProperties_.crop);
+    }
 
     *fenceFd = acquireFence->Dup();
     OHNativeWindowBuffer *nwBuffer = new(std::nothrow) OHNativeWindowBuffer();

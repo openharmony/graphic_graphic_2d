@@ -40,6 +40,10 @@ config("bootanimation_config") {
     defines += [ "PLAYER_FRAMEWORK_ENABLE" ]
   }
 
+  if (graphic_2d_feature_bootanimation_ext_enable == "wearable") {
+    defines += [ "FEATURE_CHECK_EXIT_ANIMATION_EXT" ]
+  }
+
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
   }

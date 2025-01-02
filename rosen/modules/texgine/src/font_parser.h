@@ -29,13 +29,13 @@
 namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
-#define SIMPLIFIED_CHINESE "zh-hans"
-#define TRADITIONAL_CHINESE "zh-hant"
-#define ENGLISH "en-latn"
-#define LANGUAGE_SC 2052
-#define LANGUAGE_TC 1028
-#define LANGUAGE_EN 1033
-#define LANGUAGE_DEFAULT LANGUAGE_SC
+const std::string SIMPLIFIED_CHINESE = "zh-hans";
+const std::string TRADITIONAL_CHINESE = "zh-hant";
+const std::string ENGLISH = "en-latn";
+const unsigned int LANGUAGE_SC = 2052;
+const unsigned int LANGUAGE_TC = 1028;
+const unsigned int LANGUAGE_EN = 1033;
+const unsigned int LANGUAGE_DEFAULT = LANGUAGE_SC;
 
 class FontParser {
 public:
@@ -73,6 +73,7 @@ public:
         GENERIC = 1 << 1,
         STYLISH = 1 << 2,
         INSTALLED = 1 << 3,
+        CUSTOMIZED = 1 << 4
     };
 
     struct FontDescriptor {
@@ -99,10 +100,12 @@ public:
     std::unique_ptr<FontDescriptor> GetVisibilityFontByName(const std::string& fontName,
         const std::string locale = SIMPLIFIED_CHINESE);
     
-    std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = SIMPLIFIED_CHINESE);
-    bool ParserFontDescriptorFromPath(const std::string& path, const std::string& fullName,
-        std::vector<std::shared_ptr<FontDescriptor>>& descriptors,
-        const std::string locale = SIMPLIFIED_CHINESE);
+    std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
+    std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
+        const std::string& path, const std::string& locale = ENGLISH);
+    std::vector<std::shared_ptr<FontDescriptor>> CreateFontDescriptors(
+        const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces,
+        const std::string& locale = ENGLISH);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
@@ -134,7 +137,8 @@ private:
         }
     }
 #ifdef BUILD_NON_SDK_VER
-    static std::string ToUtf8(const std::string& gbkStr);
+    static std::string ConvertToString(const std::string& src, const std::string& srcType,
+        const std::string& targetType);
 #endif
 
     const char* data_;

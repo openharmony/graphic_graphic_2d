@@ -50,6 +50,7 @@ namespace Rosen {
 using DrawFunc = std::function<void(std::shared_ptr<Drawing::Canvas>)>;
 using PropertyCallback = std::function<void()>;
 using BoundsChangedCallback = std::function<void (const Rosen::Vector4f&)>;
+using ExportTypeChangedCallback = std::function<void(bool)>;
 class RSAnimation;
 class RSCommand;
 class RSImplicitAnimParam;
@@ -95,6 +96,7 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+    void SetIsCrossNode(bool isCrossNode);
 
     NodeId GetId() const
     {
@@ -203,6 +205,7 @@ public:
     void SetSandBox(std::optional<Vector2f> parentPosition);
 
     void SetPositionZ(float positionZ);
+    void SetPositionZApplicableCamera3D(bool isApplicable);
 
     void SetPivot(const Vector2f& pivot);
     void SetPivot(float pivotX, float pivotY);
@@ -231,24 +234,18 @@ public:
     void SetScale(const Vector2f& scale);
     void SetScaleX(float scaleX);
     void SetScaleY(float scaleY);
-    void SetScaleZ(const float& scaleZ);
 
     void SetSkew(float skew);
     void SetSkew(float skewX, float skewY);
-    void SetSkew(float skewX, float skewY, float skewZ);
-    void SetSkew(const Vector3f& skew);
+    void SetSkew(const Vector2f& skew);
     void SetSkewX(float skewX);
     void SetSkewY(float skewY);
-    void SetSkewZ(float skewZ);
 
     void SetPersp(float persp);
     void SetPersp(float perspX, float perspY);
-    void SetPersp(float perspX, float perspY, float perspZ, float perspW);
-    void SetPersp(const Vector4f& persp);
+    void SetPersp(const Vector2f& persp);
     void SetPerspX(float perspX);
     void SetPerspY(float perspY);
-    void SetPerspZ(float perspZ);
-    void SetPerspW(float perspW);
 
     void SetAlpha(float alpha);
     void SetAlphaOffscreen(bool alphaOffscreen);
@@ -345,6 +342,7 @@ public:
     void SetClipToBounds(bool clipToBounds);
     void SetClipToFrame(bool clipToFrame);
     void SetCustomClipToFrame(const Vector4f& clipRect);
+    void SetHDRBrightness(const float& hdrBrightness);
 
     void SetVisible(bool visible);
     void SetMask(const std::shared_ptr<RSMask>& mask);
@@ -405,9 +403,12 @@ public:
 
     // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
-
-    // Mark uifirst node
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer);
 
@@ -465,6 +466,12 @@ public:
         return isTextureExportNode_;
     }
 
+    size_t GetAnimationsCount() const
+    {
+        return animations_.size();
+    }
+    void SetExportTypeChangedCallback(ExportTypeChangedCallback callback);
+
     bool IsGeometryDirty() const;
     bool IsAppearanceDirty() const;
     void MarkDirty(NodeDirtyType type, bool isDirty);
@@ -503,6 +510,11 @@ protected:
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
+    ExportTypeChangedCallback exportTypeChangedCallback_ = nullptr;
+
+    // Used for same layer rendering, to determine whether RT or RS generates renderNode when the type of node switches
+    bool hasCreateRenderNodeInRT_ = false;
+    bool hasCreateRenderNodeInRS_ = false;
 
     bool drawContentLast_ = false;
 
@@ -536,7 +548,7 @@ private:
     std::vector<NodeId> children_;
     void SetParent(NodeId parent);
     void RemoveChildById(NodeId childId);
-    virtual void CreateTextureExportRenderNodeInRT() {};
+    virtual void CreateRenderNodeForTextureExportSwitch() {};
 
     void SetBackgroundBlurRadius(float radius);
     void SetBackgroundBlurSaturation(float saturation);
@@ -591,6 +603,9 @@ private:
     bool isSuggestOpincNode_ = false;
 
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
+    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
 
     RSModifierExtractor stagingPropertiesExtractor_;
     RSShowingPropertiesFreezer showingPropertiesFreezer_;

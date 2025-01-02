@@ -62,7 +62,14 @@ void CanvasFuzzTest009(const uint8_t* data, size_t size)
 
     OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreate();
     OH_Drawing_Font* font = OH_Drawing_FontCreate();
-    OH_Drawing_TextBlob* textBlob = OH_Drawing_TextBlobCreateFromString("fuzztest", font, TEXT_ENCODING_UTF8);
+    uint16_t textSize = GetObject<uint16_t>() % MAX_ARRAY_MAX + 1;
+    char* text = new char[textSize];
+    for (int i = 0; i < textSize; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[textSize - 1] = '\0';
+    OH_Drawing_TextBlob* textBlob = OH_Drawing_TextBlobCreateFromString(text, font,
+        GetObject<OH_Drawing_TextEncoding>());
 
     OH_Drawing_CanvasDrawTextBlob(canvas, textBlob, GetObject<float>(), GetObject<float>());
     OH_Drawing_CanvasDrawTextBlob(nullptr, textBlob, GetObject<float>(), GetObject<float>());
@@ -71,6 +78,10 @@ void CanvasFuzzTest009(const uint8_t* data, size_t size)
     OH_Drawing_CanvasDestroy(canvas);
     OH_Drawing_FontDestroy(font);
     OH_Drawing_TextBlobDestroy(textBlob);
+    if (text != nullptr) {
+        delete[] text;
+        text = nullptr;
+    }
 }
 
 void CanvasFuzzTest008(const uint8_t* data, size_t size)
@@ -339,7 +350,7 @@ void CanvasFuzzTest003(const uint8_t* data, size_t size)
     OH_Drawing_CanvasDrawRegion(nullptr, region);
     OH_Drawing_CanvasDrawRegion(canvas, nullptr);
 
-    uint32_t vertexCount = GetObject<uint32_t>() % MAX_ARRAY_MAX;
+    uint32_t vertexCount = GetObject<uint32_t>() % MAX_ARRAY_MAX + 1;
     OH_Drawing_Point2D* pts = new OH_Drawing_Point2D[vertexCount];
     for (size_t i = 0; i < vertexCount; i++) {
         pts[i] = {GetObject<float>(), GetObject<float>()};
@@ -352,7 +363,7 @@ void CanvasFuzzTest003(const uint8_t* data, size_t size)
     for (size_t i = 0; i < vertexCount; i++) {
         colors[i] = GetObject<uint32_t>();
     }
-    uint32_t indexCount = GetObject<uint32_t>() % MAX_ARRAY_MAX;
+    uint32_t indexCount = GetObject<uint32_t>() % MAX_ARRAY_MAX + 1;
     uint16_t* indices = new uint16_t[indexCount];
     for (size_t i = 0; i < indexCount; i++) {
         indices[i] = GetObject<uint16_t>();
@@ -466,7 +477,7 @@ void CanvasFuzzTest001(const uint8_t* data, size_t size)
     OH_Drawing_CanvasClear(canvas, GetObject<uint32_t>());
     OH_Drawing_CanvasClear(nullptr, GetObject<uint32_t>());
 
-    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_MAX;
+    uint32_t count = GetObject<uint32_t>() % MAX_ARRAY_MAX + 1;
     OH_Drawing_Point2D* pts = new OH_Drawing_Point2D[count];
     for (size_t i = 0; i < count; i++) {
         pts[i] = {GetObject<float>(), GetObject<float>()};

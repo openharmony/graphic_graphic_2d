@@ -264,7 +264,7 @@ HWTEST(RSBaseRenderEngineUnitTest, ConvertColorGamutToDrawingColorSpace, TestSiz
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_BT2020);
     ASSERT_NE(colorSpace, nullptr);
     colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
-    ASSERT_EQ(colorSpace, nullptr);
+    ASSERT_NE(colorSpace, nullptr);
 }
 
 /**
@@ -307,6 +307,22 @@ HWTEST(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
     std::shared_ptr<RSPaintFilterCanvas> canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     ASSERT_NE(canvas, nullptr);
     EXPECT_EQ(RSBaseRenderEngine::GetCanvasColorSpace(canvas.get()), nullptr);
+}
+
+/**
+ * @tc.name: CreateImageFromBuffer
+ * @tc.desc: Test CreateImageFromBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSBaseRenderEngineUnitTest, CreateImageFromBuffer, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvase(&canvas);
+    BufferDrawParam params;
+    VideoInfo videoInfo;
+    EXPECT_EQ(renderEngine->CreateImageFromBuffer(paintCanvase, params, videoInfo), nullptr);
 }
 #endif
 }

@@ -168,7 +168,7 @@ public:
         return uiFrameworkTypeTable_;
     }
 
-    void UpdateUiFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
+    void UpdateUIFrameworkDirtyNodes(std::weak_ptr<RSRenderNode> uiFwkDirtyNode)
     {
         uiFrameworkDirtyNodes_.emplace_back(uiFwkDirtyNode);
     }
@@ -190,6 +190,11 @@ public:
 
     // save some need sync finish to client animations in list
     void AddSyncFinishAnimationList(NodeId nodeId, AnimationId animationId);
+
+    void AddSubSurfaceCntUpdateInfo(SubSurfaceCntUpdateInfo info)
+    {
+        subSurfaceCntUpdateInfo_.emplace_back(info);
+    }
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
@@ -219,10 +224,13 @@ private:
     std::mutex activeNodesInRootMutex_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
+    std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;
 
     friend class RSRenderThread;
     friend class RSMainThread;
+#ifdef RS_ENABLE_GPU
     friend class RSDrawFrame;
+#endif
     friend class RSSurfaceCaptureTaskParallel;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

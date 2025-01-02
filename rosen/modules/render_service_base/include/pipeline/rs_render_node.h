@@ -89,6 +89,8 @@ public:
     virtual void SetBootAnimation(bool isBootAnimation);
     virtual bool GetBootAnimation() const;
 
+    virtual bool GetGlobalPositionEnabled() const;
+
     void MoveChild(SharedPtr child, int index);
     void RemoveChild(SharedPtr child, bool skipTransition = false);
     void ClearChildren();
@@ -97,6 +99,7 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
     void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
+    void SetIsCrossNode(bool isCrossNode);
 
     virtual void CollectSurface(const std::shared_ptr<RSRenderNode>& node,
                                 std::vector<RSRenderNode::SharedPtr>& vec,
@@ -159,10 +162,11 @@ public:
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID);
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID);
     void SetIsOntheTreeOnlyFlag(bool flag)
     {
-        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
+            uifirstRootNodeId_, displayNodeId_);
     }
     inline bool IsOnTheTree() const
     {
@@ -468,6 +472,7 @@ public:
         curFrameHasAnimation_ = b;
     }
 
+    float GetHDRBrightness() const;
     bool HasFilter() const;
     void SetHasFilter(bool hasFilter);
     bool GetCommandExecuted() const
@@ -536,9 +541,12 @@ public:
     virtual void UpdateFilterCacheWithSelfDirty();
     bool IsBackgroundInAppOrNodeSelfDirty() const;
     void PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
+#ifdef RS_ENABLE_GPU
     void CheckFilterCacheAndUpdateDirtySlots(
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
+#endif
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
 
@@ -562,6 +570,9 @@ public:
 
     void MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer, pid_t pid = 0);
     virtual bool GetNodeIsSingleFrameComposer() const;
+
+    // mark cross node in physical extended screen model
+    bool IsCrossNode() const;
 
     // mark stable node
     void OpincSetInAppStateStart(bool& unchangeMarkInApp);
@@ -619,9 +630,9 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
-    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
@@ -667,13 +678,13 @@ public:
     {
         return;
     }
-
+#ifdef RS_ENABLE_GPU
     std::unique_ptr<RSRenderParams>& GetStagingRenderParams();
 
     // Deprecated! Do not use this interface.
     // This interface has crash risks and will be deleted in later versions.
     const std::unique_ptr<RSRenderParams>& GetRenderParams() const;
-
+#endif
     void UpdatePointLightDirtySlot();
     void AccmulateDirtyInOcclusion(bool isOccluded);
     void RecordCurDirtyStatus();
@@ -724,8 +735,14 @@ public:
         return context_;
     }
 
-    // arkui mark uifirst
+    // will be abandoned
     void MarkUifirstNode(bool isUifirstNode);
+    // Mark uifirst leash node
+    void MarkUifirstNode(bool isForceFlag, bool isUifirstEnable);
+    bool GetUifirstNodeForceFlag() const;
+
+    void SetUIFirstSwitch(RSUIFirstSwitch uiFirstSwitch);
+    RSUIFirstSwitch GetUIFirstSwitch() const;
 
     void SetOccludedStatus(bool occluded);
     const RectI GetFilterCachedRegion() const;
@@ -760,23 +777,31 @@ public:
 
     virtual RSSurfaceNodeAbilityState GetAbilityState() const { return RSSurfaceNodeAbilityState::FOREGROUND; }
 
-    int32_t GetCurDisplayOffsetX() const
+    int32_t GetPreparedDisplayOffsetX() const
     {
-        return curDisplayOffsetX_;
+        return preparedDisplayOffsetX_;
     }
-    void SetCurDisplayOffsetX(int32_t offsetX)
+    void SetPreparedDisplayOffsetX(int32_t offsetX)
     {
-        curDisplayOffsetX_ = offsetX;
+        preparedDisplayOffsetX_ = offsetX;
     }
-    int32_t GetCurDisplayOffsetY() const
+    int32_t GetPreparedDisplayOffsetY() const
     {
-        return curDisplayOffsetY_;
+        return preparedDisplayOffsetY_;
     }
-    void SetCurDisplayOffsetY(int32_t offsetY)
+    void SetPreparedDisplayOffsetY(int32_t offsetY)
     {
-        curDisplayOffsetY_ = offsetY;
+        preparedDisplayOffsetY_ = offsetY;
     }
-
+    bool IsFirstLevelCrossNode() const
+    {
+        return isFirstLevelCrossNode_;
+    }
+    void SetFirstLevelCrossNode(bool isFirstLevelCrossNode)
+    {
+        isFirstLevelCrossNode_ = isFirstLevelCrossNode;
+    }
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
     {
@@ -788,11 +813,22 @@ public:
         return isAccessibilityConfigChanged_;
     }
 
+    NodeId GetDisplayNodeId() const
+    {
+        return displayNodeId_;
+    }
+
+    // recursive update subSurfaceCnt
+    void UpdateSubSurfaceCnt(int updateCnt);
+
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
+    void UpdateDrawableBehindWindow();
+    virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
     virtual void RemoveChildBlurBehindWindow(NodeId id) {}
+    virtual void CalDrawBehindWindowRegion() {}
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -815,8 +851,7 @@ protected:
     void DumpModifiers(std::string& out) const;
 
     virtual void OnTreeStateChanged();
-    // recursive update subSurfaceCnt
-    void UpdateSubSurfaceCnt(SharedPtr curParent, SharedPtr preParent);
+    void AddSubSurfaceUpdateInfo(SharedPtr curParent, SharedPtr preParent);
 
     static void SendCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId);
     void AddGeometryModifier(const std::shared_ptr<RSRenderModifier>& modifier);
@@ -855,17 +890,20 @@ protected:
     {
         renderContent_->DrawPropertyDrawableRange(begin, end, canvas);
     }
-
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
-
+#endif
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     mutable bool isFullChildrenListValid_ = true;
     bool isOnTheTree_ = false;
     bool isChildSupportUifirst_ = true;
     bool isUifirstNode_ = true;
+    bool isForceFlag_ = false;
+    bool isUifirstEnable_ = false;
+    RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
     NodeDirty curDirtyStatus_ = NodeDirty::CLEAN;
     ModifierDirtyTypes dirtyTypes_;
@@ -878,11 +916,15 @@ protected:
     bool childHasSharedTransition_ = false;
     bool flagIntersectWithDRM_ = false;
 private:
+    // mark cross node in physical extended screen model
+    bool isCrossNode_ = false;
+    int32_t crossScreenNum_ = 0;
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
-    int32_t curDisplayOffsetX_ = 0;
-    int32_t curDisplayOffsetY_ = 0;
+    int32_t preparedDisplayOffsetX_ = 0;
+    int32_t preparedDisplayOffsetY_ = 0;
+    bool isFirstLevelCrossNode_ = false;
     bool isChildrenSorted_ = true;
     bool childrenHasSharedTransition_ = false;
     uint8_t nodeGroupType_ = NodeGroupType::NONE;
@@ -1002,7 +1044,9 @@ private:
     bool drawingCacheNeedUpdate_ = false;
     std::atomic<bool> commandExecuted_ = false;
     // collect subtree's surfaceNode including itself
-    uint32_t subSurfaceCnt_ = 0;
+    int subSurfaceCnt_ = 0;
+    bool selfAddForSubSurfaceCnt_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;
@@ -1049,6 +1093,7 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    NodeId displayNodeId_ = INVALID_NODEID;
     // for blur effct count
     static std::unordered_map<pid_t, size_t> blurEffectCounter_;
     void UpdateBlurEffectCounter(int deltaCount);
@@ -1107,7 +1152,7 @@ private:
     friend class RSAliasDrawable;
     friend class RSContext;
     friend class RSMainThread;
-    friend class RSPointerDrawingManager;
+    friend class RSPointerWindowManager;
     friend class RSModifierDrawable;
     friend class RSProxyRenderNode;
     friend class RSRenderNodeMap;

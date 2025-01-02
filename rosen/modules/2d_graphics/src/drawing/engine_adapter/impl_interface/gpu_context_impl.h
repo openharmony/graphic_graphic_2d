@@ -59,6 +59,8 @@ public:
 
     virtual void DumpGpuStats(std::string& out) = 0;
 
+    virtual void DumpAllResource(std::stringstream& dump) = 0;
+
     virtual void ReleaseResourcesAndAbandonContext() = 0;
 
     virtual void PurgeUnlockedResources(bool scratchResourcesOnly) = 0;
@@ -100,7 +102,7 @@ public:
 
     virtual void SetGpuCacheSuppressWindowSwitch(bool enabled) = 0;
 
-    virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled) = 0;
+    virtual void SetGpuMemoryAsyncReclaimerSwitch(bool enabled, const std::function<void()>& setThreadPriority) = 0;
 
     virtual void FlushGpuMemoryInWaitQueue() = 0;
     

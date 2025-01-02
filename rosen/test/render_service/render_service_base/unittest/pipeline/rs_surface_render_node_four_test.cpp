@@ -531,23 +531,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetAbilityState, TestSize.Level2)
 }
 
 /**
- * @tc.name: QuickPrepareTest001
- * @tc.desc: QuickPrepareTest
- * @tc.type: FUNC
- * @tc.require: issueIB0UQV
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, QuickPrepareTest001, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderThreadVisitor> visitor = std::make_shared<RSRenderThreadVisitor>();
-    ASSERT_NE(visitor, nullptr);
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->childrenBlurBehindWindow_.emplace(id + 1);
-    node->QuickPrepare(visitor);
-    ASSERT_TRUE(node->oldHasChildrenBlurBehindWindow_);
-}
-
-/**
  * @tc.name: ChildrenBlurBehindWindowTest
  * @tc.desc: Test ChildrenBlurBehindWindow and NeedUpdateDrawableBehindWindow
  * @tc.type: FUNC
@@ -562,7 +545,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Lev
     node->AddChildBlurBehindWindow(idOne);
     ASSERT_TRUE(!node->childrenBlurBehindWindow_.empty());
     ASSERT_TRUE(node->NeedUpdateDrawableBehindWindow());
-    ASSERT_TRUE(node->GetMutableRenderProperties().GetNeedDrawBehindWindow());
     ASSERT_TRUE(node->NeedDrawBehindWindow());
     node->RemoveChildBlurBehindWindow(idTwo);
     ASSERT_TRUE(node->NeedDrawBehindWindow());

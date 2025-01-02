@@ -248,6 +248,7 @@ HWTEST_F(RSNodeTest, SetPaintOrder001, TestSize.Level1)
      * @tc.steps: step1. create RSNode and RSUIDirector
      */
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetPaintOrder(true);
 }
 
@@ -789,6 +790,7 @@ HWTEST_F(RSNodeTest, SetandGetOutlineRadius005, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetRotationThree001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetRotation(floatData[1], floatData[2], floatData[3]);
 }
 
@@ -971,6 +973,7 @@ HWTEST_F(RSNodeTest, SetandGetRotationY005, TestSize.Level1)
     rsNode->SetRotationY(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetRotationY(), floatData[0]));
 }
+
 
 /**
  * @tc.name: SetandGetScaleX001
@@ -1158,67 +1161,6 @@ HWTEST_F(RSNodeTest, SetandGetScaleY005, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetandGetScaleZ001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetScaleZ001, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetScaleZ(floatData[1]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetScaleZ(), floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetScaleZ002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetScaleZ002, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetScaleZ(floatData[2]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetScaleZ(), floatData[2]));
-}
-
-/**
- * @tc.name: SetandGetScaleZ003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetScaleZ003, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetScaleZ(floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetScaleZ(), floatData[3]));
-}
-
-/**
- * @tc.name: SetandGetScaleZ004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetScaleZ004, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetScaleZ(floatData[4]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetScaleZ(), floatData[4]));
-}
-
-/**
- * @tc.name: SetandGetScaleZ005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetScaleZ005, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->SetScaleZ(floatData[0]);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetScaleZ(), floatData[0]));
-}
-
-
-/**
  * @tc.name: SetandGetSkew001
  * @tc.desc:
  * @tc.type:FUNC
@@ -1281,34 +1223,6 @@ HWTEST_F(RSNodeTest, SetandGetSkew0005, TestSize.Level1)
     canvasNode->SetSkew(floatData[2], floatData[1]);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().x_, floatData[2]));
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().y_, floatData[1]));
-}
-
-/**
- * @tc.name: SetandGetSkew006
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetSkew006, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetSkew(floatData[1], floatData[2], floatData[3]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().x_, floatData[1]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().y_, floatData[2]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().z_, floatData[3]));
-}
-
-/**
- * @tc.name: SetandGetSkew007
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetSkew007, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetSkew(Vector3f(floatData[1], floatData[2], floatData[3]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().x_, floatData[1]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().y_, floatData[2]));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().z_, floatData[3]));
 }
 
 /**
@@ -1432,20 +1346,6 @@ HWTEST_F(RSNodeTest, SetandGetSkewY005, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetandGetSkewZ
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetSkewZ, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetSkewZ(floatData[0]);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().z_, floatData[0]));
-    canvasNode->SetSkewZ(floatData[4]); // 4 for coverage
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetSkew().z_, floatData[4]));
-}
-
-/**
  * @tc.name: SetandGetPersp001
  * @tc.desc:
  * @tc.type:FUNC
@@ -1508,36 +1408,6 @@ HWTEST_F(RSNodeTest, SetandGetPersp0005, TestSize.Level1)
     canvasNode->SetPersp(FLOAT_DATA_NEGATIVE, FLOAT_DATA_POSITIVE);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPersp0006
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp0006, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(FLOAT_DATA_NEGATIVE, FLOAT_DATA_POSITIVE, FLOAT_DATA_MAX, FLOAT_DATA_ZERO);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_MAX));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_ZERO));
-}
-
-/**
- * @tc.name: SetandGetPersp0007
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPersp0007, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPersp(Vector4f(FLOAT_DATA_NEGATIVE, FLOAT_DATA_POSITIVE, FLOAT_DATA_MAX, FLOAT_DATA_ZERO));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().x_, FLOAT_DATA_NEGATIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_POSITIVE));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_MAX));
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_ZERO));
 }
 
 /**
@@ -1658,130 +1528,6 @@ HWTEST_F(RSNodeTest, SetandGetPerspY005, TestSize.Level1)
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     canvasNode->SetPerspY(FLOAT_DATA_ZERO);
     EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().y_, FLOAT_DATA_ZERO));
-}
-
-/**
- * @tc.name: SetandGetPerspZ001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspZ001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspZ(FLOAT_DATA_POSITIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspZ002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspZ002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspZ(FLOAT_DATA_NEGATIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_NEGATIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspZ003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspZ003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspZ(FLOAT_DATA_MAX);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_MAX));
-}
-
-/**
- * @tc.name: SetandGetPerspZ004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspZ004, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspZ(FLOAT_DATA_MIN);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_MIN));
-}
-
-/**
- * @tc.name: SetandGetPerspZ005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspZ005, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspZ(FLOAT_DATA_ZERO);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_ZERO));
-    canvasNode->SetPerspZ(FLOAT_DATA_MIN);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().z_, FLOAT_DATA_MIN));
-}
-
-/**
- * @tc.name: SetandGetPerspW001
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspW001, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspW(FLOAT_DATA_POSITIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_POSITIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspW002
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspW002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspW(FLOAT_DATA_NEGATIVE);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_NEGATIVE));
-}
-
-/**
- * @tc.name: SetandGetPerspW003
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspW003, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspW(FLOAT_DATA_MAX);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_MAX));
-}
-
-/**
- * @tc.name: SetandGetPerspW004
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspW004, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspW(FLOAT_DATA_MIN);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_MIN));
-}
-
-/**
- * @tc.name: SetandGetPerspW005
- * @tc.desc:
- * @tc.type:FUNC
- */
-HWTEST_F(RSNodeTest, SetandGetPerspW005, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    canvasNode->SetPerspW(FLOAT_DATA_ZERO);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_ZERO));
-    canvasNode->SetPerspW(FLOAT_DATA_MIN);
-    EXPECT_TRUE(ROSEN_EQ(canvasNode->GetStagingProperties().GetPersp().w_, FLOAT_DATA_MIN));
 }
 
 /**
@@ -4027,6 +3773,7 @@ HWTEST_F(RSNodeTest, SetandGetOutlineColor003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetRotationVector001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector4f quaternion(std::numeric_limits<float>::min(), 2.f, 3.f, 4.f);
     rsNode->SetRotation(quaternion);
 }
@@ -4123,6 +3870,7 @@ HWTEST_F(RSNodeTest, SetVisualEffect, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetTranslateVector001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector2f quaternion(std::numeric_limits<float>::max(), 2.f);
     rsNode->SetTranslate(quaternion);
 }
@@ -4334,6 +4082,7 @@ HWTEST_F(RSNodeTest, SetandGetClipBounds001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetId001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetId();
 }
 
@@ -4345,6 +4094,7 @@ HWTEST_F(RSNodeTest, GetId001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetChildren001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto c = rsNode->GetChildren();
 }
 
@@ -4356,6 +4106,7 @@ HWTEST_F(RSNodeTest, GetChildren001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetChildren002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     const auto c = rsNode->GetChildren();
 }
 
@@ -4367,6 +4118,7 @@ HWTEST_F(RSNodeTest, GetChildren002, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetStagingProperties001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetStagingProperties();
 }
 
@@ -4378,6 +4130,7 @@ HWTEST_F(RSNodeTest, GetStagingProperties001, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetMotionPathOption002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetMotionPathOption();
 }
 
@@ -4389,6 +4142,7 @@ HWTEST_F(RSNodeTest, GetMotionPathOption002, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetBgImage001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto image = std::make_shared<RSImage>();
     rsNode->SetBgImage(image);
 }
@@ -4401,6 +4155,7 @@ HWTEST_F(RSNodeTest, SetBgImage001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto shader = RSShader::CreateRSShader();
     rsNode->SetBackgroundShader(shader);
 }
@@ -4413,6 +4168,7 @@ HWTEST_F(RSNodeTest, SetBackgroundShader001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector2f greyCoef = { 0.5, 0.5 };
     rsNode->SetGreyCoef(greyCoef);
 }
@@ -4425,6 +4181,7 @@ HWTEST_F(RSNodeTest, SetGreyCoef001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetAiInvertTest, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
+    ASSERT_NE(rootNode, nullptr);
     auto value = Vector4f(10.f);
     rootNode->SetAiInvert(value);
 }
@@ -4528,6 +4285,7 @@ HWTEST_F(RSNodeTest, SetandGetForegroundEffectRadius001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto compositingFilter = RSFilter::CreateBlurFilter(0.0f, 0.0f);
     rsNode->SetCompositingFilter(compositingFilter);
 }
@@ -4540,6 +4298,7 @@ HWTEST_F(RSNodeTest, SetCompositingFilter001, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetShadowPath001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     auto shadowpath = RSPath::CreateRSPath();
     rsNode->SetShadowPath(shadowpath);
 }
@@ -4565,6 +4324,9 @@ void SetPropertyTest(RSModifierType modifierType, T value1, T value2)
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value1);
     node->SetProperty<ModifierName, PropertyName, T>(modifierType, value2);
+
+    auto iter = node->propertyModifiers_.find(modifierType);
+    ASSERT_TRUE(iter != node->propertyModifiers_.end());
 };
 
 /**
@@ -4602,13 +4364,11 @@ HWTEST_F(RSNodeTest, SetProperty001, TestSize.Level1)
         RSModifierType::TRANSLATE_Z, 45.f, 90.f);
     SetPropertyTest<RSScaleModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
         RSModifierType::SCALE, Vector2f(0.f, 0.f), Vector2f(1.f, 1.f));
-    SetPropertyTest<RSScaleZModifier, RSAnimatableProperty<float>, float>(
-        RSModifierType::SCALE_Z, 5.f, 4.5);
-    SetPropertyTest<RSSkewModifier, RSAnimatableProperty<Vector3f>, Vector3f>(
-        RSModifierType::SKEW, Vector3f(1.f, 1.f, 1.f), Vector3f(-1.f, -1.f, -1.f));
-    SetPropertyTest<RSPerspModifier, RSAnimatableProperty<Vector4f>, Vector4f>(
-        RSModifierType::PERSP, Vector4f(FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT),
-        Vector4f(FLOAT_DATA_UPDATE, FLOAT_DATA_UPDATE, FLOAT_DATA_UPDATE, FLOAT_DATA_UPDATE));
+    SetPropertyTest<RSSkewModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
+        RSModifierType::SKEW, Vector2f(1.f, 1.f), Vector2f(-1.f, -1.f));
+    SetPropertyTest<RSPerspModifier, RSAnimatableProperty<Vector2f>, Vector2f>(
+        RSModifierType::PERSP, Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT),
+        Vector2f(FLOAT_DATA_UPDATE, FLOAT_DATA_UPDATE));
     SetPropertyTest<RSForegroundColorModifier, RSAnimatableProperty<Color>, Color>(
         RSModifierType::FOREGROUND_COLOR, Color(), Color(0xFF00FF00));
     SetPropertyTest<RSBackgroundColorModifier, RSAnimatableProperty<Color>, Color>(
@@ -4731,17 +4491,8 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
         node->RemoveModifier(modifier);
     }
     {
-        auto value = 2.f;
-        auto prop = std::make_shared<RSAnimatableProperty<float>>(value);
-        auto modifier = std::make_shared<RSScaleZModifier>(prop);
-        node->AddModifier(modifier);
-        ASSERT_TRUE(node != nullptr);
-        ASSERT_EQ(node->GetStagingProperties().GetScaleZ(), value);
-        node->RemoveModifier(modifier);
-    }
-    {
-        auto value = Vector3f(2.f, 2.f, 2.f);
-        auto prop = std::make_shared<RSAnimatableProperty<Vector3f>>(value);
+        auto value = Vector2f(2.f, 2.f);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
         auto modifier = std::make_shared<RSSkewModifier>(prop);
         node->AddModifier(modifier);
         ASSERT_TRUE(node != nullptr);
@@ -4749,8 +4500,8 @@ HWTEST_F(RSNodeTest, SetModifier002, TestSize.Level1)
         node->RemoveModifier(modifier);
     }
     {
-        auto value = Vector4f(FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT, FLOAT_DATA_INIT);
-        auto prop = std::make_shared<RSAnimatableProperty<Vector4f>>(value);
+        auto value = Vector2f(FLOAT_DATA_INIT, FLOAT_DATA_INIT);
+        auto prop = std::make_shared<RSAnimatableProperty<Vector2f>>(value);
         auto modifier = std::make_shared<RSPerspModifier>(prop);
         node->AddModifier(modifier);
         ASSERT_TRUE(node != nullptr);
@@ -4883,6 +4634,7 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetColorBlendMode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSColorBlendMode blendModeType = RSColorBlendMode::NONE;
     rsNode->SetColorBlendMode(blendModeType);
     blendModeType = RSColorBlendMode::DST_IN;
@@ -5102,6 +4854,7 @@ HWTEST_F(RSNodeTest, GetFrameNodeTag, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
     rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
@@ -5117,6 +4870,7 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
     rsNode->AddDurationKeyFrame(1, timingCurve, propertyCallback);
@@ -5284,6 +5038,7 @@ HWTEST_F(RSNodeTest, CancelAnimationByProperty, TestSize.Level1)
 HWTEST_F(RSNodeTest, GetShowingProperties, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->GetShowingProperties();
 }
 
@@ -5483,6 +5238,7 @@ HWTEST_F(RSNodeTest, SetPivotZ, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetCornerRadius, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     Vector4f cornerRadius = { 1.f, 1.f, 1.f, 1.f }; // for test
     rsNode->SetCornerRadius(cornerRadius);
 }
@@ -5499,6 +5255,20 @@ HWTEST_F(RSNodeTest, SetCameraDistance, TestSize.Level1)
     float cameraDistance = 1.f; // for test
     rsNode->SetCameraDistance(cameraDistance);
     EXPECT_EQ(cameraDistance, 1.f);
+}
+
+/**
+ * @tc.name: SetHDRBrightness
+ * @tc.desc: test results of SetHDRBrightness
+ * @tc.type: FUNC
+ * @tc.require: issueI9KAZH
+ */
+HWTEST_F(RSNodeTest, SetHDRBrightness, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    float hdrBrightness = 0.5f; // for test
+    rsNode->SetHDRBrightness(hdrBrightness);
+    EXPECT_EQ(hdrBrightness, 0.5f);
 }
 
 /**
@@ -6103,6 +5873,7 @@ HWTEST_F(RSNodeTest, SetUseEffect, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetUseEffectType, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetUseEffectType(UseEffectType::EFFECT_COMPONENT);
     rsNode->SetUseEffectType(UseEffectType::BEHIND_WINDOW);
 }
@@ -7045,6 +6816,7 @@ HWTEST_F(RSNodeTest, SetAiInvert, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetSystemBarEffect, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->SetSystemBarEffect();
 }
 
@@ -7124,6 +6896,7 @@ HWTEST_F(RSNodeTest, GenerateId, TestSize.Level1)
 HWTEST_F(RSNodeTest, InitUniRenderEnabled, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
+    ASSERT_NE(rsNode, nullptr);
     rsNode->InitUniRenderEnabled();
 }
 

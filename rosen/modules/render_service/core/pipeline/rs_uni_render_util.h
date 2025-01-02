@@ -47,7 +47,7 @@ public:
         RSDisplayRenderParams& params, bool useAlignedDirtyRegion = false);
     static void SetAllSurfaceDrawableGlobalDityRegion(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allSurfaceDrawables,
-        const RectI& globalDirtyRegion);
+        const Occlusion::Region& globalDirtyRegion);
     /* we want to set visible dirty region of each surfacenode into DamageRegionKHR interface, hence
      * occlusion is calculated.
      * make sure this function is called after merge dirty history
@@ -88,7 +88,7 @@ public:
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
-    static bool Is3DRotation(Drawing::Matrix matrix);
+    static bool HasNonZRotationTransform(Drawing::Matrix matrix);
 
     static void AssignWindowNodes(const std::shared_ptr<RSDisplayRenderNode>& displayNode,
         std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
@@ -110,8 +110,9 @@ public:
         VkFormat format = VK_FORMAT_R8G8B8A8_UNORM);
 #endif
     static void UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& absRect);
-    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
-    static void DealWithScalingMode(RSSurfaceRenderNode& node);
+    static void DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo,
+        const Drawing::Matrix& totalMatrix);
+    static void DealWithScalingMode(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node);
     static void LayerRotate(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
@@ -130,6 +131,8 @@ public:
     static void TraverseAndCollectUIExtensionInfo(std::shared_ptr<RSRenderNode> node,
         Drawing::Matrix parentMatrix, NodeId hostId, UIExtensionCallbackData& callbackData);
     static void ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed);
+    static void ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
+        const Drawing::Rect& src, const Drawing::Rect& dst);
     static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
     template<typename... Callbacks>
     static void TraverseParentNodeAndReduce(std::shared_ptr<RSSurfaceRenderNode> hwcNode, Callbacks&&... callbacks)
@@ -151,8 +154,12 @@ public:
     // RTthread needs to draw one more frame when screen is turned off. For other threads, use extraframe default value.
     static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
-
+    static void MultiLayersPerf(size_t layerNum);
+    static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node);
+    static RectI CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
+        const GraphicTransformType consumerTransformType, RectI newSrcRect);
 private:
+    static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
     static void AssignMainThreadNode(std::list<std::shared_ptr<RSSurfaceRenderNode>>& mainThreadNodes,
         const std::shared_ptr<RSSurfaceRenderNode>& node);
@@ -163,6 +170,8 @@ private:
     static void PostReleaseSurfaceTask(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);
     static GraphicTransformType GetRotateTransformForRotationFixed(RSSurfaceRenderNode& node,
         sptr<IConsumerSurface> consumer);
+    static bool FrameAwareTraceBoost(size_t layerNum);
+    static void RequestPerf(uint32_t layerLevel, bool onOffTag);
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
 };

@@ -17,7 +17,7 @@
 
 namespace OHOS {
 namespace Rosen {
-void ShaderCacheUtils::SetPreloadCacheDir(std::string dir)
+void ShaderCacheUtils::SetPreloadCacheDir(const std::string dir)
 {
     ShaderCacheUtils::preloadShaderCacheDir_ = dir;
 }

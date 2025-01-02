@@ -267,6 +267,7 @@ HWTEST_F(RSBaseRenderTest, RemoveCrossParentChildTest001, TestSize.Level1)
     std::shared_ptr<RSBaseRenderNode> child = nullptr;
     std::weak_ptr<RSBaseRenderNode> newParent;
     node->RemoveCrossParentChild(child, newParent);
+    EXPECT_NE(node, nullptr);
 }
 
 /**
@@ -280,6 +281,7 @@ HWTEST_F(RSBaseRenderTest, RemoveFromTreeTest, TestSize.Level1)
     bool skipTransition = false;
     bool skipTransition_ = true;
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    EXPECT_NE(node, nullptr);
     node->RemoveFromTree(skipTransition);
     node->RemoveFromTree(skipTransition_);
 }
@@ -988,4 +990,326 @@ HWTEST_F(RSBaseRenderTest, RemoveSubSurfaceNode, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 
+/**
+ * @tc.name: FallbackAnimationsToRoot
+ * @tc.desc: test results of FallbackAnimationsToRoot
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderTest, FallbackAnimationsToRoot, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->FallbackAnimationsToRoot();
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: ActivateDisplaySync
+ * @tc.desc: test results of ActivateDisplaySync
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderTest, ActivateDisplaySync, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->ActivateDisplaySync();
+    node->ActivateDisplaySync();
+    ASSERT_NE(node->displaySync_, nullptr);
+}
+
+/**
+ * @tc.name: UpdateDisplaySyncRange
+ * @tc.desc: test results of UpdateDisplaySyncRange
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderTest, UpdateDisplaySyncRange, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->UpdateDisplaySyncRange();
+
+    node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node->UpdateDisplaySyncRange();
+    ASSERT_NE(node->displaySync_, nullptr);
+}
+
+/**
+ * @tc.name: Animate
+ * @tc.desc: test results of Animate
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderTest, Animate, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    int64_t timestamp = 4;
+    int64_t period = 2;
+    bool isDisplaySyncEnabled = true;
+    node->Animate(timestamp, period, isDisplaySyncEnabled);
+
+    node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node->Animate(timestamp, period, isDisplaySyncEnabled);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: Update
+ * @tc.desc: test results of Update
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderTest, Update, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    RSDirtyRegionManager dirtyManager;
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(id + 1);
+    bool parentDirty = true;
+    std::optional<RectI> clipRect;
+    node->Update(dirtyManager, parent, parentDirty, clipRect);
+
+    node->shouldPaint_ = false;
+    node->isLastVisible_ = true;
+    ASSERT_TRUE(node->Update(dirtyManager, parent, parentDirty, clipRect));
+}
+
+/**
+ * @tc.name: UpdateBufferDirtyRegion
+ * @tc.desc: test results of UpdateBufferDirtyRegion
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderTest, UpdateBufferDirtyRegion, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    RectI dirtyRect(1, 1, 1, 1);
+    RectI drawRegion;
+    node->UpdateBufferDirtyRegion(dirtyRect, drawRegion);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegion
+ * @tc.desc: test results of UpdateDirtyRegion
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, UpdateDirtyRegion, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    RSDirtyRegionManager dirtyManager;
+    bool geoDirty = false;
+    std::optional<RectI> clipRect;
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->UpdateDirtyRegion(dirtyManager, geoDirty, clipRect);
+
+    geoDirty = true;
+    node->UpdateDirtyRegion(dirtyManager, geoDirty, clipRect);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: IsSelfDrawingNode
+ * @tc.desc: test results of IsSelfDrawingNode
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsSelfDrawingNode, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->IsSelfDrawingNode());
+}
+
+/**
+ * @tc.name: IsDirty
+ * @tc.desc: test results of IsDirty
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsDirty, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->IsDirty());
+}
+
+/**
+ * @tc.name: IsContentDirty
+ * @tc.desc: test results of IsContentDirty
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, IsContentDirty, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    ASSERT_FALSE(node->IsContentDirty());
+}
+
+/**
+ * @tc.name: UpdateRenderStatus
+ * @tc.desc: test results of UpdateRenderStatus
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, UpdateRenderStatus, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    RectI dirtyRegion(1, 1, 1, 1);
+    bool isPartialRenderEnabled = false;
+    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
+
+    isPartialRenderEnabled = true;
+    node->UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
+    ASSERT_TRUE(node->isRenderUpdateIgnored_);
+}
+
+/**
+ * @tc.name: UpdateParentChildrenRect
+ * @tc.desc: test results of UpdateParentChildrenRect
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, UpdateParentChildrenRect, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    std::shared_ptr<RSRenderNode> parentNode;
+    node->UpdateParentChildrenRect(parentNode);
+
+    parentNode = std::make_shared<RSRenderNode>(id + 1);
+    node->UpdateParentChildrenRect(parentNode);
+
+    node->shouldPaint_ = false;
+    node->UpdateParentChildrenRect(parentNode);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RenderTraceDebug
+ * @tc.desc: test results of RenderTraceDebug
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, RenderTraceDebug, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->RenderTraceDebug();
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: AddModifier
+ * @tc.desc: test results of AddModifier
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, AddModifier, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    std::shared_ptr<RSRenderModifier> modifier;
+    bool isSingleFrameComposer = true;
+    node->AddModifier(modifier, isSingleFrameComposer);
+
+    Drawing::Matrix matrix;
+    PropertyId id = 1;
+    std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
+        std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
+    std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
+        std::make_shared<RSGeometryTransRenderModifier>(property);
+    std::shared_ptr<RSRenderModifier> modifierTwo = modifierCast;
+    node->AddModifier(modifierTwo, isSingleFrameComposer);
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: AddGeometryModifier
+ * @tc.desc: test results of AddGeometryModifier
+ * @tc.type:FUNC
+ * @tc.require: issueI9KBCZ
+ */
+HWTEST_F(RSBaseRenderNodeTest, AddGeometryModifier, TestSize.Level1)
+{
+    {
+        auto node = std::make_shared<RSBaseRenderNode>(id, context);
+        Drawing::Matrix matrix;
+        PropertyId id = 1;
+        std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
+            std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
+        std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
+            std::make_shared<RSGeometryTransRenderModifier>(property);
+        std::shared_ptr<RSRenderModifier> modifier = modifierCast;
+        node->AddGeometryModifier(modifier);
+
+        modifierCast->drawStyle_ = RSModifierType::BOUNDS;
+        node->AddGeometryModifier(modifier);
+
+        node->boundsModifier_ = modifier;
+        node->AddGeometryModifier(modifier);
+        ASSERT_NE(node->boundsModifier_, nullptr);
+    }
+
+    {
+        auto node = std::make_shared<RSBaseRenderNode>(id, context);
+        Drawing::Matrix matrix;
+        PropertyId id = 1;
+        std::shared_ptr<RSRenderProperty<Drawing::Matrix>> property =
+            std::make_shared<RSRenderProperty<Drawing::Matrix>>(matrix, id);
+        std::shared_ptr<RSGeometryTransRenderModifier> modifierCast =
+            std::make_shared<RSGeometryTransRenderModifier>(property);
+        modifierCast->drawStyle_ = RSModifierType::FRAME;
+        std::shared_ptr<RSRenderModifier> modifier = modifierCast;
+        node->AddGeometryModifier(modifier);
+
+        node->frameModifier_ = modifier;
+        node->AddGeometryModifier(modifier);
+        ASSERT_NE(node->frameModifier_, nullptr);
+    }
+}
+
+/**
+ * @tc.name: OpincSetInAppState
+ * @tc.desc: test OpincSetInAppStateStart and OpincSetInAppStateEnd
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincSetInAppState, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    bool unchangeMarkInApp = false;
+    node->OpincSetInAppStateStart(unchangeMarkInApp);
+    ASSERT_TRUE(unchangeMarkInApp);
+    node->OpincSetInAppStateEnd(unchangeMarkInApp);
+    ASSERT_FALSE(unchangeMarkInApp);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode01
+ * @tc.desc: test OpincQuickMarkStableNode when content dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode01, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetContentDirty();
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
+
+/**
+ * @tc.name: OpincQuickMarkStableNode02
+ * @tc.desc: test OpincQuickMarkStableNode when subtree dirty
+ * @tc.type: FUNC
+ * @tc.require: issueI9SPVO
+ */
+HWTEST_F(RSBaseRenderNodeTest, OpincQuickMarkStableNode02, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
+    node->SetSubTreeDirty(true);
+    bool unchangeMarkInApp = true;
+    bool unchangeMarkEnable = true;
+    node->OpincQuickMarkStableNode(unchangeMarkInApp, unchangeMarkEnable, false);
+    ASSERT_EQ(node->nodeCacheState_, NodeCacheState::STATE_CHANGE);
+}
 } // namespace OHOS::Rosen

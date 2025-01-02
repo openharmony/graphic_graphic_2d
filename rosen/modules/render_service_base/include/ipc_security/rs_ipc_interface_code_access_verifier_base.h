@@ -26,7 +26,6 @@
 #include "accesstoken_kit.h"
 #include "access_token.h"
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
 #endif
 
 #include "common/rs_macros.h"
@@ -34,7 +33,6 @@
 #include "ipc_security/rs_ipc_interface_permission_type.h"
 
 #include "nocopyable.h"
-#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {

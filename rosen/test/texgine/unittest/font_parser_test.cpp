@@ -19,7 +19,7 @@
 
 #include "font_config.h"
 #include "font_parser.h"
-#include "texgine/utils/exlog.h"
+#include "utils/text_log.h"
 #include "cmap_table_parser.h"
 #include "name_table_parser.h"
 #include "post_table_parser.h"
@@ -50,17 +50,12 @@ std::vector<std::string> GetFontSet(const char* fname)
 
 void ShowVisibilityFonts(std::vector<FontParser::FontDescriptor>& visibilityFonts)
 {
-    for (auto &it : visibilityFonts) {
-        LOGSO_FUNC_LINE(INFO) << "\n fontFamily: " << it.fontFamily
-                              << "\n fontSubfamily: " << it.fontSubfamily
-                              << "\n fullName: " << it.fullName
-                              << "\n italic: " << it.italic
-                              << "\n monoSpace: " << it.monoSpace
-                              << "\n path: " << it.path
-                              << "\n postScriptName: " << it.postScriptName
-                              << "\n symbolic: " << it.symbolic
-                              << "\n weight: " << it.weight
-                              << "\n width: " << it.width;
+    for (auto& it : visibilityFonts) {
+        TEXT_LOGI("fontFamily: %{public}s\nfontSubfamily: %{public}s\nfullName: %{public}s\nitalic: %{public}d\n"
+                  "monoSpace: %{public}d\npath: %{public}s\npostScriptName: %{public}s\nsymbolic: %{public}d\n"
+                  "weight: %{public}d\nwidth: %{public}d",
+            it.fontFamily.c_str(), it.fontSubfamily.c_str(), it.fullName.c_str(), it.italic, it.monoSpace,
+            it.path.c_str(), it.postScriptName.c_str(), it.symbolic, it.weight, it.width);
     }
 }
 
@@ -115,6 +110,7 @@ HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
     FontParser fontParser;
     std::unique_ptr<FontParser::FontDescriptor> font =
         fontParser.GetVisibilityFontByName("Noto Sans Regular");
+    ASSERT_NE(font, nullptr);
     EXPECT_EQ(font->fontFamily, "Noto Sans");
 }
 
@@ -128,6 +124,7 @@ HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFile(), 0);
     auto info = fontConfigJson.GetFontConfigJsonInfo();
+    ASSERT_NE(info, nullptr);
     EXPECT_EQ(info->fontDirSet.size(), 1);
     fontConfigJson.Dump();
 }
@@ -142,7 +139,8 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFontFileMap(), 0);
     auto map = fontConfigJson.GetFontFileMap();
-    EXPECT_EQ(map->size(), 261);
+    ASSERT_NE(map, nullptr);
+    EXPECT_EQ(map->size(), 281);
     for (auto& it: *map) {
         ASSERT_GT(it.second.size(), 3);
         std::string end = it.second.substr(it.second.size() - 3, 3);

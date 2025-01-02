@@ -38,17 +38,18 @@ public:
     void GetFontDescSharedPtrByFullName(const std::string& fullName,
         const int32_t& systemFontType, FontDescSharedPtr& result);
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
+    void CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName);
+    void DeleteDynamicTypefaceFromCache(const std::string &familyName);
 
 private:
     void FontDescriptorScatter(FontDescSharedPtr desc);
-    void ParserInstallFonts();
-    bool ParseInstalledConfigFile(const std::string& fontPath, std::vector<std::string>& fontPathList);
-    bool ProcessInstalledFontPath(const std::string& path);
+    bool ParserInstallFontsPathList(std::vector<std::string>& fontPathList);
     bool ProcessSystemFontType(const int32_t& systemFontType, int32_t& fontType);
     bool ParseInstallFontDescSharedPtrByName(const std::string& fullName, FontDescSharedPtr& result);
     std::unordered_set<std::string> GetInstallFontList();
     std::unordered_set<std::string> GetStylishFontList();
     std::unordered_set<std::string> GetGenericFontList();
+    std::unordered_set<std::string> GetDynamicFontList();
     bool HandleMapIntersection(std::set<FontDescSharedPtr>& finishRet, const std::string& name,
         std::unordered_map<std::string, std::set<FontDescSharedPtr>>& map);
     bool FilterBoldCache(int weight, std::set<FontDescSharedPtr>& finishRet);
@@ -76,11 +77,12 @@ private:
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> fullNameMap_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> postScriptNameMap_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> fontSubfamilyNameMap_;
+    // cache dynamic ttf, key is familyName
+    std::unordered_map<std::string, FontDescSharedPtr> dynamicFullNameMap_;
     std::set<FontDescSharedPtr> boldCache_;
     std::set<FontDescSharedPtr> italicCache_;
     std::set<FontDescSharedPtr> monoSpaceCache_;
     std::set<FontDescSharedPtr> symbolicCache_;
-    std::unordered_map<std::string, std::vector<std::string>> installPathMap_;
     std::unordered_map<std::string, std::set<FontDescSharedPtr>> stylishFullNameMap_;
 };
 } // namespace OHOS::Rosen

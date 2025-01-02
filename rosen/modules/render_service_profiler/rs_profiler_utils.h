@@ -35,6 +35,10 @@ public:
     static constexpr float NANO = 1e-9f;  // NOLINT
 
 public:
+    static float Kilobytes(size_t bytes);
+    static float Megabytes(size_t bytes);
+    static float Gigabytes(size_t bytes);
+
     // Time routines
     static uint64_t Now();
     static double ToSeconds(uint64_t nano);
@@ -49,6 +53,8 @@ public:
     static pid_t GetPid();
 
     // String routines
+    static std::string Format(const char* format, va_list args);
+    static std::string Format(const char* format, ...);
     static std::vector<std::string> Split(const std::string& string);
     static void Replace(const std::string& susbtring, std::string& string);
 

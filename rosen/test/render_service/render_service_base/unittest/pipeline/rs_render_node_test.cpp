@@ -45,7 +45,7 @@ const std::string OUT_STR2 =
     "| RS_NODE[0], instanceRootNodeId[0], SharedTransitionParam: [0 -> 0], [nodeGroup1], uifirstRootNodeId_: 1, "
     "Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], GetBootAnimation: true, "
     "isContainBootAnimation: true, isNodeDirty: 1, isPropertyDirty: true, isSubTreeDirty: true, IsPureContainer: true, "
-    "Children list needs update, current count: 0 expected count: 0+1\n"
+    "Children list needs update, current count: 0 expected count: 0, disappearingChildren: 1\n"
     "  | RS_NODE[0], instanceRootNodeId[0], Properties: Bounds[-inf -inf -inf -inf] Frame[-inf -inf -inf -inf], "
     "IsPureContainer: true\n";
 const int DEFAULT_BOUNDS_SIZE = 10;
@@ -134,6 +134,7 @@ void RSRenderNodeTest::TearDown() {}
 HWTEST_F(RSRenderNodeTest, UpdateRenderStatus001, TestSize.Level1)
 {
     RSSurfaceRenderNode node(id, context);
+    ASSERT_TRUE(node.IsNodeDirty());
     RectI dirtyRegion;
     bool isPartialRenderEnabled = false;
     node.UpdateRenderStatus(dirtyRegion, isPartialRenderEnabled);
@@ -190,6 +191,7 @@ HWTEST_F(RSRenderNodeTest, AddModifierTest, TestSize.Level1)
 HWTEST_F(RSRenderNodeTest, InitCacheSurfaceTest, TestSize.Level1)
 {
     RSRenderNode node(id, context);
+    ASSERT_NE(node.GetRenderContent(), nullptr);
     CacheType type = CacheType::ANIMATE_PROPERTY;
     node.SetCacheType(type);
     node.InitCacheSurface(canvas_->GetGPUContext().get());
@@ -579,6 +581,103 @@ HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest05, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateDirtyRegionTest06
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest06, TestSize.Level1)
+{
+    //test RSRenderNode
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    //set dirty surfacesize
+    rsDirtyManager->SetSurfaceSize(500, 500);
+    rsDirtyManager->MarkAsTargetForDfx();
+    //create clip 500*500
+    RectI clipRect{0, 0, 500, 500};
+    node.SetDirty();
+    node.shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 50, 50};
+    auto& properties = node.GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    //set border width 5
+    properties.SetOutlineWidth(5.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    node.UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest07
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest07, TestSize.Level1)
+{
+    //test RSCanvasRenderNode
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(DEFAULT_NODE_ID, context);
+    canvasNode->InitRenderParams();
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    //set dirty surfacesize
+    rsDirtyManager->SetSurfaceSize(800, 800);
+    rsDirtyManager->MarkAsTargetForDfx();
+    //create clip 800*800
+    RectI clipRect{0, 0, 800, 800};
+    canvasNode->SetDirty();
+    canvasNode->shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = canvasNode->GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    //set border width 8
+    properties.SetOutlineWidth(8.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    canvasNode->UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
+ * @tc.name: UpdateDirtyRegionTest08
+ * @tc.desc: check outline dirty region add successfully
+ * @tc.type: FUNC
+ * @tc.require: issueI97LXT
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDirtyRegionTest08, TestSize.Level1)
+{
+    //test RSSurfaceRenderNode
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    //set dirty surfacesize
+    rsDirtyManager->SetSurfaceSize(1000, 1000);
+    rsDirtyManager->MarkAsTargetForDfx();
+    //create clip 1000*1000
+    RectI clipRect{0, 0, 1000, 1000};
+    surfaceNode->SetDirty();
+    surfaceNode->shouldPaint_ = true;
+    RectI absRect = RectI{0, 0, 100, 100};
+    auto& properties = surfaceNode->GetMutableRenderProperties();
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->absRect_ = absRect;
+    properties.clipToBounds_ = true;
+    //set border width 10
+    properties.SetOutlineWidth(10.0f);
+    properties.SetOutlineStyle((uint32_t)BorderStyle::SOLID);
+    properties.SetOutlineColor(RSColor(UINT8_MAX, UINT8_MAX, UINT8_MAX, UINT8_MAX));
+    bool geoDirty = true;
+    surfaceNode->UpdateDirtyRegion(*rsDirtyManager, geoDirty, clipRect);
+    ASSERT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty(), false);
+}
+
+/**
  * @tc.name: GetFilterRectsInCacheTest
  * @tc.desc:
  * @tc.type: FUNC
@@ -916,27 +1015,65 @@ HWTEST_F(RSRenderNodeTest, StoreMustRenewedInfoTest, TestSize.Level1)
 
 /**
  * @tc.name: UpdateSubSurfaceCntTest
- * @tc.desc:
+ * @tc.desc: test addChild and removeChild
  * @tc.type: FUNC
- * @tc.require: issueI9T3XY
+ * @tc.require: issueBAYJG
  */
-HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(id, context);
-    auto curParent = std::make_shared<RSRenderNode>(id + 1, context);
-    auto preParent = std::make_shared<RSRenderNode>(id + 2, context);
-    EXPECT_TRUE(node->GetType() != RSRenderNodeType::SURFACE_NODE);
-    node->UpdateSubSurfaceCnt(curParent, preParent);
+    const int cnt = 0;
+    auto rootNode = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
 
-    const auto cnt = 9;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto curSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
-    auto preSurfaceParent = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
-    curSurfaceParent->subSurfaceCnt_ = cnt;
-    preSurfaceParent->subSurfaceCnt_ = cnt;
-    surfaceNode->UpdateSubSurfaceCnt(curSurfaceParent, preSurfaceParent);
-    EXPECT_EQ(curSurfaceParent->subSurfaceCnt_, cnt + 1);
-    EXPECT_EQ(preSurfaceParent->subSurfaceCnt_, cnt - 1);
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+
+    auto selfDrawNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
+    selfDrawNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    leashNode->AddChild(selfDrawNode);
+    leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+
+    rootNode->RemoveChild(leashNode);
+    rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);
+}
+
+/**
+ * @tc.name: UpdateSubSurfaceCntTest
+ * @tc.desc: test addChild and loop
+ * @tc.type: FUNC
+ * @tc.require: issueBAYJG
+ */
+HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest002, TestSize.Level1)
+{
+    const int cnt = 0;
+    auto rootNode = std::make_shared<RSRenderNode>(DEFAULT_NODE_ID);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 1);
+    leashNode->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    rootNode->AddChild(leashNode);
+    rootNode->UpdateSubSurfaceCnt(leashNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
+
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 2);
+    appNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    leashNode->AddChild(appNode);
+    leashNode->UpdateSubSurfaceCnt(appNode->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 2);
+
+    auto antherApp = std::make_shared<RSSurfaceRenderNode>(DEFAULT_NODE_ID + 3);
+    antherApp->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    appNode->AddChild(antherApp);
+    appNode->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
+
+    // loop tree
+    antherApp->AddChild(leashNode);
+    antherApp->UpdateSubSurfaceCnt(antherApp->subSurfaceCnt_);
+    EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 3);
 }
 
 /**
@@ -1379,7 +1516,7 @@ HWTEST_F(RSRenderNodeTest, RSSurfaceRenderNodeDumpTest, TestSize.Level1)
     renderNode->DumpSubClassNode(outTest);
     EXPECT_EQ(outTest, ", Parent [null], Name [SurfaceNode], hasConsumer: 0, Alpha: 1.000000, Visible: 1, "
 	    "VisibleRegion [Empty], OpaqueRegion [Empty], OcclusionBg: 0, SecurityLayer: 0, skipLayer: 0, surfaceType: 0, "
-        "ContainerConfig: [outR: 32 inR: 28 x: 0 y: 0 w: 0 h: 0]");
+        "ContainerConfig: [outR: 0 inR: 0 x: 0 y: 0 w: 0 h: 0]");
 }
 
 /**
@@ -1775,40 +1912,45 @@ HWTEST_F(RSRenderNodeTest, DrawSurfaceNodesTest012, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize.Level1)
 {
-    RSRenderNode node(0);
-
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
     // CheckDrawingCacheType test
-    node.nodeGroupType_ = RSRenderNode::NONE;
-    node.CheckDrawingCacheType();
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-    node.nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
-    node.CheckDrawingCacheType();
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
-    node.nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
-    node.CheckDrawingCacheType();
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
 
     // UpdateDrawingCacheInfoBeforeChildren test
     // shouldPaint_ is false
-    node.shouldPaint_ = false;
-    node.UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->shouldPaint_ = false;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
     // shouldPaint_ is true
-    node.shouldPaint_ = true;
-    node.UpdateDrawingCacheInfoBeforeChildren(true);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->shouldPaint_ = true;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true);
+    if (RSSystemProperties::GetCacheOptimizeRotateEnable()) {
+        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::TARGETED_CACHE);
+    } else {
+        EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    }
     // isScreenRotation is true
-    node.nodeGroupType_ = RSRenderNode::NONE;
-    node.UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_EQ(node.GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
+    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 
     // isScreenRotation is false
-    node.nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
     EXPECT_NE(stagingRenderParams, nullptr);
-    node.stagingRenderParams_ = std::move(stagingRenderParams);
-    node.UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_FALSE(node.stagingRenderParams_->needSync_);
+    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
+    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
+    EXPECT_FALSE(nodeTest->stagingRenderParams_->needSync_);
 }
 
 /**
@@ -2622,6 +2764,23 @@ HWTEST_F(RSRenderNodeTest, ProcessTransitionAfterChildren, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsCrossNodeTest
+ * @tc.desc: test IsCrossNodeTest
+ * @tc.type: FUNC
+ * @tc.require: issueB2YOV
+ */
+HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->SetIsCrossNode(true);
+    ASSERT_TRUE(renderNode->isCrossNode_);
+
+    renderNode->SetIsCrossNode(false);
+    ASSERT_FALSE(renderNode->isCrossNode_);
+}
+
+/**
  * @tc.name: UpdateDirtyRegionInfoForDFX001
  * @tc.desc: test if subTreeDirtyRegion can be correctly collected.
  * @tc.type: FUNC
@@ -2715,5 +2874,22 @@ HWTEST_F(RSRenderNodeTest, SetAccumulatedClipFlagTest, TestSize.Level1)
     ASSERT_TRUE(nodeTest->SetAccumulatedClipFlag(true));
     ASSERT_FALSE(nodeTest->SetAccumulatedClipFlag(false));
 }
+
+/**
+ * @tc.name: GetIsFullChildrenListValid
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+    renderNode->isFullChildrenListValid_ = true;
+    ASSERT_TRUE(renderNode->GetIsFullChildrenListValid());
+    renderNode->isFullChildrenListValid_ = false;
+    ASSERT_FALSE(renderNode->GetIsFullChildrenListValid());
+}
+
 } // namespace Rosen
 } // namespace OHOS

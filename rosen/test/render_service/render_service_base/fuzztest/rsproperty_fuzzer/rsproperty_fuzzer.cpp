@@ -143,14 +143,10 @@ void RSPropertiesFuzzTestInner02(RSProperties& properties)
     Vector2f scale(x9, y9);
     float x10 = GetData<float>();
     float y10 = GetData<float>();
-    float z10 = GetData<float>();
-    float scaleZ = GetData<float>();
-    Vector3f skew(x10, y10, z10);
+    Vector2f skew(x10, y10);
     float x11 = GetData<float>();
     float y11 = GetData<float>();
-    float z11 = GetData<float>();
-    float w11 = GetData<float>();
-    Vector4f persp(x11, y11, z11, w11);
+    Vector2f persp(x11, y11);
     float alpha = GetData<float>();
     bool alphaOffscreen = GetData<bool>();
     int16_t red1 = GetData<int16_t>();
@@ -181,7 +177,6 @@ void RSPropertiesFuzzTestInner02(RSProperties& properties)
     properties.SetTranslateY(translate);
     properties.SetTranslateZ(translate);
     properties.SetScale(scale);
-    properties.SetScaleZ(scaleZ);
     properties.SetSkew(skew);
     properties.SetPersp(persp);
     properties.SetAlpha(alpha);

@@ -49,7 +49,11 @@ RSImageBase::~RSImageBase()
 #endif
         pixelMap_ = nullptr;
         if (uniqueId_ > 0) {
-            RSImageCache::Instance().CollectUniqueId(uniqueId_);
+            if (renderServiceImage_ || isDrawn_) {
+                RSImageCache::Instance().CollectUniqueId(uniqueId_);
+            } else {
+                RSImageCache::Instance().ReleasePixelMapCache(uniqueId_);
+            }
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
@@ -209,7 +213,11 @@ void RSImageBase::UpdateNodeIdToPicture(NodeId nodeId)
     if (pixelMap_) {
 #ifndef ROSEN_ARKUI_X
 #ifdef ROSEN_OHOS
+    if (RSSystemProperties::GetClosePixelMapFdEnabled()) {
+        MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
+    } else {
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetFd(), nodeId, ExtractPid(nodeId));
+    }
 #else
         MemoryTrack::Instance().UpdatePictureInfo(pixelMap_->GetPixels(), nodeId, ExtractPid(nodeId));
 #endif
@@ -249,7 +257,7 @@ void RSImageBase::MarkRenderServiceImage()
     renderServiceImage_ = true;
 #ifdef ROSEN_OHOS
     if (canPurgeShareMemFlag_ == CanPurgeFlag::UNINITED &&
-        RSSystemProperties::GetRenderNodePurgeEnabled() &&
+        RSSystemProperties::GetRSImagePurgeEnabled() &&
         pixelMap_ &&
         (pixelMap_->GetAllocatorType() == Media::AllocatorType::SHARE_MEM_ALLOC) &&
         !pixelMap_->IsEditable() &&
@@ -532,7 +540,7 @@ std::shared_ptr<Drawing::Image> RSImageBase::MakeFromTextureForVK(
 
 void RSImageBase::BindPixelMapToDrawingImage(Drawing::Canvas& canvas)
 {
-    if (!image_ && pixelMap_ && !pixelMap_->IsAstc()) {
+    if (pixelMap_ && !pixelMap_->IsAstc()) {
             image_ = RSImageCache::Instance().GetRenderDrawingImageCacheByPixelMapId(uniqueId_, gettid());
         if (!image_) {
             image_ = MakeFromTextureForVK(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap_->GetFd()));

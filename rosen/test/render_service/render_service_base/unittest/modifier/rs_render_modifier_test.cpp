@@ -200,6 +200,27 @@ HWTEST_F(RSRenderModifierTest, RSEnvForegroundColorStrategyRenderModifier001, Te
 }
 
 /**
+ * @tc.name: RSHDRBrightnessRenderModifier
+ * @tc.desc: Test Marshalling and Update
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderModifierTest, RSHDRBrightnessRenderModifier, TestSize.Level1)
+{
+    auto property = std::make_shared<RSRenderAnimatableProperty<float>>();
+    auto modifier = std::make_shared<RSHDRBrightnessRenderModifier>(property);
+    Parcel parcel;
+    EXPECT_TRUE(modifier->Marshalling(parcel));
+
+    auto property2 = std::make_shared<RSRenderAnimatableProperty<float>>();
+    auto modifier2 = std::make_shared<RSHDRBrightnessRenderModifier>(property2);
+    RSProperties properties;
+    RSModifierContext context(properties);
+    const std::shared_ptr<RSRenderPropertyBase> prop;
+    bool isDelta = false;
+    modifier2->Update(prop, isDelta);
+}
+
+/**
  * @tc.name: Apply
  * @tc.desc: Test Apply and Update and Marshalling
  * @tc.type: FUNC

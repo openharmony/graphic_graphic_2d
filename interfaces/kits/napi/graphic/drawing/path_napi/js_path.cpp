@@ -19,7 +19,9 @@
 
 #include "js_drawing_utils.h"
 #include "matrix_napi/js_matrix.h"
+#include "path_iterator_napi/js_path_iterator.h"
 #include "roundRect_napi/js_roundrect.h"
+#include "utils/performanceCaculate.h"
 
 #include "matrix_napi/js_matrix.h"
 
@@ -60,6 +62,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("getMatrix", JsPath::GetMatrix),
     DECLARE_NAPI_FUNCTION("buildFromSvgString", JsPath::BuildFromSvgString),
     DECLARE_NAPI_FUNCTION("isClosed", JsPath::IsClosed),
+    DECLARE_NAPI_FUNCTION("getPathIterator", JsPath::GetPathIterator),
 };
 
 napi_value JsPath::Init(napi_env env, napi_value exportObj)
@@ -354,6 +357,13 @@ napi_value JsPath::Op(napi_env env, napi_callback_info info)
 {
     JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
     return (me != nullptr) ? me->OnOp(env, info) : nullptr;
+}
+
+napi_value JsPath::GetPathIterator(napi_env env, napi_callback_info info)
+{
+    DRAWING_PERFORMANCE_TEST_JS_RETURN(nullptr);
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnGetPathIterator(env, info) : nullptr;
 }
 
 napi_value JsPath::OnMoveTo(napi_env env, napi_callback_info info)
@@ -729,6 +739,7 @@ napi_value JsPath::OnGetLength(napi_env env, napi_callback_info info)
 
     bool forceClosed = false;
     GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
+
     double len = m_path->GetLength(forceClosed);
     return CreateJsNumber(env, len);
 }
@@ -1089,6 +1100,18 @@ napi_value JsPath::OnIsClosed(napi_env env, napi_callback_info info)
 
     bool result = m_path->IsClosed(false);
     return CreateJsValue(env, result);
+}
+
+napi_value JsPath::OnGetPathIterator(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnGetPathIterator path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    DRAWING_PERFORMANCE_TEST_NAP_RETURN(nullptr);
+    PathIterator *iter = new PathIterator(*m_path);
+    return JsPathIterator::CreateJsPathIterator(env, iter);
 }
 
 Path* JsPath::GetPath()

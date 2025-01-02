@@ -17,7 +17,9 @@
 #include "platform/drawing/rs_surface_converter.h"
 #include "rs_surface_ohos.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#ifdef RS_ENABLE_GPU
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#endif
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
@@ -30,14 +32,14 @@ sptr<Surface> RSSurfaceConverter::ConvertToOhosSurface(std::shared_ptr<RSSurface
         ROSEN_LOGE("nullptr input");
         return nullptr;
     }
-#if defined(ACE_ENABLE_VK)
+#if defined(RS_ENABLE_VK)
     if (RSSystemProperties::IsUseVulkan()) {
         auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosVulkan>(surface); // gpu render
         return derivedPtr->GetSurface();
     }
 #endif
 
-#if defined(ACE_ENABLE_GL)
+#if defined(RS_ENABLE_GL)
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         auto derivedPtr = std::static_pointer_cast<RSSurfaceOhosGl>(surface); // gpu render
         return derivedPtr->GetSurface();

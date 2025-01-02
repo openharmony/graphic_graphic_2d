@@ -68,8 +68,9 @@ public:
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
     void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
-        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius, Drawing::Color ambientColor,
-        Drawing::Color spotColor, Drawing::ShadowFlags flag, bool isLimitElevation) override;
+        const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
+        Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag,
+        bool isLimitElevation) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;
     void DrawPatch(const Drawing::Point cubics[12], const Drawing::ColorQuad colors[4],
@@ -256,17 +257,6 @@ public:
     void SwapBackMainScreenData();
     void SavePCanvasList();
     void RestorePCanvasList();
-    void StoreCanvas()
-    {
-        if (storeMainCanvas_ == nullptr) {
-            storeMainCanvas_ = canvas_;
-        }
-    }
-
-    Drawing::Canvas* GetOriginalCanvas()
-    {
-        return storeMainCanvas_;
-    }
 
     // canvas status relate
     struct CanvasStatus {
@@ -284,12 +274,25 @@ public:
     {
         return offscreenDataList_;
     }
+
+    void StoreCanvas()
+    {
+        if (storeMainCanvas_ == nullptr) {
+            storeMainCanvas_ = canvas_;
+        }
+    }
+
+    Drawing::Canvas* GetOriginalCanvas()
+    {
+        return storeMainCanvas_;
+    }
+
     Drawing::DrawingType GetDrawingType() const override
     {
         return Drawing::DrawingType::PAINT_FILTER;
     }
-    bool IsCapture() const;
-    void SetCapture(bool isCapture);
+    bool IsOnMultipleScreen() const;
+    void SetOnMultipleScreen(bool multipleScreen);
     ScreenId GetScreenId() const;
     void SetScreenId(ScreenId screenId);
     GraphicColorGamut GetTargetColorGamut() const;
@@ -351,7 +354,7 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
-    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas_
+    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
 
     std::atomic_bool isHighContrastEnabled_ { false };
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
@@ -366,7 +369,7 @@ private:
     bool disableFilterCache_ = false;
     bool recordingState_ = false;
     bool recordDrawable_ = false;
-    bool isCapture_ = false;
+    bool multipleScreen_ = false;
     bool isHdrOn_ = false;
 };
 

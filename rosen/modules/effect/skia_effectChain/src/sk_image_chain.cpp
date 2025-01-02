@@ -14,7 +14,9 @@
  */
 
 #ifndef IOS_PLATFORM
+#ifdef RS_ENABLE_GPU
 #include "egl_manager.h"
+#endif
 #endif
 
 #if defined(NEW_SKIA)
@@ -120,7 +122,7 @@ bool SKImageChain::CreateCPUCanvas()
 
 bool SKImageChain::CreateGPUCanvas()
 {
-#if defined(ACE_ENABLE_GL) && (!defined(IOS_PLATFORM))
+#if defined(RS_ENABLE_GL) && (!defined(IOS_PLATFORM))
     if (!EglManager::GetInstance().Init()) {
         LOGE("Failed to init for GPU.");
         return false;

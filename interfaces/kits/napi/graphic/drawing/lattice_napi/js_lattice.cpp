@@ -158,19 +158,12 @@ bool GetLatticeColors(napi_env env, napi_value colorsArray, uint32_t count, std:
             napi_value tempColor = nullptr;
             napi_get_element(env, colorsArray, i, &tempColor);
             Drawing::Color drawingColor;
-            int32_t argb[ARGC_FOUR] = {0};
-            napi_valuetype valueType;
-            napi_typeof(env, tempColor, &valueType);
-            bool exitFlag = false;
-            if (valueType == napi_number) {
-                exitFlag = ConvertFromJsColorWithNumber(env, tempColor, argb, ARGC_FOUR, i);
-            }
-            if (!exitFlag && !ConvertFromJsColor(env, tempColor, argb, ARGC_FOUR)) {
+            ColorQuad color;
+            if (!ConvertFromAdaptHexJsColor(env, tempColor, color)) {
                 ROSEN_LOGE("JsLattice::CreateImageLattice colors is invalid");
                 return false;
             }
-            drawingColor = Color::ColorQuadSetARGB(
-                argb[ARGC_ZERO], argb[ARGC_ONE], argb[ARGC_TWO], argb[ARGC_THREE]);
+            drawingColor.SetColorQuad(color);
             latticeColors.push_back(drawingColor);
         }
     }

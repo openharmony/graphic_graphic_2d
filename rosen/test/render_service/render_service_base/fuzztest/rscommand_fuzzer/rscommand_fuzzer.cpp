@@ -23,6 +23,7 @@
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
+#include "pipeline/rs_render_node_gc.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -52,7 +53,7 @@ T GetData()
     return object;
 }
 
-bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
+bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -80,7 +81,6 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     uint32_t ancoFlags = GetData<uint32_t>();
 
     // test
-    RSContext context;
     SurfaceNodeCommandHelper::Create(context, static_cast<NodeId>(id));
     SurfaceNodeCommandHelper::SetContextAlpha(context, static_cast<NodeId>(id), contextAlpha);
     SurfaceNodeCommandHelper::SetSecurityLayer(context, static_cast<NodeId>(id), isSecurityLayer);
@@ -100,7 +100,7 @@ bool RSSurfaceNodeCommandFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSBaseNodeCommandFuzzTest(const uint8_t* data, size_t size)
+bool RSBaseNodeCommandFuzzTest(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -118,7 +118,6 @@ bool RSBaseNodeCommandFuzzTest(const uint8_t* data, size_t size)
     int32_t index = GetData<int32_t>();
 
     // test
-    RSContext context;
     BaseNodeCommandHelper::Destroy(context, static_cast<NodeId>(nodeId));
     BaseNodeCommandHelper::AddChild(context, static_cast<NodeId>(nodeId), static_cast<NodeId>(childNodeId), index);
     BaseNodeCommandHelper::MoveChild(context, static_cast<NodeId>(nodeId), static_cast<NodeId>(childNodeId), index);
@@ -134,7 +133,7 @@ bool RSBaseNodeCommandFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSRootNodeCommandFuzzTest(const uint8_t* data, size_t size)
+bool RSRootNodeCommandFuzzTest(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -153,7 +152,6 @@ bool RSRootNodeCommandFuzzTest(const uint8_t* data, size_t size)
     int32_t height = GetData<int32_t>();
 
     // test
-    RSContext context;
     RootNodeCommandHelper::Create(context, static_cast<NodeId>(id), false);
     RootNodeCommandHelper::AttachRSSurfaceNode(context, static_cast<NodeId>(id), static_cast<NodeId>(surfaceNodeId));
     RootNodeCommandHelper::AttachToUniSurfaceNode(context, static_cast<NodeId>(id), static_cast<NodeId>(surfaceNodeId));
@@ -163,7 +161,7 @@ bool RSRootNodeCommandFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size)
+bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -179,7 +177,6 @@ bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size)
     RSModifierType type = GetData<RSModifierType>();
 
     // test
-    RSContext context;
     RSCanvasNodeCommandHelper::Create(context, static_cast<NodeId>(id), false);
     std::shared_ptr<Drawing::DrawCmdList> drawCmds;
     RSCanvasNodeCommandHelper::UpdateRecording(context, static_cast<NodeId>(id), drawCmds, static_cast<uint16_t>(type));
@@ -188,7 +185,7 @@ bool RSCanvasNodeCommandFuzzTest(const uint8_t* data, size_t size)
     return true;
 }
 
-bool RSProxyNodeCommandFuzzTest(const uint8_t* data, size_t size)
+bool RSProxyNodeCommandFuzzTest(const uint8_t* data, size_t size, RSContext& context)
 {
     if (data == nullptr) {
         return false;
@@ -204,7 +201,6 @@ bool RSProxyNodeCommandFuzzTest(const uint8_t* data, size_t size)
     uint64_t target = GetData<uint64_t>();
 
     // test
-    RSContext context;
     ProxyNodeCommandHelper::Create(context, static_cast<NodeId>(id), static_cast<NodeId>(target));
     ProxyNodeCommandHelper::ResetContextVariableCache(context, static_cast<NodeId>(id));
     
@@ -240,12 +236,16 @@ bool RSMessageProcessFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    std::shared_ptr<OHOS::Rosen::RSContext> context = std::make_shared<OHOS::Rosen::RSContext>();
     /* Run your code on data */
-    OHOS::Rosen::RSSurfaceNodeCommandFuzzTest(data, size);
-    OHOS::Rosen::RSBaseNodeCommandFuzzTest(data, size);
-    OHOS::Rosen::RSRootNodeCommandFuzzTest(data, size);
-    OHOS::Rosen::RSCanvasNodeCommandFuzzTest(data, size);
-    OHOS::Rosen::RSProxyNodeCommandFuzzTest(data, size);
+    OHOS::Rosen::RSSurfaceNodeCommandFuzzTest(data, size, *context);
+    OHOS::Rosen::RSBaseNodeCommandFuzzTest(data, size, *context);
+    OHOS::Rosen::RSRootNodeCommandFuzzTest(data, size, *context);
+    OHOS::Rosen::RSCanvasNodeCommandFuzzTest(data, size, *context);
+    OHOS::Rosen::RSProxyNodeCommandFuzzTest(data, size, *context);
     OHOS::Rosen::RSMessageProcessFuzzTest(data, size);
+
+    context = nullptr;
+    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();
     return 0;
 }

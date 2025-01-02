@@ -131,6 +131,7 @@ public:
 
     void SetRenderTargetId(NodeId id);
 
+    void PrintRcdNodeInfo();
 private:
     float GetSurfaceWidth() const;
     float GetSurfaceHeight() const;

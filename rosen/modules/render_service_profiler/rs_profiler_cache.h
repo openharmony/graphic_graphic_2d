@@ -37,6 +37,7 @@ public:
 public:
     explicit Image() = default;
 
+    size_t Size() const;
     void Serialize(Archive& archive);
     bool IsValid() const;
 
@@ -58,6 +59,7 @@ public:
     static bool Exists(uint64_t id);
     static Image* Get(uint64_t id);
     static size_t Size();
+    static size_t Consumption();
     static void Reset();
 
     static std::string Dump();
@@ -72,8 +74,10 @@ public:
     static void Deserialize(std::stringstream& stream);
 
 private:
+    static std::atomic_uint64_t id_;
     static std::mutex mutex_;
     static std::map<uint64_t, Image> cache_;
+    static std::atomic_size_t consumption_;
 };
 
 } // namespace OHOS::Rosen

@@ -83,6 +83,7 @@ public:
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
+    bool EnableVisibleRect();
 
     sptr<Surface> producerSurface_;
     std::unique_ptr<RSRenderFrame> renderFrame_;
@@ -107,6 +108,7 @@ private:
     float mirrorScaleX_ = 1.0f;
     float mirrorScaleY_ = 1.0f;
     Drawing::Matrix canvasMatrix_;
+    Drawing::Rect visibleRect_;
     sptr<RSScreenManager> screenManager_ = nullptr;
     ScreenId virtualScreenId_ = INVALID_SCREEN_ID;
     ScreenId mirroredScreenId_ = INVALID_SCREEN_ID;

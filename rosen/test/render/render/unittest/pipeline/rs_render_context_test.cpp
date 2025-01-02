@@ -133,6 +133,7 @@ HWTEST_F(RSRenderContextTest, TaskRunnerTest004, TestSize.Level1)
 HWTEST_F(RSRenderContextTest, InitializeTest005, TestSize.Level1)
 {
     RSContext rSContext;
+    EXPECT_TRUE(rSContext.GetAnimatingNodeList().empty());
     rSContext.Initialize();
 }
 
@@ -152,7 +153,7 @@ HWTEST_F(RSRenderContextTest, UiFrameworkTest, TestSize.Level1)
     EXPECT_GT(ret, 0);
 
     auto dirtyNode = std::make_shared<RSRenderNode>(0);
-    rSContext.UpdateUiFrameworkDirtyNodes(dirtyNode);
+    rSContext.UpdateUIFrameworkDirtyNodes(dirtyNode);
     auto dirtyNodes = rSContext.GetUiFrameworkDirtyNodes();
     ret = dirtyNodes.size();
     EXPECT_GT(ret, 0);

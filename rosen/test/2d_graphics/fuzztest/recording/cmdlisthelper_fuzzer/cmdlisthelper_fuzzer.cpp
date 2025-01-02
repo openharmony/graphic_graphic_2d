@@ -274,7 +274,7 @@ bool CmdListHelperFuzzTest006(const uint8_t* data, size_t size)
     cmdListData.first = dataText;
     cmdListData.second = length;
     std::shared_ptr<CmdList> cmdList = MaskCmdList::CreateFromData(cmdListData, false);
-    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 1;
+    uint32_t count = GetObject<uint32_t>() % MAX_SIZE + 2;
     char* text = new char[count];
     for (size_t i = 0; i < count; i++) {
         text[i] = GetObject<char>();
@@ -283,11 +283,12 @@ bool CmdListHelperFuzzTest006(const uint8_t* data, size_t size)
     Font font;
     scalar fSize = GetObject<scalar>();
     font.SetSize(fSize);
-    TextEncoding encoding = GetObject<TextEncoding>();
-    auto textBlob = TextBlob::MakeFromString(text, font, encoding);
-    OpDataHandle textBlobHandle = { GetObject<uint32_t>(), length };
-    CmdListHelper::AddTextBlobToCmdList(*cmdList, textBlob.get(), text);
-    CmdListHelper::GetTextBlobFromCmdList(*cmdList, textBlobHandle);
+    auto textBlob = TextBlob::MakeFromString(text, font, TextEncoding::UTF8);
+    if (textBlob) {
+        OpDataHandle textBlobHandle = { GetObject<uint32_t>(), length };
+        CmdListHelper::AddTextBlobToCmdList(*cmdList, textBlob.get(), text);
+        CmdListHelper::GetTextBlobFromCmdList(*cmdList, textBlobHandle);
+    }
     if (dataText != nullptr) {
         delete [] dataText;
         dataText = nullptr;

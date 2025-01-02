@@ -62,6 +62,8 @@ public:
 
     // Partial render status and renderForce flag should be updated by rt thread
     void SetPartialRenderStatus(PartialRenderType status, bool isRenderForced);
+
+    NodeId GetActiveSubtreeRootId();
 private:
     enum class RSPaintStyle {
         FILL,
@@ -75,9 +77,6 @@ private:
     // Reset and update children node's info like outOfParent and isRemoveChild
     void ResetAndPrepareChildrenNode(RSRenderNode& node, std::shared_ptr<RSBaseRenderNode> nodeParent);
     void ProcessSurfaceViewInRT(RSSurfaceRenderNode& node);
-    Drawing::Matrix CacRotationFromTransformType(GraphicTransformType transform, RectF& bounds);
-    GraphicTransformType GetFlipTransform(GraphicTransformType transform);
-    void FlipMatrix(GraphicTransformType transform, Drawing::Matrix& matrix, const RectF& bounds);
 
     bool UpdateAnimatePropertyCacheSurface(RSRenderNode& node);
     void ProcessShadowFirst(RSRenderNode& node);
@@ -94,6 +93,7 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_ = nullptr;
     uint32_t queueSize_ = 0;
     uint64_t uiTimestamp_ = 0;
+    NodeId activeSubtreeRootId_ = INVALID_NODEID;
 
     void ClipHoleForSurfaceNode(RSSurfaceRenderNode& node);
 

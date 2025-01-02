@@ -69,6 +69,7 @@ using HgmConfigChangeCallback = std::function<void(std::shared_ptr<RSHgmConfigDa
 using OnRemoteDiedCallback = std::function<void()>;
 using HgmRefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using HgmRefreshRateUpdateCallback = std::function<void(int32_t)>;
+using FrameRateLinkerExpectedFpsUpdateCallback = std::function<void(int32_t, int32_t)>;
 using UIExtensionCallback = std::function<void(std::shared_ptr<RSUIExtensionData>, uint64_t)>;
 struct DataBaseRs {
     int32_t appPid = -1;
@@ -108,7 +109,8 @@ class SurfaceBufferCallback {
 public:
     SurfaceBufferCallback() = default;
     virtual ~SurfaceBufferCallback() noexcept = default;
-    virtual void OnFinish(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) = 0;
+    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
+    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
 };
 
 class RSB_EXPORT RSRenderServiceClient : public RSIRenderClient {
@@ -131,12 +133,16 @@ public:
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
         uint64_t id = 0,
-        NodeId windowNodeId = 0);
+        NodeId windowNodeId = 0,
+        bool fromXcomponent = false);
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
-    bool TakeSurfaceCapture(
-        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
+
+    bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig);
 
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
@@ -157,9 +163,15 @@ public:
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
     int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
 #endif
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
+
+    int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
 
@@ -209,6 +221,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 
@@ -292,6 +306,8 @@ public:
 
     int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate);
 
+    uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect);
+
     int32_t RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback);
 
     int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -304,6 +320,9 @@ public:
     int32_t RegisterHgmRefreshRateModeChangeCallback(const HgmRefreshRateModeChangeCallback& callback);
 
     int32_t RegisterHgmRefreshRateUpdateCallback(const HgmRefreshRateUpdateCallback& callback);
+
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
 
@@ -339,7 +358,7 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
+    void SetScreenSwitchStatus(bool flag);
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
@@ -351,6 +370,8 @@ public:
 
     HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
 
+    int64_t GetHdrOnDuration();
+
     void SetVmaCacheStatus(bool flag);
 
     int32_t RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback);
@@ -359,10 +380,14 @@ public:
 
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 #ifdef TP_FEATURE_ENABLE
-    void SetTpFeatureConfig(int32_t feature, const char* config);
+    void SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE);
 #endif
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus);
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
+
+    void DropFrameByPid(const std::vector<int32_t> pidList);
+    
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
 
     void SetFreeMultiWindowStatus(bool enable);
@@ -373,7 +398,9 @@ public:
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
-    void TriggerSurfaceBufferCallback(uint64_t uid, const std::vector<uint32_t>& surfaceBufferIds) const;
+    void TriggerOnFinish(const FinishCallbackRet& ret) const;
+    void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
+
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;

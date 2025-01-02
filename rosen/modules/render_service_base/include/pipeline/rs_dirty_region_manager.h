@@ -117,7 +117,43 @@ public:
     // align current frame dirtyregion before merge history
     void UpdateDirtyByAligned(int32_t alignedBits = ALIGNED_BITS);
     bool SetBufferAge(const int age);
-    bool SetSurfaceSize(const int32_t width, const int32_t height);
+
+    void SetActiveSurfaceRect(const RectI& rect)
+    {
+        auto dstRect = surfaceRect_.IntersectRect(rect);
+        lastActiveSurfaceRect_ = activeSurfaceRect_;
+        activeSurfaceRect_ = dstRect;
+    }
+
+    bool IsActiveSurfaceRectChanged() const
+    {
+        return lastActiveSurfaceRect_ != activeSurfaceRect_;
+    }
+
+    const RectI& GetLastActiveSurfaceRect() const
+    {
+        return lastActiveSurfaceRect_;
+    }
+
+    const RectI& GetActiveSurfaceRect() const
+    {
+        return activeSurfaceRect_;
+    }
+
+    bool SetSurfaceRect(const RectI& rect)
+    {
+        if (rect.IsEmpty()) {
+            return false;
+        }
+        surfaceRect_ = rect;
+        return true;
+    }
+
+    bool SetSurfaceSize(const int32_t width, const int32_t height)
+    {
+        return SetSurfaceRect(RectI(0, 0, width, height));
+    }
+
     RectI GetSurfaceRect() const
     {
         return surfaceRect_;
@@ -185,7 +221,9 @@ private:
     RectI GetHistory(unsigned int i) const;
     void AlignHistory();
 
-    RectI surfaceRect_;             // dirtyregion clipbounds
+    RectI lastActiveSurfaceRect_;   // active rect of the canvas surface in the last frame
+    RectI activeSurfaceRect_;       // active rect of the canvas surface
+    RectI surfaceRect_;             // rect of the canvas surface
     RectI dirtyRegion_;             // dirtyregion after merge history
     RectI currentFrameDirtyRegion_; // dirtyRegion in current frame
     RectI hwcDirtyRegion_;          // hwc dirty region used in virtual screen

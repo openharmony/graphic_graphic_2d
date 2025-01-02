@@ -32,6 +32,9 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "../../../../../modules/render_service/core",
     "../../../../../modules/render_service_base/src",
     "../../../../../test/include",
+    "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+    "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+    "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
     "$graphic_2d_root/frameworks/surface/include",
     "$memmgr_root/interface/innerkits/include",
     "$memmgr_root/services/memmgrservice/include/memory_level_manager",
@@ -67,6 +70,7 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "ability_base:want",
     "ability_runtime:abilitykit_native",
     "ability_runtime:app_manager",
+    "access_token:libaccesstoken_sdk",
     "c_utils:utils",
     "common_event_service:cesfwk_core",
     "common_event_service:cesfwk_innerkits",
@@ -76,6 +80,15 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
+
+  defines = []
+  if (graphic_2d_support_access_token) {
+    external_deps += [
+      "access_token:libnativetoken",
+      "access_token:libtoken_setproc",
+    ]
+    defines += [ "SUPPORT_ACCESS_TOKEN" ]
+  }
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]

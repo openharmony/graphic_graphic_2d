@@ -60,6 +60,7 @@ ohos_shared_library("libnative_image") {
 
   external_deps = [
     "c_utils:utils",
+    "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "graphic_surface:surface",
     "graphic_surface:sync_fence",
     "hilog:libhilog",

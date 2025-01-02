@@ -81,7 +81,10 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow, TestSize.Level1)
     RSSurfaceRenderParams surfaceParams(1);
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams));
+    auto uniParams = std::make_shared<RSRenderThreadParams>();
+    ASSERT_NE(uniParams, nullptr);
+    ASSERT_FALSE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
+        canvas, surfaceParams, *uniParams));
 
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
     ASSERT_NE(surfaceNode, nullptr);
@@ -99,7 +102,8 @@ HWTEST_F(RSDrawWindowCacheTest, DealWithCachedWindow, TestSize.Level1)
     bmp.ClearWithColor(Drawing::Color::COLOR_RED);
     drawWindowCache.image_ = bmp.MakeImage();
     surfaceParams.SetUifirstNodeEnableParam(MultiThreadCacheType::NONFOCUS_WINDOW);
-    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable, canvas, surfaceParams));
+    ASSERT_TRUE(drawWindowCache.DealWithCachedWindow(surfaceDrawable,
+        canvas, surfaceParams, *uniParams));
 }
 
 /**
@@ -138,4 +142,24 @@ HWTEST_F(RSDrawWindowCacheTest, DrawAndCacheWindowContent, TestSize.Level1)
     ASSERT_TRUE(drawWindowCache.HasCache());
 }
 
+/**
+ * @tc.name: DrawCrossNodeOffscreenDFX
+ * @tc.desc: Test DrawCrossNodeOffscreenDFX
+ * @tc.type: FUNC
+ * @tc.require: issueIB6QW7
+ */
+HWTEST_F(RSDrawWindowCacheTest, DrawCrossNodeOffscreenDFX, TestSize.Level1)
+{
+    RSDrawWindowCache drawWindowCache;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSSurfaceRenderParams surfaceParams(1);
+    surfaceParams.isCrossNode_ = true;
+    ASSERT_TRUE(surfaceParams.IsCrossNode());
+    RSRenderThreadParams uniParams;
+    uniParams.isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE_DFX;
+    // rgba: Alpha 128, green 128, blue 128
+    Drawing::Color color(0, 128, 128, 128);
+    drawWindowCache.DrawCrossNodeOffscreenDFX(canvas, surfaceParams, uniParams, color);
+}
 }

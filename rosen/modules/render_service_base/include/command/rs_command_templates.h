@@ -41,12 +41,18 @@ class RSUIDirector;
 #define ADD_COMMAND(ALIAS, TYPE) using ALIAS = RSCommandTemplate<TYPE>;
 #endif
 
-template<uint16_t commandType, uint16_t commandSubType, auto processFunc, typename... Params>
+template<RSCommandPermissionType permissionType, uint16_t commandType, uint16_t commandSubType, auto processFunc,
+    typename... Params>
 class RSCommandTemplate : public RSCommand {
 public:
     RSCommandTemplate(const Params&... params) : params_(params...) {}
     RSCommandTemplate(std::tuple<Params...>&& params) : params_(std::move(params)) {}
     ~RSCommandTemplate() override = default;
+
+    RSCommandPermissionType GetAccessPermission() const override
+    {
+        return permissionType;
+    }
 
     uint16_t GetType() const override
     {

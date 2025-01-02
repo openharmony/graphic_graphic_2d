@@ -42,7 +42,7 @@ namespace Rosen {
     
 class ColorExtract {
 public:
-    virtual ~ColorExtract() {};
+    virtual ~ColorExtract() {}
     std::shared_ptr<Media::PixelMap> pixelmap_;
 
     // Save the ARGB val of picture.
@@ -95,15 +95,20 @@ private:
 
     class VBox {
     private:
-        int lowerIndex_, upperIndex_;
+        int lowerIndex_ = INT_MAX;
+        int upperIndex_ = 0;
         // total pixel nums in this box;
-        int pixelNums_;
-        uint32_t minRed_, maxRed_;
-        uint32_t minGreen_, maxGreen_;
-        uint32_t minBlue_, maxBlue_;
-        ColorExtract *colorExtract_ = nullptr;
+        int pixelNums_ = 0;
+        uint32_t minRed_ = UINT32_MAX;
+        uint32_t maxRed_ = 0;
+        uint32_t minGreen_ = UINT32_MAX;
+        uint32_t maxGreen_ = 0;
+        uint32_t minBlue_ = UINT32_MAX;
+        uint32_t maxBlue_ = 0;
+        ColorExtract* colorExtract_ = nullptr;
+
     public:
-        VBox(int lowerIndex, int upperIndex, ColorExtract *colorExtract)
+        VBox(int lowerIndex, int upperIndex, ColorExtract* colorExtract)
         {
             lowerIndex_ = lowerIndex;
             upperIndex_ = upperIndex;
@@ -113,7 +118,7 @@ private:
 
         uint32_t GetVolume() const
         {
-            return (maxRed_ - minRed_ + 1) * (maxGreen_ - minGreen_ +1) * (maxBlue_ -minBlue_ + 1);
+            return (maxRed_ - minRed_ + 1) * (maxGreen_ - minGreen_ + 1) * (maxBlue_ - minBlue_ + 1);
         }
 
         bool CanSplit()
@@ -134,8 +139,14 @@ private:
         // Recomputes the boundaries of this box to tightly fit the color within the box.
         void fitBox()
         {
-            uint32_t *colors = colorExtract_->colors_.data();
-            uint32_t *hist = colorExtract_->hist_.data();
+            if (colorExtract_ == nullptr) {
+                return;
+            }
+            uint32_t* colors = colorExtract_->colors_.data();
+            uint32_t* hist = colorExtract_->hist_.data();
+            if (colors == nullptr || hist == nullptr) {
+                return;
+            }
 
             uint32_t minR = UINT32_MAX;
             uint32_t minG = UINT32_MAX;
@@ -143,7 +154,7 @@ private:
             uint32_t maxRed = 0;
             uint32_t maxGreen = 0;
             uint32_t maxBlue = 0;
-            
+
             int count = 0;
 
             for (int i = lowerIndex_; i <= upperIndex_; i++) {
@@ -211,8 +222,8 @@ private:
         int FindSplitPoint()
         {
             int longestDimension = GetLongestColorDimension();
-            uint32_t *colors = colorExtract_->colors_.data();
-            uint32_t *hist = colorExtract_->hist_.data();
+            uint32_t* colors = colorExtract_->colors_.data();
+            uint32_t* hist = colorExtract_->hist_.data();
 
             // Sort the color in the box based on the longest color dimension
             ModifySignificantOctet(colors, longestDimension, lowerIndex_, upperIndex_);
@@ -235,7 +246,7 @@ private:
         * Modify the significant octet in a packed color int. Allows sorting based on the value of a
         * single color component.
         */
-        void ModifySignificantOctet(uint32_t *colors, int dimension, int lower, int upper)
+        void ModifySignificantOctet(uint32_t* colors, int dimension, int lower, int upper)
         {
             switch (dimension) {
                 case COMPONENT_RED:
@@ -262,8 +273,15 @@ private:
         // Return the average color of the box
         std::pair<uint32_t, uint32_t> GetAverageColor()
         {
-            uint32_t *colors = colorExtract_->colors_.data();
-            uint32_t *hist = colorExtract_->hist_.data();
+            uint32_t error_color = 0;
+            if (colorExtract_ == nullptr) {
+                return std::make_pair(error_color, error_color);
+            }
+            uint32_t* colors = colorExtract_->colors_.data();
+            uint32_t* hist = colorExtract_->hist_.data();
+            if (colors == nullptr || hist == nullptr) {
+                return std::make_pair(error_color, error_color);
+            }
             uint32_t redSum = 0;
             uint32_t greenSum = 0;
             uint32_t blueSum = 0;
@@ -277,7 +295,6 @@ private:
                 blueSum += colorPixelNum * QuantizedBlue(color);
             }
             if (totalPixelNum == 0) {
-                uint32_t error_color = 0;
                 return std::make_pair(error_color, error_color);
             }
             uint32_t redMean = round(redSum / (float)totalPixelNum);

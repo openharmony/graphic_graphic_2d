@@ -19,8 +19,10 @@
 #include "window.h"
 
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_filter.h"
 #include "transaction/rs_transaction.h"
@@ -57,6 +59,7 @@ static void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int heig
 
 void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
@@ -73,10 +76,12 @@ void InitNativeTokenInfo()
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+#endif
 }
 
 int main()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     InitNativeTokenInfo();
 
     std::cout << "rs uni render demo start!" << std::endl;
@@ -138,5 +143,6 @@ int main()
     std::cout << "rs uni render demo end!" << std::endl;
     window->Hide();
     window->Destroy();
+#endif
     return 0;
 }

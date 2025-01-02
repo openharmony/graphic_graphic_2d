@@ -121,7 +121,11 @@ std::shared_ptr<RSPropertyBase> operator+(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return a->Clone()->Add(b);
+    const auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Add(b);
 }
 
 std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSPropertyBase>& a,
@@ -131,7 +135,11 @@ std::shared_ptr<RSPropertyBase> operator-(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return a->Clone()->Minus(b);
+    const auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Minus(b);
 }
 
 std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSPropertyBase>& value, const float scale)
@@ -140,7 +148,11 @@ std::shared_ptr<RSPropertyBase> operator*(const std::shared_ptr<const RSProperty
         return {};
     }
 
-    return value->Clone()->Multiply(scale);
+    const auto clone = value->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Multiply(scale);
 }
 
 bool operator==(const std::shared_ptr<const RSPropertyBase>& a, const std::shared_ptr<const RSPropertyBase>& b)
@@ -295,11 +307,6 @@ void RSProperty<Vector2f>::UpdateToRender(const Vector2f& value, PropertyUpdateT
     UPDATE_TO_RENDER(RSUpdatePropertyVector2f, value, type);
 }
 template<>
-void RSProperty<Vector3f>::UpdateToRender(const Vector3f& value, PropertyUpdateType type) const
-{
-    UPDATE_TO_RENDER(RSUpdatePropertyVector3f, value, type);
-}
-template<>
 void RSProperty<Vector4<uint32_t>>::UpdateToRender(const Vector4<uint32_t>& value,
     PropertyUpdateType type) const
 {
@@ -358,11 +365,6 @@ template<>
 RSRenderPropertyType RSAnimatableProperty<Vector2f>::GetPropertyType() const
 {
     return RSRenderPropertyType::PROPERTY_VECTOR2F;
-}
-template<>
-RSRenderPropertyType RSAnimatableProperty<Vector3f>::GetPropertyType() const
-{
-    return RSRenderPropertyType::PROPERTY_VECTOR3F;
 }
 template<>
 RSRenderPropertyType RSAnimatableProperty<Vector4f>::GetPropertyType() const

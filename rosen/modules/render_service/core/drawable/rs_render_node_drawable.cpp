@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "pipeline/rs_main_thread.h"
+#include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -76,6 +77,7 @@ void RSRenderNodeDrawable::Draw(Drawing::Canvas& canvas)
  */
 void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
+    RECORD_GPU_RESOURCE_DRAWABLE_CALLER(GetId())
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
 
@@ -630,10 +632,27 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCachedImage(RSPaintFilt
     return cachedImage_;
 }
 
+void RSRenderNodeDrawable::SetCacheImageByCapture(std::shared_ptr<Drawing::Image> image)
+{
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    cachedImageByCapture_ = image;
+}
+
+std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetCacheImageByCapture() const
+{
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    return cachedImageByCapture_;
+}
+
 void RSRenderNodeDrawable::DrawCachedImage(RSPaintFilterCanvas& canvas, const Vector2f& boundSize,
     const std::shared_ptr<RSFilter>& rsFilter)
 {
     auto cacheImage = GetCachedImage(canvas);
+    std::lock_guard<std::mutex> lock(freezeByCaptureMutex_);
+    if (cachedImageByCapture_) {
+        // node has freezed, and to draw surfaceCapture image
+        cacheImage = cachedImageByCapture_;
+    }
     if (cacheImage == nullptr) {
         RS_LOGE("RSRenderNodeDrawable::DrawCachedImage image null");
         return;
@@ -741,7 +760,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 {
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
-    bool isHdrOn = curCanvas->GetHdrOn();
+    bool isHdrOn = false; // todo: temporary set false, fix in future
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSMainThread::Instance()->IsUIFirstOn();
     bool isNeedFP16 = isHdrOn || isScRGBEnable;

@@ -26,7 +26,14 @@ ohos_unittest("hyper_graphic_manager_test") {
   ]
 
   if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-fwhole-program-vtables" ]
+    if (!use_libfuzzer) {
+      cflags += [ "-flto=thin" ]
+    }
+    if (enhanced_opt) {
+      if (!use_libfuzzer) {
+        cflags += [ "-fwhole-program-vtables" ]
+      }
+    }
   }
 
   sources = [
@@ -46,7 +53,10 @@ ohos_unittest("hyper_graphic_manager_test") {
   ]
 
   include_dirs = [
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]

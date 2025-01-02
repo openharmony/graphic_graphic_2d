@@ -66,6 +66,8 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_SET_WATERMARK_ENABLED,
     SURFACE_NODE_SET_ABILITY_STATE,
     SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
+    SURFACE_NODE_SET_API_COMPATIBLE_VERSION,
+    SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
 };
 
 class RSB_EXPORT SurfaceNodeCommandHelper {
@@ -112,94 +114,127 @@ public:
     static void SetSkipDraw(RSContext& context, NodeId nodeId, bool skip);
     static void SetWatermarkEnabled(RSContext& context, NodeId nodeId, const std::string& name, bool isEnabled);
     static void SetAbilityState(RSContext& context, NodeId nodeId, RSSurfaceNodeAbilityState abilityState);
+    static void SetApiCompatibleVersion(RSContext& context, NodeId nodeId, uint32_t apiCompatibleVersion);
+    static void SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable);
 };
 
 ADD_COMMAND(RSSurfaceNodeCreate,
-    ARG(SURFACE_NODE, SURFACE_NODE_CREATE, SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CREATE,
+        SurfaceNodeCommandHelper::Create, NodeId, RSSurfaceNodeType, bool))
 ADD_COMMAND(RSSurfaceNodeCreateWithConfig,
-    ARG(SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG, SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string,
-        uint8_t, enum SurfaceWindowType))
-ADD_COMMAND(RSSurfaceNodeSetContextMatrix, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
-    SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<Drawing::Matrix>))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CREATE_WITH_CONFIG,
+        SurfaceNodeCommandHelper::CreateWithConfig, NodeId, std::string, uint8_t, enum SurfaceWindowType))
+ADD_COMMAND(RSSurfaceNodeSetContextMatrix,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_MATRIX,
+        SurfaceNodeCommandHelper::SetContextMatrix, NodeId, std::optional<Drawing::Matrix>))
 ADD_COMMAND(RSSurfaceNodeSetContextAlpha,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_ALPHA, SurfaceNodeCommandHelper::SetContextAlpha, NodeId, float))
-ADD_COMMAND(RSSurfaceNodeSetContextClipRegion, ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
-    SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, std::optional<Drawing::Rect>))
-ADD_COMMAND(RSSurfaceNodeSetHardwareAndFixRotation, ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_HARDWARE_AND_FIX_ROTATION,
-    SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_ALPHA,
+        SurfaceNodeCommandHelper::SetContextAlpha, NodeId, float))
+ADD_COMMAND(RSSurfaceNodeSetContextClipRegion,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_CLIP_REGION,
+        SurfaceNodeCommandHelper::SetContextClipRegion, NodeId, std::optional<Drawing::Rect>))
+ADD_COMMAND(RSSurfaceNodeSetHardwareAndFixRotation,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FORCE_HARDWARE_AND_FIX_ROTATION,
+        SurfaceNodeCommandHelper::SetForceHardwareAndFixRotation, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetBootAnimation,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_BOOT_ANIMATION, SurfaceNodeCommandHelper::SetBootAnimation, NodeId, bool))
-ADD_COMMAND(RSSurfaceNodeSetGlobalPositionEnabled, ARG(SURFACE_NODE, SURFACE_NODE_SET_GLOBAL_POSITION_ENABLED,
-    SurfaceNodeCommandHelper::SetGlobalPositionEnabled, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_BOOT_ANIMATION,
+        SurfaceNodeCommandHelper::SetBootAnimation, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetGlobalPositionEnabled,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_GLOBAL_POSITION_ENABLED,
+        SurfaceNodeCommandHelper::SetGlobalPositionEnabled, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSecurityLayer,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER, SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SECURITY_LAYER,
+        SurfaceNodeCommandHelper::SetSecurityLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipLayer,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER, SurfaceNodeCommandHelper::SetSkipLayer, NodeId, bool))
-ADD_COMMAND(RSSurfaceNodeSetSnapshotSkipLayer, ARG(SURFACE_NODE, SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
-    SurfaceNodeCommandHelper::SetSnapshotSkipLayer, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SKIP_LAYER,
+        SurfaceNodeCommandHelper::SetSkipLayer, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetSnapshotSkipLayer,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SNAPSHOT_SKIP_LAYER,
+        SurfaceNodeCommandHelper::SetSnapshotSkipLayer, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetFingerprint,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_FINGERPRINT, SurfaceNodeCommandHelper::SetFingerprint, NodeId, bool))
-ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize, ARG(SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,
-    SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FINGERPRINT,
+        SurfaceNodeCommandHelper::SetFingerprint, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeUpdateSurfaceDefaultSize,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_UPDATE_SURFACE_SIZE,
+        SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize, NodeId, float, float))
 ADD_COMMAND(RSSurfaceNodeConnectToNodeInRenderService,
-    ARG(SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
-    SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CONNECT_TO_NODE_IN_RENDER_SERVICE,
+        SurfaceNodeCommandHelper::ConnectToNodeInRenderService, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetCallbackForRenderThreadRefresh,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
-    SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CALLBACK_FOR_RENDER_THREAD,
+        SurfaceNodeCommandHelper::SetCallbackForRenderThreadRefresh, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetBounds,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_BOUNDS, SurfaceNodeCommandHelper::SetContextBounds, NodeId, Vector4f))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTEXT_BOUNDS,
+        SurfaceNodeCommandHelper::SetContextBounds, NodeId, Vector4f))
 ADD_COMMAND(RSSurfaceNodeSetAbilityBGAlpha,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_BG_ALPHA, SurfaceNodeCommandHelper::SetAbilityBGAlpha, NodeId, uint8_t))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ABILITY_BG_ALPHA,
+        SurfaceNodeCommandHelper::SetAbilityBGAlpha, NodeId, uint8_t))
 ADD_COMMAND(RSSurfaceNodeSetIsNotifyUIBufferAvailable,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
-    SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_IS_NOTIFY_BUFFER_AVAILABLE,
+        SurfaceNodeCommandHelper::SetIsNotifyUIBufferAvailable, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeMarkUIHidden,
-    ARG(SURFACE_NODE, SURFACE_NODE_MARK_UIHIDDEN, SurfaceNodeCommandHelper::MarkUIHidden, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_MARK_UIHIDDEN,
+        SurfaceNodeCommandHelper::MarkUIHidden, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetIsTextureExportNode,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
-    SurfaceNodeCommandHelper::SetIsTextureExportNode, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_IS_TEXTURE_EXPORT_NODE,
+        SurfaceNodeCommandHelper::SetIsTextureExportNode, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSurfaceNodeType,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
-    SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SURFACE_NODE_TYPE,
+        SurfaceNodeCommandHelper::SetSurfaceNodeType, NodeId, uint8_t))
 ADD_COMMAND(RSSurfaceNodeSetContainerWindow,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW, SurfaceNodeCommandHelper::SetContainerWindow,
-    NodeId, bool, RRect))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_CONTAINER_WINDOW,
+        SurfaceNodeCommandHelper::SetContainerWindow, NodeId, bool, RRect))
 ADD_COMMAND(RSSurfaceNodeSetAnimationFinished,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED, SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ANIMATION_FINISHED,
+        SurfaceNodeCommandHelper::SetAnimationFinished, NodeId))
 ADD_COMMAND(RSSurfaceNodeAttachToDisplay,
-    ARG(SURFACE_NODE, SURFACE_NODE_ATTACH_TO_DISPLAY, SurfaceNodeCommandHelper::AttachToDisplay, NodeId, uint64_t))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_ATTACH_TO_DISPLAY,
+        SurfaceNodeCommandHelper::AttachToDisplay, NodeId, uint64_t))
 ADD_COMMAND(RSSurfaceNodeDetachToDisplay,
-    ARG(SURFACE_NODE, SURFACE_NODE_DETACH_TO_DISPLAY, SurfaceNodeCommandHelper::DetachToDisplay, NodeId, uint64_t))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_DETACH_TO_DISPLAY,
+        SurfaceNodeCommandHelper::DetachToDisplay, NodeId, uint64_t))
 ADD_COMMAND(RSSurfaceNodeSetColorSpace,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE, SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_COLOR_SPACE,
+        SurfaceNodeCommandHelper::SetColorSpace, NodeId, GraphicColorGamut))
 ADD_COMMAND(RSurfaceNodeSetSurfaceId,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_SURFACE_ID, SurfaceNodeCommandHelper::SetSurfaceId, NodeId, SurfaceId))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SURFACE_ID,
+        SurfaceNodeCommandHelper::SetSurfaceId, NodeId, SurfaceId))
 ADD_COMMAND(RSurfaceNodeSetLeashPersistentId,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
-    SurfaceNodeCommandHelper::SetLeashPersistentId, NodeId, LeashPersistentId))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_LEASH_PERSISTENT_ID,
+        SurfaceNodeCommandHelper::SetLeashPersistentId, NodeId, LeashPersistentId))
 
 #ifdef USE_SURFACE_TEXTURE
 ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
-    ARG(SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
-    SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_CREATE_SURFACE_EXT,
+        SurfaceNodeCommandHelper::CreateSurfaceExt, NodeId, std::shared_ptr<RSSurfaceTexture>))
 #endif
 ADD_COMMAND(RSSurfaceNodeSetForeground,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND, SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND,
+        SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST, SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST,
+        SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetAncoFlags,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ANCO_FLAGS, SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ANCO_FLAGS,
+        SurfaceNodeCommandHelper::SetAncoFlags, NodeId, uint32_t))
 ADD_COMMAND(RSSurfaceNodeSetHDRPresent,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT, SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HDR_PRESENT,
+        SurfaceNodeCommandHelper::SetHDRPresent, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetSkipDraw,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW, SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_SKIP_DRAW,
+        SurfaceNodeCommandHelper::SetSkipDraw, NodeId, bool))
 ADD_COMMAND(RSSurfaceNodeSetWatermarkEnabled,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED, SurfaceNodeCommandHelper::SetWatermarkEnabled,
-    NodeId, std::string, bool))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_WATERMARK_ENABLED,
+        SurfaceNodeCommandHelper::SetWatermarkEnabled, NodeId, std::string, bool))
 ADD_COMMAND(RSSurfaceNodeSetAbilityState,
-    ARG(SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE, SurfaceNodeCommandHelper::SetAbilityState,
-    NodeId, RSSurfaceNodeAbilityState))
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_ABILITY_STATE,
+        SurfaceNodeCommandHelper::SetAbilityState, NodeId, RSSurfaceNodeAbilityState))
+ADD_COMMAND(
+    RSSurfaceNodeSetApiCompatibleVersion, ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_API_COMPATIBLE_VERSION,
+                                              SurfaceNodeCommandHelper::SetApiCompatibleVersion, NodeId, uint32_t))
+ADD_COMMAND(RSSurfaceNodeSetHardwareEnableHint,
+    ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_HARDWARE_ENABLE_HINT,
+        SurfaceNodeCommandHelper::SetHardwareEnableHint, NodeId, bool))
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_RENDER_SERVICE_BASE_COMMAND_RS_SURFACE_NODE_COMMAND_H

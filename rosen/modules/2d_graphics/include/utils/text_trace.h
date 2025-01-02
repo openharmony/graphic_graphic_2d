@@ -62,19 +62,20 @@ public:
     static void CutPrettyFunction(std::string& str)
     {
         // find last '('
-        int endIndex = str.rfind('(');
+        size_t endIndex = str.rfind('(');
         if (endIndex == std::string::npos) {
             return;
         }
 
         // find the third ':' before '('
-        int startIndex = 0;
-        int count = 0;
-        for (int i = endIndex; i >= 0; --i) {
-            if (str[i] == ':') {
-                count++;
+        auto rIter = std::make_reverse_iterator(str.begin() + endIndex);
+        size_t count = 0;
+        size_t startIndex = 0;
+        for (; rIter != str.rend(); ++rIter) {
+            if (*rIter == ':') {
+                count += 1;
                 if (count == 3) { // 3 means to stop iterating when reaching the third ':'
-                    startIndex = i + 1;
+                    startIndex = str.rend() - rIter;
                     break;
                 }
             }

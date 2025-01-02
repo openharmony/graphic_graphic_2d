@@ -60,7 +60,9 @@ std::shared_ptr<Drawing::Image> ProcessImageFuzzTest(const uint8_t *data, size_t
         std::make_unique<GEAIBarShaderFilter>(geAIBarShaderFilterParams);
 
     Drawing::Canvas canvas;
-    std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> image { nullptr };
+    geAIBarShaderFilter->ProcessImage(canvas, image, {0.0, 0.0, 100.0, 100.0}, {0.0, 0.0, 100.0, 100.0});
+    image = std::make_shared<Drawing::Image>();
     auto res = geAIBarShaderFilter->ProcessImage(canvas, image, src, dst);
     return res;
 }

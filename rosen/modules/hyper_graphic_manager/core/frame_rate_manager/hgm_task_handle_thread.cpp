@@ -16,10 +16,12 @@
 #include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
 #include "xcollie/watchdog.h"
+#include <unistd.h>
 
 namespace OHOS::Rosen {
 namespace {
-constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
+constexpr uint32_t WATCHDOG_TIMEVAL = 30000;
+constexpr uint32_t WATCHDOG_DELAY_TIME = 600000;
 }
 
 HgmTaskHandleThread& HgmTaskHandleThread::Instance()
@@ -31,9 +33,16 @@ HgmTaskHandleThread& HgmTaskHandleThread::Instance()
 HgmTaskHandleThread::HgmTaskHandleThread() : runner_(AppExecFwk::EventRunner::Create("HgmTaskHandleThread"))
 {
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
-    int ret = HiviewDFX::Watchdog::GetInstance().AddThread("HgmTaskHandle", handler_, WATCHDOG_TIMEVAL);
-    if (ret != 0) {
-        HGM_LOGW("Add watchdog thread failed");
+    if (handler_ != nullptr) {
+        auto task = [] () {
+            auto& hgmTaskHandleThread = HgmTaskHandleThread::Instance();
+            int ret = HiviewDFX::Watchdog::GetInstance().AddThread(
+                "HgmTaskHandle", hgmTaskHandleThread.handler_, WATCHDOG_TIMEVAL);
+            if (ret != 0) {
+                HGM_LOGW("Add watchdog thread failed");
+            }
+        };
+        handler_->PostTask(task, WATCHDOG_DELAY_TIME);
     }
 }
 
@@ -68,6 +77,17 @@ void HgmTaskHandleThread::RemoveEvent(std::string eventId)
 {
     if (handler_) {
         handler_->RemoveTask(eventId);
+    }
+}
+
+void HgmTaskHandleThread::DetectMultiThreadingCalls()
+{
+    if (auto newTid = gettid(); curThreadId_ != newTid) {
+        // -1 means default curThreadId
+        if (curThreadId_ != -1) {
+            HGM_LOGE("Concurrent access tid1: %{public}d tid2: %{public}d", curThreadId_, newTid);
+        }
+        curThreadId_ = newTid;
     }
 }
 }

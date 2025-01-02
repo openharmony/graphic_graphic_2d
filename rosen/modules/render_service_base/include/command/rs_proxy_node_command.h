@@ -34,9 +34,12 @@ public:
     static void ResetContextVariableCache(RSContext& context, NodeId id);
 };
 
-ADD_COMMAND(RSProxyNodeCreate, ARG(PROXY_NODE, PROXY_NODE_CREATE, ProxyNodeCommandHelper::Create, NodeId, NodeId))
+ADD_COMMAND(RSProxyNodeCreate,
+    ARG(PERMISSION_APP, PROXY_NODE, PROXY_NODE_CREATE,
+        ProxyNodeCommandHelper::Create, NodeId, NodeId))
 ADD_COMMAND(RSProxyNodeResetContextVariableCache,
-    ARG(PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE, ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))
+    ARG(PERMISSION_APP, PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE,
+        ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))
 
 } // namespace Rosen
 } // namespace OHOS

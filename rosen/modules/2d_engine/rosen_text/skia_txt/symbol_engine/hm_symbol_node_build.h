@@ -41,6 +41,9 @@ public:
     static void AddHierarchicalAnimation(RSHMSymbolData &symbolData, const Vector4f &nodeBounds,
         const std::vector<RSGroupSetting> &groupSettings,
         std::shared_ptr<TextEngine::SymbolAnimationConfig> symbolAnimationConfig);
+
+    static void MergeDrawingPath(RSPath& multPath, const RSRenderGroup& group, std::vector<RSPath>& pathLayers);
+
     ~SymbolNodeBuild() {}
     bool DecomposeSymbolAndDraw();
     void ClearAnimation();
@@ -71,6 +74,11 @@ public:
         animationStart_ = animationStart;
     }
 
+    void SetCurrentAnimationHasPlayed(bool currentAnimationHasPlayed)
+    {
+        currentAnimationHasPlayed_ = currentAnimationHasPlayed;
+    }
+
     void SetCommonSubType(Drawing::DrawingCommonSubType commonSubType)
     {
         commonSubType_ = commonSubType;
@@ -84,12 +92,13 @@ private:
     float offsetY_ = 0.0f;
     uint16_t animationMode_ = 0;
     int repeatCount_ = 1;
-    bool animationStart_ = false;
     Drawing::DrawingCommonSubType commonSubType_ = Drawing::DrawingCommonSubType::DOWN;
 
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc_ = nullptr;
     uint64_t symblSpanId_ = 0;
+    bool animationStart_ = false;
+    bool currentAnimationHasPlayed_ = false;
 };
 }
 }

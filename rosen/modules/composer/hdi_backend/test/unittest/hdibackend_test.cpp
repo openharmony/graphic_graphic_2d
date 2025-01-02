@@ -247,6 +247,7 @@ HWTEST_F(HdiBackendTest, StartSample001, Function | MediumTest | Level3)
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     hdiBackend_->SetPendingMode(output, 0, 0);
     output->sampler_->SetHardwareVSyncStatus(false);
+    output->sampler_->SetVsyncSamplerEnabled(true);
     hdiBackend_->StartSample(output);
     EXPECT_TRUE(output->sampler_->GetHardwareVSyncStatus());
 }

@@ -30,17 +30,16 @@ public:
 
 /*
  * @tc.name: RSProfilerSocketStateTest
- * @tc.desc: Test state setter/getter
+ * @tc.desc: Test Connected
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSProfilerSocketTest, RSProfilerSocketStateTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSProfilerSocketTest, RSProfilerSocketConnectedTest, testing::ext::TestSize.Level1)
 {
     Socket s;
-    EXPECT_EQ(s.GetState(), SocketState::INITIAL);
-
-    s.SetState(SocketState::CREATE);
-    EXPECT_EQ(s.GetState(), SocketState::CREATE);
+    s.Open(5050);
+    s.Shutdown();
+    EXPECT_FALSE(s.Connected());
 }
 
 /*
@@ -75,19 +74,16 @@ HWTEST_F(RSProfilerSocketTest, RSProfilerSocketAcceptClientTest, testing::ext::T
 }
 
 /*
- * @tc.name: RSProfilerSocketGetStatusTest
- * @tc.desc: Test public method GetStatus
+ * @tc.name: RSProfilerSocketAvailableTest
+ * @tc.desc: Test public method Available
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSProfilerSocketTest, RSProfilerSocketGetStatusTest, testing::ext::TestSize.Level1)
+HWTEST_F(RSProfilerSocketTest, RSProfilerSocketAvailableTest, testing::ext::TestSize.Level1)
 {
     Socket s;
-    bool readyToReceive;
-    bool readyToSend;
-    s.GetStatus(readyToReceive, readyToSend);
-    EXPECT_FALSE(readyToReceive);
-    EXPECT_FALSE(readyToSend);
+    const auto size = s.Available();
+    EXPECT_EQ(size, 0);
 }
 
 } // namespace OHOS::Rosen

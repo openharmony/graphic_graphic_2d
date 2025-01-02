@@ -14,6 +14,9 @@
  */
 
 #include "pipeline/rs_surface_handler.h"
+#ifndef ROSEN_CROSS_PLATFORM
+#include "metadata_helper.h"
+#endif
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -59,10 +62,16 @@ void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
     if (!buffer.buffer) {
         return;
     }
+    using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
+    BufferHandleMetaRegion crop;
+    if (MetadataHelper::GetCropRectMetadata(buffer.buffer, crop) == GSERROR_OK) {
+        buffer.buffer->SetCropMetadata({crop.left, crop.top, crop.width, crop.height});
+    }
     SetBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
     SetBufferSizeChanged(buffer.buffer);
     SetCurrentFrameBufferConsumed();
-    RS_LOGD("RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "\
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "
         "buffer[timestamp:%{public}" PRId64 ", seq:%{public}" PRIu32 "]",
         GetNodeId(), buffer.timestamp, buffer.buffer->GetSeqNum());
 }

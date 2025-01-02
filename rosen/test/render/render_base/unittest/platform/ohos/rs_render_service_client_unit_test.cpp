@@ -187,6 +187,25 @@ HWTEST_F(RSClientUnitTest, SetScreenActiveModeTest, TestSize.Level1)
     EXPECT_EQ(modeInfo.GetScreenModeId(), 0);
 }
 
+/**
+ * @tc.name: SetScreenActiveRectTest
+ * @tc.desc: test SetScreenActiveRect api
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetScreenActiveRect001, Function | SmallTest | Level2)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    EXPECT_EQ(rsClient->SetScreenActiveMode(screenId, activeRect), StatusCode::HDI_ERROR);
+}
 
 /**
  * @tc.name: SetScreenChangeCallbackTest

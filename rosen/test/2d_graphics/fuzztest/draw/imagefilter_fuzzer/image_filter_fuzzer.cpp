@@ -27,6 +27,7 @@ constexpr size_t TITLEMODE_SIZE = 4;
 constexpr size_t BLENDMODE_SIZE = 29;
 constexpr size_t BLURTYPE_SIZE = 2;
 constexpr size_t GRADIENTDIR_SIZE = 8;
+constexpr size_t MAX_SIZE = 5000;
 } // namespace
 namespace Drawing {
 
@@ -48,14 +49,26 @@ bool ImageFilterFuzzTest001(const uint8_t* data, size_t size)
     scalar sigmaX2 = GetObject<scalar>();
     scalar sigmaY2 = GetObject<scalar>();
     Rect noCropRect = {
-        -std::numeric_limits<scalar>::infinity(), -std::numeric_limits<scalar>::infinity(),
-        std::numeric_limits<scalar>::infinity(), std::numeric_limits<scalar>::infinity()
+        GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>()
     };
-    imageFilter->InitWithColorBlur(*colorFilter, sigmaX2, sigmaY2, ImageBlurType::GAUSS, noCropRect);
+    imageFilter->InitWithColorBlur(*colorFilter, sigmaX2, sigmaY2, GetObject<ImageBlurType>(), noCropRect);
     imageFilter->Serialize();
-    imageFilter->Deserialize(nullptr);
+    auto dataVal = std::make_shared<Data>();
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length);
+    imageFilter->Deserialize(dataVal);
     imageFilter->GetType();
     imageFilter->GetDrawingType();
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
 
     return true;
 }

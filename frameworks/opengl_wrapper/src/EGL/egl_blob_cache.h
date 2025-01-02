@@ -121,6 +121,8 @@ public:
 
     void WriteToDisk();
 
+    void BlobCacheReadFromDisk(const std::string filePath);
+
     void ReadFromDisk();
 
     void Terminate();
@@ -149,6 +151,7 @@ private:
     bool initStatus_;
     bool readStatus_ = false;
     std::mutex blobmutex_;
+    const std::string PRESET_BLOB_CACHE_PATH = "/graphic/preset/blobShader/blobShader";
 };
 
 }

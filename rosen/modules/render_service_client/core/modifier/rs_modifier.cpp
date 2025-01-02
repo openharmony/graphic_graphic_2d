@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 void RSModifier::AttachProperty(const std::shared_ptr<RSPropertyBase>& property)
 {
-    if (property != nullptr) {
+    if (property != nullptr && property_ != nullptr) {
         property->target_ = property_->target_;
         property->SetIsCustom(true);
         property->AttachModifier(shared_from_this());
@@ -54,6 +54,10 @@ void RSModifier::SetDirty(const bool isDirty)
 
 void RSModifier::ResetRSNodeExtendModifierDirty()
 {
+    if (property_ == nullptr) {
+        return;
+    }
+
     auto target = property_->target_.lock();
     if (target == nullptr) {
         return;

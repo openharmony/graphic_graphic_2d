@@ -67,13 +67,6 @@ bool RSPaintFilterCanvasFuzzTest(const uint8_t* data, size_t size)
 
     return true;
 }
-
-
-bool RSRecordingCanvasFuzzTest(const uint8_t* data, size_t size)
-{
-    return true;
-}
-
 } // namespace Rosen
 } // namespace OHOS
 
@@ -82,6 +75,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::RSPaintFilterCanvasFuzzTest(data, size);
-    OHOS::Rosen::RSRecordingCanvasFuzzTest(data, size);
     return 0;
 }

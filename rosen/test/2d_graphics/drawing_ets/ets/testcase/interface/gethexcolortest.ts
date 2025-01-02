@@ -23,7 +23,6 @@ export class PenBrushGetHexColor extends TestBase {
   private rand: OHRandom = new OHRandom(systemDateTime.getTime());
   public constructor() {
     super();
-
   }
 
   public OnTestPerformance(canvas: drawing.Canvas) {

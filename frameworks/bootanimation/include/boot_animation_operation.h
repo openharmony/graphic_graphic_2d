@@ -24,7 +24,9 @@
 #include "boot_compile_progress.h"
 #include "boot_player.h"
 #include "event_handler.h"
+#ifdef RS_ENABLE_GPU
 #include <render_context/render_context.h>
+#endif
 #include <ui/rs_display_node.h>
 #include <ui/rs_surface_extractor.h>
 #include "util.h"

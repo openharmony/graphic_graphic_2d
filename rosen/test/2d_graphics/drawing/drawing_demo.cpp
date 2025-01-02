@@ -17,8 +17,10 @@
 #include <sstream>
 
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 #include "display_manager.h"
 #include "test_case_factory.h"
 #include "test_case/test_common.h"
@@ -107,6 +109,7 @@ int DrawingDemo::InitWindow()
 
 void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
@@ -123,10 +126,12 @@ void InitNativeTokenInfo()
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+#endif
 }
 
 int DrawingDemo::CreateWindow()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     InitNativeTokenInfo();
     TestCommon::Log("create window start");
     sptr<Display> display = DisplayManager::GetInstance().GetDefaultDisplay();
@@ -178,6 +183,7 @@ int DrawingDemo::CreateWindow()
     stream << "create window success: " << rect_.width_ << " * " << rect_.height_;
     TestCommon::Log(stream.str());
     return RET_OK;
+#endif
 }
 
 int DrawingDemo::GetFunctionalParam(std::unordered_map<std::string, std::function<std::shared_ptr<TestBase>()>>& map)

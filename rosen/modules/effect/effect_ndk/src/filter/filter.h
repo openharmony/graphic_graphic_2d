@@ -32,14 +32,14 @@ public:
     explicit Filter(std::shared_ptr<OHOS::Media::PixelMap> pixelMap);
 
     std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap();
-    bool Blur(float radius);
+    bool Blur(float radius, SkTileMode skTileMode = SkTileMode::kDecal);
     bool Brightness(float brightness);
     bool Grayscale();
     bool Invert();
     bool SetColorMatrix(const PixelColorMatrix& matrix);
     private:
     void AddNextFilter(sk_sp<SkImageFilter> filter);
-    void Render(bool forceCPU);
+    bool Render(bool forceCPU);
     std::vector<sk_sp<SkImageFilter> > skFilters_;
     std::shared_ptr<OHOS::Media::PixelMap> srcPixelMap_ = nullptr;
     std::shared_ptr<OHOS::Media::PixelMap> dstPixelMap_ = nullptr;

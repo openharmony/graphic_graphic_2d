@@ -118,8 +118,10 @@ RSRenderThread::RSRenderThread()
 #endif
         prevTimestamp_ = timestamp_;
         ProcessCommands();
+#ifdef RS_ENABLE_GPU
         ROSEN_LOGD("RSRenderThread DrawFrame(%{public}" PRIu64 ") in %{public}s",
             prevTimestamp_, renderContext_ ? "GPU" : "CPU");
+#endif
         Animate(prevTimestamp_);
         Render();
         SendCommands();
@@ -152,15 +154,32 @@ RSRenderThread::RSRenderThread()
     });
 #endif
 #ifdef ROSEN_OHOS
-    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback(
-        RSSurfaceBufferCallbackManager::Instance().GetSurfaceBufferOpItemCallback());
+    Drawing::DrawSurfaceBufferOpItem::RegisterSurfaceBufferCallback({
+        .OnFinish = RSSurfaceBufferCallbackManager::Instance().GetOnFinishCb(),
+        .OnAfterAcquireBuffer = RSSurfaceBufferCallbackManager::Instance().GetOnAfterAcquireBufferCb(),
+    });
+    Drawing::DrawSurfaceBufferOpItem::SetIsUniRender(false);
+    Drawing::DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT(
+        [this]() {
+            if (visitor_) {
+                return visitor_->GetActiveSubtreeRootId();
+            }
+            return INVALID_NODEID;
+        }
+    );
 #endif
+    RSSurfaceBufferCallbackManager::Instance().SetIsUniRender(false);
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
         .requestNextVsync = []() {
             RSRenderThread::Instance().RequestNextVSync();
         },
-        .isRequestedNextVSync = []() {
-            return RSRenderThread::Instance().IsRequestedNextVSync();
+        .isRequestedNextVSync = [this]() {
+#ifdef __OHOS__
+            if (receiver_ != nullptr) {
+                return receiver_->IsRequestedNextVSync();
+            }
+#endif
+            return false;
         },
     });
 }
@@ -168,11 +187,13 @@ RSRenderThread::RSRenderThread()
 RSRenderThread::~RSRenderThread()
 {
     Stop();
+#ifdef RS_ENABLE_GPU
     if (renderContext_ != nullptr) {
         ROSEN_LOGD("Destroy renderContext!!");
         delete renderContext_;
         renderContext_ = nullptr;
     }
+#endif
 }
 
 void RSRenderThread::Start()
@@ -246,16 +267,6 @@ void RSRenderThread::RequestNextVSync()
     } else {
         hasSkipVsync_ = true;
     }
-}
-
-bool RSRenderThread::IsRequestedNextVSync()
-{
-#ifdef __OHOS__
-    if (receiver_ != nullptr) {
-        return receiver_->IsRequestedNextVSync();
-    }
-#endif
-    return false;
 }
 
 int32_t RSRenderThread::GetTid()

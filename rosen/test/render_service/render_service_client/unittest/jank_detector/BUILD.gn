@@ -14,7 +14,8 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
 
-module_output_path = "graphic/rosen_engine/render_service_client/jank_detector"
+module_output_path =
+    "graphic_2d/rosen_engine/render_service_client/jank_detector"
 
 ##############################  RSRenderServiceClientJankDetectorTest  ##################################
 ohos_unittest("RSRenderServiceClientJankDetectorTest") {

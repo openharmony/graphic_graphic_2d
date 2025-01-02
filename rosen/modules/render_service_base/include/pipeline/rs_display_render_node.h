@@ -35,6 +35,7 @@
 #include <screen_manager/screen_types.h>
 #include "screen_manager/rs_screen_info.h"
 #include "platform/drawing/rs_surface.h"
+#include "luminance/rs_luminance_control.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -69,13 +70,15 @@ public:
     ~RSDisplayRenderNode() override;
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID) override;
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID) override;
 
     void SetScreenId(uint64_t screenId)
     {
         if (releaseScreenDmaBufferTask_ && screenId_ != screenId) {
             releaseScreenDmaBufferTask_(screenId_);
         }
+        RS_LOGW("RSScreenManager %{public}s:displayNode[%{public}" PRIu64 "] change screen [%{public}" PRIu64 "] "
+            "to [%{public}" PRIu64 "].", __func__, GetId(), screenId_, screenId);
         screenId_ = screenId;
     }
 
@@ -113,6 +116,36 @@ public:
         return offsetX_;
     }
 
+    bool HasChildCrossNode() const
+    {
+        return hasChildCrossNode_;
+    }
+
+    void SetHasChildCrossNode(bool hasChildCrossNode)
+    {
+        hasChildCrossNode_ = hasChildCrossNode;
+    }
+
+    bool IsMirrorScreen() const
+    {
+        return isMirrorScreen_;
+    }
+
+    void SetIsMirrorScreen(bool isMirrorScreen)
+    {
+        isMirrorScreen_ = isMirrorScreen;
+    }
+
+    void SetIsFirstVisitCrossNodeDisplay(bool isFirstVisitCrossNodeDisplay)
+    {
+        isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
+    }
+
+    bool IsFirstVisitCrossNodeDisplay() const
+    {
+        return isFirstVisitCrossNodeDisplay_;
+    }
+
     int32_t GetDisplayOffsetY() const
     {
         return offsetY_;
@@ -123,10 +156,7 @@ public:
         return hasFingerprint_;
     }
 
-    void SetFingerprint(bool hasFingerprint)
-    {
-        hasFingerprint_ = hasFingerprint;
-    }
+    void SetFingerprint(bool hasFingerprint);
 
     void SetScreenRotation(const ScreenRotation& screenRotation)
     {
@@ -228,6 +258,28 @@ public:
         return isSecurityExemption_;
     }
 
+    void AddSecurityVisibleLayer(NodeId id)
+    {
+        securityVisibleLayerList_.emplace_back(id);
+    }
+
+    void ClearSecurityVisibleLayerList()
+    {
+        securityVisibleLayerList_.clear();
+    }
+
+    const std::vector<NodeId>& GetSecurityVisibleLayerList()
+    {
+        return securityVisibleLayerList_;
+    }
+
+    void SetHasSecLayerInVisibleRect(bool hasSecLayer) {
+        bool lastHasSecLayerInVisibleRect = hasSecLayerInVisibleRect_;
+        hasSecLayerInVisibleRect_ = hasSecLayer;
+        hasSecLayerInVisibleRectChanged_ =
+            lastHasSecLayerInVisibleRect != hasSecLayerInVisibleRect_;
+    }
+
     RectI GetLastFrameSurfacePos(NodeId id)
     {
         if (lastFrameSurfacePos_.count(id) == 0) {
@@ -315,11 +367,26 @@ public:
         offScreenCacheImgForCapture_ = offScreenCacheImgForCapture;
     }
 
+    void SetHasUniRenderHdrSurface(bool hasUniRenderHdrSurface)
+    {
+        hasUniRenderHdrSurface_ = hasUniRenderHdrSurface;
+    }
+
+    bool GetHasUniRenderHdrSurface() const
+    {
+        return hasUniRenderHdrSurface_;
+    }
+
     void SetMainAndLeashSurfaceDirty(bool isDirty);
 
     void SetHDRPresent(bool hdrPresent);
 
     void SetBrightnessRatio(float brightnessRatio);
+
+    void SetPixelFormat(const GraphicPixelFormat& pixelFormat);
+    GraphicPixelFormat GetPixelFormat() const;
+    void SetColorSpace(const GraphicColorGamut& newColorSpace);
+    GraphicColorGamut GetColorSpace() const;
 
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetDirtySurfaceNodeMap()
     {
@@ -403,6 +470,7 @@ public:
     void SetScbNodePid(const std::vector<int32_t>& oldScbPids, int32_t currentScbPid)
     {
         oldScbPids_ = oldScbPids;
+        lastScbPid_ = currentScbPid_;
         currentScbPid_ = currentScbPid;
         isNeedWaitNewScbPid_ = true;
         isFullChildrenListValid_ = false;
@@ -429,13 +497,29 @@ public:
     }
 
     bool IsZoomStateChange() const;
+    void HandleCurMainAndLeashSurfaceNodes();
+
+    // HDR Video
+    void SetHdrVideo(bool hasHdrVideo, HDR_TYPE hdrVideoType) {
+        hasHdrVideo_ = hasHdrVideo;
+        hdrVideoType_ = hdrVideoType;
+    }
+
+    HDR_TYPE GetHdrVideoType() const
+    {
+        return hdrVideoType_;
+    }
+
+    bool GetHdrVideo() const
+    {
+        return hasHdrVideo_;
+    }
 protected:
     void OnSync() override;
 private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
-    void HandleCurMainAndLeashSurfaceNodes();
     // vector of sufacenodes will records dirtyregions by itself
     std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
@@ -446,9 +530,13 @@ private:
     int32_t offsetY_ = 0;
     uint32_t rogWidth_ = 0;
     uint32_t rogHeight_ = 0;
+    bool hasChildCrossNode_ = false;
+    bool isMirrorScreen_ = false;
+    bool isFirstVisitCrossNodeDisplay_ = false;
     bool forceSoftComposite_ { false };
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
+    bool hasUniRenderHdrSurface_ = false;
     WeakPtr mirrorSource_;
     float lastRotation_ = 0.f;
     bool preRotationStatus_ = false;
@@ -457,6 +545,8 @@ private:
     Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
+    GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
     std::map<NodeId, RectI> lastFrameSurfacePos_;
     std::map<NodeId, RectI> currentFrameSurfacePos_;
@@ -465,8 +555,14 @@ private:
     std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
 
-    std::vector<NodeId> securityLayerList_;
+    // Use in virtual screen security exemption
+    std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
     bool isSecurityExemption_ = false;
+
+    // Use in mirror screen visible rect projection
+    std::vector<NodeId> securityVisibleLayerList_;  // surface node id
+    bool hasSecLayerInVisibleRect_ = false;
+    bool hasSecLayerInVisibleRectChanged_ = false;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
@@ -492,6 +588,7 @@ private:
 
     std::vector<int32_t> oldScbPids_ {};
     int32_t currentScbPid_ = -1;
+    int32_t lastScbPid_ = -1;
     mutable bool isNeedWaitNewScbPid_ = false;
     mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
@@ -502,6 +599,10 @@ private:
     bool curZoomState_ = false;
     bool preZoomState_ = false;
     static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
+
+    // HDR Video
+    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
+    bool hasHdrVideo_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

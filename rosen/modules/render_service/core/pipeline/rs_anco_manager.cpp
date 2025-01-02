@@ -15,6 +15,8 @@
 
 #include "rs_anco_manager.h"
 
+#include <parameters.h>
+#include "param/sys_param.h"
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -25,8 +27,19 @@ RSAncoManager* RSAncoManager::Instance()
     return &instance;
 }
 
+static bool AncoDisableHebcProperty()
+{
+    // Dynamically disable unified rendering layer hebc if persist.sys.graphic.anco.disableHebc equal 1
+    static bool result =
+        std::atoi((system::GetParameter("persist.sys.graphic.anco.disableHebc", "0")).c_str()) != 0;
+    return result;
+}
+
 AncoHebcStatus RSAncoManager::GetAncoHebcStatus() const
 {
+    if (!AncoDisableHebcProperty()) {
+        return AncoHebcStatus::INITIAL;
+    }
     return static_cast<AncoHebcStatus>(ancoHebcStatus_.load());
 }
 
@@ -58,8 +71,8 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
     ScreenRotation rotation, uint32_t width, uint32_t height)
 {
     SetAncoHebcStatus(AncoHebcStatus::INITIAL);
-    if (!RSSurfaceRenderNode::GetOriAncoForceDoDirect() || !RSSystemProperties::IsTabletType() ||
-        rotation != ScreenRotation::ROTATION_0) {
+    if (!AncoDisableHebcProperty() || !RSSurfaceRenderNode::GetOriAncoForceDoDirect() ||
+        !RSSystemProperties::IsTabletType() || rotation != ScreenRotation::ROTATION_0) {
         return false;
     }
 
@@ -89,7 +102,7 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
             !surfaceNode->GetRSSurfaceHandler()->GetBuffer()) {
             continue;
         }
-
+#ifdef RS_ENABLE_GPU
         auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
         if (params == nullptr) {
             continue;
@@ -104,6 +117,7 @@ bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& s
                 sfvNodesCnt++;
             }
         }
+#endif
     }
 
     return AncoOptimizeCheck(isHebc, nodesCnt, sfvNodesCnt);

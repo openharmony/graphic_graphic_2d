@@ -54,8 +54,6 @@
 
 namespace OHOS {
 namespace Rosen {
-static std::unordered_map<RSUIDirector*, TaskRunner> g_uiTaskRunners;
-static std::mutex g_uiTaskRunnersVisitorMutex;
 std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
@@ -197,8 +195,8 @@ void RSUIDirector::Destroy(bool isTextureExport)
         root_ = 0;
     }
     GoBackground(isTextureExport);
-    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
-    g_uiTaskRunners.erase(this);
+    std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
+    uiTaskRunners.erase(this);
 }
 
 void RSUIDirector::SetRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
@@ -332,9 +330,9 @@ bool RSUIDirector::HasUIRunningAnimation()
 
 void RSUIDirector::SetUITaskRunner(const TaskRunner& uiTaskRunner, int32_t instanceId)
 {
-    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
+    std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
     instanceId_ = instanceId;
-    g_uiTaskRunners[this] = uiTaskRunner;
+    uiTaskRunners[this] = uiTaskRunner;
     if (!isHgmConfigChangeCallbackReg_) {
         RSFrameRatePolicy::GetInstance()->RegisterHgmConfigChangeCallback();
         isHgmConfigChangeCallbackReg_ = true;
@@ -349,7 +347,7 @@ void RSUIDirector::SendMessages()
         transactionProxy->FlushImplicitTransaction(timeStamp_, abilityName_);
         index_ = transactionProxy->GetTransactionDataIndex();
     } else {
-        RS_LOGE("RSUIDirector::SendMessages failed, transactionProxy is nullptr");
+        RS_LOGE_LIMIT(__func__, __line__, "RSUIDirector::SendMessages failed, transactionProxy is nullptr");
     }
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
 }
@@ -395,17 +393,17 @@ void RSUIDirector::ProcessMessages(std::shared_ptr<RSTransactionData> cmds)
         m[instanceId].push_back(std::move(cmd));
     }
     auto msgId = ++messageId;
-    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
+    RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Post [messageId:%lu,cmdIndex:%llu,cmdCount:%lu]",
         msgId, cmds->GetIndex(), cmds->GetCommandCount());
     auto counter = std::make_shared<std::atomic_size_t>(m.size());
     for (auto &[instanceId, commands] : m) {
-        ROSEN_LOGI("RSUIDirector::ProcessMessages messageId:%{public}d, cmdCount:%{public}lu, "
-            "instanceId:%{public}d", msgId, static_cast<unsigned long>(commands.size()), instanceId);
+        ROSEN_LOGI("Post messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d", msgId,
+            static_cast<unsigned long>(commands.size()), instanceId);
         PostTask(
             [cmds = std::make_shared<std::vector<std::unique_ptr<RSCommand>>>(std::move(commands)),
                 counter, msgId, tempInstanceId = instanceId] {
-                RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages PostTask messageId [%lu]", msgId);
-                ROSEN_LOGI("RSUIDirector::PostTask messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
+                RS_TRACE_NAME_FMT("RSUIDirector::ProcessMessages Process messageId:%lu", msgId);
+                ROSEN_LOGI("Process messageId:%{public}d, cmdCount:%{public}lu, instanceId:%{public}d",
                     msgId, static_cast<unsigned long>(cmds->size()), tempInstanceId);
                 for (auto &cmd : *cmds) {
                     RSContext context; // RSCommand->process() needs it
@@ -454,6 +452,19 @@ void RSUIDirector::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t task
     ROSEN_LOGI("DumpNodeTreeProcessor task[%{public}u] node[%" PRIu64 "]", taskId, nodeId);
 
     std::string out;
+    // use for dump transactionFlags [pid,index] in client tree dump
+    int32_t instanceId = RSNodeMap::Instance().GetNodeInstanceId(nodeId);
+    {
+        std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
+        for (const auto &[director, taskRunner] : uiTaskRunners) {
+            if (director->instanceId_ == instanceId) {
+                out.append("transactionFlags:[ ").append(std::to_string(pid).append(", ")
+                    .append(std::to_string(director->index_)).append("]\r"));
+                break;
+            }
+        }
+    }
+
     if (auto node = RSNodeMap::Instance().GetNode(nodeId)) {
         constexpr int TOP_LEVEL_DEPTH = 1;
         node->DumpTree(TOP_LEVEL_DEPTH, out);
@@ -480,8 +491,8 @@ void RSUIDirector::PostTask(const std::function<void()>& task, int32_t instanceI
 
 void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t delay, int32_t instanceId)
 {
-    std::unique_lock<std::mutex> lock(g_uiTaskRunnersVisitorMutex);
-    for (const auto &[director, taskRunner] : g_uiTaskRunners) {
+    std::unique_lock<std::mutex> lock(uiTaskRunnersVisitorMutex);
+    for (const auto &[director, taskRunner] : uiTaskRunners) {
         if (director->instanceId_ != instanceId) {
             continue;
         }
@@ -492,7 +503,7 @@ void RSUIDirector::PostDelayTask(const std::function<void()>& task, uint32_t del
     if (instanceId != INSTANCE_ID_UNDEFINED) {
         ROSEN_LOGW("RSUIDirector::PostTask instanceId=%{public}d not found", instanceId);
     }
-    for (const auto &[_, taskRunner] : g_uiTaskRunners) {
+    for (const auto &[_, taskRunner] : uiTaskRunners) {
         ROSEN_LOGD("RSUIDirector::PostTask success");
         taskRunner(task, delay);
         return;

@@ -33,7 +33,7 @@
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 #include "render_context/render_context.h"
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
 #include "rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -116,6 +116,14 @@ using PreProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&
 // function that will be called after drawing Buffer / Image.
 using PostProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
 
+struct VideoInfo {
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GSError retGetColorSpaceInfo_ = GSERROR_OK;
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter_ = {};
+#endif
+};
+
 // This render engine aims to do the client composition for all surfaces that hardware can't handle.
 class RSBaseRenderEngine {
 public:
@@ -158,7 +166,8 @@ public:
         BufferDrawParam& params);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
-
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
+        BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
@@ -175,6 +184,7 @@ public:
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);
     static bool IsHighContrastEnabled();
+    static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
 
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     const std::shared_ptr<RenderContext>& GetRenderContext()
@@ -188,17 +198,17 @@ public:
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
     void ResetCurrentContext();
 
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     const std::shared_ptr<RSEglImageManager>& GetEglImageManager()
     {
         return eglImageManager_;
     }
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
     void ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEffect> &inputShader, BufferDrawParam& params,
         Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter& parameter);
 #endif
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToDrawingColorSpace(GraphicColorGamut colorGamut);
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<RSVkImageManager>& GetVkImageManager() const
     {
@@ -215,7 +225,6 @@ public:
 #endif
 protected:
     void DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
-    static bool CheckIsHdrSurfaceBuffer(const sptr<SurfaceBuffer> surfaceBuffer);
 
     static inline std::mutex colorFilterMutex_;
     static inline ColorFilterMode colorFilterMode_ = ColorFilterMode::COLOR_FILTER_END;
@@ -234,7 +243,7 @@ private:
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::shared_ptr<RenderContext> captureRenderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#ifdef RS_ENABLE_EGLIMAGE
+#if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     std::shared_ptr<RSEglImageManager> eglImageManager_ = nullptr;
 #endif // RS_ENABLE_EGLIMAGE
 #ifdef RS_ENABLE_VK

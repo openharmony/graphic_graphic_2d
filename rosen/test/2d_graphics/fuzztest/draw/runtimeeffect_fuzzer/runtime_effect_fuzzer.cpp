@@ -29,8 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-static constexpr int32_t WIDTH = 300;
-static constexpr int32_t LEFT = 100;
+static constexpr int32_t MAX_SIZE = 5000;
 bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -41,10 +40,38 @@ bool RuntimeEffectFuzzTest(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    std::shared_ptr<RuntimeEffect> runtimeEffect = RuntimeEffect::CreateForShader("shader");
+    size_t length = GetObject<size_t>() % MAX_SIZE + 1;
+    char* text = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        text[i] = GetObject<char>();
+    }
+    text[length - 1] = '\0';
+    std::shared_ptr<RuntimeEffect> runtimeEffect = RuntimeEffect::CreateForShader(std::string(text));
     runtimeEffect->GetDrawingType();
     bool isOpaque = GetObject<bool>();
+    auto dataVal = std::make_shared<Data>();
+    char* dataText = new char[length];
+    for (size_t i = 0; i < length; i++) {
+        dataText[i] = GetObject<char>();
+    }
+    dataText[length - 1] = '\0';
+    dataVal->BuildWithoutCopy(dataText, length - 1);
     runtimeEffect->MakeShader(nullptr, nullptr, 0, nullptr, isOpaque);
+    Matrix matrix;
+    matrix.SetMatrix(
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()
+    );
+    runtimeEffect->MakeShader(dataVal, nullptr, 0, &matrix, isOpaque);
+    if (dataText != nullptr) {
+        delete [] dataText;
+        dataText = nullptr;
+    }
+    if (text != nullptr) {
+        delete [] text;
+        text = nullptr;
+    }
 
     return true;
 }
@@ -81,7 +108,11 @@ bool RuntimeShaderFuzzTest(const uint8_t* data, size_t size)
     image.MakeFromEncoded(encodeData);
 
     Drawing::Matrix matrix;
-    matrix.Translate(LEFT, LEFT);
+    matrix.SetMatrix(
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(),
+        GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()
+    );
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(image, Drawing::TileMode::CLAMP,
         Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), matrix);
 
@@ -93,13 +124,14 @@ bool RuntimeShaderFuzzTest(const uint8_t* data, size_t size)
     builder->SetUniform("coefficient2", val2);
 
     bool isOpaque = GetObject<bool>();
-    std::shared_ptr<Drawing::ShaderEffect> shader = builder->MakeShader(nullptr, isOpaque);
+    std::shared_ptr<Drawing::ShaderEffect> shader = builder->MakeShader(&matrix, isOpaque);
 
     Drawing::Brush brush;
     brush.SetShaderEffect(shader);
-    Drawing::RecordingCanvas playbackCanvas_ = Drawing::RecordingCanvas(WIDTH, WIDTH);
+    Drawing::RecordingCanvas playbackCanvas_ = Drawing::RecordingCanvas(GetObject<int32_t>(), GetObject<int32_t>());
     playbackCanvas_.AttachBrush(brush);
-    playbackCanvas_.DrawRect(Drawing::Rect(0, 0, WIDTH, WIDTH));
+    playbackCanvas_.DrawRect(Drawing::Rect(GetObject<float>(),
+        GetObject<float>(), GetObject<float>(), GetObject<float>()));
     playbackCanvas_.DetachBrush();
     return true;
 }
@@ -144,14 +176,13 @@ bool RuntimeBlenderFuzzTest(const uint8_t* data, size_t size)
     auto encodeData = Drawing::Data::MakeFromFileName("mandrill_256.png");
     image.MakeFromEncoded(encodeData);
 
-    auto rect = Drawing::Rect(0, 0, image.GetWidth(), image.GetHeight());
-
     Drawing::Brush brush;
-    brush.SetColor(0xFF00FF00);
+    brush.SetColor(GetObject<uint32_t>());
     brush.SetBlender(blender);
-    Drawing::RecordingCanvas playbackCanvas_ = Drawing::RecordingCanvas(WIDTH, WIDTH);
+    Drawing::RecordingCanvas playbackCanvas_ = Drawing::RecordingCanvas(GetObject<int32_t>(), GetObject<int32_t>());
     playbackCanvas_.AttachBrush(brush);
-    playbackCanvas_.DrawRect(Drawing::Rect(0, 0, WIDTH, WIDTH));
+    playbackCanvas_.DrawRect(Drawing::Rect(GetObject<float>(),
+        GetObject<float>(), GetObject<float>(), GetObject<float>()));
     playbackCanvas_.DetachBrush();
 
     return true;

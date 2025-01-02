@@ -103,6 +103,16 @@ void OH_Drawing_DisableFontCollectionSystemFont(OH_Drawing_FontCollection*);
  * @version 1.0
  */
 void OH_Drawing_ClearFontCaches(OH_Drawing_FontCollection*);
+
+/**
+ * @brief Get the <b>OH_Drawing_FontCollection</b> global instance.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return Return the pointer to the <b>OH_Drawing_FontCollection</b> global instance.
+ * @since 14
+ * @version 1.0
+ */
+OH_Drawing_FontCollection* OH_Drawing_GetFontCollectionGlobalInstance(void);
 #ifdef __cplusplus
 }
 #endif

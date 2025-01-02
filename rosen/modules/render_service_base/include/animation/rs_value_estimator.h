@@ -273,7 +273,7 @@ public:
                 preKeyframeValue = animationValue;
                 continue;
             }
-            if (fraction == startFraction && startFraction == endFraction) {
+            if (ROSEN_EQ(fraction, startFraction) && ROSEN_EQ(startFraction, endFraction)) {
                 bInFraction = true;
                 animationValue = keyframeValue;
                 preKeyframeValue = keyframeValue;
@@ -369,7 +369,7 @@ public:
     void SetDampingRatio(const float dampingRatio) override
     {
         if (springModel_) {
-            springModel_->dampingRatio_ = dampingRatio;
+            springModel_->dampingRatio_ = std::clamp(dampingRatio, SPRING_MIN_DAMPING_RATIO, SPRING_MAX_DAMPING_RATIO);
         }
     }
 

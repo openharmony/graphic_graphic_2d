@@ -318,6 +318,25 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveMode, TestSize.Level
 }
 
 /**
+ * @tc.name: SetScreenActiveRect Test
+ * @tc.desc: SetScreenActiveRect Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB3986
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetScreenActiveRect, TestSize.Level1)
+{
+    ScreenId id = 1;
+    Rect activeRect {
+        .x = 0,
+        .y = 0,
+        .w = 0,
+        .h = 0,
+    };
+    proxy->SetScreenActiveRect(id, activeRect);
+    ASSERT_NE(proxy->transactionDataIndex_, 0);
+}
+
+/**
  * @tc.name: SetScreenRefreshRate Test
  * @tc.desc: SetScreenRefreshRate Test
  * @tc.type:FUNC
@@ -472,13 +491,29 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     captureConfig.useDma = false;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     captureConfig.isSync = true;
-    proxy->TakeSurfaceCapture(id, callback, captureConfig);
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    blurParam.blurRadius = 10;
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, captureConfig);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: SetHwcNodeBounds Test
+ * @tc.desc: SetHwcNodeBounds Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB2O0L
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetHwcNodeBounds, TestSize.Level1)
+{
+    NodeId id = 1;
+    proxy->SetHwcNodeBounds(id, 1.0f, 1.0f, 1.0f, 1.0f);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
@@ -990,6 +1025,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, GetHwcDisabledReasonInfo, TestSize.
 }
 
 /**
+ * @tc.name: GetHdrOnDuration Test
+ * @tc.desc: GetHdrOnDuration Test
+ * @tc.type: FUNC
+ * @tc.require: issueIB4YDF
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, GetHdrOnDuration, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    EXPECT_GE(proxy->GetHdrOnDuration(), 0);
+}
+
+/**
  * @tc.name: RegisterUIExtensionCallback Test
  * @tc.desc: RegisterUIExtensionCallback Test, with empty/non-empty callback.
  * @tc.type:FUNC
@@ -1017,7 +1064,20 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     const std::string nodeIdStr = "123456";
     proxy->SetLayerTop(nodeIdStr, true);
     proxy->SetLayerTop(nodeIdStr, false);
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetFreeMultiWindowStatus Test
+ * @tc.desc: SetFreeMultiWindowStatus Test
+ * @tc.type:FUNC
+ * @tc.require: issueIB31K8
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.Level1)
+{
+    proxy->SetFreeMultiWindowStatus(true);
+    proxy->SetFreeMultiWindowStatus(false);
+    ASSERT_TRUE(proxy);
 }
 } // namespace Rosen
 } // namespace OHOS

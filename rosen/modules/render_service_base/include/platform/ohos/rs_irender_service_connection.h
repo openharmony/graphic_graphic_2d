@@ -27,6 +27,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -66,7 +67,8 @@ public:
     virtual sptr<IVSyncConnection> CreateVSyncConnection(const std::string& name,
                                                          const sptr<VSyncIConnectionToken>& token = nullptr,
                                                          uint64_t id = 0,
-                                                         NodeId windowNodeId = 0) = 0;
+                                                         NodeId windowNodeId = 0,
+                                                         bool fromXcomponent = false) = 0;
 
     virtual std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
         const Rect &srcRect) = 0;
@@ -93,13 +95,19 @@ public:
 
     virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
 
+    virtual int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    
+    virtual int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+
     virtual bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark) = 0;
 
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
+    virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
+
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
-    
+
     virtual int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) = 0;
 
     virtual void RemoveVirtualScreen(ScreenId id) = 0;
@@ -144,13 +152,18 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
+    virtual void RepaintEverything() = 0;
+
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
+
+    virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig) = 0;
 
     virtual void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) = 0;
@@ -235,6 +248,8 @@ public:
 
     virtual int32_t SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate) = 0;
 
+    virtual uint32_t SetScreenActiveRect(ScreenId id, const Rect& activeRect) = 0;
+
     virtual int32_t RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback) = 0;
 
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(
@@ -250,6 +265,9 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
+
     virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
@@ -263,6 +281,8 @@ public:
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
+
+    virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
 
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
@@ -283,7 +303,7 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
-    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
+    virtual void SetScreenSwitchStatus(bool flag) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
@@ -293,6 +313,8 @@ public:
 
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
+    virtual void DropFrameByPid(const std::vector<int32_t> pidList) = 0;
+
     virtual std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() = 0;
 
     virtual GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() = 0;
@@ -301,19 +323,21 @@ public:
 
     virtual HwcDisabledReasonInfos GetHwcDisabledReasonInfo() = 0;
 
+    virtual int64_t GetHdrOnDuration() = 0;
+
     virtual void SetVmaCacheStatus(bool flag) = 0;
 
     virtual int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback) = 0;
 
-    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
-
     virtual bool SetAncoForceDoDirect(bool direct) = 0;
+
+    virtual bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) = 0;
 
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
 
     virtual void SetLayerTop(const std::string &nodeIdStr, bool isTop) = 0;
 #ifdef TP_FEATURE_ENABLE
-    virtual void SetTpFeatureConfig(int32_t feature, const char* config) = 0;
+    virtual void SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif
 
     virtual void RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,

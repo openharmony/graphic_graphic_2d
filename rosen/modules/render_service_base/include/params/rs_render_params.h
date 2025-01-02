@@ -47,6 +47,15 @@ struct DirtyRegionInfoForDFX {
 };
 struct RSLayerInfo;
 struct ScreenInfo;
+
+typedef enum {
+    RS_PARAM_DEFAULT,
+    RS_PARAM_OWNED_BY_NODE,
+    RS_PARAM_OWNED_BY_DRAWABLE,
+    RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST,
+    RS_PARAM_INVALID,
+} RSRenderParamsType;
+
 class RSB_EXPORT RSRenderParams {
 public:
     RSRenderParams(NodeId id) : id_(id) {}
@@ -96,6 +105,16 @@ public:
     inline NodeId GetId() const
     {
         return id_;
+    }
+
+    void SetParamsType(RSRenderParamsType paramsType)
+    {
+        paramsType_ = paramsType;
+    }
+
+    inline RSRenderParamsType GetParamsType() const
+    {
+        return paramsType_;
     }
 
     Gravity GetFrameGravity() const
@@ -259,15 +278,18 @@ public:
     {
         return absDrawRect_;
     }
+
     void SetAbsDrawRect(RectI& absRect)
     {
         absDrawRect_ = absRect;
     }
+
     // surface params
     virtual bool GetOcclusionVisible() const { return true; }
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool GetNeedMakeImage() const { return false; }
     virtual bool GetHardCursorStatus() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
@@ -314,12 +336,23 @@ public:
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
+    virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
+    virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffScreenOn)
+    {
+        isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
+    }
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
 
 private:
     NodeId id_;
+    RSRenderParamsType paramsType_ = RSRenderParamsType::RS_PARAM_DEFAULT;
     RSRenderNodeType renderNodeType_ = RSRenderNodeType::RS_NODE;
     Drawing::Matrix matrix_;
     Drawing::RectF boundsRect_;
@@ -331,7 +364,7 @@ private:
     RectI absDrawRect_;
     Vector2f cacheSize_;
     Gravity frameGravity_ = Gravity::CENTER;
-
+    bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;
     bool hasSandBox_ = false;
@@ -357,9 +390,10 @@ private:
     bool hasGlobalCorner_ = false;
     bool hasBlurFilter_ = false;
     SurfaceParam surfaceParams_;
-    bool freezeFlag_ = false;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    bool isFirstLevelCrossNode_ = false;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

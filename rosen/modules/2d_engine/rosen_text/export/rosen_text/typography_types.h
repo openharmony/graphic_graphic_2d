@@ -43,7 +43,8 @@ enum class BreakStrategy {
 enum class WordBreakType {
     NORMAL = 0,
     BREAK_ALL = 1,
-    BREAK_WORD = 2
+    BREAK_WORD = 2,
+    BREAK_HYPHEN = 3
 };
 
 enum TextDecoration {

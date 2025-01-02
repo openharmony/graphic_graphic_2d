@@ -21,6 +21,9 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <unordered_map>
+
+#include "screen_manager/screen_types.h"
 
 namespace OHOS::Rosen {
 class RSRealtimeRefreshRateManager {
@@ -32,35 +35,36 @@ public:
         return enableState_;
     }
     void SetShowRefreshRateEnabled(bool enable);
-    uint32_t GetRealtimeRefreshRate() const
-    {
-        return currRealtimeRefreshRate_;
-    }
+    uint32_t GetRealtimeRefreshRate(const ScreenId screenId);
 private:
     friend class RSHardwareThread;
     RSRealtimeRefreshRateManager() = default;
     ~RSRealtimeRefreshRateManager() = default;
 
-    inline void CountRealtimeFrame()
+    inline void CountRealtimeFrame(const ScreenId screenId)
     {
         if (enableState_) {
-            realtimeFrameCount_++;
+            std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
+            realtimeFrameCountMap_[screenId]++;
         }
     }
 
     std::atomic<bool> enableState_ = false;
-    uint32_t currRealtimeRefreshRate_ = 1;
-    std::atomic<uint32_t> realtimeFrameCount_ = 0;
-
-    static constexpr uint8_t IDLE_FPS_THRESHOLD_ = 8;
-    static constexpr auto NS_PER_S_ =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
-    static constexpr auto NS_FPS_SHOW_INTERVAL_ =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(250));
-
+    std::unordered_map<ScreenId, uint32_t> currRealtimeRefreshRateMap_;
+    std::unordered_map<ScreenId, uint32_t> realtimeFrameCountMap_;
+    std::mutex showRealtimeFrameMutex_;
     std::mutex threadMutex_;
-    std::condition_variable threadCondVar_;
-    std::thread updateFpsThread_;
+    std::chrono::steady_clock::time_point startTime_;
+    uint32_t lastRefreshRate_ = 0;
+    bool isRealtimeRefreshRateChange_ = false;
+    std::function<void()> showRefreshRateTask_ = nullptr;
+    const std::string EVENT_ID = "SHOW_REFRESH_RATE";
+
+    static constexpr uint8_t IDLE_FPS_THRESHOLD = 8;
+    static constexpr auto NS_PER_S =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::seconds(1)).count();
+    static constexpr uint8_t DEFAULT_REALTIME_REFRESH_RATE = 1;
+    static constexpr uint32_t EVENT_INTERVAL = 250; // 250ms
 };
 } // namespace OHOS::Rosen
 #endif // RS_REALTIME_REFRESH_RATE_MANAGER_H

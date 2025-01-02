@@ -169,6 +169,28 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, PrepareOffscreenRender002, TestSize.Le
 }
 
 /**
+ * @tc.name: InitTranslateForWallpaper
+ * @tc.desc: Test InitTranslateForWallpaper
+ * @tc.type: FUNC
+ * @tc.require: #IB5JZQ
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, InitTranslateForWallpaper, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    system::SetParameter("const.cache.optimize.rotate.enable", "true");
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    params->frameRect_ = {0.f, 0.f, 100.f, 100.f};
+    params->screenInfo_.width = 100;
+    params->screenInfo_.height = 100;
+    displayDrawable_->InitTranslateForWallpaper();
+    auto& rtThread = RSUniRenderThread::Instance();
+    EXPECT_EQ(rtThread.wallpaperTranslate_.first, 21);
+    EXPECT_EQ(rtThread.wallpaperTranslate_.second, 21);
+    system::SetParameter("const.cache.optimize.rotate.enable", "false");
+}
+
+/**
  * @tc.name: ClearTransparentBeforeSaveLayer
  * @tc.desc: Test ClearTransparentBeforeSaveLayer, with two surface with/without param initialization
  * @tc.type: FUNC
@@ -188,8 +210,8 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, ClearTransparentBeforeSaveLayer, TestS
     auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(id);
     auto drawable2 = RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode2);
     surfaceNode2->InitRenderParams();
-    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable1);
-    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(drawable2);
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(std::make_pair(1, drawable1));
+    rtThread.GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.push_back(std::make_pair(1, drawable2));
     ASSERT_NE(renderNode_, nullptr);
     renderNode_->GetMutableRenderProperties().SetFrameWidth(DEFAULT_CANVAS_SIZE);
     renderNode_->GetMutableRenderProperties().SetFrameHeight(DEFAULT_CANVAS_SIZE);
@@ -751,6 +773,194 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, WiredScreenProjectionTest, TestSize.Le
 }
 
 /**
+ * @tc.name: SkipFrameByIntervalTest001
+ * @tc.desc: test SkipFrameByInterval for refreshRate 0 and skipFrameInterval 0
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest001, TestSize.Level1)
+{
+    uint32_t refreshRate = 0;
+    uint32_t skipFrameInterval = 0;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByIntervalTest002
+ * @tc.desc: test SkipFrameByInterval for skipFrameInterval 0
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest002, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 0;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByIntervalTest003
+ * @tc.desc: test SkipFrameByInterval for skipFrameInterval 1
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest003, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 1;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByIntervalTest004
+ * @tc.desc: test SkipFrameByInterval for time within skipFrameInterval 2
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest004, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 2; // skipFrameInterval 2
+    displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval);
+    ASSERT_TRUE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByIntervalTest005
+ * @tc.desc: test SkipFrameByInterval for time over skipFrameInterval 2
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest005, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 2; // skipFrameInterval 2
+    displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval);
+    usleep(50000); // 50000us == 50ms
+    ASSERT_FALSE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByIntervalTest006
+ * @tc.desc: test SkipFrameByInterval for time within skipFrameInterval 6
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest006, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 6; // skipFrameInterval 6
+    displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval);
+    usleep(50000); // 50000us == 50ms
+    ASSERT_TRUE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByIntervalTest007
+ * @tc.desc: test SkipFrameByInterval for time over skipFrameInterval 6
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest007, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t skipFrameInterval = 6; // skipFrameInterval 6
+    displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval);
+    usleep(150000); // 150000us == 150ms
+    ASSERT_FALSE(displayDrawable_->SkipFrameByInterval(refreshRate, skipFrameInterval));
+}
+
+/**
+ * @tc.name: SkipFrameByRefreshRateTest001
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 0
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest001, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = 0;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
+}
+
+/**
+ * @tc.name: SkipFrameByRefreshRateTest002
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate UINT32_MAX
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest002, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = UINT32_MAX;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
+}
+
+/**
+ * @tc.name: SkipFrameByRefreshRateTest003
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 60
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest003, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = 60; // 60hz
+    displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate);
+    usleep(5000); // 5000us == 5ms
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
+}
+
+/**
+ * @tc.name: SkipFrameByRefreshRateTest004
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 60
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest004, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = 60; // 60hz
+    displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate);
+    usleep(100000); // 100000us == 100ms
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
+}
+
+/**
+ * @tc.name: SkipFrameTest001
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_INTERVAL
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameTest001, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_INTERVAL;
+    screenInfo.skipFrameInterval = 2; // skipFrameInterval 2
+    displayDrawable_->SkipFrame(refreshRate, screenInfo);
+    usleep(5000); // 5000us == 5ms
+    ASSERT_TRUE(displayDrawable_->SkipFrame(refreshRate, screenInfo));
+}
+
+/**
+ * @tc.name: SkipFrameTest002
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameTest002, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 30; // expectedRefreshRate 30
+    displayDrawable_->SkipFrame(refreshRate, screenInfo);
+    usleep(5000); // 5000us == 5ms
+    ASSERT_TRUE(displayDrawable_->SkipFrame(refreshRate, screenInfo));
+}
+
+/**
  * @tc.name: GetSpecialLayerType
  * @tc.desc: Test GetSpecialLayerType
  * @tc.type: FUNC
@@ -1139,6 +1349,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
 }
 
 /**
+ * @tc.name: MakeBrightnessAdjustmentShader
+ * @tc.desc: Test MakeBrightnessAdjustmentShader
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, MakeBrightnessAdjustmentShader, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::SamplingOptions sampling;
+    ASSERT_NE(displayDrawable_->MakeBrightnessAdjustmentShader(image, sampling, 0.5f), nullptr);
+}
+
+/**
  * @tc.name: FinishOffscreenRender
  * @tc.desc: Test FinishOffscreenRender
  * @tc.type: FUNC
@@ -1182,20 +1406,35 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, CreateSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: SkipFrame
- * @tc.desc: Test SkipFrame
+ * @tc.name: SkipFrameByInterval
+ * @tc.desc: Test SkipFrameByInterval
  * @tc.type: FUNC
  * @tc.require: issueIAGR5V
  */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrame, TestSize.Level1)
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByInterval, TestSize.Level1)
 {
     ASSERT_NE(displayDrawable_, nullptr);
-    bool res = displayDrawable_->SkipFrame(0, 2);
+    bool res = displayDrawable_->SkipFrameByInterval(0, 2);
     ASSERT_FALSE(res);
-    res = displayDrawable_->SkipFrame(1, 1);
+    res = displayDrawable_->SkipFrameByInterval(1, 1);
     ASSERT_FALSE(res);
-    res = displayDrawable_->SkipFrame(1, 2);
+    res = displayDrawable_->SkipFrameByInterval(1, 2);
     ASSERT_FALSE(res);
+}
+
+/**
+ * @tc.name: UseCanvasSizeTest
+ * @tc.desc: Test SetUseCanvasSize and GetUseCanvasSize
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, UseCanvasSizeTest, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    displayDrawable_->SetUseCanvasSize(true);
+    EXPECT_TRUE(displayDrawable_->GetUseCanvasSize());
+    displayDrawable_->SetUseCanvasSize(false);
+    EXPECT_FALSE(displayDrawable_->GetUseCanvasSize());
 }
 
 /**
@@ -1210,5 +1449,16 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, EnablescRGBForP3AndUiFirstTest, TestSi
     auto currentGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto result = displayDrawable_->EnablescRGBForP3AndUiFirst(currentGamut);
     EXPECT_FALSE(result);
+}
+
+HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDraw, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(mirroredDisplayDrawable_, nullptr);
+    auto params = static_cast<RSDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
+    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
 }
 }

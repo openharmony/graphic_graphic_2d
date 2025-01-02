@@ -66,6 +66,41 @@ std::shared_ptr<RSRenderModifier> RSCustomClipToFrameModifier::CreateRenderModif
     return renderModifier;
 }
 
+RSHDRBrightnessModifier::RSHDRBrightnessModifier(const std::shared_ptr<RSPropertyBase>& property)
+    : RSForegroundModifier(property, RSModifierType::HDR_BRIGHTNESS)
+{}
+
+RSModifierType RSHDRBrightnessModifier::GetModifierType() const
+{
+    return RSModifierType::HDR_BRIGHTNESS;
+}
+
+std::shared_ptr<RSRenderModifier> RSHDRBrightnessModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSHDRBrightnessRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
+RSBehindWindowFilterEnabledModifier::RSBehindWindowFilterEnabledModifier(
+    const std::shared_ptr<RSPropertyBase>& property) : RSBackgroundModifier(property,
+    RSModifierType::BEHIND_WINDOW_FILTER_ENABLED)
+{
+    property_->SetThresholdType(ThresholdType::ZERO);
+}
+
+RSModifierType RSBehindWindowFilterEnabledModifier::GetModifierType() const
+{
+    return RSModifierType::BEHIND_WINDOW_FILTER_ENABLED;
+}
+
+std::shared_ptr<RSRenderModifier> RSBehindWindowFilterEnabledModifier::CreateRenderModifier() const
+{
+    auto renderProperty = GetRenderProperty();
+    auto renderModifier = std::make_shared<RSBehindWindowFilterEnabledRenderModifier>(renderProperty);
+    return renderModifier;
+}
+
 RSBehindWindowFilterRadiusModifier::RSBehindWindowFilterRadiusModifier(const std::shared_ptr<RSPropertyBase>& property)
     : RSBackgroundModifier(property, RSModifierType::BEHIND_WINDOW_FILTER_RADIUS)
 {
@@ -211,25 +246,18 @@ void RSScaleModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
     geometry->SetScale(value.x_, value.y_);
 }
 
-void RSScaleZModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
-{
-    auto value = std::static_pointer_cast<RSProperty<float>>(property_)->Get();
-    value *= geometry->GetScaleZ();
-    geometry->SetScaleZ(value);
-}
-
 void RSSkewModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
-    auto value = std::static_pointer_cast<RSProperty<Vector3f>>(property_)->Get();
-    value += Vector3f(geometry->GetSkewX(), geometry->GetSkewY(), geometry->GetSkewZ());
-    geometry->SetSkew(value.x_, value.y_, value.z_);
+    auto value = std::static_pointer_cast<RSProperty<Vector2f>>(property_)->Get();
+    value += Vector2f(geometry->GetSkewX(), geometry->GetSkewY());
+    geometry->SetSkew(value.x_, value.y_);
 }
 
 void RSPerspModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)
 {
-    auto value = std::static_pointer_cast<RSProperty<Vector4f>>(property_)->Get();
-    value = Vector4f(geometry->GetPerspX(), geometry->GetPerspY(), geometry->GetPerspZ(), geometry->GetPerspW());
-    geometry->SetPersp(value.x_, value.y_, value.z_, value.w_);
+    auto value = std::static_pointer_cast<RSProperty<Vector2f>>(property_)->Get();
+    value += Vector2f(geometry->GetPerspX(), geometry->GetPerspY());
+    geometry->SetPersp(value.x_, value.y_);
 }
 
 void RSTranslateModifier::Apply(const std::shared_ptr<RSObjAbsGeometry>& geometry)

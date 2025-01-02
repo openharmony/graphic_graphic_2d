@@ -28,6 +28,7 @@ static GPUContext* CastToGPUContext(OH_Drawing_GpuContext* cGpuContext)
 
 OH_Drawing_GpuContext* OH_Drawing_GpuContextCreateFromGL(OH_Drawing_GpuContextOptions ops)
 {
+#ifdef RS_ENABLE_GPU
     GPUContextOptions contextOps;
     contextOps.SetAllowPathMaskCaching(ops.allowPathMaskCaching);
     GPUContext* context = new GPUContext();
@@ -37,6 +38,7 @@ OH_Drawing_GpuContext* OH_Drawing_GpuContextCreateFromGL(OH_Drawing_GpuContextOp
     }
     delete context;
     context = nullptr;
+#endif
     return nullptr;
 }
 

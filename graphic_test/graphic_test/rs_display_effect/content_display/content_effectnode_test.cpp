@@ -25,8 +25,8 @@ namespace OHOS::Rosen {
 
 class ContentEffectNodeTest : public RSGraphicTest {
 private:
-    const int screenWidth = 1260;
-    const int screenHeight = 2720;
+    const int screenWidth = 1200;
+    const int screenHeight = 2000;
 
 public:
     // called before each tests

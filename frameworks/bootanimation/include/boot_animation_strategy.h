@@ -31,12 +31,17 @@ public:
     bool CheckExitAnimation();
 
     bool CheckNeedOtaCompile() const;
+    bool CheckNeedBundleScan() const;
 
 public:
     std::shared_ptr<BootCompileProgress> bootCompileProgress_;
 
 private:
     bool isAnimationEnd_ = false;
+
+#ifdef FEATURE_CHECK_EXIT_ANIMATION_EXT
+    bool CheckExitAnimationExt();
+#endif
 };
 } // namespace OHOS
 

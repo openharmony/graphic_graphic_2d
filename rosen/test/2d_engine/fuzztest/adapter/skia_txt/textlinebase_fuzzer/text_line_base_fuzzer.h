@@ -23,4 +23,5 @@
 
 #define FUZZ_PROJECT_NAME "textlinebase_fuzzer"
 
+constexpr inline size_t DATA_MAX_ENUM_SIZE1 = 4;
 #endif // TEST_TEXT_LINE_BASE_FUZZER_H

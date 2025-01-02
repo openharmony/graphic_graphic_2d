@@ -22,6 +22,13 @@ ohos_fuzztest("VsyncGeneratorFuzzTest") {
   fuzz_config_file = "${graphic_2d_root}/rosen/modules/composer/vsync/test/fuzztest/vsyncgenerator_fuzzer"
   module_out_path = module_output_path
 
+  if (graphic_2d_feature_enable_dvsync) {
+    gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+  }
+
+  defines = []
+  defines += gpu_defines
+
   include_dirs = [
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",

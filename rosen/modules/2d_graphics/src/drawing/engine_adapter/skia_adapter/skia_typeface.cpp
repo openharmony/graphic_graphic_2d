@@ -53,7 +53,7 @@ std::string SkiaTypeface::GetFontPath() const
 {
     std::string path;
     if (!skTypeface_) {
-        LOGE("skTypeface nullptr");
+        LOGE("SkTypeface nullptr");
         return path;
     }
     SkString skName;
@@ -145,6 +145,15 @@ bool SkiaTypeface::IsCustomTypeface() const
         return false;
     }
     return skTypeface_->isCustomTypeface();
+}
+
+bool SkiaTypeface::IsThemeTypeface() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isThemeTypeface();
 }
 
 sk_sp<SkTypeface> SkiaTypeface::GetSkTypeface()

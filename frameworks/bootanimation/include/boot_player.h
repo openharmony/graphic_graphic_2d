@@ -39,6 +39,24 @@ public:
         return type == TYPE_VIDEO ? BOOT_VIDEO_PATH : BOOT_SOUND_PATH;
     }
 
+#ifdef PLAYER_FRAMEWORK_ENABLE
+    bool SetCustomizedVolume(const int volume)
+    {
+        if (mediaPlayer_ == nullptr) {
+            LOGE("mediaPlayer is nullptr.");
+            return false;
+        }
+        float customizedVolume = (float)volume/MAX_VOLUME;
+        LOGE("customizedVolume: %{public}d -> %{public}f", volume, customizedVolume);
+        int ret = mediaPlayer_->SetVolume(customizedVolume, customizedVolume);
+        if (ret != 0) {
+            LOGE("PlayVideo SetVolume fail, errorCode:%{public}d", ret);
+            return false;
+        }
+        return true;
+    }
+#endif
+
     Rosen::ScreenId screenId_;
     std::string resPath_;
     bool isSoundEnabled_ = false;

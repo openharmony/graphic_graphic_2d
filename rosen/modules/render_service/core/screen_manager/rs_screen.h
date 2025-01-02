@@ -17,9 +17,11 @@
 #define RS_SCREEN
 
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <unordered_set>
 
+#include <common/rs_rect.h>
 #include <surface_type.h>
 #include <hdi_output.h>
 #include <hdi_screen.h>
@@ -54,16 +56,18 @@ public:
     virtual uint32_t Height() const = 0;
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
+    virtual RectI GetActiveRect() const = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
     virtual void SetActiveMode(uint32_t modeId) = 0;
+    virtual uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) = 0;
     virtual void SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetPowerStatus(uint32_t powerStatus) = 0;
     virtual std::optional<GraphicDisplayModeInfo> GetActiveMode() const = 0;
     virtual const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const = 0;
     virtual const GraphicDisplayCapability& GetCapability() const = 0;
-    virtual uint32_t GetPowerStatus() const = 0;
+    virtual uint32_t GetPowerStatus() = 0;
     virtual std::shared_ptr<HdiOutput> GetOutput() const = 0;
     virtual sptr<Surface> GetProducerSurface() const = 0;
     virtual void SetProducerSurface(sptr<Surface> producerSurface) = 0;
@@ -91,6 +95,11 @@ public:
     virtual void SetScreenCorrection(ScreenRotation screenRotation) = 0;
     virtual void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) = 0;
     virtual uint32_t GetScreenSkipFrameInterval() const = 0;
+    virtual void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) = 0;
+    virtual uint32_t GetScreenExpectedRefreshRate() const = 0;
+    virtual SkipFrameStrategy GetScreenSkipFrameStrategy() const = 0;
+    virtual void SetEqualVsyncPeriod(bool isEqualVsyncPeriod) = 0;
+    virtual bool GetEqualVsyncPeriod() const = 0;
     virtual void SetScreenVsyncEnabled(bool enabled) const = 0;
     virtual bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) = 0;
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) = 0;
@@ -104,6 +113,8 @@ public:
     virtual int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) = 0;
     virtual const std::unordered_set<uint64_t>& GetWhiteList() const = 0;
     virtual void SetBlackList(const std::unordered_set<uint64_t>& blackList) = 0;
+    virtual void AddBlackList(const std::vector<uint64_t>& blackList) = 0;
+    virtual void RemoveBlackList(const std::vector<uint64_t>& blackList) = 0;
     virtual void SetCastScreenEnableSkipWindow(bool enable) = 0;
     virtual const std::unordered_set<uint64_t>& GetBlackList() const = 0;
     virtual bool GetCastScreenEnableSkipWindow() = 0;
@@ -114,6 +125,10 @@ public:
     virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
+    virtual void SetEnableVisibleRect(bool enable) = 0;
+    virtual bool GetEnableVisibleRect() const = 0;
+    virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
+    virtual Rect GetMainScreenVisibleRect() const = 0;
 };
 
 namespace impl {
@@ -140,16 +155,18 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
+    RectI GetActiveRect() const override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
     void SetActiveMode(uint32_t modeId) override;
+    uint32_t SetScreenActiveRect(const GraphicIRect& activeRect) override;
     void SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
     void SetPowerStatus(uint32_t powerStatus) override;
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const override;
     const std::vector<GraphicDisplayModeInfo>& GetSupportedModes() const override;
     const GraphicDisplayCapability& GetCapability() const override;
-    uint32_t GetPowerStatus() const override;
+    uint32_t GetPowerStatus() override;
     std::shared_ptr<HdiOutput> GetOutput() const override;
     sptr<Surface> GetProducerSurface() const override;
     void SetProducerSurface(sptr<Surface> producerSurface) override;
@@ -177,6 +194,11 @@ public:
     const RSScreenType& GetScreenType() const override;
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval) override;
     uint32_t GetScreenSkipFrameInterval() const override;
+    void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate) override;
+    uint32_t GetScreenExpectedRefreshRate() const override;
+    SkipFrameStrategy GetScreenSkipFrameStrategy() const override;
+    void SetEqualVsyncPeriod(bool isEqualVsyncPeriod) override;
+    bool GetEqualVsyncPeriod() const override;
     void SetScreenVsyncEnabled(bool enabled) const override;
     bool SetVirtualMirrorScreenCanvasRotation(bool canvasRotation) override;
     bool SetVirtualMirrorScreenScaleMode(ScreenScaleMode scaleMode) override;
@@ -190,6 +212,8 @@ public:
     int32_t SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace) override;
     const std::unordered_set<uint64_t>& GetWhiteList() const override;
     void SetBlackList(const std::unordered_set<uint64_t>& blackList) override;
+    void AddBlackList(const std::vector<uint64_t>& blackList) override;
+    void RemoveBlackList(const std::vector<uint64_t>& blackList) override;
     void SetCastScreenEnableSkipWindow(bool enable) override;
     const std::unordered_set<uint64_t>& GetBlackList() const override;
     bool GetCastScreenEnableSkipWindow() override;
@@ -200,6 +224,10 @@ public:
     void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
+    void SetEnableVisibleRect(bool enable) override;
+    bool GetEnableVisibleRect() const override;
+    void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
+    Rect GetMainScreenVisibleRect() const override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -227,6 +255,7 @@ private:
     uint32_t phyHeight_ = 0;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
+    RectI activeRect_;
 
     bool isVirtual_ = true;
     bool isVirtualSurfaceUpdateFlag_ = false;
@@ -236,7 +265,7 @@ private:
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
     GraphicHDRCapability hdrCapability_;
     sptr<Surface> producerSurface_ = nullptr;  // has value if the screen is virtual
-    GraphicDispPowerStatus powerStatus_ = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
+    ScreenPowerStatus powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
     GraphicPixelFormat pixelFormat_;
 
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
@@ -254,6 +283,9 @@ private:
     std::vector<ScreenHDRFormat> supportedPhysicalHDRFormats_;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
     uint32_t skipFrameInterval_ = DEFAULT_SKIP_FRAME_INTERVAL;
+    uint32_t expectedRefreshRate_ = INVALID_EXPECTED_REFRESH_RATE;
+    SkipFrameStrategy skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
+    bool isEqualVsyncPeriod_ = true;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     bool canvasRotation_ = false; // just for virtual screen to use
     ScreenScaleMode scaleMode_ = ScreenScaleMode::UNISCALE_MODE; // just for virtual screen to use
@@ -264,8 +296,11 @@ private:
     std::unordered_set<uint64_t> whiteList_ = {};
     std::unordered_set<uint64_t> blackList_ = {};
     std::vector<uint64_t> securityExemptionList_ = {};
+    bool enableVisibleRect_ = false;
+    Rect mainScreenVisibleRect_ = {};
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
+    mutable std::mutex skipFrameMutex_;
 };
 } // namespace impl
 } // namespace Rosen

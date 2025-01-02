@@ -281,9 +281,6 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     }
     // set the screen to the desired refreshrate
     HGM_LOGD("HgmCore setting screen " PUBU64 " to the rate of %{public}d", id, rate);
-    if (mPolicyConfigData_ == nullptr) {
-        return HGM_ERROR;
-    }
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
@@ -302,7 +299,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     std::lock_guard<std::mutex> lock(modeListMutex_);
 
     // the rate is accepted and passed to a list, will be applied by hardwarethread before sending the composition
-    HGM_LOGI("HgmCore the rate of %{public}d is accepted, the target mode is %{public}d", rate, modeToSwitch);
+    HGM_LOGD("HgmCore the rate of %{public}d is accepted, the target mode is %{public}d", rate, modeToSwitch);
     if (modeListToApply_ == nullptr) {
         HGM_LOGD("HgmCore modeListToApply_ is invalid, buiding a new mode list");
         modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
@@ -350,6 +347,18 @@ void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
     if (hgmFrameRateMgr_ != nullptr) {
         hgmFrameRateMgr_->HandleScreenPowerStatus(id, status);
+    }
+
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        auto refreshRateModeName = GetCurrentRefreshRateModeName();
+        refreshRateModeChangeCallback_(refreshRateModeName);
+    }
+}
+
+void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect)
+{
+    if (hgmFrameRateMgr_ != nullptr) {
+        hgmFrameRateMgr_->HandleScreenRectFrameRate(id, activeRect);
     }
 
     if (refreshRateModeChangeCallback_ != nullptr) {
@@ -474,6 +483,7 @@ sptr<HgmScreen> HgmCore::GetScreen(ScreenId id) const
 
 std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
 {
+    HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     auto screen = GetScreen(id);
     if (!screen) {
         HGM_LOGW("HgmCore failed to find screen " PUBU64 "", id);

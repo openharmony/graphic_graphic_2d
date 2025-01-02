@@ -17,6 +17,7 @@
 #include <stdlib.h>
 
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -126,7 +127,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
 {
     std::unique_lock<std::mutex> cmdLock(mutex_);
     if (!implicitRemoteTransactionDataStack_.empty() && needSync_) {
-        RS_LOGE("FlushImplicitTransaction failed");
+        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction failed, DataStack not empty");
         return;
     }
     timestamp_ = std::max(timestamp, timestamp_);
@@ -147,7 +148,8 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         transactionDataIndex_ = implicitRemoteTransactionData_->GetIndex();
         implicitRemoteTransactionData_ = std::make_unique<RSTransactionData>();
     } else {
-        RS_LOGE("FlushImplicitTransaction failed, [%{public}d, %{public}d]",
+        RS_LOGE_LIMIT(__func__, __line__, "FlushImplicitTransaction return, [renderServiceClient_:%{public}d," \
+            " transactionData empty:%{public}d]",
             renderServiceClient_ != nullptr, implicitRemoteTransactionData_->IsEmpty());
     }
 }
@@ -190,6 +192,42 @@ void RSTransactionProxy::StartSyncTransaction()
 void RSTransactionProxy::CloseSyncTransaction()
 {
     needSync_ = false;
+}
+
+void RSTransactionProxy::StartCloseSyncTransactionFallbackTask(
+    std::shared_ptr<AppExecFwk::EventHandler> handler, bool isOpen)
+{
+    std::unique_lock<std::mutex> cmdLock(mutex_);
+    static uint32_t num = 0;
+    const std::string name = "CloseSyncTransactionFallbackTask";
+    const int timeOutDelay = 5000;
+    if (!handler) {
+        ROSEN_LOGD("StartCloseSyncTransactionFallbackTask handler is null");
+        return;
+    }
+    if (isOpen) {
+        num++;
+        auto taskName = name + std::to_string(num);
+        taskNames_.push(taskName);
+        auto task = [this]() {
+            RS_TRACE_NAME("CloseSyncTransaction timeout");
+            ROSEN_LOGE("CloseSyncTransaction timeout");
+            auto transactionProxy = RSTransactionProxy::GetInstance();
+            if (transactionProxy != nullptr) {
+                transactionProxy->CommitSyncTransaction();
+                transactionProxy->CloseSyncTransaction();
+            }
+            if (!taskNames_.empty()) {
+                taskNames_.pop();
+            }
+        };
+        handler->PostTask(task, taskName, timeOutDelay);
+    } else {
+        if (!taskNames_.empty()) {
+            handler->RemoveTask(taskNames_.front());
+            taskNames_.pop();
+        }
+    }
 }
 
 void RSTransactionProxy::Begin()
