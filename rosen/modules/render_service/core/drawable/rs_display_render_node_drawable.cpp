@@ -427,7 +427,7 @@ bool RSDisplayRenderNodeDrawable::CheckDisplayNodeSkip(
 void RSDisplayRenderNodeDrawable::PostClearMemoryTask() const
 {
     auto& unirenderThread = RSUniRenderThread::Instance();
-    if (unirenderThread.IsDefaultClearMemroyFinished()) {
+    if (unirenderThread.IsDefaultClearMemoryFinished()) {
         unirenderThread.DefaultClearMemoryCache(); //default clean with no rendering in 5s
         unirenderThread.SetDefaultClearMemoryFinished(false);
     }

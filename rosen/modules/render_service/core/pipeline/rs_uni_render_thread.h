@@ -83,7 +83,7 @@ public:
     void SuppressGpuCacheBelowCertainRatioBetweenFrames();
     void ResetClearMemoryTask(const std::unordered_map<NodeId, bool>&& ids, bool isDoDirectComposition = false);
     void SetDefaultClearMemoryFinished(bool isFinished);
-    bool IsDefaultClearMemroyFinished();
+    bool IsDefaultClearMemoryFinished();
     bool GetClearMemoryFinished() const;
     void SetClearMemoryFinished();
     bool GetClearMemDeeply() const;
@@ -229,7 +229,7 @@ private:
     std::atomic_bool skipJankAnimatorFrame_ = false;
     ScreenId displayNodeScreenId_ = 0;
     std::set<pid_t> exitedPidSet_;
-    ClearMemoryMoment clearMoment_;
+    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
     bool isDefaultCleanTaskFinished_ = true;
 
     std::vector<Callback> imageReleaseTasks_;
