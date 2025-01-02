@@ -247,6 +247,8 @@ public:
     virtual VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const = 0;
 
     virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId) = 0;
+
+    virtual bool IsScreenPoweringOn() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -480,6 +482,11 @@ public:
         return currentVirtualScreenNum_;
     }
 
+    bool IsScreenPoweringOn() const override
+    {
+        return isScreenPoweringOn_;
+    }
+
 private:
     RSScreenManager();
     ~RSScreenManager() noexcept override;
@@ -567,6 +574,7 @@ private:
     uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
+    bool isScreenPoweringOn_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     SensorUser user;

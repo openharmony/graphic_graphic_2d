@@ -1427,7 +1427,16 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         RS_LOGW("[UL_POWER]RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
         return;
     }
+
+    bool isScreenPoweringOn =
+        (status == ScreenPowerStatus::POWER_STATUS_ON || status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
+    if (isScreenPoweringOn) {
+        isScreenPoweringOn_ = true;
+    }
     screensIt->second->SetPowerStatus(static_cast<uint32_t>(status));
+    if (isScreenPoweringOn) {
+        isScreenPoweringOn_ = false;
+    }
 
     /*
      * If app adds the first frame when power on the screen, delete the code
