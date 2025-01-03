@@ -253,7 +253,7 @@ HWTEST_F(FontParserTest, OpenTypeBasicTypeTest1, TestSize.Level1)
     EXPECT_EQ(uint32.Get(), 0);
     struct OpenTypeBasicType::Fixed fixed;
     EXPECT_EQ(fixed.Get(), 0);
-    std::copy(std::begin(test), std::end(test), std::begin(tag.tags));
+    std::copy(std::begin(test), std::begin(test) + 4, std::begin(tag.tags));
     EXPECT_EQ(tag.Get(), test);
 }
 
