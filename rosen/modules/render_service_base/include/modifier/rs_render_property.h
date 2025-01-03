@@ -29,6 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderNode;
+enum class ForegroundColorStrategyType;
 
 enum PropertyUpdateType : int8_t {
     UPDATE_TYPE_OVERWRITE,       // overwrite by given value
