@@ -74,6 +74,7 @@ public:
     static bool GetUIFirstDmaBufferEnabled();
     static bool GetTcacheEnabled();
     static bool GetWiredScreenOndrawEnabled();
+    static bool GetArsrPreEnabled();
 };
 
 } // namespace Rosen

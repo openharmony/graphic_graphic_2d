@@ -54,6 +54,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess = true;
+    arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -102,7 +103,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     } else {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
-    if (CheckIfDoArsrPre(node)) {
+    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
         node->SetArsrTag(true);
     }
