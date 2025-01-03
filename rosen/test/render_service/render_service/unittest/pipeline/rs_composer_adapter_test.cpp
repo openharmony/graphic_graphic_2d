@@ -127,6 +127,7 @@ HWTEST_F(RSComposerAdapterTest, CommitLayersTest002, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     std::vector<std::shared_ptr<HdiLayerInfo>> layers;
     auto surfaceNode1 = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode1, nullptr);
     auto consumer = surfaceNode1->GetRSSurfaceHandler()->GetConsumer();
     GraphicExtDataHandle handle;
     handle.fd = -1;
@@ -415,6 +416,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest010, Function | SmallTest | Leve
     uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
+    ASSERT_NE(composerAdapter_->output_, nullptr);
     composerAdapter_->output_ = nullptr;
     RSDisplayNodeConfig config;
     NodeId id = 1;
@@ -438,6 +440,7 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer, Function | SmallTest | Level2)
     RSDisplayNodeConfig config;
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     auto node = std::make_shared<RSDisplayRenderNode>(nodeId, config);
+    ASSERT_NE(node, nullptr);
     DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(
@@ -509,6 +512,7 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp003, Function | SmallTest |
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
     LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
+    ASSERT_NE(consumer, nullptr);
     layer->IsSupportedPresentTimestamp_ = true;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
 }
@@ -530,6 +534,7 @@ HWTEST_F(RSComposerAdapterTest, OnPrepareComplete, Function | SmallTest | Level2
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(sProducer, nullptr);
     composerAdapter_->OnPrepareComplete(sProducer, para, nullptr);
 }
 } // namespace OHOS::Rosen
