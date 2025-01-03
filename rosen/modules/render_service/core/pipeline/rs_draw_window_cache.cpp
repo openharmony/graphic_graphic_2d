@@ -144,7 +144,12 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
+    Drawing::MipmapMode mipmapMode = Drawing::MipmapMode::NONE;
+    // do not use linear on pc to avoid effecting the load and memory.
+    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
+        mipmapMode = Drawing::MipmapMode::LINEAR;
+    }
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, mipmapMode);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
     // draw content/children

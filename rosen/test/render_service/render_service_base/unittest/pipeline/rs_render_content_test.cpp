@@ -51,6 +51,7 @@ public:
 HWTEST_F(RSRenderContentTest, RegisterTaskDispatchTest001, TestSize.Level1)
 {
     std::shared_ptr<RSRenderContent> renderContent = std::make_shared<RSRenderContent>();
+    ASSERT_NE(renderContent, nullptr);
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas canvas(drawingCanvas.get());
     // propertyDrawablesVec_[0] is nullptr operation
@@ -89,6 +90,7 @@ HWTEST_F(RSRenderContentTest, RegisterTaskDispatchTest001, TestSize.Level1)
 HWTEST_F(RSRenderContentTest, DrawPropertyDrawableRangeTest002, TestSize.Level1)
 {
     std::shared_ptr<RSRenderContent> renderContent = std::make_shared<RSRenderContent>();
+    ASSERT_NE(renderContent, nullptr);
     auto drawingCanvas = std::make_unique<Drawing::Canvas>();
     RSPaintFilterCanvas canvas(drawingCanvas.get());
 

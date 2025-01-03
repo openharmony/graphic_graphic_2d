@@ -80,6 +80,7 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
         RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::SyncModifiers");
         RSPointerWindowManager::Instance().UpdatePointerInfo();
         auto& pendingSyncNodes = RSMainThread::Instance()->GetContext().pendingSyncNodes_;
+        int skipTimes = 0;
         for (auto& [id, weakPtr] : pendingSyncNodes) {
             auto node = weakPtr.lock();
             if (node == nullptr) {
@@ -89,7 +90,11 @@ void RSSurfaceCaptureTaskParallel::CheckModifiers(NodeId id, bool useCurWindow)
                 node->Sync();
             } else {
                 node->SkipSync();
+                skipTimes++;
             }
+        }
+        if (skipTimes != 0) {
+            RS_LOGW("RSSurfaceCaptureTaskParallel::CheckModifiers SkipSync times: [%{public}d]", skipTimes);
         }
         pendingSyncNodes.clear();
         RSUifirstManager::Instance().UifirstCurStateClear();
@@ -205,6 +210,11 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
 
     RSPaintFilterCanvas canvas(surface.get());
     canvas.Scale(captureConfig_.scaleX, captureConfig_.scaleY);
+    const Drawing::Rect& rect = captureConfig_.mainScreenRect;
+    if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
+        canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
+        canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetRight());
+    }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
     // Currently, capture do not support HDR display
@@ -288,13 +298,15 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    RS_LOGD("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
+    // Surface Node currently does not support regional screenshot
+    captureConfig_.mainScreenRect = {};
+    RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapBySurfaceNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
-        " created pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
-        " useDma: [%{public}d], useCurWindow: [%{public}d]",
-        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, captureConfig_.useDma, captureConfig_.useCurWindow);
+        " useDma: [%{public}d], useCurWindow: [%{public}d],"
+        " isOnTheTree: [%{public}d]",
+        node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree());
     return Media::PixelMap::Create(opts);
 }
 
@@ -317,6 +329,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     finalRotationAngle_ = CalPixelMapRotation();
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
+    const Drawing::Rect& rect = captureConfig_.mainScreenRect;
+    if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
+        pixmapWidth = ceil(rect.GetWidth());
+        pixmapHeight = ceil(rect.GetHeight());
+    }
 
     Media::InitializationOptions opts;
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
@@ -324,8 +341,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     RS_LOGI("RSSurfaceCaptureTaskParallel::CreatePixelMapByDisplayNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
+        " ScreenRect: [%{public}f, %{public}f, %{public}f, %{public}f],"
         " useDma: [%{public}d], screenRotation: [%{public}d], screenCorrection: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
+        rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight(),
         captureConfig_.useDma, screenRotation_, screenCorrection_);
     return Media::PixelMap::Create(opts);
 }

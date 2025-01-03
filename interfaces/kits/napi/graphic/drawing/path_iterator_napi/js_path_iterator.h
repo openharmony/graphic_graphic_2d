@@ -21,6 +21,7 @@
 #include <native_engine/native_value.h>
 
 #include "draw/path_iterator.h"
+#include "js_drawing_utils.h"
 
 namespace OHOS::Rosen {
 namespace Drawing {
@@ -50,7 +51,7 @@ private:
     PathIterator* m_iter = nullptr;
     PathVerb m_verb = PathVerb::UNINIT;
     bool m_done = false;
-    Point* m_points;
+    Point m_points[MAX_PAIRS_PATHVERB] = {{0, 0}};
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

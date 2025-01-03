@@ -1191,12 +1191,11 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
     return ConvertToInt(num, 0);
 }
 
-bool RSSystemProperties::GetDisableHebcEnabled()
+bool RSSystemProperties::GetHveFilterEnabled()
 {
-    // Dynamically disable unified rendering layer hecb if persist.sys.graphic.anco.disableHebc equal 1
-    static bool enable =
-        std::atoi((system::GetParameter("persist.sys.graphic.anco.disableHebc", "0")).c_str()) != 0;
-    return enable;
+    static bool hveFilterEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.HveFilterEnable", "1")).c_str()) != 0;
+    return hveFilterEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

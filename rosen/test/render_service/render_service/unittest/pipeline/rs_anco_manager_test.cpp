@@ -90,8 +90,8 @@ HWTEST_F(RSAncoManagerTest, SetAncoHebcStatus, TestSize.Level2)
     system::SetParameter("persist.sys.graphic.anco.disableHebc", "1");
     auto ancoManager = RSAncoManager::Instance();
     ASSERT_NE(ancoManager, nullptr);
-    ancoManager->SetAncoHebcStatus(AncoHebcStatus::USE_HEBC);
-    ASSERT_EQ(ancoManager->GetAncoHebcStatus(), AncoHebcStatus::USE_HEBC);
+    ancoManager->SetAncoHebcStatus(AncoHebcStatus::INITIAL);
+    ASSERT_EQ(ancoManager->GetAncoHebcStatus(), AncoHebcStatus::INITIAL);
     system::SetParameter("persist.sys.graphic.anco.disableHebc", hebc);
 }
 

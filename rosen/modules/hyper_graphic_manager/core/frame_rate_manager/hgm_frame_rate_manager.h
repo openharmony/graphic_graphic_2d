@@ -16,7 +16,6 @@
 #ifndef HGM_FRAME_RATE_MANAGER_H
 #define HGM_FRAME_RATE_MANAGER_H
 
-#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -91,14 +90,14 @@ struct VoteInfo {
 
     std::string ToString(uint64_t timestamp) const
     {
-        std::stringstream str;
-        str << "VOTER_NAME:" << voterName << ";";
-        str << "PREFERRED:" << max << ";";
-        str << "EXT_INFO:" << extInfo << ";";
-        str << "PID:" << pid << ";";
-        str << "BUNDLE_NAME:" << bundleName << ";";
-        str << "TIMESTAMP:" << timestamp << ".";
-        return str.str();
+        char buf[STRING_BUFFER_MAX_SIZE] = {0};
+        int len = ::snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
+            "VOTER_NAME:%s;PREFERRED:%u;EXT_INFO:%s;PID:%d;BUNDLE_NAME:%s;TIMESTAMP:%lu.",
+            voterName.c_str(), max, extInfo.c_str(), pid, bundleName.c_str(), timestamp);
+        if (len <= 0) {
+            HGM_LOGE("failed to execute snprintf.");
+        }
+        return buf;
     }
 
     std::string ToSimpleString() const
@@ -147,6 +146,8 @@ public:
     std::string GetCurScreenStrategyId() const { return curScreenStrategyId_; };
     void HandleRefreshRateMode(int32_t refreshRateMode);
     void HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    void HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect);
+
     // called by RSHardwareThread
     void HandleRsFrame();
     void SetShowRefreshRateEnabled(bool enable);
@@ -200,7 +201,7 @@ private:
     void HandleFrameRateChangeForLTPO(uint64_t timestamp, bool followRs);
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
-    uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
+    static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
     int32_t GetPreferredFps(const std::string& type, float velocity) const;
     static float PixelToMM(float velocity);
 
@@ -210,6 +211,7 @@ private:
     void HandleGamesEvent(pid_t pid, EventInfo eventInfo);
     void HandleMultiSelfOwnedScreenEvent(pid_t pid, EventInfo eventInfo);
     void HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void HandleScreenFrameRate(std::string curScreenName);
 
     void GetLowBrightVec(const std::shared_ptr<PolicyConfigData>& configData);
     void GetStylusVec(const std::shared_ptr<PolicyConfigData>& configData);

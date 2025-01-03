@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#include <utils/rect.h>
 
 #include "common/rs_macros.h"
 
@@ -218,6 +219,7 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    Drawing::Rect mainScreenRect = {};
 };
 
 struct RSSurfaceCaptureBlurParam {
@@ -325,6 +327,7 @@ struct RSSurfaceRenderNodeConfig {
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
+// codes for arkui-x start
 // types for RSSurfaceExt
 enum class RSSurfaceExtType : uint8_t {
     NONE,
@@ -340,6 +343,7 @@ using RSSurfaceTextureConfig = RSSurfaceExtConfig;
 using RSSurfaceTextureAttachCallBack = std::function<void(int64_t textureId, bool attach)>;
 using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 using RSSurfaceTextureInitTypeCallBack = std::function<void(int32_t&)>;
+// codes for arkui-x end
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;

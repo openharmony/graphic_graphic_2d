@@ -358,5 +358,12 @@ void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeI
     }
     node->SetApiCompatibleVersion(apiCompatibleVersion);
 }
+
+void SurfaceNodeCommandHelper::SetHardwareEnableHint(RSContext& context, NodeId nodeId, bool enable)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetHardwareEnableHint(enable);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

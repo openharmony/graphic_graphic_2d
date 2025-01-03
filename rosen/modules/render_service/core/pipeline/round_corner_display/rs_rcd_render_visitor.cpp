@@ -136,6 +136,7 @@ bool RSRcdRenderVisitor::ProcessRcdSurfaceRenderNode(
     }
 
     uniProcessor_->ProcessRcdSurface(node);
+    node.PrintRcdNodeInfo();
     return true;
 }
 

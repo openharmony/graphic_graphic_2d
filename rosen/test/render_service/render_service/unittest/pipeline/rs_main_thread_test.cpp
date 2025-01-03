@@ -1909,6 +1909,250 @@ HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallback002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SurfaceOcclusionCallback003
+ * @tc.desc: SurfaceOcclusionCallback for appwindow
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE1C8
+ */
+HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallback003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RectI rectBottom = RectI(-1000000, -1000000, 999999, 999999);
+
+    // prepare listeners
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
+        std::vector<float>, uint8_t> info(0, nullptr, {}, 0);
+    mainThread->surfaceOcclusionListeners_.insert({1, info});
+    mainThread->surfaceOcclusionListeners_.insert({2, info});
+    mainThread->surfaceOcclusionListeners_.insert({3, info});
+
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(true);
+    node2->instanceRootNodeId_ = INVALID_NODEID;
+    config.id = 3;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node3, nullptr);
+    node3->SetIsOnTheTree(true);
+    node3->instanceRootNodeId_ = 1;
+
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+    mainThread->CheckSurfaceOcclusionNeedProcess(1);
+    mainThread->CheckSurfaceOcclusionNeedProcess(2);
+    mainThread->CheckSurfaceOcclusionNeedProcess(3);
+    for (auto &listener : mainThread->savedAppWindowNode_) {
+        auto& property = listener.second.second->GetRenderProperties();
+        listener.second.second->SetVisibleRegion(Occlusion::Region(rectBottom));
+        auto& geoPtr = property.GetBoundsGeometry();
+        geoPtr->SetAbsRect();
+    }
+
+    // run
+    mainThread->SurfaceOcclusionCallback();
+    mainThread->surfaceOcclusionListeners_.clear();
+    ASSERT_TRUE(mainThread->surfaceOcclusionListeners_.empty());
+}
+
+/**
+ * @tc.name: SurfaceOcclusionCallback004
+ * @tc.desc: SurfaceOcclusionCallback with vector of surfaceOcclusionListeners_
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE1C8
+ */
+HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallback004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RectI rectBottom = RectI(-1000000, -1000000, 999999, 999999);
+    // prepare listeners
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
+        std::vector<float>, uint8_t> info(0, nullptr, {1, 2, 3}, 0);
+    mainThread->surfaceOcclusionListeners_.insert({1, info});
+    mainThread->surfaceOcclusionListeners_.insert({2, info});
+    mainThread->surfaceOcclusionListeners_.insert({3, info});
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(true);
+    node2->instanceRootNodeId_ = INVALID_NODEID;
+    config.id = 3;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node3, nullptr);
+    node3->SetIsOnTheTree(true);
+    node3->instanceRootNodeId_ = 1;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+    mainThread->CheckSurfaceOcclusionNeedProcess(1);
+    mainThread->CheckSurfaceOcclusionNeedProcess(2);
+    mainThread->CheckSurfaceOcclusionNeedProcess(3);
+    for (auto &listener : mainThread->savedAppWindowNode_) {
+        auto& property = listener.second.second->GetRenderProperties();
+        listener.second.second->SetVisibleRegion(Occlusion::Region(rectBottom));
+        auto& geoPtr = property.GetBoundsGeometry();
+        geoPtr->SetAbsRect();
+    }
+
+    // run
+    mainThread->SurfaceOcclusionCallback();
+    mainThread->surfaceOcclusionListeners_.clear();
+    ASSERT_TRUE(mainThread->surfaceOcclusionListeners_.empty());
+}
+
+/**
+ * @tc.name: SurfaceOcclusionCallback005
+ * @tc.desc: SurfaceOcclusionCallback with visibleAreaRatio on rectBottom
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE1C8
+ */
+HWTEST_F(RSMainThreadTest, SurfaceOcclusionCallback005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RectI rectBottom = RectI(-1000000, -1000000, 599999, 599999);
+
+    // prepare listeners
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>,
+        std::vector<float>, uint8_t> info(0, nullptr, {1, 2, 3}, 0);
+    mainThread->surfaceOcclusionListeners_.insert({1, info});
+    mainThread->surfaceOcclusionListeners_.insert({2, info});
+    mainThread->surfaceOcclusionListeners_.insert({3, info});
+
+    //prepare nodemap
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->SetIsOnTheTree(true);
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(true);
+    node2->instanceRootNodeId_ = INVALID_NODEID;
+    config.id = 3;
+    auto node3 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node3, nullptr);
+    node3->SetIsOnTheTree(true);
+    node3->instanceRootNodeId_ = 1;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node3);
+    mainThread->CheckSurfaceOcclusionNeedProcess(1);
+    mainThread->CheckSurfaceOcclusionNeedProcess(2);
+    mainThread->CheckSurfaceOcclusionNeedProcess(3);
+    for (auto &listener : mainThread->savedAppWindowNode_) {
+        auto& property = listener.second.second->GetRenderProperties();
+        listener.second.second->SetVisibleRegion(Occlusion::Region(rectBottom));
+        auto& geoPtr = property.GetBoundsGeometry();
+        geoPtr->SetAbsRect();
+    }
+
+    // run
+    mainThread->SurfaceOcclusionCallback();
+    mainThread->surfaceOcclusionListeners_.clear();
+    ASSERT_TRUE(mainThread->surfaceOcclusionListeners_.empty());
+}
+
+/**
+ * @tc.name: CheckSurfaceOcclusionNeedProcess
+ * @tc.desc: CheckSurfaceOcclusionNeedProcess Test while node out of appWindow
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE1C8
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceOcclusionNeedProcess001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSSurfaceRenderNodeConfig config;
+
+    config.id = 1;
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node, nullptr);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node);
+    auto appNode = mainThread->savedAppWindowNode_.find(1);
+    appNode->second = {};
+
+    bool result = mainThread->CheckSurfaceOcclusionNeedProcess(1);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckSurfaceOcclusionNeedProcess
+ * @tc.desc: CheckSurfaceOcclusionNeedProcess Test for appId invalid
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE1C8
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceOcclusionNeedProcess002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSSurfaceRenderNodeConfig config;
+
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    node1->instanceRootNodeId_ = INSTANCE_ID_UNDEFINED;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->instanceRootNodeId_ = INSTANCE_ID_UNDEFINED;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+    mainThread->savedAppWindowNode_[2] = {node1, node2};
+
+    bool result = mainThread->CheckSurfaceOcclusionNeedProcess(2);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: CheckSurfaceOcclusionNeedProcess
+ * @tc.desc: CheckSurfaceOcclusionNeedProcess Test while node is empty
+ * @tc.type: FUNC
+ * @tc.require: issuesIBE1C8
+ */
+HWTEST_F(RSMainThreadTest, CheckSurfaceOcclusionNeedProcess003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    RSSurfaceRenderNodeConfig config;
+
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node1, nullptr);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+
+    config.id = 2;
+    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(node2, nullptr);
+    node2->SetIsOnTheTree(true);
+    node2->instanceRootNodeId_ = INVALID_NODEID;
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node2);
+
+    mainThread->savedAppWindowNode_.clear();
+    bool result1 = mainThread->CheckSurfaceOcclusionNeedProcess(1);
+    ASSERT_FALSE(result1);
+    bool result2 = mainThread->CheckSurfaceOcclusionNeedProcess(2);
+    ASSERT_FALSE(result2);
+}
+
+/**
  * @tc.name: CalcOcclusion002
  * @tc.desc: CalcOcclusion Test
  * @tc.type: FUNC

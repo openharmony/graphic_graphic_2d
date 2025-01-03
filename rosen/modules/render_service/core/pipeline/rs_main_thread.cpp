@@ -69,6 +69,7 @@
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -240,7 +241,7 @@ void PerfRequest(int32_t perfRequestCode, bool onOffTag)
 void DoScreenRcdTask(NodeId id, std::shared_ptr<RSProcessor>& processor, std::unique_ptr<RcdInfo>& rcdInfo,
     const ScreenInfo& screenInfo)
 {
-    if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
+    if (!RoundCornerDisplayManager::CheckRcdRenderEnable(screenInfo)) {
         RS_LOGD("DoScreenRcdTask is not at HDI_OUPUT mode");
         return;
     }
@@ -1137,6 +1138,9 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
+    if (!effectiveTransactionDataIndexMap_.empty() && transactionDataEffective == nullptr) {
+        transactionDataEffective = std::make_shared<TransactionDataMap>();
+    }
     for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
         auto pid = rsTransactionElem.first;
         auto& lastIndex = rsTransactionElem.second.first;
@@ -1187,7 +1191,7 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
 void RSMainThread::ProcessCommandForUniRender()
 {
 #ifdef RS_ENABLE_GPU
-    std::shared_ptr<TransactionDataMap> transactionDataEffective = std::make_shared<TransactionDataMap>();
+    std::shared_ptr<TransactionDataMap> transactionDataEffective = nullptr;
     std::string transactionFlags;
     bool isNeedCacheCmd = CheckParallelSubThreadNodesStatus();
     {
@@ -1206,7 +1210,8 @@ void RSMainThread::ProcessCommandForUniRender()
         }
         CheckAndUpdateTransactionIndex(transactionDataEffective, transactionFlags);
     }
-    if (!transactionDataEffective->empty() || RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
+    if ((transactionDataEffective != nullptr && !transactionDataEffective->empty()) ||
+        RSPointerWindowManager::Instance().GetBoundHasUpdate()) {
         doDirectComposition_ = false;
         RS_OPTIONAL_TRACE_NAME_FMT("rs debug: %s transactionDataEffective not empty", __func__);
     }
@@ -1230,19 +1235,18 @@ void RSMainThread::ProcessCommandForUniRender()
     if (transactionFlags != "") {
         transactionFlags_ = transactionFlags;
     }
-    for (auto& rsTransactionElem: *transactionDataEffective) {
-        for (auto& rsTransaction: rsTransactionElem.second) {
-            if (rsTransaction) {
-                if (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0) {
+    if (transactionDataEffective != nullptr && !transactionDataEffective->empty()) {
+        for (auto& rsTransactionElem : *transactionDataEffective) {
+            for (auto& rsTransaction : rsTransactionElem.second) {
+                if (rsTransaction &&
+                    (rsTransaction->IsNeedSync() || syncTransactionData_.count(rsTransactionElem.first) > 0)) {
                     ProcessSyncRSTransactionData(rsTransaction, rsTransactionElem.first);
-                    continue;
+                } else if (rsTransaction) {
+                    ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
                 }
-                ProcessRSTransactionData(rsTransaction, rsTransactionElem.first);
             }
         }
-    }
-    if (!transactionDataEffective->empty()) {
-        RSBackgroundThread::Instance().PostTask([ transactionDataEffective ] () {
+        RSBackgroundThread::Instance().PostTask([transactionDataEffective]() {
             RS_TRACE_NAME("RSMainThread::ProcessCommandForUniRender transactionDataEffective clear");
             transactionDataEffective->clear();
         });
@@ -1401,20 +1405,13 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         surfaceNode->ResetAnimateState();
         surfaceNode->ResetRotateState();
         surfaceNode->ResetSpecialLayerChangedFlag();
+        surfaceNode->ResetIsBufferFlushed();
         // Reset BasicGeoTrans info at the beginning of cmd process
         if (surfaceNode->IsLeashOrMainWindow()) {
             surfaceNode->ResetIsOnlyBasicGeoTransform();
         }
         if (surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
             surfaceNode->SetContentDirty(); // screen recording capsule force mark dirty
-        }
-        if (surfaceNode->NeedUpdateDrawableBehindWindow()) {
-            RS_LOGD("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
-            RS_OPTIONAL_TRACE_NAME_FMT("RSMainThread::ConsumeAndUpdateAllNodes NeedRequestNextVsyncDrawBehindWindow");
-            surfaceNode->AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
-            surfaceNode->SetContentDirty();
-            surfaceNode->SetDoDirectComposition(false);
-            surfaceNode->SetOldNeedDrawBehindWindow(surfaceNode->NeedDrawBehindWindow());
         }
         if (surfaceNode->IsHardwareEnabledType()
             && CheckSubThreadNodeStatusIsDoing(surfaceNode->GetInstanceRootNodeId())) {
@@ -1471,6 +1468,11 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                         buffer ? buffer->GetSurfaceBufferWidth() : 0, buffer ? buffer->GetSurfaceBufferHeight() : 0,
                         preBuffer ? preBuffer->GetSurfaceBufferWidth() : 0,
                         preBuffer ? preBuffer->GetSurfaceBufferHeight() : 0);
+                }
+                if (surfaceNode->GetIntersectWithAIBar()) {
+                    doDirectComposition_ = false;
+                    RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", surfaceNode intersect with AIBar",
+                        surfaceNode->GetName().c_str(), surfaceNode->GetId());
                 }
 #endif
             }
@@ -1918,6 +1920,10 @@ bool RSMainThread::IsRequestedNextVSync()
 
 void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
 {
+    int changed = 0;
+    if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
+        RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
+    }
     DvsyncInfo info;
     if (rsVSyncDistributor_ != nullptr) {
         info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
@@ -4047,7 +4053,7 @@ bool RSMainThread::IsOcclusionNodesNeedSync(NodeId id, bool useCurWindow)
         }
     }
 
-    if (nodePtr->GetIsFullChildrenListValid() == false) {
+    if (nodePtr->GetIsFullChildrenListValid() == false || !nodePtr->IsOnTheTree()) {
         nodePtr->PrepareSelfNodeForApplyModifiers();
         return true;
     }

@@ -53,6 +53,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, CreateTest, TestSize.Level1)
 {
     bool isRenderServiceNode = true;
     RSCanvasDrawingNode::SharedPtr canvasNode = RSCanvasDrawingNode::Create(isRenderServiceNode);
+    ASSERT_NE(canvasNode, nullptr);
 }
 
 /**

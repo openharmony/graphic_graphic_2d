@@ -36,8 +36,6 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
-    void Clone(const PathIterator& other) override;
-
     const SkPath::RawIter& ExportSkiaPathIterator() const;
     scalar conicWeight() const override;
     PathVerb Next(Point* points) override;

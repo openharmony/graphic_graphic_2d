@@ -47,6 +47,24 @@ namespace {
     constexpr int32_t errorVelocity = -1;
     constexpr int32_t strategy3 = 3;
     const std::string testScene = "TestScene";
+    const GraphicIRect rectF {
+        .x = 0,
+        .y = 0,
+        .w = 2232,
+        .h = 1008,
+    };
+    const GraphicIRect rectM {
+        .x = 0,
+        .y = 1136,
+        .w = 2232,
+        .h = 2048,
+    };
+    const GraphicIRect rectG {
+        .x = 0,
+        .y = 0,
+        .w = 2232,
+        .h = 3184,
+    };
 }
 class HgmFrameRateMgrTest : public testing::Test {
 public:
@@ -286,6 +304,11 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
             // HandleScreenPowerStatus
             frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_ON);
             frameRateMgr.HandleScreenPowerStatus(i, ScreenPowerStatus::POWER_STATUS_OFF);
+
+            // HandleScreenRectFrameRate
+            frameRateMgr.HandleScreenRectFrameRate(i, rectF);
+            frameRateMgr.HandleScreenRectFrameRate(i, rectM);
+            frameRateMgr.HandleScreenRectFrameRate(i, rectG);
         }
     });
     sleep(1); // wait for handler task finished
@@ -503,27 +526,6 @@ HWTEST_F(HgmFrameRateMgrTest, SetAceAnimatorVoteTest, Function | SmallTest | Lev
     frameRateMgr.SetAceAnimatorVote(linker);
 }
 
-
-/**
- * @tc.name: HgmOneShotTimerTest
- * @tc.desc: Verify the result of HgmOneShotTimerTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest, Function | SmallTest | Level2)
-{
-    auto timer = HgmOneShotTimer("HgmOneShotTimer", std::chrono::milliseconds(delay_60Ms), nullptr, nullptr);
-    ASSERT_NE(timer.handler_, nullptr);
-    ASSERT_EQ(timer.name_, "HgmOneShotTimer");
-    ASSERT_EQ(timer.interval_, std::chrono::milliseconds(delay_60Ms));
-    ASSERT_EQ(timer.resetCallback_, nullptr);
-    ASSERT_EQ(timer.expiredCallback_, nullptr);
-    timer.Start();
-    timer.Reset();
-    timer.Stop();
-    sleep(1); // wait for timer stop
-}
-
 /**
  * @tc.name: HgmSimpleTimerTest
  * @tc.desc: Verify the result of HgmSimpleTimerTest
@@ -703,17 +705,27 @@ HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level2)
 
 /**
  * @tc.name: GetDrawingFrameRate
- * @tc.desc: Verify the result of HandleFrameRateChangeForLTPO
+ * @tc.desc: Verify the result of GetDrawingFrameRate
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(HgmFrameRateMgrTest, GetDrawingFrameRate, Function | SmallTest | Level2)
 {
-    HgmFrameRateManager mgr;
-    FrameRateRange finalRange = {OLED_60_HZ, OLED_90_HZ, OLED_60_HZ};
-    mgr.GetDrawingFrameRate(OLED_120_HZ, finalRange);
-    FrameRateRange finalRange2 = {OLED_50_HZ, OLED_80_HZ, OLED_80_HZ};
-    EXPECT_EQ(mgr.GetDrawingFrameRate(OLED_90_HZ, finalRange), OLED_90_HZ);
+    std::vector<std::pair<std::pair<uint32_t, FrameRateRange>, uint32_t>> inputAndOutput = {
+        {{0, {0, 120, 60}}, 0},
+        {{60, {0, 120, 0}}, 0},
+        {{60, {0, 90, 120}}, 60},
+        {{60, {0, 120, 120}}, 60},
+        {{90, {0, 120, 30}}, 30},
+        {{80, {0, 120, 30}}, 40},
+        {{70, {0, 120, 30}}, 35},
+        {{60, {0, 120, 30}}, 30},
+        {{50, {0, 120, 30}}, 50}
+    };
+
+    for (const auto& [input, output] : inputAndOutput) {
+        EXPECT_EQ(HgmFrameRateManager::GetDrawingFrameRate(input.first, input.second), output);
+    }
 }
 
 /**
@@ -870,5 +882,5 @@ HWTEST_F(HgmFrameRateMgrTest, ChangePriority, Function | SmallTest | Level1)
     ASSERT_LT(scenePos2, ltpoPos2);
     ASSERT_LT(ltpoPos2, packagesPos2);
 }
-} // namesace Rosen
-} // namesppace OHOS
+} // namespace Rosen
+} // namespace OHOS

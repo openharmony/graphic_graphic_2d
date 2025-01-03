@@ -308,5 +308,21 @@ HWTEST(RSBaseRenderEngineUnitTest, GetCanvasColorSpace, TestSize.Level1)
     ASSERT_NE(canvas, nullptr);
     EXPECT_EQ(RSBaseRenderEngine::GetCanvasColorSpace(canvas.get()), nullptr);
 }
+
+/**
+ * @tc.name: CreateImageFromBuffer
+ * @tc.desc: Test CreateImageFromBuffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST(RSBaseRenderEngineUnitTest, CreateImageFromBuffer, TestSize.Level1)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintCanvase(&canvas);
+    BufferDrawParam params;
+    VideoInfo videoInfo;
+    EXPECT_EQ(renderEngine->CreateImageFromBuffer(paintCanvase, params, videoInfo), nullptr);
+}
 #endif
 }

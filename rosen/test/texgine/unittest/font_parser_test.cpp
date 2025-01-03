@@ -110,6 +110,7 @@ HWTEST_F(FontParserTest, FontParserTest3, TestSize.Level1)
     FontParser fontParser;
     std::unique_ptr<FontParser::FontDescriptor> font =
         fontParser.GetVisibilityFontByName("Noto Sans Regular");
+    ASSERT_NE(font, nullptr);
     EXPECT_EQ(font->fontFamily, "Noto Sans");
 }
 
@@ -123,6 +124,7 @@ HWTEST_F(FontParserTest, FontConfigTest1, TestSize.Level1)
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFile(), 0);
     auto info = fontConfigJson.GetFontConfigJsonInfo();
+    ASSERT_NE(info, nullptr);
     EXPECT_EQ(info->fontDirSet.size(), 1);
     fontConfigJson.Dump();
 }
@@ -137,7 +139,8 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level1)
     FontConfigJson fontConfigJson;
     EXPECT_EQ(fontConfigJson.ParseFontFileMap(), 0);
     auto map = fontConfigJson.GetFontFileMap();
-    EXPECT_EQ(map->size(), 261);
+    ASSERT_NE(map, nullptr);
+    EXPECT_EQ(map->size(), 281);
     for (auto& it: *map) {
         ASSERT_GT(it.second.size(), 3);
         std::string end = it.second.substr(it.second.size() - 3, 3);

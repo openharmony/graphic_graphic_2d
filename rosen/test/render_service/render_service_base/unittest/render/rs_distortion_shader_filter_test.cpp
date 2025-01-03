@@ -59,6 +59,82 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageRect101
+ * @tc.desc: distortionK is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect101, TestSize.Level1)
+{
+    RSDistortionFilter effectFilter(-0.5f);
+    Drawing::Canvas canvas;
+    // if image == nullptr
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image);
+}
+
+/**
+ * @tc.name: DrawImageRect102
+ * @tc.desc: distortionK is out of range
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect102, TestSize.Level1)
+{
+    RSDistortionFilter effectFilter(2.5f);
+    Drawing::Canvas canvas;
+    // if image == nullptr
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image);
+}
+
+/**
+ * @tc.name: DrawImageRect103
+ * @tc.desc: source rect is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect103, TestSize.Level1)
+{
+    RSDistortionFilter effectFilter(0.5f);
+    Drawing::Canvas canvas;
+    // if image == nullptr
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { -1.0f, -1.0f, -2.0f, -2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image);
+}
+
+/**
+ * @tc.name: DrawImageRect104
+ * @tc.desc: destination rect is invalid
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect104, TestSize.Level1)
+{
+    RSDistortionFilter effectFilter(0.5f);
+    Drawing::Canvas canvas;
+    // if image == nullptr
+    std::shared_ptr<Drawing::Image> image = nullptr;
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { -1.0f, -1.0f, -2.0f, -2.0f };
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image);
+}
+
+/**
  * @tc.name: DrawImageRect002
  * @tc.desc: test results of DrawImageRect
  * @tc.type: FUNC
@@ -99,6 +175,1640 @@ HWTEST_F(RSDistortionFilterTest, DrawImageRect002, TestSize.Level1)
     effectFilter.DrawImageRect(canvas, image, src, dst);
     EXPECT_TRUE(image->GetWidth());
     EXPECT_TRUE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect201
+ * @tc.desc: ColorType is COLORTYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect201, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2011
+ * @tc.desc: ColorType is COLORTYPE_UNKNOWN ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2011, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2012
+ * @tc.desc: ColorType is COLORTYPE_UNKNOWN ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2012, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2013
+ * @tc.desc: ColorType is COLORTYPE_UNKNOWN ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2013, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect202
+ * @tc.desc: ColorType is COLORTYPE_RGB_565
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect202, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2021
+ * @tc.desc: ColorType is COLORTYPE_RGB_565 ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2021, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2022
+ * @tc.desc: ColorType is COLORTYPE_RGB_565 ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2022, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2023
+ * @tc.desc: ColorType is COLORTYPE_RGB_565 ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2023, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_565, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect203
+ * @tc.desc: ColorType is COLORTYPE_ARGB_4444
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect203, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2032
+ * @tc.desc: ColorType is COLORTYPE_ARGB_4444 ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2032, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2033
+ * @tc.desc: ColorType is COLORTYPE_ARGB_4444 ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2033, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2031
+ * @tc.desc: ColorType is COLORTYPE_ARGB_4444 ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2031, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_ARGB_4444, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect204
+ * @tc.desc: ColorType is COLORTYPE_RGBA_8888
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect204, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2041
+ * @tc.desc: ColorType is COLORTYPE_RGBA_8888 , AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2041, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2042
+ * @tc.desc: ColorType is COLORTYPE_RGBA_8888 , AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2042, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2042
+ * @tc.desc: ColorType is COLORTYPE_RGBA_8888 , AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2043, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect205
+ * @tc.desc: ColorType is COLORTYPE_BGRA_8888
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect205, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2051
+ * @tc.desc: ColorType is COLORTYPE_BGRA_8888 ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2051, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2052
+ * @tc.desc: ColorType is COLORTYPE_BGRA_8888 ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2052, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2053
+ * @tc.desc: ColorType is COLORTYPE_BGRA_8888 ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2053, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_BGRA_8888, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect206
+ * @tc.desc: ColorType is COLORTYPE_RGBA_F16
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect206, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2061
+ * @tc.desc: ColorType is COLORTYPE_RGBA_F16 ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2061, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2062
+ * @tc.desc: ColorType is COLORTYPE_RGBA_F16 ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2062, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2063
+ * @tc.desc: ColorType is COLORTYPE_RGBA_F16 ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
++ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2063, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect207
+ * @tc.desc: ColorType is COLORTYPE_N32
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect207, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2071
+ * @tc.desc: ColorType is COLORTYPE_N32 ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2071, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2072
+ * @tc.desc: ColorType is COLORTYPE_N32 ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2072, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2073
+ * @tc.desc: ColorType is COLORTYPE_N32 ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2073, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_N32, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect208
+ * @tc.desc: ColorType is COLORTYPE_RGBA_1010102
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect208, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_RGBA_1010102, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect209
+ * @tc.desc: ColorType is COLORTYPE_GRAY_8
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect209, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2091
+ * @tc.desc: ColorType is COLORTYPE_GRAY_8 ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2091, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2092
+ * @tc.desc: ColorType is COLORTYPE_GRAY_8 ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2092, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2093
+ * @tc.desc: ColorType is COLORTYPE_GRAY_8 ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2093, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect210
+ * @tc.desc: ColorType is COLORTYPE_GRAY_8
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect210, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_GRAY_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_TRUE(image->GetWidth());
+    EXPECT_TRUE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect211
+ * @tc.desc: ColorType is COLORTYPE_RGB_888X
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect211, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2111
+ * @tc.desc: ColorType is COLORTYPE_RGB_888X ,AlphaType is ALPHATYPE_UNKNOWN
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2111, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2112
+ * @tc.desc: ColorType is COLORTYPE_RGB_888X ,AlphaType is ALPHATYPE_PREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2112, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_PREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+}
+
+/**
+ * @tc.name: DrawImageRect2113
+ * @tc.desc: ColorType is COLORTYPE_RGB_888X ,AlphaType is ALPHATYPE_UNPREMUL
+ * @tc.type: FUNC
+ * @tc.require: issueIAS8IM
+ */
+HWTEST_F(RSDistortionFilterTest, DrawImageRect2113, TestSize.Level1)
+{
+    // pincushion distortion
+    RSDistortionFilter effectFilter(0.05f);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::Image> image;
+    image = std::make_shared<Drawing::Image>();
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect src { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::Rect dst { 1.0f, 1.0f, 2.0f, 2.0f };
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_RGB_888X, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // barrel distortion
+    effectFilter.distortionK_ = -0.05f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
+
+    // IsValid = false
+    effectFilter.distortionK_ = -1.5f;
+    effectFilter.DrawImageRect(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth());
+    EXPECT_FALSE(image->GetHeight());
 }
 
 /**

@@ -41,7 +41,6 @@
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
 
-
 namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
@@ -574,7 +573,7 @@ void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
         if (cmd == nullptr) {
             continue;
         }
-
+        
         if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
             RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
                     " Add DrawOpSize [%{public}zu]",

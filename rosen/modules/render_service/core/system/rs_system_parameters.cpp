@@ -68,11 +68,10 @@ bool RSSystemParameters::GetDrawingCacheEnabledDfx()
     return ConvertToInt(enabledDfx, 0) != 0;
 }
 
-bool RSSystemParameters::GetShowRefreshRateEnabled()
+bool RSSystemParameters::GetShowRefreshRateEnabled(int *changed)
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.showRefreshRate.enabled", "0");
-    int changed = 0;
-    const char *enabled = CachedParameterGetChanged(g_Handle, &changed);
+    const char *enabled = CachedParameterGetChanged(g_Handle, changed);
     return ConvertToInt(enabled, 0) != 0;
 }
 
@@ -219,14 +218,6 @@ bool RSSystemParameters::IsNeedScRGBForP3(const GraphicColorGamut& currentGamut)
 bool RSSystemParameters::GetWiredScreenOndrawEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.wiredScreenOndraw.enabled", "1");
-    int changed = 0;
-    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
-    return ConvertToInt(enable, 0) != 0;
-}
-
-bool RSSystemParameters::GetDFXMirrorScreenForceRedrawEnabled()
-{
-    static CachedHandle g_Handle = CachedParameterCreate("rosen.DFX.mirrorScreen.forceRedraw.enabled", "0");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 0) != 0;

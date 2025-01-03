@@ -137,6 +137,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME),
@@ -150,7 +151,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -925,7 +925,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING): {
-            RS_LOGI("call RepaintEverything");
             RepaintEverything();
             break;
         }
@@ -2162,6 +2161,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             NotifyRefreshRateEvent(eventInfo);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT) : {
+            uint32_t pid{0};
+            uint32_t rateDiscount{0};
+            if (!data.ReadUint32(pid) || !data.ReadUint32(rateDiscount)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifySoftVsyncEvent(pid, rateDiscount);
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT) : {
             bool enableDynamicMode{false};
             if (!data.ReadBool(enableDynamicMode)) {
@@ -2572,7 +2581,11 @@ bool RSRenderServiceConnectionStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureCon
     uint8_t captureType { 0 };
     if (!data.ReadFloat(captureConfig.scaleX) || !data.ReadFloat(captureConfig.scaleY) ||
         !data.ReadBool(captureConfig.useDma) || !data.ReadBool(captureConfig.useCurWindow) ||
-        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync)) {
+        !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
+        !data.ReadFloat(captureConfig.mainScreenRect.bottom_)) {
         return false;
     }
     captureConfig.captureType = static_cast<SurfaceCaptureType>(captureType);

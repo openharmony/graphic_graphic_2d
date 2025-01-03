@@ -18,6 +18,7 @@
 
 #include <string>
 #include <mutex>
+#include <array>
 
 #include "common/rs_common_def.h"
 

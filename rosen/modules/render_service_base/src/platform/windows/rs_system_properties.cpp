@@ -563,7 +563,7 @@ bool RSSystemProperties::GetDrmMarkedFilterEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetDisableHebcEnabled()
+bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }

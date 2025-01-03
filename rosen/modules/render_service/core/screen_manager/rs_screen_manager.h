@@ -248,6 +248,8 @@ public:
 
     virtual bool GetDisplayPropertyForHardCursor(uint32_t screenId) = 0;
 
+    virtual bool IsScreenPoweringOn() const = 0;
+
     virtual void SetScreenSwitchStatus(bool flag) = 0;
 
     virtual bool GetScreenSwitchStatus() = 0;
@@ -484,6 +486,11 @@ public:
         return currentVirtualScreenNum_;
     }
 
+    bool IsScreenPoweringOn() const override
+    {
+        return isScreenPoweringOn_;
+    }
+
     void SetScreenSwitchStatus(bool flag) override;
 
     bool GetScreenSwitchStatus() override;
@@ -575,6 +582,7 @@ private:
     uint64_t frameId_ = 0;
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};
+    bool isScreenPoweringOn_ = false;
     std::atomic<bool> isScreenSwitching_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE

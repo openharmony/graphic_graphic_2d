@@ -101,6 +101,7 @@ public:
         return res;
     }
 
+    bool BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface, bool isNeedFP16);
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);

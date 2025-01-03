@@ -77,6 +77,30 @@ void RSUifirstManagerTest::SetUp() {}
 void RSUifirstManagerTest::TearDown() {}
 
 /**
+ * @tc.name: GetSurfaceDrawableByID
+ * @tc.desc: Test GetSurfaceDrawableByID
+ * @tc.type: FUNC
+ * @tc.require: #IBEL7U
+ */
+HWTEST_F(RSUifirstManagerTest, GetSurfaceDrawableByID, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode);
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(surfaceNode->GetId(), adapter));
+    auto drawable = uifirstManager_.GetSurfaceDrawableByID(surfaceNode->GetId());
+    ASSERT_NE(drawable, nullptr);
+
+    NodeId id = 100;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(id);
+    adapter = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(canvasNode);
+    uifirstManager_.subthreadProcessingNode_.insert(std::make_pair(canvasNode->GetId(), adapter));
+    drawable = uifirstManager_.GetSurfaceDrawableByID(canvasNode->GetId());
+    ASSERT_EQ(drawable, nullptr);
+    uifirstManager_.subthreadProcessingNode_.clear();
+}
+
+/**
  * @tc.name: SetUifirstNodeEnableParam001
  * @tc.desc: Test SetUifirstNodeEnableParam, when node is leash window type
  * @tc.type: FUNC
@@ -409,7 +433,9 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
     auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(surfaceDrawable, nullptr);
-    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable);
+    surfaceDrawable->SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    auto colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
 }
 /**
  * @tc.name: ProcessTreeStateChange

@@ -241,6 +241,7 @@ private:
     void PowerStatusDump(std::string& dumpString);
     void CapabilityTypeDump(GraphicInterfaceType capabilityType, std::string& dumpString);
     void ScreenTypeDump(std::string& dumpString);
+    void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode);
 
     // ScreenId for this screen.
     ScreenId id_ = INVALID_SCREEN_ID;

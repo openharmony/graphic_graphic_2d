@@ -136,6 +136,30 @@ public:
         return isLayerTop_;
     }
 
+    void SetHardwareEnableHint(bool enable)
+    {
+        if (isHardwareEnableHint_ == enable) {
+            return;
+        }
+        isHardwareEnableHint_ = enable;
+        SetContentDirty();
+    }
+
+    bool IsHardwareEnableHint() const
+    {
+        return isHardwareEnableHint_;
+    }
+
+    void SetExistTransparentHardwareEnabledNode(bool exist)
+    {
+        existTransparentHardwareEnabledNode_ = exist;
+    }
+    
+    bool ExistTransparentHardwareEnabledNode() const
+    {
+        return existTransparentHardwareEnabledNode_;
+    }
+
     // indicate if this node type can enable hardware composer
     bool IsHardwareEnabledType() const
     {
@@ -147,8 +171,7 @@ public:
             IsLayerTop();
     }
 
-    void CheckHwcChildrenType(SurfaceHwcNodeType& enabledType);
-    void SetPreSubHighPriorityType();
+    void SetPreSubHighPriorityType(bool priorityType);
 
     bool IsDynamicHardwareEnable() const
     {
@@ -176,7 +199,7 @@ public:
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
             (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_ == "VMWinXComponentSurface" ||
-                name_ == "VMLinuxXComponentSurface" || name_ == "oh_flutter_1Surface" ||
+                name_ == "VMLinuxXComponentSurface" || name_.find("oh_flutter") != std::string::npos ||
                 name_.find("HwStylusFeature") != std::string::npos);
     }
 
@@ -270,6 +293,35 @@ public:
     void SetHardwareForcedDisabledStateByFilter(bool forcesDisabled)
     {
         isHardwareForcedDisabledByFilter_ = forcesDisabled;
+    }
+
+    void ResetMakeImageState()
+    {
+        intersectWithAIBar_ = false;
+        hardwareNeedMakeImage_ = false;
+    }
+
+    void SetHardwareNeedMakeImage(bool needMakeImage)
+    {
+        hardwareNeedMakeImage_ = needMakeImage;
+    }
+
+    bool IsHardwareNeedMakeImage() const
+    {
+        if (isProtectedLayer_) {
+            return false;
+        }
+        return hardwareNeedMakeImage_;
+    }
+
+    void SetIntersectWithAIBar(bool flag)
+    {
+        intersectWithAIBar_ = flag;
+    }
+
+    bool GetIntersectWithAIBar() const
+    {
+        return intersectWithAIBar_;
     }
 
     bool IsHardwareForcedDisabledByFilter() const
@@ -718,6 +770,9 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+    // Only call this if the node is first level node.
+    GraphicColorGamut GetFirstLevelNodeColorGamut() const;
+    void SetFirstLevelNodeColorGamut(bool changeToP3);
 
     // Only call this if the node is self-drawing surface node.
     void UpdateColorSpaceWithMetadata();
@@ -1067,7 +1122,7 @@ public:
         return false;
     }
 
-    void UpdateSurfaceCacheContentStaticFlag();
+    void UpdateSurfaceCacheContentStaticFlag(bool isAccessibilityChanged);
 
     void UpdateSurfaceSubTreeDirtyFlag();
 
@@ -1218,8 +1273,8 @@ public:
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
-    void SetSdrNit(int32_t sdrNit);
-    void SetDisplayNit(int32_t displayNit);
+    void SetSdrNit(float sdrNit);
+    void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
@@ -1288,7 +1343,7 @@ public:
         subThreadAssignable_ = subThreadAssignable;
     }
 
-    bool NeedUpdateDrawableBehindWindow();
+    bool NeedUpdateDrawableBehindWindow() const override;
     void SetOldNeedDrawBehindWindow(bool val);
     bool NeedDrawBehindWindow() const override;
     bool GetBehindWindowFilterEnabled() const;
@@ -1336,6 +1391,8 @@ public:
     {
         isHwcPendingDisabled_ = isHwcPendingDisabled;
     }
+
+    void ResetIsBufferFlushed();
 
 protected:
     void OnSync() override;
@@ -1415,6 +1472,10 @@ private:
     std::string name_;
     RSSurfaceNodeType nodeType_ = RSSurfaceNodeType::DEFAULT;
     bool isLayerTop_ = false;
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    bool isHardwareEnableHint_ = false;
     const enum SurfaceWindowType surfaceWindowType_ = SurfaceWindowType::DEFAULT_WINDOW;
     // This variable can be set in two cases:
     // 1. The upper-layer IPC interface directly sets window colorspace.
@@ -1566,6 +1627,8 @@ private:
     // mark if this self-drawing node is forced not to use hardware composer
     // in case where this node's parent window node is occluded or is appFreeze, this variable will be marked true
     bool isHardwareForcedDisabled_ = false;
+    bool hardwareNeedMakeImage_ = false;
+    bool intersectWithAIBar_ = false;
     bool isHardwareForcedDisabledByFilter_ = false;
     // For certain buffer format(YUV), dss restriction on src : srcRect % 2 == 0
     // To avoid switch between gpu and dss during sliding, we disable dss when srcHeight != bufferHeight
@@ -1573,6 +1636,8 @@ private:
     bool isHardwareDisabledByCache_ = false;
     float localZOrder_ = 0.0f;
     std::vector<WeakPtr> childHardwareEnabledNodes_;
+    // Mark if the leash or main window node has transparent self-drawing node
+    bool existTransparentHardwareEnabledNode_ = false;
     int32_t nodeCost_ = 0;
 
     bool animateState_ = false;
@@ -1603,6 +1668,7 @@ private:
     // whether to wait uifirst first frame finished when buffer available callback invoked.
     std::atomic<bool> isWaitUifirstFirstFrame_ = false;
     bool isTargetUIFirstDfxEnabled_ = false;
+    uint32_t wideColorGamutInChildNodeCount_ = 0;
 
     TreeStateChangeCallback treeStateChangeCallback_;
     RSBaseRenderNode::WeakPtr ancestorDisplayNode_;

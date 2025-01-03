@@ -17,7 +17,6 @@
 
 #include "native_value.h"
 
-#include "js_drawing_utils.h"
 #include "path_napi/js_path.h"
 
 namespace OHOS::Rosen {
@@ -106,7 +105,6 @@ napi_value JsPathIterator::Constructor(napi_env env, napi_callback_info info)
         GET_UNWRAP_PARAM(ARGC_ZERO, path);
         PathIterator* p = new PathIterator(*path->GetPath());
         jsPathIterator = new JsPathIterator(p);
-        jsPathIterator->m_points = new Point[MAX_PAIRS_PATHVERB];
     } else {
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect number of parameters.");
     }
@@ -117,7 +115,6 @@ napi_value JsPathIterator::Constructor(napi_env env, napi_callback_info info)
     status = napi_wrap(env, jsThis, jsPathIterator,
         JsPathIterator::Destructor, nullptr, nullptr);
     if (status != napi_ok) {
-        delete [] jsPathIterator->m_points;
         delete jsPathIterator;
         ROSEN_LOGE("JsPathIterator::Constructor Failed to wrap native instance");
         return nullptr;
@@ -164,10 +161,6 @@ napi_value JsPathIterator::CreateJsPathIterator(napi_env env, PathIterator* iter
 
 JsPathIterator::~JsPathIterator()
 {
-    if (m_points != nullptr) {
-        delete [] m_points;
-        m_points = nullptr;
-    }
     if (m_iter != nullptr) {
         delete m_iter;
         m_iter = nullptr;
@@ -228,8 +221,6 @@ napi_value JsPathIterator::OnNext(napi_env env, napi_callback_info info)
     for (uint32_t i = 0; i < MAX_PAIRS_PATHVERB; i++) {
         if (napi_set_element(env, array, i + offset, ConvertPointToJsValue(env, m_points[i])) != napi_ok) {
             ROSEN_LOGE("JsPathIterator::OnNext set array failed");
-            delete [] m_points;
-            m_points = nullptr;
             return nullptr;
         }
     }

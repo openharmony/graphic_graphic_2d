@@ -270,6 +270,18 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
     return true;
 }
 
+void RSRcdSurfaceRenderNode::PrintRcdNodeInfo()
+{
+    std::string surfaceName = (IsTopSurface() ? "RCDTopSurfaceNode" : "RCDBottomSurfaceNode")  +
+        std::to_string(renerTargetId_);
+    RS_LOGI("[%{public}s] %{public}s node info", __func__, surfaceName.c_str());
+    RS_LOGI("[%{public}s] rcd layerBitmap size %{public}d X %{public}d", __func__,
+        layerBitmap.GetWidth(), layerBitmap.GetHeight());
+    RS_LOGI("[%{public}s] rcd cld info %{public}u, %{public}u, %{public}u, %{public}u, %{public}u, %{public}u",
+        __func__, cldInfo_.cldSize, cldInfo_.cldWidth, cldInfo_.cldHeight, cldInfo_.cldStride, cldInfo_.exWidth,
+        cldInfo_.exHeight);
+}
+
 bool RSRcdSurfaceRenderNode::IsSurfaceCreated() const
 {
     return rcdExtInfo_.surfaceCreated;

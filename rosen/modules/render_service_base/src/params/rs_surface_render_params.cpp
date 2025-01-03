@@ -167,6 +167,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetNeedMakeImage(bool enabled)
+{
+    if (needMakeImage_ == enabled) {
+        return;
+    }
+    needMakeImage_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetNeedMakeImage() const
+{
+    return needMakeImage_;
+}
+
 void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
 {
     if (isHardCursor_ == status) {
@@ -488,6 +502,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
@@ -550,6 +565,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->preparedDisplayOffset_ = preparedDisplayOffset_;
     targetSurfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     RSRenderParams::OnSync(target);
 }
 

@@ -50,6 +50,7 @@ declare_args() {
   graphic_2d_feature_enable_rspipeline = true
   graphic_2d_feature_enable_prefetch = true
   graphic_2d_feature_bootanimation_ext_enable = "default"
+  graphic_2d_support_access_token = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -374,4 +375,9 @@ if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
 
 if (defined(graphic_2d_feature_enable_prefetch)) {
   gpu_defines += [ "RS_ENABLE_PREFETCH" ]
+}
+
+if (defined(global_parts_info) &&
+    !defined(global_parts_info.security_access_token)) {
+  graphic_2d_support_access_token = false
 }

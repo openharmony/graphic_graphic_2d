@@ -481,23 +481,15 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
     oldAbsMatrix_ = geoPtr->GetAbsMatrix();
 }
 
+
+void RSRenderNode::SetIsCrossNode(bool isCrossNode)
+{
+    isCrossNode_ = isCrossNode;
+}
+
 bool RSRenderNode::IsCrossNode() const
 {
     return isCrossNode_;
-}
-
-void RSRenderNode::IncreaseCrossScreenNum()
-{
-    if (++crossScreenNum_ > 0) {
-        isCrossNode_ = true;
-    }
-}
-
-void RSRenderNode::DecreaseCrossScreenNum()
-{
-    if (--crossScreenNum_ == 0) {
-        isCrossNode_ = false;
-    }
 }
 
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
@@ -507,7 +499,6 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     if (child == nullptr) {
         return;
     }
-    child->IncreaseCrossScreenNum();
     // Set parent-child relationship
     child->SetParent(weak_from_this());
     if (index < 0 || index >= static_cast<int32_t>(children_.size())) {
@@ -519,8 +510,7 @@ void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
     disappearingChildren_.remove_if([&child](const auto& pair) -> bool { return pair.first == child; });
     // A child is not on the tree until its parent is on the tree
     if (isOnTheTree_) {
-        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
-            uifirstRootNodeId_, displayNodeId_);
+        child->SetIsOnTheTree(true, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
     }
     if (child->IsCrossNode()) {
         child->SetDirty();
@@ -536,7 +526,6 @@ void RSRenderNode::RemoveCrossParentChild(const SharedPtr& child, const WeakPtr&
     if (child == nullptr) {
         return;
     }
-    child->DecreaseCrossScreenNum();
     // break parent-child relationship
     auto it = std::find_if(children_.begin(), children_.end(),
         [&](WeakPtr& ptr) -> bool { return ROSEN_EQ<RSRenderNode>(ptr, child); });
@@ -1879,7 +1868,7 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 
 void RSRenderNode::MapAndUpdateChildrenRect()
 {
-    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
     if (!shouldPaint_ || geoPtr == nullptr) {
         return;
     }
@@ -1952,6 +1941,20 @@ bool RSRenderNode::IsFilterCacheValid() const
     return filterDrawable->IsFilterCacheValid();
 #endif
     return false;
+}
+
+bool RSRenderNode::IsAIBarFilter() const
+{
+    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::FilterCacheEnabled) {
+        ROSEN_LOGD("blur is disabled or filter cache is disabled.");
+        return false;
+    }
+    auto filterDrawable = GetRenderProperties().GetFilter() != nullptr ?
+        GetFilterDrawable(true) : GetFilterDrawable(false);
+    if (filterDrawable == nullptr) {
+        return false;
+    }
+    return filterDrawable->IsAIBarFilter();
 }
 
 bool RSRenderNode::IsAIBarFilterCacheValid() const
@@ -2158,8 +2161,8 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
     RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
         GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
     const auto& properties = GetRenderProperties();
-    if ((properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) &&
-        !filterRegion_.IsInsideOf(lastFilterRegion_)) {
+    if ((properties.GetBackgroundFilter() && !filterRegion_.IsInsideOf(lastFilterRegion_)) ||
+        (properties.GetNeedDrawBehindWindow() && filterRegion_ != lastFilterRegion_)) {
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             if (!IsForceClearOrUseFilterCache(filterDrawable)) {
@@ -4727,6 +4730,31 @@ void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
     } else {
         rootNode->RemoveChildBlurBehindWindow(GetId());
     }
+}
+
+void RSRenderNode::UpdateDrawableBehindWindow()
+{
+    AddDirtyType(RSModifierType::BACKGROUND_BLUR_RADIUS);
+    SetContentDirty();
+#ifdef RS_ENABLE_GPU
+    auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
+    if (dirtySlots.empty()) {
+        RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow dirtySlots is empty");
+        return;
+    }
+    bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, drawableVec_, dirtySlots);
+    RSDrawable::FuzeDrawableSlots(*this, drawableVec_);
+    RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow drawableChanged:%{public}d", drawableChanged);
+    if (drawableChanged) {
+        RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
+        UpdateDisplayList();
+    }
+    if (dirtySlots_.empty()) {
+        dirtySlots_ = std::move(dirtySlots);
+    } else {
+        dirtySlots_.insert(dirtySlots.begin(), dirtySlots.end());
+    }
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

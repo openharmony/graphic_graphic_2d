@@ -120,6 +120,7 @@ private:
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
     bool isLastAdaptive_ = false;
+    std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;

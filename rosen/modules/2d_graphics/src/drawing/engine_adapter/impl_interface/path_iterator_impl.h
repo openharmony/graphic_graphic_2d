@@ -30,7 +30,6 @@ class PathIteratorImpl : public BaseImpl {
 public:
     ~PathIteratorImpl() override {}
     explicit PathIteratorImpl(const Path& p) {}
-    virtual void Clone(const PathIterator& other) = 0;
     virtual scalar conicWeight() const = 0;
     virtual PathVerb Next(Point* points) = 0;
     virtual PathVerb Peek() = 0;

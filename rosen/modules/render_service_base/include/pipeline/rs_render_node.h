@@ -99,6 +99,7 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
     void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
+    void SetIsCrossNode(bool isCrossNode);
 
     virtual void CollectSurface(const std::shared_ptr<RSRenderNode>& node,
                                 std::vector<RSRenderNode::SharedPtr>& vec,
@@ -545,6 +546,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
 #endif
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
 
@@ -821,6 +823,8 @@ public:
 
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
+    void UpdateDrawableBehindWindow();
+    virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
     virtual void RemoveChildBlurBehindWindow(NodeId id) {}
@@ -1138,9 +1142,6 @@ private:
     void UpdateDrawableVecInternal(std::unordered_set<RSPropertyDrawableSlot> dirtySlots);
     void UpdateDisplayList();
     void UpdateShadowRect();
-
-    void IncreaseCrossScreenNum();
-    void DecreaseCrossScreenNum();
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
     // purge resource

@@ -48,6 +48,8 @@ void SkFontMgrOhosTest::TearDownTestCase()
 void SkFontMgrOhosTest::SetUp() {}
 void SkFontMgrOhosTest::TearDown() {}
 
+const std::string BASE_NAME = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53};
+
 const char TTF_FILE_PATH[] = {0x2F, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x2F, 0x66, 0x6F, 0x6E, 0x74, 0x73,
     0x2F, 0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x5F, 0x53, 0x61, 0x6E, 0x73, 0x5F,
     0x53, 0x43, 0x2E, 0x74, 0x74, 0x66, 0x00};
@@ -60,15 +62,12 @@ const char TTF_FILE_PATH[] = {0x2F, 0x73, 0x79, 0x73, 0x74, 0x65, 0x6D, 0x2F, 0x
 HWTEST_F(SkFontMgrOhosTest, GetFontFullName001, TestSize.Level1)
 {
     int fd = open(TTF_FILE_PATH, O_RDONLY);
-    if (fd == -1) {
-        ASSERT_TRUE(false);
-    }
+    ASSERT_NE(fd, -1);
     std::vector<SkByteArray> fullnameVec;
     int ret = m_fontMgrOhosImpl->GetFontFullName(fd, fullnameVec);
     close(fd);
     EXPECT_EQ(ret, SUCCESSED);
-    std::string testRes = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20,
-        0x53, 0x61, 0x6E, 0x73, 0x20, 0x53, 0x43};
+    std::string testRes = BASE_NAME + " Sans SC";
     ASSERT_EQ(fullnameVec.size(), 1);
     ASSERT_NE(fullnameVec[0].strData, nullptr);
     ASSERT_EQ(fullnameVec[0].strLen, testRes.size() * 2);
@@ -94,15 +93,13 @@ HWTEST_F(SkFontMgrOhosTest, GetFamilyName001, TestSize.Level1)
 {
     SkString str;
     m_fontMgrOhosImpl->getFamilyName(0, &str);
-    std::string testRes1 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73};
+    std::string testRes1 = BASE_NAME + "-Sans";
     EXPECT_STREQ(str.c_str(), testRes1.c_str());
     m_fontMgrOhosImpl->getFamilyName(5, &str);
-    std::string testRes2 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73, 0x2D,
-        0x43, 0x6F, 0x6E, 0x64, 0x65, 0x6E, 0x73, 0x65, 0x64};
+    std::string testRes2 = BASE_NAME + "-Sans-Condensed";
     EXPECT_STREQ(str.c_str(), testRes2.c_str());
     m_fontMgrOhosImpl->getFamilyName(6, &str);
-    std::string testRes3 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73, 0x2D,
-        0x44, 0x69, 0x67, 0x69, 0x74};
+    std::string testRes3 = BASE_NAME + "-Sans-Digit";
     EXPECT_STREQ(str.c_str(), testRes3.c_str());
     m_fontMgrOhosImpl->getFamilyName(7, &str);
     EXPECT_STREQ(str.c_str(), "serif");
@@ -150,20 +147,21 @@ HWTEST_F(SkFontMgrOhosTest, CreateStyleSet001, TestSize.Level1)
  */
 HWTEST_F(SkFontMgrOhosTest, MatchFamily001, TestSize.Level1)
 {
-    std::string testRes1 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x53, 0x61, 0x6E, 0x73};
+    std::string testRes1 = BASE_NAME + " Sans";
     SkFontStyleSet* styleSet1 = m_fontMgrOhosImpl->matchFamily(testRes1.c_str());
     ASSERT_NE(styleSet1, nullptr);
     ASSERT_EQ(styleSet1->count(), 0);
 
-    std::string testRes2 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73};
+    std::string testRes2 = BASE_NAME + "-Sans";
     SkFontStyleSet* styleSet2 = m_fontMgrOhosImpl->matchFamily(testRes2.c_str());
     ASSERT_NE(styleSet2, nullptr);
     ASSERT_EQ(styleSet2->count(), 2);
-    std::string testRes3 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
+
+    std::string testRes3 = BASE_NAME + " Sans SC";
     SkFontStyleSet* styleSet3 = m_fontMgrOhosImpl->matchFamily(testRes3.c_str());
     ASSERT_NE(styleSet3, nullptr);
     ASSERT_EQ(styleSet3->count(), 1);
+
     delete styleSet1;
     delete styleSet2;
     delete styleSet3;
@@ -181,31 +179,29 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyle001, TestSize.Level1)
     ASSERT_NE(tp, nullptr);
     SkString familyName;
     tp->getFamilyName(&familyName);
-    std::string testRes1 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73};
-    ASSERT_STREQ(familyName.c_str(), testRes1.c_str());
+    std::string testRes = BASE_NAME + "-Sans";
+    ASSERT_STREQ(familyName.c_str(), testRes.c_str());
     SkSafeUnref(tp);
 
-    std::string testRes2 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73};
-    SkTypeface* tp1 = m_fontMgrOhosImpl->matchFamilyStyle(testRes2.c_str(), style);
+    std::string inputName1 = BASE_NAME + "-Sans";
+    SkTypeface* tp1 = m_fontMgrOhosImpl->matchFamilyStyle(inputName1.c_str(), style);
     ASSERT_NE(tp1, nullptr);
     SkString familyName1;
     tp1->getFamilyName(&familyName1);
-    std::string testRes3 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73};
-    ASSERT_STREQ(familyName1.c_str(), testRes3.c_str());
+    std::string testRes1 = BASE_NAME + "-Sans";
+    ASSERT_STREQ(familyName1.c_str(), testRes1.c_str());
     SkSafeUnref(tp1);
 
     SkTypeface* tp2 = m_fontMgrOhosImpl->matchFamilyStyle("TestNoFound", style);
     ASSERT_EQ(tp2, nullptr);
 
-    std::string testRes4 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
-    SkTypeface* tp3 = m_fontMgrOhosImpl->matchFamilyStyle(testRes4.c_str(), style);
+    std::string inputName3 = BASE_NAME + " Sans SC";
+    SkTypeface* tp3 = m_fontMgrOhosImpl->matchFamilyStyle(inputName3.c_str(), style);
     ASSERT_NE(tp3, nullptr);
     SkString familyName3;
     tp3->getFamilyName(&familyName3);
-    std::string testRes5 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
-    ASSERT_STREQ(familyName3.c_str(), testRes5.c_str());
+    std::string testRes3 = BASE_NAME + " Sans SC";
+    ASSERT_STREQ(familyName3.c_str(), testRes3.c_str());
     SkSafeUnref(tp3);
 }
 
@@ -221,29 +217,32 @@ HWTEST_F(SkFontMgrOhosTest, MatchFamilyStyleCharacter001, TestSize.Level1)
     ASSERT_NE(tp, nullptr);
     SkString familyName;
     tp->getFamilyName(&familyName);
-    std::string testRes1 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73,
-        0x4E, 0x61, 0x73, 0x6B, 0x68, 0x20, 0x41, 0x72, 0x61, 0x62, 0x69, 0x63, 0x20, 0x55, 0x49};
+    std::string testRes1 = BASE_NAME + " Sans Naskh Arabic UI";
     ASSERT_STREQ(familyName.c_str(), testRes1.c_str());
 
     std::vector<const char*> bcp47;
     SkTypeface* tp1 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(), bcp47.size(), 0x63CF);
     ASSERT_NE(tp1, nullptr);
     tp1->getFamilyName(&familyName);
-    std::string testRes2 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
+    std::string testRes2 = BASE_NAME + " Sans SC";
     ASSERT_STREQ(familyName.c_str(), testRes2.c_str());
 
     bcp47.push_back("zh-Hant");
     SkTypeface* tp2 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(), bcp47.size(), 0x63CF);
     ASSERT_NE(tp2, nullptr);
     tp2->getFamilyName(&familyName);
-    std::string testRes3 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73, 0x20,
-        0x53, 0x43, 0x20, 0x54, 0x43};
+    std::string testRes3 = BASE_NAME + " Sans TC";
     ASSERT_STREQ(familyName.c_str(), testRes3.c_str());
+
+    SkTypeface* tp3 = m_fontMgrOhosImpl->matchFamilyStyleCharacter(nullptr, style, bcp47.data(), bcp47.size(), 0x1F600);
+    ASSERT_NE(tp3, nullptr);
+    tp3->getFamilyName(&familyName);
+    ASSERT_STREQ(familyName.c_str(), "HMOS Color Emoji");
    
     SkSafeUnref(tp);
     SkSafeUnref(tp1);
     SkSafeUnref(tp2);
+    SkSafeUnref(tp3);
 }
 
 /**
@@ -257,8 +256,7 @@ HWTEST_F(SkFontMgrOhosTest, MakeFromStreamIndex001, TestSize.Level1)
     sk_sp<SkTypeface> sktp = m_fontMgrOhosImpl->makeFromStream(std::move(skStream), 0);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    std::string testRes = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
+    std::string testRes = BASE_NAME + " Sans SC";
     ASSERT_STREQ(familyName.c_str(), testRes.c_str());
 }
 
@@ -274,8 +272,7 @@ HWTEST_F(SkFontMgrOhosTest, MakeFromStreamArgs001, TestSize.Level1)
     sk_sp<SkTypeface> sktp = m_fontMgrOhosImpl->makeFromStream(std::move(skStream), skFontArguments);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    std::string testRes = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
+    std::string testRes = BASE_NAME + " Sans SC";
     ASSERT_STREQ(familyName.c_str(), testRes.c_str());
 }
 
@@ -290,8 +287,7 @@ HWTEST_F(SkFontMgrOhosTest, MakeFromFile001, TestSize.Level1)
     ASSERT_NE(sktp, nullptr);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    std::string testRes = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x20, 0x53, 0x61, 0x6E, 0x73,
-        0x20, 0x53, 0x43};
+    std::string testRes = BASE_NAME + " Sans SC";
     ASSERT_STREQ(familyName.c_str(), testRes.c_str());
 }
 
@@ -307,15 +303,13 @@ HWTEST_F(SkFontMgrOhosTest, LegacyMakeTypeface001, TestSize.Level1)
     ASSERT_NE(sktp, nullptr);
     SkString familyName;
     sktp->getFamilyName(&familyName);
-    std::string testRes1 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73};
+    std::string testRes1 = BASE_NAME + "-Sans";
     ASSERT_STREQ(familyName.c_str(), testRes1.c_str());
 
-    std::string testRes2 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73,
-        0x2D, 0x43, 0x6F, 0x6E, 0x64, 0x65, 0x6E, 0x73, 0x65, 0x64};
+    std::string testRes2 = BASE_NAME + "-Sans-Condensed";
     sk_sp<SkTypeface> sktp1 = m_fontMgrOhosImpl->legacyMakeTypeface(testRes2.c_str(), style);
     ASSERT_NE(sktp1, nullptr);
     sktp1->getFamilyName(&familyName);
-    std::string testRes3 = {0x48, 0x61, 0x72, 0x6D, 0x6F, 0x6E, 0x79, 0x4F, 0x53, 0x2D, 0x53, 0x61, 0x6E, 0x73,
-        0x2D, 0x43, 0x6F, 0x6E, 0x64, 0x65, 0x6E, 0x73, 0x65, 0x64};
+    std::string testRes3 = BASE_NAME + "-Sans-Condensed";
     ASSERT_STREQ(familyName.c_str(), testRes3.c_str());
 }

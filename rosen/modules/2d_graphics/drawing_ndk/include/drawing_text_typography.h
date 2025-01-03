@@ -424,6 +424,8 @@ typedef enum {
     WORD_BREAK_TYPE_BREAK_ALL = 1,
     /** Break Word type */
     WORD_BREAK_TYPE_BREAK_WORD = 2,
+    /** Attempt break word with hyphens */
+    WORD_BREAK_TYPE_BREAK_HYPHEN = 3,
 } OH_Drawing_WordBreakType;
 
 /**

@@ -19,8 +19,10 @@
 #include <iostream>
 #include <sstream>
 #include "accesstoken_kit.h"
+#ifdef SUPPORT_ACCESS_TOKEN
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
+#endif
 #include "display_type.h"
 #include "draw/canvas.h"
 #include "draw/color.h"
@@ -255,6 +257,7 @@ public:
 
 void InitNativeTokenInfo()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     uint64_t tokenId;
     const char *perms[1];
     perms[0] = "ohos.permission.SYSTEM_FLOAT_WINDOW";
@@ -271,10 +274,12 @@ void InitNativeTokenInfo()
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
     Security::AccessToken::AccessTokenKit::ReloadNativeTokenInfo();
+#endif
 }
 
 int main()
 {
+#ifdef SUPPORT_ACCESS_TOKEN
     InitNativeTokenInfo();
 
     cout << "rs local surface capture demo" << endl;
@@ -343,5 +348,6 @@ int main()
     RSInterfaces::GetInstance().TakeSurfaceCaptureWithBlur(
         surfaceNode, mySurfaceCaptureCallback, captureConfig, blurRadius);
     sleep(SLEEP_DURATION);
+#endif
     return 0;
 }

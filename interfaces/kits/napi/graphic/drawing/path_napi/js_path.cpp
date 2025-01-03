@@ -739,6 +739,7 @@ napi_value JsPath::OnGetLength(napi_env env, napi_callback_info info)
 
     bool forceClosed = false;
     GET_BOOLEAN_PARAM(ARGC_ZERO, forceClosed);
+
     double len = m_path->GetLength(forceClosed);
     return CreateJsNumber(env, len);
 }

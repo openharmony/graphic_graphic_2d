@@ -336,6 +336,8 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetNeedMakeImage(bool enabled);
+    bool GetNeedMakeImage() const override;
     void SetHardCursorStatus(bool status);
     bool GetHardCursorStatus() const override;
     void SetPreSubHighPriorityType(bool enabledType);
@@ -504,7 +506,7 @@ public:
         return hasHdrPresent_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
             return;
@@ -513,12 +515,12 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         if (ROSEN_EQ(displayNit_, displayNit)) {
             return;
@@ -527,7 +529,7 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -595,6 +597,20 @@ public:
         return apiCompatibleVersion_;
     }
 
+    void SetIsBufferFlushed(bool isBufferFlushed)
+    {
+        if (isBufferFlushed_ == isBufferFlushed) {
+            return;
+        }
+        isBufferFlushed_ = isBufferFlushed;
+        needSync_ = true;
+    }
+
+    bool GetIsBufferFlushed() const
+    {
+        return isBufferFlushed_;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -651,6 +667,7 @@ private:
     bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
+    bool needMakeImage_ = false;
     bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool subHighPriorityType_ = false;
@@ -691,9 +708,9 @@ private:
     bool hasFingerprint_ = false;
     // hdr
     bool hasHdrPresent_ = false;
-    int32_t sdrNit_ = 500; // default sdrNit
-    int32_t displayNit_ = 500; // default displayNit_
-    float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    float sdrNit_ = 500.0f; // default sdrNit
+    float displayNit_ = 500.0f; // default displayNit_
+    float brightnessRatio_ = 1.0f; // 1.0f means no discount.
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;
@@ -706,6 +723,8 @@ private:
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;
+
+    bool isBufferFlushed_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

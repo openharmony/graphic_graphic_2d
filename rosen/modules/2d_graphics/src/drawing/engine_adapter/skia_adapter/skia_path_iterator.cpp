@@ -18,6 +18,7 @@
 
 #include "draw/path.h"
 #include "draw/path_iterator.h"
+#include "utils/log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -43,12 +44,14 @@ static PathVerb ConvertToPathVerb(const SkPath::Verb& verb)
     }
 }
 
-SkiaPathIterator::SkiaPathIterator(const Path& path) noexcept
-    : PathIteratorImpl(path), skPathIterator_(path.GetImpl<SkiaPath>()->GetPath()) {}
-
-void SkiaPathIterator::Clone(const PathIterator& other)
+SkiaPathIterator::SkiaPathIterator(const Path& path) noexcept: PathIteratorImpl(path)
 {
-    skPathIterator_ = other.GetImpl<SkiaPathIterator>()->ExportSkiaPathIterator();
+    auto skiaPath = path.GetImpl<SkiaPath>();
+    if (!skiaPath) {
+        LOGD("skiaPath nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return;
+    }
+    skPathIterator_ = SkPath::RawIter(skiaPath->GetPath());
 }
 
 const SkPath::RawIter& SkiaPathIterator::ExportSkiaPathIterator() const

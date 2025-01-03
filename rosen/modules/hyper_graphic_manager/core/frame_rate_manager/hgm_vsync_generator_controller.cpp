@@ -118,15 +118,5 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     }
     return vsyncCount;
 }
-
-int64_t HgmVSyncGeneratorController::GetCurrentOffset() const
-{
-    return currentOffset_;
-}
-
-uint32_t HgmVSyncGeneratorController::GetCurrentRate() const
-{
-    return currentRate_;
-}
 } // namespace Rosen
 } // namespace OHOS
