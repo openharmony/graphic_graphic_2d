@@ -360,7 +360,11 @@ template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Vector2f>::ToFloat() const;
 
 template<>
+RSB_EXPORT void RSRenderProperty<int>::Dump(std::string& out) const;
+template<>
 RSB_EXPORT void RSRenderProperty<float>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<Vector4f>::Dump(std::string& out) const;
 template<>
@@ -383,6 +387,18 @@ template<>
 RSB_EXPORT void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const;
 template<>
 RSB_EXPORT void RSRenderProperty<SkMatrix>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const;
+template<>
+RSB_EXPORT void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const;
 
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<float>::IsNearEqual(
@@ -416,7 +432,9 @@ RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     const std::shared_ptr<const RSRenderPropertyBase>& value) const;
 
 #if defined(_WIN32)
+extern template class RSRenderProperty<int>;
 extern template class RSRenderProperty<float>;
+extern template class RSRenderProperty<Vector4<uint32_t>>;
 extern template class RSRenderProperty<Vector4f>;
 extern template class RSRenderProperty<Quaternion>;
 extern template class RSRenderProperty<Vector2f>;
@@ -428,6 +446,12 @@ extern template class RSRenderProperty<RRect>;
 extern template class RSRenderProperty<Drawing::DrawCmdListPtr>;
 extern template class RSRenderProperty<ForegroundColorStrategyType>;
 extern template class RSRenderProperty<SkMatrix>;
+extern template class RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>;
+extern template class RSRenderProperty<std::shared_ptr<MotionBlurParam>>;
+extern template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
+extern template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
+extern template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
+extern template class RSRenderProperty<std::shared_ptr<RSMask>>;
 
 extern template class RSRenderAnimatableProperty<float>;
 extern template class RSRenderAnimatableProperty<Vector4f>;
