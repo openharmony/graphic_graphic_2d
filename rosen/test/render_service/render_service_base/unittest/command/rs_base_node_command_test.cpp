@@ -342,7 +342,7 @@ HWTEST_F(RSBaseNodeCommandText, RemoveCrossScreenChild, TestSize.Level1)
     ASSERT_NE(node, nullptr);
     auto child = nodeMap.GetRenderNode(childNodeId);
     ASSERT_NE(child, nullptr);
-    BaseNodeCommandHelper::RemoveCrossScreenChild(*context_.get(),nodeId, childNodeId);
+    BaseNodeCommandHelper::RemoveCrossScreenChild(*context_.get(), nodeId, childNodeId);
     nodeMap.UnregisterRenderNode(nodeId);
     nodeMap.UnregisterRenderNode(childNodeId);
 }
