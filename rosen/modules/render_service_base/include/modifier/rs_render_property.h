@@ -349,8 +349,6 @@ private:
 };
 
 template<>
-RSB_EXPORT float RSRenderAnimatableProperty<int>::ToFloat() const;
-template<>
 RSB_EXPORT float RSRenderAnimatableProperty<float>::ToFloat() const;
 template<>
 RSB_EXPORT float RSRenderAnimatableProperty<Vector4f>::ToFloat() const;
