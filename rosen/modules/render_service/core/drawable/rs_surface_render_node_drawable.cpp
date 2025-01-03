@@ -720,6 +720,14 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
+        surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
+        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
+        RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
+                      surfaceParams->GetAbsDrawRect().ToString());
+        return;
+    }
+
     RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture:[" + name_ + "] " +
         surfaceParams->GetAbsDrawRect().ToString() + "Alpha: " +
         std::to_string(surfaceParams->GetGlobalAlpha()));
