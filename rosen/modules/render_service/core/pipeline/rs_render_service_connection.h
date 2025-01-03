@@ -278,8 +278,6 @@ private:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
-
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
