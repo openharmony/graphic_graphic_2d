@@ -96,6 +96,7 @@ private:
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
     bool loadSuccess = false;
+    bool arsrPreEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
