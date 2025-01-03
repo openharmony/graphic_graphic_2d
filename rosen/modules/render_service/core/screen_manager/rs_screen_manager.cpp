@@ -2361,12 +2361,15 @@ bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId)
     return screensIt->second->GetDisplayPropertyForHardCursor();
 }
 
-void RSScreenManager::SetScreenSwitchStatus(bool flag)
+void RSScreenManager::SetScreenSwitchStatus(bool flag, ScreenId id)
 {
     isScreenSwitching_ = flag;
+    if (isScreenSwitching_) {
+        RSDisplayRenderNode::SetSwitchedScreenId(id);
+    }
 }
 
-bool RSScreenManager::GetScreenSwitchStatus()
+bool RSScreenManager::GetScreenSwitchStatus() const
 {
     return isScreenSwitching_;
 }

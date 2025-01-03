@@ -150,7 +150,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -2539,8 +2539,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             SetLayerTop(nodeIdStr, isTop);
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS) : {
-            NotifyScreenSwitched();
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
+            ScreenId id{INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyScreenSwitched(id);
             break;
         }
         default: {

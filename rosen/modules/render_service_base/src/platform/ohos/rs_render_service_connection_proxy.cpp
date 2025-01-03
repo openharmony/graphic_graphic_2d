@@ -3640,7 +3640,7 @@ int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel
     return Remote()->SendRequest(code, data, reply, option);
 }
 
-void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
+void RSRenderServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3649,8 +3649,12 @@ void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
         ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
         return;
     }
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("%{public}s: write Uint64 val err.", __func__);
+        return;
+    }
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCH_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("%{public}s: Send Request error.", __func__);

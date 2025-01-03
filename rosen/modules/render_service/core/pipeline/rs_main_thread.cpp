@@ -46,7 +46,6 @@
 
 #include "animation/rs_animation_fraction.h"
 #include "command/rs_animation_command.h"
-#include "command/rs_display_node_command.h"
 #include "command/rs_message_processor.h"
 #include "command/rs_node_command.h"
 #include "common/rs_background_thread.h"
@@ -645,13 +644,13 @@ void RSMainThread::Init()
 #endif
 
     RSDisplayRenderNode::SetReleaseTask(&impl::RSScreenManager::ReleaseScreenDmaBuffer);
-    DisplayNodeCommandHelper::SetScreenStatusNotifyTask([](bool status) {
+    RSDisplayRenderNode::SetScreenStatusNotifyTask([](bool status, uint64_t id) {
         sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
         if (screenManager == nullptr) {
             RS_LOGE("RSMainThread::Init screenManager is nullptr");
             return;
         }
-        screenManager->SetScreenSwitchStatus(status);
+        screenManager->SetScreenSwitchStatus(status, id);
     });
     auto delegate = RSFunctionalDelegate::Create();
     delegate->SetRepaintCallback([this]() {

@@ -51,11 +51,6 @@ public:
     static void AddDisplayNodeToTree(RSContext&, NodeId);
     static void RemoveDisplayNodeFromTree(RSContext&, NodeId);
     static void SetScbNodePid(RSContext&, NodeId, const std::vector<int32_t>& oldScbPids, int32_t currentScbPid);
-    using ScreenStatusNotifyTask = std::function<void(bool)>;
-    static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
-
-private:
-    static inline ScreenStatusNotifyTask screenStatusNotifyTask_;
 };
 
 ADD_COMMAND(RSDisplayNodeCreate,

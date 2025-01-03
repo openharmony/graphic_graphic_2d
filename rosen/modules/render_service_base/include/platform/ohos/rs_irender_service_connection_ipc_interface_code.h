@@ -154,7 +154,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     NOTIFY_REFRESH_RATE_EVENT = 1002,
     NOTIFY_DYNAMIC_MODE_EVENT = 1003,
     NOTIFY_SOFT_VSYNC_EVENT = 1004,
-    SET_SCREEN_SWITCH_STATUS, 
+    NOTIFY_SCREEN_SWITCHED,
 };
 } // namespace Rosen
 } // namespace OHOS

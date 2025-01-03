@@ -15,7 +15,6 @@
 
 #include "command/rs_display_node_command.h"
 
-#include "rs_trace.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
@@ -74,10 +73,7 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
         node->SetScreenId(screenId);
-        if (screenStatusNotifyTask_) {
-            RS_TRACE_NAME("set screenSwitchStatus false");
-            screenStatusNotifyTask_(false);
-        }
+        node->CheckTargetScreenSwitched(screenId);
     }
 }
 
@@ -144,11 +140,6 @@ void DisplayNodeCommandHelper::SetScbNodePid(RSContext& context, NodeId nodeId,
         ROSEN_LOGI("SetScbNodePid NodeId:[%{public}" PRIu64 "] currentPid:[%{public}d]", nodeId, currentScbPid);
         node->SetScbNodePid(oldScbPids, currentScbPid);
     }
-}
-
-void DisplayNodeCommandHelper::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
-{
-    screenStatusNotifyTask_ = task;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -250,9 +250,9 @@ public:
 
     virtual bool IsScreenPoweringOn() const = 0;
 
-    virtual void SetScreenSwitchStatus(bool flag) = 0;
+    virtual void SetScreenSwitchStatus(bool flag, ScreenId id) = 0;
 
-    virtual bool GetScreenSwitchStatus() = 0;
+    virtual bool GetScreenSwitchStatus() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -491,9 +491,9 @@ public:
         return isScreenPoweringOn_;
     }
 
-    void SetScreenSwitchStatus(bool flag) override;
+    void SetScreenSwitchStatus(bool flag, ScreenId id) override;
 
-    bool GetScreenSwitchStatus() override;
+    bool GetScreenSwitchStatus() const override;
 
 private:
     RSScreenManager();

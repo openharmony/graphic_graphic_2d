@@ -333,7 +333,7 @@ public:
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
-    void NotifyScreenSwitched();
+    void NotifyScreenSwitched(ScreenId id);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

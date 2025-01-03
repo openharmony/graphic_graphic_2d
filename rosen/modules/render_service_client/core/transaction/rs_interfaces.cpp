@@ -764,7 +764,8 @@ void RSInterfaces::DisableCacheForRotation()
 
 void RSInterfaces::SetScreenSwitching(bool flag)
 {
-    renderServiceClient_->NotifyScreenSwitched();
+    ScreenId id{INVALID_SCREEN_ID};
+    renderServiceClient_->NotifyScreenSwitched(id);
 }
 
 void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
@@ -883,9 +884,9 @@ void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
 }
 
-void RSInterfaces::NotifyScreenSwitched()
+void RSInterfaces::NotifyScreenSwitched(ScreenId id)
 {
-    renderServiceClient_->NotifyScreenSwitched();
+    renderServiceClient_->NotifyScreenSwitched(id);
 }
 } // namespace Rosen
 } // namespace OHOS

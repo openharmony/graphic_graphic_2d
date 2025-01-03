@@ -343,7 +343,7 @@ public:
 
     virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void NotifyScreenSwitched() = 0;
+    virtual void NotifyScreenSwitched(ScreenId id) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
