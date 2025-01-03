@@ -7113,7 +7113,7 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChild, TestSize.Level1)
  * @tc.name: AddCrossScreenChild
  * @tc.desc: test results of AddCrossScreenChild
  * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
+ * @tc.require: issueIBF3VR
  */
 HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
 {
@@ -7133,7 +7133,7 @@ HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
  * @tc.name: RemoveCrossScreenChild
  * @tc.desc: test results of RemoveCrossScreenChild
  * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
+ * @tc.require: issueIBF3VR
  */
 HWTEST_F(RSNodeTest, RemoveCrossScreenChild, TestSize.Level1)
 {
