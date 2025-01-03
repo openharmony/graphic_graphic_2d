@@ -110,14 +110,14 @@ void RSUniRenderProcessor::CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRende
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
-    auto preBuffer = surfaceHandler->GetPreBuffer();
+    auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
-        params, buffer, preBuffer, surfaceHandler->GetConsumer(), surfaceHandler->GetAcquireFence());
+        params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
 
-    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, surfaceHandler->GetBuffer(), surfaceHandler->GetConsumer());
+    uniComposerAdapter_->SetMetaDataInfoToLayer(layer, params.GetBuffer(), surfaceHandler->GetConsumer());
     CreateSolidColorLayer(layer, params);
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
