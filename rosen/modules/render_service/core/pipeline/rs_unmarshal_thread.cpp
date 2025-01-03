@@ -19,6 +19,7 @@
 #include "hisysevent.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
@@ -72,10 +73,22 @@ void RSUnmarshalThread::Start()
 #endif
 }
 
-void RSUnmarshalThread::PostTask(const std::function<void()>& task)
+void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (handler_) {
-        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        handler_->PostTask(
+            [task, taskName = name]() mutable {
+                auto handle = RSUnmarshalTaskManager::Instance().BeginTask(std::move(taskName));
+                std::invoke(task);
+                RSUnmarshalTaskManager::Instance().EndTask(handle);
+            }, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSUnmarshalThread::RemoveTask(const std::string& name)
+{
+    if (handler_) {
+        handler_->RemoveTask(name);
     }
 }
 
@@ -133,7 +146,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (RSSystemProperties::GetUnmarshParallelFlag()) {
             handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
         } else {
-            PostTask(task);
+            PostTask(task, std::to_string(callingPid));
         }
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true

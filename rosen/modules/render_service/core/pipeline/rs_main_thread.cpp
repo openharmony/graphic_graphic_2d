@@ -75,6 +75,7 @@
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
+#include "pipeline/rs_unmarshal_task_manager.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #ifdef RS_ENABLE_VK
 #include "pipeline/rs_vk_pipeline_config.h"
@@ -171,6 +172,7 @@ constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
 constexpr uint32_t WAIT_FOR_RELEASED_BUFFER_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 constexpr uint32_t WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT = 1000;
+constexpr uint32_t WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT = 4000;
 constexpr uint32_t WATCHDOG_TIMEVAL = 5000;
 constexpr uint32_t WATCHDOG_TIMEVAL_FOR_PC = 10000;
 constexpr uint32_t HARDWARE_THREAD_TASK_NUM = 2;
@@ -1852,7 +1854,19 @@ void RSMainThread::WaitUntilUnmarshallingTaskFinished()
         MergeToEffectiveTransactionDataMap(cachedTransactionData);
     } else {
         std::unique_lock<std::mutex> lock(unmarshalMutex_);
-        unmarshalTaskCond_.wait(lock, [this]() { return unmarshalFinishedCount_ > 0; });
+        if (!unmarshalTaskCond_.wait_for(lock, std::chrono::milliseconds(WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT),
+            [this]() { return unmarshalFinishedCount_ > 0; })) {
+            if (auto task = RSUnmarshalTaskManager::Instance().GetLongestTask()) {
+                RSUnmarshalThread::Instance().RemoveTask(task.value().name);
+                RS_LOGI("RSMainThread::WaitUntilUnmarshallingTaskFinished"
+                    "the wait time exceeds %{public}d ms, remove task %{public}s",
+                    WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
+                RS_TRACE_NAME_FMT("RSMainThread::WaitUntilUnmarshallingTaskFinished"
+                    "the wait time exceeds %d ms, remove task %s",
+                    WAIT_FOR_UNMARSHAL_THREAD_TASK_TIMEOUT, task.value().name.c_str());
+            }
+        }
+        RSUnmarshalTaskManager::Instance().Clear();
         --unmarshalFinishedCount_;
     }
     RS_OPTIONAL_TRACE_END();
