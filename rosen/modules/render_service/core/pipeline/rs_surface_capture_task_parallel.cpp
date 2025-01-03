@@ -213,7 +213,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
         canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
-        canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetRight());
+        canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetTop());
     }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
@@ -330,9 +330,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
-    if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
-        pixmapWidth = ceil(rect.GetWidth());
-        pixmapHeight = ceil(rect.GetHeight());
+    float rectWidth = rect.GetWidth();
+    float rectHeight = rect.GetHeight();
+    if (rectWidth > 0 && rectHeight > 0 && rectWidth <= pixmapWidth && rectHeight <= pixmapHeight) {
+        pixmapWidth = floor(pixmapWidth);
+        pixmapHeight = floor(rectHeight);
     }
 
     Media::InitializationOptions opts;
