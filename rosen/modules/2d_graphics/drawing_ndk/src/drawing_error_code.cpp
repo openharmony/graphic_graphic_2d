@@ -21,3 +21,8 @@ OH_Drawing_ErrorCode OH_Drawing_ErrorCodeGet()
 {
     return g_drawingErrorCode;
 }
+
+void OH_Drawing_ErrorCodeReset(void)
+{
+    g_drawingErrorCode = OH_DRAWING_SUCCESS;
+}
