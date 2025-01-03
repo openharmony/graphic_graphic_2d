@@ -105,7 +105,7 @@ napi_value JsShadowLayer::Create(napi_env env, napi_callback_info info)
     GET_DOUBLE_PARAM(ARGC_TWO, dy);
     
     ColorQuad color;
-    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_ZERO], color)) {
+    if (!ConvertFromAdaptHexJsColor(env, argv[ARGC_THREE], color)) {
         ROSEN_LOGE("JsShadowLayer::Create Argv[0] is invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "Parameter verification failed. The range of color channels must be [0, 255].");
