@@ -240,6 +240,11 @@ public:
 #endif
 
     bool IsHardwareEnabledTopSurface() const;
+
+    inline bool CheckCacheSurface()
+    {
+        return cacheSurface_ ? true : false;
+    }
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     void CacheImgForCapture(RSPaintFilterCanvas& canvas, RSDisplayRenderNodeDrawable& curDisplayNode);
