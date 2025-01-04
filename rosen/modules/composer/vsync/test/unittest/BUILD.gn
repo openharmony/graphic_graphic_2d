@@ -24,6 +24,7 @@ group("unittest") {
     ":vsync_controller_test",
     ":vsync_distributor_test",
     ":vsync_generator_test",
+    ":vsync_present_fence_test",
     ":vsync_receiver_test",
     ":vsync_sampler_test",
   ]
@@ -122,6 +123,17 @@ ohos_unittest("native_vsync_test") {
 }
 
 ## UnitTest vsync_connection_test }}}
+
+## UnitTest vsync_present_fence_test {{{
+ohos_unittest("vsync_present_fence_test") {
+  module_out_path = module_out_path
+
+  sources = [ "vsync_present_fence_test.cpp" ]
+
+  deps = [ ":vsync_test_common" ]
+}
+
+## UnitTest vsync_present_fence_test }}}
 
 ## Build vsync_test_common.a {{{
 config("vsync_test_common_public_config") {
