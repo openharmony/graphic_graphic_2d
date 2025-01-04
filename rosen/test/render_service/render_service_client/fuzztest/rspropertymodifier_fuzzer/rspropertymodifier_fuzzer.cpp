@@ -571,6 +571,12 @@ bool DoModifier011(const uint8_t* data, size_t size)
     // test
     float value = GetData<float>();
     auto property = std::make_shared<RSAnimatableProperty<float>>(value);
+    auto attractionFractionModifier = std::make_shared<RSAttractionFractionModifier>(property);
+    attractionFractionModifier->GetModifierType();
+    attractionFractionModifier->CreateRenderModifier();
+    auto attractionDstPointModifier = std::make_shared<RSAttractionDstPointModifier>(property);
+    attractionDstPointModifier->GetModifierType();
+    attractionDstPointModifier->CreateRenderModifier();
     auto customClipToFramemodifier = std::make_shared<RSCustomClipToFrameModifier>(property);
     customClipToFramemodifier->GetModifierType();
     customClipToFramemodifier->CreateRenderModifier();

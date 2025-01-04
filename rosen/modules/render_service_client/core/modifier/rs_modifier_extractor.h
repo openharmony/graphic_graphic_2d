@@ -99,7 +99,10 @@ public:
     float GetSpherizeDegree() const;
     float GetLightUpEffectDegree() const;
     float GetDynamicDimDegree() const;
-    
+
+    float GetAttractionFractionValue() const;
+    Vector2f GetAttractionDstPointValue() const;
+
     float GetBackgroundBlurRadius() const;
     float GetBackgroundBlurSaturation() const;
     float GetBackgroundBlurBrightness() const;

@@ -2205,6 +2205,27 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyBySurfaceChanged() const
     }
 }
 
+void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttractionChanged(RSSurfaceRenderNode& surfaceNode) const
+{
+    if (surfaceNode.GetRenderProperties().IsAttractionValid()) {
+        auto attractionDirtyRect = surfaceNode.GetRenderProperties().GetAttractionEffectCurrentDirtyRegion();
+        RS_LOGD("CheckMergeDisplayDirtyByAttraction global merge attraction %{public}s: global dirty %{public}s,"
+            "add rect %{public}s", surfaceNode.GetName().c_str(),
+            curDisplayNode_->GetDirtyManager()->GetCurrentFrameDirtyRegion().ToString().c_str(),
+            attractionDirtyRect.ToString().c_str());
+        auto boundsGeometry = curDisplayNode_->GetRenderProperties().GetBoundsGeometry();
+        if (boundsGeometry) {
+            Drawing::Rect rect(attractionDirtyRect.GetLeft(), attractionDirtyRect.GetTop(),
+                attractionDirtyRect.GetRight(), attractionDirtyRect.GetBottom());
+            Drawing::Rect tempRect;
+            boundsGeometry->GetMatrix().MapRect(tempRect, rect);
+            attractionDirtyRect =
+                RectI(tempRect.GetLeft(), tempRect.GetTop(), tempRect.GetWidth(), tempRect.GetHeight());
+        }
+        curDisplayNode_->GetDirtyManager()->MergeDirtyRect(attractionDirtyRect);
+    }
+}
+
 void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
 {
     if (surfaceNode->GetDirtyManager() == nullptr || curDisplayNode_->GetDirtyManager() == nullptr) {
@@ -2220,6 +2241,8 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
     CheckMergeDisplayDirtyByShadowChanged(*surfaceNode);
     // 5 handle last and curframe surfaces which appear or disappear case
     CheckMergeDisplayDirtyBySurfaceChanged();
+    // 6 handle attraction effect which appear or disappear case
+    CheckMergeDisplayDirtyByAttractionChanged(*surfaceNode);
     // More: any other display dirty caused by surfaceNode should be added here like CheckMergeDisplayDirtByXXX
 }
 
