@@ -747,6 +747,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasProtectedLayer() ||
         hasHdrPresent_ || hasHidePrivacyContent) && DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
         surfaceParams.SetHardwareEnabled(hwcEnable);
+        if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+            RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
+        }
         return;
     }
     surfaceParams.SetHardwareEnabled(hwcEnable);
