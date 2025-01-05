@@ -346,7 +346,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     if (imageClipIBounds.IsEmpty()) {
         return;
     }
-    auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
+    auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds, false);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter image null");
         return;
@@ -599,7 +599,7 @@ void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const floa
     }
 
     auto clipBounds = canvas->GetDeviceClipBounds();
-    auto image = surface->GetImageSnapshot(clipBounds);
+    auto image = surface->GetImageSnapshot(clipBounds, false);
     if (image == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawDynamicDim image is null");
         return;
