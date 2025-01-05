@@ -196,9 +196,10 @@ void RSCanvasRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
             RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::ENV_FOREGROUND_COLOR, canvas);
         // Just need to skip RSPropertyDrawableSlot::SHADOW
         DrawPropertyDrawableRange(
-            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+            RSPropertyDrawableSlot::FOREGROUND_FILTER, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
     } else {
-        DrawPropertyDrawableRange(RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CLIP_TO_FRAME, canvas);
+        DrawPropertyDrawableRange(
+            RSPropertyDrawableSlot::SAVE_ALL, RSPropertyDrawableSlot::CUSTOM_CLIP_TO_FRAME, canvas);
     }
 }
 
