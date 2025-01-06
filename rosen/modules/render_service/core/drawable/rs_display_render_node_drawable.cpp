@@ -656,6 +656,7 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             }
             uniParam->SetOpDropped(isOpDropped);
         }
+        DrawCurtainScreen();
         processor->PostProcess();
         SetDrawSkipType(DrawSkipType::MIRROR_DRAWABLE_SKIP);
         return;
@@ -876,9 +877,10 @@ void RSDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(int32_t bufferage, b
 int32_t RSDisplayRenderNodeDrawable::GetSpecialLayerType(RSDisplayRenderParams& params)
 {
     auto& uniRenderThread = RSUniRenderThread::Instance();
-    auto hasGeneralSpecialLayer = params.HasSecurityLayer() || params.HasSkipLayer() || params.HasProtectedLayer() ||
-        uniRenderThread.IsCurtainScreenOn() || params.GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
+    auto hasGeneralSpecialLayer = params.HasSecurityLayer() || params.HasSkipLayer() ||
+        params.HasProtectedLayer() || params.GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
     if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        hasGeneralSpecialLayer |= uniRenderThread.IsCurtainScreenOn();
         return hasGeneralSpecialLayer ? HAS_SPECIAL_LAYER :
             (params.HasCaptureWindow() ? CAPTURE_WINDOW : NO_SPECIAL_LAYER);
     }
