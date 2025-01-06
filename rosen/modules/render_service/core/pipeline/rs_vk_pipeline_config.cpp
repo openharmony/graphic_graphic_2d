@@ -790,11 +790,11 @@ bool VkGraphicsPipelineCreateInfoModel::ReadXmlNode(const xmlNodePtr& createInfo
     }
     auto vsModulePtr = XMLReader::FindChildNodeByPropName(vertexShaderPtr, std::string("module"));
     auto vsResourceIdStr = XMLReader::ReadNodeValue(vsModulePtr);
-    vertexShaderFilePath = std::string(PATH_CONFIG_DIR) + vsResourceIdStr + "vs.spv";
+    vertexShaderFilePath = XMLReader::GetConfigPath(std::string(PATH_CONFIG_DIR) + vsResourceIdStr + "vs.spv");
     auto fragShaderPtr = vertexShaderPtr->next;
     auto fsModulePtr = XMLReader::FindChildNodeByPropName(fragShaderPtr, std::string("module"));
     auto fsResourceIdStr = XMLReader::ReadNodeValue(fsModulePtr);
-    fragShaderFilePath = std::string(PATH_CONFIG_DIR) + fsResourceIdStr + "fs.spv";
+    fragShaderFilePath = XMLReader::GetConfigPath(std::string(PATH_CONFIG_DIR) + fsResourceIdStr + "fs.spv");
 
     auto layoutPtr = XMLReader::FindChildNodeByPropName(createInfoNodePtr, std::string("layout"));
     if (layoutPtr == nullptr) {
