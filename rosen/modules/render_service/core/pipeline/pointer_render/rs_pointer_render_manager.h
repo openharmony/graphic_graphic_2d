@@ -43,6 +43,10 @@ public:
     void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
     void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
     void SetPointerColorInversionEnabled(bool enable);
+    bool GetPointerColorInversionEnabled()
+    {
+        return isEnableCursorInversion_;
+    }
     void RegisterPointerLuminanceChangeCallback(pid_t pid, sptr<RSIPointerLuminanceChangeCallback> callback);
     void UnRegisterPointerLuminanceChangeCallback(pid_t pid);
     void SetCacheImgForPointer(std::shared_ptr<Drawing::Image> cacheImgForPointer)
