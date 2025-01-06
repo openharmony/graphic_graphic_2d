@@ -102,6 +102,9 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
             params.GetShadowRect().GetHeight(), HasFilterOrEffect());
     }
 
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::GenerateCacheCondition drawingCacheType:%{public}d"
+        " RSFreezeFlag:%{public}d OpincGetCachedMark:%{public}d", params.GetDrawingCacheType(),
+        params.GetRSFreezeFlag(), OpincGetCachedMark());
     if (params.GetRSFreezeFlag()) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasRenderNodeDrawable::GenerateCacheIfNeed id:%llu"
                                    " GetRSFreezeFlag:%d hasFilter:%d",
@@ -136,6 +139,8 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     bool needUpdateCache = CheckIfNeedUpdateCache(params, updateTimes);
     if (needUpdateCache && params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE &&
         updateTimes >= DRAWING_CACHE_MAX_UPDATE_TIME) {
+        RS_LOGD("RSRenderNodeDrawable::GenerateCacheCondition updateTimes:%{public}d needUpdateCache:%{public}d",
+            updateTimes, needUpdateCache);
         RS_TRACE_NAME_FMT("DisableCache by update time > 3, id:%llu", params.GetId());
         params.SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         ClearCachedSurface();
@@ -144,6 +149,9 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
     params.SetDrawingCacheChanged(false, true);
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
+        hasFilter, GetDrawingCacheType());
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
@@ -255,6 +263,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         }
         CollectInfoForNodeWithoutFilter(canvas);
     }
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}d", GetCacheType());
     switch (GetCacheType()) {
         case DrawableCacheType::NONE: {
             DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
