@@ -2539,8 +2539,7 @@ void RSRenderNode::UpdateDrawableVecV2()
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
     RS_LOGI_IF(DEBUG_NODE,
-        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d dirtySlots:%{public}d",
-        drawableChanged, dirtySlots);
+        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
