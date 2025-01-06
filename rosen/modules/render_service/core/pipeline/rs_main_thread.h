@@ -768,6 +768,9 @@ private:
 
     bool isForceRefresh_ = false;
 
+    // record multidisplay status change
+    bool isMultiDisplayPre_ = false;
+    
     // render start hardware task count
     uint32_t preUnExecuteTaskNum_ = 0;
     int64_t preIdealPeriod_ = 0;
