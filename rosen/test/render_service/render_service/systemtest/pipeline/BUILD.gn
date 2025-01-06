@@ -179,6 +179,7 @@ ohos_static_library("rs_test_common") {
   public_external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
   ]
