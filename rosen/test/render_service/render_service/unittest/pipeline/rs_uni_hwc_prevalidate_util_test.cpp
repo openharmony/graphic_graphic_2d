@@ -75,6 +75,27 @@ HWTEST_F(RSUniPrevalidateUtilTest, CreateDisplayNodeLayerInfo002, TestSize.Level
 }
 
 /**
+ * @tc.name: ClearCldInfo
+ * @tc.desc: Test ClearCldInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIBA4NP
+ */
+HWTEST_F(RSUniPrevalidateUtilTest, ClearCldInfo001, TestSize.Level2)
+{
+    NodeId id = 1;
+    auto node = std::make_shared<RSRcdSurfaceRenderNode>(id, RCDSurfaceType::BOTTOM);
+    ASSERT_NE(node, nullptr);
+
+    RequestLayerInfo info;
+    RSUniHwcPrevalidateUtil::GetInstance().CopyCldInfo(node->GetCldInfo(), info);
+
+    std::vector<RequestLayerInfo> infos;
+    infos.push_back(info);
+    RSUniHwcPrevalidateUtil::GetInstance().ClearCldInfo(infos);
+    ASSERT_EQ(infos[0].cldInfo, nullptr);
+}
+
+/**
  * @tc.name: CreateRCDLayerInfo001
  * @tc.desc: CreateRCDLayerInfo, input nullptr
  * @tc.type: FUNC
