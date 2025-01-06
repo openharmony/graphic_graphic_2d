@@ -1375,6 +1375,26 @@ void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSe
     }
 #endif
 }
+
+void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
+{
+#ifdef RS_ENABLE_GPU
+    if (!surfaceHandler_) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%d", preBuffer->GetSeqNum());
+    }
+    surfaceParams->SetPreBuffer(nullptr);
+    AddToPendingSyncList();
+#endif
+}
+
 #endif
 
 #ifndef ROSEN_CROSS_PLATFORM

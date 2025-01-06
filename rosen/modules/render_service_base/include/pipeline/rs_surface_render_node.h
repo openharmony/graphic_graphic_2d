@@ -605,6 +605,8 @@ public:
 
     void NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet);
 
+    void NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet);
+
     const RectI& GetSrcRect() const
     {
         return srcRect_;
