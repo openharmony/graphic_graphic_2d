@@ -1435,29 +1435,52 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         if (!image || image->GetWidth() == 0 || image->GetHeight() == 0) {
             return;
         }
+
+        auto waterMark = RSUniRenderThread::Instance().GetWatermarkImg();
+        if (image == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed image is null");
+        return;
+        }
+
         auto screenInfo = screenManager->QueryScreenInfo(params->GetScreenId());
         auto screenWidth = static_cast<float>(screenInfo.width);
         auto screenHeight = static_cast<float>(screenInfo.height);
 
-        // in certain cases (such as fold screen), the width and height must be swapped to fix the screen rotation.
-        int angle = RSUniRenderUtil::GetRotationFromMatrix(curCanvas_->GetTotalMatrix());
-        if (angle == RS_ROTATION_90 || angle == RS_ROTATION_270) {
-            std::swap(screenWidth, screenHeight);
-        }
+        auto totalMatrix = curCanvas_->GetTotalMatrix();
+        Drawing::Matrix inverseTotalMatrix;
+        totalMatrix.Invert(inverseTotalMatrix);
+        curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
+
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, screenWidth, screenHeight);
+
+        float imageScaleWidth = screenWidth / static_cast<float>(image->GetWidth());
+        float imageScaleHeight = screenHeight / static_cast<float>(image->GetHeight());
+        auto imageWidth = image->GetWidth() * imageScaleHeight;
+        auto imageHeight = image->GetHeight() * imageScaleWidth;
+        if (imageScaleWidth > imageScaleHeight) {
+            dstRect = Drawing::Rect((screenWidth - imageWidth) / 2, 0, (screenWidth + imageWidth) / 2, screenHeight);
+        }
+
+        if (imageScaleWidth < imageScaleHeight) {
+            dstRect = Drawing::Rect(0, (screenHeight - imageHeight) / 2, screenWidth, (screenHeight + imageHeight) / 2);
+        }
+
+        curCanvas_ConcatMatrix(inverseTotalMatrix);
 
         Drawing::Brush brush;
         curCanvas_->AttachBrush(brush);
         curCanvas_->DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        curCanvas_->DrawImageRect(*waterMark, srcRect, dstRect, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         curCanvas_->DetachBrush();
-        DrawWatermarkIfNeed(*params, *curCanvas_);
 
         processor.PostProcess();
         RS_LOGI("RSDisplayRenderNodeDrawable::SetSecurityMask, this interface is invoked"
             "when the security layer is used and mask resources are set.");
         curCanvas_->SetDisableFilterCache(false);
+        curCanvas_ConcatMatrix(totalMatrix);
     }
 }
 
