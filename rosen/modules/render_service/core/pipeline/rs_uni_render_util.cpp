@@ -56,33 +56,6 @@ namespace {
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 }
-void RSUniRenderUtil::MergeDirtyHistory(std::shared_ptr<RSDisplayRenderNode>& node, int32_t bufferAge,
-    bool useAlignedDirtyRegion)
-{
-    auto& curAllSurfaces = node->GetCurAllSurfaces();
-    // update all child surfacenode history
-    for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-        auto surfaceNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-        if (surfaceNode == nullptr || !surfaceNode->IsAppWindow()) {
-            continue;
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderUtil::MergeDirtyHistory for surfaceNode %" PRIu64"",
-            surfaceNode->GetId());
-        auto surfaceDirtyManager = surfaceNode->GetDirtyManager();
-        if (UNLIKELY(!surfaceDirtyManager)) {
-            continue;
-        }
-        if (!surfaceDirtyManager->SetBufferAge(bufferAge)) {
-            ROSEN_LOGE("RSUniRenderUtil::MergeDirtyHistory with invalid buffer age %{public}d", bufferAge);
-        }
-        surfaceDirtyManager->IntersectDirtyRect(surfaceNode->GetOldDirtyInSurface());
-        surfaceDirtyManager->UpdateDirty(useAlignedDirtyRegion);
-    }
-
-    // update display dirtymanager
-    node->UpdateDisplayDirtyManager(bufferAge, useAlignedDirtyRegion);
-}
-
 void RSUniRenderUtil::MergeDirtyHistoryForDrawable(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable,
     int32_t bufferAge, RSDisplayRenderParams& params, bool useAlignedDirtyRegion)
 {
@@ -1321,7 +1294,10 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
     auto transformType = RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(
         node.GetRSSurfaceHandler()->GetConsumer(), node.GetRSSurfaceHandler()->GetBuffer()));
     int extraRotation = 0;
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
+    auto surfaceParams = node.GetStagingRenderParams() == nullptr
+                             ? nullptr
+                             : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
     int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
         node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
     extraRotation = degree - rotationDegree;
@@ -1536,7 +1512,7 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
     auto surfaceParams = node.GetStagingRenderParams() == nullptr
                              ? nullptr
                              : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
-    int32_t rotationDegree = RSBaseRenderUtil::GetDeviceRotation(surfaceParams);
+    int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
     int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
         RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;

@@ -259,6 +259,7 @@ HWTEST_F(RSBlurFilterTest, GetDetailedDescriptionTest, TestSize.Level1)
     float blurRadiusX = 27.0f;
     float blurRadiusY = 26.0f;
     auto blurFilter = std::make_shared<RSBlurFilter>(blurRadiusX, blurRadiusY);
+    ASSERT_NE(blurFilter, nullptr);
     blurFilter->GetDetailedDescription();
 
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
@@ -323,6 +324,7 @@ HWTEST_F(RSBlurFilterTest, DrawImageRect, TestSize.Level1)
     Drawing::Rect src;
     Drawing::Rect dst;
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
+    ASSERT_NE(image, nullptr);
     rsBlurFilter.DrawImageRect(canvas, image, src, dst);
     std::optional<Vector2f> greyCoef({ 1.f, 1.f });
     rsBlurFilter.SetGreyCoef(greyCoef);

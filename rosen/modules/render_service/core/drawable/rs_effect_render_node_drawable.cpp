@@ -55,7 +55,7 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
     }
-    const Drawing::Rect& bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
+    const Drawing::Rect& bounds = effectParams->GetFrameRect();
 
     if (!GenerateEffectDataOnDemand(effectParams, canvas, bounds, paintFilterCanvas)) {
         SetDrawSkipType(DrawSkipType::GENERATE_EFFECT_DATA_ON_DEMAND_FAIL);
@@ -113,9 +113,10 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         RSRenderNodeDrawableAdapter::DrawImpl(*offscreenCanvas, bounds, drawCmdIndex_.backgroundImageIndex_);
         RSRenderNodeDrawableAdapter::DrawImpl(*offscreenCanvas, bounds, drawCmdIndex_.backgroundFilterIndex_);
         // copy effect data from offscreen canvas to current canvas, aligned with current rect
-        auto effectData = offscreenCanvas->GetEffectData();
-        effectData->cachedRect_.Offset(currentRect.GetLeft(), currentRect.GetTop());
-        paintFilterCanvas->SetEffectData(effectData);
+        if (auto effectData = offscreenCanvas->GetEffectData()) {
+            effectData->cachedRect_.Offset(currentRect.GetLeft(), currentRect.GetTop());
+            paintFilterCanvas->SetEffectData(effectData);
+        }
     }
     return true;
 }

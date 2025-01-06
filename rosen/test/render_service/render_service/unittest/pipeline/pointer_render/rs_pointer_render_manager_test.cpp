@@ -95,6 +95,7 @@ HWTEST_F(RSPointerRenderManagerTest, ColorPickerWithImage, TestSize.Level1)
     RSPointerRenderManager::GetInstance().SetCacheImgForPointer(surface->GetImageSnapshot());
     RSPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor, paintFilterCanvas.GetGPUContext());
     RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+    ASSERT_EQ(RSPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), false);
 }
 
 /**
@@ -139,5 +140,6 @@ HWTEST_F(RSPointerRenderManagerTest, ColorPickerWithoutImage, TestSize.Level1)
     RSPointerRenderManager::GetInstance().SetCacheImgForPointer(surface->GetImageSnapshot());
     RSPointerRenderManager::GetInstance().ProcessColorPicker(rsUniRenderProcessor, paintFilterCanvas.GetGPUContext());
     RSPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
+    ASSERT_EQ(RSPointerRenderManager::GetInstance().GetPointerColorInversionEnabled(), false);
 }
 } // namespace OHOS::Rosen

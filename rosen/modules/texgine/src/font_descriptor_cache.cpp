@@ -162,7 +162,7 @@ bool FontDescriptorCache::ProcessSystemFontType(const int32_t& systemFontType, i
         return false;
     }
     fontType = systemFontType;
-    if (systemFontType & TextEngine::FontParser::SystemFontType::ALL) {
+    if (static_cast<uint32_t>(systemFontType) & TextEngine::FontParser::SystemFontType::ALL) {
         fontType = TextEngine::FontParser::SystemFontType::GENERIC |
             TextEngine::FontParser::SystemFontType::STYLISH |
             TextEngine::FontParser::SystemFontType::INSTALLED;
@@ -183,17 +183,17 @@ void FontDescriptorCache::GetSystemFontFullNamesByType(
         return;
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::GENERIC) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::GENERIC) {
         auto fullNameList = GetGenericFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::STYLISH) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::STYLISH) {
         auto fullNameList = GetStylishFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
 
-    if (fontType & TextEngine::FontParser::SystemFontType::INSTALLED) {
+    if (static_cast<uint32_t>(fontType) & TextEngine::FontParser::SystemFontType::INSTALLED) {
         auto fullNameList = GetInstallFontList();
         fontList.insert(fullNameList.begin(), fullNameList.end());
     }
@@ -320,11 +320,13 @@ int32_t FontDescriptorCache::WeightAlignment(int32_t weight)
         constexpr int kWeightDiffThreshold = Drawing::FontStyle::EXTRA_BLACK_WEIGHT / 2;
         if ((weight == Drawing::FontStyle::NORMAL_WEIGHT && item == Drawing::FontStyle::MEDIUM_WEIGHT) ||
             (weight == Drawing::FontStyle::MEDIUM_WEIGHT && item == Drawing::FontStyle::NORMAL_WEIGHT)) {
-            weightDiff = SPECIAL_WEIGHT_DIFF;
+            weightDiff = static_cast<uint32_t>(SPECIAL_WEIGHT_DIFF);
         } else if (weight <= Drawing::FontStyle::NORMAL_WEIGHT) {
-            weightDiff = (item <= weight) ? (weight - item) : (item - weight + kWeightDiffThreshold);
+            weightDiff = (item <= weight) ? static_cast<uint32_t>(weight - item) :
+                static_cast<uint32_t>(item - weight + kWeightDiffThreshold);
         } else if (weight > Drawing::FontStyle::NORMAL_WEIGHT) {
-            weightDiff = (item >= weight) ? (item - weight) : (weight - item + kWeightDiffThreshold);
+            weightDiff = (item >= weight) ? static_cast<uint32_t>(item - weight) :
+                static_cast<uint32_t>(weight - item + kWeightDiffThreshold);
         }
 
         // Retain the font weight with the smallest difference

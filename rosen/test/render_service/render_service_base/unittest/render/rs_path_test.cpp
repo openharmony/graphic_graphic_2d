@@ -118,6 +118,7 @@ HWTEST_F(RSPathTest, SetSkiaPathTest, TestSize.Level1)
     RSPath rsPath;
     rsPath.SetDrawingPath(path);
     rsPath.SetDrawingPath(path);
+    EXPECT_NE(&rsPath, nullptr);
 }
 
 /**

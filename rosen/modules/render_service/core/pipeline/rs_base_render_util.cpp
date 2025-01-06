@@ -27,6 +27,7 @@
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
 #include "draw/clip.h"
+#include "drawable/rs_display_render_node_drawable.h"
 #include "effect/color_filter.h"
 #include "effect/color_matrix.h"
 #include "include/utils/SkCamera.h"
@@ -1250,18 +1251,63 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
-int32_t RSBaseRenderUtil::GetDeviceRotation(RSSurfaceRenderParams* nodeParams)
+ScreenId RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams)
 {
-    int32_t rotationDegree = static_cast<int32_t>(RSSystemProperties::GetDefaultDeviceRotationOffset());
+    ScreenId screenId = 0;
+    if (gettid() == getpid()) { // Check whether the thread is in the MainThread.
+        std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+        auto displayLock = nodeParams->GetAncestorDisplayNode().lock();
+        if (displayLock != nullptr) {
+            ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+        }
+        if (ancestor == nullptr) {
+            return screenId;
+        }
+        screenId = ancestor->GetScreenId();
+    } else {
+        auto ancestorDrawable = nodeParams->GetAncestorDisplayDrawable().lock();
+        if (ancestorDrawable == nullptr) {
+            return screenId;
+        }
+        auto ancestorDisplayDrawable =
+            std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(ancestorDrawable);
+        if (ancestorDisplayDrawable == nullptr) {
+            return screenId;
+        }
+        auto& ancestorParam = ancestorDisplayDrawable->GetRenderParams();
+        if (ancestorParam == nullptr) {
+            return screenId;
+        }
+        auto renderParams = static_cast<RSDisplayRenderParams*>(ancestorParam.get());
+        if (renderParams == nullptr) {
+            return screenId;
+        }
+        screenId = renderParams->GetScreenId();
+    }
+    return screenId;
+}
+
+int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams)
+{
+    int32_t rotationDegree = 0;
     if (nodeParams == nullptr) {
         return rotationDegree;
     }
-    static bool isCameraRotationCompensation =
-        system::GetBoolParameter("const.multimedia.enable_camera_rotation_compensation", 0);
+
+    bool isCameraRotationCompensation = RSSystemParameters::GetMultimediaEnableCameraRotationCompensation();
     uint32_t apiCompatibleVersion = nodeParams->GetApiCompatibleVersion();
     if (isCameraRotationCompensation && apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION &&
         apiCompatibleVersion < API14) {
-        rotationDegree = 0;
+        return rotationDegree;
+    }
+
+    ScreenId screenId = GetScreenIdFromSurfaceRenderParams(nodeParams);
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager) {
+        rotationDegree =
+            static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(screenManager->GetScreenCorrection(screenId)));
+    } else {
+        RS_LOGE("RSBaseRenderUtil::GetScreenRotationOffset: screenManager is nullptr");
     }
     return rotationDegree;
 }
@@ -1273,7 +1319,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     auto rotationTransform = GetRotateTransform(transform);
     int extraRotation = 0;
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
-        int32_t rotationDegree = GetDeviceRotation(nodeParams);
+        int32_t rotationDegree = GetScreenRotationOffset(nodeParams);
         int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
         extraRotation = degree - rotationDegree;
     }

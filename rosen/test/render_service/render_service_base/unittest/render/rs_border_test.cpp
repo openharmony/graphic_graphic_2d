@@ -79,6 +79,7 @@ HWTEST_F(RSBorderTest, LifeCycle002, TestSize.Level1)
     Color color4(4, 4, 4);
     Vector4<Color> vectorColor(color1, color2, color3, color4);
     std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    ASSERT_NE(border, nullptr);
     border->GetColorFour();
     border->SetColorFour(vectorColor);
     border->GetColorFour();
@@ -622,7 +623,7 @@ HWTEST_F(RSBorderTest, GetDashGapTest, TestSize.Level1)
 HWTEST_F(RSBorderTest, DrawBordersTest001, TestSize.Level1)
 {
     auto border = std::make_shared<RSBorder>(false);
-
+    ASSERT_NE(border, nullptr);
     // set test para
     RectF rect(-65.0f, -97.5f, 821.0f, 747.5f);
     Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
@@ -685,7 +686,7 @@ HWTEST_F(RSBorderTest, DrawBordersTest001, TestSize.Level1)
 HWTEST_F(RSBorderTest, DrawBordersTest002, TestSize.Level1)
 {
     auto border = std::make_shared<RSBorder>(false);
-
+    ASSERT_NE(border, nullptr);
     // set test para
     RectF rect(-65.0f, -97.5f, 821.0f, 747.5f);
     Vector4f width(60.0f, 61.0f, 62.0f, 63.0f);
