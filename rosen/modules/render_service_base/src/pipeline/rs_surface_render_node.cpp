@@ -1358,23 +1358,21 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, co
 #endif
 }
 
-void RSSurfaceRenderNode::NeedClearBufferCache()
+void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet)
 {
 #ifdef RS_ENABLE_GPU
     if (!surfaceHandler_) {
         return;
     }
 
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    std::set<int32_t> bufferCacheSet;
     if (auto buffer = surfaceHandler_->GetBuffer()) {
         bufferCacheSet.insert(buffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache bufferSeqNum:%d", buffer->GetSeqNum());
     }
     if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
         bufferCacheSet.insert(preBuffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearBufferCache preBufferSeqNum:%d", preBuffer->GetSeqNum());
     }
-    surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
-    AddToPendingSyncList();
 #endif
 }
 #endif

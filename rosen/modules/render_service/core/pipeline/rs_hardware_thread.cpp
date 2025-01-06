@@ -155,6 +155,16 @@ uint32_t RSHardwareThread::GetunExecuteTaskNum()
     return unExecuteTaskNum_.load();
 }
 
+void RSHardwareThread::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+{
+    std::weak_ptr<RSBaseRenderEngine> uniRenderEngine = uniRenderEngine_;
+    PostTask([uniRenderEngine, bufferIds]() {
+        if (auto engine = uniRenderEngine.lock()) {
+            engine->ClearCacheSet(bufferIds);
+        }
+    });
+}
+
 void RSHardwareThread::RefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {

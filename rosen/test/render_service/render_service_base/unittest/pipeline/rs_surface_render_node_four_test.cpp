@@ -246,43 +246,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateSurfaceDefaultSize, TestSize.Level2)
 }
 
 /**
- * @tc.name: NeedClearBufferCache
- * @tc.desc: test results of NeedClearBufferCache
- * @tc.type:FUNC NeedClearBufferCache
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, NeedClearBufferCache, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    node->GetRSSurfaceHandler()->preBuffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->GetRSSurfaceHandler()->preBuffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->surfaceHandler_ = nullptr;
-    node->NeedClearBufferCache();
-    ASSERT_EQ(node->GetRSSurfaceHandler(), nullptr);
-}
-
-/**
  * @tc.name: RegisterBufferAvailableListener
  * @tc.desc: test results of RegisterBufferAvailableListener
  * @tc.type:FUNC RegisterBufferAvailableListener

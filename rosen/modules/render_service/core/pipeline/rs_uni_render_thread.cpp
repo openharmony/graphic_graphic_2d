@@ -768,6 +768,21 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
+void RSUniRenderThread::ClearGPUCompositionCache()
+{
+    if (!uniRenderEngine_) {
+        return;
+    }
+    auto& unmappedCacheSet = GetRSRenderThreadParams()->GetUnmappedCacheSet();
+    if (!unmappedCacheSet.empty()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("Clear GPU composition cache, %zu buffers need to be deleted",
+            unmappedCacheSet.size());
+        uniRenderEngine_->ClearCacheSet(unmappedCacheSet);
+        RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(unmappedCacheSet);
+        GetRSRenderThreadParams()->ClearUnmappedCacheSet();
+    }
+}
+
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {

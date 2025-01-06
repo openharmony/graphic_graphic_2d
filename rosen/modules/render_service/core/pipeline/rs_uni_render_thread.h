@@ -201,6 +201,7 @@ public:
         return wallpaperTranslate_;
     }
 
+    void ClearGPUCompositionCache();
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

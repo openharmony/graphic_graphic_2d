@@ -402,11 +402,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
         return;
     }
-    auto unmappedCache = surfaceParams->GetBufferClearCacheSet();
-    if (unmappedCache.size() > 0) {
-        // remove imagecahce when its bufferQueue gobackground
-        renderEngine->ClearCacheSet(unmappedCache);
-    }
     if (autoCacheEnable_) {
         nodeCacheType_ = NodeStrategyType::CACHE_NONE;
     }

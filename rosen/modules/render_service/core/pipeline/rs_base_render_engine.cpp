@@ -919,7 +919,7 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 #endif // RS_ENABLE_EGLIMAGE
 }
 
-void RSBaseRenderEngine::ClearCacheSet(const std::set<int32_t> unmappedCache)
+void RSBaseRenderEngine::ClearCacheSet(const std::set<uint32_t>& unmappedCache)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
