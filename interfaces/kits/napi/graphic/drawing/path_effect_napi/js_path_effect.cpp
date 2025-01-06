@@ -228,7 +228,7 @@ napi_value JsPathEffect::CreatePathDashEffect(napi_env env, napi_callback_info i
     GET_DOUBLE_CHECK_GT_ZERO_PARAM(ARGC_ONE, advance);
 
     double phase = 0.0;
-    GET_DOUBLE_CHECK_GT_ZERO_PARAM(ARGC_TWO, phase);
+    GET_DOUBLE_PARAM(ARGC_TWO, phase);
 
     int32_t style = 0;
     GET_ENUM_PARAM(ARGC_THREE, style, 0, static_cast<int32_t>(PathDashStyle::MORPH));
