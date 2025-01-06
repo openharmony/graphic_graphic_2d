@@ -263,7 +263,7 @@ void RSRenderNodeDrawable::CheckCacheTypeAndDraw(
         }
         CollectInfoForNodeWithoutFilter(canvas);
     }
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}d", GetCacheType());
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNodeDrawable::CheckCacheTAD GetCacheType is %{public}hu", GetCacheType());
     switch (GetCacheType()) {
         case DrawableCacheType::NONE: {
             DrawWithoutNodeGroupCache(canvas, params, originalCacheType);
