@@ -40,7 +40,7 @@ BufferDrawParam RSDividedRenderUtil::CreateBufferDrawParam(
     filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
     params.paint.SetFilter(filter);
     params.setColorFilter = setColorFilter;
-    params.threadIndex = gettid();
+    params.threadIndex = static_cast<uint32_t>(gettid());
 
     const RSProperties& property = node.GetRenderProperties();
     auto backgroundColor = property.GetBackgroundColor();

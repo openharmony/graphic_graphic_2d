@@ -226,8 +226,8 @@ bool RSSurfaceRenderNodeDrawable::PrepareOffscreenRender()
     if (uniParam && uniParam->IsMirrorScreen() &&
         uniParam->GetCompositeType() == RSDisplayRenderNode::CompositeType::UNI_RENDER_COMPOSITE) {
         auto screenInfo = uniParam->GetScreenInfo();
-        offscreenWidth = screenInfo.width;
-        offscreenHeight = screenInfo.height;
+        offscreenWidth = static_cast<int>(screenInfo.width);
+        offscreenHeight = static_cast<int>(screenInfo.height);
     }
     if (offscreenWidth <= 0 || offscreenHeight <= 0) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::PrepareOffscreenRender, offscreenWidth or offscreenHeight is invalid");

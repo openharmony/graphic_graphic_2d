@@ -92,6 +92,7 @@ private:
     void LayerRotate(
         RequestLayerInfo& info, const sptr<IConsumerSurface>& surface, const ScreenInfo &screenInfo);
     bool CheckIfDoArsrPre(const RSSurfaceRenderNode::SharedPtr node);
+    void ClearCldInfo(std::vector<RequestLayerInfo>& infos);
 
     void *preValidateHandle_ = nullptr;
     PreValidateFunc preValidateFunc_ = nullptr;
