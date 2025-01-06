@@ -151,7 +151,7 @@ void RSRenderNodeDrawable::GenerateCacheIfNeed(Drawing::Canvas& canvas, RSRender
     bool hasFilter = params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect();
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNodeDrawable::CheckCacheTAD hasFilter:%{public}d drawingCacheType:%{public}d",
-        hasFilter, GetDrawingCacheType());
+        hasFilter, params.GetDrawingCacheType());
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;

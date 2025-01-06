@@ -2513,7 +2513,6 @@ void RSRenderNode::UpdateDrawableVec()
 {
     // Collect dirty slots
     auto dirtySlots = RSPropertyDrawable::GenerateDirtySlots(GetRenderProperties(), dirtyTypes_);
-    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::update drawable Vec dirtySlots is %{public}d", dirtySlots);
     if (!GetIsUsedBySubThread()) {
         UpdateDrawableVecInternal(dirtySlots);
     } else if (auto context = context_.lock()) {
