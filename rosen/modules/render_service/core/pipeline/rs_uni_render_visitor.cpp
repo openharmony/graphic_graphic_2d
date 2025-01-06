@@ -412,6 +412,11 @@ void RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode
     if (node.GetHdrVideo()) {
         curDisplayNode_->SetHdrVideo(true, node.GetHdrVideoType());
     }
+    if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC && RSLuminanceControl::Get().IsForceCloseHdr()) {
+        RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) forceCloseHdr in PC.",
+            node.GetName().c_str());
+        return;
+    }
     if (!node.IsHardwareForcedDisabled()) {
         RS_LOGD("RSUniRenderVisitor::CheckPixelFormatWithSelfDrawingNode node(%{public}s) is hardware-enabled",
             node.GetName().c_str());

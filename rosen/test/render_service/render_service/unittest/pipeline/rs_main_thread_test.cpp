@@ -4843,4 +4843,19 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition002, TestSize.Level1)
     bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
     ASSERT_FALSE(doDirectComposition);
 }
+
+/**
+ * @tc.name: CloseHdrWhenMultiDisplayInPCTest
+ * @tc.desc: test CloseHdrWhenMultiDisplayInPCTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadTest, CloseHdrWhenMultiDisplayInPCTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isMultiDisplayPre = mainThread->isMultiDisplayPre_;
+    mainThread->CloseHdrWhenMultiDisplayInPC(isMultiDisplayPre);
+    EXPECT_EQ(isMultiDisplayPre, mainThread->isMultiDisplayPre_);
+}
 } // namespace OHOS::Rosen

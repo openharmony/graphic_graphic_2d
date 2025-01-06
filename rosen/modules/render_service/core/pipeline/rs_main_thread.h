@@ -521,6 +521,9 @@ private:
     // Used for CommitAndReleaseLayers task
     void SetFrameInfo(uint64_t frameCount);
 
+    // Used for closing HDR in PC multidisplay becauseof performance
+    void CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay);
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     RSTaskMessage::RSTask mainLoop_;
@@ -760,6 +763,9 @@ private:
     bool isRegionDebugEnabledOfLastFrame_ = false;
 
     bool isForceRefresh_ = false;
+
+    // record multidisplay status change
+    bool isMultiDisplayPre_ = false;
 
 #ifdef RS_ENABLE_VK
     bool needCreateVkPipeline_ = true;
