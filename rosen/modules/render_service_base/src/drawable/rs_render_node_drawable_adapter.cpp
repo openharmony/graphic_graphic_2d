@@ -282,7 +282,9 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSRenderNodeDrawableAdapter::DrawUifirstContentChildren node %{public}" PRIu64 " onDraw!!!", GetId());
-        return;
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
     }
 
     if (uifirstDrawCmdList_.empty()) {

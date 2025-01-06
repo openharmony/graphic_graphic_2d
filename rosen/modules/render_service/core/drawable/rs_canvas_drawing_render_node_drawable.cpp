@@ -291,7 +291,9 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
         if (UNLIKELY(!singleLocker.IsLocked())) {
             singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
             RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Postplayback node %{public}" PRIu64 " playback!!!", GetId());
-            return;
+            if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+                return;
+            }
         }
 
         if (renderParams_->GetCanvasDrawingSurfaceChanged()) {

@@ -4379,7 +4379,9 @@ void RSRenderNode::OnSync()
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
         RS_LOGE("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
-        return;
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
     }
 
     if (drawCmdListNeedSync_) {

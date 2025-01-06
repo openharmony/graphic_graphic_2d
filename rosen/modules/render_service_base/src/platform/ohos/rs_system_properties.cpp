@@ -757,6 +757,12 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
     return debugEnable;
 }
 
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
+{
+    static bool lockerEnable = system::GetIntParameter("persist.sys.graphic.singleDrawableLocker.enable", 1) != 0;
+    return lockerEnable;
+}
+
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.UIFirstdebug.surfacenames", "0");

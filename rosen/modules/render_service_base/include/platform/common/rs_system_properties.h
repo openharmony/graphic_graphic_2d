@@ -227,6 +227,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
+    static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);

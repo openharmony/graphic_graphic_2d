@@ -344,7 +344,7 @@ public:
     }
     inline bool IsLocked() const
     {
-        return locked_;
+        return LIKELY(locked_);
     }
     struct MultiAccessReportInfo {
         bool drawableNotNull = false;
