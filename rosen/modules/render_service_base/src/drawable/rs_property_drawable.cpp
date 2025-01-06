@@ -220,15 +220,12 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         if (ptr->needDrawBehindWindow_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu] ", ptr->renderNodeId_);
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            if (!paintFilterCanvas) {
-                return;
-            }
             Drawing::AutoCanvasRestore acr(*canvas, true);
             paintFilterCanvas->ClipRect(*rect);
-            Drawing::RectI bounds(ptr->drawBehindWindowRegion_.GetLeft(), ptr->drawBehindWindowRegion_.GetTop(),
-                ptr->drawBehindWindowRegion_.GetRight(), ptr->drawBehindWindowRegion_.GetBottom());
-            auto deviceRect = Drawing::RectI(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
-            bounds.Intersect(deviceRect);
+            Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
+            canvas->GetTotalMatrix().MapRect(absRect, *rect);
+            Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()),
+                std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
             RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, ptr->filter_, ptr->cacheManager_,
                 ptr->renderClearFilteredCacheAfterDrawing_, bounds, true);
             return;
@@ -492,11 +489,6 @@ bool RSFilterDrawable::IsAIBarCacheValid()
         MarkFilterForceUseCache(true);
         return true;
     }
-}
-
-void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)
-{
-    stagingDrawBehindWindowRegion_ = region;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -1260,13 +1260,11 @@ public:
         return apiCompatibleVersion_;
     }
 
-    bool NeedUpdateDrawableBehindWindow() const override;
+    bool NeedUpdateDrawableBehindWindow();
     void SetOldNeedDrawBehindWindow(bool val);
     bool NeedDrawBehindWindow() const override;
     void AddChildBlurBehindWindow(NodeId id) override;
     void RemoveChildBlurBehindWindow(NodeId id) override;
-    void CalDrawBehindWindowRegion() override;
-    RectI GetFilterRect() const override;
 
 protected:
     void OnSync() override;
@@ -1563,7 +1561,6 @@ private:
 
     bool oldNeedDrawBehindWindow_ = false;
     std::unordered_set<NodeId> childrenBlurBehindWindow_ = {};
-    RectI drawBehindWindowRegion_;
 
     // UIExtension record, <UIExtension, hostAPP>
     inline static std::unordered_map<NodeId, NodeId> secUIExtensionNodes_ = {};
