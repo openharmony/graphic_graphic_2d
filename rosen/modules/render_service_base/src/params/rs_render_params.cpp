@@ -591,7 +591,7 @@ DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSource
     return defaultPtr;
 }
 
-DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetCloneSourceDrawable()
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetCloneSourceDrawable() const
 {
     return cloneSourceDrawable_;
 }

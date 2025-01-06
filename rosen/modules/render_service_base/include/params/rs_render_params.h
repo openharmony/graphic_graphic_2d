@@ -332,7 +332,7 @@ public:
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable();
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
     void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node

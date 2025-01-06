@@ -1807,7 +1807,6 @@ HWTEST_F(RSRenderNodeTest, AddCrossScreenChild, TestSize.Level1)
     auto context = std::make_shared<RSContext>();
     auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
     EXPECT_NE(displayRenderNode, nullptr);
-    std::cout << (displayRenderNode->context_.lock() == nullptr) << std::endl;
     auto childTest1 = nullptr;
     displayRenderNode->AddCrossScreenChild(childTest1, 2, -1);
 

@@ -567,7 +567,12 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
     };
     auto cloneNode = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context->weak_from_this()), RSRenderNodeGC::NodeDestructor);
-    context->GetMutableNodeMap().RegisterRenderNode(cloneNode);
+    auto res = context->GetMutableNodeMap().RegisterRenderNode(cloneNode);
+    if (!res) {
+        ROSEN_LOGE("RSRenderNode::AddCrossScreenChild register clone node failed! id=%{public}"
+            "" PRIu64 "", cloneNode->GetId());
+        return;
+    }
     auto& cloneNodeParams = cloneNode->GetStagingRenderParams();
     if (cloneNodeParams == nullptr) {
         ROSEN_LOGE("RSRenderNode::AddCrossScreenChild failed! clone node params is null. id=%{public}"
@@ -601,8 +606,12 @@ void RSRenderNode::RemoveCrossScreenChild(const SharedPtr& child)
 
     auto cloneIt = std::find_if(child->cloneCrossNodeVec_.begin(), child->cloneCrossNodeVec_.end(),
         [this](auto cloneNode) -> bool {
-            auto parent = cloneNode->GetParent().lock();
-            return parent && parent->GetId() == id_;
+            if (cloneNode) {
+                auto parent = cloneNode->GetParent().lock();
+                return parent && parent->GetId() == id_;
+            } else {
+                return false;
+            }
         });
     if (cloneIt == child->cloneCrossNodeVec_.end()) {
         ROSEN_LOGE("RSRenderNode::RemoveCrossScreenChild can not find clone node %{public}" PRIu64 " in source node"
