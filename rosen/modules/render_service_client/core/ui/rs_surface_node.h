@@ -135,11 +135,13 @@ public:
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
+    // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
     void SetSurfaceTexture(const RSSurfaceExtConfig& config);
     void MarkUiFrameAvailable(bool available);
     void SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback);
     void SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback);
+    void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
     // Force enable UIFirst when set TRUE

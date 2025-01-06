@@ -113,10 +113,22 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         command = std::make_unique<RSSurfaceNodeSetCallbackForRenderThreadRefresh>(node->GetId(), true);
         transactionProxy->AddCommand(command, isWindow);
         node->SetFrameGravity(Gravity::RESIZE);
+        // codes for arkui-x
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_ANDROID)
         if (type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_TEXTURE,
+                .additionalData = nullptr,
+            };
+            node->CreateSurfaceExt(config);
+        }
+#endif
+        // codes for arkui-x
+#if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS)
+        if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
+            RSSurfaceExtConfig config = {
+                .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
                 .additionalData = nullptr,
             };
             node->CreateSurfaceExt(config);
@@ -750,6 +762,11 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         GetId(), config.type);
         return;
     }
+#ifdef ROSEN_IOS
+    if (texture->GetSurfaceExtConfig().additionalData == nullptr) {
+        texture->UpdateSurfaceExtConfig(config);
+    }
+#endif
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u %{public}p",
         GetId(), config.type, texture.get());
     std::unique_ptr<RSCommand> command =
@@ -778,6 +795,15 @@ void RSSurfaceNode::MarkUiFrameAvailable(bool available)
 
 void RSSurfaceNode::SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttachCallBack& attachCallback)
 {
+#if defined(ROSEN_IOS)
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetAttachCallback(attachCallback);
+    }
+#else
     RSSurfaceTextureConfig config = {
         .type = RSSurfaceExtType::SURFACE_TEXTURE,
     };
@@ -785,10 +811,20 @@ void RSSurfaceNode::SetSurfaceTextureAttachCallBack(const RSSurfaceTextureAttach
     if (texture) {
         texture->SetAttachCallback(attachCallback);
     }
+#endif // ROSEN_IOS
 }
 
 void RSSurfaceNode::SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdateCallBack& updateCallback)
 {
+#if defined(ROSEN_IOS)
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetUpdateCallback(updateCallback);
+    }
+#else
     RSSurfaceTextureConfig config = {
         .type = RSSurfaceExtType::SURFACE_TEXTURE,
         .additionalData = nullptr
@@ -797,6 +833,20 @@ void RSSurfaceNode::SetSurfaceTextureUpdateCallBack(const RSSurfaceTextureUpdate
     if (texture) {
         texture->SetUpdateCallback(updateCallback);
     }
+#endif // ROSEN_IOS
+}
+
+void RSSurfaceNode::SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback)
+{
+#if defined(ROSEN_IOS)
+    RSSurfaceTextureConfig config = {
+        .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
+    };
+    auto texture = surface_->GetSurfaceExt(config);
+    if (texture) {
+        texture->SetInitTypeCallback(initTypeCallback);
+    }
+#endif // ROSEN_IOS
 }
 #endif
 
