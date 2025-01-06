@@ -294,42 +294,6 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
-    // To be deleted after captureWindow being deleted
-    void SetStartVisit(bool startVisit)
-    {
-        startVisit_ = startVisit;
-    }
-
-    // To be deleted after captureWindow being deleted
-    bool GetStartVisit() const
-    {
-        return startVisit_;
-    }
-
-    // To be deleted after captureWindow being deleted
-    void SetHasCaptureImg(bool hasCaptureImg)
-    {
-        hasCaptureImg_ = hasCaptureImg;
-    }
-
-    // To be deleted after captureWindow being deleted
-    bool GetHasCaptureImg() const
-    {
-        return hasCaptureImg_;
-    }
-
-    // To be deleted after captureWindow being deleted
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
-    {
-        rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-    }
-
-    // To be deleted after captureWindow being deleted
-    NodeId GetRootIdOfCaptureWindow() const
-    {
-        return rootIdOfCaptureWindow_;
-    }
-
     void SetContext(std::shared_ptr<RSContext> context)
     {
         context_ = context;
@@ -440,9 +404,6 @@ public:
     }
 
 private:
-    bool startVisit_ = false;     // To be deleted after captureWindow being deleted
-    bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     int64_t actualTimestamp_ = 0;

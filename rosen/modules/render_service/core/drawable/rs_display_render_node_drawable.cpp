@@ -788,8 +788,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
 
         specialLayerType_ = GetSpecialLayerType(*params);
-        if (uniParam->HasMirrorDisplay() && curCanvas_->GetSurface() != nullptr &&
-            specialLayerType_ == NO_SPECIAL_LAYER) {
+        if (RSSystemProperties::GetDrawMirrorCacheImageEnabled() && uniParam->HasMirrorDisplay() &&
+            curCanvas_->GetSurface() != nullptr && specialLayerType_ != HAS_SPECIAL_LAYER) {
             cacheImgForCapture_ = curCanvas_->GetSurface()->GetImageSnapshot();
         } else {
             SetCacheImgForCapture(nullptr);
@@ -858,7 +858,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
 
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
     if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
-        specialLayerType_ != NO_SPECIAL_LAYER) {
+        specialLayerType_ == HAS_SPECIAL_LAYER) {
         DrawMirror(params, virtualProcesser,
             &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
@@ -967,7 +967,7 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
         std::vector<RectI> emptyRects = {};
         virtualProcesser->SetRoiRegionToCodec(emptyRects);
         SetCanvasBlack(*virtualProcesser);
-        virtualDirtyRefresh_ = true;
+        curCanvas_->RestoreToCount(0);
         return;
     }
     curCanvas_->Save();
@@ -985,43 +985,21 @@ void RSDisplayRenderNodeDrawable::DrawMirror(RSDisplayRenderParams& params,
     // Clean up the content of the previous frame
     curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
-    PrepareOffscreenRender(*mirroredDrawable);
     // set mirror screen capture param
     // Don't need to scale here since the canvas has been switched from mirror frame to offscreen
     // surface in PrepareOffscreenRender() above. The offscreen surface has the same size as
     // the main display that's why no need additional scale.
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
 
-    curCanvas_->Save();
-    Drawing::Region clipRegion;
-    clipRegion.Clone(uniParam.GetClipRegion());
-    ResetRotateIfNeed(*mirroredDrawable, *virtualProcesser, clipRegion);
-
-    // To be deleted after captureWindow being deleted
-    std::shared_ptr<Drawing::Image> cacheImage = mirroredDrawable->GetCacheImgForCapture();
-    mirroredDrawable->SetCacheImgForCapture(nullptr);
-    if (cacheImage && specialLayerType_ == CAPTURE_WINDOW) {
-        RS_LOGD("RSDisplayRenderNodeDrawable::DrawMirrorScreen, Enable recording optimization.");
-        uniParam.SetHasCaptureImg(true);
-        mirroredDrawable->DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
-        RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
-    }
-    curCanvas_->Restore();
     RSRenderParams::SetParentSurfaceMatrix(curCanvas_->GetTotalMatrix());
-    if (uniParam.IsOpDropped() && cacheImage && specialLayerType_ == CAPTURE_WINDOW) {
-        ClipRegion(*curCanvas_, clipRegion, false);
-    }
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false); // disable partial render
     (mirroredDrawable.get()->*drawFunc)(*curCanvas_);
     uniParam.SetOpDropped(isOpDropped);
     RSUniRenderThread::ResetCaptureParam();
-    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::CubicResampler::Mitchell()));
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
-    uniParam.SetHasCaptureImg(false);
-    uniParam.SetStartVisit(false);
     RSUniRenderThread::Instance().SetBlackList({});
     RSUniRenderThread::Instance().SetWhiteList({});
     uniParam.SetSecExemption(false);
@@ -1055,7 +1033,7 @@ void RSDisplayRenderNodeDrawable::DrawMirrorCopy(
     virtualProcesser->CanvasClipRegionForUniscaleMode();
     RSUniRenderThread::SetCaptureParam(CaptureParam(false, false, true, 1.0f, 1.0f));
     mirrorDrawable.DrawHardwareEnabledNodesMissedInCacheImage(*curCanvas_);
-    if (cacheImage) {
+    if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
         RS_TRACE_NAME("DrawMirrorCopy with cacheImage");
         RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
     } else {
@@ -1134,7 +1112,7 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
 void RSDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSDisplayRenderNodeDrawable& mirroredDrawable)
 {
     auto cacheImage = mirroredDrawable.GetCacheImgForCapture();
-    if (cacheImage) {
+    if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
         RS_TRACE_NAME("DrawWiredMirrorCopy with cacheImage");
         RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
     } else {
@@ -1280,27 +1258,6 @@ void RSDisplayRenderNodeDrawable::SetCanvasBlack(RSProcessor& processor)
     processor.PostProcess();
     RS_LOGI("RSDisplayRenderNodeDrawable::SetCanvasBlack, set canvas to black because of security layer.");
     curCanvas_->SetDisableFilterCache(false);
-}
-
-// To be deleted after captureWindow being deleted
-void RSDisplayRenderNodeDrawable::ResetRotateIfNeed(RSDisplayRenderNodeDrawable& mirroredDrawable,
-    RSUniRenderVirtualProcessor& mirroredProcessor, Drawing::Region& clipRegion)
-{
-    Drawing::Matrix invertMatrix;
-    if (mirroredDrawable.GetResetRotate() &&
-        mirroredProcessor.GetScreenTransformMatrix().Invert(invertMatrix)) {
-        // If both canvas and skImage have rotated, we need to reset the canvas
-        curCanvas_->ConcatMatrix(invertMatrix);
-
-        // If both canvas and clipRegion have rotated, we need to reset the clipRegion
-        Drawing::Path path;
-        if (clipRegion.GetBoundaryPath(&path)) {
-            path.Transform(invertMatrix);
-            Drawing::Region clip;
-            clip.SetRect(Drawing::RectI(0, 0, curCanvas_->GetWidth(), curCanvas_->GetHeight()));
-            clipRegion.SetPath(path, clip);
-        }
-    }
 }
 
 void RSDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rotation, float mainWidth, float mainHeight)

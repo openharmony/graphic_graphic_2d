@@ -136,15 +136,6 @@ public:
         return originScreenRotation_;
     }
     bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
-    bool GetResetRotate() const
-    {
-        return resetRotate_;
-    }
-    
-    void SetResetRotate(bool resetRotate)
-    {
-        resetRotate_ = resetRotate;
-    }
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -175,8 +166,6 @@ private:
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
-    void ResetRotateIfNeed(RSDisplayRenderNodeDrawable& mirroredNodeDrawable,
-        RSUniRenderVirtualProcessor& mirroredProcessor, Drawing::Region& clipRegion);
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
