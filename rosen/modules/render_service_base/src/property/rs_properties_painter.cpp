@@ -1732,11 +1732,13 @@ std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeLightUpEffectBlender(
             return c.z * mix(vec3(1.0), rgb, c.y);
         }
         vec4 main(vec4 drawing_src, vec4 drawing_dst) {
+            drawing_dst = max(drawing_dst, 0.0);
             vec3 c = vec3(drawing_dst.r, drawing_dst.g, drawing_dst.b);
             vec3 hsv = rgb2hsv(c);
             float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
             hsv.y = mix(satUpper, hsv.y, lightUpDeg);
             hsv.z += lightUpDeg - 1.0;
+            hsv.z = max(hsv.z, 0.0);
             return vec4(hsv2rgb(hsv), drawing_dst.a);
         }
     )";

@@ -252,10 +252,13 @@ void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffe
             }
             half4 main(float2 coord)
             {
-                vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
+                vec3 color = imageShader.eval(coord).rgb;
+                vec3 rgb = max(color, 0.0);
+                vec3 hsv = rgb2hsv(rgb);
                 float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
                 hsv.y = mix(satUpper, hsv.y, lightUpDeg);
                 hsv.z += lightUpDeg - 1.0;
+                hsv.z = max(hsv.z, 0.0);
                 return vec4(hsv2rgb(hsv), imageShader.eval(coord).a);
             }
         )";
