@@ -274,4 +274,36 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, SystemBar_Effect_Test)
     GetRootNode()->AddChild(testNodeBackGround2);
     RegisterNode(testNodeBackGround2);
 }
+
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_MESA_Blur_Test)
+{
+    int columnCount = 2; // 2: column size
+    int rowCount = 4;    // 4: row size
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    // -20, 2, 20, 200: radius params
+    std::vector<float> radiusList = { -20, 2, 20, 200 };
+    // 20.f: grey params, if needed
+    Vector2f greyCoef(20.f, 20.f);
+
+    for (int i = 0; i < radiusList.size(); i++) {
+        int x = 0; // first column is the node with normal blur
+        int y = (i % rowCount) * sizeY;
+        // 10: space between two nodes
+        auto testNodeNormalBlur =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeNormalBlur->SetBackgroundBlurRadius(radiusList[i]);
+        GetRootNode()->AddChild(testNodeNormalBlur);
+        RegisterNode(testNodeNormalBlur);
+
+        int x_mesa = sizeX;
+        auto testNodeMesaBlur =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x_mesa, y, sizeX - 10, sizeY - 10 });
+        testNodeMesaBlur->SetBackgroundBlurRadius(radiusList[i]);
+        testNodeMesaBlur->SetGreyCoef(greyCoef); // MESA blur will be activated if greyCoef is set
+        GetRootNode()->AddChild(testNodeMesaBlur);
+        RegisterNode(testNodeMesaBlur);
+    }
+}
 } // namespace OHOS::Rosen
