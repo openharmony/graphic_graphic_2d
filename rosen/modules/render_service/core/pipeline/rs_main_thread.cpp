@@ -29,7 +29,6 @@
 
 #include "app_mgr_client.h"
 #include "delegate/rs_functional_delegate.h"
-#include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_frame_rate_manager.h"
 #include "include/core/SkGraphics.h"
@@ -181,6 +180,9 @@ constexpr int32_t MAX_CAPTURE_COUNT = 5;
 constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
+constexpr int64_t FIXED_EXTRA_DRAWING_TIME = 3000000; // 3ms
+constexpr int64_t SINGLE_SHIFT = 2700000; // 2.7ms
+constexpr int64_t DOUBLE_SHIFT = 5400000; // 5.4ms
 constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
@@ -2111,6 +2113,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             renderThreadParams_->unmappedCacheSet_ = std::move(unmappedCacheSet_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
+            RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
             return;
         }
     }
@@ -2171,6 +2174,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         WaitUntilUploadTextureTaskFinished(isUniRender_);
+    } else {
+        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
     }
 
     PrepareUiCaptureTasks(uniVisitor);
@@ -2382,6 +2387,7 @@ void RSMainThread::OnUniRenderDraw()
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
+        RsFrameReport::GetInstance().PostAndWait();
         drawFrame_.PostAndWait();
         return;
     }
@@ -2394,10 +2400,6 @@ void RSMainThread::OnUniRenderDraw()
     }
 
     UpdateDisplayNodeScreenId();
-    RsFrameReport& fr = RsFrameReport::GetInstance();
-    if (fr.GetEnable()) {
-        fr.RSRenderEnd();
-    }
 #endif
 }
 
@@ -2876,7 +2878,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
 
 void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
 {
-    SetFrameInfo(frameCount);
+    SetFrameInfo(frameCount, false);
     const int64_t onVsyncStartTime = GetCurrentSystimeMs();
     const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
     const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
@@ -3786,7 +3788,7 @@ void RSMainThread::ForceRefreshForUni()
             curTime_ = now;
             isForceRefresh_ = true;
             // Not triggered by vsync, so we set frameCount to 0.
-            SetFrameInfo(0);
+            SetFrameInfo(0, true);
             RS_TRACE_NAME("RSMainThread::ForceRefreshForUni timestamp:" + std::to_string(timestamp_));
             mainLoop_();
         });
@@ -3875,17 +3877,26 @@ void RSMainThread::PerfMultiWindow()
 
 void RSMainThread::RenderFrameStart(uint64_t timestamp)
 {
-    if (RsFrameReport::GetInstance().GetEnable()) {
-        RsFrameReport::GetInstance().RenderStart(timestamp);
+    uint32_t unExecuteTaskNum = RSHardwareThread::Instance().GetunExecuteTaskNum();
+    if (preUnExecuteTaskNum_ != unExecuteTaskNum) {
+        preUnExecuteTaskNum_ = unExecuteTaskNum;
+        std::unordered_map<std::string, std::string> payload = {};
+        payload["bufferCount"] = std::to_string(preUnExecuteTaskNum_);
+        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_BUFFER_COUNT, payload);
     }
-    RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 #ifdef RS_ENABLE_GPU
     int hardwareTid = RSHardwareThread::Instance().GetHardwareTid();
-    if (hardwareTid_ != hardwareTid) {
-        hardwareTid_ = hardwareTid;
-        RsFrameReport::GetInstance().SetFrameParam(EVENT_SET_HARDWARE_UTIL, 0, 0, hardwareTid_);
+    if (preHardwareTid_ != hardwareTid) {
+        preHardwareTid_ = hardwareTid;
+        std::unordered_map<std::string, std::string> param = {};
+        param["hardwareTid"] = std::to_string(preHardwareTid_);
+        RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_HARDWARE_INFO, param);
     }
 #endif
+    std::unordered_map<std::string, std::string> paramter = {};
+    paramter["vsyncTime"] = std::to_string(timestamp);
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_START, paramter);
+    RenderFrameTrace::GetInstance().RenderStartFrameTrace(RS_INTERVAL_NAME);
 }
 
 void RSMainThread::SetAppWindowNum(uint32_t num)
@@ -4513,13 +4524,49 @@ uint64_t RSMainThread::GetRealTimeOffsetOfDvsync(int64_t time)
     return rsVSyncDistributor_->GetRealTimeOffsetOfDvsync(time);
 }
 
-void RSMainThread::SetFrameInfo(uint64_t frameCount)
+void RSMainThread::SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag)
 {
     // use the same function as vsync to get current time
     int64_t currentTimestamp = SystemTime();
-    auto &hgmCore = HgmCore::Instance();
+    auto &hgmCore = OHOS::Rosen::HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
+    ReportRSFrameDeadline(hgmCore, forceRefreshFlag);
+}
+
+void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag)
+{
+    int64_t extraReserve = 0;
+    int64_t vsyncOffset = 0;
+    uint32_t currentRate = hgmCore.GetFrameRateMgr()->GetCurrRefreshRate();
+    int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
+    int64_t drawingTime = idealPeriod;
+
+    if (currentRate == OLED_120_HZ) {
+        if (hgmCore.GetLtpoEnabled()) {
+            vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
+            if (vsyncOffset > SINGLE_SHIFT && vsyncOffset <= DOUBLE_SHIFT) {
+                extraReserve = SINGLE_SHIFT;
+            } else if (vsyncOffset > DOUBLE_SHIFT && vsyncOffset < idealPeriod) {
+                extraReserve = DOUBLE_SHIFT;
+            }
+        } else {
+            extraReserve = FIXED_EXTRA_DRAWING_TIME;
+        }
+    }
+
+    if (idealPeriod == preIdealPeriod_ && (extraReserve == preExtraReserve_ || currentRate != OLED_120_HZ)) {
+        return;
+    }
+    drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
+    preIdealPeriod_ = idealPeriod;
+    preExtraReserve_ = extraReserve;
+    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: " PRId64 ", reservedDrawingTime:" PRId64 "",
+        currentRate, vsyncOffset, drawingTime);
+
+    std::unordered_map<std::string, std::string> payload = {};
+    payload["rsFrameDeadline"] = std::to_string(drawingTime);
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 
 void RSMainThread::CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay)

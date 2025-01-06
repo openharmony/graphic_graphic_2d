@@ -55,6 +55,8 @@
 #include "vsync_system_ability_listener.h"
 #endif
 
+#include "hgm_core.h"
+
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
@@ -519,7 +521,9 @@ private:
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
     // Used for CommitAndReleaseLayers task
-    void SetFrameInfo(uint64_t frameCount);
+    void SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag);
+
+    void ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
 
     // Used for closing HDR in PC multidisplay becauseof performance
     void CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay);
@@ -559,7 +563,7 @@ private:
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
     pid_t lastCleanCachePid_ = -1;
-    int hardwareTid_ = -1;
+    int preHardwareTid_ = -1;
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
@@ -764,8 +768,10 @@ private:
 
     bool isForceRefresh_ = false;
 
-    // record multidisplay status change
-    bool isMultiDisplayPre_ = false;
+    // render start hardware task count
+    uint32_t preUnExecuteTaskNum_ = 0;
+    int64_t preIdealPeriod_ = 0;
+    int64_t preExtraReserve_ = 0;
 
 #ifdef RS_ENABLE_VK
     bool needCreateVkPipeline_ = true;
