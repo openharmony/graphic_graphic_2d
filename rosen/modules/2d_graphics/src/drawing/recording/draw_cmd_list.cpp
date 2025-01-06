@@ -683,7 +683,7 @@ void DrawCmdList::SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct)
 
 size_t DrawCmdList::GetSize()
 {
-    size_t totoalSize = sizeof(this);
+    size_t totoalSize = sizeof(*this);
 
     {
         std::lock_guard<std::recursive_mutex> lock(mutex_);
