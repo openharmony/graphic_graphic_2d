@@ -38,7 +38,6 @@ namespace {
     constexpr int32_t settingMode3 = 3;
     constexpr int32_t IDEAL_30_PERIOD = 33333333;
     constexpr int32_t IDEAL_60_PERIOD = 16666666;
-    constexpr int32_t PIPELINE_OFFSET_PULSE_NUM = 6;
 
 }
 class HyperGraphicManagerTest : public testing::Test {
@@ -769,8 +768,9 @@ HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Le
 HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest | Level2)
 {
     auto &hgmCore = HgmCore::Instance();
-    int64_t idealPipelineOffset = PIPELINE_OFFSET_PULSE_NUM * IDEAL_PULSE;
-    hgmCore.SetIdealPipelineOffset(PIPELINE_OFFSET_PULSE_NUM);
+    int32_t pipelineOffsetPulseNum = 6;
+    int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
+    hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
     EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
 }
 } // namespace Rosen

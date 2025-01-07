@@ -167,11 +167,6 @@ void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
     }
 }
 
-void HgmCore::SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
-{
-    idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
-}
-
 void HgmCore::SetLtpoConfig()
 {
     if ((hgmFrameRateMgr_ == nullptr) || (mPolicyConfigData_ == nullptr)) {

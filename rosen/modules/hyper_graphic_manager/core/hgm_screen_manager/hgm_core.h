@@ -193,7 +193,10 @@ public:
         return alignRate_;
     }
 
-    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum);
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
+    {
+        idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
+    }
 
     int64_t GetIdealPipelineOffset() const
     {
