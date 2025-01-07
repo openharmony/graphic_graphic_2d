@@ -2416,6 +2416,9 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
 
 void RSRenderNode::ApplyModifiers()
 {
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
+        " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
+        isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
     if (UNLIKELY(!isFullChildrenListValid_)) {
         GenerateFullChildrenList();
         AddDirtyType(RSModifierType::CHILDREN);
@@ -2426,6 +2429,7 @@ void RSRenderNode::ApplyModifiers()
         // if children has shared transition, force regenerate RSChildrenDrawable
         AddDirtyType(RSModifierType::CHILDREN);
     } else if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+        RS_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
         // clean node, skip apply
         return;
     }
@@ -2439,12 +2443,15 @@ void RSRenderNode::ApplyModifiers()
     // Apply modifiers
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(shared_from_this());
     if (displayNode && displayNode->GetCurrentScbPid() != -1) {
+        RS_LOGD("RSRenderNode::apply modifiers displayNode's currentScbPid:%{public}d",
+            displayNode->GetCurrentScbPid());
         for (auto& [id, modifier] : modifiers_) {
             if (ExtractPid(id) == displayNode->GetCurrentScbPid()) {
                 ApplyModifier(context, modifier);
             }
         }
     } else {
+        RS_LOGD("RSRenderNode::apply modifiers displayNode is nullptr or displayNode's currentScbPid is -1");
         for (auto& [id, modifier] : modifiers_) {
             ApplyModifier(context, modifier);
         }
@@ -2460,6 +2467,10 @@ void RSRenderNode::ApplyModifiers()
         ProcessBehindWindowAfterApplyModifiers();
     }
 
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
+        " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
+        isTextureExportNode_);
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
         !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
         auto paramCopy = sharedTransitionParam_;
@@ -2518,6 +2529,7 @@ void RSRenderNode::UpdateDrawableVecV2()
     // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
     if (dirtySlots.empty()) {
+        RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
     // Step 2: Update or regenerate drawable if needed
@@ -2526,6 +2538,8 @@ void RSRenderNode::UpdateDrawableVecV2()
     RSDrawable::FuzeDrawableSlots(*this, drawableVec_);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
@@ -3184,6 +3198,8 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkNodeGP type:%{public}d isNodeGroup:%{public}d id:%{public}" PRIu64,
+        type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
         if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {
