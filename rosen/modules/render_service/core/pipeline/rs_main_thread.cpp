@@ -2392,7 +2392,8 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
 #ifdef RS_ENABLE_GPU
-    if (!doDirectComposition_ && needDrawFrame_) {
+    needPostAndWait_ = !doDirectComposition_ && needDrawFrame_;
+    if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
@@ -2967,7 +2968,7 @@ void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsy
                                          float onVsyncStartTimeSteadyFloat)
 {
 #ifdef RS_ENABLE_GPU
-    if (isUniRender_ && doDirectComposition_) {
+    if (isUniRender_ && !needPostAndWait_) {
         const JankDurationParams rsParams = { .timeStart_ = onVsyncStartTime,
                                               .timeStartSteady_ = onVsyncStartTimeSteady,
                                               .timeStartSteadyFloat_ = onVsyncStartTimeSteadyFloat,
@@ -3789,6 +3790,10 @@ void RSMainThread::ForceRefreshForUni()
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         PostTask([=]() {
+            const int64_t onVsyncStartTime = GetCurrentSystimeMs();
+            const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
+            const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
+            RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
             MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
             if (!RSSystemProperties::GetUnmarshParallelFlag()) {
                 RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
@@ -3803,6 +3808,7 @@ void RSMainThread::ForceRefreshForUni()
             SetFrameInfo(0);
             RS_TRACE_NAME("RSMainThread::ForceRefreshForUni timestamp:" + std::to_string(timestamp_));
             mainLoop_();
+            RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
         });
         auto screenManager_ = CreateOrGetScreenManager();
         if (screenManager_ != nullptr) {

@@ -640,6 +640,7 @@ private:
     bool doDirectComposition_ = true;
 #ifdef RS_ENABLE_GPU
     bool needDrawFrame_ = true;
+    bool needPostAndWait_ = true;
 #endif
     bool isLastFrameDirectComposition_ = false;
     bool isNeedResetClearMemoryTask_ = false;
