@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr size_t ASHMEM_SIZE_THRESHOLD = 400 * 1024; // cannot > 500K in TF_ASYNC mode
+static constexpr size_t ASHMEM_SIZE_THRESHOLD = 100 * 1024; // cannot > 500K in TF_ASYNC mode
 }
 
 RSRenderServiceConnectionProxy::RSRenderServiceConnectionProxy(const sptr<IRemoteObject>& impl)
