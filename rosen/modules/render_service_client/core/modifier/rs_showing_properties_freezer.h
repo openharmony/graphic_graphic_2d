@@ -73,6 +73,9 @@ public:
     std::optional<float> GetLightUpEffectDegree() const;
     std::optional<float> GetDynamicDimDegree() const;
 
+    std::optional<float> GetAttractionFractionValue() const;
+    std::optional<Vector2f> GetAttractionDstPointValue() const;
+
 private:
     NodeId id_;
     template<typename T, RSModifierType Type>

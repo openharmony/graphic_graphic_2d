@@ -108,6 +108,7 @@ bool RSCanvasRenderNode::OpincGetNodeSupportFlag()
     const auto& property = GetRenderProperties();
     if (GetSharedTransitionParam() ||
         property.IsSpherizeValid() ||
+        property.IsAttractionValid() ||
         property.NeedFilter() ||
         property.GetUseEffect() ||
         property.GetColorBlend().has_value() ||
