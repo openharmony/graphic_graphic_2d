@@ -193,6 +193,13 @@ public:
         return alignRate_;
     }
 
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum);
+
+    int64_t GetIdealPipelineOffset() const
+    {
+        return idealPipelineOffset_;
+    }
+
     int64_t GetPipelineOffset() const
     {
         auto pulse = CreateVSyncGenerator()->GetVSyncPulse();
@@ -331,6 +338,7 @@ private:
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
+    int64_t idealPipelineOffset_ = 0;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     std::atomic<bool> vBlankIdleCorrectSwitch_{ false };

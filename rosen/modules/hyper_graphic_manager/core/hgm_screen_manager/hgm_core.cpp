@@ -167,6 +167,11 @@ void HgmCore::SetASConfig(PolicyConfigData::ScreenSetting& curScreenSetting)
     }
 }
 
+void HgmCore::SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
+{
+    idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
+}
+
 void HgmCore::SetLtpoConfig()
 {
     if ((hgmFrameRateMgr_ == nullptr) || (mPolicyConfigData_ == nullptr)) {
@@ -212,7 +217,7 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
-
+    SetIdealPipelineOffset(pipelineOffsetPulseNum_);
     SetASConfig(curScreenSetting);
 
     SetScreenConstraintConfig();
