@@ -1459,14 +1459,18 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         auto imageWidth = image->GetWidth() * imageScaleHeight;
         auto imageHeight = image->GetHeight() * imageScaleWidth;
         if (imageScaleWidth > imageScaleHeight) {
-            dstRect = Drawing::Rect((screenWidth - imageWidth) / 2, 0, (screenWidth + imageWidth) / 2, screenHeight);
+            flaot halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
+            flaot halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
+            dstRect = Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
         }
 
         if (imageScaleWidth < imageScaleHeight) {
-            dstRect = Drawing::Rect(0, (screenHeight - imageHeight) / 2, screenWidth, (screenHeight + imageHeight) / 2);
+            flaot halfBoundHeightTop = (screenHeight - imageHeight) / 2;
+            flaot halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
+            dstRect = Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
         }
 
-        curCanvas_ConcatMatrix(inverseTotalMatrix);
+        curCanvas_->ConcatMatrix(inverseTotalMatrix);
 
         Drawing::Brush brush;
         curCanvas_->AttachBrush(brush);
@@ -1480,7 +1484,7 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         RS_LOGI("RSDisplayRenderNodeDrawable::SetSecurityMask, this interface is invoked"
             "when the security layer is used and mask resources are set.");
         curCanvas_->SetDisableFilterCache(false);
-        curCanvas_ConcatMatrix(totalMatrix);
+        curCanvas_->ConcatMatrix(totalMatrix);
     }
 }
 
