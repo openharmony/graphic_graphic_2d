@@ -58,10 +58,12 @@ private:
                          const std::string &valueName = "value", const std::string &keyName = "name");
     int32_t ParserDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap);
     int32_t ParseSceneList(xmlNode &node, PolicyConfigData::SceneConfigMap &sceneList);
+    int32_t ParseSupportedModeConfig(xmlNode &node, PolicyConfigData::SupportedModeConfig &supportedModeConfig);
     int32_t ParseMultiAppStrategy(xmlNode &node, PolicyConfigData::ScreenSetting &screenSetting);
     int32_t ParseAppTypes(xmlNode &node, std::unordered_map<int32_t, std::string> &appTypes);
     int32_t ParseVideoFrameVoteConfig(xmlNode &node);
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);
+    static std::vector<uint32_t> StringToVector(const std::string &str);
     void ParseBufferStrategyList(xmlNode &node, PolicyConfigData::StrategyConfig &strategy);
     int32_t ParseSubSequentParams(xmlNode &node, std::string &paraName);
     void ParseAppBufferList(xmlNode &node);

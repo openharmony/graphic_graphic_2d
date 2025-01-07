@@ -320,5 +320,45 @@ HWTEST_F(HgmFrameRateMgrTest, HgmOneShotTimerTest001, Function | SmallTest | Lev
     sleep(2); // wait for handler task finished
 }
 
+/**
+ * @tc.name: GetStylusVec
+ * @tc.desc: Verify the result of GetStylusVec
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, GetStylusVec, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    std::shared_ptr<PolicyConfigData> configData = std::make_shared<PolicyConfigData>();
+    PolicyConfigData::SupportedModeConfig supportedMode = {{"test", {OLED_60_HZ, OLED_120_HZ}}};
+    PolicyConfigData::SupportedModeConfig supportedMode1 = {{"StylusPen", {OLED_60_HZ, OLED_120_HZ}}};
+    configData->supportedModeConfigs_["LTPO-DEFAULT"] = supportedMode;
+    configData->supportedModeConfigs_["LTPS-DEFAULT"] = supportedMode1;
+
+    std::vector<std::string> screenConfigs = {"LTPO-DEFAULT", "LTPS-DEFAULT"};
+    for (const auto& screenConfig : screenConfigs) {
+        mgr.curScreenStrategyId_ = screenConfig;
+
+        auto iter = configData->supportedModeConfigs_.find(screenConfig);
+        if (iter == configData-> supportedModeConfigs_.end()) {
+            continue;
+        }
+
+        auto& supportedModeConfig = iter->second;
+        auto it = supportedModeConfig.find("StylusPen");
+        if (it == supportedModeConfig.end()) {
+            continue;
+        }
+
+        supportedModeConfig["StylusPen"].clear();
+        mgr.GetStylusVec(configData);
+        ASSERT_TRUE(mgr.stylusVec_.empty());
+
+        std::vector<uint32_t> expectedVec = {OLED_60_HZ, OLED_120_HZ};
+        supportedModeConfig["StylusPen"] = expectedVec;
+        ASSERT_NO_FATAL_FAILURE({mgr.GetStylusVec(configData);});
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS
