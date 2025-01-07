@@ -2800,8 +2800,8 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
 
 void RSSurfaceRenderNode::UpdateTransparentSurface()
 {
-    hasTransparentSurface_ = false;
-    if (IsLeashWindow()) {
+    hasTransparentSurface_ = IsTransparent();
+    if (IsLeashWindow() && !hasTransparentSurface_) {
         for (auto &child : *GetSortedChildren()) {
             auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
             if (childSurfaceNode && childSurfaceNode->IsTransparent()) {
@@ -2809,8 +2809,6 @@ void RSSurfaceRenderNode::UpdateTransparentSurface()
                 break;
             }
         }
-    } else {
-        hasTransparentSurface_ = IsTransparent();
     }
 }
 
