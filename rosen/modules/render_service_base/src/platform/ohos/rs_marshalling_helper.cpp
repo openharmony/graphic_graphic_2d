@@ -41,7 +41,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
-#include "image/image.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -59,7 +58,6 @@
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
-#include "text/hm_symbol.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 

@@ -40,8 +40,8 @@ public:
         AIBAR,
         LINEAR_GRADIENT_BLUR,
         MASK_COLOR,
-        MAGNIFIER,
         WATER_RIPPLE,
+        MAGNIFIER,
     };
 
     ShaderFilterType GetShaderFilterType() const
