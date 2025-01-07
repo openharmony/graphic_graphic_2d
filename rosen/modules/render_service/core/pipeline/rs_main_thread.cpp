@@ -1558,13 +1558,6 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 surfaceNode->SetDoDirectComposition(true);
             }
 
-            if (surfaceNode->GetHdrVideo()) {
-                doDirectComposition_ = false;
-                RS_OPTIONAL_TRACE_NAME_FMT("rs debug: name %s, id %" PRIu64", node GetDoDirectComposition is false",
-                    surfaceNode->GetName().c_str(), surfaceNode->GetId());
-                surfaceNode->SetDoDirectComposition(false);
-            }
-            
             if (!surfaceNode->IsOnTheTree()) {
                 if (surfaceHandler->IsCurrentFrameBufferConsumed()) {
                     surfaceNode->UpdateHardwareDisabledState(true);
@@ -2237,8 +2230,15 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_LOGW("RSMainThread::DoDirectComposition: hardwareThread task has too many to Execute");
     }
 #ifdef RS_ENABLE_GPU
+    bool hasHdrVideo = false;
+    HDR_TYPE hdrVideoType = HDR_TYPE::VIDEO;
+    uint32_t screenId = displayNode->GetScreenId();
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         auto surfaceHandler = surfaceNode->GetRSSurfaceHandler();
+        if (surfaceNode->GetHdrVideo()) {
+            hasHdrVideo = true;
+            hdrVideoType = surfaceNode->GetHdrVideoType();
+        }
         if (!surfaceNode->IsHardwareForcedDisabled()) {
             auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetStagingRenderParams().get());
             if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
@@ -2250,6 +2250,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             params->SetBufferSynced(true);
         }
     }
+    RS_LOGD("RSMainThread::DoDirectComposition: has hdr video: %{public}d, hdr video type: %{public}d,"
+        " screenId: %{public}u", hasHdrVideo, hdrVideoType, screenId);
+    RSLuminanceControl::Get().SetHdrStatus(screenId, hasHdrVideo, hdrVideoType);
 #endif
 #ifdef RS_ENABLE_GPU
     RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
