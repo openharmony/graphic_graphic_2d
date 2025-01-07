@@ -371,6 +371,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     int64_t idealPipelineOffset = 0;
     int64_t pipelineOffset = 0;
     int64_t expectCommitTime = 0;
+    int64_t periodNum = 0;
     int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
     int64_t period  = CreateVSyncSampler()->GetHardwarePeriod();
     uint64_t dvsyncOffset = RSMainThread::Instance()->GetRealTimeOffsetOfDvsync(param.frameTimestamp);
@@ -384,7 +385,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
         vsyncOffset = CreateVSyncGenerator()->GetVsyncOffset();
-        int64_t periodNum = idealPipelineOffset / idealPeriod;
+        periodNum = idealPeriod == 0 ? 0 : idealPipelineOffset / idealPeriod;
 
         if (vsyncOffset >= period) {
             vsyncOffset = 0;
