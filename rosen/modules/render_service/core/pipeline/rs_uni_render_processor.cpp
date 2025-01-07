@@ -209,9 +209,6 @@ void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRe
     if (layer->GetZorder() > 0) {
         solidColorLayer->SetZorder(layer->GetZorder() - 1);
     }
-    auto dstRect = params.layerInfo_.dstRect;
-    GraphicIRect layerRect = {dstRect.x, dstRect.y, dstRect.w, dstRect.h};
-    solidColorLayer->SetLayerSize(layerRect);
     solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
     solidColorLayer->SetLayerColor({color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()});
     solidColorLayer->SetSurface({});
