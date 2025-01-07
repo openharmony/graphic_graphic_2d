@@ -1437,17 +1437,11 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         }
 
         auto waterMark = RSUniRenderThread::Instance().GetWatermarkImg();
-        if (waterMark == nullptr) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWatermark image is null");
-        return;
-        }
-
         auto screenInfo = screenManager->QueryScreenInfo(params->GetScreenId());
         auto screenWidth = static_cast<float>(screenInfo.width);
         auto screenHeight = static_cast<float>(screenInfo.height);
 
         curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
-
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
         auto dstRect = Drawing::Rect(0, 0, screenWidth, screenHeight);
 
@@ -1476,8 +1470,10 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         curCanvas_->AttachBrush(brush);
         curCanvas_->DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-        curCanvas_->DrawImageRect(*waterMark, srcRect, dstRect, Drawing::SamplingOptions(),
-            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        if (waterMark) {
+            curCanvas_->DrawImageRect(*waterMark, srcRect, dstRect, Drawing::SamplingOptions(),
+                Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        }
         curCanvas_->DetachBrush();
 
         processor.PostProcess();
