@@ -1437,8 +1437,8 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         }
 
         auto waterMark = RSUniRenderThread::Instance().GetWatermarkImg();
-        if (image == nullptr) {
-        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWatermarkIfNeed image is null");
+        if (waterMark == nullptr) {
+        RS_LOGE("RSDisplayRenderNodeDrawable::DrawWatermark image is null");
         return;
         }
 
@@ -1446,9 +1446,6 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         auto screenWidth = static_cast<float>(screenInfo.width);
         auto screenHeight = static_cast<float>(screenInfo.height);
 
-        auto totalMatrix = curCanvas_->GetTotalMatrix();
-        Drawing::Matrix inverseTotalMatrix;
-        totalMatrix.Invert(inverseTotalMatrix);
         curCanvas_->Clear(Drawing::Color::COLOR_TRANSPARENT);
 
         auto srcRect = Drawing::Rect(0, 0, image->GetWidth(), image->GetHeight());
@@ -1458,19 +1455,22 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         float imageScaleHeight = screenHeight / static_cast<float>(image->GetHeight());
         auto imageWidth = image->GetWidth() * imageScaleHeight;
         auto imageHeight = image->GetHeight() * imageScaleWidth;
+        //Ensure that the security mask is located in the middle of the virtual screen.
         if (imageScaleWidth > imageScaleHeight) {
-            flaot halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
-            flaot halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
+            //Left and right set black
+            float halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
+            float halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
             dstRect = Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
         }
 
         if (imageScaleWidth < imageScaleHeight) {
-            flaot halfBoundHeightTop = (screenHeight - imageHeight) / 2;
-            flaot halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
+            //Up and down set black
+            float halfBoundHeightTop = (screenHeight - imageHeight) / 2;
+            float halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
             dstRect = Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
         }
-
-        curCanvas_->ConcatMatrix(inverseTotalMatrix);
+        //Make sure the canvas is oriented accurately.
+        curCanvas_->ResetMatrix();
 
         Drawing::Brush brush;
         curCanvas_->AttachBrush(brush);
@@ -1484,7 +1484,6 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         RS_LOGI("RSDisplayRenderNodeDrawable::SetSecurityMask, this interface is invoked"
             "when the security layer is used and mask resources are set.");
         curCanvas_->SetDisableFilterCache(false);
-        curCanvas_->ConcatMatrix(totalMatrix);
     }
 }
 
