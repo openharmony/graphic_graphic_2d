@@ -4631,6 +4631,7 @@ HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync004, TestSize.Level2)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    node->SetIsOnTheTree(true);
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
     ASSERT_FALSE(mainThread->IsOcclusionNodesNeedSync(nodeId, false));
