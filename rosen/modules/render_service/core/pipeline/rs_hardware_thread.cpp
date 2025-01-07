@@ -384,7 +384,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     } else {
         idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
-        vsyncOffset = CreateVSyncGenerator()->GetVsyncOffset();
+        vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
         periodNum = idealPeriod == 0 ? 0 : idealPipelineOffset / idealPeriod;
 
         if (vsyncOffset >= period) {
