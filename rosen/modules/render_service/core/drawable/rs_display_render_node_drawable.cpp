@@ -1436,7 +1436,7 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
             return;
         }
 
-        auto waterMark = RSUniRenderThread::Instance().GetWatermarkImg();
+        auto watermark = RSUniRenderThread::Instance().GetWatermarkImg();
         auto screenInfo = screenManager->QueryScreenInfo(params->GetScreenId());
         auto screenWidth = static_cast<float>(screenInfo.width);
         auto screenHeight = static_cast<float>(screenInfo.height);
@@ -1449,28 +1449,28 @@ void RSDisplayRenderNodeDrawable::SetSecurityMask(RSProcessor& processor)
         float imageScaleHeight = screenHeight / static_cast<float>(image->GetHeight());
         auto imageWidth = image->GetWidth() * imageScaleHeight;
         auto imageHeight = image->GetHeight() * imageScaleWidth;
-        //Ensure that the security mask is located in the middle of the virtual screen.
+        // Ensure that the security mask is located in the middle of the virtual screen.
         if (imageScaleWidth > imageScaleHeight) {
-            //Left and right set black
+            // Left and right set black
             float halfBoundWidthLeft = (screenWidth - imageWidth) / 2;
             float halfBoundWidthRight = halfBoundWidthLeft + imageWidth;
             dstRect = Drawing::Rect(halfBoundWidthLeft, 0, halfBoundWidthRight, screenHeight);
         }
 
         if (imageScaleWidth < imageScaleHeight) {
-            //Up and down set black
+            // Up and down set black
             float halfBoundHeightTop = (screenHeight - imageHeight) / 2;
             float halfBoundHeightBottom = halfBoundHeightTop + imageHeight;
             dstRect = Drawing::Rect(0, halfBoundHeightTop, screenWidth, halfBoundHeightBottom);
         }
-        //Make sure the canvas is oriented accurately.
+        // Make sure the canvas is oriented accurately.
         curCanvas_->ResetMatrix();
 
         Drawing::Brush brush;
         curCanvas_->AttachBrush(brush);
         curCanvas_->DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
-        if (waterMark) {
+        if (watermark) {
             curCanvas_->DrawImageRect(*waterMark, srcRect, dstRect, Drawing::SamplingOptions(),
                 Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
         }

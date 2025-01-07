@@ -632,15 +632,15 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
             bool enable{false};
-            std::shared_ptr<Media::PixelMap> securityMask{nullptr};
             if (!data.ReadUint64(id) || !data.ReadBool(enable)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
+            std::shared_ptr<Media::PixelMap> securityMask{nullptr};
             if (enable) {
                 securityMask = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
             }
-            int32_t result = SetScreenSecurityMask(id, securityMask);
+            int32_t result = SetScreenSecurityMask(id, std::move(securityMask));
             if (!reply.WriteInt32(result)) {
                 ret = ERR_INVALID_REPLY;
             }

@@ -84,9 +84,9 @@ public:
     virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const = 0;
 
     virtual int32_t SetScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap>& securityMask) = 0;
+        const std::shared_ptr<Media::PixelMap> securityMask) = 0;
 
-    virtual const std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const = 0;
+    virtual std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const = 0;
 
     virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
 
@@ -309,9 +309,9 @@ public:
 
     const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const override;
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap>& securityMask) override;
+    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask) override;
         
-    const std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const override;
+    std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const override;
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
 
