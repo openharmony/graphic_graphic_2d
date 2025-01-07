@@ -15,6 +15,8 @@
 
 #include "modifier/rs_render_property.h"
 
+#include <iomanip>
+
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_profiler.h"
@@ -351,44 +353,93 @@ bool operator!=(
 }
 
 template<>
-void RSRenderProperty<float>::Dump(std::string& out) const
+void RSRenderProperty<int>::Dump(std::string& out) const
 {
     out += "[" + std::to_string(Get()) + "]";
 }
 
 template<>
-void RSRenderProperty<Vector4f>::Dump(std::string& out) const
+void RSRenderProperty<float>::Dump(std::string& out) const
 {
-    Vector4f v4f = Get();
+    std::stringstream ss;
+    ss << "[" << std::fixed << std::setprecision(1) << Get() << "]";
+    out += ss.str();
+}
+
+template<>
+void RSRenderProperty<Vector4<uint32_t>>::Dump(std::string& out) const
+{
+    Vector4 v4 = Get();
     switch (modifierType_) {
-        case RSModifierType::BOUNDS: {
-            out += "[x:" + std::to_string(v4f.x_) + " y:";
-            out += std::to_string(v4f.y_) + " width:";
-            out += std::to_string(v4f.z_) + " height:";
-            out += std::to_string(v4f.w_) + "]";
+        case RSModifierType::BORDER_STYLE:
+        case RSModifierType::OUTLINE_STYLE: {
+            out += "[left:" + std::to_string(v4.x_);
+            out += " top:" + std::to_string(v4.y_);
+            out += " right:" + std::to_string(v4.z_);
+            out += " bottom:" + std::to_string(v4.w_) + "]";
             break;
         }
         default: {
-            out += "[x:" + std::to_string(v4f.x_) + " y:";
-            out += std::to_string(v4f.y_) + " z:";
-            out += std::to_string(v4f.z_) + " w:";
-            out += std::to_string(v4f.w_) + "]";
+            out += "[x:" + std::to_string(v4.x_) + " y:";
+            out += std::to_string(v4.y_) + " z:";
+            out += std::to_string(v4.z_) + " w:";
+            out += std::to_string(v4.w_) + "]";
             break;
         }
     }
 }
 
 template<>
+void RSRenderProperty<Vector4f>::Dump(std::string& out) const
+{
+    Vector4f v4f = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1);
+    switch (modifierType_) {
+        case RSModifierType::BORDER_WIDTH:
+        case RSModifierType::BORDER_DASH_WIDTH:
+        case RSModifierType::BORDER_DASH_GAP:
+        case RSModifierType::OUTLINE_WIDTH:
+        case RSModifierType::OUTLINE_DASH_WIDTH:
+        case RSModifierType::OUTLINE_DASH_GAP: {
+            ss << "[left:" << v4f.x_ << " top:" << v4f.y_ << " right:" << v4f.z_ << " bottom:" << v4f.w_ << + "]";
+            break;
+        }
+        case RSModifierType::CORNER_RADIUS:
+        case RSModifierType::OUTLINE_RADIUS: {
+            ss << "[topLeft:" << v4f.x_ << " topRight:" << v4f.y_ \
+               << " bottomRight:" << v4f.z_ << " bottomLeft:" << v4f.w_ << + "]";
+            break;
+        }
+        case RSModifierType::BOUNDS: {
+            ss << "[x:" << v4f.x_ << " y:" << v4f.y_ << " width:" << v4f.z_ << " height:" << v4f.w_ << + "]";
+            break;
+        }
+        default: {
+            ss << "[x:" << v4f.x_ << " y:" << v4f.y_ << " z:" << v4f.z_ << " w:" << v4f.w_ << + "]";
+            break;
+        }
+    }
+    out += ss.str();
+}
+
+template<>
 void RSRenderProperty<Quaternion>::Dump(std::string& out) const
 {
+    Quaternion q = Get();
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1);
+    ss << "[x:" << q.x_ << " y:" << q.y_ << " z:" << q.z_ << " w:" << q.w_ << + "]";
+    out += ss.str();
 }
 
 template<>
 void RSRenderProperty<Vector2f>::Dump(std::string& out) const
 {
     Vector2f v2f = Get();
-    out += "[x:" + std::to_string(v2f.x_) + " y:";
-    out += std::to_string(v2f.y_) + "]";
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(1) << "[x:" << v2f.x_ << " y:" << v2f.y_ << "]";
+    out += ss.str();
 }
 
 template<>
@@ -399,21 +450,33 @@ void RSRenderProperty<Matrix3f>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Color>::Dump(std::string& out) const
 {
-    std::ostringstream ss;
-    ss << "0x" << std::hex << Get().AsRgbaInt();
-    out += "[RGBA-";
-    out += ss.str();
-    out += "]";
+    Get().Dump(out);
 }
 
 template<>
 void RSRenderProperty<std::shared_ptr<RSFilter>>::Dump(std::string& out) const
 {
+    auto filter = Get();
+    out += "[";
+    if (filter != nullptr && filter->IsValid()) {
+        out += filter->GetDescription();
+    }
+    out += "]";
 }
 
 template<>
 void RSRenderProperty<Vector4<Color>>::Dump(std::string& out) const
 {
+    Vector4<Color> v4Color = Get();
+    out += "[left";
+    v4Color.x_.Dump(out);
+    out += " top";
+    v4Color.y_.Dump(out);
+    out += " right";
+    v4Color.z_.Dump(out);
+    out += " bottom";
+    v4Color.w_.Dump(out);
+    out += ']';
 }
 
 template<>
@@ -424,25 +487,89 @@ void RSRenderProperty<RRect>::Dump(std::string& out) const
 template<>
 void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
 {
-    out += "drawCmdList[";
-    Get()->Dump(out);
-    out += "]";
+    auto propertyData = Get();
+    if (propertyData != nullptr) {
+        out += "drawCmdList[";
+        propertyData->Dump(out);
+        out += ']';
+    }
 }
 
 template<>
 void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 {
-    out += "ENV_FOREGROUND_COLOR_STRATEGY[";
     out += std::to_string(static_cast<int>(Get()));
-    out += "]";
 }
 
 template<>
 void RSRenderProperty<SkMatrix>::Dump(std::string& out) const
 {
-    out += "GEOMETRYTRANS[";
     Get().dump(out, 0);
-    out += "]";
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<MotionBlurParam>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSMagnifierParams>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    out += '[';
+    bool found = false;
+    for (auto& eu : property) {
+        if (eu != nullptr) {
+            found = true;
+            out += "emitterUpdater";
+            eu->Dump(out);
+            out += ' ';
+        }
+    }
+    if (found) {
+        out.pop_back();
+    }
+    out += ']';
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
+}
+
+template<>
+void RSRenderProperty<std::shared_ptr<RSMask>>::Dump(std::string& out) const
+{
+    auto property = Get();
+    if (property != nullptr) {
+        property->Dump(out);
+    }
 }
 
 template<>
@@ -606,7 +733,9 @@ bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     }
 }
 
+template class RSRenderProperty<int>;
 template class RSRenderProperty<float>;
+template class RSRenderProperty<Vector4<uint32_t>>;
 template class RSRenderProperty<Vector4f>;
 template class RSRenderProperty<Quaternion>;
 template class RSRenderProperty<Vector2f>;
@@ -618,6 +747,12 @@ template class RSRenderProperty<RRect>;
 template class RSRenderProperty<Drawing::DrawCmdListPtr>;
 template class RSRenderProperty<ForegroundColorStrategyType>;
 template class RSRenderProperty<SkMatrix>;
+template class RSRenderProperty<std::shared_ptr<RSLinearGradientBlurPara>>;
+template class RSRenderProperty<std::shared_ptr<MotionBlurParam>>;
+template class RSRenderProperty<std::shared_ptr<RSMagnifierParams>>;
+template class RSRenderProperty<std::vector<std::shared_ptr<EmitterUpdater>>>;
+template class RSRenderProperty<std::shared_ptr<ParticleNoiseFields>>;
+template class RSRenderProperty<std::shared_ptr<RSMask>>;
 
 template class RSRenderAnimatableProperty<float>;
 template class RSRenderAnimatableProperty<Vector4f>;
