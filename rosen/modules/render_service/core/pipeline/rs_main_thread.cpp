@@ -1370,6 +1370,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
         if (frameRateMgr_ != nullptr && surfaceHandler->GetAvailableBufferCount() > 0) {
+            if (rsVSyncDistributor_ != nullptr) {
+                rsVSyncDistributor_->SetHasNativeBuffer();
+            }
             auto surfaceNodeName = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
             frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
         }
