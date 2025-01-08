@@ -138,6 +138,7 @@ public:
     void ClipRegion(const Region& region, ClipOp op = ClipOp::INTERSECT) override;
     bool IsClipEmpty() override;
     bool IsClipRect() override;
+    bool QuickReject(const Path& path) override;
     bool QuickReject(const Rect& rect) override;
 
     // transform

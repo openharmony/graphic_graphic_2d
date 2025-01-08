@@ -60,10 +60,13 @@ public:
     static napi_value ClipRect(napi_env env, napi_callback_info info);
     static napi_value ConcatMatrix(napi_env env, napi_callback_info info);
     static napi_value DrawArc(napi_env env, napi_callback_info info);
+    static napi_value DrawArcWithCenter(napi_env env, napi_callback_info info);
     static napi_value ClipRoundRect(napi_env env, napi_callback_info info);
     static napi_value DrawCircle(napi_env env, napi_callback_info info);
     static napi_value DrawColor(napi_env env, napi_callback_info info);
     static napi_value DrawImage(napi_env env, napi_callback_info info);
+    static napi_value DrawImageLattice(napi_env env, napi_callback_info info);
+    static napi_value DrawImageNine(napi_env env, napi_callback_info info);
     static napi_value DrawImageRect(napi_env env, napi_callback_info info);
     static napi_value DrawImageRectWithSrc(napi_env env, napi_callback_info info);
     static napi_value DrawLine(napi_env env, napi_callback_info info);
@@ -98,6 +101,8 @@ public:
     static napi_value ResetMatrix(napi_env env, napi_callback_info info);
     static napi_value Translate(napi_env env, napi_callback_info info);
     static napi_value GetLocalClipBounds(napi_env env, napi_callback_info info);
+    static napi_value QuickRejectPath(napi_env env, napi_callback_info info);
+    static napi_value QuickRejectRect(napi_env env, napi_callback_info info);
 
     Canvas* GetCanvas();
     DRAWING_API void ResetCanvas();
@@ -112,10 +117,13 @@ private:
     napi_value OnClipRect(napi_env env, napi_callback_info info);
     napi_value OnConcatMatrix(napi_env env, napi_callback_info info);
     napi_value OnDrawArc(napi_env env, napi_callback_info info);
+    napi_value OnDrawArcWithCenter(napi_env env, napi_callback_info info);
     napi_value OnClipRoundRect(napi_env env, napi_callback_info info);
     napi_value OnDrawCircle(napi_env env, napi_callback_info info);
     napi_value OnDrawColor(napi_env env, napi_callback_info info);
     napi_value OnDrawImage(napi_env env, napi_callback_info info);
+    napi_value OnDrawImageLattice(napi_env env, napi_callback_info info);
+    napi_value OnDrawImageNine(napi_env env, napi_callback_info info);
     napi_value OnDrawImageRect(napi_env env, napi_callback_info info);
     napi_value OnDrawImageRectWithSrc(napi_env env, napi_callback_info info);
     napi_value OnDrawLine(napi_env env, napi_callback_info info);
@@ -148,6 +156,8 @@ private:
     napi_value OnDrawNestedRoundRect(napi_env env, napi_callback_info info);
     napi_value OnGetLocalClipBounds(napi_env env, napi_callback_info info);
     napi_value OnGetTotalMatrix(napi_env env, napi_callback_info info);
+    napi_value OnQuickRejectPath(napi_env env, napi_callback_info info);
+    napi_value OnQuickRejectRect(napi_env env, napi_callback_info info);
 
     static bool CreateConstructor(napi_env env);
     static thread_local napi_ref constructor_;

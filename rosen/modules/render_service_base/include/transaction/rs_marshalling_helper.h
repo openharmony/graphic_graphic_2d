@@ -36,6 +36,8 @@ class PixelMap;
 namespace Rosen {
 class RSExtendImageObject;
 class RSExtendImageBaseObj;
+class RSExtendImageNineObject;
+class RSExtendImageLatticeObject;
 namespace Drawing {
 class DrawCmdList;
 class RecordCmd;
@@ -263,6 +265,8 @@ public:
     DECLARE_FUNCTION_OVERLOAD(std::vector<std::shared_ptr<ParticleRenderParams>>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageObject>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageBaseObj>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageNineObject>)
+    DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RSExtendImageLatticeObject>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Drawing::MaskCmdList>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<Media::PixelMap>)
     DECLARE_FUNCTION_OVERLOAD(std::shared_ptr<RectT<float>>)
