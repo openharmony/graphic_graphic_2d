@@ -1019,7 +1019,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
         return;
     }
 
-    if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()){
+    if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
         curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
     } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
