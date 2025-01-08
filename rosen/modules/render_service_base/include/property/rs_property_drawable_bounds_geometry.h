@@ -419,12 +419,14 @@ std::unique_ptr<RSPropertyDrawable> BlendRestoreDrawableGenerate(const RSRenderC
 
 class RSBlendSaveLayerDrawable : public RSPropertyDrawable {
 public:
-    explicit RSBlendSaveLayerDrawable(int blendMode, std::shared_ptr<Drawing::Blender> blender = nullptr);
+    explicit RSBlendSaveLayerDrawable(int blendMode, int blendModeApplyType,
+        std::shared_ptr<Drawing::Blender> blender = nullptr);
     ~RSBlendSaveLayerDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 private:
     Drawing::Brush blendBrush_;
+    int blendModeApplyType_;
 };
 
 class RSBlendFastDrawable : public RSPropertyDrawable {

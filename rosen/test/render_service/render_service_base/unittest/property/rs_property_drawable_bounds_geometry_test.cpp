@@ -1902,7 +1902,9 @@ HWTEST_F(RSBlendSaveLayerDrawableTest, Draw001, TestSize.Level1)
     RSRenderContent content;
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);
-    auto drawable = std::make_shared<RSBlendSaveLayerDrawable>(2);
+    auto drawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 1);
+    drawable->Draw(content, filterCanvas);
+    drawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 2);
     drawable->Draw(content, filterCanvas);
     EXPECT_NE(drawable, nullptr);
 }
@@ -1981,6 +1983,9 @@ HWTEST_F(BlendRestoreDrawableTest, BlendRestoreDrawableGenerate001, TestSize.Lev
     EXPECT_NE(BlendRestoreDrawableGenerate(content), nullptr);
     content.GetMutableRenderProperties().SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
     EXPECT_NE(BlendRestoreDrawableGenerate(content), nullptr);
+    content.GetMutableRenderProperties().SetColorBlendApplyType(
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA));
+    EXPECT_NE(BlendRestoreDrawableGenerate(content), nullptr);
 }
 
 /**
@@ -1998,6 +2003,9 @@ HWTEST_F(BlendSaveDrawableTest, BlendSaveDrawableGenerate001, TestSize.Level1)
     content.GetMutableRenderProperties().SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::FAST));
     EXPECT_NE(BlendSaveDrawableGenerate(content), nullptr);
     content.GetMutableRenderProperties().SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
+    EXPECT_NE(BlendSaveDrawableGenerate(content), nullptr);
+    content.GetMutableRenderProperties().SetColorBlendApplyType(
+        static_cast<int>(RSColorBlendApplyType::SAVE_LAYER_ALPHA));
     EXPECT_NE(BlendSaveDrawableGenerate(content), nullptr);
 }
 

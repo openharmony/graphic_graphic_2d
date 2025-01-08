@@ -557,7 +557,7 @@ void RSSymbolAnimation::GroupDrawing(const std::shared_ptr<RSCanvasNode>& canvas
     // if there is mask layer, set the blendmode on the original node rsNode_
     if (symbolNode.isMask) {
         rsNode_->SetColorBlendMode(RSColorBlendMode::SRC_OVER);
-        rsNode_->SetColorBlendApplyType(RSColorBlendApplyType::SAVE_LAYER);
+        rsNode_->SetColorBlendApplyType(RSColorBlendApplyType::SAVE_LAYER_ALPHA);
     }
 
     // drawing a symbol or a path group

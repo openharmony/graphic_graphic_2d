@@ -736,7 +736,7 @@ bool DoRSBlendSaveLayerDrawable(const uint8_t* data, size_t size)
     g_size = size;
     g_pos = 0;
 
-    auto rsBlendSaveLayerDrawable = std::make_shared<RSBlendSaveLayerDrawable>(2);
+    auto rsBlendSaveLayerDrawable = std::make_shared<RSBlendSaveLayerDrawable>(2, 1);
     RSRenderContent content;
     int32_t width = GetData<int32_t>();
     int32_t height = GetData<int32_t>();
