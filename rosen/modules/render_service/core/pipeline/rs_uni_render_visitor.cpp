@@ -1939,7 +1939,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSS
     }
 }
 
-void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr)
+void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu)
 {
     if (hwcNodePtr == nullptr) {
         return;
@@ -1961,27 +1961,21 @@ void RSUniRenderVisitor::ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& h
         RS_OPTIONAL_TRACE_NAME_FMT("ProcessAncoNode: name:%s id:%" PRIu64 " hardware force disabled",
             hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
     }
-    ancoHasGpu_ = (ancoHasGpu_ || hwcNodePtr->IsHardwareForcedDisabled());
-}
-
-void RSUniRenderVisitor::InitAncoStatus()
-{
-    ancoHasGpu_ = false;
-    ancoNodes_.clear();
+    ancoHasGpu = (ancoHasGpu || hwcNodePtr->IsHardwareForcedDisabled());
 }
 
 void RSUniRenderVisitor::UpdateHwcNodeEnable()
 {
-    InitAncoStatus();
+    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
 #ifdef HIPERF_TRACE_ENABLE
     int inputHwclayers = 3;
 #endif
     auto& curMainAndLeashSurfaces = curDisplayNode_->GetAllMainAndLeashSurfaces();
     std::for_each(curMainAndLeashSurfaces.rbegin(), curMainAndLeashSurfaces.rend(),
 #ifdef HIPERF_TRACE_ENABLE
-        [this, &inputHwclayers](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &inputHwclayers, &ancoNodes](RSBaseRenderNode::SharedPtr& nodePtr) {
 #else
-        [this](RSBaseRenderNode::SharedPtr& nodePtr) {
+        [this, &ancoNodes](RSBaseRenderNode::SharedPtr& nodePtr) {
 #endif
         auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodePtr);
         if (!surfaceNode) {
@@ -2025,7 +2019,7 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
             UpdateHwcNodeEnableByRotateAndAlpha(hwcNodePtr);
             UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(hwcRects, hwcNodePtr);
             if ((hwcNodePtr->GetAncoFlags() & static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE)) != 0) {
-                ancoNodes_.insert(hwcNodePtr);
+                ancoNodes.insert(hwcNodePtr);
             }
         }
     });
@@ -2034,22 +2028,23 @@ void RSUniRenderVisitor::UpdateHwcNodeEnable()
 #endif
     PrevalidateHwcNode();
     UpdateHwcNodeEnableByNodeBelow();
-    UpdateAncoNodeHWCDisabledState();
+    UpdateAncoNodeHWCDisabledState(ancoNodes);
 }
 
-void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState()
+void RSUniRenderVisitor::UpdateAncoNodeHWCDisabledState(
+    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes)
 {
-    for (auto hwcNodePtr : ancoNodes_) {
-        ProcessAncoNode(hwcNodePtr);
+    bool ancoHasGpu = false;
+    for (auto hwcNodePtr : ancoNodes) {
+        ProcessAncoNode(hwcNodePtr, ancoHasGpu);
     }
-    if (ancoHasGpu_) {
-        for (const auto& hwcNodePtr : ancoNodes_) {
+    if (ancoHasGpu) {
+        for (const auto& hwcNodePtr : ancoNodes) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by anco has gpu",
                 hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
         }
     }
-    InitAncoStatus();
 }
 
 void RSUniRenderVisitor::PrevalidateHwcNode()
