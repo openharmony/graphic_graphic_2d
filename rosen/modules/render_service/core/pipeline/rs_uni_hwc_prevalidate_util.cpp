@@ -75,10 +75,22 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
 {
     if (!preValidateFunc_) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::PreValidate preValidateFunc is null");
+        ClearCldInfo(infos);
         return false;
     }
     int32_t ret = preValidateFunc_(id, infos, strategy);
+    ClearCldInfo(infos);
     return ret == 0;
+}
+
+void RSUniHwcPrevalidateUtil::ClearCldInfo(std::vector<RequestLayerInfo>& infos)
+{
+    for (auto& info: infos) {
+        if (info.cldInfo != nullptr) {
+            delete info.cldInfo;
+            info.cldInfo = nullptr;
+        }
+    }
 }
 
 bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
