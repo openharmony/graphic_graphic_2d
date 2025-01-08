@@ -3281,16 +3281,24 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
         RS_LOGE("RSSurfaceRenderNode::CalDrawBehindWindowRegion, invalid context");
     }
     RectI region;
+    auto geoPtr = GetMutableRenderProperties().GetBoundsGeometry();
+    auto surfaceAbsMatrix = geoPtr->GetAbsMatrix();
+    Drawing::Matrix invertSurfaceAbsMatrix;
+    surfaceAbsMatrix.Invert(invertSurfaceAbsMatrix);
     for (auto& id : childrenBlurBehindWindow_) {
         if (auto child = context->GetNodeMap().GetRenderNode<RSRenderNode>(id)) {
-            auto childRect = child->GetMutableRenderProperties().GetBoundsGeometry()->GetAbsRect();
-            region = region.JoinRect(childRect);
+            auto childRelativeMatrix = child->GetMutableRenderProperties().GetBoundsGeometry()->GetAbsMatrix();
+            childRelativeMatrix.PostConcat(invertSurfaceAbsMatrix);
+            auto childRelativeRect = geoPtr->MapRect(child->GetSelfDrawRect(), childRelativeMatrix);
+            region = region.JoinRect(childRelativeRect);
         } else {
             RS_LOGE("RSSurfaceRenderNode::CalDrawBehindWindowRegion, get child failed");
             return;
         }
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
+        GetId(), region.ToString().c_str());
+    RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",
         GetId(), region.ToString().c_str());
     drawBehindWindowRegion_ = region;
     auto filterDrawable = GetFilterDrawable(false);
@@ -3302,7 +3310,19 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
 
 RectI RSSurfaceRenderNode::GetFilterRect() const
 {
-    return NeedDrawBehindWindow() ? drawBehindWindowRegion_ : RSRenderNode::GetFilterRect();
+    if (!NeedDrawBehindWindow()) {
+        return RSRenderNode::GetFilterRect();
+    }
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto surfaceAbsMatrix = geoPtr->GetAbsMatrix();
+    RectF regionF(drawBehindWindowRegion_.GetLeft(), drawBehindWindowRegion_.GetTop(),
+        drawBehindWindowRegion_.GetRight(), drawBehindWindowRegion_.GetBottom());
+    return geoPtr->MapRect(regionF, surfaceAbsMatrix);
+}
+
+RectI RSSurfaceRenderNode::GetBehindWindowRegion() const
+{
+    return drawBehindWindowRegion_;
 }
 
 bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()

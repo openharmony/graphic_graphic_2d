@@ -1352,6 +1352,7 @@ public:
     void RemoveChildBlurBehindWindow(NodeId id) override;
     void CalDrawBehindWindowRegion() override;
     RectI GetFilterRect() const override;
+    RectI GetBehindWindowRegion() const override;
     void SetUifirstStartingFlag(bool flag);
     void UpdateCrossNodeSkippedDisplayOffset(NodeId displayId, int32_t offsetX, int32_t offsetY)
     {

@@ -845,6 +845,7 @@ public:
     virtual void AddChildBlurBehindWindow(NodeId id) {}
     virtual void RemoveChildBlurBehindWindow(NodeId id) {}
     virtual void CalDrawBehindWindowRegion() {}
+    virtual RectI GetBehindWindowRegion() const { return {}; };
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);

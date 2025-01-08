@@ -224,8 +224,12 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             }
             Drawing::AutoCanvasRestore acr(*canvas, true);
             paintFilterCanvas->ClipRect(*rect);
-            Drawing::RectI bounds(ptr->drawBehindWindowRegion_.GetLeft(), ptr->drawBehindWindowRegion_.GetTop(),
+            Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
+            Drawing::Rect relativeBounds(ptr->drawBehindWindowRegion_.GetLeft(), ptr->drawBehindWindowRegion_.GetTop(),
                 ptr->drawBehindWindowRegion_.GetRight(), ptr->drawBehindWindowRegion_.GetBottom());
+            canvas->GetTotalMatrix().MapRect(absRect, relativeBounds);
+            Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()),
+                std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
             auto deviceRect = Drawing::RectI(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
             bounds.Intersect(deviceRect);
             RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, ptr->filter_, ptr->cacheManager_,

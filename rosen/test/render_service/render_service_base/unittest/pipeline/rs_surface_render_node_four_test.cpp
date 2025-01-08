@@ -514,5 +514,22 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Lev
     node->RemoveChildBlurBehindWindow(idOne);
     ASSERT_FALSE(node->NeedDrawBehindWindow());
 }
+
+/**
+ * @tc.name: GetBehindWindowRegionTest
+ * @tc.desc: GetBehindWindowRegionTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBFVDA
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, GetBehindWindowRegionTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    RectI region(0, 0, 1, 1);
+    surfaceNode->drawBehindWindowRegion_ = region;
+    ASSERT_EQ(surfaceNode->GetBehindWindowRegion(), region);
+    auto node = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(node->GetBehindWindowRegion(), region);
+}
 } // namespace Rosen
 } // namespace OHOS
