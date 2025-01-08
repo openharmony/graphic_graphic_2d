@@ -218,7 +218,6 @@ HWTEST_F(SkiaGPUContextTest, ReleaseByTag001, TestSize.Level1)
     gpuContext->ReleaseByTag(tag);
     GrMockOptions options;
     gpuContext->SetGrContext(GrDirectContext::MakeMock(&options));
-    gpuContext->ReleaseByTag(tag);
 }
 
 /**

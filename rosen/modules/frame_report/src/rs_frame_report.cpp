@@ -118,6 +118,18 @@ int RsFrameReport::GetEnable()
     }
 }
 
+void RsFrameReport::ReportSchedEvent(FrameSchedEvent event, const std::unordered_map<std::string, std::string> &payload)
+{
+    if (reportSchedEventFunc_ == nullptr) {
+        reportSchedEventFunc_ = (ReportSchedEventFunc)LoadSymbol("ReportSchedEvent");
+    }
+    if (reportSchedEventFunc_ != nullptr) {
+        reportSchedEventFunc_(event, payload);
+    } else {
+        LOGE("RsFrameReport load ReportSchedEvent function failed!");
+    }
+}
+
 void RsFrameReport::ProcessCommandsStart()
 {
     if (processCommandsStartFun_ == nullptr) {
@@ -216,6 +228,21 @@ void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, in
     } else {
         LOGE("RsFrameReport:[SetFrameParam]load SetFrameParam function failed");
     }
+}
+
+void RsFrameReport::UnblockMainThread()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_UNBLOCK_MAINTHREAD, {});
+}
+
+void RsFrameReport::PostAndWait()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_POST_AND_WAIT, {});
+}
+
+void RsFrameReport::BeginFlush()
+{
+    ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -39,6 +39,11 @@ size_t MemoryNodeOfPid::GetMemSize()
     return nodeSize_;
 }
 
+void MemoryNodeOfPid::SetMemSize(size_t size)
+{
+    nodeSize_ = size;
+}
+
 bool MemoryNodeOfPid::operator==(const MemoryNodeOfPid& other)
 {
     return nodeId_ == other.nodeId_;
@@ -53,9 +58,32 @@ MemoryTrack& MemoryTrack::Instance()
 void MemoryTrack::AddNodeRecord(const NodeId id, const MemoryInfo& info)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    memNodeMap_.emplace(id, info);
     MemoryNodeOfPid nodeInfoOfPid(info.size, id);
-    memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
+    auto itr = memNodeMap_.find(id);
+    if (itr == memNodeMap_.end()) {
+        memNodeMap_.emplace(id, info);
+        memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
+        return;
+    } else if (info.size > itr->second.size) {
+        nodeInfoOfPid.SetMemSize(itr->second.size);
+        itr->second.size = info.size;
+    } else {
+        return;
+    }
+    
+    if (memNodeOfPidMap_.find(info.pid) != memNodeOfPidMap_.end()) {
+        auto pidMemItr = std::find(memNodeOfPidMap_[info.pid].begin(),
+            memNodeOfPidMap_[info.pid].end(), nodeInfoOfPid);
+        if (pidMemItr != memNodeOfPidMap_[info.pid].end()) {
+            pidMemItr->SetMemSize(info.size);
+        } else {
+            nodeInfoOfPid.SetMemSize(info.size);
+            memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
+        }
+    } else {
+        nodeInfoOfPid.SetMemSize(info.size);
+        memNodeOfPidMap_[info.pid].push_back(nodeInfoOfPid);
+    }
 }
 
 bool MemoryTrack::RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size)

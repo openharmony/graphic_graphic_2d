@@ -636,6 +636,15 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
     return screenManager_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
+int32_t RSRenderServiceConnection::SetScreenSecurityMask(ScreenId id,
+    const std::shared_ptr<Media::PixelMap> securityMask)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetScreenSecurityMask(id, std::move(securityMask));
+}
+
 int32_t RSRenderServiceConnection::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
 {
     if (screenManager_ == nullptr) {
@@ -1960,11 +1969,12 @@ uint32_t RSRenderServiceConnection::SetScreenActiveRect(
         .h = activeRect.h,
     };
     auto result = screenManager_->SetScreenActiveRect(id, dstActiveRect);
-    if (result == StatusCode::SUCCESS) {
-        HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
-            OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
-        });
+    if (result != StatusCode::SUCCESS) {
+        RS_LOGE("SetScreenActiveRect Fail with result: %{public}d", result);
     }
+    HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
+            OHOS::Rosen::HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
+    });
     return result;
 }
 

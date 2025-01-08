@@ -162,6 +162,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     }
 
     if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        surfaceNode_ = surfaceNode;
         auto curNode = surfaceNode;
         if (!captureConfig_.useCurWindow) {
             auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(surfaceNode->GetParent().lock());
@@ -213,7 +214,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
     if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
         canvas.ClipRect({0, 0, rect.GetWidth(), rect.GetHeight()});
-        canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetRight());
+        canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetTop());
     }
     canvas.SetDisableFilterCache(true);
     RSSurfaceRenderParams* curNodeParams = nullptr;
@@ -304,9 +305,10 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByS
         " origin pixelmap size: [%{public}u, %{public}u],"
         " scale: [%{public}f, %{public}f],"
         " useDma: [%{public}d], useCurWindow: [%{public}d],"
-        " isOnTheTree: [%{public}d]",
+        " isOnTheTree: [%{public}d], isVisible: [%{public}d]",
         node->GetId(), pixmapWidth, pixmapHeight, captureConfig_.scaleX, captureConfig_.scaleY,
-        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree());
+        captureConfig_.useDma, captureConfig_.useCurWindow, node->IsOnTheTree(),
+        !surfaceNode_->GetVisibleRegion().IsEmpty());
     return Media::PixelMap::Create(opts);
 }
 
@@ -330,9 +332,11 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTaskParallel::CreatePixelMapByD
     uint32_t pixmapWidth = screenInfo.width;
     uint32_t pixmapHeight = screenInfo.height;
     const Drawing::Rect& rect = captureConfig_.mainScreenRect;
-    if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
-        pixmapWidth = ceil(rect.GetWidth());
-        pixmapHeight = ceil(rect.GetHeight());
+    float rectWidth = rect.GetWidth();
+    float rectHeight = rect.GetHeight();
+    if (rectWidth > 0 && rectHeight > 0 && rectWidth <= pixmapWidth && rectHeight <= pixmapHeight) {
+        pixmapWidth = floor(rectWidth);
+        pixmapHeight = floor(rectHeight);
     }
 
     Media::InitializationOptions opts;

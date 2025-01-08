@@ -514,6 +514,17 @@ void RSRenderProperty<Drawing::DrawCmdListPtr>::Dump(std::string& out) const
 }
 
 template<>
+size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const
+{
+    auto propertyData = Get();
+    size_t size = sizeof(*this);
+    if (propertyData != nullptr) {
+        size += propertyData->GetSize();
+    }
+    return size;
+}
+
+template<>
 void RSRenderProperty<ForegroundColorStrategyType>::Dump(std::string& out) const
 {
     out += std::to_string(static_cast<int>(Get()));

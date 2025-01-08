@@ -227,7 +227,7 @@ void RSFilterCacheManager::TakeSnapshot(
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, srcRect);
     } else {
         // Take a screenshot
-        snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);
+        snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     }
 
     if (snapshot == nullptr) {

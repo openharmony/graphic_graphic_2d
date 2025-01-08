@@ -104,7 +104,7 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
         return true;
     }
     if (uniParams.IsFirstVisitCrossNodeDisplay() &&
-        !RSUniRenderThread::IsInCaptureProcess() && !uniParams.HasDisplayHdrOn() &&
+        RSUniRenderThread::IsExpandScreenMode() && !uniParams.HasDisplayHdrOn() &&
         uniParams.GetCrossNodeOffScreenStatus() != CrossNodeOffScreenRenderDebugType::DISABLED) {
         RS_TRACE_NAME_FMT("%s cache cross node[%s]", __func__, GetName().c_str());
         return true;
@@ -393,6 +393,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             name_.c_str(), surfaceParams->GetId());
         return;
     }
+    if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
+        return;
+    }
     RS_LOGD("RSSurfaceRenderNodeDrawable ondraw name:%{public}s nodeId:[%{public}" PRIu64 "]", name_.c_str(),
         surfaceParams->GetId());
     
@@ -401,11 +404,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         SetDrawSkipType(DrawSkipType::RENDER_ENGINE_NULL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw renderEngine is nullptr");
         return;
-    }
-    auto unmappedCache = surfaceParams->GetBufferClearCacheSet();
-    if (unmappedCache.size() > 0) {
-        // remove imagecahce when its bufferQueue gobackground
-        renderEngine->ClearCacheSet(unmappedCache);
     }
     if (autoCacheEnable_) {
         nodeCacheType_ = NodeStrategyType::CACHE_NONE;
@@ -708,7 +706,21 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
     SetVirtualScreenWhiteListRootId(whiteList, surfaceParams->GetId());
 
+    if (RSSystemProperties::GetCacheOptimizeRotateEnable() &&
+        surfaceParams->GetName().find(WALLPAPER) != std::string::npos) {
+        auto translate = RSUniRenderThread::Instance().GetWallpaperTranslate();
+        canvas.Translate(-translate.first, -translate.second);
+    }
+
     if (CheckIfSurfaceSkipInMirror(*surfaceParams)) {
+        return;
+    }
+
+    if (surfaceParams->GetHardCursorStatus() &&
+        (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) ||
+            RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
+        SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip SurfaceName:%s", name_.c_str());
         return;
     }
 
@@ -796,35 +808,33 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     auto isSnapshotSkipLayer =
         RSUniRenderThread::GetCaptureParam().isSnapshot_ && surfaceParams.GetIsSnapshotSkipLayer();
-    if ((surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
-        !RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
-        return;
-    }
-
-    auto isSecurityLayer = surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption();
-    if ((UNLIKELY(isSecurityLayer)|| surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) &&
-        RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+    if (UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) ||
+        surfaceParams.GetIsSkipLayer() || isSnapshotSkipLayer) {
         RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
             process RSSurfaceRenderNode(id:[%{public}" PRIu64
                 "] name:[%{public}s]) with security or skip layer, isNeedBlur:[%{public}s]",
             surfaceParams.GetId(), name_.c_str(), RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
         RS_TRACE_NAME_FMT("CaptureSurface with security or skip layer, isNeedBlur: %s",
             RSUniRenderThread::GetCaptureParam().isNeedBlur_ ? "true" : "false");
-        if (!(UNLIKELY(isSecurityLayer) && RSUniRenderThread::GetCaptureParam().isNeedBlur_)) {
-            Drawing::Brush rectBrush;
-            rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
-            canvas.AttachBrush(rectBrush);
-            canvas.DrawRect(Drawing::Rect(0, 0, surfaceParams.GetBounds().GetWidth(),
-                surfaceParams.GetBounds().GetHeight()));
-            canvas.DetachBrush();
+        if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
+            if (!(UNLIKELY(surfaceParams.GetIsSecurityLayer() && !uniParams->GetSecExemption()) &&
+                RSUniRenderThread::GetCaptureParam().isNeedBlur_)) {
+                Drawing::Brush rectBrush;
+                rectBrush.SetColor(Drawing::Color::COLOR_WHITE);
+                canvas.AttachBrush(rectBrush);
+                canvas.DrawRect(Drawing::Rect(
+                    0, 0, surfaceParams.GetBounds().GetWidth(), surfaceParams.GetBounds().GetHeight()));
+                canvas.DetachBrush();
+                return;
+            }
+        } else {
             return;
         }
     }
 
-    if (surfaceParams.GetIsProtectedLayer() || (RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
-        !RSUniRenderThread::GetCaptureParam().isSingleSurface_ && UNLIKELY(isSecurityLayer))) {
-        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: process RSSurfaceRenderNode(id:[%{public}" PRIu64 "]\
-            name:[%{public}s]) with protected layer or isSingleSurface with security layer.",
+    if (surfaceParams.GetIsProtectedLayer()) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::CaptureSurface: \
+            process RSSurfaceRenderNode(id:[%{public}" PRIu64 "] name:[%{public}s]) with protected layer.",
             surfaceParams.GetId(), name_.c_str());
         Drawing::Brush rectBrush;
         rectBrush.SetColor(Drawing::Color::COLOR_BLACK);
@@ -917,7 +927,7 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams)
 {
     if ((surfaceParams.GetHardwareEnabled() || surfaceParams.GetHardCursorStatus()) &&
-        !RSUniRenderThread::IsInCaptureProcess()) {
+        RSUniRenderThread::IsExpandScreenMode()) {
         if (!IsHardwareEnabledTopSurface() && !surfaceParams.IsLayerTop()) {
             ClipHoleForSelfDrawingNode(canvas, surfaceParams);
         }

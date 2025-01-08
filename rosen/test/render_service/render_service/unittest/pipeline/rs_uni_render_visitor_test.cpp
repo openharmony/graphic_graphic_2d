@@ -5340,10 +5340,11 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessAncoNode001, TestSize.Level2)
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr);
+    bool ancoHasGpu = false;
+    rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr, ancoHasGpu);
 
     hwcNodePtr->SetGlobalAlpha(1.0f);
-    rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr);
+    rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr, ancoHasGpu);
 }
 
 /**
@@ -5360,7 +5361,8 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessAncoNode002, TestSize.Level2)
 
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr);
+    bool ancoHasGpu = false;
+    rsUniRenderVisitor->ProcessAncoNode(hwcNodePtr, ancoHasGpu);
 }
 
 /**
@@ -5447,8 +5449,9 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateAncoNodeHWCDisabledState, TestSize.Level1
     auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(hwcNodePtr, nullptr);
     hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
-    rsUniRenderVisitor->ancoNodes_.insert(hwcNodePtr);
-    rsUniRenderVisitor->UpdateAncoNodeHWCDisabledState();
+    std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes;
+    ancoNodes.insert(hwcNodePtr);
+    rsUniRenderVisitor->UpdateAncoNodeHWCDisabledState(ancoNodes);
 }
 
 /*

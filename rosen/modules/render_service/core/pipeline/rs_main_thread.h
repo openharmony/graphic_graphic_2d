@@ -55,6 +55,8 @@
 #include "vsync_system_ability_listener.h"
 #endif
 
+#include "hgm_core.h"
+
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
@@ -390,6 +392,11 @@ public:
     {
         return curTime_;
     }
+
+    std::set<uint32_t>& GetUnmappedCacheSet()
+    {
+        return unmappedCacheSet_;
+    }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -514,7 +521,12 @@ private:
     void OnCommitDumpClientNodeTree(NodeId nodeId, pid_t pid, uint32_t taskId, const std::string& result);
 
     // Used for CommitAndReleaseLayers task
-    void SetFrameInfo(uint64_t frameCount);
+    void SetFrameInfo(uint64_t frameCount, bool forceRefreshFlag);
+
+    void ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
+
+    // Used for closing HDR in PC multidisplay becauseof performance
+    void CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -534,6 +546,16 @@ private:
     std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
+    /**
+     * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.
+     *
+     * This set is used to track images that are no longer needed and should be removed from the GPU cache.
+     * When an image is unmapped, its buffer ID is added to this set. During the rendering process,
+     * if an image is found in this set, it means that the image is no longer needed and can be safely
+     * removed from the GPU cache.
+     */
+    std::set<uint32_t> unmappedCacheSet_ = {};
+
     uint64_t curTime_ = 0;
     uint64_t timestamp_ = 0;
     uint64_t vsyncId_ = 0;
@@ -541,7 +563,7 @@ private:
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
     pid_t lastCleanCachePid_ = -1;
-    int hardwareTid_ = -1;
+    int preHardwareTid_ = -1;
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
@@ -622,6 +644,7 @@ private:
     bool doDirectComposition_ = true;
 #ifdef RS_ENABLE_GPU
     bool needDrawFrame_ = true;
+    bool needPostAndWait_ = true;
 #endif
     bool isLastFrameDirectComposition_ = false;
     bool isNeedResetClearMemoryTask_ = false;
@@ -745,6 +768,14 @@ private:
     bool isRegionDebugEnabledOfLastFrame_ = false;
 
     bool isForceRefresh_ = false;
+
+    // record multidisplay status change
+    bool isMultiDisplayPre_ = false;
+    
+    // render start hardware task count
+    uint32_t preUnExecuteTaskNum_ = 0;
+    int64_t preIdealPeriod_ = 0;
+    int64_t preExtraReserve_ = 0;
 
 #ifdef RS_ENABLE_VK
     bool needCreateVkPipeline_ = true;

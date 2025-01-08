@@ -480,7 +480,7 @@ void HgmFrameRateManager::FrameRateReport()
     } else if (schedulePreferredFps_ == OLED_60_HZ && currRefreshRate_ == OLED_60_HZ) {
         rates[UNI_APP_PID] = OLED_60_HZ;
     } else {
-        rates[UNI_APP_PID] = OLED_120_HZ;
+        rates[UNI_APP_PID] = schedulePreferredFps_;
     }
     HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
@@ -974,6 +974,12 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIR
     RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%d activeRect(%d, %d, %d, %d)",
         id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
+    auto& hgmCore = HgmCore::Instance();
+    auto screen = hgmCore.GetScreen(id);
+    if (!screen || screen->GetSelfOwnedScreenFlag()) {
+        return;
+    }
+
     auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
 
     std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
@@ -992,8 +998,10 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
     if (configData == nullptr) {
         return;
     }
-    curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
-    if (curScreenStrategyId_.empty()) {
+
+    if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
+        curScreenStrategyId_ = configData->screenStrategyConfigs_[curScreenName];
+    } else {
         curScreenStrategyId_ = "LTPO-DEFAULT";
     }
 

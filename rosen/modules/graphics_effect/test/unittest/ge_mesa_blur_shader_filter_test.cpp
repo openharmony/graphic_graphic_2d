@@ -176,6 +176,24 @@ HWTEST_F(GEMESABlurShaderFilterTest, ProcessImage003, TestSize.Level1)
 
         EXPECT_EQ(geMESABlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
     }
+
+    for (auto radius : blurRadius) {
+        // 1, 1.f: valid MESA blur params
+        Drawing::GEMESABlurShaderFilterParams params{radius, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1, 1.f, 1.f};
+        auto geMESABlurShaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
+        ASSERT_TRUE(geMESABlurShaderFilter != nullptr);
+
+        EXPECT_EQ(geMESABlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+    }
+
+    for (auto radius : blurRadius) {
+        // 2, 2.f: valid MESA blur params
+        Drawing::GEMESABlurShaderFilterParams params{radius, 2.f, 2.f, 2.f, 2.f, 2.f, 2.f, 2, 2.f, 2.f};
+        auto geMESABlurShaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
+        ASSERT_TRUE(geMESABlurShaderFilter != nullptr);
+
+        EXPECT_EQ(geMESABlurShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+    }
 }
 
 /**
@@ -223,39 +241,5 @@ HWTEST_F(GEMESABlurShaderFilterTest, ScaleAndAddRandomColor001, TestSize.Level1)
     EXPECT_NE(filter2->ScaleAndAddRandomColor(canvas_, image_, imageBlur, src_, dst_, width, height), image_);
 }
 
-/**
- * @tc.name: ComputeRadiusAndScale001
- * @tc.desc: Verify function ComputeRadiusAndScale
- * @tc.type:FUNC
- */
-HWTEST_F(GEMESABlurShaderFilterTest, ComputeRadiusAndScale001, TestSize.Level1)
-{
-    // 1, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f valid MESA blur params
-    Drawing::GEMESABlurShaderFilterParams params {1, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f};
-    auto geMESABlurShaderFilter = std::make_shared<GEMESABlurShaderFilter>(params);
-
-    geMESABlurShaderFilter->ComputeRadiusAndScale(240); // 240 blur radius
-    geMESABlurShaderFilter->ComputeRadiusAndScale(120); // 120 blur radius
-    geMESABlurShaderFilter->ComputeRadiusAndScale(50); // 50 blur radius
-    geMESABlurShaderFilter->ComputeRadiusAndScale(18); // 18 blur radius
-    geMESABlurShaderFilter->ComputeRadiusAndScale(9); // 9 blur radius
-    std::string expect = "blur radius is " + std::to_string(float(9)); // 9 match result
-    EXPECT_EQ(geMESABlurShaderFilter->GetDescription(), expect);
-}
-
-/**
- * @tc.name: GetShaderEffect001
- * @tc.desc: Verify function GetShaderEffect
- * @tc.type:FUNC
- */
-HWTEST_F(GEMESABlurShaderFilterTest, GetShaderEffect001, TestSize.Level1)
-{
-    // 1, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f valid MESA blur params
-    Drawing::GEMESABlurShaderFilterParams params {1, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0, 0.f, 0.f};
-    auto filter = std::make_shared<GEMESABlurShaderFilter>(params);
-    Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-
-    EXPECT_NE(filter->GetShaderEffect(image_, linear, Drawing::Matrix()), nullptr);
-}
 } // namespace GraphicsEffectEngine
 } // namespace OHOS

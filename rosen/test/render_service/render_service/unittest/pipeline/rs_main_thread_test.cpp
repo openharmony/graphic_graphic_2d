@@ -4631,6 +4631,7 @@ HWTEST_F(RSMainThreadTest, IsOcclusionNodesNeedSync004, TestSize.Level2)
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(nodeId);
     ASSERT_NE(node, nullptr);
     node->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+    node->SetIsOnTheTree(true);
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
     ASSERT_FALSE(mainThread->IsOcclusionNodesNeedSync(nodeId, false));
@@ -4842,5 +4843,20 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition002, TestSize.Level1)
 
     bool doDirectComposition = mainThread->DoDirectComposition(rootNode, false);
     ASSERT_FALSE(doDirectComposition);
+}
+
+/**
+ * @tc.name: CloseHdrWhenMultiDisplayInPCTest
+ * @tc.desc: test CloseHdrWhenMultiDisplayInPCTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadTest, CloseHdrWhenMultiDisplayInPCTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isMultiDisplayPre = mainThread->isMultiDisplayPre_;
+    mainThread->CloseHdrWhenMultiDisplayInPC(isMultiDisplayPre);
+    EXPECT_EQ(isMultiDisplayPre, mainThread->isMultiDisplayPre_);
 }
 } // namespace OHOS::Rosen

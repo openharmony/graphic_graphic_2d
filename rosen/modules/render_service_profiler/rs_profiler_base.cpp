@@ -183,13 +183,16 @@ std::shared_ptr<MessageParcel> RSProfiler::CopyParcel(const MessageParcel& parce
     }
 
     if (IsParcelMock(parcel)) {
-        auto* buffer = new uint8_t[sizeof(MessageParcel) + 1];
+        auto* buffer = new(std::nothrow) uint8_t[sizeof(MessageParcel) + 1];
+        if (!buffer) {
+            return std::make_shared<MessageParcel>();
+        }
         auto* mpPtr = new (buffer + 1) MessageParcel;
         return std::shared_ptr<MessageParcel>(mpPtr, [](MessageParcel* ptr) {
             ptr->~MessageParcel();
             auto* allocPtr = reinterpret_cast<uint8_t*>(ptr);
             allocPtr--;
-            delete allocPtr;
+            delete[] allocPtr;
         });
     }
 
@@ -1069,8 +1072,8 @@ uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
 
     constexpr uint32_t depthToAnalyze = 10;
     uint32_t drawCmdListCount = CalcNodeCmdListCount(*node);
-    uint32_t valuableChildrenCount = 0;
     if (node->GetSortedChildren()) {
+        uint32_t valuableChildrenCount = 0;
         for (auto& child : *node->GetSortedChildren()) {
             if (child && child->GetType() != RSRenderNodeType::EFFECT_NODE && depth < depthToAnalyze) {
                 nodeSet.emplace_back(child->id_, depth + 1);

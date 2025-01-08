@@ -105,6 +105,9 @@ private:
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
+    int32_t SetScreenSecurityMask(ScreenId id,
+        const std::shared_ptr<Media::PixelMap> securityMask) override;
+
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;

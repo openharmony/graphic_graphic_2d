@@ -158,6 +158,7 @@ public:
     // the self-drawing node use hardware composer in some condition,
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
+    void SetApiCompatibleVersion(uint32_t version);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

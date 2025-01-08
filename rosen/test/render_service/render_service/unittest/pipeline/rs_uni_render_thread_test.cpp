@@ -570,4 +570,58 @@ HWTEST_F(RSUniRenderThreadTest, IsHighContrastTextModeOn, TestSize.Level1)
     instance.uniRenderEngine_->SetHighContrast(false);
     ASSERT_FALSE(instance.IsHighContrastTextModeOn());
 }
+
+/**
+ * @tc.name: GetActualTimestamp
+ * @tc.desc: Test GetActualTimestamp
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetActualTimestamp, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    int64_t actualTimestamp = instance.GetActualTimestamp();
+    if (renderThreadParams) {
+        EXPECT_EQ(actualTimestamp, renderThreadParams->GetActualTimestamp());
+    } else {
+        EXPECT_EQ(actualTimestamp, 0);
+    }
+}
+
+/**
+ * @tc.name: GetVsyncId
+ * @tc.desc: Test GetVsyncId
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetVsyncId, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    int64_t vsyncId = instance.GetVsyncId();
+    if (renderThreadParams) {
+        EXPECT_EQ(vsyncId, renderThreadParams->GetVsyncId());
+    } else {
+        EXPECT_EQ(vsyncId, 0);
+    }
+}
+
+/**
+ * @tc.name: GetForceRefreshFlag
+ * @tc.desc: Test GetForceRefreshFlag
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetForceRefreshFlag, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    int64_t forceRefreshFlag = instance.GetForceRefreshFlag();
+    if (renderThreadParams) {
+        EXPECT_EQ(forceRefreshFlag, renderThreadParams->GetForceRefreshFlag());
+    } else {
+        EXPECT_FALSE(forceRefreshFlag);
+    }
+}
 }

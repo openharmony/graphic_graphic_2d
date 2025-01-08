@@ -1204,6 +1204,21 @@ const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
     return securityExemptionList_;
 }
 
+int32_t RSScreen::SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask)
+{
+    if (!IsVirtual()) {
+        RS_LOGW("RSScreen::SetSecurityMask not virtual screen");
+        return SCREEN_NOT_FOUND;
+    }
+    securityMask_ = std::move(securityMask);
+    return SUCCESS;
+}
+
+std::shared_ptr<Media::PixelMap> RSScreen::GetSecurityMask() const
+{
+    return securityMask_;
+}
+
 void RSScreen::SetEnableVisibleRect(bool enable)
 {
     enableVisibleRect_ = enable;

@@ -332,11 +332,14 @@ public:
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
+    void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
     CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
     {

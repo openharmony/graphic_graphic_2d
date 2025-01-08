@@ -55,6 +55,9 @@ private:
     void DumpVkTextureLimit(std::string& dumpString) const;
 #endif
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
+
+    void DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
+
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;

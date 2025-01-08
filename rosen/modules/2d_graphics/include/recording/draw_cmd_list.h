@@ -210,6 +210,9 @@ public:
     void Purge();
 
     void SetIsNeedUnmarshalOnDestruct(bool isNeedUnmarshalOnDestruct);
+
+    size_t GetSize();
+
 private:
     void ClearCache();
     void GenerateCacheByVector(Canvas* canvas, const Rect* rect);

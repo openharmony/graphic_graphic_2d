@@ -2198,7 +2198,7 @@ void RSProfiler::CalcPerfNodeUpdate()
 std::vector<std::pair<uint64_t, int64_t>> RSProfiler::AnimeGetStartTimesFlattened(double recordStartTime)
 {
     std::vector<std::pair<uint64_t, int64_t>> headerAnimeStartTimes;
-    std::unordered_map<AnimationId, std::vector<int64_t>> &headerAnimeStartTimesMap = AnimeGetStartTimes();
+    const std::unordered_map<AnimationId, std::vector<int64_t>> &headerAnimeStartTimesMap = AnimeGetStartTimes();
     for (const auto& item : headerAnimeStartTimesMap) {
         for (const auto time : item.second) {
             headerAnimeStartTimes.push_back({

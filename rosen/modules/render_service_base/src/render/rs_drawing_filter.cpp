@@ -93,8 +93,7 @@ std::string RSDrawingFilter::GetDescription()
         switch (shaderFilter->GetShaderFilterType()) {
             case RSShaderFilter::KAWASE: {
                 auto filter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(shaderFilter);
-                int radius = filter->GetRadius();
-                filterString = filterString + ", radius: " + std::to_string(radius) + " sigma";
+                filterString = filterString + filter->GetDescription();
                 break;
             }
             case RSShaderFilter::MESA: {
@@ -124,8 +123,7 @@ std::string RSDrawingFilter::GetDetailedDescription()
         switch (shaderFilter->GetShaderFilterType()) {
             case RSShaderFilter::KAWASE: {
                 auto filter = std::static_pointer_cast<RSKawaseBlurShaderFilter>(shaderFilter);
-                int radius = filter->GetRadius();
-                filterString = filterString + ", radius: " + std::to_string(radius) + " sigma";
+                filterString = filterString + filter->GetDescription();
                 break;
             }
             case RSShaderFilter::GREY: {

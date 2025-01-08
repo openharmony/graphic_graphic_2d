@@ -107,7 +107,7 @@ void RSRenderServiceListener::OnGoBackground()
         }
         auto surfaceHandler = node->GetMutableRSSurfaceHandler();
         RS_LOGD("RsDebug RSRenderServiceListener::OnGoBackground node id:%{public}" PRIu64, node->GetId());
-        node->NeedClearBufferCache();
+        node->NeedClearBufferCache(RSMainThread::Instance()->GetUnmappedCacheSet());
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();
         node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);

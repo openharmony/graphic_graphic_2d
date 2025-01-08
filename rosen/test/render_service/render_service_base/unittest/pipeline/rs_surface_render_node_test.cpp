@@ -1484,21 +1484,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceDefaultSize, TestSize.Level1)
 }
 
 /**
- * @tc.name: NeedClearBufferCache
- * @tc.desc: test results of NeedClearBufferCache
- * @tc.type: FUNC
- * @tc.require: issueI9JAFQ
- */
-HWTEST_F(RSSurfaceRenderNodeTest, NeedClearBufferCache, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->InitRenderParams();
-    testNode->addedToPendingSyncList_ = true;
-    testNode->NeedClearBufferCache();
-    EXPECT_FALSE(testNode->isSkipLayer_);
-}
-
-/**
  * @tc.name: RegisterBufferAvailableListenerTest001
  * @tc.desc: test results of RegisterBufferAvailableListener
  * @tc.type: FUNC

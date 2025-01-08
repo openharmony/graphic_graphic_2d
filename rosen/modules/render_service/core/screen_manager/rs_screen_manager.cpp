@@ -1172,6 +1172,38 @@ const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionLi
     return virtualScreen->second->GetSecurityExemptionList();
 }
 
+int32_t RSScreenManager::SetScreenSecurityMask(ScreenId id,
+    const std::shared_ptr<Media::PixelMap> securityMask)
+{
+    if (id == INVALID_SCREEN_ID) {
+        RS_LOGW("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = screens_.find(id);
+    if (iter == screens_.end()) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+
+    if (iter->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: Null screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    return iter->second->SetSecurityMask(std::move(securityMask));
+}
+
+std::shared_ptr<Media::PixelMap> RSScreenManager::GetScreenSecurityMask(ScreenId id) const
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = screens_.find(id);
+    if (iter == screens_.end() || iter->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return nullptr;
+    }
+    return iter->second->GetSecurityMask();
+}
+
 int32_t RSScreenManager::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
 {
     if (id == INVALID_SCREEN_ID) {
@@ -1428,15 +1460,10 @@ void RSScreenManager::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status
         return;
     }
 
-    bool isScreenPoweringOn =
+    isScreenPoweringOn_ =
         (status == ScreenPowerStatus::POWER_STATUS_ON || status == ScreenPowerStatus::POWER_STATUS_ON_ADVANCED);
-    if (isScreenPoweringOn) {
-        isScreenPoweringOn_ = true;
-    }
     screensIt->second->SetPowerStatus(static_cast<uint32_t>(status));
-    if (isScreenPoweringOn) {
-        isScreenPoweringOn_ = false;
-    }
+    isScreenPoweringOn_ = false;
 
     /*
      * If app adds the first frame when power on the screen, delete the code

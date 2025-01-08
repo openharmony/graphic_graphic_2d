@@ -20,6 +20,7 @@
 #include "modifier/rs_property_modifier.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_surface_node.h"
+#include "ui/rs_display_node.h"
 #include "ui_effect/effect/include/brightness_blender.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animator_map.h"
@@ -7106,6 +7107,44 @@ HWTEST_F(RSNodeTest, RemoveCrossParentChild, TestSize.Level1)
     rsNode->RemoveCrossParentChild(child, 1);
     EXPECT_EQ(RSTransactionProxy::GetInstance(), nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
+ * @tc.name: AddCrossScreenChild
+ * @tc.desc: test results of AddCrossScreenChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSNodeTest, AddCrossScreenChild, TestSize.Level1)
+{
+    struct RSDisplayNodeConfig displayNodeConfig;
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+    auto childNode1 = nullptr;
+    displayNode->AddCrossScreenChild(childNode1, -1);
+
+    struct RSSurfaceNodeConfig surfaceNodeConfig;
+    auto childNode2 = RSSurfaceNode::Create(surfaceNodeConfig);
+    ASSERT_NE(childNode2, nullptr);
+    displayNode->AddCrossScreenChild(childNode2, -1);
+}
+
+/**
+ * @tc.name: RemoveCrossScreenChild
+ * @tc.desc: test results of RemoveCrossScreenChild
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSNodeTest, RemoveCrossScreenChild, TestSize.Level1)
+{
+    struct RSDisplayNodeConfig config;
+    auto displayNode = RSDisplayNode::Create(config);
+    ASSERT_NE(displayNode, nullptr);
+
+    struct RSSurfaceNodeConfig surfaceNodeConfig;
+    auto childNode = RSSurfaceNode::Create(surfaceNodeConfig);
+    ASSERT_NE(childNode, nullptr);
+    displayNode->RemoveCrossScreenChild(childNode);
 }
 
 /**

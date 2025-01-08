@@ -74,6 +74,9 @@ void VSyncGeneratorTest::TearDownTestCase()
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
     vsyncGenerator_ = nullptr;
     DestroyVSyncGenerator();
+    receiver->looper_->RemoveFileDescriptorListener(receiver->fd_);
+    receiver->looper_ = nullptr;
+    receiver->fd_ = -1;
 }
 
 class VSyncGeneratorTestCallback : public VSyncGenerator::Callback {

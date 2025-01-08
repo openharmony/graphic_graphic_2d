@@ -305,6 +305,17 @@ void RSRenderNodeMap::TraversalNodes(std::function<void (const std::shared_ptr<R
     }
 }
 
+void RSRenderNodeMap::TraversalNodesByPid(int pid,
+    std::function<void (const std::shared_ptr<RSBaseRenderNode>&)> func) const
+{
+    const auto& itr = renderNodeMap_.find(pid);
+    if (itr != renderNodeMap_.end()) {
+        for (const auto& [_, node] : itr->second) {
+            func(node);
+        }
+    }
+}
+
 void RSRenderNodeMap::TraverseCanvasDrawingNodes(
     std::function<void(const std::shared_ptr<RSCanvasDrawingRenderNode>&)> func) const
 {

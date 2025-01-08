@@ -64,6 +64,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK),
@@ -627,6 +628,25 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            bool enable{false};
+            if (!data.ReadUint64(id) || !data.ReadBool(enable)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            std::shared_ptr<Media::PixelMap> securityMask{nullptr};
+            if (enable) {
+                securityMask = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            }
+            int32_t result = SetScreenSecurityMask(id, std::move(securityMask));
+            if (!reply.WriteInt32(result)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(
             RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT): {
             // read the parcel data.
             ScreenId id = INVALID_SCREEN_ID;
@@ -810,13 +830,16 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             uint32_t max{0};
             uint32_t preferred{0};
             uint32_t type{0};
+            uint32_t componentScene{0};
             int32_t animatorExpectedFrameRate{0};
             if (!data.ReadUint32(min) || !data.ReadUint32(max) || !data.ReadUint32(preferred) ||
-                !data.ReadUint32(type) || !data.ReadInt32(animatorExpectedFrameRate)) {
+                !data.ReadUint32(type) || !data.ReadUint32(componentScene) ||
+                !data.ReadInt32(animatorExpectedFrameRate)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            SyncFrameRateRange(id, {min, max, preferred, type}, animatorExpectedFrameRate);
+            SyncFrameRateRange(id, {min, max, preferred, type, static_cast<ComponentScene>(componentScene)},
+                animatorExpectedFrameRate);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER): {

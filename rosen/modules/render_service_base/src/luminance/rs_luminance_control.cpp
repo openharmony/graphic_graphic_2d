@@ -126,6 +126,16 @@ bool RSLuminanceControl::LoadStatusControl()
         RS_LOGE("LumCtr link IsHdrPictureOn error!");
         return false;
     }
+    isForceCloseHdr_ = reinterpret_cast<IsForceCloseHdrFunc>(dlsym(extLibHandle_, "IsForceCloseHdr"));
+    if (isForceCloseHdr_ == nullptr) {
+        RS_LOGE("LumCtr link IsForceCloseHdr error!");
+        return false;
+    }
+    forceCloseHdr_ = reinterpret_cast<ForceCloseHdrFunc>(dlsym(extLibHandle_, "ForceCloseHdr"));
+    if (forceCloseHdr_ == nullptr) {
+        RS_LOGE("LumCtr link ForceCloseHdr error!");
+        return false;
+    }
     return true;
 }
 
@@ -275,6 +285,18 @@ float RSLuminanceControl::CalScaler(const float& maxContentLightLevel, const flo
 bool RSLuminanceControl::IsHdrPictureOn()
 {
     return (initStatus_ && isHdrPictureOn_ != nullptr) ? isHdrPictureOn_() : false;
+}
+
+bool RSLuminanceControl::IsForceCloseHdr()
+{
+    return (initStatus_ && isForceCloseHdr_ != nullptr) ? isForceCloseHdr_() : false;
+}
+
+void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr)
+{
+    if (initStatus_ && forceCloseHdr_ != nullptr) {
+        forceCloseHdr_(closeHdrSceneId, forceCloseHdr);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

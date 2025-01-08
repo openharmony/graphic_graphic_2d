@@ -610,9 +610,8 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 
 float RSSystemProperties::GetHpsBlurNoiseFactor()
 {
-    static bool deviceHpsType = RSSystemProperties::IsPcType();
-    static float noiseFactor = deviceHpsType ?
-        std::atof((system::GetParameter("persist.sys.graphic.HpsBlurNoiseFactor", "1.75")).c_str()) : 0.f;
+    static float noiseFactor =
+        std::atof((system::GetParameter("persist.sys.graphic.HpsBlurNoiseFactor", "1.75")).c_str());
     return noiseFactor;
 }
 
@@ -628,6 +627,20 @@ bool RSSystemProperties::GetMESABlurFuzedEnabled()
     static bool blurPixelStretchEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.mesaBlurFuzedEnable", "1")).c_str()) != 0;
     return blurPixelStretchEnabled;
+}
+
+int RSSystemProperties::GetSimplifiedMesaEnabled()
+{
+    static int simplifiedMesaEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.simplifiedMesaEnable", "0")).c_str());
+    return simplifiedMesaEnabled;
+}
+
+bool RSSystemProperties::GetForceKawaseDisabled()
+{
+    static bool kawaseDisabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.kawaseDisable", "0")).c_str()) != 0;
+    return kawaseDisabled;
 }
 
 float RSSystemProperties::GetKawaseRandomColorFactor()

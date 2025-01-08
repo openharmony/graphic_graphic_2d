@@ -200,6 +200,8 @@ public:
     static float GetHpsBlurNoiseFactor();
     static bool GetHpsBlurEnabled();
     static bool GetMESABlurFuzedEnabled();
+    static int GetSimplifiedMesaEnabled();
+    static bool GetForceKawaseDisabled();
     static float GetKawaseRandomColorFactor();
     static bool GetRandomColorEnabled();
     static bool GetImageReleaseUsingPostTask();

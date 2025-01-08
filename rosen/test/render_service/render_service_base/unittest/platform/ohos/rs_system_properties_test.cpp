@@ -626,6 +626,28 @@ HWTEST_F(RSSystemPropertiesTest, GetMESABlurFuzedEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetForceKawaseDisabled
+ * @tc.desc: GetForceKawaseDisabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetForceKawaseDisabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetForceKawaseDisabled());
+}
+
+/**
+ * @tc.name: GetSimplifiedMesaEnabled
+ * @tc.desc: GetSimplifiedMesaEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSimplifiedMesaEnabled, TestSize.Level1)
+{
+    ASSERT_EQ(RSSystemProperties::GetSimplifiedMesaEnabled(), 0);
+}
+
+/**
  * @tc.name: SetForceHpsBlurDisabled
  * @tc.desc: SetForceHpsBlurDisabled Test
  * @tc.type:FUNC
@@ -659,13 +681,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetHpsBlurNoiseFactor, TestSize.Level1)
 {
-    static bool deviceHpsType = system::GetParameter("const.product.devicetype", "pc") == "pc";
-    float epsilon = 0.001f;
-    if (!deviceHpsType) {
-        EXPECT_NEAR(0.f, RSSystemProperties::GetHpsBlurNoiseFactor(), epsilon);
-    } else {
-        ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
-    }
+    ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
 }
 
 /**

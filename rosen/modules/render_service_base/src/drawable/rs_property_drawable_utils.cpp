@@ -346,7 +346,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     if (imageClipIBounds.IsEmpty()) {
         return;
     }
-    auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds);
+    auto imageSnapshot = surface->GetImageSnapshot(imageClipIBounds, false);
     if (imageSnapshot == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawFilter image null");
         return;
@@ -558,11 +558,13 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeLightUpEffectBlen
             return c.z * mix(vec3(1.0), rgb, c.y);
         }
         vec4 main(vec4 drawing_src, vec4 drawing_dst) {
+            drawing_dst = max(drawing_dst, 0.0);
             vec3 c = vec3(drawing_dst.r, drawing_dst.g, drawing_dst.b);
             vec3 hsv = rgb2hsv(c);
             float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
             hsv.y = mix(satUpper, hsv.y, lightUpDeg);
             hsv.z += lightUpDeg - 1.0;
+            hsv.z = max(hsv.z, 0.0);
             return vec4(hsv2rgb(hsv), drawing_dst.a);
         }
     )";
@@ -599,7 +601,7 @@ void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const floa
     }
 
     auto clipBounds = canvas->GetDeviceClipBounds();
-    auto image = surface->GetImageSnapshot(clipBounds);
+    auto image = surface->GetImageSnapshot(clipBounds, false);
     if (image == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::DrawDynamicDim image is null");
         return;

@@ -327,6 +327,16 @@ bool RSSystemProperties::GetMESABlurFuzedEnabled()
     return false;
 }
 
+int RSSystemProperties::GetSimplifiedMesaEnabled()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetForceKawaseDisabled()
+{
+    return false;
+}
+
 float RSSystemProperties::GetKawaseRandomColorFactor()
 {
     return 0.f;

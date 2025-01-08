@@ -62,6 +62,9 @@ void VsyncReceiverTest::SetUpTestCase()
 
 void VsyncReceiverTest::TearDownTestCase()
 {
+    vsyncReceiver->looper_->RemoveFileDescriptorListener(vsyncReceiver->fd_);
+    vsyncReceiver->looper_ = nullptr;
+    vsyncReceiver->fd_ = -1;
     vsyncReceiver = nullptr;
     vsyncController = nullptr;
     vsyncGenerator = nullptr;
@@ -259,6 +262,9 @@ HWTEST_F(VsyncReceiverTest, GetVSyncPeriodAndLastTimeStamp001, Function | Medium
     ASSERT_EQ(rsReceiver->GetVSyncPeriodAndLastTimeStamp(period, timeStamp, true), VSYNC_ERROR_UNKOWN);
     ASSERT_NE(period, 0);
     ASSERT_NE(timeStamp, 0);
+    rsReceiver->looper_->RemoveFileDescriptorListener(rsReceiver->fd_);
+    rsReceiver->looper_ = nullptr;
+    rsReceiver->fd_ = -1;
 }
 
 /*
@@ -295,6 +301,9 @@ HWTEST_F(VsyncReceiverTest, SetVsyncCallBackForEveryFrame001, Function | MediumT
     sleep(1);
     std::cout<< "OnVsync called count: " << onVsyncCount << " period: " << period << std::endl;
     ASSERT_EQ(abs(onVsyncCount - 100) <= 5, true);
+    rsReceiver->looper_->RemoveFileDescriptorListener(rsReceiver->fd_);
+    rsReceiver->looper_ = nullptr;
+    rsReceiver->fd_ = -1;
 }
 
 /*
@@ -422,6 +431,9 @@ HWTEST_F(VsyncReceiverTest, OnReadable001, Function | MediumTest| Level3)
 
     rsReceiver->listener_->OnReadable(-1);
     rsReceiver->listener_->OnReadable(999);
+    rsReceiver->looper_->RemoveFileDescriptorListener(rsReceiver->fd_);
+    rsReceiver->looper_ = nullptr;
+    rsReceiver->fd_ = -1;
 }
 } // namespace
 } // namespace Rosen
