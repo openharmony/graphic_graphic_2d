@@ -190,6 +190,7 @@ napi_value RSWindowAnimationManager::OnMinimizeWindowWithAnimation(napi_env env,
 
             WALOGD("Resolve minimize window with animation!");
             task->Resolve(env, RSWindowAnimationUtils::CreateJsWindowAnimationFinishedCallback(env, finishedCallback));
+            delete task;
         };
     if (napi_status::napi_ok != napi_send_event(env, asyncTask, napi_eprio_high)) {
             napiAsyncTask->Reject(env, CreateJsError(env,
