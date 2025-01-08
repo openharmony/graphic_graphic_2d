@@ -2168,6 +2168,8 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
     bool bgTransport = !node.GetAncoForceDoDirect() &&
         (static_cast<uint8_t>(node.GetRenderProperties().GetBackgroundColor().GetAlpha()) < UINT8_MAX);
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
+    bool isSolidColorEnbaled = stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
+        node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black();
     if (bgTransport) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by background color alpha < 1",
             node.GetName().c_str(), node.GetId());
@@ -2178,13 +2180,15 @@ void RSUniRenderVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNod
         node.SetNodeHasBackgroundColorAlpha(true);
         hwcDisabledReasonCollection_.UpdateHwcDisabledReasonForDFX(node.GetId(),
             HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, node.GetName());
-    } else if (RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() &&
-        stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
-        node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
+    } else if (RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() && isSolidColorEnbaled) {
+        if (!RSSystemParameters::GetSolidLayerHwcEnabled()) {
+            node.SetHardwareForcedDisabledState(true);
+            RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by solidLayer switch",
+                node.GetName().c_str(), node.GetId());
+            return;
+        }
         stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
-    } else if (!RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() &&
-        stagingSurfaceParams->GetSelfDrawingNodeType() == SelfDrawingNodeType::XCOM &&
-        node.GetRenderProperties().GetBackgroundColor() != RgbPalette::Black()) {
+    } else if (!RsCommonHook::Instance().GetIsWhiteListForSolidColorLayerFlag() && isSolidColorEnbaled) {
         node.SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by solid background color",
             node.GetName().c_str(), node.GetId());
