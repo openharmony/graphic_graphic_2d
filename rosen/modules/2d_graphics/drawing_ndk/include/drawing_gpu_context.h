@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,6 +64,16 @@ typedef struct {
  * @version 1.0
  */
 OH_Drawing_GpuContext* OH_Drawing_GpuContextCreateFromGL(OH_Drawing_GpuContextOptions);
+
+/**
+ * @brief Creates an <b>OH_Drawing_GpuContext</b> object, whose GPU backend context depends on device.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @return Returns the pointer to the <b>OH_Drawing_GpuContext</b> object created.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_GpuContext* OH_Drawing_GpuContextCreate();
 
 /**
  * @brief Destroys an <b>OH_Drawing_GpuContext</b> object and reclaims the memory occupied by the object.
