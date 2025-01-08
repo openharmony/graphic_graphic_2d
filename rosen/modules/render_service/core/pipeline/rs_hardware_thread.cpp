@@ -77,7 +77,6 @@ constexpr int64_t COMMIT_DELTA_TIME = 2; // 2ms
 constexpr int64_t MAX_DELAY_TIME = 100; // 100ms
 constexpr int64_t NS_MS_UNIT_CONVERSION = 1000000;
 constexpr int64_t UNI_RENDER_VSYNC_OFFSET_DELAY_MODE = 3300000; // 3.3ms
-constexpr int64_t PERIOD_60_HZ = 16666666;
 }
 
 static int64_t SystemTime()
@@ -369,8 +368,10 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
 {
     int64_t frameOffset = 0;
     int64_t vsyncOffset = 0;
+    int64_t idealPipelineOffset = 0;
     int64_t pipelineOffset = 0;
     int64_t expectCommitTime = 0;
+    int64_t periodNum = 0;
     int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
     int64_t period  = CreateVSyncSampler()->GetHardwarePeriod();
     uint64_t dvsyncOffset = RSMainThread::Instance()->GetRealTimeOffsetOfDvsync(param.frameTimestamp);
@@ -381,11 +382,18 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         // 2 period for draw and composition, pipelineOffset = 2 * period
         frameOffset = 2 * period + vsyncOffset;
     } else {
-        if (idealPeriod == PERIOD_60_HZ) {
-            vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
-        }
+        idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
-        frameOffset = pipelineOffset + vsyncOffset + static_cast<int64_t>(dvsyncOffset);
+        vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
+        periodNum = idealPeriod == 0 ? 0 : idealPipelineOffset / idealPeriod;
+
+        if (vsyncOffset >= period) {
+            vsyncOffset = 0;
+        }
+        if (periodNum * idealPeriod + vsyncOffset + IDEAL_PULSE < idealPipelineOffset) {
+            periodNum = periodNum + 1;
+        }
+        frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset);
     }
     expectCommitTime = param.actualTimestamp + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
@@ -395,9 +403,9 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
-        "period: %" PRId64 "",
+        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 "",
         pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
-        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period);
+        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period, idealPipelineOffset);
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
         delayTime_);
