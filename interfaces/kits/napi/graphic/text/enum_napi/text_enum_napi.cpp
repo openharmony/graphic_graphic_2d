@@ -75,6 +75,7 @@ const std::vector<struct JsEnumInt> WORD_BREAK_TYPE = {
     { "NORMAL", static_cast<size_t>(WordBreakType::NORMAL) },
     { "BREAK_ALL", static_cast<size_t>(WordBreakType::BREAK_ALL) },
     { "BREAK_WORD", static_cast<size_t>(WordBreakType::BREAK_WORD) },
+    { "BREAK_HYPHEN", static_cast<size_t>(WordBreakType::BREAK_HYPHEN) },
 };
 
 const std::vector<struct JsEnumInt> BREAK_STRATEGY = {
@@ -148,6 +149,7 @@ static const std::vector<struct JsEnumInt> g_systemFontType = {
     { "GENERIC", static_cast<size_t>(TextEngine::FontParser::SystemFontType::GENERIC) },
     { "STYLISH", static_cast<size_t>(TextEngine::FontParser::SystemFontType::STYLISH) },
     { "INSTALLED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::INSTALLED) },
+    { "CUSTOMIZED", static_cast<size_t>(TextEngine::FontParser::SystemFontType::CUSTOMIZED) },
 };
 
 const std::map<std::string_view, const std::vector<struct JsEnumInt>&> INT_ENUM_CLASS_MAP = {

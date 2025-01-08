@@ -101,6 +101,7 @@ public:
         return res;
     }
 
+    bool BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface, bool isNeedFP16);
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
@@ -118,6 +119,7 @@ public:
 
     void ResetUifirst(bool isNotClearCompleteCacheSurface)
     {
+        drawWindowCache_.ClearCache();
         if (isNotClearCompleteCacheSurface) {
             ClearCacheSurfaceOnly();
         } else {

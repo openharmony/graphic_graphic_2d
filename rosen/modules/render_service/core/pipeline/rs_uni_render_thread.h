@@ -110,6 +110,7 @@ public:
     static CaptureParam& GetCaptureParam();
     static void ResetCaptureParam();
     static bool IsInCaptureProcess();
+    static bool IsExpandScreenMode();
     std::vector<NodeId>& GetDrawStatusVec()
     {
         return curDrawStatusVec_;
@@ -201,6 +202,7 @@ public:
         return wallpaperTranslate_;
     }
 
+    void ClearGPUCompositionCache();
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

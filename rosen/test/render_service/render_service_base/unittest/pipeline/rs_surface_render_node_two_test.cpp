@@ -69,6 +69,7 @@ HWTEST_F(RSSurfaceRenderNodeTwoTest, ResetSurfaceOpaqueRegion03, TestSize.Level1
     RectI screenRect { 0, 0, 2560, 1600 };
     RectI absRect { 0, 100, 400, 500 };
     surfaceRenderNode.SetAbilityBGAlpha(255);
+    ASSERT_EQ(surfaceRenderNode.GetAbilityBgAlpha(), 255);
     surfaceRenderNode.SetGlobalAlpha(1.0f);
     surfaceRenderNode.SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
     surfaceRenderNode.parent_ = std::make_shared<RSRenderNode>(1);

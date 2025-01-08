@@ -137,6 +137,10 @@ public:
     {
         return true;
     }
+    virtual uint16_t GetType() const override
+    {
+        return 0;
+    }
 
     inline uint64_t GetTimeout() const
     {

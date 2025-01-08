@@ -116,6 +116,14 @@ using PreProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&
 // function that will be called after drawing Buffer / Image.
 using PostProcessFunc = std::function<void(RSPaintFilterCanvas&, BufferDrawParam&)>;
 
+struct VideoInfo {
+    std::shared_ptr<Drawing::ColorSpace> drawingColorSpace_ = nullptr;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    GSError retGetColorSpaceInfo_ = GSERROR_OK;
+    Media::VideoProcessingEngine::ColorSpaceConverterDisplayParameter parameter_ = {};
+#endif
+};
+
 // This render engine aims to do the client composition for all surfaces that hardware can't handle.
 class RSBaseRenderEngine {
 public:
@@ -158,7 +166,8 @@ public:
         BufferDrawParam& params);
     void RegisterDeleteBufferListener(const sptr<IConsumerSurface>& consumer, bool isForUniRedraw = false);
     void RegisterDeleteBufferListener(RSSurfaceHandler& handler);
-
+    std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
+        BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
         const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
@@ -170,7 +179,7 @@ public:
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);
 
     void ShrinkCachesIfNeeded(bool isForUniRedraw = false);
-    void ClearCacheSet(const std::set<int32_t> unmappedCache);
+    void ClearCacheSet(const std::set<uint32_t>& unmappedCache);
     static void SetColorFilterMode(ColorFilterMode mode);
     static ColorFilterMode GetColorFilterMode();
     static void SetHighContrast(bool enabled);

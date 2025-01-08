@@ -118,6 +118,54 @@ HWTEST_F(MotionBlurFilterTest, DrawMotionBlur001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawMotionBlur002
+ * @tc.desc: test results of DrawMotionBlur
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, DrawMotionBlur002, TestSize.Level1)
+{
+    Vector2f s = { 2.f, 2.f };
+    std::shared_ptr<MotionBlurParam> para = nullptr;
+    RSMotionBlurFilter motionBlurFilter(para);
+    Drawing::Canvas canvas;
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    motionBlurFilter.DrawMotionBlur(canvas, image, src, dst);
+    EXPECT_TRUE(image != nullptr);
+
+    para = std::make_shared<MotionBlurParam>(2.f, s);
+    motionBlurFilter.motionBlurPara_ = para;
+    motionBlurFilter.DrawMotionBlur(canvas, image, src, dst);
+    EXPECT_TRUE(motionBlurFilter.motionBlurPara_ != nullptr);
+}
+
+/**
+ * @tc.name: DrawMotionBlur003
+ * @tc.desc: test results of DrawMotionBlur
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, DrawMotionBlur003, TestSize.Level1)
+{
+    Vector2f s = { 0.f, 0.f };
+    std::shared_ptr<MotionBlurParam> para = nullptr;
+    RSMotionBlurFilter motionBlurFilter(para);
+    Drawing::Canvas canvas;
+    canvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    motionBlurFilter.DrawMotionBlur(canvas, image, src, dst);
+    EXPECT_TRUE(image != nullptr);
+
+    para = std::make_shared<MotionBlurParam>(0.f, s);
+    motionBlurFilter.motionBlurPara_ = para;
+    motionBlurFilter.DrawMotionBlur(canvas, image, src, dst);
+    EXPECT_TRUE(motionBlurFilter.motionBlurPara_ != nullptr);
+}
+
+/**
  * @tc.name: MakeMotionBlurShader001
  * @tc.desc: test results of MakeMotionBlurShader
  * @tc.type: FUNC
@@ -129,6 +177,58 @@ HWTEST_F(MotionBlurFilterTest, MakeMotionBlurShader001, TestSize.Level1)
     Vector2f scaleAnchor = { 1.f, 1.f };
     Vector2f scaleSize = { 1.f, 1.f };
     Vector2f rectOffset = { 1.f, 1.f }; // for test
+    auto para = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.MakeMotionBlurShader(srcImageShader, scaleAnchor, scaleSize, rectOffset, 1.f);
+    EXPECT_TRUE(para != nullptr);
+}
+
+/**
+ * @tc.name: MakeMotionBlurShader002
+ * @tc.desc: test results of MakeMotionBlurShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, MakeMotionBlurShader002, TestSize.Level1)
+{
+    auto srcImageShader = std::make_shared<Drawing::ShaderEffect>();
+    Vector2f scaleAnchor = { 2.f, 2.f };
+    Vector2f scaleSize = { 1.f, 1.f };
+    Vector2f rectOffset = { 1.f, 1.f }; // for test
+    auto para = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.MakeMotionBlurShader(srcImageShader, scaleAnchor, scaleSize, rectOffset, 1.f);
+    EXPECT_TRUE(para != nullptr);
+}
+
+/**
+ * @tc.name: MakeMotionBlurShader003
+ * @tc.desc: test results of MakeMotionBlurShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, MakeMotionBlurShader003, TestSize.Level1)
+{
+    auto srcImageShader = std::make_shared<Drawing::ShaderEffect>();
+    Vector2f scaleAnchor = { 2.f, 2.f };
+    Vector2f scaleSize = { 3.f, 3.f };
+    Vector2f rectOffset = { 1.f, 1.f }; // for test
+    auto para = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.MakeMotionBlurShader(srcImageShader, scaleAnchor, scaleSize, rectOffset, 1.f);
+    EXPECT_TRUE(para != nullptr);
+}
+
+
+/**
+ * @tc.name: MakeMotionBlurShader004
+ * @tc.desc: test results of MakeMotionBlurShader
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, MakeMotionBlurShader004, TestSize.Level1)
+{
+    auto srcImageShader = std::make_shared<Drawing::ShaderEffect>();
+    Vector2f scaleAnchor = { 2.f, 2.f };
+    Vector2f scaleSize = { 3.f, 3.f };
+    Vector2f rectOffset = { 10.f, 10.f }; // for test
     auto para = std::make_shared<MotionBlurParam>(1.f, scaleAnchor);
     RSMotionBlurFilter motionBlurFilter(para);
     motionBlurFilter.MakeMotionBlurShader(srcImageShader, scaleAnchor, scaleSize, rectOffset, 1.f);
@@ -160,6 +260,62 @@ HWTEST_F(MotionBlurFilterTest, CaculateRect001, TestSize.Level1)
     motionBlurFilter.lastRect_.bottom_ = 0.f;
     motionBlurFilter.curRect_.left_ = 3.f;
     motionBlurFilter.curRect_.top_ = 3.f; // for test
+    motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
+    EXPECT_TRUE(para != nullptr);
+}
+
+/**
+ * @tc.name: CaculateRect002
+ * @tc.desc: test results of CaculateRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, CaculateRect002, TestSize.Level1)
+{
+    Vector2f rectOffset = { 2.f, 2.f };
+    Vector2f scaleSize = { 2.f, 2.f };
+    Vector2f scaleAnchorCoord = { 2.f, 2.f }; // for test
+    auto para = std::make_shared<MotionBlurParam>(1.f, rectOffset);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
+    EXPECT_TRUE(para != nullptr);
+
+    motionBlurFilter.lastRect_.right_ = 2.f;
+    motionBlurFilter.lastRect_.bottom_ = 2.f; // for test
+    motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
+    EXPECT_TRUE(para != nullptr);
+
+    motionBlurFilter.lastRect_.right_ = 0.f;
+    motionBlurFilter.lastRect_.bottom_ = 0.f;
+    motionBlurFilter.curRect_.left_ = 3.f;
+    motionBlurFilter.curRect_.top_ = 3.f; // for test
+    motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
+    EXPECT_TRUE(para != nullptr);
+}
+
+/**
+ * @tc.name: CaculateRect003
+ * @tc.desc: test results of CaculateRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, CaculateRect003, TestSize.Level1)
+{
+    Vector2f rectOffset = { 2.f, 2.f };
+    Vector2f scaleSize = { 2.f, 2.f };
+    Vector2f scaleAnchorCoord = { 2.f, 2.f }; // for test
+    auto para = std::make_shared<MotionBlurParam>(1.f, rectOffset);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
+    EXPECT_TRUE(para != nullptr);
+
+    motionBlurFilter.lastRect_.right_ = 20.f;
+    motionBlurFilter.lastRect_.bottom_ = 20.f; // for test
+    motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
+    EXPECT_TRUE(para != nullptr);
+
+    motionBlurFilter.lastRect_.right_ = 0.f;
+    motionBlurFilter.lastRect_.bottom_ = 0.f;
+    motionBlurFilter.curRect_.left_ = 30.f;
+    motionBlurFilter.curRect_.top_ = 30.f; // for test
     motionBlurFilter.CaculateRect(rectOffset, scaleSize, scaleAnchorCoord);
     EXPECT_TRUE(para != nullptr);
 }
@@ -224,6 +380,72 @@ HWTEST_F(MotionBlurFilterTest, OutputOriginalImage001, TestSize.Level1)
     motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
     EXPECT_TRUE(image->GetWidth() != 0);
     EXPECT_TRUE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImage002
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImage002, TestSize.Level1)
+{
+    Vector2f s = { 2.f, 2.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(2.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    Drawing::ImageInfo imageInfo(2, 2, Drawing::ColorType::COLORTYPE_ALPHA_8, Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
+}
+
+/**
+ * @tc.name: OutputOriginalImage003
+ * @tc.desc: test results of OutputOriginalImage
+ * @tc.type: FUNC
+ */
+HWTEST_F(MotionBlurFilterTest, OutputOriginalImage003, TestSize.Level1)
+{
+    Vector2f s = { 1.f, 1.f };
+    Drawing::Canvas canvas;
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::Rect src;
+    Drawing::Rect dst;
+    auto para = std::make_shared<MotionBlurParam>(1.f, s);
+    RSMotionBlurFilter motionBlurFilter(para);
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_TRUE(para != nullptr);
+
+    image = std::make_shared<Drawing::Image>();
+    Drawing::ImageInfo imageInfo(1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN);
+    auto skImageInfo = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap = SkPixmap(skImageInfo, addr, 1);
+    Drawing::ReleaseContext releaseContext = nullptr;
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    sk_sp<SkImage> skImage = SkImage::MakeFromRaster(skiaPixmap, rasterReleaseProc, releaseContext);
+    auto skiaImage = std::make_shared<Drawing::SkiaImage>(skImage);
+    image->imageImplPtr = skiaImage;
+    motionBlurFilter.OutputOriginalImage(canvas, image, src, dst);
+    EXPECT_FALSE(image->GetWidth() != 0);
+    EXPECT_FALSE(image->GetHeight() != 0);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -101,6 +101,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_listener.cpp",
     "core/pipeline/rs_render_service_visitor.cpp",
     "core/pipeline/rs_surface_capture_task.cpp",
+    "core/pipeline/rs_unmarshal_task_manager.cpp",
     "core/pipeline/rs_unmarshal_thread.cpp",
     "core/pipeline/rs_vblank_idle_corrector.cpp",
     "core/pipeline/rs_virtual_screen_processor.cpp",
@@ -169,7 +170,10 @@ ohos_shared_library("librender_service") {
   }
 
   if (graphic_2d_feature_enable_vulkan) {
-    sources += [ "core/pipeline/rs_vk_image_manager.cpp" ]
+    sources += [
+      "core/pipeline/rs_vk_image_manager.cpp",
+      "core/pipeline/rs_vk_pipeline_config.cpp",
+    ]
   }
 
   if (rs_enable_parallel_render && rs_enable_gpu) {
@@ -209,7 +213,6 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
-    "$graphic_2d_root/rosen/modules/graphic_2d_configure/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]
@@ -236,12 +239,6 @@ ohos_shared_library("librender_service") {
     sources +=
         [ "$rosen_root/modules/frame_report/src/mingw/rs_frame_report.cpp" ]
   }
-
-  #graphic_2d_configure
-  sources += [
-    "$rosen_root/modules/graphic_2d_configure/src/graphic_2d_configure.cpp",
-    "$rosen_root/modules/graphic_2d_configure/src/graphic_2d_xml_parser.cpp",
-  ]
 
   #profiler
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
@@ -294,6 +291,7 @@ ohos_shared_library("librender_service") {
   }
 
   public_external_deps += [
+    "config_policy:configpolicy_util",
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "libxml2:libxml2",
   ]
@@ -365,10 +363,7 @@ ohos_shared_library("librender_service") {
 
   if (rosen_is_ohos && defined(enable_ipc_security) && enable_ipc_security) {
     defines += [ "ENABLE_IPC_SECURITY" ]
-    external_deps += [
-      "access_token:libaccesstoken_sdk",
-      "access_token:libtokenid_sdk",
-    ]
+    external_deps += [ "access_token:libaccesstoken_sdk" ]
   }
 
   if (rosen_is_ohos && defined(enable_ipc_security_access_counter) &&

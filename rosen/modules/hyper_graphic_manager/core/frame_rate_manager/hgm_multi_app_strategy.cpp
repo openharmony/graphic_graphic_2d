@@ -76,10 +76,10 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
 void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
 {
-    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState);
-    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState);
+    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d, upExpectFps:%d",
+        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
+    HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d, upExpectFps:%{public}d",
+        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
     touchInfo_ = { touchInfo.pkgName, touchInfo.touchState, touchInfo.upExpectFps };
     if (touchInfo.pkgName == "" && !pkgs_.empty()) {
         auto [focusPkgName, pid, appType] = AnalyzePkgParam(pkgs_.front());
@@ -97,6 +97,15 @@ void HgmMultiAppStrategy::HandleLightFactorStatus(bool isSafe)
     }
     lightFactorStatus_.store(isSafe);
     CalcVote();
+}
+
+void HgmMultiAppStrategy::HandleLowAmbientStatus(bool isEffect)
+{
+    RS_TRACE_NAME_FMT("[HandleLowAmbientStatus] isEffect: %d", isEffect);
+    if (lowAmbientStatus_ == isEffect) {
+        return;
+    }
+    lowAmbientStatus_ = isEffect;
 }
 
 void HgmMultiAppStrategy::CalcVote()
@@ -148,15 +157,10 @@ HgmErrCode HgmMultiAppStrategy::GetVoteRes(PolicyConfigData::StrategyConfig& str
     return voteRes_.first;
 }
 
-void HgmMultiAppStrategy::RegisterStrategyChangeCallback(const StrategyChangeCallback& callback)
-{
-    strategyChangeCallbacks_.emplace_back(callback);
-}
-
 bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 {
     auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if (configData != nullptr && !configData->safeVoteEnabled) {
+    if ((configData != nullptr && !configData->safeVoteEnabled) || disableSafeVote_) {
         // disable safe vote
         return true;
     }
@@ -187,26 +191,6 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
 {
     auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.empty() ? "" : pkgs_.front());
     return GetAppStrategyConfig(pkgName, strategyRes);
-}
-
-std::unordered_map<std::string, std::pair<pid_t, int32_t>> HgmMultiAppStrategy::GetPidAppType() const
-{
-    return pidAppTypeMap_;
-}
-
-std::unordered_map<pid_t, std::pair<int32_t, std::string>> HgmMultiAppStrategy::GetForegroundPidApp() const
-{
-    return foregroundPidAppMap_;
-}
-
-HgmLRUCache<pid_t> HgmMultiAppStrategy::GetBackgroundPid() const
-{
-    return backgroundPid_;
-}
-
-std::vector<std::string> HgmMultiAppStrategy::GetPackages() const
-{
-    return pkgs_;
 }
 
 void HgmMultiAppStrategy::CleanApp(pid_t pid)
@@ -244,26 +228,6 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     }
 
     screenSettingCache_ = screenConfig[curRefreshRateMode];
-}
-
-PolicyConfigData::ScreenSetting HgmMultiAppStrategy::GetScreenSetting() const
-{
-    return screenSettingCache_;
-}
-
-void HgmMultiAppStrategy::SetScreenSetting(const PolicyConfigData::ScreenSetting& screenSetting)
-{
-    screenSettingCache_ = screenSetting;
-}
-
-PolicyConfigData::StrategyConfigMap HgmMultiAppStrategy::GetStrategyConfigs() const
-{
-    return strategyConfigMapCache_;
-}
-
-void HgmMultiAppStrategy::SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs)
-{
-    strategyConfigMapCache_ = strategyConfigs;
 }
 
 HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
@@ -369,7 +333,9 @@ std::tuple<std::string, pid_t, int32_t> HgmMultiAppStrategy::AnalyzePkgParam(con
 
 void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strategyRes) const
 {
-    if (lightFactorStatus_ && strategyRes.isFactor) {
+    HGM_LOGD("lightFactorStatus:%{public}u, isFactor:%{public}u, lowAmbientStatus:%{public}u",
+        lightFactorStatus_.load(), strategyRes.isFactor, lowAmbientStatus_);
+    if (lightFactorStatus_ && strategyRes.isFactor && !lowAmbientStatus_) {
         RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
         strategyRes.min = strategyRes.max;
     }

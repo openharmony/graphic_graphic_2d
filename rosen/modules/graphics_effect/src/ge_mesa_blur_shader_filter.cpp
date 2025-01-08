@@ -20,6 +20,7 @@
 #include "src/core/SkOpts.h"
 
 #include "effect/color_matrix.h"
+#include <array>
 #include <vector>
 
 namespace OHOS {
@@ -32,12 +33,14 @@ static constexpr float BLUR_SCALE_1 = 0.25f; // 0.25 : downSample scale for step
 static constexpr float BLUR_SCALE_2 = 0.125f; // 0.125 : downSample scale for step1p5
 static constexpr float BLUR_SCALE_3 = 0.0625f; // 0.0625 : downSample scale for step2
 static constexpr float BLUR_SCALE_4 = 0.03125f; // 0.03125 : downSample scale for step3
-static constexpr int BLUR_RADIUS_1 = 8; // 8 : radius step1
-static constexpr int BLUR_RADIUS_1P5 = 20; // 20 : radius step1.5
-static constexpr int BLUR_RADIUS_20 = 24; // 24 : radius step2-0
-static constexpr int BLUR_RADIUS_21 = 80; // 80 : radius step2-1
-static constexpr int BLUR_RADIUS_2 = 100; // 100 : radius step2
-static constexpr int BLUR_RADIUS_3 = 200; // 200 : radius step3
+static const std::array BLUR_RADIUS = {
+    8,  // 8: BLUR_RADIUS_1
+    20,     // 20: BLUR_RADIUS_1P5
+    24,     // 24: BLUR_RADIUS_20
+    80,     // 80: BLUR_RADIUS_21
+    100,    // 100: BLUR_RADIUS_2
+    200     // 200: BLUR_RADIUS_3
+};
 static std::shared_ptr<Drawing::RuntimeEffect> g_blurEffect;
 static std::shared_ptr<Drawing::RuntimeEffect> g_mixEffect;
 static std::shared_ptr<Drawing::RuntimeEffect> g_simpleFilter;
@@ -110,108 +113,110 @@ GEMESABlurShaderFilter::GEMESABlurShaderFilter(const Drawing::GEMESABlurShaderFi
 
     if (greyCoef1_ > 1e-6 || greyCoef2_ > 1e-6) {
         isGreyX_ = 1;
-        LOGD("GEMESABlurShaderFilter::GreyAdjustment fuzed with blur:greycoef1 = %{public}f, greycoef2 = %{public}f",
-            greyCoef1_, greyCoef2_);
         if (!InitGreyAdjustmentEffect()) {
             return;
         }
     }
 }
 
-void GEMESABlurShaderFilter::SetBlurParamsFivePassSmall(NewBlurParams& bParam)
+bool GEMESABlurShaderFilter::SetBlurParams(NewBlurParams& bParam)
 {
+    bool isSuccess = SetGeneralBlurParams(bParam);
+    isStretchX_ = (blurRadius_ >= BLUR_RADIUS[1]) && (tileMode_ == Drawing::TileMode::MIRROR);
+    return isSuccess;
+}
+
+bool GEMESABlurShaderFilter::SetBlurParamsHelper(NewBlurParams& bParam,
+    const std::vector<std::vector<float>>& offsetTable, float st, float ed)
+{
+    if (st <= 0 || ed <= st || offsetTable.size() < 2) {    // 2: to avoid divided by zero
+        return false;
+    }
     int stride = 2;     // 2: stride
-    // 5: five passes
-    int numberOfPasses = 5;
     int index;
-    // 1.f: initial scaling rate
     float scale = 1.f;
     float w1;
-    if (blurRadius_ < BLUR_RADIUS_20) {
-        scale = blurRadius_ / static_cast<float>(BLUR_RADIUS_20);
+    if (blurRadius_ < st) {
+        scale = blurRadius_ / (st > 0 ? st : 1);
         index = 0;
         w1 = 0;
-    } else if (blurRadius_ > BLUR_RADIUS_21) {
-        scale = blurRadius_ / static_cast<float>(BLUR_RADIUS_21);
-        // 8: blur param
-        index = (BLUR_RADIUS_21 - BLUR_RADIUS_20) / 8;
+    } else if (blurRadius_ > ed) {
+        scale = blurRadius_ / (ed > 0 ? ed : 1);
+        index = offsetTable.size() - 1;
         w1 = 0;
     } else {
-        // 0.125: blur param
-        float findex = (blurRadius_ - BLUR_RADIUS_20) * 0.125;
+        // The denominator will not be zero.
+        float dist = (ed - st) / (offsetTable.size() - 1);
+        float findex = (blurRadius_ - st) / dist;
         index = floor(findex);
         w1 = findex - index;
     }
     if (fabs(w1) < 1e-6) {
-        for (int i = 0; i < numberOfPasses; i++) {
-            bParam.offsets[stride * i] = scale * offsetTableFivePasses[index][stride * i];
-            bParam.offsets[stride * i + 1] = scale * offsetTableFivePasses[index][stride * i + 1];
+        for (int i = 0; i < bParam.numberOfPasses; i++) {
+            bParam.offsets[stride * i] = scale * offsetTable[index][stride * i];
+            bParam.offsets[stride * i + 1] = scale * offsetTable[index][stride * i + 1];
         }
     } else {
         float w2 = 1 - w1;
-        for (int i = 0; i < numberOfPasses; i++) {
-            bParam.offsets[stride * i] = w2 * offsetTableFivePasses[index][stride * i] +
-                w1 * offsetTableFivePasses[index + 1][stride * i];
-            bParam.offsets[stride * i + 1] = w2 * offsetTableFivePasses[index][stride * i + 1] +
-                w1 * offsetTableFivePasses[index + 1][stride * i + 1];
+        for (int i = 0; i < bParam.numberOfPasses; i++) {
+            bParam.offsets[stride * i] = w2 * offsetTable[index][stride * i] +
+                w1 * offsetTable[index + 1][stride * i];
+            bParam.offsets[stride * i + 1] = w2 * offsetTable[index][stride * i + 1] +
+                w1 * offsetTable[index + 1][stride * i + 1];
         }
     }
-    bParam.numberOfPasses = numberOfPasses;
-    return;
+    return true;
 }
 
-void GEMESABlurShaderFilter::SetBlurParamsFivePassLarge(NewBlurParams& bParam)
+bool GEMESABlurShaderFilter::SetBlurParamsFivePassLarge(NewBlurParams& bParam)
 {
-    int stride = 2;     // 2: stride
+    int stride = 2; // 2: stride
     // 5: five passes
     int numberOfPasses = 5;
     float scale;
-    if (blurRadius_ < BLUR_RADIUS_3) {
-        // 0.5: scaling rate
-        scale = blurRadius_ / static_cast<float>(BLUR_RADIUS_21) * 0.5;
+    if (blurRadius_ < BLUR_RADIUS[5]) { // 5: BLUR_RADIUS_3 = 200
+        blurScale_ = BLUR_SCALE_3;
+        scale = blurRadius_ / static_cast<float>(BLUR_RADIUS[3]) * BASE_BLUR_SCALE; // 3: BLUR_RADIUS_21 = 80
     } else {
-        // 0.25: scaling rate
-        scale = blurRadius_ / static_cast<float>(BLUR_RADIUS_21) * 0.25;
+        blurScale_ = BLUR_SCALE_4;
+        scale = blurRadius_ / static_cast<float>(BLUR_RADIUS[3]) * BLUR_SCALE_1;    // 3: BLUR_RADIUS_21 = 80
     }
-    int index = (BLUR_RADIUS_21 - BLUR_RADIUS_20) / 8;
+    int index = (BLUR_RADIUS[3] - BLUR_RADIUS[2]) * BLUR_SCALE_2;   // 3: BLUR_RADIUS_21 = 80; 2: BLUR_RADIUS_20 = 24
     for (int i = 0; i < numberOfPasses; i++) {
         bParam.offsets[stride * i] = scale * offsetTableFivePasses[index][stride * i];
         bParam.offsets[stride * i + 1] = scale * offsetTableFivePasses[index][stride * i + 1];
     }
     bParam.numberOfPasses = numberOfPasses;
-    return;
+    return true;
 }
 
-void GEMESABlurShaderFilter::SetBlurParams(NewBlurParams& bParam)
+bool GEMESABlurShaderFilter::SetGeneralBlurParams(NewBlurParams& bParam)
 {
+    blurRadius_ = static_cast<float>(radius_);
     int stride = 2;     // 2: stride
-    int numberOfPasses;
-    if (blurRadius_ < BLUR_RADIUS_1) {
+    if (blurRadius_ < BLUR_RADIUS[0]) {     // 0: BLUR_RADIUS_1 = 8
         // 2: min number of pass, 4: fixed four passes
-        numberOfPasses = std::clamp(static_cast<int>(blurRadius_), 2, 4);
-        float mys = blurRadius_ * 0.125;    // 0.125: scaling rate
-        for (int i = 0; i < numberOfPasses; i++) {
-            bParam.offsets[stride * i] = offsetTableFourPasses[0][stride * i] * mys;
-            bParam.offsets[stride * i + 1] = offsetTableFourPasses[0][stride * i + 1] * mys;
-        }
-        if (blurRadius_ >= BLUR_RADIUS_1 - stride) {
+        bParam.numberOfPasses = std::clamp(static_cast<int>(blurRadius_), 2, 4);
+        blurScale_ = BASE_BLUR_SCALE;
+        // 8, 10: the range of blur radius.
+        bool isSetParamSuccess = SetBlurParamsHelper(bParam, offsetTableFourPasses, 8, 10);
+        if (blurRadius_ >= BLUR_RADIUS[0] - stride) {
             // 3: pre-filtering when the radius is larger than the calculated value
             // 0.33333333: scaling rate.
             // 1.8: blur param
             float blurParam = 1.8;
-            float perf = (blurRadius_ - BLUR_RADIUS_1) * 0.33333333 + 1;
-            bParam.offsets[stride * numberOfPasses] = blurParam * perf;
-            bParam.offsets[stride * numberOfPasses + 1] = blurParam * perf;
-            numberOfPasses++;
+            float perf = (blurRadius_ - BLUR_RADIUS[0]) * 0.33333333 + 1;
+            bParam.offsets[stride * bParam.numberOfPasses] = blurParam * perf;
+            bParam.offsets[stride * bParam.numberOfPasses + 1] = blurParam * perf;
+            bParam.numberOfPasses++;
         }
-        bParam.numberOfPasses = numberOfPasses;
-        return;
+        return isSetParamSuccess;
     }
-    if (blurRadius_ < BLUR_RADIUS_1P5) {
+    if (blurRadius_ < BLUR_RADIUS[1]) {     // 1: BLUR_RADIUS_1P5 = 20
         // 4: four passes
-        numberOfPasses = 4;
-        // 16.0: scaling rate
-        float scale = blurRadius_ / 16.0;
+        int numberOfPasses = 4;
+        blurScale_ = BLUR_SCALE_1;
+        float scale = blurRadius_ * BLUR_SCALE_3;
         for (int i = 0; i < numberOfPasses; i++) {
             bParam.offsets[stride * i] = scale * offsetTableFourPasses[0][stride * i];
             bParam.offsets[stride * i + 1] = scale * offsetTableFourPasses[0][stride * i + 1];
@@ -220,22 +225,23 @@ void GEMESABlurShaderFilter::SetBlurParams(NewBlurParams& bParam)
         int newStride = 3;
         static constexpr float BLUR_PARAM_A = 0.4;
         static constexpr float BLUR_PARAM_B = 0.35;
-        if (blurRadius_ >= BLUR_RADIUS_1P5 - newStride) {
+        if (blurRadius_ >= BLUR_RADIUS[1] - newStride) {
             // 4: pre-filtering when the radius is larger than the calculated value
-            float perf = (blurRadius_ - BLUR_RADIUS_1P5 + newStride + 1);
+            float perf = (blurRadius_ - BLUR_RADIUS[1] + newStride + 1);
             bParam.offsets[stride * numberOfPasses] = BLUR_PARAM_A * perf + BLUR_PARAM_B;
             bParam.offsets[stride * numberOfPasses + 1] = BLUR_PARAM_A * perf + BLUR_PARAM_B;
             numberOfPasses++;
         }
         bParam.numberOfPasses = numberOfPasses;
-        return;
+        return true;
     }
-    if (blurRadius_ < BLUR_RADIUS_2) {
-        SetBlurParamsFivePassSmall(bParam);
-    } else {
-        SetBlurParamsFivePassLarge(bParam);
+    if (blurRadius_ < BLUR_RADIUS[4]) {     // 4: BLUR_RADIUS_2 = 100
+        bParam.numberOfPasses = 5;  // 5: five passes
+        blurScale_ = BLUR_SCALE_2;
+        // 3: BLUR_RADIUS_21 = 80; 2: BLUR_RADIUS_20 = 24
+        return SetBlurParamsHelper(bParam, offsetTableFivePasses, BLUR_RADIUS[2], BLUR_RADIUS[3]);
     }
-    return;
+    return SetBlurParamsFivePassLarge(bParam);
 }
 
 int GEMESABlurShaderFilter::GetRadius() const
@@ -243,47 +249,182 @@ int GEMESABlurShaderFilter::GetRadius() const
     return radius_;
 }
 
-std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::ApplyGreyAdjustmentFilter(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& input, const std::shared_ptr<Drawing::ShaderEffect>& prevShader,
-    const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const
+std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::ApplyFuzedFilter(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder, const std::shared_ptr<Drawing::Image>& input,
+    const std::shared_ptr<Drawing::ShaderEffect>& prevShader, const Drawing::ImageInfo& middleInfo,
+    const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear, const Drawing::Matrix& matrix) const
 {
-    Drawing::RuntimeShaderBuilder builder(g_greyAdjustEffect);
-    builder.SetChild("imageShader", prevShader);
-    builder.SetUniform("coefficient1", greyCoef1_);
-    builder.SetUniform("coefficient2", greyCoef2_);
+    std::shared_ptr<Drawing::Image> tmpBlur;
+    if (isGreyX_) {
+        Drawing::RuntimeShaderBuilder builder(g_greyAdjustEffect);
+        if (prevShader) {
+            builder.SetChild("imageShader", prevShader);
+        } else {
+            auto tmpShader = blurBuilder.MakeShader(nullptr, input->IsOpaque());
+            builder.SetChild("imageShader", tmpShader);
+        }
+        builder.SetUniform("coefficient1", greyCoef1_);
+        builder.SetUniform("coefficient2", greyCoef2_);
 #ifdef RS_ENABLE_GPU
-    std::shared_ptr<Drawing::Image> tmpBlur(builder.MakeImage(
-        canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+        tmpBlur = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
 #else
-    std::shared_ptr<Drawing::Image> tmpBlur(builder.MakeImage(nullptr, nullptr, scaledInfo, false));
+        tmpBlur = builder.MakeImage(nullptr, nullptr, middleInfo, false);
 #endif
-    return GetShaderEffect(tmpBlur, linear, Drawing::Matrix());
-}
-
-std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::GetShaderEffect(
-    const std::shared_ptr<Drawing::Image>& image, const Drawing::SamplingOptions& linear,
-    const Drawing::Matrix& matrix) const
-{
-    if (!image) {
+    } else {
+        if (prevShader) {
+            return prevShader;
+        }
+#ifdef RS_ENABLE_GPU
+        tmpBlur = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
+#else
+        tmpBlur = blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false);
+#endif
+    }
+    if (!tmpBlur) {
         return nullptr;
     }
-    return Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, linear, matrix);
+    if (!isStretchX_) {
+        return Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix);
+    }
+    Drawing::Matrix inputMatrix = BuildStretchMatrix(middleInfo, input);
+    inputMatrix.PostConcat(matrix);
+    auto tmpShader = Drawing::ShaderEffect::CreateImageShader(*tmpBlur, tileMode_, tileMode_, linear, inputMatrix);
+    Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
+    simpleBlurBuilder.SetChild("imageInput", tmpShader);
+#ifdef RS_ENABLE_GPU
+    tmpBlur = simpleBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
+#else
+    tmpBlur = simpleBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
+#endif
+    return Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix());
 }
 
-std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling2X(Drawing::Canvas& canvas,
+std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::DownSampling2X(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder, const std::shared_ptr<Drawing::Image>& input,
+    const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo, const Drawing::SamplingOptions& linear) const
+{
+    const auto& blurMatrix = BuildMatrix(src, scaledInfo, input);
+    return ApplyFuzedFilter(canvas, blurBuilder, input, Drawing::ShaderEffect::CreateImageShader(*input,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix), scaledInfo, scaledInfo, linear);
+}
+
+std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::DownSampling4X(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder,
     const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo,
+    const Drawing::SamplingOptions& linear, bool isEasySampling) const
+{
+    const auto& blurMatrix = BuildMatrix(src, scaledInfo, input);
+    if (isEasySampling) {
+        Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
+        simpleBlurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
+        return ApplyFuzedFilter(canvas, simpleBlurBuilder, input, nullptr, scaledInfo, scaledInfo, linear);
+    } else {
+        blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
+        blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
+        return ApplyFuzedFilter(canvas, blurBuilder, input, nullptr, scaledInfo, scaledInfo, linear);
+    }
+}
+
+std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::DownSampling8X(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder, const std::shared_ptr<Drawing::Image>& input,
+    const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo,
+    const Drawing::SamplingOptions& linear, bool isEasySampling) const
+{
+    std::shared_ptr<Drawing::Image> tmpBlur_pre;
+    Drawing::Matrix blurMatrix = BuildMatrix(src, middleInfo, input);
+    Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
+    if (!isEasySampling) {
+        blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
+        blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
+#ifdef RS_ENABLE_GPU
+        tmpBlur_pre = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
+#else
+        tmpBlur_pre = blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false);
+#endif
+    } else {
+        simpleBlurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
+#ifdef RS_ENABLE_GPU
+        tmpBlur_pre = simpleBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
+#else
+        tmpBlur_pre = simpleBlurBuilder.MakeImage(nullptr, nullptr, middleInfo, false);
+#endif
+    }
+    if (!tmpBlur_pre) {
+        return nullptr;
+    }
+    Drawing::Matrix blurMatrixA = BuildMiddleMatrix(scaledInfo, middleInfo);
+    simpleBlurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrixA));
+    return ApplyFuzedFilter(canvas, simpleBlurBuilder, input, nullptr, scaledInfo, scaledInfo, linear);
+}
+
+std::shared_ptr<Drawing::ShaderEffect> GEMESABlurShaderFilter::DownSamplingMoreX(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder,
+    const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
+    const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo, const Drawing::ImageInfo& middleInfo2,
+    const Drawing::SamplingOptions& linear, bool isEasySampling) const
+{
+    std::shared_ptr<Drawing::Image> tmpBlur_pre;
+    Drawing::Matrix blurMatrix = BuildMatrix(src, middleInfo, input);
+    if (!isEasySampling) {
+        blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
+        blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
+#ifdef RS_ENABLE_GPU
+        tmpBlur_pre = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
+#else
+        tmpBlur_pre = blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false);
+#endif
+    } else {
+        Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
+        simpleBlurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
+#ifdef RS_ENABLE_GPU
+        tmpBlur_pre = simpleBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo, false);
+#else
+        tmpBlur_pre = simpleBlurBuilder.MakeImage(nullptr, nullptr, middleInfo, false);
+#endif
+    }
+    if (!tmpBlur_pre) {
+        return nullptr;
+    }
+    Drawing::Matrix blurMatrixA = BuildMiddleMatrix(middleInfo2, middleInfo);
+    blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
+        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrixA));
+    blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
+    Drawing::Matrix blurMatrix2 = BuildMiddleMatrix(scaledInfo, middleInfo2);
+    return ApplyFuzedFilter(canvas, blurBuilder, input, nullptr, middleInfo2, scaledInfo, linear, blurMatrix2);
+}
+
+std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingFuzedBlur(Drawing::Canvas& canvas,
+    Drawing::RuntimeShaderBuilder& blurBuilder,
+    const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
+    const Drawing::ImageInfo& scaledInfo, int& width, int& height,
     const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const
 {
-    Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
-    const auto& blurMatrix = BuildMatrix(src, scaledInfo, input);
-    auto tmpShader = Drawing::ShaderEffect::CreateImageShader(*input, Drawing::TileMode::CLAMP,
-        Drawing::TileMode::CLAMP, linear, blurMatrix);
-    if (isGreyX_) {
-        tmpShader = ApplyGreyAdjustmentFilter(canvas, input, tmpShader, scaledInfo, linear);
-        if (!tmpShader) {
-            return nullptr;
-        }
+    std::shared_ptr<Drawing::ShaderEffect> tmpShader;
+    auto originImageInfo = input->GetImageInfo();
+    auto middleInfo = Drawing::ImageInfo(std::ceil(width * BLUR_SCALE_1), std::ceil(height * BLUR_SCALE_1),
+        originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+    if (blurScale_ > BLUR_SCALE_1 + 1e-4) {
+        tmpShader = DownSampling2X(canvas, blurBuilder, input, src, scaledInfo, linear);
+    } else if (blurScale_ > BLUR_SCALE_2 + 1e-4) {
+        tmpShader = DownSampling4X(canvas, blurBuilder, input, src, scaledInfo, linear);
+    } else if (blurScale_ > BLUR_SCALE_3 + 1e-4) {
+        tmpShader = DownSampling8X(canvas, blurBuilder, input, src, scaledInfo, middleInfo, linear);
+    } else {
+        auto middleInfo2 = Drawing::ImageInfo(std::ceil(width * BLUR_SCALE_3), std::ceil(height * BLUR_SCALE_3),
+            originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+        tmpShader = DownSamplingMoreX(canvas, blurBuilder, input, src, scaledInfo, middleInfo, middleInfo2, linear);
+    }
+    if (!tmpShader) {
+        return nullptr;
     }
     blurBuilder.SetChild("imageInput", tmpShader);
     blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
@@ -294,156 +435,12 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling2X(Drawing::
 #endif
 }
 
-std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling4X(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src, const Drawing::ImageInfo& scaledInfo,
-    const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const
+Drawing::ImageInfo GEMESABlurShaderFilter::ComputeImageInfo(const Drawing::ImageInfo& originImageInfo,
+    int& width, int& height) const
 {
-    Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
-    const auto& blurMatrix = BuildMatrix(src, scaledInfo, input);
-    blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
-        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix));
-    blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
-    if (isGreyX_) {
-        auto tmpShader = blurBuilder.MakeShader(nullptr, input->IsOpaque());
-        tmpShader = ApplyGreyAdjustmentFilter(canvas, input, tmpShader, scaledInfo, linear);
-        if (!tmpShader) {
-            return nullptr;
-        }
-        blurBuilder.SetChild("imageInput", tmpShader);
-        blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
-    }
-#ifdef RS_ENABLE_GPU
-    return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
-#else
-    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
-#endif
-}
-
-std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling8X(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-    const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo,
-    const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const
-{
-    Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
-    Drawing::Matrix blurMatrix = BuildMiddleMatrix(middleInfo, input->GetImageInfo());
-    Drawing::Matrix inputMatrix = BuildStretchMatrix(src, input->GetWidth(), input->GetHeight());
-    inputMatrix.PostConcat(blurMatrix);
-    blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
-        tileMode_, tileMode_, linear, inputMatrix));
-    blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
-#ifdef RS_ENABLE_GPU
-    std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(canvas.GetGPUContext().get(),
-        nullptr, middleInfo, false));
-#else
-    std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false));
-#endif
-    if (!tmpBlur_pre) {
-        return nullptr;
-    }
-    Drawing::Matrix blurMatrixA = BuildMiddleMatrix(scaledInfo, middleInfo);
-    Drawing::RuntimeShaderBuilder simpleBlurBuilder(g_simpleFilter);
-    simpleBlurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
-        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrixA));
-    if (isGreyX_) {
-        auto tmpShader = simpleBlurBuilder.MakeShader(nullptr, input->IsOpaque());
-        tmpShader = ApplyGreyAdjustmentFilter(canvas, input, tmpShader, scaledInfo, linear);
-        if (!tmpShader) {
-            return nullptr;
-        }
-        blurBuilder.SetChild("imageInput", tmpShader);
-        blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
-    } else {
-#ifdef RS_ENABLE_GPU
-        tmpBlur_pre = simpleBlurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
-#else
-        tmpBlur_pre = simpleBlurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
-#endif
-        if (!tmpBlur_pre) {
-            return nullptr;
-        }
-        blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
-            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
-        blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
-    }
-#ifdef RS_ENABLE_GPU
-    return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
-#else
-    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
-#endif
-}
-
-std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSamplingMoreX(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-    const Drawing::ImageInfo& scaledInfo, const Drawing::ImageInfo& middleInfo, const Drawing::ImageInfo& middleInfo2,
-    const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const
-{
-    Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
-    Drawing::Matrix blurMatrix = BuildMiddleMatrix(middleInfo, input->GetImageInfo());
-    Drawing::Matrix inputMatrix = BuildStretchMatrix(src, input->GetWidth(), input->GetHeight());
-    inputMatrix.PostConcat(blurMatrix);
-    blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*input,
-        tileMode_, tileMode_, linear, inputMatrix));
-    blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
-#ifdef RS_ENABLE_GPU
-    std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(canvas.GetGPUContext().get(),
-        nullptr, middleInfo, false));
-#else
-    std::shared_ptr<Drawing::Image> tmpBlur_pre(blurBuilder.MakeImage(nullptr, nullptr, middleInfo, false));
-#endif
-    if (!tmpBlur_pre) {
-        return nullptr;
-    }
-    Drawing::Matrix blurMatrixA = BuildMiddleMatrix(middleInfo2, middleInfo);
-    blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
-        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrixA));
-    blurBuilder.SetUniform("in_blurOffset", BLUR_SCALE_1, BLUR_SCALE_1);
-    if (isGreyX_) {
-        Drawing::RuntimeShaderBuilder builder(g_greyAdjustEffect);
-        builder.SetChild("imageShader", blurBuilder.MakeShader(nullptr, input->IsOpaque()));
-        builder.SetUniform("coefficient1", greyCoef1_);
-        builder.SetUniform("coefficient2", greyCoef2_);
-#ifdef RS_ENABLE_GPU
-        tmpBlur_pre = builder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo2, false);
-#else
-        tmpBlur_pre = builder.MakeImage(nullptr, nullptr, middleInfo2, false);
-#endif
-    } else {
-#ifdef RS_ENABLE_GPU
-        tmpBlur_pre = blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, middleInfo2, false);
-#else
-        tmpBlur_pre = blurBuilder.MakeImage(nullptr, nullptr, middleInfo2, false);
-#endif
-    }
-    Drawing::Matrix blurMatrix2 = BuildMiddleMatrix(scaledInfo, middleInfo2);
-    blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur_pre,
-        Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, blurMatrix2));
-    blurBuilder.SetUniform("in_blurOffset", blur.offsets[0], blur.offsets[1]);
-#ifdef RS_ENABLE_GPU
-    return blurBuilder.MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
-#else
-    return blurBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
-#endif
-}
-
-std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::DownSampling(Drawing::Canvas& canvas,
-    const std::shared_ptr<Drawing::Image>& input, const Drawing::Rect& src,
-    const Drawing::ImageInfo& scaledInfo, int& width, int& height,
-    const Drawing::SamplingOptions& linear, const NewBlurParams& blur) const
-{
-    auto originImageInfo = input->GetImageInfo();
-    auto middleInfo = Drawing::ImageInfo(std::ceil(width * BLUR_SCALE_1), std::ceil(height * BLUR_SCALE_1),
+    LOGD("GEMESABlurShaderFilter:: sigma = %{public}f. ", blurRadius_);
+    return Drawing::ImageInfo(std::ceil(width * blurScale_), std::ceil(height * blurScale_),
         originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
-    if (blurScale_ > BLUR_SCALE_1 + 1e-4) {
-        return DownSampling2X(canvas, input, src, scaledInfo, linear, blur);
-    } else if (blurScale_ > BLUR_SCALE_2 + 1e-4) {
-        return DownSampling4X(canvas, input, src, scaledInfo, linear, blur);
-    } else if (blurScale_ > BLUR_SCALE_3 + 1e-4) {
-        return DownSampling8X(canvas, input, src, scaledInfo, middleInfo, linear, blur);
-    } else {
-        auto middleInfo2 = Drawing::ImageInfo(std::ceil(width * BLUR_SCALE_3), std::ceil(height * BLUR_SCALE_3),
-            originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
-        return DownSamplingMoreX(canvas, input, src, scaledInfo, middleInfo, middleInfo2, linear, blur);
-    }
 }
 
 std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Canvas& canvas,
@@ -461,33 +458,26 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ProcessImage(Drawing::Ca
 
     auto input = image;
     CheckInputImage(canvas, image, input, src);
-    ComputeRadiusAndScale(radius_);
     NewBlurParams blur;
-    SetBlurParams(blur);
+    if (!SetBlurParams(blur)) {
+        LOGE("GEMESABlurShaderFilter:: The blur params are not correctly set.");
+        return image;
+    }
     auto originImageInfo = input->GetImageInfo();
     auto width = std::max(static_cast<int>(std::ceil(dst.GetWidth())), input->GetWidth());
     auto height = std::max(static_cast<int>(std::ceil(dst.GetHeight())), input->GetHeight());
-    auto scaledInfo = Drawing::ImageInfo(std::ceil(width * blurScale_), std::ceil(height * blurScale_),
-        originImageInfo.GetColorType(), originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
+    auto scaledInfo = ComputeImageInfo(originImageInfo, width, height);
     Drawing::RuntimeShaderBuilder blurBuilder(g_blurEffect);
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    LOGD("GEMESABlurShaderFilter:: sigma = %{public}f, numberOfPasses = %{public}d",
-        blurRadius_, blur.numberOfPasses);
 
-    std::shared_ptr<Drawing::Image> tmpBlur = DownSampling(canvas, input, src, scaledInfo,
-        width, height, linear, blur);
+    auto tmpBlur = DownSamplingFuzedBlur(canvas, blurBuilder, input, src, scaledInfo, width, height, linear, blur);
     if (!tmpBlur) {
         LOGE("GEMESABlurShaderFilter::ProcessImage make image error when downsampling");
         return image;
     }
 
     int stride = 2;     // 2: stride
-    int i_start = 1;
-    if (fabs(blurScale_ - BLUR_SCALE_1) < 1e-4 && (!isGreyX_)) {
-        // 0: staring from zero when blurScale_ = 0.25 and isGreyX_ = false
-        i_start = 0;
-    }
-    for (auto i = i_start; i < blur.numberOfPasses; i++) {
+    for (auto i = 1; i < blur.numberOfPasses; i++) {
         blurBuilder.SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(*tmpBlur,
             Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, Drawing::Matrix()));
         blurBuilder.SetUniform("in_blurOffset", blur.offsets[stride * i], blur.offsets[stride * i + 1]);
@@ -556,17 +546,20 @@ Drawing::Matrix GEMESABlurShaderFilter::BuildStretchMatrixFull(const Drawing::Re
     return matrix;
 }
 
-Drawing::Matrix GEMESABlurShaderFilter::BuildStretchMatrix(const Drawing::Rect& src,
-    int imageWidth, int imageHeight) const
+Drawing::Matrix GEMESABlurShaderFilter::BuildStretchMatrix(const Drawing::ImageInfo& scaledInfo,
+    const std::shared_ptr<Drawing::Image>& input) const
 {
     Drawing::Matrix matrix;
+    int imageWidth = input->GetWidth();
+    int imageHeight = input->GetHeight();
     float scaleW = static_cast<float>((imageWidth - offsetX_ - offsetZ_)) / (imageWidth > 0 ? imageWidth : 1);
     float scaleH = static_cast<float>((imageHeight - offsetY_ - offsetW_)) / (imageHeight > 0 ? imageHeight : 1);
-    matrix.Translate(-src.GetLeft(), -src.GetTop());
-    matrix.PostScale(scaleW, scaleH);
+    matrix.SetScale(scaleW, scaleH);
 
     Drawing::Matrix translateMatrix;
-    translateMatrix.Translate(offsetX_, offsetY_);
+    auto scaleWn = static_cast<float>(scaledInfo.GetWidth()) / (imageWidth > 0 ? imageWidth : 1);
+    auto scaleHn = static_cast<float>(scaledInfo.GetHeight()) / (imageHeight > 0 ? imageHeight : 1);
+    translateMatrix.Translate(offsetX_ * scaleWn, offsetY_ * scaleHn);
     matrix.PostConcat(translateMatrix);
 
     return matrix;
@@ -776,7 +769,7 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ScaleAndAddRandomColor(D
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto scaledInfo = Drawing::ImageInfo(width, height, blurImage->GetImageInfo().GetColorType(),
         blurImage->GetImageInfo().GetAlphaType(), blurImage->GetImageInfo().GetColorSpace());
-    if (blurRadius_ >= BLUR_RADIUS_1P5) {
+    if (isStretchX_) {
         Drawing::Matrix scaleMatrix;
         // blurImage->GetWidth() and blurImage->GetHeight() are larger than zero, checked before
         float scaleW = static_cast<float>(dst.GetWidth()) / blurImage->GetWidth();
@@ -805,29 +798,6 @@ std::shared_ptr<Drawing::Image> GEMESABlurShaderFilter::ScaleAndAddRandomColor(D
     auto output = mixBuilder.MakeImage(nullptr, nullptr, scaledInfo, false);
 #endif
     return output;
-}
-
-void GEMESABlurShaderFilter::ComputeRadiusAndScale(int radius)
-{
-    blurRadius_ = static_cast<float>(radius);
-    AdjustRadiusAndScale();
-    return;
-}
-
-void GEMESABlurShaderFilter::AdjustRadiusAndScale()
-{
-    auto radius = static_cast<int>(blurRadius_);
-    if (radius < BLUR_RADIUS_1) {
-        blurScale_ = BASE_BLUR_SCALE;
-    } else if (radius < BLUR_RADIUS_1P5) {
-        blurScale_ = BLUR_SCALE_1;
-    } else if (radius < BLUR_RADIUS_2) {
-        blurScale_ = BLUR_SCALE_2;
-    } else if (radius < BLUR_RADIUS_3) {
-        blurScale_ = BLUR_SCALE_3;
-    } else {
-        blurScale_ = BLUR_SCALE_4;
-    }
 }
 
 std::string GEMESABlurShaderFilter::GetDescription() const

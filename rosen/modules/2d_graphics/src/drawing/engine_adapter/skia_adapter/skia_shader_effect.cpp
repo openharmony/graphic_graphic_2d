@@ -16,7 +16,6 @@
 #include "skia_shader_effect.h"
 
 #include <vector>
-
 #include "include/core/SkMatrix.h"
 #include "include/core/SkSamplingOptions.h"
 #include "include/core/SkTileMode.h"
@@ -37,10 +36,14 @@
 #include "utils/matrix.h"
 #include "utils/data.h"
 #include "utils/log.h"
+#ifdef RS_ENABLE_SDF
+#include "draw/sdf_shape.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
 SkiaShaderEffect::SkiaShaderEffect() noexcept : shader_(nullptr) {}
 
 void SkiaShaderEffect::InitWithColor(ColorQuad color)
@@ -249,10 +252,13 @@ void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffe
             }
             half4 main(float2 coord)
             {
-                vec3 hsv = rgb2hsv(imageShader.eval(coord).rgb);
+                vec3 color = imageShader.eval(coord).rgb;
+                vec3 rgb = max(color, 0.0);
+                vec3 hsv = rgb2hsv(rgb);
                 float satUpper = clamp(hsv.y * 1.2, 0.0, 1.0);
                 hsv.y = mix(satUpper, hsv.y, lightUpDeg);
                 hsv.z += lightUpDeg - 1.0;
+                hsv.z = max(hsv.z, 0.0);
                 return vec4(hsv2rgb(hsv), imageShader.eval(coord).a);
             }
         )";
@@ -264,6 +270,15 @@ void SkiaShaderEffect::InitWithLightUp(const float& lightUpDeg, const ShaderEffe
     } else {
         LOGE("SkiaShaderEffect::InitWithLightUp: imageShader is nullptr");
     }
+}
+
+void SkiaShaderEffect::InitWithSdf(const SDFShapeBase& shape)
+{
+    sk_sp<SkShader> skShader = shape.Build<sk_sp<SkShader>>();
+    if (skShader == nullptr) {
+        return;
+    }
+    shader_ = skShader;
 }
 
 sk_sp<SkShader> SkiaShaderEffect::GetShader() const

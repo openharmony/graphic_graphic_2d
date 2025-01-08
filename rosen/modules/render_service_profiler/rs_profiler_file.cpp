@@ -752,7 +752,7 @@ double RSFile::ConvertVsyncId2Time(int64_t vsyncId)
     return 0.0;
 }
 
-int64_t RSFile::ConvertTime2VsyncId(double time)
+int64_t RSFile::ConvertTime2VsyncId(double time) const
 {
     constexpr double numericError = 1e-5;
     for (const auto& item : mapVsyncId2Time_) {
@@ -774,7 +774,7 @@ void RSFile::CacheVsyncId2Time(uint32_t layer)
     LayerTrackPtr track = { &RSFileLayer::readindexRsMetrics, &RSFileLayer::rsMetrics };
 
     RSFileLayer& layerData = layerData_[layer];
-    auto& trackData = layerData.*track.markup;
+    const auto& trackData = layerData.*track.markup;
 
     double readTime;
     std::vector<char> data;

@@ -51,6 +51,7 @@ bool TypefaceFuzzTest001(const uint8_t* data, size_t size)
     typeface->GetUniqueID();
     typeface->GetUnitsPerEm();
     typeface->IsCustomTypeface();
+    typeface->IsThemeTypeface();
     return true;
 }
 

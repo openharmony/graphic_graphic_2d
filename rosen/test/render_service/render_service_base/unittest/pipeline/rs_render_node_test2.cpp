@@ -1387,6 +1387,7 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowOnTreeStateChangedTest, TestSize.
     auto rootNode = std::make_shared<RSRenderNode>(1);
     rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = rootNode;
     node->renderContent_->renderProperties_.SetUseEffect(true);
+    ASSERT_TRUE(node->renderContent_->renderProperties_.GetUseEffect());
     node->renderContent_->renderProperties_.SetUseEffectType(1);
     node->isOnTheTree_ = true;
     node->ProcessBehindWindowOnTreeStateChanged();
@@ -1408,8 +1409,10 @@ HWTEST_F(RSRenderNodeTest2, ProcessBehindWindowAfterApplyModifiersTest, TestSize
     auto rootNode = std::make_shared<RSRenderNode>(1);
     rsContext->nodeMap.renderNodeMap_[ExtractPid(1)][1] = rootNode;
     node->renderContent_->renderProperties_.SetUseEffect(false);
+    ASSERT_FALSE(node->renderContent_->renderProperties_.GetUseEffect());
     node->ProcessBehindWindowAfterApplyModifiers();
     node->renderContent_->renderProperties_.SetUseEffect(true);
+    ASSERT_TRUE(node->renderContent_->renderProperties_.GetUseEffect());
     node->renderContent_->renderProperties_.SetUseEffectType(1);
     node->ProcessBehindWindowAfterApplyModifiers();
 }
@@ -2501,6 +2504,20 @@ HWTEST_F(RSRenderNodeTest2, ResortChildrenTest02, TestSize.Level1)
     EXPECT_TRUE(!node->fullChildrenList_->empty());
     node->ResortChildren();
     EXPECT_TRUE(node->isChildrenSorted_);
+}
+
+/**
+ * @tc.name: UpdateDrawableBehindWindowTest
+ * @tc.desc: UpdateDrawableBehindWindowTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBDI0L
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateDrawableBehindWindowTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->UpdateDrawableBehindWindow();
+    EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::BACKGROUND_FILTER) != 0);
 }
 } // namespace Rosen
 } // namespace OHOS

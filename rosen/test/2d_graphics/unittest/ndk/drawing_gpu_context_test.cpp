@@ -108,6 +108,19 @@ HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_CreateFromGL, 
 }
 
 /*
+ * @tc.name: NativeDrawingGpuContextTest_Create
+ * @tc.desc: test for Create.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_Create, TestSize.Level1)
+{
+    gpuContext_ = OH_Drawing_GpuContextCreate();
+    EXPECT_NE(gpuContext_, nullptr);
+    OH_Drawing_GpuContextDestroy(gpuContext_);
+}
+
+/*
  * @tc.name: NativeDrawingGpuContextTest_GpuContextDestroy
  * @tc.desc: test for GpuContextDestroy.
  * @tc.type: FUNC

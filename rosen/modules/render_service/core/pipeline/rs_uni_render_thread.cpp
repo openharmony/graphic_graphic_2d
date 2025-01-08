@@ -116,7 +116,12 @@ void RSUniRenderThread::ResetCaptureParam()
 
 bool RSUniRenderThread::IsInCaptureProcess()
 {
-    return captureParam_.isSnapshot_ || captureParam_.isMirror_;
+    return captureParam_.isSnapshot_;
+}
+
+bool RSUniRenderThread::IsExpandScreenMode()
+{
+    return !captureParam_.isSnapshot_ && !captureParam_.isMirror_;
 }
 
 RSUniRenderThread& RSUniRenderThread::Instance()
@@ -768,6 +773,21 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
+void RSUniRenderThread::ClearGPUCompositionCache()
+{
+    if (!uniRenderEngine_) {
+        return;
+    }
+    auto& unmappedCacheSet = GetRSRenderThreadParams()->GetUnmappedCacheSet();
+    if (!unmappedCacheSet.empty()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("Clear GPU composition cache, %zu buffers need to be deleted",
+            unmappedCacheSet.size());
+        uniRenderEngine_->ClearCacheSet(unmappedCacheSet);
+        RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(unmappedCacheSet);
+        GetRSRenderThreadParams()->ClearUnmappedCacheSet();
+    }
+}
+
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {
@@ -840,7 +860,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
             this->clearMemoryFinished_ = true;
         } else {
             this->isDefaultCleanTaskFinished_ = true;
-            if (RSSystemProperties::GetRenderNodePurgeEnabled()) {
+            {
                 RS_TRACE_NAME_FMT("Purge unlocked resources when clear memory");
                 grContext->PurgeUnlockedResources(false);
             }

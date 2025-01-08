@@ -34,6 +34,10 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_water_ripple_filter_test.cpp",
   ]
 
+  if (!is_mingw && !is_win) {
+    sources += [ "ge_external_dynamic_loader_test.cpp" ]
+  }
+
   include_dirs = [
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/src",

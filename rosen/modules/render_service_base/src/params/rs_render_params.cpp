@@ -502,6 +502,8 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->firstLevelNodeId_ = firstLevelNodeId_;
     target->uifirstRootNodeId_ = uifirstRootNodeId_;
     target->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
+    target->cloneSourceDrawable_ = cloneSourceDrawable_;
+    target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
     needSync_ = false;
 }
 
@@ -587,5 +589,15 @@ DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetMirrorSource
 {
     static DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr defaultPtr;
     return defaultPtr;
+}
+
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetCloneSourceDrawable() const
+{
+    return cloneSourceDrawable_;
+}
+
+void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+{
+    cloneSourceDrawable_ = drawable;
 }
 } // namespace OHOS::Rosen

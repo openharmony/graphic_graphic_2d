@@ -128,7 +128,7 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
 }
 
 bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
+    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam)
 {
     return false;
 }
@@ -259,6 +259,10 @@ RSVirtualScreenResolution RSRenderServiceClient::GetVirtualScreenResolution(Scre
 }
 
 void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
+{
+}
+
+void RSRenderServiceClient::RepaintEverything()
 {
 }
 
@@ -450,6 +454,12 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
     return {};
 }
 
+int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
+    const std::shared_ptr<Media::PixelMap> securityMask)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
 {
     return {};
@@ -588,10 +598,6 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 }
 
 void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
-{
-}
-
-void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
 

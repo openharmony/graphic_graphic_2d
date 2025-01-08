@@ -190,15 +190,6 @@ bool RSSystemProperties::GetScreenSwitchStatus()
     return false;
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {
@@ -342,6 +333,16 @@ float RSSystemProperties::GetHpsBlurNoiseFactor()
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSimplifiedMesaEnabled()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetForceKawaseDisabled()
 {
     return false;
 }
@@ -579,6 +580,11 @@ std::string RSSystemProperties::GetVersionType()
 }
 
 bool RSSystemProperties::GetHwcDirtyRegionEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }

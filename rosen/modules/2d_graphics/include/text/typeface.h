@@ -93,6 +93,7 @@ public:
     std::shared_ptr<Typeface> MakeClone(const FontArguments&) const;
 
     bool IsCustomTypeface() const;
+    bool IsThemeTypeface() const;
 
     std::shared_ptr<Data> Serialize() const;
     static std::shared_ptr<Typeface> Deserialize(const void* data, size_t size);

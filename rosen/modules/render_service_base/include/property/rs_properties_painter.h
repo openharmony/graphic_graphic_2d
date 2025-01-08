@@ -111,6 +111,7 @@ private:
     static RRect GetInnerRRectForDrawingBorder(const RSProperties& properties, const std::shared_ptr<RSBorder>& border,
         const bool isOutline);
     static void ClipVisibleCanvas(const RSProperties& properties, RSPaintFilterCanvas& canvas);
+
     static void DrawColorfulShadowInner(
         const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
     static void DrawShadowInner(const RSProperties& properties, RSPaintFilterCanvas& canvas, Drawing::Path& path);
@@ -126,7 +127,8 @@ private:
     static std::shared_ptr<Drawing::ShaderEffect> MakeDynamicDimShader(
         float dynamicDimDeg, std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::ShaderEffect> MakeBinarizationShader(float low, float high,
-        float thresholdLow, float thresholdHigh, std::shared_ptr<Drawing::ShaderEffect> imageShader);
+        float thresholdLow, float thresholdHigh,
+        std::shared_ptr<Drawing::ShaderEffect> imageShader);
     static std::shared_ptr<Drawing::RuntimeEffect> MakeGreyAdjustmentEffect();
 
     static void DrawBorderBase(const RSProperties& properties, Drawing::Canvas& canvas,

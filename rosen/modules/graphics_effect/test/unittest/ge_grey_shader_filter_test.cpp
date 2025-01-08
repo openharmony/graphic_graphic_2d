@@ -112,5 +112,59 @@ HWTEST_F(GEGreyShaderFilterTest, ProcessImage004, TestSize.Level1)
     GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage004 end";
 }
 
+/**
+ * @tc.name: ProcessImage005
+ * @tc.desc: Verify the DrawImageEffect: filter params is invalid
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEGreyShaderFilterTest, ProcessImage005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage005 start";
+
+    // 0.0, 0.0   invalid Grey blur params
+    Drawing::GEGreyShaderFilterParams geGreyShaderFilterParams { 0.0, 0.0 };
+    std::unique_ptr<GEGreyShaderFilter> geGreyShaderFilter =
+        std::make_unique<GEGreyShaderFilter>(geGreyShaderFilterParams);
+    EXPECT_EQ(geGreyShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+
+    GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage005 end";
+}
+
+/**
+ * @tc.name: ProcessImage006
+ * @tc.desc: Verify the DrawImageEffect: filter params is invalid
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEGreyShaderFilterTest, ProcessImage006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage006 start";
+
+    // 1.0, 1.0   valid Grey blur params
+    Drawing::GEGreyShaderFilterParams geGreyShaderFilterParams { 1.0, 1.0 };
+    std::unique_ptr<GEGreyShaderFilter> geGreyShaderFilter =
+        std::make_unique<GEGreyShaderFilter>(geGreyShaderFilterParams);
+    EXPECT_EQ(geGreyShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+
+    GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage006 end";
+}
+
+/**
+ * @tc.name: ProcessImage007
+ * @tc.desc: Verify the DrawImageEffect: filter params is invalid
+ * @tc.type: FUNC
+ */
+HWTEST_F(GEGreyShaderFilterTest, ProcessImage007, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage007 start";
+
+    // 0.5, 0.5   invalid Grey blur params
+    Drawing::GEGreyShaderFilterParams geGreyShaderFilterParams { 0.5, 0.5 };
+    std::unique_ptr<GEGreyShaderFilter> geGreyShaderFilter =
+        std::make_unique<GEGreyShaderFilter>(geGreyShaderFilterParams);
+    EXPECT_EQ(geGreyShaderFilter->ProcessImage(canvas_, image_, src_, dst_), image_);
+
+    GTEST_LOG_(INFO) << "GEGreyShaderFilterTest ProcessImage007 end";
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -68,7 +68,7 @@ private:
     static void SendPacket(Packet& packet);
     static void ResetSendQueue();
     static void Shutdown(Socket*& socket);
-    static void Ping(Socket& socket);
+    static void Ping(const Socket& socket);
     static void ResetPing();
 
 private:

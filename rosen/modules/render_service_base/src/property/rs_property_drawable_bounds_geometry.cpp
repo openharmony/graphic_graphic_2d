@@ -19,6 +19,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_vector4.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -433,7 +434,8 @@ void RSPixelMapMaskDrawable::Draw(const RSRenderContent& content, RSPaintFilterC
 RSPropertyDrawable::DrawablePtr RSShadowBaseDrawable::Generate(const RSRenderContent& content)
 {
     auto& properties = content.GetRenderProperties();
-    if (properties.IsSpherizeValid() || properties.IsAttractionValid() || !properties.IsShadowValid()) {
+    if (properties.IsSpherizeValid() || properties.IsAttractionValid() || !properties.IsShadowValid() ||
+        properties.GetNeedSkipShadow()) {
         return nullptr;
     }
     if (properties.GetShadowMask()) {
@@ -483,7 +485,6 @@ void RSShadowBaseDrawable::ClipShadowPath(
 void RSShadowDrawable::Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const
 {
     if (content.GetRenderProperties().GetNeedSkipShadow()) {
-        RS_TRACE_NAME("RSShadowDrawable::Draw NeedSkipShadow");
         return;
     }
     if (canvas.GetCacheType() == RSPaintFilterCanvas::CacheType::ENABLED) {
@@ -1006,24 +1007,13 @@ void RSBackgroundImageDrawable::Draw(const RSRenderContent& content, RSPaintFilt
         return;
     }
 
-#if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    auto pixelMap = image->GetPixelMap();
-    if (pixelMap && pixelMap->IsAstc()) {
-        const void* data = pixelMap->GetPixels();
-        std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
-        const int seekSize = 16;
-        if (pixelMap->GetCapacity() > seekSize) {
-            fileData->BuildWithoutCopy((void*)((char*) data + seekSize), pixelMap->GetCapacity() - seekSize);
-        }
-        image->SetCompressData(fileData);
-    }
-#endif
-
     auto boundsRect = RSPropertiesPainter::Rect2DrawingRect(properties.GetBoundsRect());
     auto innerRect = properties.GetBgImageInnerRect();
     canvas.AttachBrush(brush_);
-    image->SetInnerRect(std::make_optional<Drawing::RectI>(
-        innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
+    if (innerRect != Vector4f()) {
+        image->SetInnerRect(std::make_optional<Drawing::RectI>(
+            innerRect.x_, innerRect.y_, innerRect.x_ + innerRect.z_, innerRect.y_ + innerRect.w_));
+    }
     image->CanvasDrawImage(canvas, boundsRect, Drawing::SamplingOptions(), true);
     canvas.DetachBrush();
 }

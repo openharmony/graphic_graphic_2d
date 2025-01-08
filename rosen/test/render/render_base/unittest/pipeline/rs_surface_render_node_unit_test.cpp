@@ -427,9 +427,8 @@ HWTEST_F(RSSurfaceRenderNodeUnitTest, AncestorDisplayNodeTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
     auto displayNode = std::make_shared<RSBaseRenderNode>(0, context);
-    node->SetAncestorDisplayNode(displayNode->GetScreenId(), displayNode);
-    auto ancestorNodeMap = node->GetAncestorDisplayNode();
-    ASSERT_EQ(ancestorNodeMap.begin()->second.lock(), displayNode);
+    node->SetAncestorDisplayNode(displayNode);
+    ASSERT_EQ(node->GetAncestorDisplayNode().lock(), displayNode);
 }
 
 /**

@@ -758,5 +758,20 @@ HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Le
     hgmCore.SetForceRefreshFlag(isForceRefresh);
     EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
 }
+
+/**
+ * @tc.name: SetIdealPipelineOffset
+ * @tc.desc: Verify the result of SetIdealPipelineOffset function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetIdealPipelineOffset, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    int32_t pipelineOffsetPulseNum = 6;
+    int64_t idealPipelineOffset = pipelineOffsetPulseNum * IDEAL_PULSE;
+    hgmCore.SetIdealPipelineOffset(pipelineOffsetPulseNum);
+    EXPECT_EQ(hgmCore.GetIdealPipelineOffset(), idealPipelineOffset);
+}
 } // namespace Rosen
 } // namespace OHOS

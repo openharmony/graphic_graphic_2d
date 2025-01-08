@@ -44,6 +44,8 @@ using namespace HiviewDFX;
 using DisplayId = ScreenId;
 namespace {
     constexpr HiLogLabel LOG_LABEL = { LOG_CORE, 0xD001400, "RSSurfaceCaptureTaskTest" };
+    constexpr uint32_t MAX_TIME_WAITING_FOR_CALLBACK = 200; // 10ms
+    constexpr uint32_t SLEEP_TIME_IN_US = 10000; // 10ms
     constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000; // 100ms
     constexpr float DEFAULT_BOUNDS_WIDTH = 100.f;
     constexpr float DEFAULT_BOUNDS_HEIGHT = 200.f;
@@ -104,6 +106,7 @@ public:
     static void InitRenderContext();
     static void FillSurface(std::shared_ptr<RSSurfaceNode> surfaceNode,
         const Drawing::Color color = Drawing::Color::COLOR_WHITE);
+    bool CheckSurfaceCaptureCallback();
 
     static RSInterfaces* rsInterfaces_;
     static RenderContext* renderContext_;
@@ -158,6 +161,7 @@ void RSSurfaceCaptureTaskTest::SetUpTestCase()
     mirrorConfig_.mirrorNodeId = screenId;
 
     surfaceNode_ = CreateSurface("SurfaceCaptureTestNode");
+    surfaceNode_->SetBounds(0, 0, 1, 1);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
     if (surfaceNode_ == nullptr) {
@@ -237,6 +241,25 @@ void RSSurfaceCaptureTaskTest::FillSurface(std::shared_ptr<RSSurfaceNode> surfac
     auto framePtr1 = std::move(framePtr);
     rsSurface->FlushFrame(framePtr1);
     usleep(SLEEP_TIME_FOR_PROXY); // wait for finishing flush
+}
+
+bool RSSurfaceCaptureTaskTest::CheckSurfaceCaptureCallback()
+{
+    if (surfaceCaptureCb_ == nullptr) {
+        HiLog::Error(LOG_LABEL, "%s: surfaceCaptureCb_ is nullptr", __func__);
+        return false;
+    }
+    uint32_t times = 0;
+    do {
+        if (surfaceCaptureCb_->IsCallbackCalled()) {
+            HiLog::Info(LOG_LABEL, "%s: get callback at times %d", __func__, times);
+            return true;
+        }
+        usleep(SLEEP_TIME_IN_US);
+        ++times;
+    } while (times <= MAX_TIME_WAITING_FOR_CALLBACK);
+    HiLog::Error(LOG_LABEL, "%s: fail to get callback in time", __func__);
+    return false;
 }
 
 /*
@@ -872,6 +895,43 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessDisplayRenderNode005, Function | Small
     visitor_->ProcessDisplayRenderNode(*displayNode);
     // restore curtain screen status
     RSMainThread::Instance()->SetCurtainScreenUsingStatus(false);
+}
+
+/*
+ * @tc.name: TakeSurfaceCaptureWithBlurTest
+ * @tc.desc: Test RSSurfaceCaptureTaskTest.TakeSurfaceCaptureWithBlur
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceCaptureTaskTest, TakeSurfaceCaptureWithBlurTest, Function | SmallTest | Level2)
+{
+    RSSurfaceCaptureConfig captureConfig;
+
+    // test blurRadius is negative
+    float blurRadius = -10;
+    bool ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+
+    blurRadius = 10;
+    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
+
+
+    // test blurRadius is large
+    blurRadius = 100000;
+    ret = rsInterfaces_->TakeSurfaceCaptureWithBlur(surfaceNode_, surfaceCaptureCb_, captureConfig, blurRadius);
+    ASSERT_EQ(ret, true);
+    ASSERT_EQ(CheckSurfaceCaptureCallback(), true);
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_EQ(surfaceCaptureCb_->IsTestSuccess(), true);
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

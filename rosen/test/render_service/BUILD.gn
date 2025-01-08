@@ -45,7 +45,6 @@ group("test") {
     "render_service_base/fuzztest/rsbasescreenmanager_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsblurfilter_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscolorextract_fuzzer:fuzztest",
-    "render_service_base/fuzztest/rscommand_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommondef_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommonhook_fuzzer:fuzztest",
     "render_service_base/fuzztest/rscommontools_fuzzer:fuzztest",

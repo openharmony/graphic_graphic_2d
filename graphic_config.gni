@@ -31,6 +31,7 @@ declare_args() {
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
   graphic_2d_feature_enable_ddgr = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
   graphic_2d_feature_enable_filter_cache = true
   graphic_2d_feature_parallel_upload_enable = true
@@ -49,6 +50,7 @@ declare_args() {
   graphic_2d_feature_enable_rspipeline = true
   graphic_2d_feature_enable_prefetch = true
   graphic_2d_feature_bootanimation_ext_enable = "default"
+  graphic_2d_support_access_token = true
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -159,12 +161,14 @@ if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
 
 if (graphic_2d_feature_rs_enable_uni_render) {
   graphic_2d_feature_enable_dvsync = true
+  graphic_2d_feature_enable_sdf = true
   if (graphic_2d_feature_product == "phone") {
     graphic_2d_feature_enable_chipset_vsync = true
   }
   gpu_defines += [ "RS_ENABLE_UNI_RENDER" ]
 } else {
   graphic_2d_feature_enable_dvsync = false
+  graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_chipset_vsync = false
 }
 
@@ -371,4 +375,9 @@ if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
 
 if (defined(graphic_2d_feature_enable_prefetch)) {
   gpu_defines += [ "RS_ENABLE_PREFETCH" ]
+}
+
+if (defined(global_parts_info) &&
+    !defined(global_parts_info.security_access_token)) {
+  graphic_2d_support_access_token = false
 }

@@ -14,6 +14,7 @@
  */
 
 #include "rs_vsync_rate_reduce_manager.h"
+#include <cstdint>
 #include <parameters.h>
 #include <ratio>
 #include <thread>
@@ -22,6 +23,7 @@
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_main_thread.h"
 #include "platform/common/rs_log.h"
+#include "rs_main_thread.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -239,33 +241,24 @@ void RSVsyncRateReduceManager::NotifyVRates()
     if (vSyncRateMap_.empty() || !CheckNeedNotify()) {
         return;
     }
-    bool isVisibleChanged = lastVSyncRateMap_.size() != vSyncRateMap_.size();
-    if (!isVisibleChanged) {
-        auto iterCur = vSyncRateMap_.begin();
-        auto iterLast = lastVSyncRateMap_.begin();
-        for (; iterCur != vSyncRateMap_.end(); iterCur++, iterLast++) {
-            if (iterCur->first == iterLast->first && iterCur->second == iterLast->second) {
-                continue;
-            }
-            isVisibleChanged = true;
-            appVSyncDistributor_->SetQosVSyncRate(iterCur->first, iterCur->second, isSystemAnimatedScenes_);
-            RS_OPTIONAL_TRACE_NAME_FMT("NotifyVRates nodeId=%" PRIu64 " rate=%d isSysAnimate=%d", iterCur->first,
-                iterCur->second, isSystemAnimatedScenes_);
+    linkersRateMap_.clear();
+    for (const auto& [nodeId, rate]: vSyncRateMap_) {
+        uint64_t linkerId = windowLinkerMap_[nodeId];
+        if (rate != 0) {
+            linkersRateMap_.emplace(linkerId, rate);
         }
-        if (isVisibleChanged) {
-            lastVSyncRateMap_ = vSyncRateMap_;
+        auto iter = lastVSyncRateMap_.find(nodeId);
+        if (iter != lastVSyncRateMap_.end() && iter->second == rate) {
+            continue;
         }
-    } else {
-        lastVSyncRateMap_.clear();
-        for (const auto& [nodeId, rate]: vSyncRateMap_) {
-            appVSyncDistributor_->SetQosVSyncRate(nodeId, rate, isSystemAnimatedScenes_);
-            RS_OPTIONAL_TRACE_NAME_FMT("NotifyVRates nodeId=%" PRIu64 " rate=%d isSysAnimate=%d", nodeId, rate,
-                isSystemAnimatedScenes_);
-            lastVSyncRateMap_.emplace(nodeId, rate);
-        }
+        needPostTask_.exchange(true);
+        appVSyncDistributor_->SetQosVSyncRate(nodeId, rate, isSystemAnimatedScenes_);
+        RS_OPTIONAL_TRACE_NAME_FMT("NotifyVRates nodeId=%" PRIu64 " rate=%d isSysAnimate=%d", nodeId, rate,
+            isSystemAnimatedScenes_);
     }
-}
 
+    lastVSyncRateMap_ = vSyncRateMap_;
+}
 int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
     if (vVal <= 0) {

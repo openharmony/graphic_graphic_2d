@@ -345,4 +345,20 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetLayerTop_002, TestSize.Level2)
     EXPECT_EQ(params.needSync_, true);
     EXPECT_EQ(params.isLayerTop_, isLayerTop);
 }
+
+/**
+ * @tc.name: SetIsBufferFlushed
+ * @tc.desc: SetIsBufferFlushed and GetIsBufferFlushed test
+ * @tc.type:FUNC
+ * @tc.require: issueIBEBTA
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsBufferFlushed, TestSize.Level1)
+{
+    RSSurfaceRenderParams params(116);
+    params.SetIsBufferFlushed(false);
+    EXPECT_EQ(params.GetIsBufferFlushed(), false);
+
+    params.SetIsBufferFlushed(true);
+    EXPECT_EQ(params.GetIsBufferFlushed(), true);
+}
 } // namespace OHOS::Rosen

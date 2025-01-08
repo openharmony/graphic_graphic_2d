@@ -57,6 +57,11 @@ config("delegate_test") {
     "$ace_root",
     "//foundation/graphic/graphic_2d/rosen/modules/render_service_base",
   ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
 }
 
 group("unittest") {

@@ -68,10 +68,7 @@ public:
     void CleanAllShaders() const;
 
 private:
-    ShaderCache()
-    {
-        memset_s(zeroPattern_, zeroPatternSize_, 0, zeroPatternSize_);
-    };
+    ShaderCache() = default;
     ~ShaderCache();
     ShaderCache(const ShaderCache &) = delete;
     void operator=(const ShaderCache &) = delete;
@@ -96,9 +93,6 @@ private:
     static constexpr size_t MAX_VALUE_SIZE = MAX_KEY_SIZE * 1024;
     static constexpr size_t MAX_TOTAL_SIZE = MAX_VALUE_SIZE * 4;
     static constexpr size_t MAX_UNIRENDER_SIZE = MAX_VALUE_SIZE * 10;
-    static constexpr size_t RS_ZERO_CHECK_LEN = 300;
-    uint8_t zeroPattern_[RS_ZERO_CHECK_LEN];
-    size_t zeroPatternSize_ = RS_ZERO_CHECK_LEN * sizeof(uint8_t);
 };
 }   // namespace Rosen
 }   // namespace OHOS

@@ -609,6 +609,23 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, PrepareOffscreenRenderTest002, TestSiz
 }
 
 /**
+ * @tc.name: BufferFormatNeedUpdate
+ * @tc.desc: Test BufferFormatNeedUpdate
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, BufferFormatNeedUpdateTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
+    ASSERT_NE(surface, nullptr);
+    RSPaintFilterCanvas paintFilterCanvas(surface.get());
+    surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
+    EXPECT_TRUE(surfaceDrawable_->BufferFormatNeedUpdate(surface, true));
+    EXPECT_FALSE(surfaceDrawable_->BufferFormatNeedUpdate(surface, false));
+}
+
+/**
  * @tc.name: IsHardwareEnabled
  * @tc.desc: Test IsHardwareEnabled
  * @tc.type: FUNC
@@ -1297,7 +1314,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
     ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     RSUniRenderThread::captureParam_.isSnapshot_ = true;
-    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
+    ASSERT_FALSE(RSUniRenderThread::IsExpandScreenMode());
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 }
 

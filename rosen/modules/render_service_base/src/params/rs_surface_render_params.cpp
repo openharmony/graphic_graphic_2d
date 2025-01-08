@@ -167,6 +167,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetNeedMakeImage(bool enabled)
+{
+    if (needMakeImage_ == enabled) {
+        return;
+    }
+    needMakeImage_ = enabled;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetNeedMakeImage() const
+{
+    return needMakeImage_;
+}
+
 void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
 {
     if (isHardCursor_ == status) {
@@ -471,8 +485,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isAppWindow_ = isAppWindow_;
     targetSurfaceParams->rsSurfaceNodeType_ = rsSurfaceNodeType_;
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
-    targetSurfaceParams->ancestorDisplayNodeMap_ = ancestorDisplayNodeMap_;
-    targetSurfaceParams->ancestorDisplayDrawableMap_ = ancestorDisplayDrawableMap_;
+    targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
+    targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
@@ -488,6 +502,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->needMakeImage_ = needMakeImage_;
     targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->subHighPriorityType_ = subHighPriorityType_;
@@ -505,6 +520,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->isSnapshotSkipLayer_ = isSnapshotSkipLayer_;
     targetSurfaceParams->isProtectedLayer_ = isProtectedLayer_;
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
+    targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->skipLayerIds_= skipLayerIds_;
@@ -514,7 +530,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
     targetSurfaceParams->name_ = name_;
     targetSurfaceParams->surfaceCacheContentStatic_ = surfaceCacheContentStatic_;
-    targetSurfaceParams->bufferCacheSet_ = bufferCacheSet_;
     targetSurfaceParams->positionZ_ = positionZ_;
     targetSurfaceParams->isSubTreeDirty_ = isSubTreeDirty_;
     targetSurfaceParams->overDrawBufferNodeCornerRadius_ = overDrawBufferNodeCornerRadius_;
@@ -549,6 +564,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->preparedDisplayOffset_ = preparedDisplayOffset_;
     targetSurfaceParams->crossNodeSkippedDisplayOffsets_ = crossNodeSkippedDisplayOffsets_;
     targetSurfaceParams->apiCompatibleVersion_ = apiCompatibleVersion_;
+    targetSurfaceParams->isBufferFlushed_ = isBufferFlushed_;
     RSRenderParams::OnSync(target);
 }
 
@@ -574,7 +590,8 @@ bool RSSurfaceRenderParams::IsVisibleDirtyRegionEmpty(const Drawing::Region curS
     if (IsMainWindowType()) {
         return curSurfaceDrawRegion.IsEmpty();
     }
-    if (IsLeashWindow() && !IsCrossNode()) {
+    if (IsLeashWindow() && (!IsCrossNode() ||
+        GetCrossNodeOffScreenStatus() == CrossNodeOffScreenRenderDebugType::DISABLED)) {
         return GetLeashWindowVisibleRegionEmptyParam();
     }
     return false;

@@ -361,6 +361,13 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     connectionCounter_[proxyPid]++;
     if (windowNodeId != 0) {
         connectionsMap_[windowNodeId].push_back(connection);
+        uint32_t tmpPid;
+        if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+            std::vector<uint64_t> tmpVec = pidWindowIdMap_[tmpPid];
+            if (std::find(tmpVec.begin(), tmpVec.end(), windowNodeId) == tmpVec.end()) {
+                pidWindowIdMap_[tmpPid].push_back(windowNodeId);
+            }
+        }
     } else {
         uint32_t tmpPid;
         if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
@@ -391,6 +398,7 @@ VsyncError VSyncDistributor::RemoveConnection(const sptr<VSyncConnection>& conne
     connectionsMap_.erase(connection->windowNodeId_);
     uint32_t tmpPid;
     if (QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
+        pidWindowIdMap_.erase(tmpPid);
         auto iter = connectionsMap_.find(tmpPid);
         if (iter == connectionsMap_.end()) {
             return VSYNC_ERROR_OK;
@@ -951,7 +959,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
         return VSYNC_ERROR_NULLPTR;
     }
 
-    ScopedBytrace func(connection->info_.name_ + "_RequestNextVSync");
+    RS_TRACE_NAME_FMT("%s_RequestNextVSync", connection->info_.name_.c_str());
     std::unique_lock<std::mutex> locker(mutex_);
 
 #if defined(RS_ENABLE_DVSYNC)
@@ -1103,6 +1111,19 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPid(uint32_t pid, int32_t rate, bo
         }
     }
 
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncDistributor::SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t rate, bool isSystemAnimateScene)
+{
+    std::vector<uint64_t> tmpVec = pidWindowIdMap_[pid];
+    for (const auto& windowId : tmpVec) {
+        VsyncError ret = SetQosVSyncRate(windowId, rate, isSystemAnimateScene);
+        if (ret != VSYNC_ERROR_OK) {
+            VLOGD("windowId:%{public}" PRUint " is not exit", windowId);
+            return VSYNC_ERROR_INVALID_ARGUMENTS;
+        }
+    }
     return VSYNC_ERROR_OK;
 }
 

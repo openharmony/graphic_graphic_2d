@@ -57,6 +57,31 @@ void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
 
 /*
+ * @tc.name: HandlePostureData
+ * @tc.desc: Test CreateOrGetScreenManager
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, HandlePostureData, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->HandlePostureData(nullptr);
+    SensorEvent event[10];
+    screenManager->HandlePostureData(event);
+    uint8_t sensorData1[7] = {0, 0, 0, 0, 0, 0, -1};
+    event[0].data = sensorData1;
+    event[0].dataLen = sizeof(PostureData);
+    screenManager->HandlePostureData(event);
+    uint8_t sensorData2[7] = {0, 0, 0, 0, 0, 0, 150};
+    event[0].data = sensorData2;
+    screenManager->HandlePostureData(event);
+    uint8_t sensorData3[7] = {0, 0, 0, 0, 0, 0, 180};
+    event[0].data = sensorData3;
+    screenManager->HandlePostureData(event);
+}
+
+/*
  * @tc.name: CreateOrGetScreenManager_001
  * @tc.desc: Test CreateOrGetScreenManager
  * @tc.type: FUNC
@@ -1162,6 +1187,10 @@ HWTEST_F(RSScreenManagerTest, SetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
     ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_OFF_ADVANCED);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
+    ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
+    ASSERT_EQ(screenManagerImpl.screenPowerStatus_[screenId], POWER_STATUS_DOZE_SUSPEND);
 }
 
 /*
@@ -1218,6 +1247,10 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_OFF_ADVANCED);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
+    ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_DOZE);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
+    ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_DOZE_SUSPEND);
 }
 
 /*
@@ -1340,6 +1373,10 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatusLocked_003, TestSize.Level1)
     ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_OFF);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED);
     ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_OFF_ADVANCED);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE);
+    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_DOZE);
+    screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
+    ASSERT_EQ(screenManagerImpl.GetScreenPowerStatusLocked(screenId), POWER_STATUS_DOZE_SUSPEND);
 }
 
 /*
@@ -2528,6 +2565,28 @@ HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect002, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetMirrorScreenVisibleRect003
+ * @tc.desc: Test SetMirrorScreenVisibleRect with zero rect.
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E4C
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    screenManagerImpl.screens_[id] = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    screenManagerImpl.screens_[id]->SetEnableVisibleRect(true);
+    Rect rect = {0, 0, 0, 0};
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    ASSERT_EQ(screenManagerImpl.screens_[id]->GetEnableVisibleRect(), false);
+}
+
+/*
  * @tc.name: GetMirrorScreenVisibleRect001
  * @tc.desc: Test GetMirrorScreenVisibleRect with abnormal params.
  * @tc.type: FUNC
@@ -2900,6 +2959,48 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
 
     screenManagerImpl.screens_[SCREEN_ID] = std::make_unique<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
     impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
-    ASSERT_NE(screenManagerImpl.GetOutput(screenId), nullptr);
+    ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
+}
+
+/*
+ * @tc.name: SetVirtualScreenStatus
+ * @tc.desc: Test SetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, SetVirtualScreenStatus, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto res = screenManager->SetVirtualScreenStatus(SCREEN_ID, VIRTUAL_SCREEN_PLAY);
+    ASSERT_EQ(res, false);
+}
+
+/*
+ * @tc.name: GetVirtualScreenStatus
+ * @tc.desc: Test GetVirtualScreenStatus
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenStatus, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto res = screenManager->GetVirtualScreenStatus(SCREEN_ID);
+    ASSERT_EQ(res, VIRTUAL_SCREEN_PLAY);
+}
+
+/*
+ * @tc.name: GetDisplayPropertyForHardCursor
+ * @tc.desc: Test GetDisplayPropertyForHardCursor
+ * @tc.type: FUNC
+ * @tc.require: issueIBBM19
+ */
+HWTEST_F(RSScreenManagerTest, GetDisplayPropertyForHardCursor, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    auto res = screenManager->GetDisplayPropertyForHardCursor(SCREEN_ID);
+    ASSERT_EQ(res, false);
 }
 } // namespace OHOS::Rosen

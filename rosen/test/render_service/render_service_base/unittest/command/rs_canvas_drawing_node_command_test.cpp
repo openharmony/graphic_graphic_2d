@@ -48,6 +48,7 @@ HWTEST_F(RSCanvasDrawingNodeCommandTest, CreateTest, TestSize.Level1)
 
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, targetId, width, height);
     RSCanvasDrawingNodeCommandHelper::ResetSurface(context, 0, width, height);
+    ASSERT_EQ(targetId, static_cast<NodeId>(1));
 }
 
 } // namespace OHOS::Rosen

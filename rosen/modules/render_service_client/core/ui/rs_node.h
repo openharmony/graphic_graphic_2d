@@ -96,6 +96,11 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(SharedPtr child, int index);
     void RemoveCrossParentChild(SharedPtr child, NodeId newParentId);
+    void SetIsCrossNode(bool isCrossNode);
+
+    // Only used in PC extend screen
+    void AddCrossScreenChild(SharedPtr child, int index);
+    void RemoveCrossScreenChild(SharedPtr child);
 
     NodeId GetId() const
     {

@@ -47,7 +47,7 @@
 #define RS_PROFILER_PATCH_COMMAND(parcel, command) RSProfiler::PatchCommand(parcel, command)
 #define RS_PROFILER_EXECUTE_COMMAND(command) RSProfiler::ExecuteCommand(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) RSProfiler::MarshalPixelMap(parcel, map)
-#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) RSProfiler::UnmarshalPixelMap(parcel)
+#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) RSProfiler::UnmarshalPixelMap(parcel, readSafeFdFunc)
 #define RS_PROFILER_SKIP_PIXELMAP(parcel) RSProfiler::SkipPixelMap(parcel)
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData) RSProfiler::MarshalDrawingImage(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion) RSProfiler::SetDirtyRegion(dirtyRegion)
@@ -82,7 +82,7 @@
 #define RS_PROFILER_PATCH_COMMAND(parcel, command)
 #define RS_PROFILER_EXECUTE_COMMAND(command)
 #define RS_PROFILER_MARSHAL_PIXELMAP(parcel, map) (map)->Marshalling(parcel)
-#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel) Media::PixelMap::Unmarshalling(parcel)
+#define RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc) Media::PixelMap::Unmarshalling(parcel, readSafeFdFunc)
 #define RS_PROFILER_SKIP_PIXELMAP(parcel) false
 #define RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData)
 #define RS_PROFILER_SET_DIRTY_REGION(dirtyRegion)
@@ -133,7 +133,7 @@ class ArgList;
 class JsonWriter;
 class RSFile;
 
-enum class Mode { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4 };
+enum class Mode : uint32_t { NONE = 0, READ = 1, WRITE = 2, READ_EMUL = 3, WRITE_EMUL = 4, SAVING = 5 };
 
 class RSProfiler final {
 public:
@@ -181,7 +181,8 @@ public:
     RSB_EXPORT static void PatchCommand(const Parcel& parcel, RSCommand* command);
     RSB_EXPORT static void ExecuteCommand(const RSCommand* command);
     RSB_EXPORT static bool MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::PixelMap>& map);
-    RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel);
+    RSB_EXPORT static Media::PixelMap* UnmarshalPixelMap(Parcel& parcel,
+        std::function<int(Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc)> readSafeFdFunc = nullptr);
     RSB_EXPORT static bool SkipPixelMap(Parcel& parcel);
     RSB_EXPORT static void MarshalDrawingImage(std::shared_ptr<Drawing::Image>& image,
         std::shared_ptr<Drawing::Data>& compressData);
@@ -209,7 +210,14 @@ public:
     RSB_EXPORT static bool IsSharedMemoryEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabled();
     RSB_EXPORT static bool IsBetaRecordEnabledWithMetrics();
+
     RSB_EXPORT static Mode GetMode();
+    RSB_EXPORT static bool IsNoneMode();
+    RSB_EXPORT static bool IsReadMode();
+    RSB_EXPORT static bool IsReadEmulationMode();
+    RSB_EXPORT static bool IsWriteMode();
+    RSB_EXPORT static bool IsWriteEmulationMode();
+    RSB_EXPORT static bool IsSavingMode();
 
     RSB_EXPORT static void DrawingNodeAddClearOp(const std::shared_ptr<Drawing::DrawCmdList>& drawCmdList);
     RSB_EXPORT static void SetDrawingCanvasNodeRedraw(bool enable);
@@ -232,7 +240,6 @@ private:
     static void RequestVSyncOnBetaRecordInactivity();
     static void LaunchBetaRecordNotificationThread();
     static void LaunchBetaRecordMetricsUpdateThread();
-    static void WriteBetaRecordFileThread(RSFile& file, const std::string& path);
     static bool OpenBetaRecordFile(RSFile& file);
     static bool SaveBetaRecordFile(RSFile& file);
     static void WriteBetaRecordMetrics(RSFile& file, double time);
@@ -333,12 +340,6 @@ private:
     static uint64_t NowNano();
     static double Now();
 
-    static bool IsNoneMode();
-    static bool IsReadMode();
-    static bool IsReadEmulationMode();
-    static bool IsWriteMode();
-    static bool IsWriteEmulationMode();
-
     static bool IsRecording();
     static bool IsPlaying();
 
@@ -417,10 +418,14 @@ private:
     static void RecordStart(const ArgList& args);
     static void RecordStop(const ArgList& args);
     static void RecordUpdate();
+    static void RecordSave();
+    RSB_EXPORT static void RequestRecordAbort();
+    RSB_EXPORT static bool IsRecordAbortRequested();
 
     static void PlaybackStart(const ArgList& args);
     static void PlaybackStop(const ArgList& args);
     static double PlaybackUpdate(double deltaTime);
+    static double PlaybackDeltaTime();
 
     static void RecordSendBinary(const ArgList& args);
 
@@ -447,6 +452,7 @@ private:
 
     // flag for enabling profiler
     RSB_EXPORT static bool enabled_;
+    RSB_EXPORT static std::atomic_uint32_t mode_;
     // flag for enabling profiler beta recording feature
     RSB_EXPORT static bool betaRecordingEnabled_;
     // flag to start network thread
@@ -456,6 +462,7 @@ private:
     inline static const char SYS_KEY_BETARECORDING[] = "persist.graphic.profiler.betarecording";
     // flag for enabling DRAWING_CANVAS_NODE redrawing
     RSB_EXPORT static std::atomic_bool dcnRedraw_;
+    RSB_EXPORT static std::atomic_bool recordAbortRequested_;
 };
 
 } // namespace OHOS::Rosen

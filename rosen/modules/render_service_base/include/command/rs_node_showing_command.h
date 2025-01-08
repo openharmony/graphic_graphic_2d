@@ -58,6 +58,10 @@ public:
     {
         return isTimeout_;
     }
+    uint16_t GetType() const override
+    {
+        return commandType;
+    }
 
 private:
     NodeId targetId_ = 0;
@@ -93,6 +97,11 @@ public:
         return this->propertiesMap_;
     }
 
+    uint16_t GetType() const override
+    {
+        return commandType;
+    }
+
 private:
     RSNodeGetShowingPropertiesAndCancelAnimation(uint64_t timeoutNS): RSSyncTask(timeoutNS) {}
     PropertiesMap propertiesMap_;
@@ -122,6 +131,11 @@ public:
     float GetFraction() const
     {
         return fraction_;
+    }
+
+    uint16_t GetType() const override
+    {
+        return commandType;
     }
 
 private:

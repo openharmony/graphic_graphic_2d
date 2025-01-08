@@ -133,6 +133,7 @@ public:
     void SetWindowId(uint32_t windowId);
 
     void SetFreeze(bool isFreeze) override;
+    // codes for arkui-x
 #ifdef USE_SURFACE_TEXTURE
     void SetSurfaceTexture(const RSSurfaceExtConfig& config);
     void MarkUiFrameAvailable(bool available);
@@ -153,6 +154,11 @@ public:
     void SetWatermarkEnabled(const std::string& name, bool isEnabled);
 
     RSInterfaceErrorCode SetHidePrivacyContent(bool needHidePrivacyContent);
+    // Specifying hardware enable is only a 'hint' to RS that
+    // the self-drawing node use hardware composer in some condition,
+    // such as transparent background.
+    void SetHardwareEnableHint(bool enable);
+    void SetApiCompatibleVersion(uint32_t version);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

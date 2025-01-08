@@ -168,15 +168,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
@@ -558,6 +549,11 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }

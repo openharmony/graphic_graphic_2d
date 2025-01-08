@@ -42,8 +42,10 @@ constexpr int32_t UNKNOWN_IDLE_FPS = -1;
 
 HgmEnergyConsumptionPolicy::HgmEnergyConsumptionPolicy()
 {
-    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string &componentName) {
-        HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
+    RsCommonHook::Instance().RegisterStartNewAnimationListener([this](const std::string& componentName) {
+        if (isAnimationEnergyConsumptionAssuranceMode_) {
+            HgmTaskHandleThread::Instance().PostTask([this, componentName]() { StartNewAnimation(componentName); });
+        }
     });
     RsCommonHook::Instance().SetComponentPowerFpsFunc(
         std::bind(&HgmEnergyConsumptionPolicy::GetComponentFps, this, std::placeholders::_1));
@@ -192,21 +194,22 @@ void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
     SetEnergyConsumptionRateRange(rsRange, animationIdleFps_);
 }
 
-void HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
+bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange)
 {
     if (!isTouchIdle_) {
-        return;
+        return false;
     }
-    auto it = uiEnergyAssuranceMap_.find(rsRange.type_);
+    auto it = uiEnergyAssuranceMap_.find(rsRange.type_ & ~ANIMATION_STATE_FIRST_FRAME);
     if (it == uiEnergyAssuranceMap_.end()) {
         HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
-        return;
+        return false;
     }
     bool isEnergyAssuranceEnable = it->second.first;
     int idleFps = it->second.second;
     if (isEnergyAssuranceEnable) {
         SetEnergyConsumptionRateRange(rsRange, idleFps);
     }
+    return true;
 }
 
 void HgmEnergyConsumptionPolicy::SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId)

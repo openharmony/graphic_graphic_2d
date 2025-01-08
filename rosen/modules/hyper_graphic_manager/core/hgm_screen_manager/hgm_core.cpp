@@ -212,7 +212,7 @@ void HgmCore::SetLtpoConfig()
         pipelineOffsetPulseNum_ = 0;
         HGM_LOGW("HgmCore failed to find pipelineOffset strategy for LTPO");
     }
-
+    SetIdealPipelineOffset(pipelineOffsetPulseNum_);
     SetASConfig(curScreenSetting);
 
     SetScreenConstraintConfig();
@@ -355,6 +355,18 @@ void HgmCore::NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
     }
 }
 
+void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect)
+{
+    if (hgmFrameRateMgr_ != nullptr) {
+        hgmFrameRateMgr_->HandleScreenRectFrameRate(id, activeRect);
+    }
+
+    if (refreshRateModeChangeCallback_ != nullptr) {
+        auto refreshRateModeName = GetCurrentRefreshRateModeName();
+        refreshRateModeChangeCallback_(refreshRateModeName);
+    }
+}
+
 int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize)
 {
     // add a physical screen to hgm during hotplug event
@@ -374,8 +386,11 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
         auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
         auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
         std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
-        if (configData->screenStrategyConfigs_.find(curScreenName) != configData->screenStrategyConfigs_.end()) {
-            newScreen->SetSelfOwnedScreenFlag(true);
+        for (auto strategyConfig : configData->screenStrategyConfigs_) {
+            if (strategyConfig.first.find(curScreenName) == 0) {
+                newScreen->SetSelfOwnedScreenFlag(true);
+                break;
+            }
         }
     }
 

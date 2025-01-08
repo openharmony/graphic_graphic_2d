@@ -47,7 +47,8 @@
 
 namespace OHOS::Rosen {
 
-static Mode g_mode = Mode::NONE;
+std::atomic_bool RSProfiler::recordAbortRequested_ = false;
+std::atomic_uint32_t RSProfiler::mode_ = static_cast<uint32_t>(Mode::NONE);
 static std::vector<pid_t> g_pids;
 static pid_t g_pid = 0;
 static NodeId g_parentNode = 0;
@@ -111,27 +112,32 @@ bool RSProfiler::IsBetaRecordEnabled()
 
 bool RSProfiler::IsNoneMode()
 {
-    return g_mode == Mode::NONE;
+    return GetMode() == Mode::NONE;
 }
 
 bool RSProfiler::IsReadMode()
 {
-    return g_mode == Mode::READ;
+    return GetMode() == Mode::READ;
 }
 
 bool RSProfiler::IsReadEmulationMode()
 {
-    return g_mode == Mode::READ_EMUL;
+    return GetMode() == Mode::READ_EMUL;
 }
 
 bool RSProfiler::IsWriteMode()
 {
-    return g_mode == Mode::WRITE;
+    return GetMode() == Mode::WRITE;
 }
 
 bool RSProfiler::IsWriteEmulationMode()
 {
-    return g_mode == Mode::WRITE_EMUL;
+    return GetMode() == Mode::WRITE_EMUL;
+}
+
+bool RSProfiler::IsSavingMode()
+{
+    return GetMode() == Mode::SAVING;
 }
 
 uint32_t RSProfiler::GetCommandCount()
@@ -177,13 +183,16 @@ std::shared_ptr<MessageParcel> RSProfiler::CopyParcel(const MessageParcel& parce
     }
 
     if (IsParcelMock(parcel)) {
-        auto* buffer = new uint8_t[sizeof(MessageParcel) + 1];
+        auto* buffer = new(std::nothrow) uint8_t[sizeof(MessageParcel) + 1];
+        if (!buffer) {
+            return std::make_shared<MessageParcel>();
+        }
         auto* mpPtr = new (buffer + 1) MessageParcel;
         return std::shared_ptr<MessageParcel>(mpPtr, [](MessageParcel* ptr) {
             ptr->~MessageParcel();
             auto* allocPtr = reinterpret_cast<uint8_t*>(ptr);
             allocPtr--;
-            delete allocPtr;
+            delete[] allocPtr;
         });
     }
 
@@ -196,7 +205,7 @@ NodeId RSProfiler::PatchPlainNodeId(const Parcel& parcel, NodeId id)
         return id;
     }
 
-    if ((g_mode != Mode::READ && g_mode != Mode::READ_EMUL) || !IsParcelMock(parcel)) {
+    if ((!IsReadMode() && !IsReadEmulationMode()) || !IsParcelMock(parcel)) {
         return id;
     }
 
@@ -209,9 +218,9 @@ void RSProfiler::PatchTypefaceId(const Parcel& parcel, std::shared_ptr<Drawing::
         return;
     }
 
-    if (g_mode == Mode::READ_EMUL) {
+    if (IsReadEmulationMode()) {
         val->PatchTypefaceIds();
-    } else if (g_mode == Mode::READ) {
+    } else if (IsReadMode()) {
         if (IsParcelMock(parcel)) {
             val->PatchTypefaceIds();
         }
@@ -220,11 +229,7 @@ void RSProfiler::PatchTypefaceId(const Parcel& parcel, std::shared_ptr<Drawing::
 
 pid_t RSProfiler::PatchPlainPid(const Parcel& parcel, pid_t pid)
 {
-    if (!IsEnabled()) {
-        return pid;
-    }
-
-    if ((g_mode != Mode::READ && g_mode != Mode::READ_EMUL) || !IsParcelMock(parcel)) {
+    if (!IsEnabled() || (!IsReadMode() && !IsReadEmulationMode()) || !IsParcelMock(parcel)) {
         return pid;
     }
 
@@ -233,8 +238,8 @@ pid_t RSProfiler::PatchPlainPid(const Parcel& parcel, pid_t pid)
 
 void RSProfiler::SetMode(Mode mode)
 {
-    g_mode = mode;
-    if (g_mode == Mode::NONE) {
+    mode_ = static_cast<uint32_t>(mode);
+    if (IsNoneMode()) {
         g_pauseAfterTime = 0;
         g_pauseCumulativeTime = 0;
     }
@@ -242,7 +247,7 @@ void RSProfiler::SetMode(Mode mode)
 
 Mode RSProfiler::GetMode()
 {
-    return g_mode;
+    return static_cast<Mode>(mode_.load());
 }
 
 void RSProfiler::SetSubstitutingPid(const std::vector<pid_t>& pids, pid_t pid, NodeId parent)
@@ -272,7 +277,7 @@ uint64_t RSProfiler::PatchTime(uint64_t time)
     if (!IsEnabled()) {
         return time;
     }
-    if (g_mode != Mode::READ && g_mode != Mode::READ_EMUL) {
+    if (!IsReadMode() && !IsReadEmulationMode()) {
         return time;
     }
     if (time == 0.0) {
@@ -290,7 +295,7 @@ uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
         return time;
     }
 
-    if (g_mode == Mode::WRITE) {
+    if (IsWriteMode()) {
         g_commandParseBuffer.packetTime = Utils::ToSeconds(time);
         g_commandParseBuffer.packetSize = parcel.GetDataSize();
         uint32_t index = g_commandLoopIndexEnd++;
@@ -299,7 +304,7 @@ uint64_t RSProfiler::PatchTransactionTime(const Parcel& parcel, uint64_t time)
         g_commandParseBuffer.cmdCount = 0;
     }
 
-    if (g_mode != Mode::READ) {
+    if (!IsReadMode()) {
         return time;
     }
     if (time == 0.0) {
@@ -1026,7 +1031,7 @@ void RSProfiler::PatchCommand(const Parcel& parcel, RSCommand* command)
         return;
     }
 
-    if (g_mode == Mode::WRITE) {
+    if (IsWriteMode()) {
         g_commandCount++;
         uint16_t cmdCount = g_commandParseBuffer.cmdCount;
         if (cmdCount < COMMAND_PARSE_LIST_COUNT) {
@@ -1047,7 +1052,7 @@ void RSProfiler::ExecuteCommand(const RSCommand* command)
     if (!IsEnabled()) {
         return;
     }
-    if (g_mode != Mode::WRITE && g_mode != Mode::READ) {
+    if (!IsWriteMode() && !IsReadMode()) {
         return;
     }
     if (command == nullptr) {
@@ -1067,8 +1072,8 @@ uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
 
     constexpr uint32_t depthToAnalyze = 10;
     uint32_t drawCmdListCount = CalcNodeCmdListCount(*node);
-    uint32_t valuableChildrenCount = 0;
     if (node->GetSortedChildren()) {
+        uint32_t valuableChildrenCount = 0;
         for (auto& child : *node->GetSortedChildren()) {
             if (child && child->GetType() != RSRenderNodeType::EFFECT_NODE && depth < depthToAnalyze) {
                 nodeSet.emplace_back(child->id_, depth + 1);
@@ -1159,11 +1164,7 @@ static uint64_t NewAshmemDataCacheId()
 
 static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
 {
-    if (g_mode != Mode::WRITE) {
-        return;
-    }
-
-    if (data && (size > 0)) {
+    if (RSProfiler::IsWriteMode() && data && (size > 0)) {
         Image ashmem;
         ashmem.data.insert(ashmem.data.end(), data, data + size);
         ImageCache::Add(id, std::move(ashmem));
@@ -1172,7 +1173,7 @@ static void CacheAshmemData(uint64_t id, const uint8_t* data, size_t size)
 
 static const uint8_t* GetCachedAshmemData(uint64_t id)
 {
-    const auto ashmem = (g_mode == Mode::READ) ? ImageCache::Get(id) : nullptr;
+    const auto ashmem = RSProfiler::IsReadMode() ? ImageCache::Get(id) : nullptr;
     return ashmem ? ashmem->data.data() : nullptr;
 }
 
@@ -1227,7 +1228,7 @@ bool RSProfiler::SkipParcelData(Parcel& parcel, size_t size)
 
     [[maybe_unused]] const uint64_t id = parcel.ReadUint64();
 
-    if (g_mode == Mode::READ) {
+    if (IsReadMode()) {
         constexpr uint32_t skipBytes = 24u;
         parcel.SkipBytes(skipBytes);
         return true;
@@ -1272,7 +1273,7 @@ void RSProfiler::ReplayFixTrIndex(uint64_t curIndex, uint64_t& lastIndex)
     if (!IsEnabled()) {
         return;
     }
-    if (g_mode == Mode::READ) {
+    if (IsReadMode()) {
         if (lastIndex == 0) {
             lastIndex = curIndex - 1;
         }
@@ -1285,7 +1286,7 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
         return nanoTime;
     }
 
-    if (g_mode == Mode::READ) {
+    if (IsReadMode()) {
         if (!g_animeStartMap.count(id)) {
             return nanoTime;
         }
@@ -1298,7 +1299,7 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
             }
         }
         return minTime + g_replayStartTimeNano;
-    } else if (g_mode == Mode::WRITE) {
+    } else if (IsWriteMode()) {
         if (g_animeStartMap.count(id)) {
             g_animeStartMap[Utils::PatchNodeId(id)].push_back(nanoTime);
         } else {
@@ -1316,7 +1317,7 @@ bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr c
     if (!parent || !child || !IsEnabled()) {
         return false;
     }
-    if (RSProfiler::GetMode() != Mode::READ) {
+    if (!IsReadMode()) {
         return false;
     }
 
@@ -1333,6 +1334,16 @@ bool RSProfiler::ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr c
 std::vector<RSRenderNode::WeakPtr>& RSProfiler::GetChildOfDisplayNodesPostponed()
 {
     return g_childOfDisplayNodesPostponed;
+}
+
+void RSProfiler::RequestRecordAbort()
+{
+    recordAbortRequested_ = true;
+}
+
+bool RSProfiler::IsRecordAbortRequested()
+{
+    return recordAbortRequested_;
 }
 
 } // namespace OHOS::Rosen

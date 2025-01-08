@@ -1463,17 +1463,69 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateSurfaceDefaultSizeTest001, TestSize.L
 
 /**
  * @tc.name: NeedClearBufferCacheTest001
- * @tc.desc: test results of NeedClearBufferCache
+ * @tc.desc: Test NeedClearBufferCache with buffer and preBuffer
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIBF44R
  */
-HWTEST_F(RSSurfaceRenderNodeUniTest, NeedClearBufferCacheTest001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeUnitTest, NeedClearBufferCacheTest001, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+
     testNode->InitRenderParams();
-    testNode->addedToPendingSyncList_ = true;
-    testNode->NeedClearBufferCache();
-    EXPECT_FALSE(testNode->isSkipLayer_);
+    ASSERT_NE(testNode->GetRSSurfaceHandler(), nullptr);
+
+    auto buffer = SurfaceBuffer::Create();
+    auto preBuffer = SurfaceBuffer::Create();
+
+    testNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
+    testNode->GetRSSurfaceHandler()->preBuffer_.buffer = preBuffer;
+
+    std::set<uint32_t> bufferCacheSet;
+    
+    testNode->NeedClearBufferCache(bufferCacheSet);
+
+    ASSERT_EQ(bufferCacheSet.size(), 2);
+}
+
+/**
+ * @tc.name: NeedClearBufferCacheTest002
+ * @tc.desc: Test NeedClearBufferCache without buffer
+ * @tc.type: FUNC
+ * @tc.require: issueIBF44R
+ */
+HWTEST_F(RSSurfaceRenderNodeUnitTest, NeedClearBufferCacheTest002, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+
+    testNode->InitRenderParams();
+    
+    std::set<uint32_t> bufferCacheSet;
+    
+    testNode->NeedClearBufferCache(bufferCacheSet);
+
+    EXPECT_TRUE(bufferCacheSet.empty());
+}
+
+/**
+ * @tc.name: NeedClearBufferCacheTest003
+ * @tc.desc: Test NeedClearBufferCache with null surfaceHandler
+ * @tc.type: FUNC
+ * @tc.require: issueIBF44R
+ */
+HWTEST_F(RSSurfaceRenderNodeUnitTest, NeedClearBufferCacheTest003, TestSize.Level1)
+{
+    auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(testNode, nullptr);
+
+    testNode->surfaceHandler_ = nullptr;
+    
+    std::set<uint32_t> bufferCacheSet;
+    
+    testNode->NeedClearBufferCache(bufferCacheSet);
+
+    EXPECT_TRUE(bufferCacheSet.empty());
 }
 
 /**

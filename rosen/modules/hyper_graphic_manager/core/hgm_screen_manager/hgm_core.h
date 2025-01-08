@@ -159,8 +159,7 @@ public:
 
     bool GetLtpoEnabled() const
     {
-        return ltpoEnabled_ && (customFrameRateMode_ == HGM_REFRESHRATE_MODE_AUTO) &&
-            (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
+        return ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
     }
 
     bool GetAdaptiveSyncEnabled() const
@@ -192,6 +191,16 @@ public:
     uint32_t GetAlignRate() const
     {
         return alignRate_;
+    }
+
+    void SetIdealPipelineOffset(int32_t pipelineOffsetPulseNum)
+    {
+        idealPipelineOffset_ = pipelineOffsetPulseNum * IDEAL_PULSE;
+    }
+
+    int64_t GetIdealPipelineOffset() const
+    {
+        return idealPipelineOffset_;
     }
 
     int64_t GetPipelineOffset() const
@@ -228,6 +237,7 @@ public:
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
+    void NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& activeRect);
 
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize);
@@ -331,6 +341,7 @@ private:
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
+    int64_t idealPipelineOffset_ = 0;
     int adaptiveSync_ = 0;
     int32_t pipelineOffsetPulseNum_ = 8;
     std::atomic<bool> vBlankIdleCorrectSwitch_{ false };

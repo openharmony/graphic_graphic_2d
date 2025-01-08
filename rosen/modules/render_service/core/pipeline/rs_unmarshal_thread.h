@@ -24,6 +24,7 @@
 #include "message_parcel.h"
 
 #include "memory/rs_memory_flow_control.h"
+#include "transaction/rs_ashmem_helper.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS::Rosen {
@@ -31,8 +32,10 @@ class RSUnmarshalThread {
 public:
     static RSUnmarshalThread& Instance();
     void Start();
-    void PostTask(const std::function<void()>& task);
+    void PostTask(const std::function<void()>& task, const std::string& name = "");
+    void RemoveTask(const std::string& name = "");
     void RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0,
+        std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr,
         std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr);
     TransactionDataMap GetCachedTransactionData();
     bool CachedTransactionDataEmpty();

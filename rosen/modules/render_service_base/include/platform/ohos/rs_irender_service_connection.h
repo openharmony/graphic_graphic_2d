@@ -104,6 +104,9 @@ public:
     virtual int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
+    virtual int32_t SetScreenSecurityMask(ScreenId id,
+        const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+
     virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
 
     virtual int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) = 0;
@@ -152,12 +155,14 @@ public:
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
+    virtual void RepaintEverything() = 0;
+
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {},
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -280,6 +285,8 @@ public:
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
 
+    virtual void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) = 0;
+
     virtual void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
@@ -300,8 +307,6 @@ public:
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
     virtual void SetScreenSwitchStatus(bool flag) = 0;
-
-    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

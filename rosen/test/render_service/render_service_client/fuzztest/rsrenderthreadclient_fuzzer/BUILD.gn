@@ -17,7 +17,7 @@ import("//build/test.gni")
 module_output_path = "graphic_2d/graphic_2d"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("RSRenderClientFuzzTest") {
+ohos_fuzztest("RSRenderThreadClientFuzzTest") {
   fuzz_config_file = "../../../../../test/render_service/render_service_client/fuzztest/rsrenderthreadclient_fuzzer"
   module_out_path = module_output_path
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
@@ -54,7 +54,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":RSRenderClientFuzzTest",
+    ":RSRenderThreadClientFuzzTest",
   ]
 }
 ###############################################################################

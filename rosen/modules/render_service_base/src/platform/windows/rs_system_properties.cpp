@@ -182,15 +182,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
@@ -341,6 +332,16 @@ float RSSystemProperties::GetHpsBlurNoiseFactor()
 }
 
 bool RSSystemProperties::GetMESABlurFuzedEnabled()
+{
+    return false;
+}
+
+int RSSystemProperties::GetSimplifiedMesaEnabled()
+{
+    return 0;
+}
+
+bool RSSystemProperties::GetForceKawaseDisabled()
 {
     return false;
 }
@@ -577,6 +578,11 @@ bool RSSystemProperties::GetHwcDirtyRegionEnabled()
 }
 
 bool RSSystemProperties::GetDrmMarkedFilterEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetHveFilterEnabled()
 {
     return false;
 }

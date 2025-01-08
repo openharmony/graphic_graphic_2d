@@ -50,6 +50,8 @@ public:
 
 private:
     std::vector<std::shared_ptr<GEShaderFilter>> GenerateShaderFilter(Drawing::GEVisualEffectContainer& veContainer);
+
+    std::shared_ptr<GEShaderFilter> GenerateExtShaderFilter(const std::shared_ptr<Drawing::GEVisualEffectImpl>&);
 };
 
 } // namespace GraphicsEffectEngine

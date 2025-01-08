@@ -99,6 +99,21 @@ public:
     // Add/RemoveCrossParentChild only used as: the child is under multiple parents(e.g. a window cross multi-screens)
     void AddCrossParentChild(const SharedPtr& child, int32_t index = -1);
     void RemoveCrossParentChild(const SharedPtr& child, const WeakPtr& newParent);
+    void SetIsCrossNode(bool isCrossNode);
+
+    // Only used in PC extend screen
+    void AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeId, int32_t index = -1);
+    void RemoveCrossScreenChild(const SharedPtr& child);
+
+    WeakPtr GetSourceCrossNode() const
+    {
+        return sourceCrossNode_;
+    }
+
+    bool IsCloneCrossNode() const
+    {
+        return isCloneCrossNode_;
+    }
 
     virtual void CollectSurface(const std::shared_ptr<RSRenderNode>& node,
                                 std::vector<RSRenderNode::SharedPtr>& vec,
@@ -364,6 +379,8 @@ public:
     void RemoveAllModifiers();
     std::shared_ptr<RSRenderModifier> GetModifier(const PropertyId& id);
 
+    size_t GetAllModifierSize();
+
     bool IsShadowValidLastFrame() const;
     void SetShadowValidLastFrame(bool isShadowValidLastFrame)
     {
@@ -545,6 +562,7 @@ public:
         std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable, RSDrawableSlot slot);
 #endif
     bool IsFilterCacheValid() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarFilterCacheValid() const;
     void MarkForceClearFilterCacheWithInvisible();
 
@@ -628,6 +646,7 @@ public:
     void ApplyModifiers();
     void ApplyPositionZModifier();
     virtual void UpdateRenderParams();
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
 
@@ -820,9 +839,13 @@ public:
 
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
+    void UpdateDrawableBehindWindow();
+    virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
     virtual void RemoveChildBlurBehindWindow(NodeId id) {}
+    virtual void CalDrawBehindWindowRegion() {}
+    virtual RectI GetBehindWindowRegion() const { return {}; };
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -854,7 +877,6 @@ protected:
     virtual void OnSync();
     virtual void ClearResource() {};
     virtual void ClearNeverOnTree() {};
-    virtual void CheckCanvasDrawingPostPlaybacked() {};
 
     void UpdateDrawableVecV2();
 
@@ -914,6 +936,9 @@ private:
     // mark cross node in physical extended screen model
     bool isCrossNode_ = false;
     int32_t crossScreenNum_ = 0;
+    bool isCloneCrossNode_ = false;
+    WeakPtr sourceCrossNode_;
+    std::vector<SharedPtr> cloneCrossNodeVec_;
     // shadowRectOffset means offset between shadowRect and absRect of node
     int shadowRectOffsetX_ = 0;
     int shadowRectOffsetY_ = 0;
@@ -1041,7 +1066,7 @@ private:
     // collect subtree's surfaceNode including itself
     int subSurfaceCnt_ = 0;
     bool selfAddForSubSurfaceCnt_ = false;
-    bool visited_ = false;
+    bool visitedForSubSurfaceCnt_ = false;
     std::unordered_set<NodeId> curCacheFilterRects_ = {};
     std::unordered_set<NodeId> visitedCacheRoots_ = {};
     mutable std::recursive_mutex surfaceMutex_;
@@ -1138,8 +1163,7 @@ private:
     void UpdateDisplayList();
     void UpdateShadowRect();
 
-    void IncreaseCrossScreenNum();
-    void DecreaseCrossScreenNum();
+    void RecordCloneCrossNode(SharedPtr node);
 
     void OnRegister(const std::weak_ptr<RSContext>& context);
     // purge resource

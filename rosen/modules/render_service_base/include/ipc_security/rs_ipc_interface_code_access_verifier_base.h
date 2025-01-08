@@ -26,7 +26,6 @@
 #include "accesstoken_kit.h"
 #include "access_token.h"
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
 #endif
 
 #include "common/rs_macros.h"

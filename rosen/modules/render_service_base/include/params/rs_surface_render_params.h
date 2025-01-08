@@ -81,21 +81,20 @@ public:
     {
         return selfDrawingType_;
     }
-    void SetAncestorDisplayNode(const ScreenId screenId, const RSRenderNode::WeakPtr& ancestorDisplayNode)
+    void SetAncestorDisplayNode(const RSRenderNode::WeakPtr& ancestorDisplayNode)
     {
-        ancestorDisplayNodeMap_[screenId] = ancestorDisplayNode;
+        ancestorDisplayNode_ = ancestorDisplayNode;
         auto node = ancestorDisplayNode.lock();
-        ancestorDisplayDrawableMap_[screenId] = node ? node->GetRenderDrawable() : nullptr;
+        ancestorDisplayDrawable_ = node ? node->GetRenderDrawable() : nullptr;
     }
 
-    const std::unordered_map<ScreenId, RSRenderNode::WeakPtr>& GetAncestorDisplayNode() const
+    RSRenderNode::WeakPtr GetAncestorDisplayNode() const
     {
-        return ancestorDisplayNodeMap_;
+        return ancestorDisplayNode_;
     }
-    const std::unordered_map<ScreenId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>&
-        GetAncestorDisplayDrawable() const
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetAncestorDisplayDrawable() const
     {
-        return ancestorDisplayDrawableMap_;
+        return ancestorDisplayDrawable_;
     }
 
     float GetAlpha() const
@@ -226,19 +225,6 @@ public:
         return uiFirstFlag_;
     }
 
-    void SetBufferClearCacheSet(const std::set<int32_t> bufferCacheSet)
-    {
-        if (bufferCacheSet.size() > 0) {
-            bufferCacheSet_ = bufferCacheSet;
-            needSync_ = true;
-        }
-    }
-
-    const std::set<int32_t> GetBufferClearCacheSet()
-    {
-        return bufferCacheSet_;
-    }
-
     void SetIsParentUifirstNodeEnableParam(bool isUifirstParent)
     {
         if (uiFirstParentFlag_ == isUifirstParent) {
@@ -337,6 +323,8 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetNeedMakeImage(bool enabled);
+    bool GetNeedMakeImage() const override;
     void SetHardCursorStatus(bool status);
     bool GetHardCursorStatus() const override;
     void SetPreSubHighPriorityType(bool enabledType);
@@ -472,6 +460,20 @@ public:
         needSync_ = true;
     }
 
+    void SetForceDisableClipHoleForDRM(bool isForceDisable)
+    {
+        if (isForceDisableClipHoleForDRM_ == isForceDisable) {
+            return;
+        }
+        isForceDisableClipHoleForDRM_ = isForceDisable;
+        needSync_ = true;
+    }
+
+    bool GetForceDisableClipHoleForDRM() const
+    {
+        return isForceDisableClipHoleForDRM_;
+    }
+
     const std::vector<float>& GetCornerRadiusInfoForDRM() const
     {
         return drmCornerRadiusInfo_;
@@ -491,7 +493,7 @@ public:
         return hasHdrPresent_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
             return;
@@ -500,12 +502,12 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         if (ROSEN_EQ(displayNit_, displayNit)) {
             return;
@@ -514,7 +516,7 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -582,6 +584,20 @@ public:
         return apiCompatibleVersion_;
     }
 
+    void SetIsBufferFlushed(bool isBufferFlushed)
+    {
+        if (isBufferFlushed_ == isBufferFlushed) {
+            return;
+        }
+        isBufferFlushed_ = isBufferFlushed;
+        needSync_ = true;
+    }
+
+    bool GetIsBufferFlushed() const
+    {
+        return isBufferFlushed_;
+    }
+
 protected:
 private:
     bool isMainWindowType_ = false;
@@ -589,8 +605,8 @@ private:
     bool isAppWindow_ = false;
     RSSurfaceNodeType rsSurfaceNodeType_ = RSSurfaceNodeType::DEFAULT;
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
-    std::unordered_map<ScreenId, RSRenderNode::WeakPtr> ancestorDisplayNodeMap_;
-    std::unordered_map<ScreenId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> ancestorDisplayDrawableMap_;
+    RSRenderNode::WeakPtr ancestorDisplayNode_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
 
     float alpha_ = 0;
     bool isCrossNode_ = false;
@@ -638,6 +654,7 @@ private:
     bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
+    bool needMakeImage_ = false;
     bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool subHighPriorityType_ = false;
@@ -671,15 +688,16 @@ private:
     int32_t layerSource_ = 0;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};
     std::vector<float> drmCornerRadiusInfo_;
+    bool isForceDisableClipHoleForDRM_ = false;
 
     Drawing::Matrix totalMatrix_;
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
     // hdr
     bool hasHdrPresent_ = false;
-    int32_t sdrNit_ = 500; // default sdrNit
-    int32_t displayNit_ = 500; // default displayNit_
-    float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    float sdrNit_ = 500.0f; // default sdrNit
+    float displayNit_ = 500.0f; // default displayNit_
+    float brightnessRatio_ = 1.0f; // 1.0f means no discount.
     bool needCacheSurface_ = false;
     
     bool hasSubSurfaceNodes_ = false;
@@ -692,6 +710,8 @@ private:
     friend class RSSurfaceRenderNode;
     friend class RSUniRenderProcessor;
     friend class RSUniRenderThread;
+
+    bool isBufferFlushed_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

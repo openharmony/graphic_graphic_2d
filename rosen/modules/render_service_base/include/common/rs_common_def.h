@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <unistd.h>
+#include <utils/rect.h>
 
 #include "common/rs_macros.h"
 
@@ -174,7 +175,7 @@ enum DrawAreaEnableState : uint8_t {
 enum class NodePriorityType : uint8_t {
     MAIN_PRIORITY = 0, // node must render in main thread
     SUB_FOCUSNODE_PRIORITY, // node render in sub thread with the highest priority
-    SUB_VEDIO_PRIORITY, // node render in sub thread with the second highest priority
+    SUB_VIDEO_PRIORITY, // node render in sub thread with the second highest priority
     SUB_HIGH_PRIORITY, // node render in sub thread with the second priority
     SUB_LOW_PRIORITY, // node render in sub thread with low priority
 };
@@ -218,6 +219,12 @@ struct RSSurfaceCaptureConfig {
     bool useCurWindow = true;
     SurfaceCaptureType captureType = SurfaceCaptureType::DEFAULT_CAPTURE;
     bool isSync = false;
+    Drawing::Rect mainScreenRect = {};
+};
+
+struct RSSurfaceCaptureBlurParam {
+    bool isNeedBlur = false;
+    float blurRadius = 1E-6;
 };
 
 struct RSSurfaceCapturePermissions {
@@ -304,6 +311,12 @@ enum class SurfaceWindowType : uint8_t {
     SYSTEM_SCB_WINDOW = 1,
 };
 
+enum class SurfaceHwcNodeType : uint8_t {
+    DEFAULT_HWC_TYPE = 0,
+    DEFAULT_HWC_VIDEO = 1,
+    DEFAULT_HWC_ROSENWEB = 2,
+};
+
 struct RSSurfaceRenderNodeConfig {
     NodeId id = 0;
     std::string name = "SurfaceNode";
@@ -314,6 +327,7 @@ struct RSSurfaceRenderNodeConfig {
     enum SurfaceWindowType surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW;
 };
 
+// codes for arkui-x start
 // types for RSSurfaceExt
 enum class RSSurfaceExtType : uint8_t {
     NONE,
@@ -329,6 +343,7 @@ using RSSurfaceTextureConfig = RSSurfaceExtConfig;
 using RSSurfaceTextureAttachCallBack = std::function<void(int64_t textureId, bool attach)>;
 using RSSurfaceTextureUpdateCallBack = std::function<void(std::vector<float>&)>;
 using RSSurfaceTextureInitTypeCallBack = std::function<void(int32_t&)>;
+// codes for arkui-x end
 
 struct RSDisplayNodeConfig {
     uint64_t screenId = 0;

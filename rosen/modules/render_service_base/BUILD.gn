@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+# Copyright (c) 2025 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -120,6 +120,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_canvas_drawing_node_command.cpp",
     "src/command/rs_canvas_node_command.cpp",
     "src/command/rs_command_factory.cpp",
+    "src/command/rs_command_verify_helper.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_effect_node_command.cpp",
     "src/command/rs_frame_rate_linker_command.cpp",
@@ -241,6 +242,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_fly_out_shader_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
+    "src/render/rs_high_performance_visual_engine.cpp",
     "src/render/rs_hps_blur.cpp",
     "src/render/rs_image.cpp",
     "src/render/rs_image_base.cpp",
@@ -274,6 +276,10 @@ ohos_source_set("render_service_base_src") {
     "src/transaction/rs_transaction_metric_collector.cpp",
     "src/transaction/rs_transaction_proxy.cpp",
     "src/transaction/rs_uiextension_data.cpp",
+
+    #gfx
+    "src/gfx/fps_info/rs_surface_fps.cpp",
+    "src/gfx/fps_info/rs_surface_fps_manager.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",
@@ -323,11 +329,17 @@ ohos_source_set("render_service_base_src") {
 
   if (rosen_is_ohos) {
     sources += [
+      #color_temp
+      "src/color_temp/rs_color_temp.cpp",
+
       #luminance
       "src/luminance/rs_luminance_control.cpp",
     ]
   } else {
     sources += [
+      #color_temp
+      "src/color_temp/mingw/rs_color_temp.cpp",
+
       #luminance
       "src/luminance/mingw/rs_luminance_control.cpp",
     ]
@@ -421,6 +433,10 @@ ohos_source_set("render_service_base_src") {
     }
   }
 
+  if (graphic_2d_feature_product != "wearable") {
+    defines += [ "IS_ENABLE_DRM" ]
+  }
+
   cflags_cc = [
     "-std=c++17",
     "-fvisibility-inlines-hidden",
@@ -507,7 +523,6 @@ ohos_source_set("render_service_base_src") {
     defines += [ "ENABLE_IPC_SECURITY" ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
-      "access_token:libtokenid_sdk",
       "ipc:ipc_core",
     ]
   }

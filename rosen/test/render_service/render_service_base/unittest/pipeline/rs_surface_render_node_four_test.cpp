@@ -246,43 +246,6 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, UpdateSurfaceDefaultSize, TestSize.Level2)
 }
 
 /**
- * @tc.name: NeedClearBufferCache
- * @tc.desc: test results of NeedClearBufferCache
- * @tc.type:FUNC NeedClearBufferCache
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeFourTest, NeedClearBufferCache, TestSize.Level2)
-{
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = nullptr;
-    node->GetRSSurfaceHandler()->preBuffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_EQ(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
-    node->GetRSSurfaceHandler()->preBuffer_.buffer = SurfaceBuffer::Create();
-    node->NeedClearBufferCache();
-    ASSERT_NE(node->GetRSSurfaceHandler(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetBuffer(), nullptr);
-    ASSERT_NE(node->GetRSSurfaceHandler()->GetPreBuffer(), nullptr);
-    node->surfaceHandler_ = nullptr;
-    node->NeedClearBufferCache();
-    ASSERT_EQ(node->GetRSSurfaceHandler(), nullptr);
-}
-
-/**
  * @tc.name: RegisterBufferAvailableListener
  * @tc.desc: test results of RegisterBufferAvailableListener
  * @tc.type:FUNC RegisterBufferAvailableListener
@@ -545,12 +508,28 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, ChildrenBlurBehindWindowTest, TestSize.Lev
     node->AddChildBlurBehindWindow(idOne);
     ASSERT_TRUE(!node->childrenBlurBehindWindow_.empty());
     ASSERT_TRUE(node->NeedUpdateDrawableBehindWindow());
-    ASSERT_TRUE(node->GetMutableRenderProperties().GetNeedDrawBehindWindow());
     ASSERT_TRUE(node->NeedDrawBehindWindow());
     node->RemoveChildBlurBehindWindow(idTwo);
     ASSERT_TRUE(node->NeedDrawBehindWindow());
     node->RemoveChildBlurBehindWindow(idOne);
     ASSERT_FALSE(node->NeedDrawBehindWindow());
+}
+
+/**
+ * @tc.name: GetBehindWindowRegionTest
+ * @tc.desc: GetBehindWindowRegionTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBFVDA
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, GetBehindWindowRegionTest, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    RectI region(0, 0, 1, 1);
+    surfaceNode->drawBehindWindowRegion_ = region;
+    ASSERT_EQ(surfaceNode->GetBehindWindowRegion(), region);
+    auto node = std::make_shared<RSRenderNode>(1, rsContext);
+    ASSERT_NE(node->GetBehindWindowRegion(), region);
 }
 } // namespace Rosen
 } // namespace OHOS

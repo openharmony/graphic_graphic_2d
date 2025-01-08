@@ -135,12 +135,14 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+    } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation() &&
+        node.ReinterpretCastTo<RSSurfaceRenderNode>()->IsAppWindow()) {
+        Drawing::Rect rect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
+        Drawing::RectI iRect(rect.GetLeft(), rect.GetTop(), rect.GetRight(), rect.GetBottom());
+        canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
     } else {
-        // Enable anti-aliasing only on surface nodes to resolve the issue of jagged edges on card compoments
-        // during dragging.
-        bool aa = node.IsInstanceOf<RSSurfaceRenderNode>();
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, aa);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
     }
     return true;
 }
@@ -217,12 +219,19 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         if (ptr->needDrawBehindWindow_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu] ", ptr->renderNodeId_);
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+            if (!paintFilterCanvas) {
+                return;
+            }
             Drawing::AutoCanvasRestore acr(*canvas, true);
             paintFilterCanvas->ClipRect(*rect);
             Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
-            canvas->GetTotalMatrix().MapRect(absRect, *rect);
+            Drawing::Rect relativeBounds(ptr->drawBehindWindowRegion_.GetLeft(), ptr->drawBehindWindowRegion_.GetTop(),
+                ptr->drawBehindWindowRegion_.GetRight(), ptr->drawBehindWindowRegion_.GetBottom());
+            canvas->GetTotalMatrix().MapRect(absRect, relativeBounds);
             Drawing::RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()),
                 std::ceil(absRect.GetRight()), std::ceil(absRect.GetBottom()));
+            auto deviceRect = Drawing::RectI(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
+            bounds.Intersect(deviceRect);
             RSPropertyDrawableUtils::DrawBackgroundEffect(paintFilterCanvas, ptr->filter_, ptr->cacheManager_,
                 ptr->renderClearFilteredCacheAfterDrawing_, bounds, true);
             return;
@@ -477,6 +486,11 @@ void RSFilterDrawable::UpdateFlags(FilterCacheType type, bool cacheValid)
     stagingIsAIBarInteractWithHWC_ = false;
 }
 
+bool RSFilterDrawable::IsAIBarFilter() const
+{
+    return filterType_ == RSFilter::AIBAR;
+}
+
 bool RSFilterDrawable::IsAIBarCacheValid()
 {
     if (filterType_ != RSFilter::AIBAR) {
@@ -491,6 +505,11 @@ bool RSFilterDrawable::IsAIBarCacheValid()
         MarkFilterForceUseCache(true);
         return true;
     }
+}
+
+void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)
+{
+    stagingDrawBehindWindowRegion_ = region;
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

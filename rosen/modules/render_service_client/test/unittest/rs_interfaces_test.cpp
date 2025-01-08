@@ -2085,5 +2085,61 @@ HWTEST_F(RSInterfacesTest, SetLayerTop_002, Function | SmallTest | Level2)
     std::string nodeIdStr = "123456";
     rsInterfaces->SetLayerTop(nodeIdStr, true);
 }
+
+/*
+ * @tc.name: SetScreenSecurityMask_001
+ * @tc.desc: Test SetScreenSecurityMask with normal params, securityMask is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_001, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, nullptr);
+    EXPECT_EQ(ret, SUCCESS);
+}
+
+/*
+ * @tc.name: SetScreenSecurityMask_002
+ * @tc.desc: Test SetScreenSecurityMask with normal params.
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    const uint32_t color[1] = { 0x6f0000ff };
+    uint32_t colorLength = sizeof(color) / sizeof(color[0]);
+    Media::InitializationOptions opts;
+    opts.size.width = 1;
+    opts.size.height = 1;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+    EXPECT_EQ(ret, SUCCESS);
+}
 } // namespace Rosen
 } // namespace OHOS

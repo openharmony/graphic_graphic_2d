@@ -48,6 +48,7 @@ struct ScreenInfo {
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL; // skip frame interval for change screen refresh rate
     uint32_t expectedRefreshRate = INVALID_EXPECTED_REFRESH_RATE;
     SkipFrameStrategy skipFrameStrategy = SKIP_FRAME_BY_INTERVAL;
+    bool isEqualVsyncPeriod = true;
 
     GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;

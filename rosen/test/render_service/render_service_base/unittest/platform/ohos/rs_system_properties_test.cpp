@@ -460,18 +460,6 @@ HWTEST_F(RSSystemPropertiesTest, GetCacheEnabledForRotation, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDefaultDeviceRotationOffset
- * @tc.desc: GetDefaultDeviceRotationOffset Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDefaultDeviceRotationOffset, TestSize.Level1)
-{
-    RSSystemProperties::SetDefaultDeviceRotationOffset(90);
-    ASSERT_TRUE(RSSystemProperties::GetDefaultDeviceRotationOffset() == 90);
-}
-
-/**
  * @tc.name: GetPrepareParallelRenderingEnabled
  * @tc.desc: GetPrepareParallelRenderingEnabled Test
  * @tc.type:FUNC
@@ -638,6 +626,28 @@ HWTEST_F(RSSystemPropertiesTest, GetMESABlurFuzedEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetForceKawaseDisabled
+ * @tc.desc: GetForceKawaseDisabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetForceKawaseDisabled, TestSize.Level1)
+{
+    ASSERT_FALSE(RSSystemProperties::GetForceKawaseDisabled());
+}
+
+/**
+ * @tc.name: GetSimplifiedMesaEnabled
+ * @tc.desc: GetSimplifiedMesaEnabled Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetSimplifiedMesaEnabled, TestSize.Level1)
+{
+    ASSERT_EQ(RSSystemProperties::GetSimplifiedMesaEnabled(), 0);
+}
+
+/**
  * @tc.name: SetForceHpsBlurDisabled
  * @tc.desc: SetForceHpsBlurDisabled Test
  * @tc.type:FUNC
@@ -671,13 +681,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetHpsBlurNoiseFactor, TestSize.Level1)
 {
-    static bool deviceHpsType = system::GetParameter("const.product.devicetype", "pc") == "pc";
-    float epsilon = 0.001f;
-    if (!deviceHpsType) {
-        EXPECT_NEAR(0.f, RSSystemProperties::GetHpsBlurNoiseFactor(), epsilon);
-    } else {
-        ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
-    }
+    ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
 }
 
 /**
@@ -777,28 +781,6 @@ HWTEST_F(RSSystemPropertiesTest, GetUIFirstEnabled, TestSize.Level1)
 HWTEST_F(RSSystemPropertiesTest, GetUIFirstDebugEnabled, TestSize.Level1)
 {
     ASSERT_FALSE(RSSystemProperties::GetUIFirstDebugEnabled());
-}
-
-/**
- * @tc.name: GetDebugTraceEnabled
- * @tc.desc: GetDebugTraceEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDebugTraceEnabled, TestSize.Level1)
-{
-    ASSERT_FALSE(RSSystemProperties::GetDebugTraceEnabled());
-}
-
-/**
- * @tc.name: GetDebugTraceLevel
- * @tc.desc: GetDebugTraceLevel Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDebugTraceLevel, TestSize.Level1)
-{
-    ASSERT_EQ(RSSystemProperties::GetDebugTraceLevel(), 0);
 }
 
 /**

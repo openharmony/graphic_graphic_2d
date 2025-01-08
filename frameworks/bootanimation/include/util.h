@@ -50,6 +50,7 @@ const std::string TYPE_SOUND = "sound";
 constexpr const char* BMS_COMPILE_STATUS = "bms.optimizing_apps.status";
 const std::string BMS_COMPILE_STATUS_BEGIN = "0";
 const std::string BMS_COMPILE_STATUS_END = "1";
+const std::string HING_STATUS_INFO_PATH = "/sys/class/sensors/hinge_sensor/hinge_status_info";
 
 constexpr const char* BOOT_ANIMATION_STARTED = "bootevent.bootanimation.started";
 constexpr const char* BOOT_ANIMATION_READY = "bootevent.bootanimation.ready";
@@ -161,6 +162,10 @@ bool CheckImageData(const std::string& fileName, std::shared_ptr<ImageStruct> im
 bool CloseZipFile(const unzFile zipFile, bool ret);
 
 int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp);
+
+std::string ReadFile(const std::string &filePath);
+
+std::string GetHingeStatus();
 } // namespace OHOS
 
 #endif // FRAMEWORKS_BOOTANIMATION_INCLUDE_UTIL_H

@@ -532,6 +532,7 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
         needSync_ = true;
         stagingFilter_ = behindWindowFilter;
         stagingNeedDrawBehindWindow_ = true;
+        stagingDrawBehindWindowRegion_ = node.GetBehindWindowRegion();
         return true;
     }
     return false;
@@ -571,6 +572,7 @@ void RSBackgroundFilterDrawable::OnSync()
     if (needSync_) {
         needDrawBehindWindow_ = stagingNeedDrawBehindWindow_;
     }
+    drawBehindWindowRegion_ = stagingDrawBehindWindowRegion_;
     RSFilterDrawable::OnSync();
 }
 
@@ -611,7 +613,11 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         paintFilterCanvas->ClipRect(*rect);
         Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
         canvas->GetTotalMatrix().MapRect(absRect, *rect);
-        RectI deviceRect(0, 0, canvas->GetSurface()->Width(), canvas->GetSurface()->Height());
+        auto surface = canvas->GetSurface();
+        if (!surface) {
+            return;
+        }
+        RectI deviceRect(0, 0, surface->Width(), surface->Height());
         RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
             std::ceil(absRect.GetHeight()));
         bounds = bounds.IntersectRect(deviceRect);

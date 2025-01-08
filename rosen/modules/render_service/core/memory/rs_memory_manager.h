@@ -32,6 +32,7 @@ public:
     static void DumpPidMemory(DfxString& log, int pid, const Drawing::GPUContext* gpuContext);
     static void DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
+    static void DumpExitPidMem(std::string& log, int pid);
     // Count memory for hidumper
     static MemoryGraphic CountPidMemory(int pid, const Drawing::GPUContext* gpuContext);
     static void CountMemory(std::vector<pid_t> pids,

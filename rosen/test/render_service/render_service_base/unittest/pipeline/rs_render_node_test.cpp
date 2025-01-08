@@ -1036,7 +1036,6 @@ HWTEST_F(RSRenderNodeTest, UpdateSubSurfaceCntTest001, TestSize.Level1)
     leashNode->UpdateSubSurfaceCnt(selfDrawNode->subSurfaceCnt_);
     EXPECT_EQ(rootNode->subSurfaceCnt_, cnt + 1);
 
-
     rootNode->RemoveChild(leashNode);
     rootNode->UpdateSubSurfaceCnt(-leashNode->subSurfaceCnt_);
     EXPECT_EQ(rootNode->subSurfaceCnt_, cnt);
@@ -1795,6 +1794,48 @@ HWTEST_F(RSRenderNodeTest, RemoveCrossParentChild009, TestSize.Level1)
     EXPECT_FALSE(nodeTest->isFullChildrenListValid_);
 }
 
+/**
+ * @tc.name: AddCrossScreenChild
+ * @tc.desc: AddCrossScreenChild test
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSRenderNodeTest, AddCrossScreenChild, TestSize.Level1)
+{
+    NodeId id = 1;
+    struct RSDisplayNodeConfig config;
+    auto context = std::make_shared<RSContext>();
+    auto displayRenderNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    EXPECT_NE(displayRenderNode, nullptr);
+    auto childTest1 = nullptr;
+    displayRenderNode->AddCrossScreenChild(childTest1, 2, -1);
+
+    id = 2;
+    auto childTest2 = std::make_shared<RSSurfaceRenderNode>(id);
+    ASSERT_EQ(childTest2->cloneCrossNodeVec_.size(), 0);
+    displayRenderNode->AddCrossScreenChild(childTest2, 2, -1);
+    ASSERT_EQ(childTest2->cloneCrossNodeVec_.size(), 1);
+    auto cloneNode = childTest2->cloneCrossNodeVec_[0];
+    ASSERT_EQ(cloneNode->GetParent().lock(), displayRenderNode);
+}
+
+/**
+ * @tc.name: AddCrossScreenChild
+ * @tc.desc: AddCrossScreenChild test
+ * @tc.type: FUNC
+ * @tc.require: issueIBF3VR
+ */
+HWTEST_F(RSRenderNodeTest, RemoveCrossScreenChild, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    auto childTest1 = nullptr;
+    nodeTest->RemoveCrossScreenChild(childTest1);
+
+    auto childTest2 = std::make_shared<RSSurfaceRenderNode>(1);
+    nodeTest->RemoveCrossScreenChild(childTest2);
+    ASSERT_EQ(childTest2->cloneCrossNodeVec_.size(), 0);
+}
 /**
  * @tc.name: RemoveFromTreeTest010
  * @tc.desc: RemoveFromTree test
@@ -2774,10 +2815,10 @@ HWTEST_F(RSRenderNodeTest, IsCrossNodeTest, TestSize.Level1)
 {
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
-    renderNode->IncreaseCrossScreenNum();
+    renderNode->SetIsCrossNode(true);
     ASSERT_TRUE(renderNode->isCrossNode_);
 
-    renderNode->DecreaseCrossScreenNum();
+    renderNode->SetIsCrossNode(false);
     ASSERT_FALSE(renderNode->isCrossNode_);
 }
 

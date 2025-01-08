@@ -16,8 +16,8 @@ group("fuzztest") {
 
   deps = [
     "drawing_fuzzer:fuzztest",
-    "drawing_run_fuzzer:fuzztest",
-    "drawing_text_fuzzer:fuzztest",
+    "drawingrun_fuzzer:fuzztest",
+    "drawingtext_fuzzer:fuzztest",
     "ndkbitmap_fuzzer:fuzztest",
     "ndkbrush_fuzzer:fuzztest",
     "ndkcanvas_fuzzer:fuzztest",

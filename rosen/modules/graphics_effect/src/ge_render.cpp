@@ -23,6 +23,7 @@
 #include "ge_magnifier_shader_filter.h"
 #include "ge_visual_effect_impl.h"
 #include "ge_water_ripple_filter.h"
+#include "ge_external_dynamic_loader.h"
 
 namespace OHOS {
 namespace GraphicsEffectEngine {
@@ -68,6 +69,27 @@ std::shared_ptr<Drawing::Image> GERender::ApplyImageEffect(Drawing::Canvas& canv
     return resImage;
 }
 
+std::shared_ptr<GEShaderFilter> GERender::GenerateExtShaderFilter(
+    const std::shared_ptr<Drawing::GEVisualEffectImpl>& ve)
+{
+    auto type = ve->GetFilterType();
+    switch (type) {
+        case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
+            const auto& mesaParams = ve->GetMESAParams();
+            auto object = GEExternalDynamicLoader::GetInstance().CreateGEXObjectByType(
+                (uint32_t)type, sizeof(Drawing::GEMESABlurShaderFilterParams), (void*)(mesaParams.get()));
+            if (!object) {
+                return std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
+            }
+            std::shared_ptr<GEMESABlurShaderFilter> dmShader(static_cast<GEMESABlurShaderFilter*>(object));
+            return dmShader;
+        }
+        default:
+            break;
+    }
+    return nullptr;
+}
+
 std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
     Drawing::GEVisualEffectContainer& veContainer)
 {
@@ -84,8 +106,7 @@ std::vector<std::shared_ptr<GEShaderFilter>> GERender::GenerateShaderFilter(
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::MESA_BLUR: {
-                const auto& mesaParams = ve->GetMESAParams();
-                shaderFilter = std::make_shared<GEMESABlurShaderFilter>(*mesaParams);
+                shaderFilter = GenerateExtShaderFilter(ve);
                 break;
             }
             case Drawing::GEVisualEffectImpl::FilterType::AIBAR: {

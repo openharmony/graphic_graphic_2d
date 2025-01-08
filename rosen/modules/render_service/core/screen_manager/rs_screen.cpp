@@ -24,6 +24,7 @@
 #include "rs_trace.h"
 #include "string_utils.h"
 #include "hisysevent.h"
+#include "hgm_core.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -282,6 +283,23 @@ bool RSScreen::IsVirtual() const
     return isVirtual_;
 }
 
+void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
+{
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr != nullptr && frameRateMgr->IsLtpo()) {
+        RS_LOGD_IF(DEBUG_SCREEN, "RSScreen LTPO mode");
+        return;
+    }
+    static GraphicDisplayModeInfo modeInfo;
+    if ((modeInfo.freshRate != activeMode.freshRate)
+        || modeInfo.width != activeMode.width || modeInfo.height != activeMode.height) {
+        HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "EPS_LCD_FREQ",
+            HiSysEvent::EventType::STATISTIC, "SOURCERATE", modeInfo.freshRate,
+            "TARGETRATE", activeMode.freshRate, "WIDTH", activeMode.width, "HEIGHT", activeMode.height);
+        modeInfo = activeMode;
+    }
+}
+
 void RSScreen::SetActiveMode(uint32_t modeId)
 {
     if (IsVirtual()) {
@@ -307,14 +325,7 @@ void RSScreen::SetActiveMode(uint32_t modeId)
     if (activeMode) {
         phyWidth_ = activeMode->width;
         phyHeight_ = activeMode->height;
-        static GraphicDisplayModeInfo modeInfo;
-        if ((modeInfo.freshRate != activeMode->freshRate)
-            || modeInfo.width != activeMode->width || modeInfo.height != activeMode->height) {
-            HiSysEventWrite(HiSysEvent::Domain::GRAPHIC, "EPS_LCD_FREQ",
-                HiSysEvent::EventType::STATISTIC, "SOURCERATE", modeInfo.freshRate,
-                "TARGETRATE", activeMode->freshRate, "WIDTH", phyWidth_, "HEIGHT", phyHeight_);
-            modeInfo = activeMode.value();
-        }
+        WriteHisyseventEpsLcdInfo(activeMode.value());
     }
 }
 
@@ -325,17 +336,21 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
         return StatusCode::HDI_ERROR;
     }
     if (hdiScreen_ == nullptr) {
-        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr",  __func__);
+        RS_LOGE("RSScreen %{public}s failed: hdiScreen_ is nullptr", __func__);
         return StatusCode::HDI_ERROR;
     }
     
     if (hdiScreen_->SetScreenActiveRect(activeRect) < 0) {
-        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed",  __func__);
+        RS_LOGE("RSScreen %{public}s failed: hdi SetScreenActiveRect failed, "
+            "activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
+            __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
         return StatusCode::HDI_ERROR;
-    } else {
-        activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
-        return StatusCode::SUCCESS;
     }
+
+    activeRect_ = RectI(activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    RS_LOGI("RSScreen %{public}s success, activeRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
+        "%{public}" PRId32 ", %{public}" PRId32 ")", __func__, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    return StatusCode::SUCCESS;
 }
 
 void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
@@ -394,7 +409,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
         return;
     }
 
-    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus, status is %{public}u", id_, powerStatus);
+    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u.", id_, powerStatus);
     RS_TRACE_NAME_FMT("[UL_POWER]Screen_%llu SetPowerStatus %u", id_, powerStatus);
     if (hdiScreen_->SetScreenPowerStatus(static_cast<GraphicDispPowerStatus>(powerStatus)) < 0) {
         powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
@@ -411,7 +426,7 @@ void RSScreen::SetPowerStatus(uint32_t powerStatus)
             RS_LOGE("RSScreen %{public}s SetScreenVsyncEnabled failed", __func__);
         }
     }
-    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus done", id_);
+    RS_LOGW("[UL_POWER]RSScreen_%{public}" PRIu64 " SetPowerStatus: %{public}u done.", id_, powerStatus_);
 }
 
 std::optional<GraphicDisplayModeInfo> RSScreen::GetActiveMode() const
@@ -902,34 +917,46 @@ const RSScreenType& RSScreen::GetScreenType() const
 
 void RSScreen::SetScreenSkipFrameInterval(uint32_t skipFrameInterval)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     skipFrameInterval_ = skipFrameInterval;
     skipFrameStrategy_ = SKIP_FRAME_BY_INTERVAL;
 }
 
 void RSScreen::SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     expectedRefreshRate_ = expectedRefreshRate;
     skipFrameStrategy_ = SKIP_FRAME_BY_REFRESH_RATE;
 }
 
+void RSScreen::SetEqualVsyncPeriod(bool isEqualVsyncPeriod)
+{
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
+    isEqualVsyncPeriod_ = isEqualVsyncPeriod;
+}
+
 uint32_t RSScreen::GetScreenSkipFrameInterval() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return skipFrameInterval_;
 }
 
 uint32_t RSScreen::GetScreenExpectedRefreshRate() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return expectedRefreshRate_;
 }
 
 SkipFrameStrategy RSScreen::GetScreenSkipFrameStrategy() const
 {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
     return skipFrameStrategy_;
+}
+
+bool RSScreen::GetEqualVsyncPeriod() const
+{
+    std::lock_guard<std::mutex> lock(skipFrameMutex_);
+    return isEqualVsyncPeriod_;
 }
 
 void RSScreen::SetScreenVsyncEnabled(bool enabled) const
@@ -1175,6 +1202,21 @@ void RSScreen::SetSecurityExemptionList(const std::vector<uint64_t>& securityExe
 const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
 {
     return securityExemptionList_;
+}
+
+int32_t RSScreen::SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask)
+{
+    if (!IsVirtual()) {
+        RS_LOGW("RSScreen::SetSecurityMask not virtual screen");
+        return SCREEN_NOT_FOUND;
+    }
+    securityMask_ = std::move(securityMask);
+    return SUCCESS;
+}
+
+std::shared_ptr<Media::PixelMap> RSScreen::GetSecurityMask() const
+{
+    return securityMask_;
 }
 
 void RSScreen::SetEnableVisibleRect(bool enable)

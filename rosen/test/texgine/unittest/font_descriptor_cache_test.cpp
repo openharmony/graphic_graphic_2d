@@ -144,7 +144,7 @@ HWTEST_F(FontDescriptorTest, GetSystemFontFullNamesByTypeTest, TestSize.Level1)
     std::string fullName = "GetSystemFontFullNamesByTypeTests";
     std::unordered_set<std::string> fontLis;
     fontLis.emplace(fullName);
-    fontDescriptorCache->GetSystemFontFullNamesByType(16, fontLis);
+    fontDescriptorCache->GetSystemFontFullNamesByType(128, fontLis);
     EXPECT_EQ(fontLis.size(), 0);
 }
 

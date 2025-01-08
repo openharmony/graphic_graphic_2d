@@ -35,16 +35,18 @@ struct CaptureParam {
     float scaleY_ = 0.0f;
     bool isFirstNode_ = false;
     bool isSystemCalling_ = false;
+    bool isNeedBlur_ = false;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror,
-        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false)
+        float scaleX, float scaleY, bool isFirstNode = false, bool isSystemCalling = false, bool isNeedBlur = false)
         : isSnapshot_(isSnapshot),
         isSingleSurface_(isSingleSurface),
         isMirror_(isMirror),
         scaleX_(scaleX),
         scaleY_(scaleY),
         isFirstNode_(isFirstNode),
-        isSystemCalling_(isSystemCalling) {}
+        isSystemCalling_(isSystemCalling),
+        isNeedBlur_(isNeedBlur) {}
 };
 struct HardCursorInfo {
     NodeId id = INVALID_NODEID;
@@ -123,7 +125,7 @@ public:
         isFirstVisitCrossNodeDisplay_ = isFirstVisitCrossNodeDisplay;
     }
 
-    CrossNodeOffScreenRenderDebugType GetCrossNodeOffscreenDebugEnabled() const
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
     {
         return isCrossNodeOffscreenOn_;
     }
@@ -451,6 +453,16 @@ public:
     {
         currentVisitDisplayDrawableId_ = displayId;
     }
+
+    const std::set<uint32_t> GetUnmappedCacheSet() const
+    {
+        return unmappedCacheSet_;
+    }
+
+    void ClearUnmappedCacheSet()
+    {
+        unmappedCacheSet_.clear();
+    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -514,6 +526,8 @@ private:
 
     bool isSecurityExemption_ = false;
     ScreenInfo screenInfo_ = {};
+
+    std::set<uint32_t> unmappedCacheSet_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

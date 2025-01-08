@@ -220,19 +220,24 @@ void RSCustomInterpolator::Convert(int duration)
 float RSCustomInterpolator::InterpolateImpl(float input) const
 {
     if (times_.size() <= 0) {
+        ROSEN_LOGE("RSCustomInterpolator::InterpolateImpl, times_ vector is empty.");
         return 0.0f;
     }
-    if (input < times_[0] + EPSILON) {
-        return times_[0];
+    if (times_.size() != values_.size()) {
+        ROSEN_LOGE("RSCustomInterpolator::InterpolateImpl, times_ and values_ have different sizes.");
+        return 0.0f;
     }
-    if (input > times_[times_.size() - 1] - EPSILON) {
-        return times_[times_.size() - 1];
+    auto firstGreatValueIterator = std::upper_bound(times_.begin(), times_.end(), input);
+    if (firstGreatValueIterator == times_.end()) {
+        return values_.back();
     }
-    auto firstGreatValue = upper_bound(times_.begin(), times_.end(), input);
-    int endLocation = firstGreatValue - times_.begin();
+    if (firstGreatValueIterator == times_.begin()) {
+        return values_.front();
+    }
+    auto endLocation = std::distance(times_.begin(), firstGreatValueIterator);
     int startLocation = endLocation - 1;
     float number = times_[endLocation] - times_[startLocation];
-    if (number <= 0.0f) {
+    if (ROSEN_LE(number, 0.f)) {
         ROSEN_LOGE("RSCustomInterpolator::Interpolate, time between startLocation and endLocation is less than zero.");
         return 0.0f;
     }

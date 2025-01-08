@@ -18,6 +18,7 @@ group("fuzztest") {
 
   deps += [
     "geaibarshaderfilter_fuzzer:fuzztest",
+    "geexternaldynamicloader_fuzzer:fuzztest",
     "gegreyshaderfilter_fuzzer:fuzztest",
     "gekawaseblurshaderfilter_fuzzer:fuzztest",
     "gelineargradientblurshaderfilter_fuzzer:fuzztest",

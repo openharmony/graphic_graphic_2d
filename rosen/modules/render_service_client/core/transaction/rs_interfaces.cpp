@@ -110,6 +110,11 @@ int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
     return renderServiceClient_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
+int32_t RSInterfaces::SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask)
+{
+    return renderServiceClient_->SetScreenSecurityMask(id, std::move(securityMask));
+}
+
 int32_t RSInterfaces::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)
 {
     return renderServiceClient_->SetMirrorScreenVisibleRect(id, mainScreenRect);
@@ -203,6 +208,23 @@ bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
         return false;
     }
     return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+}
+
+bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
+{
+    if (blurRadius < 1) {
+        ROSEN_LOGW("%{public}s no blur effect", __func__);
+        return TakeSurfaceCapture(node, callback, captureConfig);
+    }
+    if (!node) {
+        ROSEN_LOGE("%{public}s node is nullptr", __func__);
+        return false;
+    }
+    RSSurfaceCaptureBlurParam blurParam;
+    blurParam.isNeedBlur = true;
+    blurParam.blurRadius = blurRadius;
+    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
 }
 
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
@@ -399,6 +421,11 @@ void RSInterfaces::MarkPowerOffNeedProcessOneFrame()
 {
     RS_LOGD("[UL_POWER]RSInterfaces::MarkPowerOffNeedProcessOneFrame.");
     renderServiceClient_->MarkPowerOffNeedProcessOneFrame();
+}
+
+void RSInterfaces::RepaintEverything()
+{
+    renderServiceClient_->RepaintEverything();
 }
 
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
@@ -708,11 +735,6 @@ void RSInterfaces::ReportGameStateData(GameStateData info)
 void RSInterfaces::EnableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(true);
-}
-
-void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
 }
 
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)

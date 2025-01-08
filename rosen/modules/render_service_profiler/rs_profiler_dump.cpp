@@ -127,8 +127,6 @@ void RSProfiler::DumpNodeBaseInfo(const RSRenderNode& node, JsonWriter& out, boo
     if (sharedTrans) {
         out["SharedTransitionParam"] =
             std::to_string(sharedTrans->inNodeId_) + " -> " + std::to_string(sharedTrans->outNodeId_);
-        std::to_string(AdjustNodeId(sharedTrans->inNodeId_, clearMockFlag)) + " -> " +
-            std::to_string(AdjustNodeId(sharedTrans->outNodeId_, clearMockFlag));
     }
     if (node.IsSuggestedDrawInGroup()) {
         out["nodeGroup"] = static_cast<int>(node.nodeGroupType_);

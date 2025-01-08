@@ -41,7 +41,6 @@
 #include "property/rs_properties_painter.h"
 #include "visitor/rs_node_visitor.h"
 
-
 namespace OHOS {
 namespace Rosen {
 static std::mutex drawingMutex_;
@@ -240,6 +239,7 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
     auto savedirtyTypes = dirtyTypes_;
     dirtyTypes_.reset();
     dirtyTypes_.set(static_cast<int>(RSModifierType::CONTENT_STYLE), true);
+    isPostPlaybacked_ = true;
 
     UpdateDrawableVecV2();
 
@@ -259,7 +259,6 @@ void RSCanvasDrawingRenderNode::ContentStyleSlotUpdate()
         contentCmdList->second.clear();
     }
     savedirtyTypes.set(static_cast<int>(RSModifierType::CONTENT_STYLE), false);
-    isPostPlaybacked_ = true;
     dirtyTypes_ = savedirtyTypes;
 
     AddToPendingSyncList();
@@ -553,39 +552,39 @@ void RSCanvasDrawingRenderNode::CheckDrawCmdListSize(RSModifierType type)
 void RSCanvasDrawingRenderNode::AddDirtyType(RSModifierType modifierType)
 {
     dirtyTypes_.set(static_cast<int>(modifierType), true);
+    if (modifierType != RSModifierType::CONTENT_STYLE) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
-    for (auto& [type, list]: GetDrawCmdModifiers()) {
-        if (modifierType != type || list.empty()) {
+    const auto itr = GetDrawCmdModifiers().find(modifierType);
+    if (itr == GetDrawCmdModifiers().end()) {
+        return;
+    }
+
+    for (const auto& modifier : itr->second) {
+        if (modifier == nullptr) {
             continue;
         }
-        for (const auto& modifier : list) {
-            if (modifier == nullptr) {
-                continue;
-            }
-            auto prop = modifier->GetProperty();
-            if (prop == nullptr) {
-                continue;
-            }
-            auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
-            if (cmd == nullptr) {
-                continue;
-            }
-            
-            if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
-                RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
-                    " Add DrawOpSize [%{public}zu]", GetId(), cmd->GetOpItemSize());
-                continue;
-            }
-
-            //only content_style allowed multi-drawcmdlist, others modifier same as canvas_node
-            if (type != RSModifierType::CONTENT_STYLE) {
-                drawCmdLists_[type].clear();
-            }
-            drawCmdLists_[type].emplace_back(cmd);
-            SetNeedProcess(true);
+        auto prop = modifier->GetProperty();
+        if (prop == nullptr) {
+            continue;
         }
-        CheckDrawCmdListSize(type);
+        auto cmd = std::static_pointer_cast<RSRenderProperty<Drawing::DrawCmdListPtr>>(prop)->Get();
+        if (cmd == nullptr) {
+            continue;
+        }
+        
+        if (cmd->GetOpItemSize() > DRAWCMDLIST_OPSIZE_COUNT_LIMIT) {
+            RS_LOGE("CanvasDrawingNode AddDirtyType NodeId[%{public}" PRIu64 "] Cmd oversize"
+                    " Add DrawOpSize [%{public}zu]",
+                GetId(), cmd->GetOpItemSize());
+            continue;
+        }
+
+        drawCmdLists_[modifierType].emplace_back(cmd);
+        SetNeedProcess(true);
     }
+    CheckDrawCmdListSize(modifierType);
 }
 
 void RSCanvasDrawingRenderNode::ClearOp()
@@ -639,6 +638,11 @@ void RSCanvasDrawingRenderNode::CheckCanvasDrawingPostPlaybacked()
         }
         isPostPlaybacked_ = false;
     }
+}
+
+bool RSCanvasDrawingRenderNode::GetIsPostPlaybacked()
+{
+    return isPostPlaybacked_;
 }
 
 } // namespace Rosen

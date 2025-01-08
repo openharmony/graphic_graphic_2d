@@ -124,6 +124,7 @@ HWTEST_F(HdiFramebufferSurfaceTest, OnBufferAvailable001, Function | MediumTest|
 {
     // create a HdiFramebufferSurface obj without consumer
     sptr<HdiFramebufferSurface> fbSurface = new HdiFramebufferSurface();
+    EXPECT_EQ(fbSurface->consumerSurface_, nullptr);
     fbSurface->OnBufferAvailable(); // no crash
 }
 }

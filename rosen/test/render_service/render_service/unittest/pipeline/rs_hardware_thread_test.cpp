@@ -236,7 +236,9 @@ HWTEST_F(RSHardwareThreadTest, Start005, TestSize.Level1)
 {
     OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
     auto& hardwareThread = RSHardwareThread::Instance();
+    auto count = hardwareThread.refreshRateCounts_;
     hardwareThread.AddRefreshRateCount(output);
+    ASSERT_TRUE(count != hardwareThread.refreshRateCounts_);
 }
 
 /**

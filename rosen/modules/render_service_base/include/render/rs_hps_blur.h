@@ -25,7 +25,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class HpsBlurFilter {
+class RSB_EXPORT HpsBlurFilter {
 public:
     ~HpsBlurFilter() = default;
     bool ApplyHpsBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,

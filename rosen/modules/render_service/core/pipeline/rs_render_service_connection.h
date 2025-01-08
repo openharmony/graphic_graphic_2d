@@ -105,6 +105,9 @@ private:
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
+    int32_t SetScreenSecurityMask(ScreenId id,
+        const std::shared_ptr<Media::PixelMap> securityMask) override;
+
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
@@ -153,12 +156,14 @@ private:
 
     void MarkPowerOffNeedProcessOneFrame() override;
 
+    void RepaintEverything() override;
+
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -292,6 +297,8 @@ private:
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
 
+    void NotifySoftVsyncEvent(uint32_t pid, uint32_t rateDiscount) override;
+
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
@@ -299,8 +306,6 @@ private:
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
     void SetScreenSwitchStatus(bool flag) override;
-
-    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
 
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus) override;
 

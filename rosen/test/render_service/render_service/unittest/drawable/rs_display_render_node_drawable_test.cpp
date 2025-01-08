@@ -872,54 +872,58 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByIntervalTest007, TestSize.L
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest001
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate 0
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 0
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest001, TestSize.Level1)
 {
-    uint32_t refreshRate = 0;
-    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = 0;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest002
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate UINT32_MAX
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate UINT32_MAX
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest002, TestSize.Level1)
 {
-    uint32_t refreshRate = UINT32_MAX;
-    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t expectedRefreshRate = UINT32_MAX;
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest003
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate 60
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 60
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest003, TestSize.Level1)
 {
     uint32_t refreshRate = 60; // 60hz
-    displayDrawable_->SkipFrameByRefreshRate(refreshRate);
+    uint32_t expectedRefreshRate = 60; // 60hz
+    displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate);
     usleep(5000); // 5000us == 5ms
-    ASSERT_TRUE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
  * @tc.name: SkipFrameByRefreshRateTest004
- * @tc.desc: test SkipFrameByRefreshRate with refreshRate 60
+ * @tc.desc: test SkipFrameByRefreshRate with expectedRefreshRate 60
  * @tc.type:FUNC
  * @tc.require:
  */
 HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameByRefreshRateTest004, TestSize.Level1)
 {
     uint32_t refreshRate = 60; // 60hz
-    displayDrawable_->SkipFrameByRefreshRate(refreshRate);
+    uint32_t expectedRefreshRate = 60; // 60hz
+    displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate);
     usleep(100000); // 100000us == 100ms
-    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate));
+    ASSERT_FALSE(displayDrawable_->SkipFrameByRefreshRate(refreshRate, expectedRefreshRate));
 }
 
 /**
@@ -1345,6 +1349,20 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
 }
 
 /**
+ * @tc.name: MakeBrightnessAdjustmentShader
+ * @tc.desc: Test MakeBrightnessAdjustmentShader
+ * @tc.type: FUNC
+ * @tc.require: issueIAGR5V
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, MakeBrightnessAdjustmentShader, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto image = std::make_shared<Drawing::Image>();
+    Drawing::SamplingOptions sampling;
+    ASSERT_NE(displayDrawable_->MakeBrightnessAdjustmentShader(image, sampling, 0.5f), nullptr);
+}
+
+/**
  * @tc.name: FinishOffscreenRender
  * @tc.desc: Test FinishOffscreenRender
  * @tc.type: FUNC
@@ -1442,5 +1460,18 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDraw, TestSize.Level2
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *params);
+}
+
+/**
+ * @tc.name: SetSecurityMaskTest
+ * @tc.desc: Test SetSecurityMask
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SetSecurityMaskTest, TestSize.Level2)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
+    displayDrawable_->SetSecurityMask(*virtualProcesser);
 }
 }

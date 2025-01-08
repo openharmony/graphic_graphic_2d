@@ -101,7 +101,8 @@ public:
         return hasDoneNode_;
     }
 
-    void MergeOldDirty(RSSurfaceRenderNode& node);
+    void MergeOldDirty(NodeId id);
+    void MergeOldDirtyToDrawable(std::shared_ptr<RSSurfaceRenderNode> node);
 
     void SetRotationChanged(bool rotationChanged)
     {
@@ -161,7 +162,9 @@ public:
     }
 
     bool IsSubTreeNeedPrepareForSnapshot(RSSurfaceRenderNode& node);
-
+    bool IsSubHighPriorityType(RSSurfaceRenderNode& node) const;
+    void CheckHwcChildrenType(RSSurfaceRenderNode& node, SurfaceHwcNodeType& enabledType);
+    void MarkSubHighPriorityType(RSSurfaceRenderNode& node);
 private:
     RSUifirstManager();
     ~RSUifirstManager() = default;
@@ -193,7 +196,8 @@ private:
     void SortSubThreadNodesPriority();
     static bool IsArkTsCardCache(RSSurfaceRenderNode& node, bool animation);
     static bool IsLeashWindowCache(RSSurfaceRenderNode& node, bool animation);
-    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
+    void SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable,
+        const GraphicColorGamut& colorGamut);
     static bool IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool animation);
 
     void UifirstStateChange(RSSurfaceRenderNode& node, MultiThreadCacheType currentFrameCacheType);

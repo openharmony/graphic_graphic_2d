@@ -73,6 +73,11 @@ public:
     {
     }
 
+    virtual size_t GetSize() const
+    {
+        return sizeof(*this);
+    }
+
     static bool Marshalling(Parcel& parcel, const std::shared_ptr<RSRenderPropertyBase>& val);
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSRenderPropertyBase>& val);
 
@@ -208,6 +213,11 @@ public:
     T& GetRef()
     {
         return stagingValue_;
+    }
+
+    virtual size_t GetSize() const override
+    {
+        return sizeof(*this);
     }
 
     void Dump(std::string& out) const override
@@ -445,6 +455,9 @@ RSB_EXPORT bool RSRenderAnimatableProperty<RRect>::IsNearEqual(
 template<>
 RSB_EXPORT bool RSRenderAnimatableProperty<std::shared_ptr<RSFilter>>::IsEqual(
     const std::shared_ptr<const RSRenderPropertyBase>& value) const;
+
+template<>
+RSB_EXPORT size_t RSRenderProperty<Drawing::DrawCmdListPtr>::GetSize() const;
 
 #if defined(_WIN32)
 extern template class RSRenderProperty<bool>;

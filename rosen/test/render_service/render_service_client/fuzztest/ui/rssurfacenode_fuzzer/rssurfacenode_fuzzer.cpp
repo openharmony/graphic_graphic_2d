@@ -967,6 +967,25 @@ bool DoSetHidePrivacyContent(const uint8_t* data, size_t size)
     surfaceNode->SetHidePrivacyContent(needHidePrivacyContent);
     return true;
 }
+
+bool DoSetHardwareEnableHint(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    // test
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    bool hardwareEnable = GetData<bool>();
+    surfaceNode->SetHardwareEnableHint(hardwareEnable);
+    return true;
+}
 } // namespace Rosen
 } // namespace OHOS
 
@@ -1018,6 +1037,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetSkipDraw(data, size);
     OHOS::Rosen::DoGetAbilityState(data, size);
     OHOS::Rosen::DoSetHidePrivacyContent(data, size);
+    OHOS::Rosen::DoSetHardwareEnableHint(data, size);
     return 0;
 }
 

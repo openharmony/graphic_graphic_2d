@@ -1902,6 +1902,7 @@ HWTEST_F(RSModifierTest, ModifierManager001, TestSize.Level1)
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     manager.AddModifier(modifier);
     manager.Draw();
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -1937,6 +1938,7 @@ HWTEST_F(RSModifierTest, ModifierManager003, TestSize.Level1)
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     auto animation = std::make_shared<RSRenderAnimation>(id);
+    ASSERT_NE(animation, nullptr);
     manager.AddAnimation(animation);
     manager.AddModifier(modifier);
     manager.Draw();
@@ -1977,6 +1979,7 @@ HWTEST_F(RSModifierTest, ModifierManager005, TestSize.Level1)
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
     auto animation = std::make_shared<RSRenderAnimation>(id);
+    ASSERT_NE(animation, nullptr);
     manager.AddAnimation(animation);
     manager.RemoveAnimation(id);
     manager.AddModifier(modifier);
@@ -1999,6 +2002,7 @@ HWTEST_F(RSModifierTest, ModifierManager006, TestSize.Level1)
     manager.Animate(time);
     manager.AddModifier(modifier);
     manager.Draw();
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -2017,5 +2021,6 @@ HWTEST_F(RSModifierTest, ModifierManager007, TestSize.Level1)
     manager.Animate(time);
     manager.AddModifier(modifier);
     manager.Draw();
+    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

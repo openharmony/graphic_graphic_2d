@@ -226,6 +226,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOp001, Function | MediumTest | Level2)
     Region res;
     Region::OP op = Region::OP::SUB;
     region.RegionOp(region1, region2, res, op);
+    ASSERT_TRUE(res.Area() == 0);
 }
 
 /**
@@ -245,6 +246,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpLocal001, Function | MediumTest | Level2
     Region res;
     Region::OP op = Region::OP::AND;
     region.RegionOpLocal(region1, region2, res, op);
+    EXPECT_TRUE(res.Area() == 0);
 }
 
 /**
@@ -265,6 +267,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpLocal002, Function | MediumTest | Level2
     Region res;
     Region::OP op = static_cast<Region::OP>(0);
     region.RegionOpLocal(region1, region2, res, op);
+    EXPECT_TRUE(res.Area() == 0);
 }
 
 /**
@@ -500,6 +503,7 @@ HWTEST_F(RSOcclusionRegionTest, RegionOpTest, Function | MediumTest | Level2)
     Region::OP operationType = Region::OP::AND;
     Region regionOperator;
     regionOperator.RegionOp(emptyRegion, baseRegion, resultRegion, operationType);
+    EXPECT_TRUE(resultRegion.Area() == 0);
 }
 
 /**

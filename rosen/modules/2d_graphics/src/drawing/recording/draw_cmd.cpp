@@ -307,6 +307,14 @@ void DrawOpItem::Dump(std::string& out) const
     out += typeOpDes[GetType()];
 }
 
+size_t DrawOpItem::GetOpSize()
+{
+    size_t totoalSize = sizeof(*this);
+    const auto unmarshallingPair = UnmarshallingHelper::Instance().GetFuncAndSize(GetType());
+    totoalSize += unmarshallingPair.second;
+    return totoalSize;
+}
+
 GenerateCachedOpItemPlayer::GenerateCachedOpItemPlayer(DrawCmdList &cmdList, Canvas* canvas, const Rect* rect)
     : canvas_(canvas), rect_(rect), cmdList_(cmdList) {}
 
@@ -1671,6 +1679,7 @@ void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
     canvas->DetachPen();
     canvas->AttachBrush(innerBrush);
     offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    canvas->DetachBrush();
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(

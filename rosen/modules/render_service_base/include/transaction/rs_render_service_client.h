@@ -138,8 +138,8 @@ public:
 
     std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
 
-    bool TakeSurfaceCapture(
-        NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+    bool TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig);
@@ -170,6 +170,8 @@ public:
 #endif
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
+
+    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
@@ -221,6 +223,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 
@@ -358,8 +362,6 @@ public:
 
     void SetScreenSwitchStatus(bool flag);
 
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
@@ -404,7 +406,6 @@ private:
     std::mutex mutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbRTMap_;
     std::mutex mapMutex_;
-    std::mutex cbRtMapMutex_;
     std::map<NodeId, sptr<RSIBufferAvailableCallback>> bufferAvailableCbUIMap_;
     sptr<RSIScreenChangeCallback> screenChangeCb_;
     sptr<RSISurfaceCaptureCallback> surfaceCaptureCbDirector_;

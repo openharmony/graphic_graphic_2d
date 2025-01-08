@@ -70,6 +70,8 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
+    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask);
+
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
@@ -96,6 +98,10 @@ public:
 
     bool TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
+
+    bool TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
 
     bool TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node, std::shared_ptr<SurfaceCaptureCallback> callback,
         RSSurfaceCaptureConfig captureConfig = {});
@@ -137,6 +143,8 @@ public:
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
 
     void MarkPowerOffNeedProcessOneFrame();
+
+    void RepaintEverything();
 
     void DisablePowerOffRenderControl(ScreenId id);
 
@@ -280,8 +288,6 @@ public:
     void ReportEventJankFrame(DataBaseRs info);
 
     void ReportGameStateData(GameStateData info);
-
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
 
     void EnableCacheForRotation();
 

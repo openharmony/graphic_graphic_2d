@@ -32,6 +32,7 @@ constexpr pid_t DEFAULT_PID = 0;
 constexpr int ADAPTIVE_SYNC_ENABLED = 1;
 constexpr int32_t SWITCH_SCREEN_SCENE = 1;
 constexpr int32_t STRING_BUFFER_MAX_SIZE = 256;
+constexpr int64_t IDEAL_PULSE = 2777778; // 2.777778ms
 
 enum OledRefreshRate {
     OLED_NULL_HZ = 0,
@@ -105,8 +106,7 @@ public:
         // Does this game app require Adaptive Sync?
         bool supportAS;
         // <bufferName, fps>
-        std::vector<std::pair<std::string, int32_t>> appBufferList;
-        std::vector<std::string> appBufferBlackList;
+        std::unordered_map<std::string, int32_t> bufferFpsMap;
     };
     // <"1", StrategyConfig>
     using StrategyConfigMap = std::unordered_map<std::string, StrategyConfig>;
@@ -115,9 +115,15 @@ public:
         std::string strategy;
         std::string priority;
         bool doNotAutoClear;
+        bool disableSafeVote;
     };
     // <"SCENE_APP_START_ANIMATION", SceneConfig>
     using SceneConfigMap = std::unordered_map<std::string, SceneConfig>;
+
+    // <"LowBright", <30, 60, 120>>
+    using SupportedModeConfig = std::unordered_map<std::string, std::vector<uint32_t>>;
+    // <"LTPO-DEFAULT", SupportedModeConfig>
+    using SupportedModeMap = std::unordered_map<std::string, SupportedModeConfig>;
 
     struct DynamicConfig {
         int32_t min;
@@ -173,6 +179,7 @@ public:
     std::unordered_map<std::string, std::string> solidLayerConfig_;
     StrategyConfigMap strategyConfigs_;
     ScreenConfigMap screenConfigs_;
+    SupportedModeMap supportedModeConfigs_;
     bool videoFrameRateVoteSwitch_ = false;
     // <"pkgName", "1">
     std::unordered_map<std::string, std::string> videoFrameRateList_;

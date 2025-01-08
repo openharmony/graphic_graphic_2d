@@ -76,7 +76,7 @@ public:
         RSRcdSurfaceRenderNode::SharedPtr node, const ScreenInfo &screenInfo, uint32_t fps, RequestLayerInfo &info);
     bool CreateUIFirstLayerInfo(
         RSSurfaceRenderNode::SharedPtr node, GraphicTransformType transform, uint32_t fps, RequestLayerInfo &info);
-    bool IsPrevalidateEnable(const ScreenId& screenId);
+    bool IsPrevalidateEnable();
     void CollectSurfaceNodeLayerInfo(
         std::vector<RequestLayerInfo>& prevalidLayers, std::vector<RSBaseRenderNode::SharedPtr>& surfaceNodes,
         uint32_t curFps, uint32_t& zOrder, const ScreenInfo& screenInfo);
@@ -102,6 +102,7 @@ private:
     PreValidateFunc preValidateFunc_ = nullptr;
     bool loadSuccess_ = false;
     bool isPrevalidateHwcNodeEnable_ = false;
+    bool arsrPreEnabled_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

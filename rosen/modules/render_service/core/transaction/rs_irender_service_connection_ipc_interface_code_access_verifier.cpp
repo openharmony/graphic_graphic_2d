@@ -105,6 +105,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REPAINT_EVERYTHING): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPAINT_EVERYTHING");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
@@ -259,6 +263,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_REFRESH_RATE_EVENT");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_SOFT_VSYNC_EVENT): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_SOFT_VSYNC_EVENT");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_DYNAMIC_MODE_EVENT): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::NOTIFY_DYNAMIC_MODE_EVENT");
             break;
@@ -329,6 +337,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_SECURITY_MASK): {
+            hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_SCREEN_SECURITY_MASK");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_MIRROR_SCREEN_VISIBLE_RECT): {
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_MIRROR_SCREEN_VISIBLE_RECT");
             break;
@@ -391,10 +403,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_COLORSPACE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_COLORSPACE");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DEFAULT_DEVICE_ROTATION_OFFSET): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DEFAULT_DEVICE_ROTATION_OFFSET");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ACTIVE_DIRTY_REGION_INFO): {

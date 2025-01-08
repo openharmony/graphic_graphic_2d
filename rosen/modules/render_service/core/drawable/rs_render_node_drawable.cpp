@@ -760,10 +760,10 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
 {
     auto curCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     pid_t threadId = gettid();
-    bool isHdrOn = curCanvas->GetHdrOn();
+    bool isHdrOn = false; // todo: temporary set false, fix in future
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(curCanvas->GetTargetColorGamut()) &&
         RSMainThread::Instance()->IsUIFirstOn();
-    bool isNeedFP16 = isScRGBEnable;
+    bool isNeedFP16 = isHdrOn || isScRGBEnable;
     auto cacheSurface = GetCachedSurface(threadId);
     if (cacheSurface == nullptr) {
         RS_TRACE_NAME_FMT("InitCachedSurface size:[%.2f, %.2f]", params.GetCacheSize().x_, params.GetCacheSize().y_);

@@ -763,4 +763,32 @@ void MemoryManager::VmaDefragment(Drawing::GPUContext* gpuContext)
     gpuContext->VmaDefragment();
 #endif
 }
+
+void MemoryManager::DumpExitPidMem(std::string& log, int pid)
+{
+    RS_TRACE_NAME_FMT("DumpExitPidMem");
+    DfxString dfxlog;
+    auto mem = MemoryTrack::Instance().CountRSMemory(pid);
+    size_t allNodeAndPixelmapSize = mem.GetTotalMemorySize();
+    dfxlog.AppendFormat("allNodeAndPixelmapSize: %zu \n", allNodeAndPixelmapSize);
+
+    size_t allModifySize = 0;
+    RSMainThread::Instance()->ScheduleTask([pid, &allModifySize] () {
+        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        nodeMap.TraversalNodesByPid(pid, [&allModifySize] (const std::shared_ptr<RSBaseRenderNode>& node) {
+            allModifySize += node->GetAllModifierSize();
+        });
+    }).wait();
+    dfxlog.AppendFormat("allModifySize: %zu \n", allModifySize);
+
+    size_t allGpuSize = 0;
+    RSUniRenderThread::Instance().PostSyncTask([&allGpuSize, pid] {
+        MemoryGraphic mem = CountPidMemory(pid,
+            RSUniRenderThread::Instance().GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
+        allGpuSize += static_cast<size_t>(mem.GetGpuMemorySize());
+    });
+    dfxlog.AppendFormat("allGpuSize: %zu \n", allGpuSize);
+    dfxlog.AppendFormat("pid: %d totalSize: %zu \n", pid, (allNodeAndPixelmapSize + allModifySize + allGpuSize));
+    log.append(dfxlog.GetString());
+}
 } // namespace OHOS::Rosen

@@ -36,6 +36,7 @@
 #include "skia_adapter/skia_matrix44.h"
 #include "skia_adapter/skia_path.h"
 #include "skia_adapter/skia_path_effect.h"
+#include "skia_adapter/skia_path_iterator.h"
 #include "skia_adapter/skia_picture.h"
 #include "skia_adapter/skia_region.h"
 #include "skia_adapter/skia_resource_holder.h"
@@ -124,6 +125,11 @@ std::unique_ptr<PictureImpl> SkiaImplFactory::CreatePicture()
 std::unique_ptr<PathImpl> SkiaImplFactory::CreatePath()
 {
     return std::make_unique<SkiaPath>();
+}
+
+std::unique_ptr<PathIteratorImpl> SkiaImplFactory::CreatePathIterator(const Path& path)
+{
+    return std::make_unique<SkiaPathIterator>(path);
 }
 
 std::unique_ptr<ColorFilterImpl> SkiaImplFactory::CreateColorFilter()

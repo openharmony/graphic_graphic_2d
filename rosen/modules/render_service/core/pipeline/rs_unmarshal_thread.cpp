@@ -19,6 +19,7 @@
 #include "hisysevent.h"
 #include "pipeline/rs_base_render_util.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_unmarshal_task_manager.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "transaction/rs_transaction_data.h"
@@ -72,15 +73,27 @@ void RSUnmarshalThread::Start()
 #endif
 }
 
-void RSUnmarshalThread::PostTask(const std::function<void()>& task)
+void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
 {
     if (handler_) {
-        handler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+        handler_->PostTask(
+            [task, taskName = name]() mutable {
+                auto handle = RSUnmarshalTaskManager::Instance().BeginTask(std::move(taskName));
+                std::invoke(task);
+                RSUnmarshalTaskManager::Instance().EndTask(handle);
+            }, name, 0, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
+void RSUnmarshalThread::RemoveTask(const std::string& name)
+{
+    if (handler_) {
+        handler_->RemoveTask(name);
     }
 }
 
 void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool isNonSystemAppCalling, pid_t callingPid,
-    std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
+    std::unique_ptr<AshmemFdWorker> ashmemFdWorker, std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit)
 {
     if (!handler_ || !parcel) {
         RS_LOGE("RSUnmarshalThread::RecvParcel has nullptr, handler: %{public}d, parcel: %{public}d",
@@ -89,12 +102,21 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
     }
     bool isPendingUnmarshal = (parcel->GetDataSize() > MIN_PENDING_REQUEST_SYNC_DATA_SIZE);
     RSTaskMessage::RSTask task = [this, parcel = parcel, isPendingUnmarshal, isNonSystemAppCalling, callingPid,
-                                  ashmemFlowControlUnit]() {
+        ashmemFdWorker = std::shared_ptr(std::move(ashmemFdWorker)), ashmemFlowControlUnit]() {
         RSMarshallingHelper::SetCallingPid(callingPid);
+        AshmemFdContainer::SetIsUnmarshalThread(true);
+        if (ashmemFdWorker) {
+            ashmemFdWorker->PushFdsToContainer();
+        }
         SetFrameParam(REQUEST_FRAME_AWARE_ID, REQUEST_FRAME_AWARE_LOAD, REQUEST_FRAME_AWARE_NUM, 0);
         SetFrameLoad(REQUEST_FRAME_AWARE_LOAD);
         auto transData = RSBaseRenderUtil::ParseTransactionData(*parcel);
         SetFrameLoad(REQUEST_FRAME_STANDARD_LOAD);
+        if (ashmemFdWorker) {
+            // ashmem parcel fds will be closed in ~AshmemFdWorker() instead of ~MessageParcel()
+            parcel->FlushBuffer();
+            ashmemFdWorker->EnableManualCloseFds();
+        }
         if (!transData) {
             return;
         }
@@ -124,7 +146,7 @@ void RSUnmarshalThread::RecvParcel(std::shared_ptr<MessageParcel>& parcel, bool 
         if (RSSystemProperties::GetUnmarshParallelFlag()) {
             handle = ffrt::submit_h(task, {}, {}, ffrt::task_attr().qos(ffrt::qos_user_interactive));
         } else {
-            PostTask(task);
+            PostTask(task, std::to_string(callingPid));
         }
         /* a task has been posted, it means cachedTransactionDataMap_ will not been empty.
          * so set willHaveCachedData_ to true

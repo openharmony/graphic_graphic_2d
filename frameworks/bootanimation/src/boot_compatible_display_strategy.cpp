@@ -17,6 +17,7 @@
 
 #include "log.h"
 #include "transaction/rs_interfaces.h"
+#include "util.h"
 
 using namespace OHOS;
 
@@ -41,6 +42,15 @@ void BootCompatibleDisplayStrategy::Display(int32_t duration, std::vector<BootAn
             }
         } else {
             interface.SetScreenPowerStatus(config.screenId, Rosen::ScreenPowerStatus::POWER_STATUS_ON);
+        }
+
+        if (!config.videoExtPath.empty()) {
+            std::string status = GetHingeStatus();
+            auto iter = config.videoExtPath.find(status);
+            if (iter != config.videoExtPath.end()) {
+                config.videoDefaultPath = iter->second;
+            }
+            LOGI("status: %{public}s, videoDefaultPath: %{public}s", status.c_str(), config.videoDefaultPath.c_str());
         }
 
         Rosen::RSScreenModeInfo modeInfo = interface.GetScreenActiveMode(config.screenId);

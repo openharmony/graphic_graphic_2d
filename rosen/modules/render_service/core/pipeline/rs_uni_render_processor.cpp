@@ -97,15 +97,15 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
         buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
-        node.GetName().c_str(), layerInfo.zOrder,
-        layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
+    RS_LOGD_IF(DEBUG_PIPELINE,
+        "CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
+        "buffer:[%{public}d, %{public}d] alpha:[%{public}f]",
+        node.GetName().c_str(), layerInfo.zOrder, layerInfo.srcRect.x, layerInfo.srcRect.y, layerInfo.srcRect.w,
+        layerInfo.srcRect.h, layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha);
     auto preBuffer = params.GetPreBuffer();
     LayerInfoPtr layer = GetLayerInfo(
         params, buffer, preBuffer, surfaceHandler->GetConsumer(), params.GetAcquireFence());
@@ -204,6 +204,10 @@ void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRe
         if (layer->GetZorder() > 0) {
             solidColorLayer->SetZorder(layer->GetZorder() - 1);
         }
+        solidColorLayer->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+        auto dstRect = params.layerInfo_.dstRect;
+        GraphicIRect layerRect = {dstRect.x, dstRect.y, dstRect.w, dstRect.h};
+        solidColorLayer->SetLayerSize(layerRect);
         solidColorLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR);
         solidColorLayer->SetLayerColor({color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha()});
         solidColorLayer->SetSurface({});
@@ -227,13 +231,8 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
         return true;
     }
     bool forceClientForDRM = false;
-    auto ancestorDrawableMap = params.GetAncestorDisplayDrawable();
-    if (ancestorDrawableMap.empty()) {
-        RS_LOGE("ancestorDrawableMap return empty");
-        return false;
-    }
     auto ancestorDisplayDrawable =
-        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(ancestorDrawableMap.begin()->second.lock());
+        std::static_pointer_cast<DrawableV2::RSDisplayRenderNodeDrawable>(params.GetAncestorDisplayDrawable().lock());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (ancestorDisplayDrawable == nullptr || ancestorDisplayDrawable->GetRenderParams() == nullptr ||
         uniParam == nullptr) {
@@ -296,7 +295,8 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     std::vector<GraphicIRect> dirtyRegions;
     if (RSSystemProperties::GetHwcDirtyRegionEnabled()) {
         const auto& bufferDamage = params.GetBufferDamage();
-        GraphicIRect dirtyRect = GraphicIRect { bufferDamage.x, bufferDamage.y, bufferDamage.w, bufferDamage.h };
+        GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
+            bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
         dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect));
     } else {
         dirtyRegions.emplace_back(layerInfo.srcRect);

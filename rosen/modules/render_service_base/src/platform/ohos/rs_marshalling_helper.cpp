@@ -1483,7 +1483,10 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Media::P
         return true;
     }
     auto readPosition = parcel.GetReadPosition();
-    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel));
+    auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+        return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+    };
+    val.reset(RS_PROFILER_UNMARSHAL_PIXELMAP(parcel, readSafeFdFunc));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling Media::PixelMap");
         if (readPosition > PIXELMAP_UNMARSHALLING_DEBUG_OFFSET &&
@@ -1585,6 +1588,7 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
 
     parcel.WriteBool(val->GetIsCache());
     parcel.WriteBool(val->GetCachedHighContrast());
+    parcel.WriteBool(val->GetNoNeedUICaptured());
     auto replacedOpList = val->GetReplacedOpList();
     parcel.WriteUint32(replacedOpList.size());
     for (size_t i = 0; i < replacedOpList.size(); ++i) {
@@ -1724,6 +1728,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     bool isCache = parcel.ReadBool();
     bool cachedHighContrast = parcel.ReadBool();
+    bool noNeedUICaptured = parcel.ReadBool();
 
     uint32_t replacedOpListSize = parcel.ReadUint32();
     uint32_t readableSize = parcel.GetReadableBytes() / (sizeof(uint32_t) * 2);    // 增加IPC异常保护，读取2个uint_32_t
@@ -1765,6 +1770,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
 
     val->SetIsCache(isCache);
     val->SetCachedHighContrast(cachedHighContrast);
+    val->SetNoNeedUICaptured(noNeedUICaptured);
     val->SetReplacedOpList(replacedOpList);
 
     int32_t imageSize = parcel.ReadInt32();
@@ -1855,12 +1861,15 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         if (surfaceBufferEntrySize > Drawing::MAX_OPITEMSIZE) {
             return false;
         }
+        auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+            return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+        };
         std::vector<std::shared_ptr<Drawing::SurfaceBufferEntry>> surfaceBufferEntryVec;
         for (uint32_t i = 0; i < surfaceBufferEntrySize; ++i) {
             sptr<SurfaceBuffer> surfaceBuffer;
             MessageParcel* parcelSurfaceBuffer = static_cast<MessageParcel*>(&parcel);
             uint32_t sequence = 0U;
-            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer);
+            GSError retCode = ReadSurfaceBufferImpl(*parcelSurfaceBuffer, sequence, surfaceBuffer, readSafeFdFunc);
             if (retCode != GSERROR_OK) {
                 ROSEN_LOGE("RSMarshallingHelper::Unmarshalling DrawCmdList failed read surfaceBuffer: %{public}d %{public}d", i, retCode);
                 return false;
@@ -1868,7 +1877,7 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
             sptr<SyncFence> acquireFence = nullptr;
             bool hasAcquireFence = parcel.ReadBool();
             if (hasAcquireFence) {
-                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer);
+                acquireFence = SyncFence::ReadFromMessageParcel(*parcelSurfaceBuffer, readSafeFdFunc);
             }
             std::shared_ptr<Drawing::SurfaceBufferEntry> surfaceBufferEntry =
                 std::make_shared<Drawing::SurfaceBufferEntry>(surfaceBuffer, acquireFence);
@@ -2312,7 +2321,10 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
         return true;
     }
     // read from ashmem
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto readFdDefaultFunc = [](Parcel& parcel) -> int {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    };
+    int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     return ashmemAllocator != nullptr;
 }
@@ -2320,7 +2332,10 @@ bool RSMarshallingHelper::SkipFromParcel(Parcel& parcel, size_t size)
 const void* RSMarshallingHelper::ReadFromAshmem(Parcel& parcel, size_t size, bool& isMalloc)
 {
     isMalloc = false;
-    int fd = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    auto readFdDefaultFunc = [](Parcel& parcel) -> int {
+        return static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    };
+    int fd = AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
     auto ashmemAllocator = AshmemAllocator::CreateAshmemAllocatorWithFd(fd, size, PROT_READ);
     if (!ashmemAllocator) {
         ROSEN_LOGE("RSMarshallingHelper::ReadFromAshmem CreateAshmemAllocator fail");

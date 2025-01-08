@@ -1484,13 +1484,9 @@ HWTEST_F(RSRoundCornerDisplayTest, RoundCornerDisplayPrintRCD, TestSize.Level1)
     rcdInstance.hardInfo_.bottomLayer = std::make_shared<rs_rcd::RoundCornerLayer>();
     rcdInstance.PrintRCDInfo();
     EXPECT_TRUE(rcdInstance.hardInfo_.bottomLayer != nullptr);
-    if (rcdInstance.lcdModel_ != nullptr) {
-        delete rcdInstance.lcdModel_;
-    }
+    delete rcdInstance.lcdModel_;
     rcdInstance.lcdModel_ = nullptr;
-    if (rcdInstance.rog_ != nullptr) {
-        delete rcdInstance.rog_;
-    }
+    delete rcdInstance.rog_;
     rcdInstance.rog_ = nullptr;
 }
 } // OHOS::Rosen

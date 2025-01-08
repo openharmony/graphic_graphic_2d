@@ -76,7 +76,7 @@ void RSMESABlurShaderFilter::CalculateHash()
 
 std::string RSMESABlurShaderFilter::GetDetailedDescription() const
 {
-    std::string filterString = ", radius: " + std::to_string(radius_) + " sigma";
+    std::string filterString = ", MESA radius: " + std::to_string(radius_) + " sigma";
     filterString = filterString + ", greyCoef1: " + std::to_string(greyCoefLow_);
     filterString = filterString + ", greyCoef2: " + std::to_string(greyCoefHigh_);
     if (auto localParams = GetPixelStretchParams()) {

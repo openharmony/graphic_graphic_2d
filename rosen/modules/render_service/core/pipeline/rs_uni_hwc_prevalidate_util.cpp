@@ -59,6 +59,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess_ = true;
     isPrevalidateHwcNodeEnable_ = RSSystemParameters::GetPrevalidateHwcNodeEnabled();
+    arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -69,21 +70,9 @@ RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
     }
 }
 
-bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable(const ScreenId& screenId)
+bool RSUniHwcPrevalidateUtil::IsPrevalidateEnable()
 {
-    if (!loadSuccess_) {
-        return false;
-    }
-    if (!isPrevalidateHwcNodeEnable_) {
-        return false;
-    }
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager && screenManager->GetDefaultScreenId() != screenId) {
-        RS_LOGD_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::IsPrevalidateEnable"
-            " %{public}" PRIu64 " isn't default screen", screenId);
-        return false;
-    }
-    return true;
+    return loadSuccess_ && isPrevalidateHwcNodeEnable_;
 }
 
 bool RSUniHwcPrevalidateUtil::PreValidate(
@@ -147,7 +136,7 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
 
-    if (CheckIfDoArsrPre(node)) {
+    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
         node->SetArsrTag(true);
     }
@@ -313,7 +302,7 @@ bool RSUniHwcPrevalidateUtil::CheckHwcNodeAndGetPointerWindow(
         pointerWindow = node;
         return false;
     }
-    if (node->IsHardwareForcedDisabled() || node->GetAncoForceDoDirect()) {
+    if (node->IsHardwareForcedDisabled()) {
         return false;
     }
     return true;

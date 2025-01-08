@@ -138,6 +138,8 @@ public:
     bool IsNodeAboveInsideOfNodeBelow(const RectI& rectAbove, std::list<RectI>& hwcNodeRectList);
     // Use end
 
+    void UpdateTransparentHwcNodeEnable(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
+
     void SurfaceOcclusionCallbackToWMS();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
@@ -214,11 +216,10 @@ private:
     void UpdateSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& clipRect);
     void UpdateDstRect(RSSurfaceRenderNode& node, const RectI& absRect, const RectI& clipRect);
-    void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node);
+    void UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     void UpdateHwcNodeEnableByRotateAndAlpha(std::shared_ptr<RSSurfaceRenderNode>& node);
-    void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr);
-    void InitAncoStatus();
-    void UpdateAncoNodeHWCDisabledState();
+    void ProcessAncoNode(std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr, bool& ancoHasGpu);
+    void UpdateAncoNodeHWCDisabledState(std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>>& ancoNodes);
     void UpdateHwcNodeEnableByHwcNodeBelowSelfInApp(std::vector<RectI>& hwcRects,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
     void UpdateChildHwcNodeEnableByHwcNodeBelow(std::vector<RectI>& hwcRects,
@@ -381,7 +382,6 @@ private:
     // vector of current displaynode mainwindow surface visible info
     VisibleData dstCurVisVec_;
     std::vector<RectI> globalSurfaceBounds_;
-    bool hasUniRenderHdrSurface_ = false;
     // record container nodes which need filter
     FilterRectISet containerFilter_;
     // record nodes in surface which has filter may influence globalDirty

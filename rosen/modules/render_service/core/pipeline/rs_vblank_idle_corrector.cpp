@@ -51,12 +51,12 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(uint64_t timestamp, uint64_t
         return;
     }
 
-    auto defaultScreenId = screenManager->GetDefaultScreenId();
+    ScreenId curScreenId = frameRateMgr->GetCurScreenId();
 
     bool isAdaptive = frameRateMgr->IsAdaptive();
     if (isAdaptive) {
         RS_TRACE_NAME("RSVBlankIdleCorrector::ProcessScreenConstraint set 3 in Adaptive Mode!");
-        screenManager->SetScreenConstraint(defaultScreenId, 0, ScreenConstraintType::CONSTRAINT_ADAPTIVE);
+        screenManager->SetScreenConstraint(curScreenId, 0, ScreenConstraintType::CONSTRAINT_ADAPTIVE);
         return;
     }
 
@@ -64,7 +64,7 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(uint64_t timestamp, uint64_t
     if (!isCorrectorEnabled) {
         idleFrameCount_ = 0;
         isVBlankIdle_ = false;
-        screenManager->SetScreenConstraint(defaultScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
+        screenManager->SetScreenConstraint(curScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
         return;
     }
 
@@ -79,15 +79,15 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(uint64_t timestamp, uint64_t
         }
         idleFrameCount_--;
         if (idleFrameCount_ < 0) {
-            currIdleScreenId_ = defaultScreenId;
+            currIdleScreenId_ = curScreenId;
             idleFrameCount_ = 0;
             isVBlankIdle_ = false;
         }
     } else if (constraintRelativeTime > 0) {
-        screenManager->SetScreenConstraint(defaultScreenId,
+        screenManager->SetScreenConstraint(curScreenId,
             constraintRelativeTime, ScreenConstraintType::CONSTRAINT_RELATIVE);
     } else {
-        screenManager->SetScreenConstraint(defaultScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
+        screenManager->SetScreenConstraint(curScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
     }
 }
 }

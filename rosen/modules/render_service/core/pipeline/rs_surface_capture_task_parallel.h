@@ -49,7 +49,8 @@ public:
     static void CheckModifiers(NodeId id, bool useCurWindow);
     // Do capture pipeline task
     static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling, bool isFreeze = false);
+        const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling, bool isFreeze = false,
+        const RSSurfaceCaptureBlurParam& blurParam = {});
 
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
@@ -59,7 +60,8 @@ public:
 
     bool CreateResources();
 
-    bool Run(sptr<RSISurfaceCaptureCallback> callback, bool isSystemCalling, bool isFreeze = false);
+    bool Run(sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureBlurParam& blurParam, bool isSystemCalling,
+        bool isFreeze = false);
 
     static void ClearCacheImageByFreeze(NodeId id);
 
@@ -70,6 +72,8 @@ private:
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSDisplayRenderNode> node);
 
+    void AddBlur(RSPaintFilterCanvas& canvas, const std::shared_ptr<Drawing::Surface>& surface, float blurRadius);
+
     void SetupGpuContext();
 
     int32_t CalPixelMapRotation();
@@ -77,6 +81,7 @@ private:
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable_ = nullptr;
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode_ = nullptr;
     NodeId nodeId_;
     RSSurfaceCaptureConfig captureConfig_;
     ScreenRotation screenCorrection_ = ScreenRotation::ROTATION_0;

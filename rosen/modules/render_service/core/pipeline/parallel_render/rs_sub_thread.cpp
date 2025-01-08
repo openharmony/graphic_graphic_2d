@@ -355,10 +355,16 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
         return;
     }
     auto cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
-    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface()) {
-        bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
-            RSMainThread::Instance()->IsUIFirstOn();
-        bool isNeedFP16 = nodeDrawable->GetHDRPresent() || isScRGBEnable;
+    bool isHdrSurface = false;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+    if (surfaceParams != nullptr) {
+        isHdrSurface = surfaceParams->GetHDRPresent();
+    }
+    bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(nodeDrawable->GetTargetColorGamut()) &&
+        RSMainThread::Instance()->IsUIFirstOn();
+    bool isNeedFP16 = isHdrSurface || isScRGBEnable;
+    bool bufferFormatNeedUpdate = nodeDrawable->BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
+    if (!cacheSurface || nodeDrawable->NeedInitCacheSurface() || bufferFormatNeedUpdate) {
         DrawableV2::RSSurfaceRenderNodeDrawable::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         nodeDrawable->InitCacheSurface(grContext_.get(), func, threadIndex_, isNeedFP16);
         cacheSurface = nodeDrawable->GetCacheSurface(threadIndex_, true);
@@ -380,6 +386,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetParallelThreadIdx(threadIndex_);
     rscanvas->SetScreenId(nodeDrawable->GetScreenId());
     rscanvas->SetTargetColorGamut(nodeDrawable->GetTargetColorGamut());
+    rscanvas->SetHdrOn(nodeDrawable->GetHDRPresent());
     rscanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     nodeDrawable->SubDraw(*rscanvas);
     bool optFenceWait = RSMainThread::Instance()->GetDeviceType() == DeviceType::PC ? false : true;

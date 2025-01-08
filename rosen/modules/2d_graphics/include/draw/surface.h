@@ -143,9 +143,11 @@ public:
      *                and the Surface.
      *                If bounds does not intersect the surface, then this returns nullptr.
      *                If bounds == the surface, then this is the same as calling the no-parameter variant.
+     * @param allowRefCache  Whether to use cache.
+                             Use False, if you want to change the effect directly on this Snapshot
      * @return        A shared pointer to Image
      */
-    std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds) const;
+    std::shared_ptr<Image> GetImageSnapshot(const RectI& bounds, bool allowRefCache = true) const;
 
     /**
      * @brief         Returns a compatible Surface, with the specified width and height.

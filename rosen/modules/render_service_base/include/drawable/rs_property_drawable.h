@@ -138,6 +138,7 @@ public:
     bool IsForceUseFilterCache() const;
     bool NeedPendingPurge() const;
     bool IsSkippingFrame() const;
+    bool IsAIBarFilter() const;
     bool IsAIBarCacheValid();
 
     void OnSync() override;
@@ -145,6 +146,8 @@ public:
     const RectI GetFilterCachedRegion() const;
 
     bool IsFilterCacheValidForOcclusion();
+
+    void SetDrawBehindWindowRegion(RectI region);
 
 private:
     void ClearFilterCache();
@@ -159,6 +162,8 @@ protected:
 
     bool needDrawBehindWindow_ = false;
     bool stagingNeedDrawBehindWindow_ = false;
+    RectI drawBehindWindowRegion_;
+    RectI stagingDrawBehindWindowRegion_;
 
     // flags for clearing filter cache
     // All stagingXXX variables should be read & written by render_service thread

@@ -289,6 +289,7 @@ public:
     virtual bool IsLeashWindow() const { return true; }
     virtual bool IsAppWindow() const { return false; }
     virtual bool GetHardwareEnabled() const { return false; }
+    virtual bool GetNeedMakeImage() const { return false; }
     virtual bool GetHardCursorStatus() const { return false; }
     virtual bool GetLayerCreated() const { return false; }
     virtual bool GetLastFrameHardwareEnabled() const { return false; }
@@ -331,12 +332,23 @@ public:
     virtual void SetFingerprint(bool hasFingerprint) {}
     // virtual display params
     virtual DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable();
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetCloneSourceDrawable() const;
+    void SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
     virtual bool GetSecurityDisplay() const { return true; }
     // canvas drawing node
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
+    CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
+    {
+        return isCrossNodeOffscreenOn_;
+    }
+    void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffScreenOn)
+    {
+        isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
+    }
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -384,6 +396,7 @@ private:
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     bool isFirstLevelCrossNode_ = false;
+    CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
