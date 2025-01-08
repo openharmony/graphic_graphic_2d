@@ -55,7 +55,6 @@ public:
     bool CheckIfSurfaceSkipInMirror(const RSSurfaceRenderParams& surfaceParams);
     void SetVirtualScreenWhiteListRootId(const std::unordered_set<NodeId>& whiteList, NodeId id);
     void ResetVirtualScreenWhiteListRootId(NodeId id);
-    bool EnableRecordingOptimization(const RSSurfaceRenderParams& surfaceParams);
 
     void SubDraw(Drawing::Canvas& canvas);
     void ClipRoundRect(Drawing::Canvas& canvas);
@@ -242,7 +241,6 @@ public:
     bool IsHardwareEnabledTopSurface() const;
 private:
     explicit RSSurfaceRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
-    void CacheImgForCapture(RSPaintFilterCanvas& canvas, RSDisplayRenderNodeDrawable& curDisplayNode);
     bool DealWithUIFirstCache(
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParams);
     void OnGeneralProcess(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, bool isSelfDrawingSurface);

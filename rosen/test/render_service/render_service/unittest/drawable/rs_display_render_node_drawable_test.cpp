@@ -1059,38 +1059,6 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, DrawMirrorCopy, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetRotateIfNeed
- * @tc.desc: Test ResetRotateIfNeed
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSDisplayRenderNodeDrawableTest, ResetRotateIfNeed, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-    std::shared_ptr<RSDisplayRenderNode> renderNode;
-    RSRenderNodeDrawableAdapter* drawable = nullptr;
-    RSDisplayRenderNodeDrawable* mirroredDrawable = nullptr;
-    RSDisplayNodeConfig config;
-    renderNode = std::make_shared<RSDisplayRenderNode>(DEFAULT_ID + 2, config);
-    drawable = RSDisplayRenderNodeDrawable::OnGenerate(renderNode);
-    if (drawable) {
-        mirroredDrawable = static_cast<RSDisplayRenderNodeDrawable*>(drawable);
-        mirroredDrawable->renderParams_ = std::make_unique<RSDisplayRenderParams>(id);
-    }
-    RSUniRenderVirtualProcessor mirroredProcessor;
-    Drawing::Region clipRegion;
-    displayDrawable_->ResetRotateIfNeed(*mirroredDrawable, mirroredProcessor, clipRegion);
-    ASSERT_FALSE(mirroredDrawable->GetResetRotate());
-
-    mirroredDrawable->resetRotate_ = true;
-    Drawing::Canvas drawingCanvas;
-    mirroredDrawable->curCanvas_ = std::make_unique<RSPaintFilterCanvas>(&drawingCanvas);
-    displayDrawable_->ResetRotateIfNeed(*mirroredDrawable, mirroredProcessor, clipRegion);
-    ASSERT_TRUE(mirroredDrawable->GetResetRotate());
-}
-
-/**
  * @tc.name: OnCapture
  * @tc.desc: Test OnCapture
  * @tc.type: FUNC

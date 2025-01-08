@@ -53,7 +53,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
-    if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in sudthread
+    if (params->GetStartingWindowFlag() && paintFilterCanvas) { // do not draw startingwindows in subthread
         if (paintFilterCanvas->GetIsParallelCanvas()) {
             SetDrawSkipType(DrawSkipType::PARALLEL_CANVAS_SKIP);
             return;
@@ -103,18 +103,12 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
     params->ApplyAlphaAndMatrixToCanvas(*paintFilterCanvas);
 
-    // To be deleted after captureWindow being deleted
-    if (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) && EnableRecordingOptimization(*params)) {
-        return;
-    }
-
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSCanvasRenderNodeDrawable::OnCapture node %{public}" PRIu64 " onDraw!!!", GetId());
         return;
     }
-
     if (LIKELY(isDrawingCacheEnabled_)) {
         if (canvas.GetUICapture() && !drawBlurForCache_) {
             GenerateCacheIfNeed(canvas, *params);
@@ -123,26 +117,5 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     } else {
         RSRenderNodeDrawable::OnDraw(canvas);
     }
-}
-
-// To be deleted after captureWindow being deleted
-bool RSCanvasRenderNodeDrawable::EnableRecordingOptimization(RSRenderParams& params)
-{
-    auto& threadParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (threadParams) {
-        NodeId nodeId = threadParams->GetRootIdOfCaptureWindow();
-        bool hasCaptureImg = threadParams->GetHasCaptureImg();
-        if (nodeId == params.GetId()) {
-            RS_LOGD("RSCanvasRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "])",
-                params.GetId());
-            threadParams->SetStartVisit(true);
-        }
-        if (hasCaptureImg && !threadParams->GetStartVisit()) {
-            RS_LOGD("RSCanvasRenderNodeDrawable::EnableRecordingOptimization: (id:[%{public}" PRIu64 "]) Skip layer.",
-                params.GetId());
-            return true;
-        }
-    }
-    return false;
 }
 } // namespace OHOS::Rosen::DrawableV2
