@@ -1314,7 +1314,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CheckDrawAndCacheWindowContentTest, Te
     ASSERT_TRUE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 
     RSUniRenderThread::captureParam_.isSnapshot_ = true;
-    ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
+    ASSERT_FALSE(RSUniRenderThread::IsExpandScreenMode());
     ASSERT_FALSE(surfaceDrawable_->CheckDrawAndCacheWindowContent(*surfaceParams, *uniParams));
 }
 

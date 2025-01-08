@@ -116,7 +116,12 @@ void RSUniRenderThread::ResetCaptureParam()
 
 bool RSUniRenderThread::IsInCaptureProcess()
 {
-    return captureParam_.isSnapshot_ || captureParam_.isMirror_;
+    return captureParam_.isSnapshot_;
+}
+
+bool RSUniRenderThread::IsExpandScreenMode()
+{
+    return !captureParam_.isSnapshot_ && !captureParam_.isMirror_;
 }
 
 RSUniRenderThread& RSUniRenderThread::Instance()
