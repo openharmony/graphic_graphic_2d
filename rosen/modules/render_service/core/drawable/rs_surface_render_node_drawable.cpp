@@ -582,11 +582,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
-    if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
-        surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
-        UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
-        RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
-            surfaceParams->GetAbsDrawRect().ToString());
+    if (surfaceParams->GetHardCursorStatus() &&
+        (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) ||
+            RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
+        SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip SurfaceName:%s", name_.c_str());
         return;
     }
 
@@ -594,7 +594,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
         RS_TRACE_NAME("RSSurfaceRenderNodeDrawable::OnCapture occlusion skip :[" + name_ + "] " +
-                      surfaceParams->GetAbsDrawRect().ToString());
+            surfaceParams->GetAbsDrawRect().ToString());
         return;
     }
 
