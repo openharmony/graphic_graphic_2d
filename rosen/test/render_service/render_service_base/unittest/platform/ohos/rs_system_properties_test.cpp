@@ -659,13 +659,7 @@ HWTEST_F(RSSystemPropertiesTest, GetHpsBlurEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetHpsBlurNoiseFactor, TestSize.Level1)
 {
-    static bool deviceHpsType = system::GetParameter("const.product.devicetype", "pc") == "pc";
-    float epsilon = 0.001f;
-    if (!deviceHpsType) {
-        EXPECT_NEAR(0.f, RSSystemProperties::GetHpsBlurNoiseFactor(), epsilon);
-    } else {
-        ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
-    }
+    ASSERT_TRUE(RSSystemProperties::GetHpsBlurNoiseFactor());
 }
 
 /**

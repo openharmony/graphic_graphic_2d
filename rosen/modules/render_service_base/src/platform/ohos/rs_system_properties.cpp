@@ -620,9 +620,8 @@ void RSSystemProperties::SetForceHpsBlurDisabled(bool flag)
 
 float RSSystemProperties::GetHpsBlurNoiseFactor()
 {
-    static bool deviceHpsType = RSSystemProperties::IsPcType();
-    static float noiseFactor = deviceHpsType ?
-        std::atof((system::GetParameter("persist.sys.graphic.HpsBlurNoiseFactor", "1.75")).c_str()) : 0.f;
+    static float noiseFactor =
+        std::atof((system::GetParameter("persist.sys.graphic.HpsBlurNoiseFactor", "1.75")).c_str());
     return noiseFactor;
 }
 
