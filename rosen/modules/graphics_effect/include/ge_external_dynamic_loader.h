@@ -35,7 +35,7 @@ private:
     GEExternalDynamicLoader();
 
     void* libHandle_ = nullptr;
-    CreateGEXObjectByTypeFunc CreateObjectFunc_ = nullptr;
+    CreateGEXObjectByTypeFunc createObjectFunc_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
