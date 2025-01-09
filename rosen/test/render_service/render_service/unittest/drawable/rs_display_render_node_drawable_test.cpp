@@ -961,6 +961,505 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkipFrameIrregularRefreshRateTest001
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 1hz
+ *                  3. result: actual refresh rate is about 1hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest001, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 1; // expectedRefreshRate 1
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest002
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 5hz
+ *                  3. result: actual refresh rate is about 5hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest002, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 5; // expectedRefreshRate 5
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest003
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 15hz
+ *                  3. result: actual refresh rate is about 15hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest003, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 15; // expectedRefreshRate 15
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest004
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 20hz
+ *                  3. result: actual refresh rate is about 20hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest004, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 20; // expectedRefreshRate 20
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest005
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 25hz
+ *                  3. result: actual refresh rate is about 25hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest005, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 25; // expectedRefreshRate 25
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest006
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 30hz
+ *                  3. result: actual refresh rate is about 30hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest006, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 30; // expectedRefreshRate 30
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest007
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 40hz
+ *                  3. result: actual refresh rate is about 40hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest007, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 40; // expectedRefreshRate 40
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest008
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 45hz
+ *                  3. result: actual refresh rate is about 45hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest008, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 45; // expectedRefreshRate 45
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest009
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 55hz
+ *                  3. result: actual refresh rate is about 55hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest009, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 55; // expectedRefreshRate 55
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - screenInfo.expectedRefreshRate)),
+        (screenInfo.expectedRefreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest010
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 0hz
+ *                  3. result: 0hz is not allowed, the actual refresh rate will be 60hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest010, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 0; // expectedRefreshRate 0
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - refreshRate)), (refreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest011
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 60hz
+ *                  3. result: actual refresh rate is about 60hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest011, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 60; // expectedRefreshRate 60
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - refreshRate)), (refreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest012
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- 61hz
+ *                  3. result: actual refresh rate is about 60hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest012, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = 61; // expectedRefreshRate 61
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - refreshRate)), (refreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest013
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- UINT32_MAX hz
+ *                  3. result: actual refresh rate is about 60hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest013, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = UINT32_MAX; // expectedRefreshRate UINT32_MAX
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - refreshRate)), (refreshRate * 20 / 100));
+}
+
+/**
+ * @tc.name: SkipFrameIrregularRefreshRateTest014
+ * @tc.desc: test SkipFrame with SKIP_FRAME_BY_REFRESH_RATE
+ * @tc.type:FUNC
+ * @tc.require:
+ * CaseDescription: 1. preSetup: refreshRate is 60hz
+ *                  2. operation: test SkipFrame interface with irregular refresh rate --- UINT32_MAX+1 hz
+ *                  3. result: actual refresh rate is about 60hz(20% fluctuation is allowed)
+ */
+HWTEST_F(RSDisplayRenderNodeDrawableTest, SkipFrameIrregularRefreshRateTest014, TestSize.Level1)
+{
+    uint32_t refreshRate = 60; // 60hz
+    uint32_t refreshRateInterval = 1000000 / refreshRate; // 1000000us == 1s
+    ScreenInfo screenInfo;
+    screenInfo.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
+    screenInfo.expectedRefreshRate = UINT32_MAX + 1; // expectedRefreshRate UINT32_MAX + 1
+    int actualRefreshRateCount = 0;
+    uint64_t startTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    uint64_t curTime = startTime;
+    while (curTime - startTime < 1000000000) {
+        RSMainThread::Instance()->curTime_ = curTime;
+        bool skipFrame = displayDrawable_->SkipFrame(refreshRate, screenInfo);
+        if (!skipFrame) {
+            actualRefreshRateCount++;
+        }
+        usleep(refreshRateInterval);
+        curTime = static_cast<uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                std::chrono::steady_clock::now().time_since_epoch()).count());
+    }
+    ASSERT_LE(abs(static_cast<int32_t>(actualRefreshRateCount - refreshRate)), (refreshRate * 20 / 100));
+}
+
+/**
  * @tc.name: GetSpecialLayerType
  * @tc.desc: Test GetSpecialLayerType
  * @tc.type: FUNC
