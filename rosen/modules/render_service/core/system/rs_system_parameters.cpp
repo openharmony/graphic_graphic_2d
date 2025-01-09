@@ -164,6 +164,13 @@ bool RSSystemParameters::GetPrevalidateHwcNodeEnabled()
     return prevalidateHwcNodeEnabled;
 }
 
+bool RSSystemParameters::GetSolidLayerHwcEnabled()
+{
+    static bool solidLayerHwcEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.solidLayer.Enabled", "1")).c_str()) != 0;
+    return solidLayerHwcEnabled;
+}
+
 bool RSSystemParameters::GetControlBufferConsumeEnabled()
 {
     static bool controlBufferConsume =
