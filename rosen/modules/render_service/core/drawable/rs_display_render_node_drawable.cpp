@@ -73,7 +73,6 @@ constexpr int32_t HAS_SPECIAL_LAYER = 1;
 constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being deleted
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 constexpr const float HALF = 2.0f;
-constexpr const float LITTLE_SCREEN_SCALE = 0.6f;
 constexpr char FOLDSCREEN_TYPE_SMALL_FOLD = '2';
 const std::string FOLDSCREEN_TYPE_KEY = "const.window.foldscreen.type";
 static std::once_flag g_initTranslateForWallpaperFlag;
@@ -1244,8 +1243,8 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         return;
     }
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
-    if (littleScreenRedraw_ || (RSSystemParameters::GetWiredScreenOndrawEnabled() &&
-        (params.GetHDRPresent() || !currentBlackList_.empty()))) {
+    if (RSSystemParameters::GetWiredScreenOndrawEnabled() &&
+        (params.GetHDRPresent() || !currentBlackList_.empty())) {
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
     } else {
         DrawWiredMirrorCopy(*mirroredDrawable);
@@ -1410,7 +1409,6 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     // Scale
     if (mainWidth > 0 && mainHeight > 0) {
         auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
-        littleScreenRedraw_ = scaleNum <= LITTLE_SCREEN_SCALE;
         // 2 for calc X and Y
         curCanvas_->Translate((mirrorWidth - (scaleNum * mainWidth)) / 2, (mirrorHeight - (scaleNum * mainHeight)) / 2);
         curCanvas_->Scale(scaleNum, scaleNum);
