@@ -47,12 +47,10 @@ void RSColorfulShadowFilter::DrawImageRect(Drawing::Canvas &canvas, const std::s
         return;
     }
 
-    if (IsValid()) {
-        // draw blur image
-        canvas.Translate(offsetX_, offsetY_);
-        RSForegroundEffectFilter::DrawImageRect(canvas, image, src, dst);
-        canvas.Translate(-offsetX_, -offsetY_);
-    }
+    // draw blur image
+    canvas.Translate(offsetX_, offsetY_);
+    RSForegroundEffectFilter::DrawImageRect(canvas, image, src, dst);
+    canvas.Translate(-offsetX_, -offsetY_);
 
     // draw clear image
     auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::LINEAR);
