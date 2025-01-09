@@ -127,6 +127,8 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
         cmdList, brushHandle_.colorSpaceHandle);
     auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(
         cmdList, brushHandle_.shaderEffectHandle);
+    auto blender = CmdListHelper::GetBlenderFromCmdList(
+        cmdList, brushHandle_.blenderHandle);
     auto colorFilter = CmdListHelper::GetColorFilterFromCmdList(
         cmdList, brushHandle_.colorFilterHandle);
     auto imageFilter = CmdListHelper::GetImageFilterFromCmdList(
@@ -145,6 +147,7 @@ void MaskBrushOpItem::Playback(Brush& brush, const CmdList& cmdList) const
 
     brush.SetColor(color4f, colorSpace);
     brush.SetShaderEffect(shaderEffect);
+    brush.SetBlender(blender);
     brush.SetBlendMode(brushHandle_.mode);
     brush.SetAntiAlias(brushHandle_.isAntiAlias);
     brush.SetFilter(filter);

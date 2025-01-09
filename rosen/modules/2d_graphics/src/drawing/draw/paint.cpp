@@ -193,6 +193,7 @@ void Paint::SetJoinStyle(Pen::JoinStyle js)
 
 void Paint::SetBlendMode(BlendMode mode)
 {
+    blender_ = nullptr;
     blendMode_ = mode;
 }
 

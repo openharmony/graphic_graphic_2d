@@ -212,6 +212,10 @@ public:
     static std::shared_ptr<ShaderEffect> GetShaderEffectFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& shaderEffectHandle);
 
+    static FlattenableHandle AddBlenderToCmdList(CmdList& cmdList, std::shared_ptr<Blender> pathEffect);
+    static std::shared_ptr<Blender> GetBlenderFromCmdList(const CmdList& cmdList,
+        const FlattenableHandle& blenderHandle);
+
     static FlattenableHandle AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect);
     static std::shared_ptr<PathEffect> GetPathEffectFromCmdList(const CmdList& cmdList,
         const FlattenableHandle& pathEffectHandle);

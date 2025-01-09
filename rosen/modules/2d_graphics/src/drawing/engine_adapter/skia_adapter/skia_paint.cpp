@@ -39,10 +39,6 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
         paint.setColor(brush.GetColor().CastToColorQuad());
     }
 
-    if (brush.GetBlendMode() != BlendMode::SRC_OVER) {
-        paint.setBlendMode(static_cast<SkBlendMode>(brush.GetBlendMode()));
-    }
-
     if (brush.GetAlpha() != Color::RGB_MAX) {
         paint.setAlpha(brush.GetAlpha());
     }
@@ -58,6 +54,8 @@ void SkiaPaint::BrushToSkPaint(const Brush& brush, SkPaint& paint)
         if (SkiaBlender* skBlenderImpl = b->GetImpl<SkiaBlender>()) {
             paint.setBlender(skBlenderImpl->GetBlender());
         }
+    } else if (brush.GetBlendMode() != BlendMode::SRC_OVER) {
+        paint.setBlendMode(static_cast<SkBlendMode>(brush.GetBlendMode()));
     }
 
     if (brush.HasFilter()) {
@@ -74,10 +72,6 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
         paint.setColor(SkColor4f::FromColor(pen.GetColor().CastToColorQuad()), colorSpace.get());
     } else {
         paint.setColor(pen.GetColor().CastToColorQuad());
-    }
-
-    if (pen.GetBlendMode() != BlendMode::SRC_OVER) {
-        paint.setBlendMode(static_cast<SkBlendMode>(pen.GetBlendMode()));
     }
 
     paint.setStrokeMiter(pen.GetMiterLimit());
@@ -103,6 +97,8 @@ void SkiaPaint::PenToSkPaint(const Pen& pen, SkPaint& paint)
         if (SkiaBlender* skBlenderImpl = blender->GetImpl<SkiaBlender>()) {
             paint.setBlender(skBlenderImpl->GetBlender());
         }
+    } else if (pen.GetBlendMode() != BlendMode::SRC_OVER) {
+        paint.setBlendMode(static_cast<SkBlendMode>(pen.GetBlendMode()));
     }
 
     if (pen.HasFilter()) {
@@ -124,9 +120,6 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
     }
 
     skPaint.setAntiAlias(paint.IsAntiAlias());
-    if (paint.GetBlendMode() != BlendMode::SRC_OVER) {
-        skPaint.setBlendMode(static_cast<SkBlendMode>(paint.GetBlendMode()));
-    }
 
     if (const ShaderEffect* se = paint.GetShaderEffectPtr()) {
         if (SkiaShaderEffect* skShaderImpl = se->GetImpl<SkiaShaderEffect>()) {
@@ -146,6 +139,8 @@ void SkiaPaint::PaintToSkPaint(const Paint& paint, SkPaint& skPaint)
         if (SkiaBlender* skBlenderImpl = blender->GetImpl<SkiaBlender>()) {
             skPaint.setBlender(skBlenderImpl->GetBlender());
         }
+    } else if (paint.GetBlendMode() != BlendMode::SRC_OVER) {
+        skPaint.setBlendMode(static_cast<SkBlendMode>(paint.GetBlendMode()));
     }
 }
 
