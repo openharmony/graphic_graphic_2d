@@ -976,7 +976,7 @@ void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIR
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto& hgmCore = HgmCore::Instance();
     auto screen = hgmCore.GetScreen(id);
-    if (!screen || screen->GetSelfOwnedScreenFlag()) {
+    if (!screen || !screen->GetSelfOwnedScreenFlag()) {
         return;
     }
 
