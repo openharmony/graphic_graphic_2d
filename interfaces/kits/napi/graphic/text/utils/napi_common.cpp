@@ -142,7 +142,7 @@ void ReceiveFontFeature(napi_env env, napi_value argValue, TextStyle& textStyle)
     uint32_t arrayLength = 0;
     if (napi_get_array_length(env, allFeatureValue, &arrayLength) != napi_ok ||
         !arrayLength) {
-        TEXT_LOGE("The parameter of font features is unvaild");
+        TEXT_LOGD("Failed to get font feature");
         return;
     }
 
@@ -178,7 +178,7 @@ void ReceiveFontVariation(napi_env env, napi_value argValue, TextStyle& textStyl
     uint32_t arrayLength = 0;
     if (napi_get_array_length(env, allVariationValue, &arrayLength) != napi_ok ||
         !arrayLength) {
-        TEXT_LOGE("The parameter of font variations is unvaild");
+        TEXT_LOGD("Failed to get font variation");
         return;
     }
 
