@@ -151,7 +151,7 @@ private:
     // restore node's flag and filter dirty collection
     void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
-    void CalculateOcclusion(RSSurfaceRenderNode& node);
+    void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
     void UpdateOccludedStatusWithFilterNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
