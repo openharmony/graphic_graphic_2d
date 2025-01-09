@@ -582,6 +582,14 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
 
+    if (surfaceParams->GetHardCursorStatus() &&
+        (UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) ||
+            RSUniRenderThread::GetCaptureParam().isSnapshot_)) {
+        SetDrawSkipType(DrawSkipType::HARD_CURSOR_ENAbLED);
+        RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnCapture hardcursor skip SurfaceName:%s", name_.c_str());
+        return;
+    }
+
     if (uniParam->IsOcclusionEnabled() && surfaceParams->IsMainWindowType() &&
         surfaceParams->GetVisibleRegionInVirtual().IsEmpty() && whiteList.empty() &&
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
