@@ -104,8 +104,11 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayerForDirectTest, TestSiz
     ASSERT_NE(processor, nullptr);
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     auto& hardCursorNodes = rsPointerWindowManager.GetHardCursorNode();
-    ASSERT_NE(hardCursorNodes, nullptr);
-    hardCursorNodes->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    ASSERT_NE(hardCursorNodes.size(), 0);
+    for (auto& [_, drawable] :  hardCursorNodes) {
+        auto hardCursorNode = drawable;
+        hardCursorNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(1);
+    }
     rsPointerWindowManager.HardCursorCreateLayerForDirect(processor);
 }
 

@@ -476,16 +476,18 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, HardCursorCreateLayerTest, TestSize.Le
     auto result = displayDrawable_->HardCursorCreateLayer(processor);
     ASSERT_EQ(result, false);
 
-    HardCursorInfo hardInfo;
-    hardInfo.id = 1;
-    auto renderNode = std::make_shared<RSRenderNode>(hardInfo.id);
-    hardInfo.drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
-    EXPECT_NE(hardInfo.drawablePtr, nullptr);
+    NodeId nodeId = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+    auto drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    EXPECT_NE(drawablePtr, nullptr);
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableMap_ = {
+        {nodeId, drawablePtr}
+    };
     result = displayDrawable_->HardCursorCreateLayer(processor);
     ASSERT_EQ(result, false);
 
     NodeId id = 1;
-    hardInfo.drawablePtr->renderParams_ = std::make_unique<RSRenderParams>(id);
+    drawablePtr->renderParams_ = std::make_unique<RSRenderParams>(id);
     result = displayDrawable_->HardCursorCreateLayer(processor);
     ASSERT_EQ(result, false);
 }
@@ -1845,6 +1847,18 @@ HWTEST_F(RSDisplayRenderNodeDrawableTest, FindHardwareEnabledNodes, TestSize.Lev
     ASSERT_NE(params, nullptr);
     displayDrawable_->FindHardwareEnabledNodes(*params);
     ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardwareEnabledTypeDrawables_.size(), 2);
+
+    NodeId nodeId = 1;
+    auto renderNode = std::make_shared<RSRenderNode>(nodeId);
+    auto drawablePtr = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    EXPECT_NE(drawablePtr, nullptr);
+    RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableMap_ = {
+        {nodeId, drawablePtr}
+    };
+
+    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
+    displayDrawable_->FindHardwareEnabledNodes(*params);
+    ASSERT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams()->hardCursorDrawableMap_.size(), 1);
 }
 
 /**

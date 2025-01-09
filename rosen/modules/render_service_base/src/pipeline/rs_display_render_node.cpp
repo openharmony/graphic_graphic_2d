@@ -240,6 +240,7 @@ void RSDisplayRenderNode::UpdateRenderParams()
     auto mirroredNode = GetMirrorSource().lock();
     if (mirroredNode == nullptr) {
         displayParams->mirrorSourceId_ = INVALID_NODEID;
+        displayParams->mirrorSourceDrawable_.reset();
         RS_LOGW("RSDisplayRenderNode::UpdateRenderParams mirroredNode is null");
     } else {
         displayParams->mirrorSourceDrawable_ = mirroredNode->GetRenderDrawable();
