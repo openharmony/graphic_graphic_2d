@@ -95,6 +95,9 @@ struct RDCConfig {
     RDCConfig() {}
     virtual ~RDCConfig();
     bool LoadAndAnalyze(const std::string& configFile);
+
+private:
+    void LoadChunks(xmlNodePtr& chunkPtr);
     void LoadRenderPassModels(const xmlNodePtr& chunksPtr);
     void LoadDescriptorSetLayoutModels(const xmlNodePtr& chunksPtr);
     void LoadPipelineLayoutModels(const xmlNodePtr& chunksPtr);
@@ -108,8 +111,6 @@ struct RDCConfig {
     std::vector<VkDescriptorSetLayoutCreateInfoModel*> descriptorSetLayoutModels;
     std::vector<VkPipelineLayoutCreateInfoModel*> pipelineLayoutModels;
     std::vector<VkGraphicsPipelineCreateInfoModel*> graphicsPipelineModels;
-
-private:
     void CloseXML();
     void Clear();
     xmlDocPtr pDoc = nullptr;

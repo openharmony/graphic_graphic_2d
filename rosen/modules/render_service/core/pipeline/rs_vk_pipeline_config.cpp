@@ -48,9 +48,13 @@ xmlNodePtr XMLReader::FindChildNodeByPropName(const xmlNodePtr& src, const std::
 
 std::string XMLReader::ReadNodeValue(const xmlNodePtr& node)
 {
+    if (node == nullptr) {
+        RS_LOGE("RDC read xml node error, node is null");
+        return "";
+    }
     xmlChar* content = xmlNodeGetContent(node);
     if (content == nullptr) {
-        RS_LOGE("RDC read xml node error: nodeName:(%{public}s)", node->name);
+        RS_LOGE("RDC read xml node error, content is null");
         return "";
     }
 
@@ -224,9 +228,12 @@ void RDCConfig::LoadGraphicsPipelineModels(const xmlNodePtr& chunkPtr)
 bool RDCConfig::LoadAndAnalyze(const std::string& configFile)
 {
     RS_TRACE_FUNC();
+    if (OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface().GetDevice() == VK_NULL_HANDLE) {
+        RS_LOGE("RDC LoadAndAnalyze failed device is null. \n");
+        return false;
+    }
     auto configFilePath = XMLReader::GetConfigPath(configFile);
     std::lock_guard<std::mutex> lock(xmlMut);
-    Clear();
     xmlKeepBlanksDefault(0);
     pDoc = xmlReadFile(configFilePath.c_str(), "", XML_PARSE_RECOVER);
     if (pDoc == nullptr) {
@@ -253,7 +260,15 @@ bool RDCConfig::LoadAndAnalyze(const std::string& configFile)
         CloseXML();
         return false;
     }
-    auto chunkPtr = chunksPtr->children;
+    LoadChunks(chunksPtr->children);
+    CreatePipelines();
+    CloseXML();
+    RS_LOGI("RDC read xml finish");
+    return true;
+}
+
+void RDCConfig::LoadChunks(xmlNodePtr& chunkPtr)
+{
     while (chunkPtr != nullptr) {
         if (XMLReader::ReadAttrStr(chunkPtr, std::string("name")) == "vkCreateRenderPass") {
             LoadRenderPassModels(chunkPtr);
@@ -266,10 +281,6 @@ bool RDCConfig::LoadAndAnalyze(const std::string& configFile)
         }
         chunkPtr = chunkPtr->next;
     }
-    CreatePipelines();
-    CloseXML();
-    RS_LOGI("RDC read xml finish");
-    return true;
 }
 
 void RDCConfig::CreatePipelines()
@@ -825,8 +836,6 @@ void RDCConfig::CloseXML()
         xmlFreeDoc(pDoc);
         pDoc = nullptr;
     }
-    xmlCleanupParser();
-    xmlMemoryDump();
 }
 
 void RDCConfig::Clear()
