@@ -200,6 +200,8 @@ public:
     const Color& GetBackgroundColor() const;
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
     std::shared_ptr<RSShader> GetBackgroundShader() const;
+    void SetBackgroundShaderProgress(const float& progress);
+    float GetBackgroundShaderProgress() const;
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     std::shared_ptr<RSImage> GetBgImage() const;
     void SetBgImageInnerRect(const Vector4f& rect);
@@ -609,6 +611,7 @@ private:
     // partial update
     bool colorFilterNeedUpdate_ = false;
     bool pixelStretchNeedUpdate_ = false;
+    bool bgShaderNeedUpdate_ = false;
     bool filterNeedUpdate_ = false;
     bool greyCoefNeedUpdate_ = false;
     bool visible_ = true;
@@ -710,6 +713,7 @@ private:
 
     void UpdateFilter();
     void UpdateForegroundFilter();
+    void UpdateBackgroundShader();
 
     RRect rrect_ = RRect{};
     Drawing::Matrix prevAbsMatrix_;

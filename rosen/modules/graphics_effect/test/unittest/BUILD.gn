@@ -32,6 +32,8 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_visual_effect_impl_test.cpp",
     "ge_visual_effect_test.cpp",
     "ge_water_ripple_filter_test.cpp",
+    "gex_dot_matrix_shader_params_test.cpp",
+    "gex_dot_matrix_shader_test.cpp",
   ]
 
   if (!is_mingw && !is_win) {
@@ -51,6 +53,7 @@ ohos_unittest("GraphicsEffectTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/platform:utils",
     "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
     "//third_party/googletest:gtest_main",
   ]

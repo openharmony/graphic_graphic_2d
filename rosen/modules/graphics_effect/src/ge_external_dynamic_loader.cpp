@@ -44,8 +44,8 @@ GEExternalDynamicLoader::GEExternalDynamicLoader()
         return;
     }
 
-    CreateObjectFunc_ = (CreateGEXObjectByTypeFunc)dlsym(libHandle_, GRAPHICS_EFFECT_EXT_INREFACE.c_str());
-    if (!CreateObjectFunc_) {
+    createObjectFunc_ = (CreateGEXObjectByTypeFunc)dlsym(libHandle_, GRAPHICS_EFFECT_EXT_INREFACE.c_str());
+    if (!createObjectFunc_) {
         LOGE("GEExternalDynamicLoader CreateObjectFunc is null");
         return;
     }
@@ -72,7 +72,7 @@ GEExternalDynamicLoader& GEExternalDynamicLoader::GetInstance()
 
 void* GEExternalDynamicLoader::CreateGEXObjectByType(uint32_t type, uint32_t len, void* param)
 {
-    if (!CreateObjectFunc_) {
+    if (!createObjectFunc_) {
         LOGD("GEExternalDynamicLoader::CreateGEXObjectByType interface is null");
         return nullptr;
     }
@@ -80,13 +80,13 @@ void* GEExternalDynamicLoader::CreateGEXObjectByType(uint32_t type, uint32_t len
 #ifdef GE_OHOS
     auto enable = system::GetBoolParameter(GRAPHICS_EFFECT_EXT_ENABLE, true);
     if (enable) {
-        return CreateObjectFunc_(type, len, param);
+        return createObjectFunc_(type, len, param);
     }
 
-    LOGD("GEExternalDynamicLoader::CreateGEXObjectByType dynamic load disabled");
+    LOGW("GEExternalDynamicLoader::CreateGEXObjectByType dynamic load disabled");
     return nullptr;
 #else
-    return CreateObjectFunc_(type, len, param);
+    return createObjectFunc_(type, len, param);
 #endif
 }
 

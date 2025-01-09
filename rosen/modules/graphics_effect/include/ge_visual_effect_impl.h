@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "ge_shader.h"
 #include "ge_shader_filter.h"
 #include "ge_visual_effect.h"
 
@@ -28,7 +29,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 
-class GEVisualEffectImpl {
+class GE_EXPORT GEVisualEffectImpl {
 public:
     enum class FilterType {
         NONE,
@@ -38,6 +39,7 @@ public:
         LINEAR_GRADIENT_BLUR,
         MAGNIFIER,
         WATER_RIPPLE,
+        DOT_MATRIX,
         MAX
     };
 

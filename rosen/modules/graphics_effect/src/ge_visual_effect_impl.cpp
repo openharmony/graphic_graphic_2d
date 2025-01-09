@@ -12,12 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <map>
 
 #include "ge_visual_effect_impl.h"
-
-#include <unordered_map>
-
 #include "ge_log.h"
+#include "ge_external_dynamic_loader.h"
 
 namespace OHOS {
 namespace Rosen {

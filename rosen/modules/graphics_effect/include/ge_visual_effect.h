@@ -22,6 +22,7 @@
 #include "effect/runtime_shader_builder.h"
 
 #include "ge_shader_filter_params.h"
+#include "ge_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,7 +32,7 @@ enum class DrawingPaintType { NONE, BRUSH, PEN, PAINT, BRUSH_PEN };
 
 class GEVisualEffectImpl;
 
-class GEVisualEffect {
+class GE_EXPORT GEVisualEffect {
 public:
     GEVisualEffect(const std::string& name, DrawingPaintType type = DrawingPaintType::BRUSH);
     ~GEVisualEffect();
