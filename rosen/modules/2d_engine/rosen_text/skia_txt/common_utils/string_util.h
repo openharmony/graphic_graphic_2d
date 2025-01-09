@@ -13,19 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
-#define GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
+#ifndef SPTEXT_STRING_UTIL
+#define SPTEXT_STRING_UTIL
 
 #include <string>
 
 namespace OHOS {
 namespace Rosen {
+namespace SPText {
 
-bool IsUtf8(const char* text, int len);
+bool IsUTF16LowSurrogate(uint16_t ch);
 
-std::u16string Str8ToStr16ByIcu(const std::string& str);
+bool IsUTF16HighSurrogate(uint16_t ch);
 
+void HandleIncompleteSurrogatePairs(std::u16string& str);
 }
-} // namespace OHOS
+}
+}
 
-#endif // GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
+#endif // SPTEXT_STRING_UTIL

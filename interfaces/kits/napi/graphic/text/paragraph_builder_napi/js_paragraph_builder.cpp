@@ -15,6 +15,7 @@
 
 #include "js_paragraph_builder.h"
 #include "fontcollection_napi/js_fontcollection.h"
+#include "js_native_api.h"
 #include "line_typeset_napi/js_line_typeset.h"
 #include "napi_common.h"
 #include "paragraph_napi/js_paragraph.h"
@@ -171,14 +172,16 @@ napi_value JsParagraphBuilder::OnAddText(napi_env env, napi_callback_info info)
     if (argv[0] == nullptr || napi_typeof(env, argv[0], &valueType) != napi_ok) {
         return NapiGetUndefined(env);
     }
-    std::string text = "";
-    if (ConvertFromJsValue(env, argv[0], text)) {
-        if (!IsUtf8(text.c_str(), text.size())) {
-            TEXT_LOGE("Invalid utf-8 text");
-            return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        }
-        typographyCreate_->AppendText(Str8ToStr16(text));
+
+    size_t len = 0;
+    if (napi_get_value_string_utf16(env, argv[0], nullptr, 0, &len) != napi_ok) {
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type");
     }
+    char16_t buffer[len+1];
+    if (napi_get_value_string_utf16(env, argv[0], buffer, len + 1, &len) != napi_ok) {
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type");
+    }
+    typographyCreate_->AppendText(buffer);
     return NapiGetUndefined(env);
 }
 

@@ -75,6 +75,7 @@ template("skia_libtxt") {
       "$txt_root/txt/text_bundle_config_parser.cpp",
       "$txt_root/txt/text_style.cpp",
       "$txt_root/txt/typeface_font_asset_provider.cpp",
+      "$txt_root/common_utils/string_util.cpp",
     ]
 
     external_deps = []
