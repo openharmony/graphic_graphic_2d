@@ -583,5 +583,26 @@ bool RSDisplayRenderNode::IsZoomStateChange() const
 {
     return preZoomState_ != curZoomState_;
 }
+
+
+void RSDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
+{
+    screenStatusNotifyTask_ = task;
+}
+
+void RSDisplayRenderNode::SetSwitchedScreenId(uint64_t screenId)
+{
+    switchedScreenId_ = screenId;
+}
+
+void RSDisplayRenderNode::CheckTargetScreenSwitched(uint64_t screenId)
+{
+    if (screenStatusNotifyTask_) {
+        screenStatusNotifyTask_(switchedScreenId_ != screenId, switchedScreenId_);
+        RS_TRACE_NAME_FMT("ScreenId: %" PRIu64 ", SwitchedScreenId: %" PRIu64, screenId, switchedScreenId_);
+        ROSEN_LOGI("DisplayNodeCommandHelper::SetScreenId screenId:[%{public}" PRIu64 "],"
+            "switchedId:[%{public}" PRIu64 "]", screenId, switchedScreenId_);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

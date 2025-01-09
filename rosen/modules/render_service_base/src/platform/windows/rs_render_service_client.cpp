@@ -598,10 +598,6 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
 }
 
-void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
-{
-}
-
 void RSRenderServiceClient::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
 }
@@ -686,6 +682,10 @@ bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t 
 }
 
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+{
+}
+
+void RSRenderServiceClient::NotifyScreenSwitched(ScreenId id)
 {
 }
 } // namespace Rosen
