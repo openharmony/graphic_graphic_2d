@@ -155,9 +155,12 @@ public:
     static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode> hwcNode);
     static void MultiLayersPerf(size_t layerNum);
-    static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node);
-    static RectI CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
+    static GraphicTransformType GetConsumerTransform(const RSSurfaceRenderNode& node,
+        const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer);
+    static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
         const GraphicTransformType consumerTransformType, RectI newSrcRect);
+    static bool IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity);
+    static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);
     static RectI SrcRectRotateTransform(RSSurfaceRenderNode& node, GraphicTransformType transformType);
