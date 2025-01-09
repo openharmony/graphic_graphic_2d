@@ -486,16 +486,6 @@ CoreCanvas& RSPaintFilterCanvasBase::DetachPaint()
 bool RSPaintFilterCanvasBase::DrawBlurImage(const Drawing::Image& image, const Drawing::HpsBlurParameter& blurParams)
 {
     bool result = false;
-<<<<<<< HEAD
-#ifdef ENABLE_RECORDING_DCL
-    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
-        if ((*iter) != nullptr) {
-            result = ((*iter)->DrawBlurImage(image, blurParams) || result);
-        }
-    }
-#else
-=======
->>>>>>> 67ace7ae15 (日落旧的skp抓取代码)
     if (canvas_ != nullptr) {
         result = canvas_->DrawBlurImage(image, blurParams);
     }
@@ -511,8 +501,6 @@ std::array<int, 2> RSPaintFilterCanvasBase::CalcHpsBluredImageDimension(const Dr
     return result;
 }
 
-<<<<<<< HEAD
-=======
 bool RSPaintFilterCanvasBase::IsClipRect()
 {
     bool result = false;
@@ -522,7 +510,6 @@ bool RSPaintFilterCanvasBase::IsClipRect()
     return result;
 }
 
->>>>>>> 67ace7ae15 (日落旧的skp抓取代码)
 RSPaintFilterCanvas::RSPaintFilterCanvas(Drawing::Canvas* canvas, float alpha)
     : RSPaintFilterCanvasBase(canvas), alphaStack_({ 1.0f }),
       envStack_({ Env { .envForegroundColor_ = RSColor(0xFF000000), .hasOffscreenLayer_ = false } })
