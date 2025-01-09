@@ -970,9 +970,9 @@ HWTEST_F(RSUniRenderUtilTest, IsHwcEnabledByGravityTest, Function | SmallTest | 
 {
     NodeId id = 0;
     RSSurfaceRenderNode node(id);
-    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, GRAVITY::RESIZE));
-    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, GRAVITY::TOP_LEFT));
-    EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByGravity(node, GRAVITY::CENTER));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::TOP_LEFT));
+    EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::CENTER));
 }
 
 /*
