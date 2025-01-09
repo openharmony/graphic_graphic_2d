@@ -30,6 +30,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_aibar_shader_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
+#include "render/rs_dot_matrix_shader.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
@@ -94,6 +95,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetForegroundColor({}); },            // FOREGROUND_COLOR
     [](RSProperties* prop) { prop->SetBackgroundColor({}); },            // BACKGROUND_COLOR
     [](RSProperties* prop) { prop->SetBackgroundShader({}); },           // BACKGROUND_SHADER
+    [](RSProperties* prop) { prop->SetBackgroundShaderProgress(0.f); },  // BACKGROUND_SHADER_PROGRESS
     [](RSProperties* prop) { prop->SetBgImage({}); },                    // BG_IMAGE
     [](RSProperties* prop) { prop->SetBgImageInnerRect({}); },           // BG_IMAGE_INNER_RECT
     [](RSProperties* prop) { prop->SetBgImageWidth(0.f); },              // BG_IMAGE_WIDTH
@@ -947,6 +949,7 @@ void RSProperties::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
         isDrawn_ = true;
     }
     decoration_->bgShader_ = shader;
+    bgShaderNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -955,6 +958,24 @@ std::shared_ptr<RSShader> RSProperties::GetBackgroundShader() const
 {
     return decoration_ ? decoration_->bgShader_ : nullptr;
 }
+
+void RSProperties::SetBackgroundShaderProgress(const float& progress)
+{
+    if (!decoration_) {
+        decoration_ = std::make_optional<Decoration>();
+    }
+    isDrawn_ = true;
+    decoration_->bgShaderProgress_ = progress;
+    bgShaderNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+float RSProperties::GetBackgroundShaderProgress() const
+{
+    return decoration_ ? decoration_->bgShaderProgress_ : -1.f;
+}
+
 
 void RSProperties::SetBgImage(const std::shared_ptr<RSImage>& image)
 {
@@ -4276,6 +4297,11 @@ void RSProperties::OnApplyModifiers()
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
     }
+
+    if (bgShaderNeedUpdate_) {
+        UpdateBackgroundShader();
+    }
+
     if (greyCoefNeedUpdate_) {
         CheckGreyCoef();
         greyCoefNeedUpdate_ = false;
@@ -4353,6 +4379,13 @@ void RSProperties::UpdateForegroundFilter()
         foregroundFilter_.reset();
         foregroundFilterCache_.reset();
     }
+}
+
+void RSProperties::UpdateBackgroundShader()
+{
+    bgShaderNeedUpdate_ = false;
+    const auto& bgShader = GetBackgroundShader();
+    bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
 }
 
 void RSProperties::CalculatePixelStretch()

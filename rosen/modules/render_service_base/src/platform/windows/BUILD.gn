@@ -61,7 +61,10 @@ ohos_source_set("windows") {
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
-    public_deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]
+    public_deps += [
+      "$rosen_root/modules/2d_graphics:2d_graphics",
+      "$rosen_root/modules/graphics_effect:libgraphics_effect",
+    ]
   }
 
   external_deps = [

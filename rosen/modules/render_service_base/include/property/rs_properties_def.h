@@ -173,6 +173,7 @@ public:
     Decoration() {}
     ~Decoration() {}
     std::shared_ptr<RSShader> bgShader_ = nullptr;
+    float bgShaderProgress_ = 0.0f;
     std::shared_ptr<RSImage> bgImage_ = nullptr;
     RectF bgImageRect_ = RectF();
     Vector4f bgImageInnerRect_ = Vector4f();

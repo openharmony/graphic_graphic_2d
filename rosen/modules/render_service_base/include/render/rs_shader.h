@@ -16,21 +16,35 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
 #define RENDER_SERVICE_CLIENT_CORE_RENDER_RS_SHADER_H
 
-#include "effect/shader_effect.h"
-
 #include "common/rs_macros.h"
+#include "common/rs_rect.h"
+#include "effect/shader_effect.h"
+#include "transaction/rs_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSB_EXPORT RSShader {
 public:
     RSShader() = default;
-    ~RSShader() = default;
+    virtual ~RSShader() = default;
     static std::shared_ptr<RSShader> CreateRSShader();
+    static std::shared_ptr<RSShader> CreateRSShader(Parcel& parcel);
     static std::shared_ptr<RSShader> CreateRSShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
 
     void SetDrawingShader(const std::shared_ptr<Drawing::ShaderEffect>& drShader);
-    const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const;
+    virtual void MakeDrawingShader(const RectF& rect, float progress) {};
+    virtual const std::shared_ptr<Drawing::ShaderEffect>& GetDrawingShader() const;
+
+    virtual bool Marshalling(Parcel& parcel);
+    virtual bool Unmarshalling(Parcel& parcel);
+
+    enum class ShaderType{
+        DRAWING = 0,
+        DOT_MATRIX,
+        FLOW_LIGHT_SWEEP,
+    };
+
+    inline const ShaderType& GetShaderType() const { return type_; } ;
 
 private:
     RSShader(const RSShader&) = delete;
@@ -38,6 +52,8 @@ private:
     RSShader& operator=(const RSShader&) = delete;
     RSShader& operator=(const RSShader&&) = delete;
 
+protected:
+    ShaderType type_ = ShaderType::DRAWING;
     std::shared_ptr<Drawing::ShaderEffect> drShader_ = nullptr;
 };
 } // namespace Rosen

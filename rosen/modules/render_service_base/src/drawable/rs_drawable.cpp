@@ -56,6 +56,7 @@ static constexpr std::array<RSDrawableSlot, DIRTY_LUT_SIZE> g_propertyToDrawable
     RSDrawableSlot::FOREGROUND_COLOR,              // FOREGROUND_COLOR
     RSDrawableSlot::BACKGROUND_COLOR,              // BACKGROUND_COLOR
     RSDrawableSlot::BACKGROUND_SHADER,             // BACKGROUND_SHADER
+    RSDrawableSlot::BACKGROUND_SHADER,             // BACKGROUND_SHADER_PROGRESS
     RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE
     RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_INNER_RECT
     RSDrawableSlot::BACKGROUND_IMAGE,              // BG_IMAGE_WIDTH

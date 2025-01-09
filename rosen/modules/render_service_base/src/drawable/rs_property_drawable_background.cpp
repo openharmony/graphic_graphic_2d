@@ -272,6 +272,10 @@ bool RSBackgroundShaderDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     Drawing::Brush brush;
     auto shaderEffect = bgShader->GetDrawingShader();
+    // do not draw if shaderEffect is nullptr and keep RSShader behavior consistent
+    if (shaderEffect == nullptr && bgShader->GetShaderType() != RSShader::ShaderType::DRAWING) {
+        return true;
+    }
     brush.SetShaderEffect(shaderEffect);
     // use drawrrect to avoid texture update in phone screen rotation scene
     if (RSSystemProperties::IsPhoneType() && RSSystemProperties::GetCacheEnabledForRotation()) {

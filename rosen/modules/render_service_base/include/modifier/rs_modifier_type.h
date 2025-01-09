@@ -52,6 +52,7 @@ enum class RSModifierType : int16_t {
     FOREGROUND_COLOR,
     BACKGROUND_COLOR,
     BACKGROUND_SHADER,
+    BACKGROUND_SHADER_PROGRESS,
     BG_IMAGE,
     BG_IMAGE_INNER_RECT,
     BG_IMAGE_WIDTH,
@@ -243,6 +244,7 @@ public:
             case RSModifierType::FOREGROUND_COLOR: return "ForegroundColor";
             case RSModifierType::BACKGROUND_COLOR: return "BackgroundColor";
             case RSModifierType::BACKGROUND_SHADER: return "BackgroundShader";
+            case RSModifierType::BACKGROUND_SHADER_PROGRESS: return "BackgroundShaderProgress";
             case RSModifierType::BG_IMAGE: return "BgImage";
             case RSModifierType::BG_IMAGE_INNER_RECT: return "BgImageInnerRect";
             case RSModifierType::BG_IMAGE_WIDTH: return "BgImageWidth";
