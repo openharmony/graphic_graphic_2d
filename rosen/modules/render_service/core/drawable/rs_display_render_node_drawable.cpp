@@ -19,7 +19,6 @@
 #include <parameters.h>
 #include <string>
 
-#include "benchmarks/rs_recording_thread.h"
 #include "luminance/rs_luminance_control.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"

@@ -26,7 +26,11 @@
 #include <string>
 #include <unistd.h>
 
+<<<<<<< HEAD
 #include "benchmarks/file_utils.h"
+=======
+#include "app_mgr_client.h"
+>>>>>>> 67ace7ae15 (日落旧的skp抓取代码)
 #include "delegate/rs_functional_delegate.h"
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"

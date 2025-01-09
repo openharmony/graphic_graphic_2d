@@ -67,10 +67,6 @@
 #include "recording/mask_cmd_list.h"
 #include "property/rs_properties_def.h"
 
-#ifdef RS_ENABLE_RECORDING
-#include "benchmarks/rs_recording_thread.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 
