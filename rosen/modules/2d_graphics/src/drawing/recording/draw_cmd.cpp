@@ -152,6 +152,11 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
         brush.SetShaderEffect(shaderEffect);
     }
 
+    if (brushHandle.blenderHandle.size) {
+        auto blender = CmdListHelper::GetBlenderFromCmdList(cmdList, brushHandle.blenderHandle);
+        brush.SetBlender(blender);
+    }
+
     Filter filter;
     bool hasFilter = false;
     if (brushHandle.colorFilterHandle.size) {
@@ -210,6 +215,11 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
     if (paintHandle.shaderEffectHandle.size) {
         auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, paintHandle.shaderEffectHandle);
         paint.SetShaderEffect(shaderEffect);
+    }
+
+    if (paintHandle.blenderHandle.size) {
+        auto blender = CmdListHelper::GetBlenderFromCmdList(cmdList, paintHandle.blenderHandle);
+        paint.SetBlender(blender);
     }
 
     Filter filter;
@@ -277,6 +287,10 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
 
     if (paint.GetShaderEffect()) {
         paintHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, paint.GetShaderEffect());
+    }
+
+    if (paint.GetBlender()) {
+        paintHandle.blenderHandle = CmdListHelper::AddBlenderToCmdList(cmdList, paint.GetBlender());
     }
 
     if (paint.GetLooper()) {

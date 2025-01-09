@@ -15,6 +15,10 @@
 
 #include "skia_blender.h"
 
+#include "src/core/SkReadBuffer.h"
+#include "src/core/SkWriteBuffer.h"
+
+#include "utils/log.h"
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -39,6 +43,31 @@ std::shared_ptr<Blender> SkiaBlender::CreateWithBlendMode(BlendMode mode)
     auto blender = std::make_shared<Blender>();
     blender->GetImpl<SkiaBlender>()->SetSkBlender(skBlender);
     return blender;
+}
+
+std::shared_ptr<Data> SkiaBlender::Serialize() const
+{
+    if (blender_ == nullptr) {
+        return nullptr;
+    }
+
+    SkBinaryWriteBuffer writer;
+    writer.writeFlattenable(blender_.get());
+    size_t length = writer.bytesWritten();
+    std::shared_ptr<Data> data = std::make_shared<Data>();
+    data->BuildUninitialized(length);
+    writer.writeToMemory(data->WritableData());
+    return data;
+}
+
+bool SkiaBlender::Deserialize(std::shared_ptr<Data> data)
+{
+    if (data == nullptr) {
+        return false;
+    }
+    SkReadBuffer reader(data->GetData(), data->GetSize());
+    blender_ = reader.readBlender();
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen

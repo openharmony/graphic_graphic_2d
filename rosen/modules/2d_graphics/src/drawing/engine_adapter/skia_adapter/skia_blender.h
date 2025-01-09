@@ -41,6 +41,9 @@ public:
 
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
 
+    std::shared_ptr<Data> Serialize() const override;
+    bool Deserialize(std::shared_ptr<Data> data) override;
+
 private:
     sk_sp<SkBlender> blender_;
 };
