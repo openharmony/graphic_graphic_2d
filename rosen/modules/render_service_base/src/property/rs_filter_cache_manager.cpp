@@ -212,7 +212,7 @@ void RSFilterCacheManager::TakeSnapshot(
     }
 
     // Take a screenshot.
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);
+    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     if (snapshot == nullptr) {
         ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
