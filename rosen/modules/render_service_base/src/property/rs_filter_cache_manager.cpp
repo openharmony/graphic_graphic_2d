@@ -215,7 +215,7 @@ void RSFilterCacheManager::TakeSnapshot(RSPaintFilterCanvas& canvas, const std::
     }
 
     // Take a screenshot.
-    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds);
+    auto snapshot = drawingSurface->GetImageSnapshot(snapshotIBounds, false);
     if (snapshot == nullptr) {
         ROSEN_LOGD("RSFilterCacheManager::TakeSnapshot failed to make an image snapshot.");
         return;
