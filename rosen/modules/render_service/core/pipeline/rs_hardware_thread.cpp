@@ -304,7 +304,7 @@ std::string RSHardwareThread::GetSurfaceNameInLayers(const std::vector<LayerInfo
     std::string surfaceName = "SurfaceName: [";
     bool isFirst = true;
     for (const auto& layer : layers) {
-        if (layer == nullptr) {
+        if (layer == nullptr || layer->GetSurface() == nullptr) {
             continue;
         }
         if (isFirst) {
