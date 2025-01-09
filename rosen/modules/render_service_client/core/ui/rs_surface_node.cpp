@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,6 @@
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
-#include "pipeline/rs_render_thread_util.h"
 #include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/drawing/rs_surface_converter.h"
@@ -727,20 +726,6 @@ void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-#ifdef ROSEN_OHOS
-    std::lock_guard<std::mutex> lock(apiInitMutex_);
-    static bool apiCompatibleVersionInitialized = false;
-    if (apiCompatibleVersionInitialized) {
-        return;
-    }
-    uint32_t apiCompatibleVersion = RSRenderThreadUtil::GetApiCompatibleVersion();
-    if (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && transactionProxy != nullptr) {
-        std::unique_ptr<RSCommand> command =
-            std::make_unique<RSSurfaceNodeSetApiCompatibleVersion>(GetId(), apiCompatibleVersion);
-        transactionProxy->AddCommand(command, true);
-        apiCompatibleVersionInitialized = true;
-    }
-#endif
 }
 
 void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
