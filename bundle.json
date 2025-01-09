@@ -44,22 +44,7 @@
         "graphic_2d_feature_freemem_enable",
         "graphic_2d_feature_parallel_render_enable",
         "graphic_2d_feature_tp_switch_enbale",
-<<<<<<< HEAD
         "graphic_2d_feature_rs_enable_profiler"
-=======
-        "graphic_2d_feature_rs_enable_profiler",
-        "graphic_2d_feature_enable_chipset_vsync",
-        "graphic_2d_feature_enable_ddgr",
-        "graphic_2d_feature_enable_flutter_vulkan",
-        "graphic_2d_feature_enable_opengl",
-        "graphic_2d_feature_enable_opinc",
-        "graphic_2d_feature_enable_rspipeline",
-        "graphic_2d_feature_enable_stack_culling",
-        "graphic_2d_feature_enable_vulkan",
-        "graphic_2d_feature_use_aps_igameservice_func",
-        "graphic_2d_feature_use_igraphics_extend_hooks",
-        "graphic_2d_feature_vkqueue_priority_enable"
->>>>>>> 67ace7ae15 (日落旧的skp抓取代码)
       ],
       "rom": "10000KB",
       "ram": "10000KB",
