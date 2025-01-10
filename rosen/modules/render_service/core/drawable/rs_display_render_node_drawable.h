@@ -131,6 +131,11 @@ public:
     }
     bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
 
+    bool IsRenderSkipIfScreenOff() const
+    {
+        return isRenderSkipIfScreenOff_;
+    }
+
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     bool CheckDisplayNodeSkip(RSDisplayRenderParams& params, std::shared_ptr<RSProcessor> processor);
@@ -232,6 +237,8 @@ private:
     Drawing::RectI lastVisibleRect_;
     int32_t offscreenTranslateX_ = 0;
     int32_t offscreenTranslateY_ = 0;
+
+    bool isRenderSkipIfScreenOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
