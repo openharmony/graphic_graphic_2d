@@ -53,8 +53,8 @@ ohos_unittest("GraphicsEffectTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/rosen/modules/platform:utils",
     "$graphic_2d_root/rosen/modules/graphics_effect:libgraphics_effect",
+    "$graphic_2d_root/rosen/modules/platform:utils",
     "//third_party/googletest:gtest_main",
   ]
 
