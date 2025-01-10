@@ -77,6 +77,10 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSDisplayRende
             auto mainScreenInfo = screenManager->QueryScreenInfo(mirroredParams->GetScreenId());
             mirroredScreenWidth_ = static_cast<float>(mainScreenInfo.width);
             mirroredScreenHeight_ = static_cast<float>(mainScreenInfo.height);
+            auto mirroredDisplayParams = static_cast<RSDisplayRenderParams*>(mirroredParams.get());
+            if (mirroredDisplayParams) {
+                renderFrameConfig_.colorGamut = mirroredDisplayParams->GetNewColorSpace();
+            }
         }
     }
 
