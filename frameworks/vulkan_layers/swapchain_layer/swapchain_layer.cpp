@@ -406,13 +406,15 @@ void SwapchainCloseFd(int &fd)
     fd = -1;
 }
 
-static bool IsFencePending(int fd)
+static bool IsFencePending(int &fd)
 {
     if (fd < 0) {
         return false;
     }
     errno = 0;
     sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fd);
+    //SyncFence close need to change fd to -1
+    fd = -1;
     return syncFence->Wait(0) == -1 && errno == ETIME;
 }
 
@@ -1030,6 +1032,7 @@ VKAPI_ATTR VkResult VKAPI_CALL AcquireNextImageKHR(VkDevice device, VkSwapchainK
         if (fenceDup == -1) {
             SWLOGE("dup NativeWindow requested fencefd failed, wait for signalled");
             sptr<OHOS::SyncFence> syncFence = new OHOS::SyncFence(fence);
+            fence = -1;
             syncFence->Wait(-1);
         }
     }
@@ -1378,10 +1381,10 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceCapabilities2KHR(
                                                               &pSurfaceCapabilities->surfaceCapabilities);
 
     VkSurfaceCapabilities2KHR* caps = pSurfaceCapabilities;
-    while(caps->pNext != nullptr) {
+    while (caps->pNext != nullptr) {
         caps = reinterpret_cast<VkSurfaceCapabilities2KHR*>(caps->pNext);
         if (caps->sType == VK_STRUCTURE_TYPE_SHARED_PRESENT_SURFACE_CAPABILITIES_KHR) {
-            reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR*>(caps)->sharedPresentSupportedUsageFlags = 
+            reinterpret_cast<VkSharedPresentSurfaceCapabilitiesKHR*>(caps)->sharedPresentSupportedUsageFlags =
                 pSurfaceCapabilities->surfaceCapabilities.supportedUsageFlags;
         } else if (caps->sType == VK_STRUCTURE_TYPE_SURFACE_PROTECTED_CAPABILITIES_KHR) {
             reinterpret_cast<VkSurfaceProtectedCapabilitiesKHR*>(caps)->supportsProtected= VK_TRUE;
@@ -1448,8 +1451,8 @@ VKAPI_ATTR VkResult VKAPI_CALL GetPhysicalDeviceSurfaceFormats2KHR(
     uint32_t formatCount = *pSurfaceFormatCount;
 
     std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-    VkResult res = GetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount,
-        surfaceFormats.data());
+    VkResult res = GetPhysicalDeviceSurfaceFormatsKHR(
+        physicalDevice, pSurfaceInfo->surface, pSurfaceFormatCount, surfaceFormats.data());
 
     if (res == VK_SUCCESS || res == VK_INCOMPLETE) {
         for (uint32_t i = 0; i < formatCount; i++) {

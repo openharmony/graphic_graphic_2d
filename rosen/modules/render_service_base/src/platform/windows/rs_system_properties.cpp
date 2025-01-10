@@ -187,15 +187,6 @@ void RSSystemProperties::SetCacheEnabledForRotation(bool flag)
 {
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return {};
-}
-
 bool RSSystemProperties::GetCacheEnabledForRotation()
 {
     return {};
@@ -224,6 +215,11 @@ void RSSystemProperties::SetHgmRefreshRateModesEnabled(std::string param)
 HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
@@ -468,6 +464,11 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
 }
 
 bool RSSystemProperties::GetPixelmapDfxEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
 {
     return false;
 }

@@ -70,6 +70,7 @@ HWTEST_F(RSUniUiCaptureTest, SetCanvasTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSSurfaceCaptureConfig captureConfig;
+    ASSERT_FALSE(captureConfig.isSync);
     captureConfig.scaleX = 0.0;
     captureConfig.scaleY = 0.0;
     RSUniUICapture rsUniUICapture(nodeId, captureConfig);
@@ -163,6 +164,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareCanvasRenderNodeTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSSurfaceCaptureConfig captureConfig;
+    ASSERT_FALSE(captureConfig.isSync);
     captureConfig.scaleX = 0.0;
     captureConfig.scaleY = 0.0;
     std::weak_ptr<RSContext> context;
@@ -218,6 +220,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
     NodeId nodeId = 0;
     RSEffectRenderNode node(nodeId);
     RSSurfaceCaptureConfig captureConfig;
+    ASSERT_FALSE(captureConfig.isSync);
     captureConfig.scaleX = 0.0;
     captureConfig.scaleY = 0.0;
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);

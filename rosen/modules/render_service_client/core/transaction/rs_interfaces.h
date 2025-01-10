@@ -229,6 +229,11 @@ public:
 
     int32_t UnRegisterHgmRefreshRateUpdateCallback();
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback);
+
+    int32_t UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid);
+
     void SetAppWindowNum(uint32_t num);
 
     // Set the system overload Animated Scenes to RS for special load shedding
@@ -257,8 +262,6 @@ public:
     void ReportEventJankFrame(DataBaseRs info);
 
     void ReportGameStateData(GameStateData info);
-
-    void SetDefaultDeviceRotationOffset(uint32_t offset);
 
     void EnableCacheForRotation();
 

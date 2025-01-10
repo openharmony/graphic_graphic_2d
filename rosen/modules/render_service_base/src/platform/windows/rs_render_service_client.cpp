@@ -465,6 +465,12 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return {};
 }
 
+int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
+    int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    return {};
+}
+
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
@@ -534,10 +540,6 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
 }
 
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
-{
-}
-
-void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
 {
 }
 

@@ -118,6 +118,10 @@ public:
     {
         return isSpherizeValid_;
     }
+    bool IsAttractionValid() const
+    {
+        return isAttractionValid_;
+    }
     bool NeedBilinearInterpolation() const
     {
         return needBilinearInterpolation_;
@@ -325,6 +329,8 @@ public:
     const RSLayerInfo& GetLayerInfo() const override;
     void SetHardwareEnabled(bool enabled);
     bool GetHardwareEnabled() const override;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const override;
     void SetLastFrameHardwareEnabled(bool enabled);
     bool GetLastFrameHardwareEnabled() const override;
     void SetFixRotationByUser(bool flag);
@@ -444,7 +450,7 @@ public:
         return drmCornerRadiusInfo_;
     }
 
-    void SetSdrNit(int32_t sdrNit)
+    void SetSdrNit(float sdrNit)
     {
         if (ROSEN_EQ(sdrNit_, sdrNit)) {
             return;
@@ -453,12 +459,12 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetSdrNit() const
+    float GetSdrNit() const
     {
         return sdrNit_;
     }
 
-    void SetDisplayNit(int32_t displayNit)
+    void SetDisplayNit(float displayNit)
     {
         if (ROSEN_EQ(displayNit_, displayNit)) {
             return;
@@ -467,7 +473,7 @@ public:
         needSync_ = true;
     }
 
-    int32_t GetDisplayNit() const
+    float GetDisplayNit() const
     {
         return displayNit_;
     }
@@ -527,6 +533,7 @@ private:
     float alpha_ = 0;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
+    bool isAttractionValid_ = false;
     bool isParentScaling_ = false;
     bool needBilinearInterpolation_ = false;
     MultiThreadCacheType uiFirstFlag_ = MultiThreadCacheType::NONE;
@@ -567,6 +574,7 @@ private:
     bool bufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;
+    bool isHardCursor_ = false;
     bool isLastFrameHardwareEnabled_ = false;
     bool isFixRotationByUser_ = false;
     bool isInFixedRotation_ = false;
@@ -598,9 +606,9 @@ private:
     float globalAlpha_ = 1.0f;
     bool hasFingerprint_ = false;
     // hdr
-    int32_t sdrNit_ = 500; // default sdrNit
-    int32_t displayNit_ = 500; // default displayNit_
-    float brightnessRatio_ = 1.0; // 1.0f means no discount.
+    float sdrNit_ = 500.0f; // default sdrNit
+    float displayNit_ = 500.0f; // default displayNit_
+    float brightnessRatio_ = 1.0f; // 1.0f means no discount.
 
     bool hasSubSurfaceNodes_ = false;
     std::unordered_set<NodeId> allSubSurfaceNodeIds_ = {};

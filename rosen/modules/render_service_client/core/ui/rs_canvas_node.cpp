@@ -26,7 +26,6 @@
 #include "pipeline/rs_draw_cmd_list.h"
 #include "pipeline/rs_node_map.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_hdr_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -48,9 +47,16 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode)
     : RSNode(isRenderServiceNode, isTextureExportNode) {}
 
 RSCanvasNode::~RSCanvasNode()
+{}
+
+void RSCanvasNode::SetHDRPresent(bool hdrPresent)
 {
-    if (hdrPresent_) {
-        RSHDRManager::Instance().ReduceHDRNum();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetHDRPresent>(GetId(), hdrPresent);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        ROSEN_LOGD("RSCanvasNode::SetHDRPresent HDRClient set hdr true");
+        transactionProxy->AddCommand(command, true);
     }
 }
 
@@ -173,17 +179,6 @@ void RSCanvasNode::SetFreeze(bool isFreeze)
     }
 }
 
-void RSCanvasNode::SetHDRPresent(bool hdrPresent)
-{
-    hdrPresent_ = hdrPresent;
-    if (hdrPresent) {
-        RSHDRManager::Instance().IncreaseHDRNum();
-    } else {
-        RSHDRManager::Instance().ReduceHDRNum();
-    }
-    ROSEN_LOGD("SetHDRPresent:%{public}d hdrnum:%{public}d", hdrPresent, RSHDRManager::Instance().getHDRNum());
-}
-
 void RSCanvasNode::OnBoundsSizeChanged() const
 {
     auto bounds = GetStagingProperties().GetBounds();
@@ -195,8 +190,8 @@ void RSCanvasNode::OnBoundsSizeChanged() const
 
 void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
-  boundsChangedCallback_ = callback;
+    std::lock_guard<std::mutex> lock(mutex_);
+    boundsChangedCallback_ = callback;
 }
 
 } // namespace Rosen

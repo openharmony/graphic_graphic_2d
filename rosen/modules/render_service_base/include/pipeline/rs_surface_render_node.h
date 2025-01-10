@@ -110,10 +110,10 @@ public:
         return isNodeDirty_;
     }
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE && GetName() == "pointer window";
-    }
+    bool IsHardwareEnabledTopSurface() const;
+    void SetHardCursorStatus(bool status);
+    bool GetHardCursorStatus() const;
+    bool GetHardCursorLastStatus() const;
 
     void SetLayerTop(bool isTop);
 
@@ -129,7 +129,7 @@ public:
             return false;
         }
         return (nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_) ||
-            IsHardwareEnabledTopSurface() || IsLayerTop();
+            IsLayerTop();
     }
 
     bool IsDynamicHardwareEnable() const
@@ -158,7 +158,7 @@ public:
     bool NeedBilinearInterpolation() const
     {
         return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE && isHardwareEnabledNode_ &&
-            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" ||
+            (name_ == "SceneViewer Model0" || name_ == "RosenWeb" || name_.find("oh_flutter") != std::string::npos ||
             name_.find("HwStylusFeature") != std::string::npos);
     }
 
@@ -426,7 +426,7 @@ public:
     void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override;
     void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override;
     bool IsSCBNode() const;
-    void UpdateHwcNodeLayerInfo(GraphicTransformType transform);
+    void UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable = false);
     void UpdateHardwareDisabledState(bool disabled);
     void SetHwcChildrenDisabledStateByUifirst();
 
@@ -518,6 +518,9 @@ public:
 
     void SetHDRPresent(bool hasHdrPresent);
     bool GetHDRPresent() const;
+
+    void IncreaseHDRNum();
+    void ReduceHDRNum();
 
     const std::shared_ptr<RSDirtyRegionManager>& GetDirtyManager() const;
     std::shared_ptr<RSDirtyRegionManager> GetCacheSurfaceDirtyManager() const;
@@ -1187,8 +1190,8 @@ public:
     bool GetSkipDraw() const;
     void SetHidePrivacyContent(bool needHidePrivacyContent);
     void SetNeedOffscreen(bool needOffscreen);
-    void SetSdrNit(int32_t sdrNit);
-    void SetDisplayNit(int32_t displayNit);
+    void SetSdrNit(float sdrNit);
+    void SetDisplayNit(float displayNit);
     void SetBrightnessRatio(float brightnessRatio);
     static const std::unordered_map<NodeId, NodeId>& GetSecUIExtensionNodes();
     bool IsSecureUIExtension() const
@@ -1241,6 +1244,15 @@ public:
     {
         return intersectedRoundCornerAABBs_.size();
     }
+    bool GetIsHwcPendingDisabled() const
+    {
+        return isHwcPendingDisabled_;
+    }
+
+    void SetIsHwcPendingDisabled(bool isHwcPendingDisabled)
+    {
+        isHwcPendingDisabled_ = isHwcPendingDisabled;
+    }
 
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
     uint32_t GetApiCompatibleVersion()
@@ -1287,6 +1299,7 @@ private:
     std::mutex mutexUI_;
     std::mutex mutexClear_;
     std::mutex mutex_;
+    std::mutex mutexHDR_;
     Drawing::GPUContext* grContext_ = nullptr;
     std::mutex parallelVisitMutex_;
 
@@ -1305,6 +1318,7 @@ private:
 
     bool hasFingerprint_ = false;
     bool hasHdrPresent_ = false;
+    int hdrNum_ = 0;
     RectI srcRect_;
     Drawing::Matrix totalMatrix_;
     std::vector<RectI> intersectedRoundCornerAABBs_;
@@ -1363,6 +1377,9 @@ private:
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
     bool isUIHidden_ = false;
+
+    // is hwc node disabled by filter rect
+    bool isHwcPendingDisabled_ = false;
 
     // dirtyRegion caused by surfaceNode visible region after alignment
     Occlusion::Region extraDirtyRegionAfterAlignment_;
@@ -1508,6 +1525,10 @@ private:
     size_t lastFrameChildrenCnt_ = 0;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+
+    // point window
+    bool isHardCursor_ = false;
+    bool isLastHardCursor_ = false;
 
     bool needDrawFocusChange_ = false;
 

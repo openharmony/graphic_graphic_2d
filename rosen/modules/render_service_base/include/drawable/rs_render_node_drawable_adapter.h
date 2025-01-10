@@ -220,7 +220,7 @@ public:
             purgeFunc_();
         }
     }
-    
+
     void SetDrawSkipType(DrawSkipType type) {
         drawSkipType_ = type;
     }
@@ -308,7 +308,7 @@ protected:
 
     // if the node needs to avoid drawing cache because of some layers, such as the security layer...
     bool hasSkipCacheLayer_ = false;
-    
+
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
@@ -321,7 +321,6 @@ private:
     SkipType skipType_ = SkipType::NONE;
     int8_t GetSkipIndex() const;
     DrawSkipType drawSkipType_ = DrawSkipType::NONE;
-    int filterRectSize_ = 0;
     static void RemoveDrawableFromCache(const NodeId nodeId);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
@@ -332,10 +331,8 @@ private:
     friend class OHOS::Rosen::RSSurfaceRenderNode;
     friend class RSRenderNodeShadowDrawable;
     friend class RSUseEffectDrawable;
-    friend class RSRenderNodeDrawable;
 };
 
- 
 // RSRenderNodeSingleDrawableLocker: tool class that ensures drawable is exclusively used at the same time.
 class RSB_EXPORT RSRenderNodeSingleDrawableLocker {
 public:

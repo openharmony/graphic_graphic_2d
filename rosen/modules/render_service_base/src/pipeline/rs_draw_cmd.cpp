@@ -77,6 +77,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Drawing::Image>& 
     rsImage_->SetCompressData(data, imageInfo.uniqueId, imageInfo.width, imageInfo.height);
     rsImage_->SetImageFit(imageInfo.fitNum);
     rsImage_->SetImageRepeat(imageInfo.repeatNum);
+    rsImage_->SetImageRotateDegree(imageInfo.rotateDegree);
     std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
     rsImage_->SetRadius(radiusValue);
     rsImage_->SetScale(imageInfo.scale);
@@ -95,6 +96,7 @@ RSExtendImageObject::RSExtendImageObject(const std::shared_ptr<Media::PixelMap>&
         rsImage_ = std::make_shared<RSImage>();
         rsImage_->SetPixelMap(pixelMap);
         rsImage_->SetImageFit(imageInfo.fitNum);
+        rsImage_->SetImageRotateDegree(imageInfo.rotateDegree);
         rsImage_->SetImageRepeat(imageInfo.repeatNum);
         std::vector<Drawing::Point> radiusValue(imageInfo.radius, imageInfo.radius + CORNER_SIZE);
         rsImage_->SetRadius(radiusValue);
@@ -147,9 +149,7 @@ void RSExtendImageObject::Playback(Drawing::Canvas& canvas, const Drawing::Rect&
     if (canvas.GetRecordingCanvas()) {
         image_ = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
         if (image_) {
-#ifndef ROSEN_ARKUI_X
             SKResourceManager::Instance().HoldResource(image_);
-#endif
             rsImage_->SetDmaImage(image_);
         }
         rsImage_->CanvasDrawImage(canvas, rect, sampling, isBackground);
@@ -192,18 +192,15 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
 #endif
     if (!pixelMap->IsAstc() && RSPixelMapUtil::IsSupportZeroCopy(pixelMap, sampling)) {
 #if defined(RS_ENABLE_GL)
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            if (GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
-                rsImage_->SetDmaImage(image_);
-            }
+        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL &&
+            GetDrawingImageFromSurfaceBuffer(canvas, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()))) {
+            rsImage_->SetDmaImage(image_);
         }
 #endif
 #if defined(RS_ENABLE_VK)
-        if (RSSystemProperties::IsUseVukan()) {
-            if (GetRsImageCache(canvas, pixelMap,
-                reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
-                rsImage_->SetDmaImage(image_);
-            }
+        if (RSSystemProperties::IsUseVukan() &&
+            GetRsImageCache(canvas, pixelMap, reinterpret_cast<SurfaceBuffer*>(pixelMap->GetFd()), colorSpace)) {
+            rsImage_->SetDmaImage(image_);
         }
 #endif
         return;
@@ -214,8 +211,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
             RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
             if (!nativeWindowBuffer_) {
-                sptr<SurfaceBuffer> surfaceBuf(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
-                nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&surfaceBuf);
+                sptr<SurfaceBuffer> sfBuffer(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
+                nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
             }
             OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeWindowBuffer_);
             if (nativeBuffer == nullptr || !fileData->BuildFromOHNativeBuffer(nativeBuffer, pixelMap->GetCapacity())) {
@@ -826,7 +823,7 @@ void DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT(std::function<NodeI
 {
     if (std::exchange(getRootNodeIdForRT, func)) {
         RS_LOGE("DrawSurfaceBufferOpItem::RegisterGetRootNodeIdFuncForRT"
-            " registered OnAfterAcquireBuffer twice incorrectly.");
+            " registered OnFinish twice incorrectly.");
     }
 }
 

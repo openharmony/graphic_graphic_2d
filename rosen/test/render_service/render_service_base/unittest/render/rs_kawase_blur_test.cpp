@@ -43,7 +43,7 @@ void KawaseBlurFilterTest::TearDown() {}
 HWTEST_F(KawaseBlurFilterTest, testInterface, TestSize.Level1)
 {
     KawaseBlurFilter* kawaseBlurFilter = KawaseBlurFilter::GetKawaseBlurFilter();
-
+    ASSERT_NE(kawaseBlurFilter, nullptr);
     Drawing::Canvas canvas;
     Drawing::Rect src;
     Drawing::Rect dst;

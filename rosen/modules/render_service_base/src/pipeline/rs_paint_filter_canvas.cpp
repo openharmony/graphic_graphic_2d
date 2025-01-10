@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 
 #include <algorithm>
@@ -60,7 +59,7 @@ uint32_t RSPaintFilterCanvasBase::GetSaveCount() const
     return canvas_->GetSaveCount();
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 std::shared_ptr<Drawing::GPUContext> RSPaintFilterCanvasBase::GetGPUContext()
 {
     return canvas_ != nullptr ? canvas_->GetGPUContext() : nullptr;
@@ -1090,7 +1089,6 @@ Drawing::Canvas* RSPaintFilterCanvas::GetRecordingCanvas() const
 {
     return recordingState_ ? canvas_ : nullptr;
 }
-
 
 bool RSPaintFilterCanvas::GetRecordingState() const
 {

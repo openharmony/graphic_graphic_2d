@@ -48,7 +48,7 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #ifdef RS_ENABLE_VK
     static std::shared_ptr<Surface> MakeFromBackendRenderTarget(GPUContext* gpuContext, const TextureInfo& info,
         TextureOrigin origin, ColorType colorType, std::shared_ptr<ColorSpace> colorSpace,

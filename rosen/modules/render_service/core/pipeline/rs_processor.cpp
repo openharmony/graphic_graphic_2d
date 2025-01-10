@@ -97,7 +97,7 @@ void RSProcessor::RequestPerf(uint32_t layerLevel, bool onOffTag)
     switch (layerLevel) {
         case PERF_LEVEL_0: {
             // do nothing
-            RS_LOGD("RsDebug RSProcessor::Perf: perf do nothing");
+            RS_LOGD("RsDebug RSProcessor::perf do nothing");
             break;
         }
         case PERF_LEVEL_1: {
@@ -182,7 +182,6 @@ bool RSProcessor::Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offse
 
     if (mirroredId_ != INVALID_SCREEN_ID) {
         auto mirroredScreenInfo = screenManager->QueryScreenInfo(mirroredId_);
-
         CalculateMirrorAdaptiveCoefficient(
             static_cast<float>(screenInfo_.width), static_cast<float>(screenInfo_.height),
             static_cast<float>(mirroredScreenInfo.width), static_cast<float>(mirroredScreenInfo.height)

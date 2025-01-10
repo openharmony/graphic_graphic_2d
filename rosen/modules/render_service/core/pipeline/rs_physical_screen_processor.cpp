@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+#include "pipeline/rs_render_engine.h"
 #include "rs_physical_screen_processor.h"
-
 #include "rs_trace.h"
 #include "string_utils.h"
 

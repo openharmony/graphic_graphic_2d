@@ -120,6 +120,7 @@ ohos_source_set("render_service_base_src") {
     "src/command/rs_canvas_drawing_node_command.cpp",
     "src/command/rs_canvas_node_command.cpp",
     "src/command/rs_command_factory.cpp",
+    "src/command/rs_command_verify_helper.cpp",
     "src/command/rs_display_node_command.cpp",
     "src/command/rs_effect_node_command.cpp",
     "src/command/rs_frame_rate_linker_command.cpp",
@@ -160,6 +161,8 @@ ohos_source_set("render_service_base_src") {
     "src/ipc_callbacks/iapplication_agent_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_application_agent_proxy.cpp",
     "src/ipc_callbacks/rs_application_agent_stub.cpp",
+    "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_proxy.cpp",
+    "src/ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.cpp",
     "src/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_iocclusion_change_callback_ipc_interface_code_access_verifier.cpp",
     "src/ipc_callbacks/rs_isurface_occlusion_change_callback_ipc_interface_code_access_verifier.cpp",
@@ -252,6 +255,7 @@ ohos_source_set("render_service_base_src") {
 
     #render
     "src/render/rs_aibar_shader_filter.cpp",
+    "src/render/rs_attraction_effect_filter.cpp",
     "src/render/rs_blur_filter.cpp",
     "src/render/rs_border.cpp",
     "src/render/rs_color_extract.cpp",
@@ -528,8 +532,8 @@ ohos_source_set("render_service_base_src") {
 
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines += [ "USE_ROSEN_DRAWING" ]
-    if (ace_enable_gpu) {
-      defines += [ "ACE_ENABLE_GPU" ]
+    if (rs_enable_gpu) {
+      defines += [ "RS_ENABLE_GPU" ]
     }
 
     deps += [ "$rosen_root/modules/2d_graphics:2d_graphics" ]

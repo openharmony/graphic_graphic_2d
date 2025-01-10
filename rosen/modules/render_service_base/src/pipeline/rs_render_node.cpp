@@ -116,7 +116,7 @@ OHOS::Rosen::Drawing::BackendTexture MakeBackendTexture(uint32_t width, uint32_t
     VkImage image = VK_NULL_HANDLE;
     VkDeviceMemory memory = VK_NULL_HANDLE;
 
-    if (width * height > VKIMAGE_LIMIT_SIZE) {
+    if (width * height > OHOS::Rosen::NativeBufferUtils::VKIMAGE_LIMIT_SIZE) {
         ROSEN_LOGE("NativeBufferUtils: vkCreateImag failed, image is too large, width:%{public}u, height::%{public}u",
             width, height);
         return {};
@@ -319,6 +319,27 @@ void RSRenderNode::RemoveChild(SharedPtr child, bool skipTransition)
     isFullChildrenListValid_ = false;
 }
 
+void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId)
+{
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSRenderNode::SetHdrNum: Invalid context");
+        return;
+    }
+    auto parentInstance = context->GetNodeMap().GetRenderNode(instanceRootNodeId);
+    if (!parentInstance) {
+        ROSEN_LOGE("RSRenderNode::SetHdrNum get parent instance root node info failed.");
+        return;
+    }
+    if (auto parentSurface = parentInstance->ReinterpretCastTo<RSSurfaceRenderNode>()) {
+        if (flag) {
+            parentSurface->IncreaseHDRNum();
+        } else {
+            parentSurface->ReduceHDRNum();
+        }
+    }
+}
+
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId)
 {
@@ -328,6 +349,18 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
     }
 
     SetPurgeStatus(flag);
+
+    // Need to count upeer or lower trees of HDR nodes
+    if (GetType() == RSRenderNodeType::CANVAS_NODE) {
+        auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
+        if (canvasNode != nullptr && canvasNode->GetHDRPresent()) {
+            NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
+            ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
+                " parent'S id:%{public}" PRIu64 " ", canvasNode->GetId(), canvasNode->GetNodeName().c_str(),
+                parentNodeId);
+            SetHdrNum(flag, parentNodeId);
+        }
+    }
 
     isNewOnTree_ = flag && !isOnTheTree_;
     isOnTheTree_ = flag;
@@ -1071,18 +1104,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren()
     AddToPendingSyncList();
 }
 
-void RSRenderNode::DisableDrawingCacheByHwcNode()
-{
-    if (GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
-        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
-        return;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("DisableDrawingCacheByHwcNode id:%llu", GetId());
-    SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
-    stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
-    AddToPendingSyncList();
-}
-
 void RSRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
 {
     if (!visitor) {
@@ -1345,6 +1366,7 @@ bool RSRenderNode::UpdateSelfDrawRect()
     CollectAndUpdateLocalShadowRect();
     CollectAndUpdateLocalOutlineRect();
     CollectAndUpdateLocalPixelStretchRect();
+    CollectAndUpdateLocalForegroundEffectRect();
     CollectAndUpdateLocalDistortionEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
@@ -1755,7 +1777,7 @@ void RSRenderNode::UpdateRenderStatus(RectI& dirtyRegion, bool isPartialRenderEn
 
 void RSRenderNode::MapAndUpdateChildrenRect()
 {
-    auto& geoPtr = GetRenderProperties().GetBoundsGeometry();
+    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
     if (!shouldPaint_ || geoPtr == nullptr) {
         return;
     }
@@ -1949,7 +1971,7 @@ bool RSRenderNode::IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFi
 void RSRenderNode::MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged)
 {
     auto filterDrawable = GetFilterDrawable(isForeground);
-    if (filterDrawable == nullptr) {
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
     auto& flag = isForeground ?
@@ -2130,16 +2152,14 @@ void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
         auto filterDrawable = GetFilterDrawable(false);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->MarkNeedClearFilterCache();
-            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
         }
     }
     if (GetRenderProperties().GetFilter()) {
         auto filterDrawable = GetFilterDrawable(true);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            filterDrawable->MarkNeedClearFilterCache();
-            UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COMPOSITING_FILTER);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
         }
     }
 }
@@ -2396,6 +2416,9 @@ void RSRenderNode::ApplyModifier(RSModifierContext& context, std::shared_ptr<RSR
 
 void RSRenderNode::ApplyModifiers()
 {
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::apply modifiers isFullChildrenListValid_:%{public}d"
+        " isChildrenSorted_:%{public}d childrenHasSharedTransition_:%{public}d",
+        isFullChildrenListValid_, isChildrenSorted_, childrenHasSharedTransition_);
     if (UNLIKELY(!isFullChildrenListValid_)) {
         GenerateFullChildrenList();
         AddDirtyType(RSModifierType::CHILDREN);
@@ -2406,6 +2429,7 @@ void RSRenderNode::ApplyModifiers()
         // if children has shared transition, force regenerate RSChildrenDrawable
         AddDirtyType(RSModifierType::CHILDREN);
     } else if (!RSRenderNode::IsDirty() || dirtyTypes_.none()) {
+        RS_LOGD("RSRenderNode::apply modifiers RSRenderNode's dirty is false or dirtyTypes_ is none");
         // clean node, skip apply
         return;
     }
@@ -2419,12 +2443,15 @@ void RSRenderNode::ApplyModifiers()
     // Apply modifiers
     auto displayNode = RSBaseRenderNode::ReinterpretCast<RSDisplayRenderNode>(shared_from_this());
     if (displayNode && displayNode->GetCurrentScbPid() != -1) {
+        RS_LOGD("RSRenderNode::apply modifiers displayNode's currentScbPid:%{public}d",
+            displayNode->GetCurrentScbPid());
         for (auto& [id, modifier] : modifiers_) {
             if (ExtractPid(id) == displayNode->GetCurrentScbPid()) {
                 ApplyModifier(context, modifier);
             }
         }
     } else {
+        RS_LOGD("RSRenderNode::apply modifiers displayNode is nullptr or displayNode's currentScbPid is -1");
         for (auto& [id, modifier] : modifiers_) {
             ApplyModifier(context, modifier);
         }
@@ -2440,6 +2467,10 @@ void RSRenderNode::ApplyModifiers()
         ProcessBehindWindowAfterApplyModifiers();
     }
 
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
+        " isTextureExportNode_:%{public}d", GetRenderProperties().GetSandBox().has_value(),
+        isTextureExportNode_);
     if (dirtyTypes_.test(static_cast<size_t>(RSModifierType::SANDBOX)) &&
         !GetRenderProperties().GetSandBox().has_value() && sharedTransitionParam_) {
         auto paramCopy = sharedTransitionParam_;
@@ -2498,6 +2529,7 @@ void RSRenderNode::UpdateDrawableVecV2()
     // Step 1: Collect dirty slots
     auto dirtySlots = RSDrawable::CalculateDirtySlots(dirtyTypes_, drawableVec_);
     if (dirtySlots.empty()) {
+        RS_LOGD("RSRenderNode::update drawable VecV2 dirtySlots is empty");
         return;
     }
     // Step 2: Update or regenerate drawable if needed
@@ -2506,6 +2538,8 @@ void RSRenderNode::UpdateDrawableVecV2()
     RSDrawable::FuzeDrawableSlots(*this, drawableVec_);
     // If any drawable has changed, or the CLIP_TO_BOUNDS slot has changed, then we need to recalculate
     // save/clip/restore.
+    RS_LOGI_IF(DEBUG_NODE,
+        "RSRenderNode::update drawable VecV2 drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged || dirtySlots.count(RSDrawableSlot::CLIP_TO_BOUNDS)) {
         // Step 3: Recalculate save/clip/restore on demands
         RSDrawable::UpdateSaveRestore(*this, drawableVec_, drawableVecStatus_);
@@ -2755,7 +2789,7 @@ bool RSRenderNode::NeedInitCacheSurface() const
     int width = 0;
     int height = 0;
     if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid()) {
+        !GetRenderProperties().IsSpherizeValid() && !GetRenderProperties().IsAttractionValid()) {
         const RectF boundsRect = GetRenderProperties().GetBoundsRect();
         RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
         RectI shadowRect;
@@ -2824,7 +2858,7 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
     boundsWidth_ = size.x_;
     boundsHeight_ = size.y_;
     if (cacheType == CacheType::ANIMATE_PROPERTY && GetRenderProperties().IsShadowValid() &&
-        !GetRenderProperties().IsSpherizeValid()) {
+        !GetRenderProperties().IsSpherizeValid() && !GetRenderProperties().IsAttractionValid()) {
         const RectF boundsRect = GetRenderProperties().GetBoundsRect();
         RRect rrect = RRect(boundsRect, {0, 0, 0, 0});
         RectI shadowRect;
@@ -2834,8 +2868,8 @@ void RSRenderNode::InitCacheSurface(Drawing::GPUContext* gpuContext, ClearCacheS
         shadowRectOffsetX_ = -shadowRect.GetLeft();
         shadowRectOffsetY_ = -shadowRect.GetTop();
     } else {
-        width = std::ceil(boundsWidth_);
-        height = std::ceil(boundsHeight_);
+        width = boundsWidth_;
+        height = boundsHeight_;
     }
 #if (defined (RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && (defined RS_ENABLE_EGLIMAGE)
     if (gpuContext == nullptr) {
@@ -3164,6 +3198,8 @@ bool RSRenderNode::IsSuggestedDrawInGroup() const
 void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("MarkNodeGroup type:%d isNodeGroup:%d id:%llu", type, isNodeGroup, GetId());
+    RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::MarkNodeGP type:%{public}d isNodeGroup:%{public}d id:%{public}" PRIu64,
+        type, isNodeGroup, GetId());
     if (isNodeGroup && type == NodeGroupType::GROUPED_BY_UI) {
         auto context = GetContext().lock();
         if (context && context->GetNodeMap().IsResidentProcessNode(GetId())) {

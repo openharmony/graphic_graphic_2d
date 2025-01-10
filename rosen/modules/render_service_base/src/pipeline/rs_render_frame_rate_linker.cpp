@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_render_frame_rate_linker.h"
 
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "platform/common/rs_log.h"
 #include "sandbox_utils.h"
 
@@ -36,9 +37,17 @@ FrameRateLinkerId RSRenderFrameRateLinker::GenerateId()
 
 RSRenderFrameRateLinker::RSRenderFrameRateLinker(FrameRateLinkerId id) : id_(id) {}
 RSRenderFrameRateLinker::RSRenderFrameRateLinker() : id_(GenerateId()) {}
+RSRenderFrameRateLinker::~RSRenderFrameRateLinker() {};
 
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
+    if (expectedRange_.preferred_ != range.preferred_) {
+        for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
+            if (cb) {
+                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), range.preferred_);
+            }
+        }
+    }
     expectedRange_ = range;
 }
 
@@ -60,6 +69,19 @@ uint32_t RSRenderFrameRateLinker::GetFrameRate() const
 void RSRenderFrameRateLinker::SetAnimatorExpectedFrameRate(int32_t animatorExpectedFrameRate)
 {
     animatorExpectedFrameRate_ = animatorExpectedFrameRate;
+}
+
+void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (callback == nullptr) {
+        expectedFpsChangeCallbacks_.erase(listener);
+        return;
+    }
+
+    // if this listener has registered a callback before, replace it.
+    expectedFpsChangeCallbacks_[listener] = callback;
+    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), expectedRange_.preferred_);
 }
 
 } // namespace Rosen

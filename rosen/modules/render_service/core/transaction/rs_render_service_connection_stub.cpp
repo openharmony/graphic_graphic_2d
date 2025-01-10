@@ -26,6 +26,7 @@
 #include "sys_binder.h"
 
 #include "command/rs_command_factory.h"
+#include "command/rs_command_verify_helper.h"
 #include "common/rs_xcollie.h"
 #include "hgm_frame_rate_manager.h"
 #include "pipeline/rs_base_render_util.h"
@@ -136,7 +137,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_HGM_CFG_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_TP_FEATURE_CONFIG),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK),
@@ -145,6 +145,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO),
@@ -334,6 +335,9 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             if (!isTokenTypeValid) {
                 RS_LOGE("RSRenderServiceConnectionStub::COMMIT_TRANSACTION invalid token type");
                 return ERR_INVALID_STATE;
+            }
+            if (isNonSystemAppCalling) {
+                RsCommandVerifyHelper::GetInstance().RegisterNonSystemPid(callingPid);
             }
             RS_TRACE_NAME_FMT("Recv Parcel Size:%zu, fdCnt:%zu", data.GetDataSize(), data.GetOffsetsSize());
             static bool isUniRender = RSUniRenderJudgement::IsUniRender();
@@ -1698,6 +1702,23 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(
+            RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK) : {
+            sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback = nullptr;
+            sptr<IRemoteObject> remoteObject = nullptr;
+            int32_t dstPid = data.ReadInt32();
+            if (data.ReadBool()) {
+                remoteObject = data.ReadRemoteObject();
+            }
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
+            }
+            int32_t status = RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+            if (!reply.WriteInt32(status)) {
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ROTATION_CACHE_ENABLED) : {
             if (!securityManager_.IsInterfaceCodeAccessible(code)) {
                 RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest no permission SET_ROTATION_CACHE_ENABLED");
@@ -1709,11 +1730,6 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetCacheEnabledForRotation(isEnabled);
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DEFAULT_DEVICE_ROTATION_OFFSET) : {
-            uint32_t offset = data.ReadUint32();
-            SetDefaultDeviceRotationOffset(offset);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {

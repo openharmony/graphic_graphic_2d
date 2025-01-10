@@ -58,10 +58,10 @@ class RsSurfaceNodeGravityTestDemo {
 public:
     RsSurfaceNodeGravityTestDemo()
     {
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
         renderContext_ = std::make_unique<RenderContext>();
         renderContext_->InitializeEglContext();
-#endif // ACE_ENABLE_GPU
+#endif // RS_ENABLE_GPU
 
         sptr<WindowOption> option(new WindowOption());
         option->SetDisplayId(0); // default displayId is 0
@@ -107,11 +107,11 @@ public:
             return;
         }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
         if (renderContext_ != nullptr) {
             rsSurface->SetRenderContext(renderContext_.get());
         }
-#endif // ACE_ENABLE_GPU
+#endif // RS_ENABLE_GPU
 
         std::size_t gravityIdx = 0;
         // test 50 frames.
@@ -144,9 +144,9 @@ public:
     }
 
 private:
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::unique_ptr<RenderContext> renderContext_;
-#endif // ACE_ENABLE_GPU
+#endif // RS_ENABLE_GPU
 
     sptr<Window> window_;
     std::shared_ptr<RSSurfaceNode> surfaceNode_;

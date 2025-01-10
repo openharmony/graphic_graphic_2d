@@ -89,8 +89,8 @@ ohos_unittest("2d_graphics_skia_canvas_test") {
     "//third_party/skia/third_party/externals/swiftshader/third_party/SPIRV-Headers/tools/buildHeaders/jsoncpp/dist/",
   ]
 
-  if (ace_enable_gpu) {
-    defines = [ "ACE_ENABLE_GPU" ]
+  if (rs_enable_gpu) {
+    defines = [ "RS_ENABLE_GPU" ]
   }
 
   part_name = "graphic_2d"

@@ -381,12 +381,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level
 #else
     EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::NONE);
 #endif
-    OH_Drawing_SetTextStyleDecoration(txtStyle, TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH);
-#ifndef USE_GRAPHIC_TEXT_GINE
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration_, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-#else
-    EXPECT_EQ(ConvertToOriginalText(txtStyle)->decoration, TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-#endif
 }
 
 /*
@@ -1656,11 +1650,17 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest049, TestSize.Level
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     bool halfLeading = true;
     OH_Drawing_SetTypographyTextHalfLeading(typoStyle, halfLeading);
+    EXPECT_TRUE(ConvertToOriginalText(typoStyle)->halfLeading);
     OH_Drawing_SetTypographyTextLineStyleHalfLeading(typoStyle, halfLeading);
+    EXPECT_TRUE(ConvertToOriginalText(typoStyle)->lineStyleHalfLeading);
     bool uselineStyle = true;
     OH_Drawing_SetTypographyTextUseLineStyle(typoStyle, uselineStyle);
+    EXPECT_TRUE(ConvertToOriginalText(typoStyle)->useLineStyle);
     bool linestyleOnly = false;
     OH_Drawing_SetTypographyTextLineStyleOnly(typoStyle, linestyleOnly);
+    EXPECT_FALSE(ConvertToOriginalText(typoStyle)->lineStyleOnly);
+    OH_Drawing_SetTypographyTextLineStyleOnly(nullptr, 0);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 
 
@@ -2504,29 +2504,6 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest086, TestSize.Level
     double maxWidth = 300.0;
     OH_Drawing_TypographyLayout(typography, maxWidth);
     EXPECT_EQ(maxWidth, OH_Drawing_TypographyGetMaxWidth(typography));
-}
-
-/*
- * @tc.name: OH_Drawing_TypographyTest087
- * @tc.desc: test for adding symbol for text typography
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest087, TestSize.Level1)
-{
-    uint32_t symbol = 0; // 0 means symbol for test
-    OH_Drawing_TypographyHandlerAddSymbol(nullptr, symbol);
-}
-
-/*
- * @tc.name: OH_Drawing_TypographyTest088
- * @tc.desc: test for setting indents for text typography
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest088, TestSize.Level1)
-{
-    // {1.2, 3.4} for unit test
-    const float indents[] = {1.2, 3.4};
-    OH_Drawing_TypographySetIndents(nullptr, 0, indents);
 }
 
 /*

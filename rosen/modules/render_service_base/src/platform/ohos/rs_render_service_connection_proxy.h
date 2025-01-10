@@ -214,6 +214,9 @@ public:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
+
     void SetAppWindowNum(uint32_t num) override;
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
@@ -248,8 +251,6 @@ public:
     uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
-
-    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
 
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 

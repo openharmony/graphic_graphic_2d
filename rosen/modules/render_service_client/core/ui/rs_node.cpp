@@ -642,9 +642,9 @@ void RSNode::SetBounds(float positionX, float positionY, float width, float heig
 
 void RSNode::SetBoundsWidth(float width)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
             SetBounds(0.f, 0.f, width, 0.f);
@@ -664,9 +664,9 @@ void RSNode::SetBoundsWidth(float width)
 
 void RSNode::SetBoundsHeight(float height)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::BOUNDS);
         if (iter == propertyModifiers_.end()) {
             SetBounds(0.f, 0.f, 0.f, height);
@@ -697,9 +697,9 @@ void RSNode::SetFrame(float positionX, float positionY, float width, float heigh
 
 void RSNode::SetFramePositionX(float positionX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::FRAME);
         if (iter == propertyModifiers_.end()) {
             SetFrame(positionX, 0.f, 0.f, 0.f);
@@ -718,9 +718,9 @@ void RSNode::SetFramePositionX(float positionX)
 
 void RSNode::SetFramePositionY(float positionY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::FRAME);
         if (iter == propertyModifiers_.end()) {
             SetFrame(0.f, positionY, 0.f, 0.f);
@@ -774,9 +774,9 @@ void RSNode::SetPivot(float pivotX, float pivotY)
 
 void RSNode::SetPivotX(float pivotX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::PIVOT);
         if (iter == propertyModifiers_.end()) {
             SetPivot(pivotX, 0.5f);
@@ -795,9 +795,9 @@ void RSNode::SetPivotX(float pivotX)
 
 void RSNode::SetPivotY(float pivotY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::PIVOT);
         if (iter == propertyModifiers_.end()) {
             SetPivot(0.5f, pivotY);
@@ -875,9 +875,9 @@ void RSNode::SetTranslate(float translateX, float translateY, float translateZ)
 
 void RSNode::SetTranslateX(float translate)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
             SetTranslate({ translate, 0.f });
@@ -896,9 +896,9 @@ void RSNode::SetTranslateX(float translate)
 
 void RSNode::SetTranslateY(float translate)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::TRANSLATE);
         if (iter == propertyModifiers_.end()) {
             SetTranslate({ 0.f, translate });
@@ -936,9 +936,9 @@ void RSNode::SetScale(const Vector2f& scale)
 
 void RSNode::SetScaleX(float scaleX)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::SCALE);
         if (iter == propertyModifiers_.end()) {
             SetScale(scaleX, 1.f);
@@ -957,9 +957,9 @@ void RSNode::SetScaleX(float scaleX)
 
 void RSNode::SetScaleY(float scaleY)
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::map<RSModifierType, std::shared_ptr<RSModifier>>::iterator iter;
     {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         iter = propertyModifiers_.find(RSModifierType::SCALE);
         if (iter == propertyModifiers_.end()) {
             SetScale(1.f, scaleY);
@@ -1430,7 +1430,7 @@ void RSNode::SetUICompositingFilter(const OHOS::Rosen::Filter* compositingFilter
         ROSEN_LOGE("Failed to set compositingFilter, compositingFilter is null!");
         return;
     }
-    // To do: generate composed filter here. Now we just set compositing blur in v1.0.
+    // To do: generate composed filter here. Now we just set compositing blur and pixelStretch in v1.0.
     auto filterParas = compositingFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara->GetParaType() == FilterPara::BLUR) {
@@ -1453,7 +1453,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
         ROSEN_LOGE("Failed to set foregroundFilter, foregroundFilter is null!");
         return;
     }
-    // To do: generate composed filter here. Now we just set pixel stretch in v1.0.
+    // To do: generate composed filter here. Now we just set foreground blur in v1.0.
     auto filterParas = foregroundFilter->GetAllPara();
     for (const auto& filterPara : filterParas) {
         if (filterPara->GetParaType() == FilterPara::BLUR) {
@@ -1919,6 +1919,24 @@ void RSNode::SetSpherizeDegree(float spherizeDegree)
     SetProperty<RSSpherizeModifier, RSAnimatableProperty<float>>(RSModifierType::SPHERIZE, spherizeDegree);
 }
 
+void RSNode::SetAttractionEffect(float fraction, const Vector2f& destinationPoint)
+{
+    SetAttractionEffectFraction(fraction);
+    SetAttractionEffectDstPoint(destinationPoint);
+}
+
+void RSNode::SetAttractionEffectFraction(float fraction)
+{
+    SetProperty<RSAttractionFractionModifier, RSAnimatableProperty<float>>(RSModifierType::ATTRACTION_FRACTION,
+        fraction);
+}
+
+void RSNode::SetAttractionEffectDstPoint(const Vector2f& destinationPoint)
+{
+    SetProperty<RSAttractionDstPointModifier, RSAnimatableProperty<Vector2f>>(RSModifierType::ATTRACTION_DSTPOINT,
+        destinationPoint);
+}
+
 void RSNode::SetLightUpEffectDegree(float LightUpEffectDegree)
 {
     SetProperty<RSLightUpEffectModifier, RSAnimatableProperty<float>>(
@@ -2364,7 +2382,7 @@ void RSNode::MarkUifirstNode(bool isUifirstNode)
         transactionProxy->AddCommand(command, IsRenderServiceNode());
     }
 }
- 
+
 void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 {
     if (isForceFlag == isForceFlag_ && isUifirstEnable_ == isUifirstEnable) {

@@ -23,6 +23,7 @@
 
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "rs_base_render_engine.h"
+#include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS {
@@ -43,7 +44,7 @@ public:
 
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
-    
+
     virtual bool Init(RSDisplayRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(RSSurfaceRenderNode& node, RSSurfaceRenderParams& params) {}

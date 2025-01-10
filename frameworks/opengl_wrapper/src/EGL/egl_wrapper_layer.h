@@ -31,15 +31,15 @@ public:
     static EglWrapperLayer& GetInstance();
     ~EglWrapperLayer();
     bool Init(EglWrapperDispatchTable *table);
+    bool InitBundleInfo();
 #if USE_IGRAPHICS_EXTENDS_HOOKS
     bool GetIGraphicsLogicStatus() { return iGraphicsLogic; }
 #endif
-    bool InitBundleInfo();
 
 private:
     EglWrapperLayer() : initialized_(false), dlhandle_(nullptr) {};
     bool LoadLayers(void);
-    bool LoadLayerFuncs(std::string realLayerPath);
+    bool LoadLayerFuncs(const std::string& realLayerPath);
     void InitLayers(EglWrapperDispatchTable *table);
     void SetupLayerFuncTbl(EglWrapperDispatchTable *table);
 
@@ -48,6 +48,7 @@ private:
     std::vector<FunctionTable> layerFuncTbl_;
     bool initialized_;
     void *dlhandle_;
+    
     EglSystemLayersManager eglSystemLayersManager_;
 #if USE_IGRAPHICS_EXTENDS_HOOKS
     bool iGraphicsLogic = false;

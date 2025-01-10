@@ -50,7 +50,6 @@ public:
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
-    void ScaleMirrorIfNeed(RSDisplayRenderNode& node, RSPaintFilterCanvas& canvas);
     void Fill(RSPaintFilterCanvas& canvas,
         float mainWidth, float mainHeight, float mirrorWidth, float mirrorHeight);
     void UniScale(RSPaintFilterCanvas& canvas,
@@ -76,15 +75,11 @@ public:
     int32_t GetBufferAge() const;
     // when virtual screen partial refresh closed, use this function to reset RoiRegion in buffer
     GSError SetRoiRegionToCodec(std::vector<RectI>& damageRegion);
-    bool RequestVirtualFrame(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    void CalculateTransform(RSDisplayRenderNode& node);
     void CalculateTransform(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void ScaleMirrorIfNeed(const ScreenRotation angle, RSPaintFilterCanvas& canvas);
-    void ProcessVirtualDisplaySurface(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
     void CanvasClipRegionForUniscaleMode();
 private:
     void CanvasInit(DrawableV2::RSDisplayRenderNodeDrawable& displayDrawable);
-    void CanvasInit(RSDisplayRenderNode& node);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);
 
     sptr<Surface> producerSurface_;
@@ -92,17 +87,12 @@ private:
     std::shared_ptr<RSPaintFilterCanvas> canvas_;
     bool forceCPU_ = false;
     bool isExpand_ = false;
-    float mirrorWidth_ = 0.f;
-    float mirrorHeight_ = 0.f;
-    float mainWidth_ = 0.f;
-    float mainHeight_ = 0.f;
     float originalVirtualScreenWidth_ = 0.f; // used for recording the original virtual screen width
     float originalVirtualScreenHeight_ = 0.f; // used for recording the original virtual screen height
     float virtualScreenWidth_ = 0.f;
     float virtualScreenHeight_ = 0.f;
     float mirroredScreenWidth_ = 0.f;
     float mirroredScreenHeight_ = 0.f;
-    bool updateFlag_ = false;
     bool canvasRotation_ = false;
     ScreenScaleMode scaleMode_ = ScreenScaleMode::INVALID_MODE;
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;

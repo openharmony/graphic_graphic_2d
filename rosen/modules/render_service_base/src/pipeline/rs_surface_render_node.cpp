@@ -15,6 +15,7 @@
 
 #include "pipeline/rs_surface_render_node.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_common_def.h"
 #include "common/rs_common_hook.h"
@@ -114,6 +115,7 @@ RSSurfaceRenderNode::RSSurfaceRenderNode(
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
     MemoryTrack::Instance().AddNodeRecord(config.id, info);
+    RsCommandVerifyHelper::GetInstance().AddSurfaceNodeCreateCnt(ExtractPid(config.id));
 #endif
 }
 
@@ -129,6 +131,7 @@ RSSurfaceRenderNode::~RSSurfaceRenderNode()
 #endif
 #ifndef ROSEN_ARKUI_X
     MemoryTrack::Instance().RemoveNodeRecord(GetId());
+    RsCommandVerifyHelper::GetInstance().SubSurfaceNodeCreateCnt(ExtractPid(GetId()));
 #endif
 }
 
@@ -1002,7 +1005,25 @@ void RSSurfaceRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 bool RSSurfaceRenderNode::GetHDRPresent() const
 {
-    return hasHdrPresent_;
+    return hdrNum_ > 0;
+}
+
+void RSSurfaceRenderNode::IncreaseHDRNum()
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    hdrNum_++;
+    RS_LOGD("RSSurfaceRenderNode::IncreaseHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
+}
+
+void RSSurfaceRenderNode::ReduceHDRNum()
+{
+    std::lock_guard<std::mutex> lockGuard(mutexHDR_);
+    if (hdrNum_ == 0) {
+        ROSEN_LOGE("RSSurfaceRenderNode::ReduceHDRNum error");
+        return;
+    }
+    hdrNum_--;
+    RS_LOGD("RSSurfaceRenderNode::ReduceHDRNum HDRClient hdrNum_: %{public}d", hdrNum_);
 }
 
 void RSSurfaceRenderNode::SetForceUIFirstChanged(bool forceUIFirstChanged)
@@ -1056,6 +1077,38 @@ void RSSurfaceRenderNode::SetLayerTop(bool isTop)
     }
     surfaceParams->SetLayerTop(isTop);
     AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::IsHardwareEnabledTopSurface() const
+{
+    return nodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE &&
+        GetName() == "pointer window" && RSSystemProperties::GetHardCursorEnabled();
+}
+
+void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
+{
+    if (isHardCursor_ == status) {
+        isLastHardCursor_ = isHardCursor_;
+        return;
+    }
+    RS_LOGI("RSSurfaceRenderNode::SetHardCursorStatus status:%{public}d", status);
+    isLastHardCursor_ = isHardCursor_;
+    isHardCursor_ = status;
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams) {
+        surfaceParams->SetHardCursorStatus(status);
+        AddToPendingSyncList();
+    }
+}
+
+bool RSSurfaceRenderNode::GetHardCursorStatus() const
+{
+    return isHardCursor_;
+}
+
+bool RSSurfaceRenderNode::GetHardCursorLastStatus() const
+{
+    return isLastHardCursor_;
 }
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
@@ -1455,7 +1508,7 @@ bool RSSurfaceRenderNode::IsSCBNode() const
     return surfaceWindowType_ != SurfaceWindowType::SYSTEM_SCB_WINDOW;
 }
 
-void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform)
+void RSSurfaceRenderNode::UpdateHwcNodeLayerInfo(GraphicTransformType transform, bool isHardCursorEnable)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -2759,6 +2812,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     auto& properties = GetRenderProperties();
     surfaceParams->alpha_ = properties.GetAlpha();
     surfaceParams->isSpherizeValid_ = properties.IsSpherizeValid();
+    surfaceParams->isAttractionValid_ = properties.IsAttractionValid();
     surfaceParams->rsSurfaceNodeType_ = GetSurfaceNodeType();
     surfaceParams->backgroundColor_ = properties.GetBackgroundColor();
     surfaceParams->rrect_ = properties.GetRRect();
@@ -2890,31 +2944,37 @@ const std::unordered_map<NodeId, NodeId>& RSSurfaceRenderNode::GetSecUIExtension
     return secUIExtensionNodes_;
 }
 
-void RSSurfaceRenderNode::SetSdrNit(int32_t sdrNit)
+void RSSurfaceRenderNode::SetSdrNit(float sdrNit)
 {
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams) {
-        surfaceParams->SetSdrNit(sdrNit);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetSdrNit(sdrNit);
     }
-    AddToPendingSyncList();
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 
-void RSSurfaceRenderNode::SetDisplayNit(int32_t displayNit)
+void RSSurfaceRenderNode::SetDisplayNit(float displayNit)
 {
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams) {
-        surfaceParams->SetDisplayNit(displayNit);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetDisplayNit(displayNit);
     }
-    AddToPendingSyncList();
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 
 void RSSurfaceRenderNode::SetBrightnessRatio(float brightnessRatio)
 {
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams) {
-        surfaceParams->SetBrightnessRatio(brightnessRatio);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams) {
+        stagingSurfaceParams->SetBrightnessRatio(brightnessRatio);
     }
-    AddToPendingSyncList();
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
 }
 
 void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState)

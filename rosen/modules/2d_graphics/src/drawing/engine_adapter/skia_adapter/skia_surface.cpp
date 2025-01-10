@@ -24,7 +24,7 @@
 #include "skia_bitmap.h"
 #include "skia_canvas.h"
 #include "skia_image_info.h"
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "skia_gpu_context.h"
 #endif
 #include "skia_image.h"
@@ -35,7 +35,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 static constexpr int TEXTURE_SAMPLE_COUNT = 0;
 static constexpr int FB_SAMPLE_COUNT = 0;
 static constexpr int STENCIL_BITS = 8;
@@ -81,9 +81,7 @@ void SkiaSurface::PostSkSurfaceToTargetThread()
     }
     auto func = SkiaGPUContext::GetPostFunc(grctx);
     if (func) {
-        auto skSurface = skSurface_;
-        auto skImage = skImage_;
-        func([skSurface, skImage]() {});
+        func([skSurface = std::move(skSurface_), skImage = std::move(skImage_)]() {});
     }
 }
 
@@ -103,7 +101,7 @@ bool SkiaSurface::Bind(const Bitmap& bitmap)
     return true;
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 bool SkiaSurface::Bind(const Image& image)
 {
     auto skiaImageImpl = image.GetImpl<SkiaImage>();

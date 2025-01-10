@@ -296,7 +296,7 @@ napi_value FilterNapi::Constructor(napi_env env, napi_callback_info info)
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(valueType == napi_object, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi Constructor parse input PixelMapNapi fail, the type is napi_undefined"));
     Media::PixelMapNapi* tempPixelMap = nullptr;
-    status = napi_unwrap(env, argv[NUM_0], reinterpret_cast<void**>(&tempPixelMap));
+    status = napi_unwrap(env, argv[0], reinterpret_cast<void**>(&tempPixelMap));
     EFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok && tempPixelMap != nullptr, nullptr, filterNapi,
         EFFECT_LOG_E("FilterNapi Constructor parse input PixelMapNapi fail, the PixelMap is nullptr"));
     std::shared_ptr<Media::PixelMap> sharPixelPoint = tempPixelMap->GetPixelNapiInner();
@@ -396,8 +396,6 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
         auto manager = filterNapiManager.find(ctx->filterNapi);
         if (manager == filterNapiManager.end()) {
             ctx->status = ERROR;
-            napi_create_string_utf8(env, "FilterNapi filterNapi not found in manager",
-                NAPI_AUTO_LENGTH, &(ctx->errorMsg));
             return;
         }
         managerFlag = (*manager).second.load();
@@ -407,8 +405,6 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
         std::lock_guard<std::mutex> lock2(getPixelMapAsyncExecuteMutex_);
         if (ctx->filterNapi->Render(ctx->forceCPU) != DrawError::ERR_OK) {
             ctx->status = ERROR;
-            napi_create_string_utf8(
-                env, "FilterNapi Render Error", NAPI_AUTO_LENGTH, &(ctx->errorMsg));
             return;
         }
         ctx->dstPixelMap_ = ctx->filterNapi->GetDstPixelMap();

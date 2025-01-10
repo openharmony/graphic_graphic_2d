@@ -35,7 +35,7 @@ DrawingSampleReplayer::~DrawingSampleReplayer()
 {
     DestoryNativeWindow(nativeWindow_);
     if (surfaceNode_) {
-        surfaceNode_->DetachToDisplay(DEFAULT_DISPLAY_ID);
+        surfaceNode_->DetachToDisplay(defaultDisplayId_);
     }
 }
 
@@ -148,7 +148,7 @@ bool DrawingSampleReplayer::PrepareFrame(Drawing::Canvas* canvas)
 bool DrawingSampleReplayer::RenderLoop()
 {
     PrepareNativeEGLSetup();
-    int maxIter = (captureMode_ == CaptureMode::RDC) ? MAX_RENDERED_FRAMES : 1;
+    int maxIter = (captureMode_ == CaptureMode::RDC) ? maxRenderedFrames_ : 1;
 
     for (int i = 0; i < maxIter; ++i) {
         std::shared_ptr<Drawing::Surface> drawingSurface = renderContext_->AcquireSurface(width_, height_);
@@ -205,7 +205,7 @@ bool DrawingSampleReplayer::PrepareNativeEGLSetup()
     surfaceNode_->SetFrameGravity(Gravity::RESIZE_ASPECT_FILL);
     surfaceNode_->SetPositionZ(RSSurfaceNode::POINTER_WINDOW_POSITION_Z);
     surfaceNode_->SetBounds(0, 0, width_, height_);
-    surfaceNode_->AttachToDisplay(DEFAULT_DISPLAY_ID);
+    surfaceNode_->AttachToDisplay(defaultDisplayId_);
     RSTransaction::FlushImplicitTransaction();
 
     sptr<Surface> ohosSurface = surfaceNode_->GetSurface();

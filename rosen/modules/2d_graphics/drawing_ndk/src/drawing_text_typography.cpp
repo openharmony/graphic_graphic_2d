@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,6 +14,9 @@
  */
 
 #include "drawing_text_typography.h"
+#include "utils/log.h"
+#include "utils/object_mgr.h"
+#include "utils/string_util.h"
 
 #include <codecvt>
 #include <locale>
@@ -32,9 +34,7 @@
 #include "rosen_text/typography_create.h"
 #include "unicode/putil.h"
 
-#include "utils/log.h"
-#include "utils/object_mgr.h"
-#include "utils/string_util.h"
+
 #ifndef USE_GRAPHIC_TEXT_GINE
 using namespace rosen;
 #else
@@ -322,10 +322,6 @@ void OH_Drawing_SetTextStyleDecoration(OH_Drawing_TextStyle* style, int decorati
 #endif
             break;
         }
-        case TEXT_DECORATION_UNDERLINE | TEXT_DECORATION_LINE_THROUGH: {
-            rosenDecoration = static_cast<TextDecoration>(TextDecoration::UNDERLINE | TextDecoration::LINE_THROUGH);
-            break;
-        }
         default: {
             rosenDecoration = TextDecoration::NONE;
         }
@@ -374,7 +370,7 @@ void OH_Drawing_SetTextStyleFontFamilies(
         if (fontFamilies[i]) {
             rosenFontFamilies.emplace_back(fontFamilies[i]);
         } else {
-            LOGE("Null fontFamilies[%d{public}s]", i);
+            LOGE("Null fontFamilies[%{public}d]", i);
             return;
         }
     }
@@ -405,7 +401,6 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = rosen::FontStyle::NORMAL;
         }
     }
-    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
 #else
     FontStyle rosenFontStyle;
     switch (fontStyle) {
@@ -422,6 +417,10 @@ void OH_Drawing_SetTextStyleFontStyle(OH_Drawing_TextStyle* style, int fontStyle
             rosenFontStyle = FontStyle::NORMAL;
         }
     }
+#endif
+#ifndef USE_GRAPHIC_TEXT_GINE
+    ConvertToOriginalText<TextStyle>(style)->fontStyle_ = rosenFontStyle;
+#else
     ConvertToOriginalText<TextStyle>(style)->fontStyle = rosenFontStyle;
 #endif
 }
@@ -1531,12 +1530,12 @@ char** OH_Drawing_FontParserGetSystemFontList(OH_Drawing_FontParser* fontParser,
         fontList[i] = nullptr;
         bool res = CopyStrData(&fontList[i], systemFontList[i].fullName);
         if (!res) {
-            for (size_t j = i; j >= 0; j--) {
-                delete fontList[j];
-                fontList[j] = nullptr;
+            for (size_t j = 0; j <= i; j++) {
+                delete[] fontList[j];
             }
             delete[] fontList;
             fontList = nullptr;
+            *num = 0;
             return nullptr;
         }
     }
@@ -1702,7 +1701,7 @@ void OH_Drawing_SetTextShadow(
     if (!shadow || !offset) {
         return;
     }
-
+ 
     auto* tailoredShadow = reinterpret_cast<TextShadow*>(shadow);
     tailoredShadow->blurRadius = blurRadius;
     tailoredShadow->color = Drawing::Color(color);
@@ -2192,6 +2191,11 @@ OH_Drawing_FontFeature* OH_Drawing_TextStyleGetFontFeatures(OH_Drawing_TextStyle
     for (auto& kv : originMap) {
         (fontFeatureArray + index)->tag = new (std::nothrow) char[(kv.first).size() + 1];
         if ((fontFeatureArray + index)->tag == nullptr) {
+            for (size_t j = 0; j < index; j++) {
+                delete[] (fontFeatureArray + j)->tag;
+                (fontFeatureArray + j)->tag = nullptr;
+            }
+            delete[] fontFeatureArray;
             return nullptr;
         }
         auto result = strcpy_s((fontFeatureArray + index)->tag, ((kv.first).size() + 1), (kv.first).c_str());
@@ -2244,10 +2248,12 @@ double OH_Drawing_TextStyleGetBaselineShift(OH_Drawing_TextStyle* style)
 uint32_t OH_Drawing_TextStyleGetColor(OH_Drawing_TextStyle* style)
 {
     if (style == nullptr) {
+        // 0xFFFFFFFF is default color.
         return 0xFFFFFFFF;
     }
     TextStyle* textStyle = ConvertToOriginalText<TextStyle>(style);
     if (textStyle == nullptr) {
+        // 0xFFFFFFFF is default color.
         return 0xFFFFFFFF;
     }
     return textStyle->color.CastToColorQuad();
@@ -2525,6 +2531,12 @@ char** OH_Drawing_TypographyTextlineStyleGetFontFamilies(OH_Drawing_TypographySt
     for (size_t i = 0; i < systemFontFamilies.size(); ++i) {
         fontFamilie[i] = new (std::nothrow) char[systemFontFamilies[i].size() + 1];
         if (!fontFamilie[i]) {
+            for (size_t j = 0; j < i; j++) {
+                delete[] fontFamilie[j];
+                fontFamilie[j] = nullptr;
+            }
+            delete[] fontFamilie;
+            fontFamilie = nullptr;
             return nullptr;
         }
         auto retMemset =

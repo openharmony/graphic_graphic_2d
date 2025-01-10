@@ -168,7 +168,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
 {
     preStaticStatus_ = IsStaticCached();
     lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
-    if (IsForceClearOrUseFilterCache(filterDrawable)) {
+    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
     // use for skip-frame when screen rotation
@@ -181,7 +181,7 @@ void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilt
 bool RSEffectRenderNode::CheckFilterCacheNeedForceSave()
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::CheckFilterCacheNeedForceSave"
-        " isBackgroundImage:%d, isRotationChanged_:%d, IsStaticCached():%d",
+        " isBackgroundImage:%d, isRotationChanged_:%d, IsStaticCached():%d,",
         GetId(), GetRenderProperties().GetBgImage() != nullptr, isRotationChanged_, IsStaticCached());
     return GetRenderProperties().GetBgImage() != nullptr || (IsStaticCached() && !isRotationChanged_);
 }

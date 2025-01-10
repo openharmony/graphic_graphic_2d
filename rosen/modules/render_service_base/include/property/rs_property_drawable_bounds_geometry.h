@@ -202,7 +202,6 @@ protected:
 class RSShadowDrawable : public RSShadowBaseDrawable {
 public:
     explicit RSShadowDrawable(const RSProperties& properties);
-    ~RSShadowDrawable() override = default;
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
 
 protected:
@@ -357,6 +356,7 @@ public:
     void Draw(const RSRenderContent& content, RSPaintFilterCanvas& canvas) const override;
     bool Update(const RSRenderContent& content) override;
 };
+
 
 // ============================================================================
 // PixelStretch

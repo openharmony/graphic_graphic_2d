@@ -26,6 +26,7 @@
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 
+#include "command/rs_command_verify_helper.h"
 #include "command/rs_display_node_command.h"
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
@@ -131,6 +132,13 @@ void RSRenderServiceConnection::CleanFrameRateLinkers() noexcept
     frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
+void RSRenderServiceConnection::CleanFrameRateLinkerExpectedFpsCallbacks() noexcept
+{
+    auto& context = mainThread_->GetContext();
+    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+    frameRateLinkerMap.UnRegisterExpectedFpsUpdateCallbackByListener(remotePid_);
+}
+
 void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -143,6 +151,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
         return;
     }
     RS_LOGD("RSRenderServiceConnection::CleanAll() start.");
+    RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(remotePid_);
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
             sptr<RSRenderServiceConnection> connection = weakThis.promote();
@@ -161,6 +170,7 @@ void RSRenderServiceConnection::CleanAll(bool toDelete) noexcept
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
+            connection->CleanFrameRateLinkerExpectedFpsCallbacks();
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSRenderServiceConnection>(this)]() {
@@ -957,26 +967,14 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
             callback->OnSurfaceCapture(id, nullptr);
             return;
         }
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (RSSystemParameters::GetRsSurfaceCaptureType() ==
-            RsSurfaceCaptureType::RS_SURFACE_CAPTURE_TYPE_MAIN_THREAD ||
-            renderType == UniRenderEnabledType::UNI_RENDER_DISABLED) {
-            auto isProcOnBgThread = (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) ?
-                !node->IsOnTheTree() : false;
-            std::function<void()> captureTaskInner = [id, callback, captureConfig, isProcOnBgThread]() -> void {
-                RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
-                ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
-                RSSurfaceCaptureTask task(id, captureConfig, isProcOnBgThread);
-                if (!task.Run(callback)) {
-                    callback->OnSurfaceCapture(id, nullptr);
-                }
-                ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-            };
-            if (isProcOnBgThread) {
-                RSBackgroundThread::Instance().PostTask(captureTaskInner);
-            } else {
-                captureTaskInner();
+        if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
+            RS_LOGD("RSRenderService::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
+            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderService::TakeSurfaceCapture");
+            RSSurfaceCaptureTask task(id, captureConfig);
+            if (!task.Run(callback)) {
+                callback->OnSurfaceCapture(id, nullptr);
             }
+            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         } else {
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
             RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling);
@@ -1034,7 +1032,7 @@ void RSRenderServiceConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApp
 
 void RSRenderServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
-    auto captureTask = [=]() -> void {
+    auto captureTask = [app]() -> void {
         RSMainThread::Instance()->UnRegisterApplicationAgent(app);
     };
     RSMainThread::Instance()->ScheduleTask(captureTask).wait();
@@ -1741,6 +1739,24 @@ int32_t RSRenderServiceConnection::RegisterHgmRefreshRateUpdateCallback(
     return StatusCode::SUCCESS;
 }
 
+int32_t RSRenderServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (!mainThread_ || dstPid == 0) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [pid = remotePid_, dstPid, callback, weakThis = wptr<RSRenderServiceConnection>(this)]() {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (!connection || !connection->mainThread_) {
+            return;
+        }
+        connection->mainThread_->GetContext().GetMutableFrameRateLinkerMap()
+            .RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid, dstPid, callback);
+    };
+    mainThread_->PostTask(task);
+    return StatusCode::SUCCESS;
+}
+
 void RSRenderServiceConnection::SetAppWindowNum(uint32_t num)
 {
     if (!mainThread_) {
@@ -1962,11 +1978,6 @@ void RSRenderServiceConnection::SetCacheEnabledForRotation(bool isEnabled)
         RSSystemProperties::SetCacheEnabledForRotation(isEnabled);
     };
     mainThread_->PostTask(task);
-}
-
-void RSRenderServiceConnection::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    RSSystemProperties::SetDefaultDeviceRotationOffset(offset);
 }
 
 std::vector<ActiveDirtyRegionInfo> RSRenderServiceConnection::GetActiveDirtyRegionInfo()

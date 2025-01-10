@@ -135,12 +135,15 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
     } else if (!properties.GetCornerRadius().IsZero()) {
         canvas.ClipRoundRect(
             RSPropertyDrawableUtils::RRect2DrawingRRect(properties.GetRRect()), Drawing::ClipOp::INTERSECT, true);
+    } else if (node.GetType() == RSRenderNodeType::SURFACE_NODE && RSSystemProperties::GetCacheEnabledForRotation() &&
+        node.ReinterpretCastTo<RSSurfaceRenderNode>()->IsAppWindow()) {
+        Drawing::Rect rect = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
+        Drawing::RectI iRect(static_cast<int>(rect.GetLeft()), static_cast<int>(rect.GetTop()),
+            static_cast<int>(rect.GetRight()), static_cast<int>(rect.GetBottom()));
+        canvas.ClipIRect(iRect, Drawing::ClipOp::INTERSECT);
     } else {
-        // Enable anti-aliasing only on surface nodes to resolve the issue of jagged edges on card compoments
-        // during dragging.
-        bool aa = node.IsInstanceOf<RSSurfaceRenderNode>();
         canvas.ClipRect(
-            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, aa);
+            RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect()), Drawing::ClipOp::INTERSECT, false);
     }
     return true;
 }

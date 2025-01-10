@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "drawable/rs_property_drawable_background.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
@@ -1021,7 +1022,9 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    if (!RSProperties::FilterCacheEnabled) {
+        return;
+    }
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     auto& properties = node.GetMutableRenderProperties();
@@ -1031,10 +1034,15 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     RectI lastRegion(0, 0, 100, 100);
     node.filterRegion_ = inRegion;
     node.lastFilterRegion_ = lastRegion;
+    auto filterDrawable = std::static_pointer_cast<DrawableV2::RSBackgroundFilterDrawable>(
+        DrawableV2::RSBackgroundFilterDrawable::OnGenerate(node));
+    filterDrawable->stagingFilterRegionChanged_ = false;
+    node.drawableVec_[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = filterDrawable;
     node.UpdateFilterCacheWithSelfDirty();
+    ASSERT_TRUE(filterDrawable->stagingFilterRegionChanged_);
     node.filterRegion_ = outRegion;
     node.UpdateFilterCacheWithSelfDirty();
-    ASSERT_TRUE(true);
+    ASSERT_TRUE(filterDrawable->stagingFilterRegionChanged_);
 }
 
 /**
@@ -1090,7 +1098,9 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
 {
-    ASSERT_TRUE(RSProperties::FilterCacheEnabled);
+    if (!RSProperties::FilterCacheEnabled) {
+        return;
+    }
     RSRenderNode node(id, context);
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -1101,7 +1111,6 @@ HWTEST_F(RSRenderNodeTest2, PostPrepareForBlurFilterNode002, TestSize.Level1)
     node.drawableVec_[static_cast<uint32_t>(slot)] = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.PostPrepareForBlurFilterNode(*rsDirtyManager, needRequestNextVsync);
     ASSERT_NE(node.GetFilterDrawable(false), nullptr);
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -1291,46 +1300,6 @@ HWTEST_F(RSRenderNodeTest2, IsSubTreeNeedPrepareTest034, TestSize.Level1)
     EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
     nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_ANIM;
     EXPECT_FALSE(nodeTest->IsUifirstArkTsCardNode());
-}
-
-/**
- * @tc.name: UpdateDrawingCacheInfoBeforeChildrenTest035
- * @tc.desc: UpdateDrawingCacheInfoBeforeChildren UpdateDrawingCacheInfoAfterChildren DisableDrawingCacheByHwcNode test
- * @tc.type: FUNC
- * @tc.require: issueIA5Y41
- */
-HWTEST_F(RSRenderNodeTest2, UpdateDrawingCacheInfoBeforeChildrenTest035, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> nodeTest = std::make_shared<RSSurfaceRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
-
-    nodeTest->shouldPaint_ = false;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
-    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
-    nodeTest->shouldPaint_ = true;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(true);
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::FORCED_CACHE;
-    nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
-
-    nodeTest->nodeGroupType_ = RSRenderNode::NONE;
-    nodeTest->hasChildrenOutOfRect_ = true;
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
-    nodeTest->stagingRenderParams_ = std::move(stagingRenderParams);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
-    nodeTest->hasChildrenOutOfRect_ = false;
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
-    EXPECT_NE(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
-
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
-    nodeTest->DisableDrawingCacheByHwcNode();
-    nodeTest->drawingCacheType_ = RSDrawingCacheType::TARGETED_CACHE;
-    nodeTest->DisableDrawingCacheByHwcNode();
-    EXPECT_EQ(nodeTest->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**

@@ -47,7 +47,7 @@ public:
 
     uint32_t GetSaveCount() const override;
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> GetGPUContext() override;
 #endif
 
@@ -69,8 +69,7 @@ public:
         Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag) override;
     void DrawShadowStyle(const Drawing::Path& path, const Drawing::Point3& planeParams,
         const Drawing::Point3& devLightPos, Drawing::scalar lightRadius,
-        Drawing::Color ambientColor,
-        Drawing::Color spotColor, Drawing::ShadowFlags flag,
+        Drawing::Color ambientColor, Drawing::Color spotColor, Drawing::ShadowFlags flag,
         bool isLimitElevation) override;
     void DrawColor(Drawing::ColorQuad color, Drawing::BlendMode mode = Drawing::BlendMode::SRC_OVER) override;
     void DrawRegion(const Drawing::Region& region) override;

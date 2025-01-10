@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "image_source.h"
 #include "pixel_map.h"
 #endif
@@ -421,7 +421,7 @@ HWTEST_F(ImageTest, IsTextureBackedTest001, TestSize.Level1)
     EXPECT_FALSE(image.IsTextureBacked());
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: BuildFromCompressedTest001
  * @tc.desc: test for creating a GPU-backed Image from compressed data.

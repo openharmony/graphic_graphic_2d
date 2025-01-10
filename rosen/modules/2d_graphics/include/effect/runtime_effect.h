@@ -35,7 +35,7 @@ public:
 class DRAWING_API RuntimeEffect {
 public:
     /**
-     * @brief Shader SL requires an entry point that looks like:
+     * @brief Shdader described by shading language requires an entry point that looks like:
      * vec4 main(vec2 inCoords) { ... }
      * -or-
      * vec4 main(vec2 inCoords, vec4 inColor) { ... }
@@ -51,7 +51,7 @@ public:
     static std::shared_ptr<RuntimeEffect> CreateForES3Shader(const std::string& sl);
 
     /**
-     * @brief Blend SkSL requires an entry point that looks like:
+     * @brief Blend shader desribed by shading language requires an entry point that looks like:
      * vec4 main(vec4 srcColor, vec4 dstColor) { ... }
      *
      * @param sl

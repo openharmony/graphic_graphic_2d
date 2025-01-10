@@ -555,6 +555,21 @@ int32_t RSInterfaces::UnRegisterHgmRefreshRateUpdateCallback()
     return renderServiceClient_->RegisterHgmRefreshRateUpdateCallback(nullptr);
 }
 
+int32_t RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+    const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    if (callback == nullptr) {
+        ROSEN_LOGE("RSInterfaces::RegisterFrameRateLinkerExpectedFpsUpdateCallback callback == nullptr.");
+        return INVALID_ARGUMENTS;
+    }
+    return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
+}
+
+int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid)
+{
+    return renderServiceClient_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, nullptr);
+}
+
 void RSInterfaces::SetAppWindowNum(uint32_t num)
 {
     renderServiceClient_->SetAppWindowNum(num);
@@ -614,11 +629,6 @@ void RSInterfaces::ReportGameStateData(GameStateData info)
 void RSInterfaces::EnableCacheForRotation()
 {
     renderServiceClient_->SetCacheEnabledForRotation(true);
-}
-
-void RSInterfaces::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    renderServiceClient_->SetDefaultDeviceRotationOffset(offset);
 }
 
 void RSInterfaces::NotifyLightFactorStatus(bool isSafe)

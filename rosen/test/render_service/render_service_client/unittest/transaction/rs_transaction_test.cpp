@@ -48,7 +48,7 @@ HWTEST_F(RSTransactionTest, FlushImplicitTransaction001, TestSize.Level1)
     RSTransaction::FlushImplicitTransaction();
     RSTransaction rsTransaction;
     Parcel parcel;
-    EXPECT_NE(rsTransaction.Unmarshalling(parcel), nullptr);
+    EXPECT_EQ(rsTransaction.Unmarshalling(parcel), nullptr);
 }
 
 /**

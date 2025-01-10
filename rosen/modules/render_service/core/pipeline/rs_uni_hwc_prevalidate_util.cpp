@@ -54,6 +54,7 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     }
     RS_LOGI("[%{public}s_%{public}d]:load success", __func__, __LINE__);
     loadSuccess = true;
+    arsrPreEnabled_ = RSSystemParameters::GetArsrPreEnabled();
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()
@@ -74,10 +75,22 @@ bool RSUniHwcPrevalidateUtil::PreValidate(
 {
     if (!preValidateFunc_) {
         RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::PreValidate preValidateFunc is null");
+        ClearCldInfo(infos);
         return false;
     }
     int32_t ret = preValidateFunc_(id, infos, strategy);
+    ClearCldInfo(infos);
     return ret == 0;
+}
+
+void RSUniHwcPrevalidateUtil::ClearCldInfo(std::vector<RequestLayerInfo>& infos)
+{
+    for (auto& info: infos) {
+        if (info.cldInfo != nullptr) {
+            delete info.cldInfo;
+            info.cldInfo = nullptr;
+        }
+    }
 }
 
 bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
@@ -102,7 +115,8 @@ bool RSUniHwcPrevalidateUtil::CreateSurfaceNodeLayerInfo(uint32_t zorder,
     } else {
         info.perFrameParameters["SourceCropTuning"] = std::vector<int8_t> {0};
     }
-    if (CheckIfDoArsrPre(node)) {
+    
+    if (arsrPreEnabled_ && CheckIfDoArsrPre(node)) {
         info.perFrameParameters["ArsrDoEnhance"] = std::vector<int8_t> {1};
         node->SetArsrTag(true);
     }

@@ -105,8 +105,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
     drawable->renderParams_->shouldPaint_ = true;
     drawable->renderParams_->contentEmpty_ = false;
     ASSERT_TRUE(drawable->ShouldPaint());
-    const auto& params = drawable->GetRenderParams();
-    ASSERT_FALSE(drawable->EnableRecordingOptimization(*params));
     CaptureParam param;
     param.isMirror_ = false;
     RSUniRenderThread::SetCaptureParam(param);
@@ -160,9 +158,6 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest003, TestSize.Level1)
     drawable->renderParams_->contentEmpty_ = false;
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRSRenderThreadParams());
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetRootIdOfCaptureWindow(1);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetHasCaptureImg(true);
-    RSUniRenderThread::Instance().GetRSRenderThreadParams()->SetStartVisit(false);
     ASSERT_TRUE(drawable->GetRenderParams());
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());

@@ -321,6 +321,14 @@ bool RSSystemProperties::GetHwcRegionDfxEnabled()
     return hwcRegionDfxEnabled;
 }
 
+bool RSSystemProperties::GetDrawMirrorCacheImageEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.cacheimage.mirror.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetPixelmapDfxEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.pixelmapdfx.enabled", "0");
@@ -451,16 +459,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-void RSSystemProperties::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    defaultDeviceRotationOffset_ = offset;
-}
-
-uint32_t RSSystemProperties::GetDefaultDeviceRotationOffset()
-{
-    return defaultDeviceRotationOffset_;
-}
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -495,6 +493,14 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<HgmRefreshRateModes>(ConvertToInt(enable, 0));
+}
+
+bool RSSystemProperties::GetHardCursorEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.hardCursor.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()

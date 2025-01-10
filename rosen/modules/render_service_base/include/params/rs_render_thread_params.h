@@ -46,6 +46,10 @@ struct CaptureParam {
         isFirstNode_(isFirstNode),
         isSystemCalling_(isSystemCalling) {}
 };
+struct HardCursorInfo {
+    NodeId id = INVALID_NODEID;
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr drawablePtr = nullptr;
+};
 class RSB_EXPORT RSRenderThreadParams {
 public:
     RSRenderThreadParams() = default;
@@ -156,6 +160,10 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
+    const HardCursorInfo& GetHardCursorDrawables() const
+    {
+        return hardCursorDrawables_;
+    }
 
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
@@ -294,42 +302,6 @@ public:
         return isUniRenderAndOnVsync_;
     }
 
-    // To be deleted after captureWindow being deleted
-    void SetStartVisit(bool startVisit)
-    {
-        startVisit_ = startVisit;
-    }
-
-    // To be deleted after captureWindow being deleted
-    bool GetStartVisit() const
-    {
-        return startVisit_;
-    }
-
-    // To be deleted after captureWindow being deleted
-    void SetHasCaptureImg(bool hasCaptureImg)
-    {
-        hasCaptureImg_ = hasCaptureImg;
-    }
-
-    // To be deleted after captureWindow being deleted
-    bool GetHasCaptureImg() const
-    {
-        return hasCaptureImg_;
-    }
-
-    // To be deleted after captureWindow being deleted
-    void SetRootIdOfCaptureWindow(NodeId rootIdOfCaptureWindow)
-    {
-        rootIdOfCaptureWindow_ = rootIdOfCaptureWindow;
-    }
-
-    // To be deleted after captureWindow being deleted
-    NodeId GetRootIdOfCaptureWindow() const
-    {
-        return rootIdOfCaptureWindow_;
-    }
-
     void SetContext(std::shared_ptr<RSContext> context)
     {
         context_ = context;
@@ -440,9 +412,6 @@ public:
     }
 
 private:
-    bool startVisit_ = false;     // To be deleted after captureWindow being deleted
-    bool hasCaptureImg_ = false;  // To be deleted after captureWindow being deleted
-    NodeId rootIdOfCaptureWindow_ = INVALID_NODEID;  // To be deleted after captureWindow being deleted
     // Used by hardware thred
     uint64_t timestamp_ = 0;
     int64_t actualTimestamp_ = 0;
@@ -472,6 +441,7 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

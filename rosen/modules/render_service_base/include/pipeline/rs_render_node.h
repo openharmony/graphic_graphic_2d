@@ -620,7 +620,6 @@ public:
     virtual void UpdateRenderParams();
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
     void UpdateDrawingCacheInfoAfterChildren();
-    void DisableDrawingCacheByHwcNode();
 
     virtual RectI GetFilterRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
@@ -746,6 +745,8 @@ public:
     {
         return childrenHasUIExtension_;
     }
+
+    void SetHdrNum(bool flag, NodeId instanceRootNodeId);
 
     // temporary used for dfx/surfaceHandler/canvas drawing render node
     DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable() const

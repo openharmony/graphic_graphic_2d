@@ -154,6 +154,7 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: RSProcessor is null!");
         return;
     }
+    auto mirrorNode = node.GetMirrorSource().lock();
 
     auto mainThread = RSMainThread::Instance();
     if (mainThread != nullptr) {
@@ -162,10 +163,6 @@ void RSRenderServiceVisitor::ProcessDisplayRenderNode(RSDisplayRenderNode& node)
     if (!processor_->Init(node, node.GetDisplayOffsetX(), node.GetDisplayOffsetY(),
         mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, processorRenderEngine_)) {
         RS_LOGE("RSRenderServiceVisitor::ProcessDisplayRenderNode: processor init failed!");
-        return;
-    }
-
-    if (!CreateProcessor(node)) {
         return;
     }
 

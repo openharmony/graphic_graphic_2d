@@ -118,6 +118,7 @@ HWTEST_F(RSUIDirectorTest, SetRSSurfaceNode002 , TestSize.Level1)
 HWTEST_F(RSUIDirectorTest, PlatformInit001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    EXPECT_TRUE(director != nullptr);
 }
 
 /**

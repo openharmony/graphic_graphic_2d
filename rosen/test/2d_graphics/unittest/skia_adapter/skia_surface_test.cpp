@@ -40,7 +40,7 @@ void SkiaSurfaceTest::TearDownTestCase() {}
 void SkiaSurfaceTest::SetUp() {}
 void SkiaSurfaceTest::TearDown() {}
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: Bind001
  * @tc.desc: Test Bind

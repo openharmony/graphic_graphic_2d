@@ -20,7 +20,7 @@
 #include "include/core/SkImage.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPicture.h"
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 #include "include/gpu/GrDirectContext.h"
 #endif
 #include "skia_bitmap.h"
@@ -54,7 +54,7 @@ public:
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
     bool BuildFromBitmap(const Bitmap& bitmap) override;
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
     bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
@@ -102,7 +102,7 @@ public:
      * @brief  Update the member variable to skImage, adaptation layer calls.
      */
     void SetSkImage(const sk_sp<SkImage>& skImage);
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     /*
      * @brief  Export Skia member variables for use by the adaptation layer.
      */
@@ -114,7 +114,7 @@ public:
 
     void PostSkImgToTargetThread();
 private:
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
     sk_sp<GrDirectContext> grContext_ = nullptr;
 #endif
     sk_sp<SkImage> skiaImage_;

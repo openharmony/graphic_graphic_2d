@@ -86,7 +86,7 @@ void RSSurfaceBufferCallbackManager::RegisterSurfaceBufferCallback(pid_t pid, ui
 void RSSurfaceBufferCallbackManager::UnregisterSurfaceBufferCallback(pid_t pid)
 {
     std::unique_lock<std::shared_mutex> lock { registerSurfaceBufferCallbackMutex_ };
-    EraseIf(surfaceBufferCallbacks_, [pid](const auto& pair) {
+    EraseIf(surfaceBufferCallbacks_, [pid](auto& pair) {
         return pair.first.first == pid;
     });
 }
@@ -131,7 +131,7 @@ sptr<RSISurfaceBufferCallback> RSSurfaceBufferCallbackManager::GetSurfaceBufferC
     auto iter = surfaceBufferCallbacks_.find({pid, uid});
     if (iter == std::cend(surfaceBufferCallbacks_)) {
         RS_LOGE("RSSurfaceBufferCallbackManager::GetSurfaceBufferCallback Pair:"
-            "[Pid: %{public}s, Uid: %{public}s] not exists.",
+            "[Pid: %{public}s, Uid %{public}s] not exists.",
             std::to_string(pid).c_str(), std::to_string(uid).c_str());
         return nullptr;
     }
@@ -163,8 +163,8 @@ void RSSurfaceBufferCallbackManager::EnqueueSurfaceBufferId(
 void RSSurfaceBufferCallbackManager::RequestNextVSync()
 {
     if (vSyncFuncs_.isRequestedNextVSync && !std::invoke(vSyncFuncs_.isRequestedNextVSync)) {
-        if (vSyncFuncs_.requestNextVsync) {
-            std::invoke(vSyncFuncs_.requestNextVsync);
+        if (vSyncFuncs_.requestNextVSync) {
+            std::invoke(vSyncFuncs_.requestNextVSync);
         }
     }
 }
@@ -231,6 +231,9 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
         return;
     }
     runPolicy_([this]() {
+        if (GetSurfaceBufferCallbackSize() == 0) {
+            return;
+        }
         std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
         {
             std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
@@ -264,18 +267,18 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
         }
     });
 }
- 
+
 #ifdef RS_ENABLE_VK
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId)
 {
     if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
         return;
     }
- 
+
     if (GetSurfaceBufferCallbackSize() == 0) {
         return;
     }
- 
+
     // Step 1: Extract BufferQueueData by RootNodeId
     std::map<std::pair<pid_t, uint64_t>, BufferQueueData> surfaceBufferIds;
     {
@@ -310,7 +313,7 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId
             data.rootNodeIds.resize(resizeSize);
         }
     }
- 
+
     // step 2: Send BufferQueueData to Arkui
     bool isNeedRequestNextVSync = false;
     for (auto& [code, data] : surfaceBufferIds) {

@@ -34,10 +34,12 @@
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
 #include "render/rs_kawase_blur_shader_filter.h"
+#include "render/rs_material_filter.h"
 #include "render/rs_linear_gradient_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "render/rs_maskcolor_shader_filter.h"
 #include "render/rs_spherize_effect_filter.h"
+#include "render/rs_attraction_effect_filter.h"
 #include "src/core/SkOpts.h"
 #include "render/rs_water_ripple_shader_filter.h"
 #include "render/rs_fly_out_shader_filter.h"
@@ -61,6 +63,7 @@ constexpr int32_t INDEX_18 = 18;
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
 constexpr float SPHERIZE_VALID_EPSILON = 0.001f; // used to judge if spherize valid
+constexpr float ATTRACTION_VALID_EPSILON = 0.001f; // used to judge if attraction valid
 constexpr uint8_t BORDER_TYPE_NONE = (uint32_t)BorderStyle::NONE;
 constexpr int BORDER_NUM = 4;
 constexpr int16_t BORDER_TRANSPARENT = 255;
@@ -73,9 +76,9 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     nullptr,                                                             // BOUNDS
     nullptr,                                                             // FRAME
     [](RSProperties* prop) { prop->SetPositionZ(0.f); },                 // POSITION_Z
+    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetPivot(Vector2f(0.5f, 0.5f)); },    // PIVOT
     [](RSProperties* prop) { prop->SetPivotZ(0.f); },                    // PIVOT_Z
-    [](RSProperties* prop) { prop->SetPositionZApplicableCamera3D(true); },   // POSITION_Z_APPLICABLE_CAMERA3D
     [](RSProperties* prop) { prop->SetQuaternion(Quaternion()); },       // QUATERNION
     [](RSProperties* prop) { prop->SetRotation(0.f); },                  // ROTATION
     [](RSProperties* prop) { prop->SetRotationX(0.f); },                 // ROTATION_X
@@ -94,7 +97,7 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetBackgroundColor({}); },            // BACKGROUND_COLOR
     [](RSProperties* prop) { prop->SetBackgroundShader({}); },           // BACKGROUND_SHADER
     [](RSProperties* prop) { prop->SetBgImage({}); },                    // BG_IMAGE
-    [](RSProperties* prop) { prop->SetBgImageInnerRect({}); },           // Bg_Image_Inner_Rect
+    [](RSProperties* prop) { prop->SetBgImageInnerRect({}); },           // BG_IMAGE_INNER_RECT
     [](RSProperties* prop) { prop->SetBgImageWidth(0.f); },              // BG_IMAGE_WIDTH
     [](RSProperties* prop) { prop->SetBgImageHeight(0.f); },             // BG_IMAGE_HEIGHT
     [](RSProperties* prop) { prop->SetBgImagePositionX(0.f); },          // BG_IMAGE_POSITION_X
@@ -134,7 +137,9 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetShadowRadius(0.f); },              // SHADOW_RADIUS
     [](RSProperties* prop) { prop->SetShadowPath({}); },                 // SHADOW_PATH
     [](RSProperties* prop) { prop->SetShadowMask(false); },              // SHADOW_MASK
-    [](RSProperties* prop) { prop->SetShadowColorStrategy(0); },         // ShadowColorStrategy
+    [](RSProperties* prop) {
+        prop->SetShadowColorStrategy(SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE);    // SHADOW_COLOR_STRATEGY
+    },
     [](RSProperties* prop) { prop->SetMask({}); },                       // MASK
     [](RSProperties* prop) { prop->SetSpherize(0.f); },                  // SPHERIZE
     [](RSProperties* prop) { prop->SetLightUpEffect(1.f); },             // LIGHT_UP_EFFECT
@@ -144,8 +149,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetPixelStretchTileMode(0); },        // PIXEL_STRETCH_TILE_MODE
     [](RSProperties* prop) { prop->SetUseEffect(false); },               // USE_EFFECT
     [](RSProperties* prop) { prop->SetUseEffectType(0); },               // USE_EFFECT_TYPE
-    [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLENDMODE
-    [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLENDAPPLY_TYPE
+    [](RSProperties* prop) { prop->SetColorBlendMode(0); },              // COLOR_BLEND_MODE
+    [](RSProperties* prop) { prop->SetColorBlendApplyType(0); },         // COLOR_BLEND_APPLY_TYPE
     [](RSProperties* prop) { prop->ResetSandBox(); },                    // SANDBOX
     [](RSProperties* prop) { prop->SetGrayScale({}); },                  // GRAY_SCALE
     [](RSProperties* prop) { prop->SetBrightness({}); },                 // BRIGHTNESS
@@ -167,7 +172,6 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetOutlineDashWidth({-1.f}); },       // OUTLINE_DASH_WIDTH
     [](RSProperties* prop) { prop->SetOutlineDashGap({-1.f}); },         // OUTLINE_DASH_GAP
     [](RSProperties* prop) { prop->SetOutlineRadius(0.f); },             // OUTLINE_RADIUS
-    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
     [](RSProperties* prop) { prop->SetGreyCoef(std::nullopt); },         // GREY_COEF
     [](RSProperties* prop) { prop->SetLightIntensity(-1.f); },           // LIGHT_INTENSITY
     [](RSProperties* prop) { prop->SetLightColor({}); },                 // LIGHT_COLOR
@@ -175,14 +179,15 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetIlluminatedBorderWidth({}); },     // ILLUMINATED_BORDER_WIDTH
     [](RSProperties* prop) { prop->SetIlluminatedType(-1); },            // ILLUMINATED_TYPE
     [](RSProperties* prop) { prop->SetBloom({}); },                      // BLOOM
-    [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
-    [](RSProperties* prop) { prop->SetParticleNoiseFields({}); },         // PARTICLE_NOISE_FIELD
     [](RSProperties* prop) { prop->SetForegroundEffectRadius(0.f); },    // FOREGROUND_EFFECT_RADIUS
+    [](RSProperties* prop) { prop->SetUseShadowBatching(false); },       // USE_SHADOW_BATCHING
     [](RSProperties* prop) { prop->SetMotionBlurPara({}); },             // MOTION_BLUR_PARA
-    [](RSProperties* prop) { prop->SetFlyOutDegree(0.0f); },              // FLY_OUT_DEGREE
+    [](RSProperties* prop) { prop->SetEmitterUpdater({}); },             // PARTICLE_EMITTER_UPDATER
+    [](RSProperties* prop) { prop->SetParticleNoiseFields({}); },        // PARTICLE_NOISE_FIELD
+    [](RSProperties* prop) { prop->SetFlyOutDegree(0.0f); },             // FLY_OUT_DEGREE
     [](RSProperties* prop) { prop->SetFlyOutParams({}); },               // FLY_OUT_PARAMS
     [](RSProperties* prop) { prop->SetDistortionK(0.0f); },              // DISTORTION_K
-    [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_LIGHT_UP_DEGREE
+    [](RSProperties* prop) { prop->SetDynamicDimDegree({}); },           // DYNAMIC_DIM_DEGREE
     [](RSProperties* prop) { prop->SetMagnifierParams({}); },            // MAGNIFIER_PARA
     [](RSProperties* prop) { prop->SetBackgroundBlurRadius(0.f); },      // BACKGROUND_BLUR_RADIUS
     [](RSProperties* prop) { prop->SetBackgroundBlurSaturation({}); },   // BACKGROUND_BLUR_SATURATION
@@ -198,6 +203,8 @@ constexpr static std::array<ResetPropertyFunc, static_cast<int>(RSModifierType::
     [](RSProperties* prop) { prop->SetForegroundBlurColorMode(BLUR_COLOR_MODE::DEFAULT); }, // FOREGROUND_BLUR_COLORMODE
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusX(0.f); },     // FOREGROUND_BLUR_RADIUS_X
     [](RSProperties* prop) { prop->SetForegroundBlurRadiusY(0.f); },     // FOREGROUND_BLUR_RADIUS_Y
+    [](RSProperties* prop) { prop->SetAttractionFraction(0.f); },        // ATTRACTION_FRACTION
+    [](RSProperties* prop) { prop->SetAttractionDstPoint({}); },         // ATTRACTION_DSTPOINT
 };
 
 // Check if g_propertyResetterLUT size match and is fully initialized (the last element should never be nullptr)
@@ -206,7 +213,6 @@ static_assert(g_propertyResetterLUT.back() != nullptr);
 } // namespace
 
 // Only enable filter cache when uni-render is enabled and filter cache is enabled
-
 #if defined(NEW_SKIA) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
 #ifndef ROSEN_ARKUI_X
 const bool RSProperties::FilterCacheEnabled =
@@ -475,7 +481,6 @@ bool RSProperties::UpdateGeometry(
     if (parentMatrix && sandbox_ && sandbox_->matrix_) {
         parentMatrix = &(sandbox_->matrix_.value());
     }
-    CheckEmptyBounds();
     boundsGeo_->UpdateMatrix(parentMatrix, offset);
     if (lightSourcePtr_ && lightSourcePtr_->IsLightSourceValid()) {
         CalculateAbsLightPosition();
@@ -1330,7 +1335,7 @@ void RSProperties::SetEmitterUpdater(const std::vector<std::shared_ptr<EmitterUp
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
-        if (particleAnimation) {
+        if (particleAnimation != nullptr) {
             particleAnimation->UpdateEmitter(emitterUpdater_);
         }
     }
@@ -2015,6 +2020,7 @@ void RSProperties::SetShadowColorStrategy(int shadowColorStrategy)
     contentDirty_ = true;
 }
 
+
 const Color& RSProperties::GetShadowColor() const
 {
     static const auto DEFAULT_SPOT_COLOR_VALUE = Color::FromArgbInt(DEFAULT_SPOT_COLOR);
@@ -2187,12 +2193,12 @@ RectF RSProperties::GetBoundsRect() const
     auto rect = RectF();
     if (boundsGeo_->IsEmpty()) {
         if (!std::isinf(GetFrameWidth()) && !std::isinf(GetFrameHeight())) {
-            return {0, 0, GetFrameWidth(), GetFrameHeight()};
-        }
+            rect = {0, 0, GetFrameWidth(), GetFrameHeight()};
+        };
     } else {
         if (!std::isinf(GetBoundsWidth()) && !std::isinf(GetBoundsHeight())) {
-            return {0, 0, GetBoundsWidth(), GetBoundsHeight()};
-        }
+            rect = {0, 0, GetBoundsWidth(), GetBoundsHeight()};
+        };
     }
     return rect;
 }
@@ -2310,7 +2316,15 @@ bool RSProperties::IsContentDirty() const
 
 RectI RSProperties::GetDirtyRect() const
 {
-    RectI dirtyRect = boundsGeo_->MapAbsRect(GetLocalBoundsAndFramesRect());
+    RectI dirtyRect;
+    auto boundsGeometry = (boundsGeo_);
+    if (clipToBounds_ || std::isinf(GetFrameWidth()) || std::isinf(GetFrameHeight())) {
+        dirtyRect = boundsGeometry->GetAbsRect();
+    } else {
+        auto frameRect =
+            boundsGeometry->MapAbsRect(RectF(GetFrameOffsetX(), GetFrameOffsetY(), GetFrameWidth(), GetFrameHeight()));
+        dirtyRect = boundsGeometry->GetAbsRect().JoinRect(frameRect);
+    }
     if (drawRegion_ == nullptr || drawRegion_->IsEmpty()) {
         return dirtyRect;
     } else {
@@ -2391,6 +2405,67 @@ float RSProperties::GetSpherize() const
 bool RSProperties::IsSpherizeValid() const
 {
     return isSpherizeValid_;
+}
+
+void RSProperties::CreateSphereEffectFilter()
+{
+    auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
+    if (IS_UNI_RENDER) {
+        foregroundFilterCache_ = spherizeEffectFilter;
+    } else {
+        foregroundFilter_ = spherizeEffectFilter;
+    }
+}
+
+void RSProperties::CreateAttractionEffectFilter()
+{
+    float canvasWidth = GetBoundsRect().GetWidth();
+    float canvasHeight = GetBoundsRect().GetHeight();
+    Vector2f destinationPoint = GetAttractionDstPoint();
+    float windowLeftPoint = GetFramePositionX();
+    float windowTopPoint = GetFramePositionY();
+    auto attractionEffectFilter = std::make_shared<RSAttractionEffectFilter>(attractFraction_);
+    attractionEffectFilter->CalculateWindowStatus(canvasWidth, canvasHeight, destinationPoint);
+    attractionEffectFilter->UpdateDirtyRegion(windowLeftPoint, windowTopPoint);
+    attractionEffectCurrentDirtyRegion_ = attractionEffectFilter->GetAttractionDirtyRegion();
+    foregroundFilter_ = attractionEffectFilter;
+}
+
+RectI RSProperties::GetAttractionEffectCurrentDirtyRegion() const
+{
+    return attractionEffectCurrentDirtyRegion_;
+}
+
+float RSProperties::GetAttractionFraction() const
+{
+    return attractFraction_;
+}
+
+void RSProperties::SetAttractionDstPoint(Vector2f dstPoint)
+{
+    attractDstPoint_ = dstPoint;
+}
+
+Vector2f  RSProperties::GetAttractionDstPoint() const
+{
+    return attractDstPoint_;
+}
+
+void RSProperties::SetAttractionFraction(float fraction)
+{
+    attractFraction_ = fraction;
+    isAttractionValid_ = attractFraction_ > ATTRACTION_VALID_EPSILON;
+    if (isAttractionValid_) {
+        isDrawn_ = true;
+    }
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+bool RSProperties::IsAttractionValid() const
+{
+    return isAttractionValid_;
 }
 
 void RSProperties::CreateFlyOutShaderFilter()
@@ -3011,6 +3086,9 @@ void RSProperties::GenerateMagnifierFilter()
 
 void RSProperties::GenerateWaterRippleFilter()
 {
+    if (!waterRippleParams_) {
+        return;
+    }
     uint32_t waveCount = waterRippleParams_->waveCount;
     float rippleCenterX = waterRippleParams_->rippleCenterX;
     float rippleCenterY = waterRippleParams_->rippleCenterY;
@@ -3790,6 +3868,28 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    // AttractFraction
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for AttractFraction, ret=" + std::to_string(ret);
+    }
+    if (!ROSEN_EQ(GetAttractionFraction(), 0.f) &&
+        sprintf_s(buffer, UINT8_MAX, ", MiniFraction[%.1f]",  GetAttractionFraction()) != -1) {
+        dumpInfo.append(buffer);
+    }
+
+    // Attraction Destination Position
+    ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
+    if (ret != EOK) {
+        return "Failed to memset_s for MiniDstpoint, ret=" + std::to_string(ret);
+    }
+    Vector2f attractionDstpoint = GetAttractionDstPoint();
+    if ((!ROSEN_EQ(attractionDstpoint[0], 0.f) || !ROSEN_EQ(attractionDstpoint[1], 0.f)) &&
+        sprintf_s(buffer, UINT8_MAX, ", AttractionFraction DstPointY[%.1f,%.1f]",
+        attractionDstpoint[0], attractionDstpoint[1]) != -1) {
+        dumpInfo.append(buffer);
+    }
+
     // blendmode
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
@@ -4180,7 +4280,12 @@ void RSProperties::OnApplyModifiers()
     }
     if (colorFilterNeedUpdate_) {
         GenerateColorFilter();
-        needFilter_ = needFilter_ || (colorFilter_ != nullptr);
+        if (colorFilter_ != nullptr) {
+            needFilter_ = true;
+        } else {
+            // colorFilter generation failed, need to update needFilter
+            filterNeedUpdate_ = true;
+        }
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
         CalculatePixelStretch();
@@ -4240,12 +4345,9 @@ void RSProperties::UpdateForegroundFilter()
             foregroundFilter_ = foregroundEffectFilter;
         }
     } else if (IsSpherizeValid()) {
-        auto spherizeEffectFilter = std::make_shared<RSSpherizeEffectFilter>(spherizeDegree_);
-        if (IS_UNI_RENDER) {
-            foregroundFilterCache_ = spherizeEffectFilter;
-        } else {
-            foregroundFilter_ = spherizeEffectFilter;
-        }
+        CreateSphereEffectFilter();
+    } else if (IsAttractionValid()) {
+        CreateAttractionEffectFilter();
     } else if (IsFlyOutValid()) {
         CreateFlyOutShaderFilter();
     } else if (GetShadowMask()) {
@@ -4329,7 +4431,9 @@ void RSProperties::CheckGreyCoef()
         return;
     }
     // 127.0 half of 255.0
-    if (greyCoef_->x_ < 0.0f || greyCoef_->x_ > 127.0f || greyCoef_->y_ < 0.0f || greyCoef_->y_ > 127.0f) {
+    if (ROSEN_LNE(greyCoef_->x_, 0.f) || ROSEN_GNE(greyCoef_->x_, 127.f) ||
+        ROSEN_LNE(greyCoef_->y_, 0.f) || ROSEN_GNE(greyCoef_->y_, 127.f) ||
+        (ROSEN_EQ(greyCoef_->x_, 0.f) && ROSEN_EQ(greyCoef_->y_, 0.f))) {
         greyCoef_ = std::nullopt;
     }
 }

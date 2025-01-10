@@ -141,12 +141,11 @@ public:
 
     void SurfaceOcclusionCallbackToWMS();
 
-    std::unordered_set<NodeId> GetCurrentBlackList() const;
-
     static void ClearRenderGroupCache();
 
     using RenderParam = std::tuple<std::shared_ptr<RSRenderNode>, RSPaintFilterCanvas::CanvasStatus>;
 private:
+    const std::unordered_set<NodeId> GetCurrentBlackList() const;
     /* Prepare relevant calculation */
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
@@ -183,6 +182,7 @@ private:
     bool CheckLuminanceStatusChange();
     bool IsFirstFrameOfPartialRender() const;
     bool IsFirstFrameOfOverdrawSwitch() const;
+    bool IsFirstFrameOfDrawingCacheDfxSwitch() const;
     bool IsWatermarkFlagChanged() const;
     void UpdateDisplayZoomState();
     void CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
@@ -245,6 +245,7 @@ private:
     void CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyByShadowChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyBySurfaceChanged() const;
+    void CheckMergeDisplayDirtyByAttractionChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyByIntersectWithDirty(OcclusionRectISet& filterSet, bool isGlobalDirty);
@@ -265,10 +266,10 @@ private:
     void HandleColorGamuts(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
     void CheckPixelFormat(RSSurfaceRenderNode& node);
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
-
     bool IsHardwareComposerEnabled();
 
     void UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRenderNode& node);
+
     void SendRcdMessage(RSDisplayRenderNode& node);
 
     bool ForcePrepareSubTree()
@@ -300,7 +301,6 @@ private:
 
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
-
     sptr<RSScreenManager> screenManager_;
     ScreenInfo screenInfo_;
     RectI screenRect_;
@@ -362,7 +362,6 @@ private:
     bool isDirty_ = false;
     // added for judge if drawing cache changes
     bool isDrawingCacheEnabled_ = false;
-
     // opinc feature
     bool autoCacheEnable_ = false;
     bool unchangeMarkEnable_ = false;
@@ -406,7 +405,6 @@ private:
     static void ProcessUnpairedSharedTransitionNode();
 
     uint32_t appWindowNum_ = 0;
-
     // variable for occlusion
     bool needRecalculateOcclusion_ = false;
     Occlusion::Region accumulatedOcclusionRegion_;

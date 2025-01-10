@@ -66,6 +66,9 @@ public:
 
     void OnTreeStateChanged() override;
 
+    void SetHDRPresent(bool hasHdrPresent);
+    bool GetHDRPresent() const;
+
 protected:
     explicit RSCanvasRenderNode(NodeId id,
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
@@ -83,6 +86,7 @@ private:
     friend class RSColorfulShadowDrawable;
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
+    bool hasHdrPresent_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

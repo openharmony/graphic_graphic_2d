@@ -54,6 +54,7 @@ private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
+    void CleanFrameRateLinkerExpectedFpsCallbacks() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -239,6 +240,9 @@ private:
 
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
+
     void SetAppWindowNum(uint32_t num) override;
 
     bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) override;
@@ -273,8 +277,6 @@ private:
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
-
-    void SetDefaultDeviceRotationOffset(uint32_t offset) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 

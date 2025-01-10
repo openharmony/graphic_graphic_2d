@@ -188,16 +188,6 @@ std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderWidth() const
     return GetPropertyImpl<Vector4f, RSModifierType::BORDER_WIDTH>();
 }
 
-std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderDashWidth() const
-{
-    return GetPropertyImpl<Vector4f, RSModifierType::BORDER_DASH_WIDTH>();
-}
-
-std::optional<Vector4f> RSShowingPropertiesFreezer::GetBorderDashGap() const
-{
-    return GetPropertyImpl<Vector4f, RSModifierType::BORDER_DASH_GAP>();
-}
-
 std::optional<std::shared_ptr<RSFilter>> RSShowingPropertiesFreezer::GetBackgroundFilter() const
 {
     return GetPropertyImpl<std::shared_ptr<RSFilter>, RSModifierType::BACKGROUND_FILTER>();
@@ -241,6 +231,16 @@ std::optional<float> RSShowingPropertiesFreezer::GetShadowRadius() const
 std::optional<float> RSShowingPropertiesFreezer::GetSpherizeDegree() const
 {
     return GetPropertyImpl<float, RSModifierType::SPHERIZE>();
+}
+
+std::optional<float> RSShowingPropertiesFreezer::GetAttractionFractionValue() const
+{
+    return GetPropertyImpl<float, RSModifierType::ATTRACTION_FRACTION>();
+}
+
+std::optional<Vector2f> RSShowingPropertiesFreezer::GetAttractionDstPointValue() const
+{
+    return GetPropertyImpl<Vector2f, RSModifierType::ATTRACTION_DSTPOINT>();
 }
 
 std::optional<float> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const

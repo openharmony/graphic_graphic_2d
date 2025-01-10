@@ -339,7 +339,7 @@ uint32_t ColorPicker::GetMorandiBackgroundColor(ColorManager::Color &color) cons
             return SUCCESS;
         } else {
             hsv.s = 0;
-            hsv.v = 77; // Adjust value to 77.
+            hsv.v = 77;
             mostColor = HSVtoRGB(hsv);
             color = ColorManager::Color(mostColor | 0xFF000000);
             return SUCCESS;
@@ -402,7 +402,7 @@ uint32_t ColorPicker::GetMorandiShadowColor(ColorManager::Color &color) const
             return SUCCESS;
         } else {
             hsv.s = 0;
-            hsv.v = 26; // Adjust value to 26.
+            hsv.v = 26;
             mostColor = HSVtoRGB(hsv);
             color = ColorManager::Color(mostColor | 0xFF000000);
             return SUCCESS;
@@ -472,7 +472,6 @@ void ColorPicker::AdjustToBasicColor(HSV& hsv, double basicS, double basicV) con
         return;
     }
 }
-
 void ColorPicker::ProcessToDarkColor(HSV& hsv) const
 {
     // 18 and 69 is basic color threshold.
@@ -569,9 +568,9 @@ uint32_t ColorPicker::GetImmersiveForegroundColor(ColorManager::Color &color) co
         ProcessToDarkColor(colorHsv);
         if (colorHsv.s >= 20) { // 20 is saturation threshold.
             colorHsv.s = 20; // Adjust saturation to 20
-            colorHsv.v = 100; // Adjust value to 100.
+            colorHsv.v = 100;
         } else {
-            colorHsv.v = 100; // Adjust value to 100.
+            colorHsv.v = 100;
         }
     } else {
         ProcessToBrightColor(colorHsv);

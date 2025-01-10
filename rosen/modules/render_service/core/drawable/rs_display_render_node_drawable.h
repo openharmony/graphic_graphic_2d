@@ -43,6 +43,7 @@ public:
     void DrawHardwareEnabledNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void DrawHardwareEnabledTopNodesMissedInCacheImage(Drawing::Canvas& canvas);
     void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f) const;
+    void DrawHardCursorNodesMissedInCacheImage(Drawing::Canvas& canvas);
 
     std::shared_ptr<Drawing::Image> GetCacheImgForCapture() const
     {
@@ -136,15 +137,6 @@ public:
         return originScreenRotation_;
     }
     bool SkipFrame(uint32_t refreshRate, ScreenInfo screenInfo);
-    bool GetResetRotate() const
-    {
-        return resetRotate_;
-    }
-    
-    void SetResetRotate(bool resetRotate)
-    {
-        resetRotate_ = resetRotate;
-    }
 
 private:
     explicit RSDisplayRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
@@ -175,8 +167,6 @@ private:
     void DrawCurtainScreen() const;
     void RemoveClearMemoryTask() const;
     void PostClearMemoryTask() const;
-    void ResetRotateIfNeed(RSDisplayRenderNodeDrawable& mirroredNodeDrawable,
-        RSUniRenderVirtualProcessor& mirroredProcessor, Drawing::Region& clipRegion);
     void SetCanvasBlack(RSProcessor& processor);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
@@ -189,6 +179,8 @@ private:
     void UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion = false);
     static void CheckFilterCacheFullyCovered(RSSurfaceRenderParams& surfaceParams, RectI screenRect);
     static void CheckAndUpdateFilterCacheOcclusion(RSDisplayRenderParams& params, ScreenInfo& screenInfo);
+    bool HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor);
+    void FindHardCursorNodes(RSDisplayRenderParams& params);
     bool SkipFrameByInterval(uint32_t refreshRate, uint32_t skipFrameInterval);
     bool SkipFrameByRefreshRate(uint32_t refreshRate);
 

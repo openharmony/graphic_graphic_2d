@@ -68,6 +68,7 @@
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -180,6 +181,7 @@ constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
+constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
@@ -421,9 +423,6 @@ void RSMainThread::Init()
         }
         RenderFrameStart(timestamp_);
         RSRenderNodeGC::Instance().SetGCTaskEnable(true);
-#if defined(RS_ENABLE_UNI_RENDER)
-        WaitUntilSurfaceCapProcFinished();
-#endif
         PerfMultiWindow();
         SetRSEventDetectorLoopStartTag();
         ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSMainThread::DoComposition: " + std::to_string(curTime_));
@@ -520,6 +519,7 @@ void RSMainThread::Init()
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
     RsFrameReport::GetInstance().Init();
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
+    RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
     if (isUniRender_) {
         unmarshalBarrierTask_ = [this]() {
             auto cachedTransactionData = RSUnmarshalThread::Instance().GetCachedTransactionData();
@@ -542,7 +542,7 @@ void RSMainThread::Init()
         RSHardwareThread::Instance().PostTask(task);
     });
     RSSurfaceBufferCallbackManager::Instance().SetVSyncFuncs({
-        .requestNextVsync = []() {
+        .requestNextVSync = []() {
             RSMainThread::Instance()->RequestNextVSync();
         },
         .isRequestedNextVSync = []() {
@@ -1370,6 +1370,9 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         }
         auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
         if (frameRateMgr_ != nullptr && surfaceHandler->GetAvailableBufferCount() > 0) {
+            if (rsVSyncDistributor_ != nullptr) {
+                rsVSyncDistributor_->SetHasNativeBuffer();
+            }
             auto surfaceNodeName = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
             frameRateMgr_->UpdateSurfaceTime(surfaceNodeName, timestamp_, ExtractPid(surfaceNode->GetId()));
         }
@@ -1496,6 +1499,7 @@ void RSMainThread::CollectInfoForHardwareComposer()
             if (surfaceHandler->GetBuffer() != nullptr) {
                 selfDrawingNodes_.emplace_back(surfaceNode);
                 selfDrawables_.emplace_back(surfaceNode->GetRenderDrawable());
+                RSPointerWindowManager::Instance().SetHardCursorNodeInfo(surfaceNode);
             }
 
             if (!surfaceNode->GetDoDirectComposition()) {
@@ -1818,34 +1822,22 @@ void RSMainThread::OnHideNotchStatusCallback(const char *key, const char *value,
     RSMainThread::Instance()->RequestNextVSync();
 }
 
-void RSMainThread::NotifySurfaceCapProcFinish()
+void RSMainThread::OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context)
 {
-    RS_TRACE_NAME("RSMainThread::NotifySurfaceCapProcFinish");
-    std::lock_guard<std::mutex> lock(surfaceCapProcMutex_);
-    surfaceCapProcFinished_ = true;
-    surfaceCapProcTaskCond_.notify_one();
-}
-
-void RSMainThread::WaitUntilSurfaceCapProcFinished()
-{
-    if (GetDeviceType() != DeviceType::PHONE) {
+    if (strcmp(key, DRAWING_CACHE_DFX) != 0) {
         return;
     }
-    std::unique_lock<std::mutex> lock(surfaceCapProcMutex_);
-    if (surfaceCapProcFinished_) {
-        return;
+    bool isDrawingCacheDfxEnabled;
+    if (value) {
+        isDrawingCacheDfxEnabled = (std::atoi(value) != 0);
+    } else {
+        isDrawingCacheDfxEnabled = RSSystemParameters::GetDrawingCacheEnabledDfx();
     }
-    RS_OPTIONAL_TRACE_BEGIN("RSMainThread::WaitUntilSurfaceCapProcFinished");
-    surfaceCapProcTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
-        std::chrono::milliseconds(WAIT_FOR_SURFACE_CAPTURE_PROCESS_TIMEOUT),
-        [this]() { return surfaceCapProcFinished_; });
-    RS_OPTIONAL_TRACE_END();
-}
-
-void RSMainThread::SetSurfaceCapProcFinished(bool flag)
-{
-    std::lock_guard<std::mutex> lock(surfaceCapProcMutex_);
-    surfaceCapProcFinished_ = flag;
+    RSMainThread::Instance()->PostTask([isDrawingCacheDfxEnabled]() {
+        RSMainThread::Instance()->SetDirtyFlag();
+        RSMainThread::Instance()->SetDrawingCacheDfxEnabledOfCurFrame(isDrawingCacheDfxEnabled);
+        RSMainThread::Instance()->RequestNextVSync("DrawingCacheDfx");
+    });
 }
 
 bool RSMainThread::IsRequestedNextVSync()
@@ -1977,6 +1969,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
                 }
             }
             WaitUntilUploadTextureTaskFinishedForGL();
+            renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
             return;
         }
     }
@@ -1999,7 +1992,9 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
+        renderThreadParams_->hardCursorDrawables_ = RSPointerWindowManager::Instance().GetHardCursorDrawables();
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
+        renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         RSPointLightManager::Instance()->PrepareLight();
@@ -2022,6 +2017,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         isPartialRenderEnabledOfLastFrame_ = uniVisitor->GetIsPartialRenderEnabled();
         isRegionDebugEnabledOfLastFrame_ = uniVisitor->GetIsRegionDebugEnabled();
         isOverDrawEnabledOfLastFrame_ = isOverDrawEnabledOfCurFrame_;
+        isDrawingCacheDfxEnabledOfLastFrame_ = isDrawingCacheDfxEnabledOfCurFrame_;
         // set params used in render thread
         uniVisitor->SetUniRenderThreadParam(renderThreadParams_);
     } else if (RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
@@ -2086,6 +2082,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             params->SetBufferSynced(true);
         }
     }
+    RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
     RSUifirstManager::Instance().CreateUIFirstLayer(processor);
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(displayNode->GetId(), processor, rcdInfo, screenInfo);
@@ -3777,6 +3774,7 @@ void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
         hardwareEnabledDrwawables_.clear();
         selfDrawingNodes_.clear();
         selfDrawables_.clear();
+        RSPointerWindowManager::Instance().ResetHardCursorDrawables();
     }
 }
 

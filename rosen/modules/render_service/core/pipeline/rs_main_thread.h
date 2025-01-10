@@ -91,9 +91,9 @@ public:
 
     void Init();
     void Start();
-    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
+    bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void ProcessDataBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvAndProcessRSTransactionDataImmediately(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void RecvRSTransactionData(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -300,9 +300,6 @@ public:
     void SetLuminanceChangingStatus(bool isLuminanceChanged);
     bool ExchangeLuminanceChangingStatus();
     bool IsCurtainScreenOn() const;
-    void NotifySurfaceCapProcFinish();
-    void WaitUntilSurfaceCapProcFinished();
-    void SetSurfaceCapProcFinished(bool flag);
 
     bool GetParallelCompositionEnabled();
     std::shared_ptr<HgmFrameRateManager> GetFrameRateMgr() { return frameRateMgr_; };
@@ -330,6 +327,16 @@ public:
     bool GetSkipJankAnimatorFrame() const
     {
         return skipJankAnimatorFrame_.load();
+    }
+
+    bool IsFirstFrameOfDrawingCacheDFXSwitch() const
+    {
+        return isDrawingCacheDfxEnabledOfCurFrame_ != isDrawingCacheDfxEnabledOfLastFrame_;
+    }
+
+    void SetDrawingCacheDfxEnabledOfCurFrame(bool isDrawingCacheDfxEnabledOfCurFrame)
+    {
+        isDrawingCacheDfxEnabledOfCurFrame_ = isDrawingCacheDfxEnabledOfCurFrame;
     }
 
     void SetSkipJankAnimatorFrame(bool skipJankAnimatorFrame)
@@ -410,6 +417,7 @@ private:
     uint32_t GetDynamicRefreshRate() const;
     void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
     static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
+    static void OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context);
 
     bool DoParallelComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
 
@@ -527,10 +535,6 @@ private:
     int32_t unmarshalFinishedCount_ = 0;
     bool needWaitUnmarshalFinished_ = true;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
-
-    std::condition_variable surfaceCapProcTaskCond_;
-    std::mutex surfaceCapProcMutex_;
-    bool surfaceCapProcFinished_ = true;
 
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     RSTaskMessage::RSTask uploadTextureBarrierTask_;
@@ -671,6 +675,10 @@ private:
     int32_t subscribeFailCount_ = 0;
     SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
     uint32_t leashWindowCount_ = 0;
+
+    // for drawing cache dfx
+    bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
+    bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
 
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;

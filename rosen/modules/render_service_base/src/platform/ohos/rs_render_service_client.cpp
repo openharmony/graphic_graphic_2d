@@ -33,6 +33,7 @@
 #include "ipc_callbacks/buffer_clear_callback_stub.h"
 #include "ipc_callbacks/hgm_config_change_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
+#include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_uiextension_callback_stub.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
@@ -139,6 +140,10 @@ std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSS
         return nullptr;
     }
     sptr<Surface> surface = renderService->CreateNodeAndSurface(config);
+    if (surface == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface surface is nullptr.");
+        return nullptr;
+    }
     return CreateRSSurface(surface);
 }
 
@@ -756,7 +761,7 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     if (renderService == nullptr) {
         return false;
     }
-
+    std::lock_guard<std::mutex> lock(mapMutex_);
     auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
     if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
         ROSEN_LOGW("RSRenderServiceClient::RegisterBufferAvailableListener "
@@ -774,7 +779,6 @@ bool RSRenderServiceClient::RegisterBufferAvailableListener(
     if (isFromRenderThread) {
         bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
     } else {
-        std::lock_guard<std::mutex> lock(mapMutex_);
         bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
     }
     return true;
@@ -794,6 +798,7 @@ bool RSRenderServiceClient::RegisterBufferClearListener(NodeId id, const BufferC
 
 bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
 {
+    std::lock_guard<std::mutex> lock(mapMutex_);
     auto iter = bufferAvailableCbRTMap_.find(id);
     if (iter != bufferAvailableCbRTMap_.end()) {
         bufferAvailableCbRTMap_.erase(iter);
@@ -801,7 +806,6 @@ bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
         ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
                    "Node %{public}" PRIu64 " has not registered RT callback", id);
     }
-    std::lock_guard<std::mutex> lock(mapMutex_);
     iter = bufferAvailableCbUIMap_.find(id);
     if (iter != bufferAvailableCbUIMap_.end()) {
         bufferAvailableCbUIMap_.erase(iter);
@@ -1249,6 +1253,44 @@ int32_t RSRenderServiceClient::RegisterHgmRefreshRateUpdateCallback(
     return renderService->RegisterHgmRefreshRateUpdateCallback(cb);
 }
 
+class CustomFrameRateLinkerExpectedFpsUpdateCallback : public RSFrameRateLinkerExpectedFpsUpdateCallbackStub
+{
+public:
+    explicit CustomFrameRateLinkerExpectedFpsUpdateCallback(
+        const FrameRateLinkerExpectedFpsUpdateCallback& callback) : cb_(callback) {}
+    ~CustomFrameRateLinkerExpectedFpsUpdateCallback() override {};
+
+    void OnFrameRateLinkerExpectedFpsUpdate(pid_t dstPid, int32_t expectedFps) override
+    {
+        ROSEN_LOGD("CustomFrameRateLinkerExpectedFpsUpdateCallback::OnFrameRateLinkerExpectedFpsUpdate called,"
+            " pid=%{public}d, fps=%{public}d", dstPid, expectedFps);
+        if (cb_ != nullptr) {
+            cb_(dstPid, expectedFps);
+        }
+    }
+
+private:
+    FrameRateLinkerExpectedFpsUpdateCallback cb_;
+};
+
+int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
+    int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback renderService == nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+
+    sptr<CustomFrameRateLinkerExpectedFpsUpdateCallback> cb = nullptr;
+    if (callback) {
+        cb = new CustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
+    }
+
+    ROSEN_LOGD("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback called");
+    return renderService->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, cb);
+}
+
 void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1390,14 +1432,6 @@ void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetCacheEnabledForRotation(isEnabled);
-    }
-}
-
-void RSRenderServiceClient::SetDefaultDeviceRotationOffset(uint32_t offset)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->SetDefaultDeviceRotationOffset(offset);
     }
 }
 

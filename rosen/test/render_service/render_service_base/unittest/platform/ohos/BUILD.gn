@@ -82,7 +82,7 @@ ohos_unittest("RSRenderServiceBasePlatformTest") {
     defines = [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
   }
 
-  if (ace_enable_gpu) {
+  if (rs_enable_gpu) {
     public_deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",

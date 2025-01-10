@@ -231,16 +231,16 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemApp();
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::SET_DEFAULT_DEVICE_ROTATION_OFFSET): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_DEFAULT_DEVICE_ROTATION_OFFSET");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_SCREEN_REFRESH_RATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_SCREEN_REFRESH_RATE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_SCREEN_CURRENT_REFRESH_RATE): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_SCREEN_CURRENT_REFRESH_RATE");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::NOTIFY_LIGHT_FACTOR_STATUS): {

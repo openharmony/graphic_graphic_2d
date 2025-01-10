@@ -27,6 +27,7 @@
 #include "ipc_callbacks/iapplication_agent.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "memory/rs_memory_graphic.h"
@@ -242,6 +243,9 @@ public:
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
+    virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
+
     virtual bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
@@ -274,8 +278,6 @@ public:
     virtual uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent) = 0;
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
-
-    virtual void SetDefaultDeviceRotationOffset(uint32_t offset) = 0;
 
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 

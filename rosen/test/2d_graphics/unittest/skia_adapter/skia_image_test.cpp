@@ -75,7 +75,7 @@ HWTEST_F(SkiaImageTest, MakeRasterData001, TestSize.Level1)
     EXPECT_TRUE(image2 == nullptr);
 }
 
-#ifdef ACE_ENABLE_GPU
+#ifdef RS_ENABLE_GPU
 /**
  * @tc.name: MakeFromEncoded001
  * @tc.desc: Test MakeFromEncoded
@@ -151,10 +151,13 @@ HWTEST_F(SkiaImageTest, BuildFromTexture001, TestSize.Level1)
     TextureInfo textureInfo;
     textureInfo.SetWidth(10);
     BitmapFormat bitmapFormat { COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE };
-    skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, nullptr, nullptr, nullptr);
+    bool ret1 = skiaImage->BuildFromTexture(context, textureInfo, TextureOrigin::TOP_LEFT,
+        bitmapFormat, nullptr, nullptr, nullptr);
+    ASSERT_FALSE(ret1);
     auto colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
-    skiaImage->BuildFromTexture(
+    bool ret2 = skiaImage->BuildFromTexture(
         context, textureInfo, TextureOrigin::TOP_LEFT, bitmapFormat, colorSpace, nullptr, nullptr);
+    ASSERT_FALSE(ret2);
 }
 
 /**
@@ -391,7 +394,7 @@ HWTEST_F(SkiaImageTest, IsOpaque001, TestSize.Level1)
 HWTEST_F(SkiaImageTest, GetAlphaType001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    skiaImage->GetAlphaType();
+    ASSERT_TRUE(skiaImage->GetAlphaType() == AlphaType::ALPHATYPE_UNKNOWN);
 }
 
 /**
@@ -403,7 +406,7 @@ HWTEST_F(SkiaImageTest, GetAlphaType001, TestSize.Level1)
 HWTEST_F(SkiaImageTest, GetColorType001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    skiaImage->GetColorType();
+    ASSERT_TRUE(skiaImage->GetColorType() == ColorType::COLORTYPE_UNKNOWN);
 }
 
 /**
@@ -427,7 +430,7 @@ HWTEST_F(SkiaImageTest, GetColorSpace001, TestSize.Level1)
 HWTEST_F(SkiaImageTest, GetImageInfo001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
-    skiaImage->GetImageInfo();
+    ASSERT_TRUE(skiaImage->GetImageInfo().GetWidth() == 0);
 }
 
 /**

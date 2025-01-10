@@ -174,7 +174,7 @@ protected:
     bool stagingIsEffectNode_ = false;
     bool stagingIntersectWithDRM_ = false;
     bool stagingIsDarkColorMode_ = false;
- 
+
     // clear one of snapshot cache and filtered cache after drawing
     // All renderXXX variables should be read & written by render_thread or OnSync() function
     bool renderClearFilteredCacheAfterDrawing_ = false;
@@ -182,7 +182,6 @@ protected:
     bool renderForceClearCacheForLastFrame_ = false;
     bool renderIsEffectNode_ = false;
     bool renderIsSkipFrame_ = false;
-
     bool renderIntersectWithDRM_  = false;
     bool renderIsDarkColorMode_  = false;
 

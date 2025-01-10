@@ -65,7 +65,7 @@ namespace {
         csPrimaries.wX = primaries.wX;
         csPrimaries.wY = primaries.wY;
     }
-};
+}
 
 static NativeColorSpaceManager* OHNativeColorSpaceManagerToNativeColorSpaceManager(
     OH_NativeColorSpaceManager* nativeColorSpaceManager)

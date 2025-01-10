@@ -36,6 +36,10 @@ public:
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
 #endif
+    void SetMirrorAdaptiveCoefficient(float mirrorAdaptiveCoefficient)
+    {
+        mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;
+    }
     void DrawUIFirstCacheWithParams(RSPaintFilterCanvas& canvas, BufferDrawParam& params) override {}
 
 private:
@@ -52,6 +56,7 @@ private:
     void DrawSurfaceNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderNode& node, BufferDrawParam& params);
 
     void SetColorFilterModeToPaint(Drawing::Brush& paint);
+    float mirrorAdaptiveCoefficient_ = 1.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

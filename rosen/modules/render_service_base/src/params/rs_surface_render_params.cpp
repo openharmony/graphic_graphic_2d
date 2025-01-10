@@ -167,6 +167,20 @@ bool RSSurfaceRenderParams::GetHardwareEnabled() const
     return isHardwareEnabled_;
 }
 
+void RSSurfaceRenderParams::SetHardCursorStatus(bool status)
+{
+    if (isHardCursor_ == status) {
+        return;
+    }
+    isHardCursor_ = status;
+    needSync_ = true;
+}
+
+bool RSSurfaceRenderParams::GetHardCursorStatus() const
+{
+    return isHardCursor_;
+}
+
 void RSSurfaceRenderParams::SetLastFrameHardwareEnabled(bool enabled)
 {
     if (isLastFrameHardwareEnabled_ == enabled) {
@@ -420,6 +434,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
+    targetSurfaceParams->isAttractionValid_ = isAttractionValid_;
     targetSurfaceParams->isParentScaling_ = isParentScaling_;
     targetSurfaceParams->needBilinearInterpolation_ = needBilinearInterpolation_;
     targetSurfaceParams->backgroundColor_ = backgroundColor_;
@@ -431,6 +446,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->oldDirtyInSurface_ = oldDirtyInSurface_;
     targetSurfaceParams->transparentRegion_ = transparentRegion_;
     targetSurfaceParams->isHardwareEnabled_ = isHardwareEnabled_;
+    targetSurfaceParams->isHardCursor_ = isHardCursor_;
     targetSurfaceParams->isLastFrameHardwareEnabled_ = isLastFrameHardwareEnabled_;
     targetSurfaceParams->isFixRotationByUser_ = isFixRotationByUser_;
     targetSurfaceParams->isInFixedRotation_ = isInFixedRotation_;
@@ -488,6 +504,7 @@ std::string RSSurfaceRenderParams::ToString() const
     ret += RENDER_BASIC_PARAM_TO_STRING(int(selfDrawingType_));
     ret += RENDER_BASIC_PARAM_TO_STRING(alpha_);
     ret += RENDER_BASIC_PARAM_TO_STRING(isSpherizeValid_);
+    ret += RENDER_BASIC_PARAM_TO_STRING(isAttractionValid_);
     ret += RENDER_BASIC_PARAM_TO_STRING(needBilinearInterpolation_);
     ret += RENDER_BASIC_PARAM_TO_STRING(backgroundColor_.GetAlpha());
     ret += RENDER_RECT_PARAM_TO_STRING(absDrawRect_);

@@ -170,6 +170,8 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
         RS_TRACE_NAME_FMT("socketPair is null, conn: %s", info_.name_.c_str());
         return ERRNO_OTHER;
     }
+
+    std::unique_lock<std::mutex> lockerPostEvent(postEventMutex_);
     RS_TRACE_NAME_FMT("SendVsyncTo conn: %s, now:%ld, refreshRate:%d", info_.name_.c_str(), now, refreshRate_);
     // 3 is array size.
     int64_t data[3];
@@ -635,7 +637,11 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
         std::lock_guard<std::mutex> locker(mutex_);
         event_.vsyncCount++;
         vsyncCount = event_.vsyncCount;
-
+#if defined(RS_ENABLE_DVSYNC)
+        if (dvsync_->IsFeatureEnabled()) {
+            dvsync_->RecordVSync(now, period, refreshRate);
+        }
+#endif
         if (refreshRate > 0) {
             event_.vsyncPulseCount += static_cast<int64_t>(VSYNC_MAX_REFRESHRATE / refreshRate);
             generatorRefreshRate_ = refreshRate;
@@ -657,8 +663,18 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
         CountTrace(HITRACE_TAG_GRAPHIC_AGP, "VSync-" + name_, countTraceValue_);
 
         generatorRefreshRate = generatorRefreshRate_;
+#if defined(RS_ENABLE_DVSYNC)
+        if (dvsync_->IsFeatureEnabled()) {
+            dvsync_->RecordPostEvent(conns, now);
+        }
+#endif
     }
+    OnVSyncTriggerPostEvent(now, generatorRefreshRate, conns, period, vsyncCount);
+}
 
+void VSyncDistributor::OnVSyncTriggerPostEvent(int64_t now, uint32_t generatorRefreshRate,
+    std::vector<sptr<VSyncConnection>>& conns, int64_t period, int64_t vsyncCount)
+{
     for (uint32_t i = 0; i < conns.size(); i++) {
         int64_t actualPeriod = period;
         if ((generatorRefreshRate > 0) && (conns[i]->refreshRate_ > 0) &&
@@ -685,7 +701,13 @@ void VSyncDistributor::OnVSyncTrigger(int64_t now, int64_t period, uint32_t refr
 void VSyncDistributor::OnVSyncEvent(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode)
 {
 #if defined(RS_ENABLE_DVSYNC)
+    bool needDVSyncTrigger = true;
     if (dvsync_->IsFeatureEnabled()) {
+        std::unique_lock<std::mutex> locker(mutex_);
+        dvsync_->ChangeState(now);
+        needDVSyncTrigger = dvsync_->NeedDVSyncTrigger();
+    }
+    if (dvsync_->IsFeatureEnabled() && needDVSyncTrigger) {
         OnDVSyncTrigger(now, period, refreshRate, vsyncMode);
     } else
 #endif
@@ -922,7 +944,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     std::unique_lock<std::mutex> locker(mutex_);
 
 #if defined(RS_ENABLE_DVSYNC)
-    if (IsDVsyncOn() && isRs_) {
+    if (IsDVsyncOn() && isRs_ && dvsync_->NeedDVSyncRNV()) {
         dvsync_->RNVWait(locker);
     }
 #endif
@@ -950,7 +972,7 @@ VsyncError VSyncDistributor::RequestNextVSync(const sptr<VSyncConnection> &conne
     connection->triggerThisTime_ = true;
 #if defined(RS_ENABLE_DVSYNC)
     hasVsync_.store(true);
-    if (dvsync_->IsFeatureEnabled()) {
+    if (dvsync_->IsFeatureEnabled() && dvsync_->NeedDVSyncRNV()) {
         con_.notify_all();
     } else
 #endif
@@ -1261,6 +1283,14 @@ void VSyncDistributor::SetHardwareTaskNum(uint32_t num)
     if (IsDVsyncOn()) {
         dvsync_->SetHardwareTaskNum(num);
     }
+#endif
+}
+
+void VSyncDistributor::SetHasNativeBuffer()
+{
+#if defined(RS_ENABLE_DVSYNC)
+    std::unique_lock<std::mutex> locker(mutex_);
+    dvsync_->SetHasNativeBuffer();
 #endif
 }
 }

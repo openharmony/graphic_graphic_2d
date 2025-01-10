@@ -23,6 +23,7 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "common/rs_rect.h"
 #include "modifier/rs_modifier_type.h"
 #include "modifier/rs_render_property.h"
 
@@ -56,8 +57,8 @@ public:
     virtual void Apply(RSModifierContext& context) const = 0;
 
     virtual PropertyId GetPropertyId() = 0;
-    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() = 0;
-    void Dump(std::string& out)
+    virtual std::shared_ptr<RSRenderPropertyBase> GetProperty() const = 0;
+    void Dump(std::string& out) const
     {
         GetProperty()->Dump(out);
     }
@@ -106,7 +107,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -141,7 +142,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -195,7 +196,7 @@ public:
         return property_->GetId();
     }
 
-    std::shared_ptr<RSRenderPropertyBase> GetProperty() override
+    std::shared_ptr<RSRenderPropertyBase> GetProperty() const override
     {
         return property_;
     }
@@ -396,6 +397,7 @@ public:
         void Update(const std::shared_ptr<RSRenderPropertyBase>& prop, bool isDelta) override;                   \
         bool Marshalling(Parcel& parcel) override;                                                               \
         RSModifierType GetType() override { return (RSModifierType::MODIFIER_TYPE); }                            \
+        virtual std::string GetModifierTypeString() override { return #MODIFIER_NAME; }                          \
     };
 
 #define DECLARE_NOANIMATABLE_MODIFIER(MODIFIER_NAME, TYPE, MODIFIER_TYPE, MODIFIER_TIER) \
