@@ -556,6 +556,8 @@ bool RSSurfaceRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOcclu
     if (surfaceParentPtr != nullptr &&
         surfaceParentPtr->GetSurfaceNodeType() == RSSurfaceNodeType::LEASH_WINDOW_NODE) {
         if (this->GetRenderProperties().IsCurGeoDirty()) {
+            SetSubTreeDirty(false);
+            UpdateChildrenOutOfRectFlag(false);
             return true;
         }
     }
