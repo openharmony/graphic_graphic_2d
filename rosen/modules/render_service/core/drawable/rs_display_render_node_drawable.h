@@ -178,6 +178,7 @@ private:
     void ResetRotateIfNeed(RSDisplayRenderNodeDrawable& mirroredNodeDrawable,
         RSUniRenderVirtualProcessor& mirroredProcessor, Drawing::Region& clipRegion);
     void SetCanvasBlack(RSProcessor& processor);
+    void SetScreenRotationForPointLight(RSDisplayRenderParams &params);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
