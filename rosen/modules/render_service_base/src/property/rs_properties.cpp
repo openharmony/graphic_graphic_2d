@@ -4384,7 +4384,7 @@ void RSProperties::UpdateBackgroundShader()
 {
     bgShaderNeedUpdate_ = false;
     const auto& bgShader = GetBackgroundShader();
-    if (bgshader) {
+    if (bgShader) {
         bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
     }
 }
