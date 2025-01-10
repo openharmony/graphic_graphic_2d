@@ -561,14 +561,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSRenderNodeDrawable::InitDfxForCacheInfo();
     uniParam->SetIsMirrorScreen(params->IsMirrorScreen());
     uniParam->SetCompositeType(params->GetCompositeType());
-    // check rotation for point light
-    constexpr int ROTATION_NUM = 4;
-    auto screenRotation = GetRenderParams()->GetScreenRotation();
     ScreenId paramScreenId = params->GetScreenId();
-    if (RSSystemProperties::IsFoldScreenFlag() && paramScreenId == 0) {
-        screenRotation = static_cast<ScreenRotation>((static_cast<int>(screenRotation) + 1) % ROTATION_NUM);
-    }
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
+    SetScreenRotationForPointLight(*params);
     const RectI& dirtyRegion = GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
     const auto& activeSurfaceRect = GetSyncDirtyManager()->GetActiveSurfaceRect();
     RS_TRACE_NAME_FMT("RSDisplayRenderNodeDrawable[%" PRIu64 "](%d, %d, %d, %d), zoomed(%d), active(%d, %d, %d, %d)",
@@ -914,6 +908,24 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     } else {
         DrawMirrorCopy(*mirroredDrawable, params, virtualProcesser, *uniParam);
     }
+}
+
+void RSDisplayRenderNodeDrawable::SetScreenRotationForPointLight(RSDisplayRenderParams &params)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    auto mirrorDrawable = params.GetMirrorSourceDrawable().lock();
+    auto mirrorParams = mirrorDrawable ? mirrorDrawable->GetRenderParams().get() : nullptr;
+    ScreenId screenId = params.GetScreenId();
+    ScreenRotation screenRotation = params.GetScreenRotation();
+    if (mirrorParams) {
+        screenId = mirrorParams->GetScreenId();
+        screenRotation = mirrorParams->GetScreenRotation();
+    }
+    auto screenCorrection = screenManager->GetScreenCorrection(screenId);
+    screenRotation = static_cast<ScreenRotation>(
+        (static_cast<int>(screenRotation) + SCREEN_ROTATION_NUM - static_cast<int>(screenCorrection)) %
+        SCREEN_ROTATION_NUM);
+    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
 }
 
 void RSDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(int32_t bufferage, bool useAlignedDirtyRegion)
