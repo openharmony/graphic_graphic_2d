@@ -195,9 +195,9 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-    const HardCursorInfo& GetHardCursorDrawables() const
+    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawables() const
     {
-        return hardCursorDrawables_;
+        return hardCursorDrawableMap_;
     }
     
     void SetPendingScreenRefreshRate(uint32_t rate)
@@ -488,7 +488,7 @@ private:
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
-    HardCursorInfo hardCursorDrawables_;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.

@@ -173,7 +173,7 @@ std::unique_ptr<PathIteratorImpl> ImplFactory::CreatePathIteratorImpl(const Path
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRImplFactory::CreatePathIterator();
+        return DDGRImplFactory::CreatePathIterator(path);
     }
 #endif
     return EngineImplFactory::CreatePathIterator(path);

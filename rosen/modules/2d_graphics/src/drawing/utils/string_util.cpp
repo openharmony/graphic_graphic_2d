@@ -12,9 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <cstdint>
-
 #include "utils/string_util.h"
+
+#include <cstdint>
+#include <string>
+
+#include "unicode/unistr.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,6 +50,16 @@ bool IsUtf8(const char* text, int len)
         i++; // move to the next character
     }
     return true;
+}
+
+// Illegal bytes are replaced with U+FFFD
+std::u16string Str8ToStr16ByIcu(const std::string& str)
+{
+    if (str.empty()) {
+        return u"";
+    }
+    icu::UnicodeString uString = icu::UnicodeString::fromUTF8(str);
+    return std::u16string(uString.getBuffer(), static_cast<size_t>(uString.length()));
 }
 } // namespace Rosen
 } // namespace OHOS

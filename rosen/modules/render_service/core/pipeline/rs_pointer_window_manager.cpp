@@ -121,30 +121,39 @@ void RSPointerWindowManager::SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRend
     if (!hardCursorNode) {
         return;
     }
-    if (!hardCursorNode->IsHardwareEnabledTopSurface() || !hardCursorNode->ShouldPaint()) {
+    if (!hardCursorNode->IsHardwareEnabledTopSurface()) {
         return;
     }
-    hardCursorNodes_ = hardCursorNode;
+    auto nodeId = hardCursorNode->GetId();
+    hardCursorNodeMap_.emplace(nodeId, hardCursorNode);
 }
 
-const std::shared_ptr<RSSurfaceRenderNode>& RSPointerWindowManager::GetHardCursorNode() const
+const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& RSPointerWindowManager::GetHardCursorNode() const
 {
-    return hardCursorNodes_;
+    return hardCursorNodeMap_;
 }
 
 void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor)
 {
 #ifdef RS_ENABLE_GPU
-    auto hardCursorNode = GetHardCursorNode();
-    if (hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface()) {
-        auto surfaceHandler = hardCursorNode->GetRSSurfaceHandler();
-        auto params = static_cast<RSSurfaceRenderParams*>(hardCursorNode->GetStagingRenderParams().get());
-        if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
-            params->SetPreBuffer(nullptr);
-            hardCursorNode->AddToPendingSyncList();
+    auto& hardCursorNodeMap = GetHardCursorNode();
+    for (auto& [_, hardCursorNode] :  hardCursorNodeMap) {
+        if (hardCursorNode && hardCursorNode->IsHardwareEnabledTopSurface()) {
+            auto surfaceHandler = hardCursorNode->GetRSSurfaceHandler();
+            if (!surfaceHandler) {
+                continue;
+            }
+            auto params = static_cast<RSSurfaceRenderParams *>(hardCursorNode->GetStagingRenderParams().get());
+            if (!params) {
+                continue;
+            }
+            if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
+                params->SetPreBuffer(nullptr);
+                hardCursorNode->AddToPendingSyncList();
+            }
+            RS_OPTIONAL_TRACE_NAME("HardCursorCreateLayerForDirect create layer");
+            processor->CreateLayer(*hardCursorNode, *params);
         }
-        RS_OPTIONAL_TRACE_NAME("HardCursorCreateLayerForDirect create layer");
-        processor->CreateLayer(*hardCursorNode, *params);
     }
 #endif
 }

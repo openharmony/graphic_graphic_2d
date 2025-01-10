@@ -279,7 +279,7 @@ void HgmFrameRateManager::InitPowerTouchManager()
 }
 
 void HgmFrameRateManager::ProcessPendingRefreshRate(
-    uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, const DvsyncInfo& dvsyncInfo)
+    uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn)
 {
     voterLtpoTimer_.Reset();
     std::lock_guard<std::mutex> lock(pendingMutex_);
@@ -309,7 +309,7 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
     }
 
     if (hgmCore.GetLtpoEnabled() && isLtpo_ && rsRate > OLED_10_HZ &&
-        dvsyncInfo.isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+        isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
         hgmCore.SetPendingScreenRefreshRate(rsRate);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
@@ -436,7 +436,11 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
     RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
-    currRefreshRate_ = CalcRefreshRate(curScreenId_.load(), finalRange);
+    if (auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange); currRefreshRate_ != refreshRate) {
+        currRefreshRate_ = refreshRate;
+        schedulePreferredFpsChange_ = true;
+        FrameRateReport();
+    }
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
@@ -608,10 +612,25 @@ void HgmFrameRateManager::HandleFrameRateChangeForLTPO(uint64_t timestamp, bool 
         }
     }
 
-    if (controller_) {
+    // Start of DVSync
+    int64_t delayTime = CreateVSyncGenerator()->SetCurrentRefreshRate(controllerRate_, lastRefreshRate, followRs);
+    if (delayTime != 0) {
+        int64_t controllerRate = controllerRate_;
+        std::vector<std::pair<FrameRateLinkerId, uint32_t>> appChangeData = appChangeData_;
+        bool needUpdate = isNeedUpdateAppOffset_;
+        RSTaskMessage::RSTask task = [this, targetTime, controllerRate, appChangeData, needUpdate, followRs]() {
+            if (controller_) {
+                vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(controllerRate,
+                    appChangeData, targetTime, needUpdate);
+            }
+            CreateVSyncGenerator()->SetCurrentRefreshRate(0, 0, followRs);
+        };
+        HgmTaskHandleThread::Instance().PostTask(task, delayTime);
+    } else if (controller_) {
         vsyncCountOfChangeGeneratorRate_ = controller_->ChangeGeneratorRate(
             controllerRate_, appChangeData_, targetTime, isNeedUpdateAppOffset_);
     }
+    // End of DVSync
     isNeedUpdateAppOffset_ = false;
     pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
     if (forceUpdateCallback_ != nullptr) {

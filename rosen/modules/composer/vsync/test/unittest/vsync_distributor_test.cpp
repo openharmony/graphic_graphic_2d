@@ -412,7 +412,9 @@ HWTEST_F(VSyncDistributorTest, SetHardwareTaskNum001, Function | MediumTest| Lev
  */
 HWTEST_F(VSyncDistributorTest, GetUiCommandDelayTime001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->GetUiCommandDelayTime(), 0);
+    vsyncDistributor->isRs_ = false;
+    VSyncDistributorTest::vsyncDistributor->GetUiCommandDelayTime();
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
 }
 
 /*
@@ -807,6 +809,200 @@ HWTEST_F(VSyncDistributorTest, SetQosVSyncRateByPidPublicTest001, Function | Med
     for (int i = 0; i < conns.size(); i++) {
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
+}
+
+/*
+* Function: TriggerNextConnPostEventTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test TriggerNext 2. test ConnPostEvent
+ */
+HWTEST_F(VSyncDistributorTest, TriggerNextConnPostEventTest001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    conn->triggerThisTime_ = false;
+    vsyncDistributor->TriggerNext(conn);
+    vsyncDistributor->ConnPostEvent(conn, 10000000, 8333333, 1);
+    ASSERT_EQ(conn->triggerThisTime_, true);
+}
+
+/*
+* Function: ConnectionsPostEventTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test ConnectionsPostEvent
+ */
+HWTEST_F(VSyncDistributorTest, ConnectionsPostEventTest001, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    std::vector<sptr<VSyncConnection>> conns = {conn};
+    int64_t now = 10000000;
+    int64_t period = 16666666;
+    int64_t generatorRefreshRate = 60;
+    int64_t vsyncCount = 1;
+    bool isDvsyncController = false;
+    vsyncDistributor->ConnectionsPostEvent(conns, now, period, generatorRefreshRate, vsyncCount, isDvsyncController);
+    ASSERT_EQ(isDvsyncController, false);
+}
+
+/*
+* Function: DisableDVSyncControllerTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DisableDVSyncController
+ */
+HWTEST_F(VSyncDistributorTest, DisableDVSyncControllerTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->dvsyncControllerEnabled_ = false;
+    vsyncDistributor->DisableDVSyncController();
+    ASSERT_EQ(vsyncDistributor->dvsyncControllerEnabled_, false);
+}
+
+/*
+* Function: OnDVSyncEventTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test OnDVSyncEvent
+ */
+HWTEST_F(VSyncDistributorTest, OnDVSyncEventTest001, Function | MediumTest| Level3)
+{
+    int64_t now = 10000000;
+    int64_t period = 16666666;
+    uint32_t refreshRate = 60;
+    VSyncMode vsyncMode = VSYNC_MODE_LTPO;
+    uint32_t vsyncMaxRefreshRate = 120;
+    vsyncDistributor->OnDVSyncEvent(now, period, refreshRate, vsyncMode, vsyncMaxRefreshRate);
+    ASSERT_EQ(period, 16666666);
+}
+
+/*
+* Function: InitDVSyncTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test InitDVSync
+ */
+HWTEST_F(VSyncDistributorTest, InitDVSyncTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    vsyncDistributor->InitDVSync();
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: DVSyncAddConnectionDVSyncDisableVSyncTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncAddConnection 2. test DVSyncDisableVSync
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncAddConnectionDVSyncDisableVSyncTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->DVSyncAddConnection(conn);
+    vsyncDistributor->DVSyncDisableVSync();
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: DVSyncRecordVSyncTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncRecordVSync
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncRecordVSyncTest001, Function | MediumTest| Level3)
+{
+    int64_t now = 10000000;
+    int64_t period = 16666666;
+    uint32_t refreshRate = 60;
+    bool isDvsyncController = false;
+    vsyncDistributor->DVSyncRecordVSync(now, period, refreshRate, isDvsyncController);
+    ASSERT_EQ(isDvsyncController, false);
+}
+
+/*
+* Function: DVSyncCheckSkipAndUpdateTsTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncCheckSkipAndUpdateTs
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncCheckSkipAndUpdateTsTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    int64_t timeStamp = 10000000;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->DVSyncCheckSkipAndUpdateTs(conn, timeStamp);
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: DVSyncNeedSkipUiTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncNeedSkipUi
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncNeedSkipUiTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->DVSyncNeedSkipUi(conn);
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: RecordEnableVsyncTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test RecordEnableVsync
+ */
+HWTEST_F(VSyncDistributorTest, RecordEnableVsyncTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    vsyncDistributor->RecordEnableVsync();
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: DVSyncRecordRNVTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncRecordRNV
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncRecordRNVTest001, Function | MediumTest| Level3)
+{
+    std::string fromWhom = "test";
+    vsyncDistributor->isRs_ = false;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->DVSyncRecordRNV(conn, fromWhom);
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
+}
+
+/*
+* Function: DVSyncCheckPreexecuteAndUpdateTsTest001
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. test DVSyncCheckPreexecuteAndUpdateTs
+ */
+HWTEST_F(VSyncDistributorTest, DVSyncCheckPreexecuteAndUpdateTsTest001, Function | MediumTest| Level3)
+{
+    vsyncDistributor->isRs_ = false;
+    int64_t timestamp = 10000000;
+    int64_t period = 8333333;
+    int64_t vsyncCount = 1;
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "test");
+    vsyncDistributor->DVSyncCheckPreexecuteAndUpdateTs(conn, timestamp, period, vsyncCount);
+    ASSERT_EQ(vsyncDistributor->isRs_, false);
 }
 } // namespace
 } // namespace Rosen

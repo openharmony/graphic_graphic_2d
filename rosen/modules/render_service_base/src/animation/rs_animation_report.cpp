@@ -13,19 +13,22 @@
  * limitations under the License.
  */
 
-#ifndef GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
-#define GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
+#include "animation/rs_animation_report.h"
 
-#include <string>
+#ifdef ROSEN_OHOS
+#include "hisysevent.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
 
-bool IsUtf8(const char* text, int len);
-
-std::u16string Str8ToStr16ByIcu(const std::string& str);
-
+void RSAnimationReport::ReportFinishCallbackMissing(int type, float duration)
+{
+#ifdef ROSEN_OHOS
+    auto reportName = "ANIMATION_CALLBACK_MISSING";
+    HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
+        OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "CURVE_TYPE", type, "DURATION", duration);
+#endif
 }
+} // namespace Rosen
 } // namespace OHOS
-
-#endif // GRAPHIC_GRAPHIC_2D_STRING_UTIL_H

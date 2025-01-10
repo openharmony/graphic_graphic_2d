@@ -13,19 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
-#define GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_REPORT_H
+#define ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_REPORT_H
 
-#include <string>
+#include "common/rs_macros.h"
 
 namespace OHOS {
 namespace Rosen {
-
-bool IsUtf8(const char* text, int len);
-
-std::u16string Str8ToStr16ByIcu(const std::string& str);
-
-}
+class RSB_EXPORT RSAnimationReport {
+public:
+    static void ReportFinishCallbackMissing(int type, float duration);
+};
+} // namespace Rosen
 } // namespace OHOS
 
-#endif // GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
+#endif // ROSEN_RENDER_SERVICE_BASE_ANIMATION_RS_ANIMATION_REPORT_H

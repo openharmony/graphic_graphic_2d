@@ -219,7 +219,9 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         if (ptr->needDrawBehindWindow_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu] ", ptr->renderNodeId_);
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            if (!paintFilterCanvas) {
+            if (!paintFilterCanvas || !canvas->GetSurface()) {
+                RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow canvas:[%{public}d], surface:[%{public}d]",
+                    paintFilterCanvas != nullptr, canvas->GetSurface() != nullptr);
                 return;
             }
             Drawing::AutoCanvasRestore acr(*canvas, true);

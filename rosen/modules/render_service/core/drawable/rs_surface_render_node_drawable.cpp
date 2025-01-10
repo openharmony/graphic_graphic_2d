@@ -466,7 +466,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
-        SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+        if (GetDrawSkipType() == DrawSkipType::NONE) {
+            SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+        }
         return;
     }
     auto cacheState = GetCacheSurfaceProcessedStatus();
@@ -1111,6 +1113,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     drawCacheSuccess = useDmaBuffer ?
         DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
     if (!drawCacheSuccess) {
+        SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
     }
     DrawForeground(canvas, bounds);

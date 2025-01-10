@@ -330,5 +330,59 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level
     paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
     ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 60, 385));
 }
+
+/*
+ * @tc.name: OH_Drawing_TypographyTest011
+ * @tc.desc: test for truncated hight surrogate emoji text building and layouting
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest011, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text;
+    // hight surrogate emoji
+    text.push_back(0xD83D);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+ 
+    typography->Layout(maxWidth);
+    // The value of longestlineWithIndent will Close to 16 if the truncation of emoji fails.
+    ASSERT_TRUE(typography->GetLongestLineWithIndent() < 14);
+}
+ 
+/*
+ * @tc.name: OH_Drawing_TypographyTest012
+ * @tc.desc: test for truncated surrogate pair reverse emoji text building and layouting
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest012, TestSize.Level1)
+{
+    double maxWidth = 50;
+    OHOS::Rosen::TypographyStyle typographyStyle;
+    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
+        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
+    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =
+        OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
+    std::u16string text;
+    // emoji low surrogate
+    text.push_back(0xDC7B);
+    // emoji hight surrogate
+    text.push_back(0xD83D);
+    OHOS::Rosen::TextStyle typographyTextStyle;
+    typographyCreate->PushStyle(typographyTextStyle);
+    typographyCreate->AppendText(text);
+    std::unique_ptr<OHOS::Rosen::Typography> typography = typographyCreate->CreateTypography();
+ 
+    typography->Layout(maxWidth);
+    // The value of longestlineWithIndent will Close to 32 if the truncation of emoji fails.
+    ASSERT_TRUE(typography->GetLongestLineWithIndent() < 28);
+}
 } // namespace Rosen
 } // namespace OHOS
