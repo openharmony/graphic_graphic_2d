@@ -163,6 +163,7 @@ private:
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);
     void SetSecurityMask(RSProcessor& processor);
+    void SetScreenRotationForPointLight(RSDisplayRenderParams &params);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
