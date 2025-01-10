@@ -436,7 +436,11 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
     RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
-    currRefreshRate_ = CalcRefreshRate(curScreenId_.load(), finalRange);
+    if (auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange); currRefreshRate_ != refreshRate) {
+        currRefreshRate_ = refreshRate;
+        schedulePreferredFpsChange_ = true;
+        FrameRateReport();
+    }
 
     bool frameRateChanged = CollectFrameRateChange(finalRange, rsFrameRateLinker, appFrameRateLinkers);
     if (hgmCore.GetLtpoEnabled() && frameRateChanged) {
