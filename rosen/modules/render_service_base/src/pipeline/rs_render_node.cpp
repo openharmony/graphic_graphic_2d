@@ -22,7 +22,6 @@
 #include <set>
 #include <utility>
 
-#include "benchmarks/file_utils.h"
 #include "rs_trace.h"
 
 #include "animation/rs_render_animation.h"
