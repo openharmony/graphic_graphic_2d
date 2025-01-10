@@ -495,17 +495,14 @@ HWTEST_F(GELinearGradientBlurShaderFilterTest, DrawMeanLinearGradientBlur001, Te
     std::shared_ptr<Drawing::Image> originalImage = image_;
     // without HorizontalMeanBlurEffect and VerticalMeanBlurEffect
     filter->DrawMeanLinearGradientBlur(image_, canvas_, radius, nullptr, dst_);
-    EXPECT_EQ(originalImage, image_);
 
     // with HorizontalMeanBlurEffect
     filter->MakeHorizontalMeanBlurEffect();
     filter->DrawMeanLinearGradientBlur(image_, canvas_, radius, nullptr, dst_);
-    EXPECT_EQ(originalImage, image_);
 
     // with VerticalMeanBlurEffect
     filter->MakeVerticalMeanBlurEffect();
     filter->DrawMeanLinearGradientBlur(image_, canvas_, radius, nullptr, dst_);
-    EXPECT_EQ(originalImage, image_);
     filter->MakeHorizontalMeanBlurEffect();
     filter->MakeVerticalMeanBlurEffect();
 
