@@ -374,20 +374,6 @@ RSMainThread::~RSMainThread() noexcept
     }
 }
 
-void RSMainThread::DvsyncCheckRequestNextVsync()
-{
-    bool needAnimate = false;
-    if (needRequestNextVsyncAnimate_) {
-        rsVSyncDistributor_->MarkRSAnimate();
-        needAnimate = true;
-    } else {
-        rsVSyncDistributor_->UnmarkRSAnimate();
-    }
-    if (needAnimate || rsVSyncDistributor_->HasPendingUIRNV()) {
-        RequestNextVSync("animate", timestamp_);
-    }
-}
-
 void RSMainThread::TraverseCanvasDrawingNodesNotOnTree()
 {
     const auto& nodeMap = context_->GetNodeMap();
@@ -420,7 +406,6 @@ void RSMainThread::Init()
         ProcessCommand();
         UpdateSubSurfaceCnt();
         Animate(timestamp_);
-        DvsyncCheckRequestNextVsync();
         CollectInfoForHardwareComposer();
 #ifdef RS_ENABLE_GPU
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
@@ -678,7 +663,6 @@ void RSMainThread::Init()
                     idleTimerExpired? "True":"False", forceUpdate? "True": "False");
                 RSMainThread::Instance()->SetForceUpdateUniRenderFlag(forceUpdate);
                 RSMainThread::Instance()->SetIdleTimerExpiredFlag(idleTimerExpired);
-                RS_TRACE_NAME_FMT("DVSyncIsOn: %d", this->rsVSyncDistributor_->IsDVsyncOn());
                 RSMainThread::Instance()->RequestNextVSync("ltpoForceUpdate");
             });
         });
@@ -1931,11 +1915,12 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable);
     }
-    DvsyncInfo info;
+    // Start of DVSync
+    bool isUiDvsyncOn = false;
     if (rsVSyncDistributor_ != nullptr) {
-        info.isRsDvsyncOn = rsVSyncDistributor_->IsDVsyncOn();
-        info.isUiDvsyncOn =  rsVSyncDistributor_->IsUiDvsyncOn();
+        isUiDvsyncOn = rsVSyncDistributor_->IsUiDvsyncOn();
     }
+    // End of DVSync
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor_ == nullptr) {
         return;
@@ -1949,7 +1934,7 @@ void RSMainThread::ProcessHgmFrameRate(uint64_t timestamp)
     });
     // Check and processing refresh rate task.
     auto rsRate = rsVSyncDistributor_->GetRefreshRate();
-    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, info);
+    frameRateMgr->ProcessPendingRefreshRate(timestamp, vsyncId_, rsRate, isUiDvsyncOn);
 
     if (rsFrameRateLinker_ != nullptr) {
         auto rsCurrRange = rsCurrRange_;
@@ -3118,12 +3103,7 @@ void RSMainThread::Animate(uint64_t timestamp)
 
     if (needRequestNextVsync) {
         HgmEnergyConsumptionPolicy::Instance().StatisticAnimationTime(timestamp / NS_PER_MS);
-        if (!rsVSyncDistributor_->IsDVsyncOn()) {
-            RequestNextVSync("animate", timestamp_);
-        } else {
-            needRequestNextVsyncAnimate_ = true;  // set the member variable instead of directly calling rnv
-            RS_TRACE_NAME("rs_RequestNextVSync");
-        }
+        RequestNextVSync("animate", timestamp_);
     } else if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         renderThreadParams_->SetImplicitAnimationEnd(true);

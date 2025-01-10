@@ -184,8 +184,6 @@ private:
     void CheckNeedDisableDvsync(int64_t now, int64_t period);
     void OnVSyncTrigger(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-    void OnVSyncTriggerPostEvent(int64_t now, uint32_t generatorRefreshRate,
-        std::vector<sptr<VSyncConnection>>& conns, int64_t period, int64_t vsyncCount);
 
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
     std::thread threadLoop_;
@@ -217,6 +215,27 @@ private:
 #endif
     bool isRs_ = false;
     std::atomic<bool> hasVsync_ = false;
+    void ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &conns, int64_t now, int64_t period,
+        int64_t generatorRefreshRate, int64_t vsyncCount, bool isDvsyncController);
+    void ConnPostEvent(sptr<VSyncConnection> con, int64_t now, int64_t period, int64_t vsyncCount);
+    void TriggerNext(sptr<VSyncConnection> con);
+    // Start of DVSync
+    void DisableDVSyncController();
+    void OnDVSyncEvent(int64_t now, int64_t period,
+        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
+    void InitDVSync();
+    void DVSyncAddConnection(const sptr<VSyncConnection> &connection);
+    void DVSyncDisableVSync();
+    void RecordEnableVsync();
+    void DVSyncRecordVSync(int64_t now, int64_t period, uint32_t refreshRate, bool isDvsyncController);
+    bool DVSyncCheckSkipAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timeStamp);
+    bool DVSyncNeedSkipUi(const sptr<VSyncConnection> &connection);
+    void DVSyncRecordRNV(const sptr<VSyncConnection> &connection, const std::string &fromWhom);
+    bool DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnection> &connection, int64_t &timestamp,
+        int64_t &period, int64_t &vsyncCount);
+    sptr<VSyncController> dvsyncController_ = nullptr;
+    bool dvsyncControllerEnabled_ = false;
+    // End of DVSync
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -23,7 +23,7 @@ ohos_fuzztest("VsyncGeneratorFuzzTest") {
   module_out_path = module_output_path
 
   if (graphic_2d_feature_enable_dvsync) {
-    gpu_defines += [ "RS_ENABLE_DVSYNC" ]
+    gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
   }
 
   defines = []

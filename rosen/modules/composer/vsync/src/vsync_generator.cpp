@@ -34,6 +34,10 @@
 #include "system_ability_definition.h"
 #endif
 
+#if defined(RS_ENABLE_DVSYNC_2)
+#include "dvsync.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace impl {
@@ -316,9 +320,124 @@ int64_t VSyncGenerator::ComputeNextVSyncTimeStamp(int64_t now, int64_t reference
             nextVSyncTime = t;
         }
     }
-
+    // Start of DVSync
+    ComputeDVSyncListenerTimeStamp(dvsyncListener_, now, nextVSyncTime);
+    // End of DVSync
     return nextVSyncTime;
 }
+
+// Start of DVSync
+void VSyncGenerator::ComputeDVSyncListenerTimeStamp(const Listener& listener, int64_t now, int64_t &nextVSyncTime)
+{
+#if defined(RS_ENABLE_DVSYNC_2)
+    int64_t t = INT64_MAX;
+    DVSync::Instance().UpdateReferenceTimeAndPeriod(isLtpoNeedChange_, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
+    if (dvsyncPeriodRecord_ != 0 && listener.callback_ != nullptr) {
+        t = ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
+        nextVSyncTime = t < nextVSyncTime? t : nextVSyncTime;
+        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%ld, dvsyncPeriod:%ld, dvsyncReferenceTime:%ld",
+            t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_);
+    }
+#endif
+}
+
+int64_t VSyncGenerator::SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate, bool followRs)
+{
+    int64_t delayTime = 0;
+#if defined(RS_ENABLE_DVSYNC_2)
+    if (followRs) {
+        delayTime = DVSync::Instance().GetCurrDelayTime();
+        return delayTime;
+    }
+    std::lock_guard<std::mutex> locker(mutex_);
+    delayTime = DVSync::Instance().SetCurrentRefreshRate(currRefreshRate, lastRefreshRate);
+    if (currRefreshRate != 0 && delayTime != 0) {
+        WaitForTimeoutConNotifyLocked();
+        isLtpoNeedChange_ = true;
+    }
+#endif
+    RS_TRACE_NAME_FMT("DVSync::UiDVSync setCurrentRefreshRate isLtpoNeedChange:%d, currRefreshRate:%u, delayTime:%ld",
+        isLtpoNeedChange_, currRefreshRate, delayTime);
+    return delayTime;
+}
+
+int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t now,
+    std::vector<VSyncGenerator::Listener> &ret)
+{
+    int64_t t = INT64_MAX;
+    if (dvsyncPeriodRecord_!= 0 && listener.callback_!= nullptr) {
+        t = ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
+        if (t - SystemTime() < ERROR_THRESHOLD) {
+            dvsyncListener_.lastTime_ = t;
+            ret.push_back(dvsyncListener_);
+#if defined(RS_ENABLE_DVSYNC_2)
+            DVSync::Instance().SetToCurrentPeriod();
+#endif
+            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%ld, dvsyncPeriod:%ld, "
+                "dvsyncReferenceTime:%ld", t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_);
+        }
+    }
+    return t;
+}
+
+int64_t VSyncGenerator::ComputeDVSyncListenerNextVSyncTimeStamp(const Listener &listener, int64_t now,
+    int64_t referenceTime, int64_t period)
+{
+    if (period == 0) {
+        return INT64_MAX;
+    }
+    int64_t lastVSyncTime = listener.lastTime_ + wakeupDelay_;
+    if (now < lastVSyncTime) {
+        now = lastVSyncTime;
+    }
+    now -= referenceTime;
+    int64_t phase = phaseRecord_ + listener.phase_;
+    now -= phase;
+    if (now < 0) {
+        if (vsyncMode_ == VSYNC_MODE_LTPO) {
+            if (expectTimeFlag_ || refreshRateIsChanged_) { // Ensure that nextTime is not earlier than referenceTime.
+                now += ((-now) / period) * period;
+            }
+            now -= period;
+        } else {
+            now = -period;
+        }
+    }
+    int64_t numPeriod = now / period;
+    int64_t nextTime = (numPeriod + 1) * period + phase;
+    nextTime += referenceTime;
+    nextTime -= wakeupDelay_;
+    return nextTime;
+}
+
+VsyncError VSyncGenerator::AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
+{
+    ScopedBytrace func("AddDVSyncListener");
+    std::lock_guard<std::mutex> locker(mutex_);
+    if (cb == nullptr) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    Listener listener;
+    listener.phase_ = phase;
+    listener.callback_ = cb;
+    listener.lastTime_ = SystemTime() - period_ + phase_;
+    dvsyncListener_ = listener;
+    con_.notify_all();
+    WaitForTimeoutConNotifyLocked();
+    return VSYNC_ERROR_OK;
+}
+
+VsyncError VSyncGenerator::RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb)
+{
+    ScopedBytrace func("RemoveDVSyncListener");
+    std::lock_guard<std::mutex> locker(mutex_);
+    if (cb == nullptr) {
+        return VSYNC_ERROR_INVALID_ARGUMENTS;
+    }
+    dvsyncListener_ = {0, nullptr, 0, 0};
+    return VSYNC_ERROR_OK;
+}
+// End of DVSync
 
 bool VSyncGenerator::CheckTimingCorrect(int64_t now, int64_t referenceTime, int64_t nextVSyncTime)
 {
@@ -467,6 +586,9 @@ std::vector<VSyncGenerator::Listener> VSyncGenerator::GetListenerTimeoutedLTPO(i
             ret.push_back(listeners_[i]);
         }
     }
+    // Start of DVSync
+    CollectDVSyncListener(dvsyncListener_, now, ret);
+    // End of DVSync
     refreshRateIsChanged_ = false;
     return ret;
 }
