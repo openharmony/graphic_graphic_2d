@@ -44,7 +44,7 @@ public:
 
 private:
     // <rateType, <isEnable, idleFps>>
-    std::unordered_map<int32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
+    std::unordered_map<uint32_t, std::pair<bool, int>> uiEnergyAssuranceMap_;
     std::atomic<bool> isAnimationEnergyAssuranceEnable_ = false;
     std::atomic<bool> isAnimationEnergyConsumptionAssuranceMode_ = false;
     bool isTouchIdle_ = false;
