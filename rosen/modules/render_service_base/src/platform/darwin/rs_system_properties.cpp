@@ -461,7 +461,7 @@ bool RSSystemProperties::GetSubSurfaceEnabled()
 
 bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
-    return false;
+    return true;
 }
 
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)
