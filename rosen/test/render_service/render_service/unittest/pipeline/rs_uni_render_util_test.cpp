@@ -973,6 +973,77 @@ HWTEST_F(RSUniRenderUtilTest, IsHwcEnabledByGravityTest, Function | SmallTest | 
     EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE));
     EXPECT_TRUE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::TOP_LEFT));
     EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::CENTER));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::TOP));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::TOP_RIGHT));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE_ASPECT));
+    EXPECT_FALSE(RSUniRenderUtil::IsHwcEnabledByGravity(node, Gravity::RESIZE_ASPECT_FILL));
+}
+
+/*
+ * @tc.name: DealWithNodeGravityOldVersionTest
+ * @tc.desc: Verify function DealWithNodeGravity
+ * @tc.type: FUNC
+ * @tc.require: issuesI9KRF1
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityOldVersionTest, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    ScreenInfo screenInfo;
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    node.renderContent_->renderProperties_.frameGravity_ = Gravity::RESIZE;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    node.renderContent_->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    node.renderContent_->renderProperties_.frameGravity_ = Gravity::DEFAULT;
+    node.renderContent_->renderProperties_.boundsGeo_->SetHeight(-1.0f);
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    node.renderContent_->renderProperties_.boundsGeo_->SetWidth(-1.0f);
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    screenInfo.rotation = ScreenRotation::ROTATION_90;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    screenInfo.rotation = ScreenRotation::ROTATION_270;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    EXPECT_TRUE(screenInfo.width == 0);
+}
+
+/*
+ * @tc.name: DealWithNodeGravityOldVersionTest002
+ * @tc.desc: Test DealWithNodeGravityOldVersion when buffer is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issueIAJBBO
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityOldVersionTest002, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    ScreenInfo screenInfo;
+    node.GetRSSurfaceHandler()->buffer_.buffer = nullptr;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    EXPECT_TRUE(screenInfo.width == 0);
+}
+
+/*
+ * @tc.name: DealWithNodeGravityOldVersionTest003
+ * @tc.desc: Test DealWithNodeGravityOldVersion when screenInfo.rotation is modify
+ * @tc.type: FUNC
+ * @tc.require: issueIAKA4Y
+ */
+HWTEST_F(RSUniRenderUtilTest, DealWithNodeGravityOldVersionTest003, Function | SmallTest | Level2)
+{
+    Drawing::Matrix matrix = Drawing::Matrix();
+    matrix.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    NodeId id = 1;
+    RSSurfaceRenderNode node(id);
+    node.GetRSSurfaceHandler()->buffer_.buffer = OHOS::SurfaceBuffer::Create();
+    ScreenInfo screenInfo;
+    screenInfo.rotation = ScreenRotation::ROTATION_90;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    screenInfo.rotation = ScreenRotation::ROTATION_270;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    screenInfo.rotation = ScreenRotation::ROTATION_180;
+    RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo);
+    EXPECT_TRUE(screenInfo.width == 0);
 }
 
 /*
