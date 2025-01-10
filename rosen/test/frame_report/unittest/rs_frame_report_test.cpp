@@ -182,7 +182,9 @@ HWTEST_F(RsFrameReportTest, LoadLibrary001, TestSize.Level1)
 {
     RsFrameReport& fr = RsFrameReport::GetInstance();
     fr.CloseLibrary();
+    EXPECT_FALSE(fr.frameSchedSoLoaded_);
     fr.LoadLibrary();
+    EXPECT_TRUE(fr.frameSchedSoLoaded_);
     fr.CloseLibrary();
 }
 
