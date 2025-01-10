@@ -32,9 +32,9 @@ ohos_unittest("GraphicsEffectTest") {
     "ge_visual_effect_impl_test.cpp",
     "ge_visual_effect_test.cpp",
     "ge_water_ripple_filter_test.cpp",
-    "gex_flow_light_sweep_shader_test.cpp",
     "gex_dot_matrix_shader_params_test.cpp",
     "gex_dot_matrix_shader_test.cpp",
+    "gex_flow_light_sweep_shader_test.cpp",
   ]
 
   if (!is_mingw && !is_win) {
