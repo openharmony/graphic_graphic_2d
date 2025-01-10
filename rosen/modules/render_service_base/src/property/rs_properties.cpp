@@ -30,7 +30,6 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_aibar_shader_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
-#include "render/rs_dot_matrix_shader.h"
 #include "render/rs_filter.h"
 #include "render/rs_foreground_effect_filter.h"
 #include "render/rs_grey_shader_filter.h"
@@ -4385,7 +4384,9 @@ void RSProperties::UpdateBackgroundShader()
 {
     bgShaderNeedUpdate_ = false;
     const auto& bgShader = GetBackgroundShader();
-    bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
+    if (bgShader) {
+        bgShader->MakeDrawingShader(GetBoundsRect(), GetBackgroundShaderProgress());
+    }
 }
 
 void RSProperties::CalculatePixelStretch()
