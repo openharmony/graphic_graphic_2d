@@ -264,6 +264,7 @@ enum class SystemAnimatedScenes : uint32_t {
     ENTER_WIND_RECOVER, // Enter win+D in recover mode
     ENTER_RECENTS, // Enter recents only for phone, end with EXIT_RECENTS instead of OTHERS
     EXIT_RECENTS, // Exit recents only for phone
+    LOCKSCREEN_TO_LAUNCHER, // Enter unlock screen for pc scene
     OTHERS, // 1.Default state 2.The state in which the animation ends
 };
 
