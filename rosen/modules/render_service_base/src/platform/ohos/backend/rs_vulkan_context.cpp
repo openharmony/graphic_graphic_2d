@@ -437,7 +437,8 @@ GrVkGetProc RsVulkanInterface::CreateSkiaGetProc() const
     };
 }
 
-std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(bool independentContext, bool isProtected)
+std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(bool independentContext, bool isProtected,
+    std::string.cacheDir)
 {
     std::unique_lock<std::mutex> lock(vkMutex_);
     if (independentContext) {
@@ -446,10 +447,10 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateDrawingContext(boo
 
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
     Drawing::GPUContextOptions options;
-    memHandler_ = std::make_shared<MemoryHandler>();
+    memHandler_ = std::make_unique<MemoryHandler>();
     std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
     auto size = vkVersion.size();
-    memHandler_->ConfigureContext(&options, vkVersion.c_str(), size);
+    memHandler_->ConfigureContext(&options, vkVersion.c_str(), size, cacheDir);
     drawingContext->BuildFromVK(backendContext_, options);
     int maxResources = 0;
     size_t maxResourcesSize = 0;
@@ -551,17 +552,17 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanInterface::CreateNewDrawingContext(
     return drawingContext;
 }
 
-RsVulkanContext::RsVulkanContext()
+RsVulkanContext::RsVulkanContext(std::string cacheDir)
 {
     rsVulkanInterface.Init();
     // Init drawingContext_ bind to backendContext
-    drawingContext_ = rsVulkanInterface.CreateDrawingContext();
+    drawingContext_ = rsVulkanInterface.CreateDrawingContext(false, false, cacheDir);
 #ifdef IS_ENABLE_DRM
     isProtected_ = true;
     rsProtectedVulkanInterface.Init(isProtected_);
     // DRM needs to adapt vkQueue in the future.
     protectedDrawingContext_ = rsProtectedVulkanInterface.CreateDrawingContext(
-        false, isProtected_);
+        false, isProtected_, cacheDir);
     isProtected_ = false;
 #endif
 }
@@ -569,6 +570,12 @@ RsVulkanContext::RsVulkanContext()
 RsVulkanContext& RsVulkanContext::GetSingleton()
 {
     static RsVulkanContext singleton {};
+    return singleton;
+}
+
+RsVulkanContext& RsVulkanContext::GetSingletonWithCacheDir(std::string& cacheDir)
+{
+    static RsVulkanContext singleton = RsVulkanContext(cacheDir);
     return singleton;
 }
 

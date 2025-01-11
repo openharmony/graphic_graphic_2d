@@ -311,7 +311,7 @@ bool RenderContext::SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawing
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         if (drawingContext == nullptr) {
-            drawingContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
+            drawingContext = RsVulkanContext::GetSingletonWithCacheDir(cacheDir_).CreateDrawingContext();
         }
         std::shared_ptr<Drawing::GPUContext> drGPUContext(drawingContext);
         drGPUContext_ = std::move(drGPUContext);
