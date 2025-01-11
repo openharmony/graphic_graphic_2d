@@ -52,6 +52,9 @@ public:
      * @param surfaceParams Indicates the render params
      * @return true if success, otherwise false
     */
+
+    void ClearCache();
+
 #ifdef RS_ENABLE_GPU
     bool DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
         RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, RSRenderThreadParams& uniParam);
@@ -61,7 +64,6 @@ public:
         RSRenderThreadParams& uniParams, const Drawing::Color& color);
 
     bool HasCache() const;
-    void ClearCache();
 private:
     std::shared_ptr<Drawing::Image> image_ = nullptr;
 };

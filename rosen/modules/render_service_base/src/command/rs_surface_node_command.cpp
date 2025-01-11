@@ -302,6 +302,13 @@ void SurfaceNodeCommandHelper::SetSurfaceId(RSContext& context, NodeId nodeId, S
     }
 }
 
+void SurfaceNodeCommandHelper::SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId)
+{
+    if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {
+        node->SetClonedNodeId(cloneNodeId);
+    }
+}
+
 void SurfaceNodeCommandHelper::SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId)) {

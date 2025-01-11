@@ -197,6 +197,9 @@ public:
         return name_;
     }
 
+    // [Attention] The function only used for unlocking screen for PC currently
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetClonedNodeRenderDrawable();
+
     void SetLeashWindowVisibleRegionEmptyParam(bool isLeashWindowVisibleRegionEmpty)
     {
         if (isLeashWindowVisibleRegionEmpty_ == isLeashWindowVisibleRegionEmpty) {
@@ -535,6 +538,9 @@ public:
         return brightnessRatio_;
     }
 
+    // [Attention] The function only used for unlocking screen for PC currently
+    bool IsCloneNode() const;
+
     bool GetIsHwcEnabledBySolidLayer()
     {
         return isHwcEnabledBySolidLayer_;
@@ -584,6 +590,22 @@ public:
         return apiCompatibleVersion_;
     }
 
+    // [Attention] The function only used for unlocking screen for PC currently
+    bool ClonedSourceNode() const
+    {
+        return clonedSourceNode_;
+    }
+
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetIsCloned(bool isCloned)
+    {
+        if (clonedSourceNode_ == isCloned) {
+            return;
+        }
+        clonedSourceNode_ = isCloned;
+        needSync_ = true;
+    }
+
     void SetIsBufferFlushed(bool isBufferFlushed)
     {
         if (isBufferFlushed_ == isBufferFlushed) {
@@ -607,9 +629,12 @@ private:
     SelfDrawingNodeType selfDrawingType_ = SelfDrawingNodeType::DEFAULT;
     RSRenderNode::WeakPtr ancestorDisplayNode_;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr ancestorDisplayDrawable_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable_;
 
     float alpha_ = 0;
     bool isCrossNode_ = false;
+    bool isCloneNode_ = false;
+    bool clonedSourceNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;

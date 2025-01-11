@@ -58,6 +58,7 @@ enum RSSurfaceNodeCommandType : uint16_t {
     SURFACE_NODE_CREATE_SURFACE_EXT,
     SURFACE_NODE_SET_FOREGROUND,
     SURFACE_NODE_SET_SURFACE_ID,
+    SURFACE_NODE_SET_CLONED_NODE_ID,
     SURFACE_NODE_SET_FORCE_UIFIRST,
     SURFACE_NODE_SET_ANCO_FLAGS,
     SURFACE_NODE_SET_HDR_PRESENT,
@@ -108,6 +109,7 @@ public:
 #endif
     static void SetForeground(RSContext& context, NodeId nodeId, bool isForeground);
     static void SetSurfaceId(RSContext& context, NodeId nodeId, SurfaceId surfaceId);
+    static void SetClonedNodeId(RSContext& context, NodeId nodeId, NodeId cloneNodeId);
     static void SetForceUIFirst(RSContext& context, NodeId nodeId, bool forceUIFirst);
     static void SetAncoFlags(RSContext& context, NodeId nodeId, uint32_t flags);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
@@ -211,6 +213,9 @@ ADD_COMMAND(RSSurfaceNodeCreateSurfaceExt,
 ADD_COMMAND(RSSurfaceNodeSetForeground,
     ARG(PERMISSION_APP, SURFACE_NODE, SURFACE_NODE_SET_FOREGROUND,
         SurfaceNodeCommandHelper::SetForeground, NodeId, bool))
+ADD_COMMAND(RSSurfaceNodeSetClonedNodeId,
+    ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_CLONED_NODE_ID,
+        SurfaceNodeCommandHelper::SetClonedNodeId, NodeId, NodeId))
 ADD_COMMAND(RSSurfaceNodeSetForceUIFirst,
     ARG(PERMISSION_SYSTEM, SURFACE_NODE, SURFACE_NODE_SET_FORCE_UIFIRST,
         SurfaceNodeCommandHelper::SetForceUIFirst, NodeId, bool))
