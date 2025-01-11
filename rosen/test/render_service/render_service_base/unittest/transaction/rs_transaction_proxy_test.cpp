@@ -300,8 +300,9 @@ HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT003, TestSize.Lev
 HWTEST_F(RSTransactionProxyTest, Commit001, TestSize.Level1)
 {
     uint64_t timestamp = 1;
+    ASSERT_EQ(RSTransactionProxy::GetInstance()->implicitRemoteTransactionDataStack_.empty(), false);
     RSTransactionProxy::GetInstance()->Commit(timestamp);
-    ASSERT_EQ(RSTransactionProxy::GetInstance()->implicitRemoteTransactionDataStack_.top()->timestamp_, timestamp);
+    ASSERT_EQ(RSTransactionProxy::GetInstance()->implicitRemoteTransactionDataStack_.empty(), true);
 }
 
 /**
