@@ -41,6 +41,7 @@ public:
     enum class ShaderType{
         DRAWING = 0,
         DOT_MATRIX,
+        FLOW_LIGHT_SWEEP,
     };
 
     inline const ShaderType& GetShaderType() const { return type_; } ;

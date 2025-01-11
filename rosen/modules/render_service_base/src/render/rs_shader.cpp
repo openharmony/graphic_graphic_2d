@@ -16,6 +16,7 @@
 #include "render/rs_shader.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_dot_matrix_shader.h"
+#include "render/rs_flow_light_sweep_shader.h"
 #include "ge_visual_effect_impl.h"
 
 namespace OHOS {
@@ -39,6 +40,10 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(Parcel& parcel)
     switch (effectType) {
         case ShaderType::DOT_MATRIX: {
             shader = std::make_shared<RSDotMatrixShader>();
+            break;
+        }
+        case ShaderType::FLOW_LIGHT_SWEEP: {
+            shader = std::make_shared<RSFlowLightSweepShader>();
             break;
         }
         case ShaderType::DRAWING: {
