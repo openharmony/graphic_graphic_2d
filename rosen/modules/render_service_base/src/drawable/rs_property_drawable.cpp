@@ -318,6 +318,16 @@ void RSFilterDrawable::MarkNeedClearFilterCache()
         stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
         lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
         filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_);
+    
+    ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache nodeId[%{public}lld], forceUseCache_:%{public}d,"
+        "forceClearCache_:%{public}d, hashChanged:%{public}d, regionChanged_:%{public}d, belowDirty_:%{public}d,"
+        "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
+        "filterType_:%{public}d, pendingPurge_:%{public}d,"
+        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d",
+        static_cast<long long>(stagingNodeId_), stagingForceUseCache_, stagingForceClearCache_,
+        stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
+        lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
+        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_);
 
     // if do not request NextVsync, close skip
     if (stagingForceClearCacheForLastFrame_) {
