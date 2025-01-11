@@ -69,7 +69,7 @@ HWTEST_F(HgmXmlParserTest, Parse, Function | SmallTest | Level1)
 {
     std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
     int32_t load = parser->LoadConfiguration(CONFIG);
-    EXEPECT_GE(load, EXEC_SUCCESS);
+    EXPECT_GE(load, EXEC_SUCCESS);
     parser->Parse();
     parser->GetParsedData();
 }
