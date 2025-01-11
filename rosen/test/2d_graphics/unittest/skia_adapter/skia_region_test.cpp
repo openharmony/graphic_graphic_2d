@@ -103,7 +103,7 @@ HWTEST_F(SkiaRegionTest, Clone001, TestSize.Level1)
 HWTEST_F(SkiaRegionTest, Deserialize001, TestSize.Level1)
 {
     std::shared_ptr<SkiaRegion> skiaRegion = std::make_shared<SkiaRegion>();
-    skiaRegion->Deserialize(nullptr);
+    EXPECT_FALSE(skiaRegion->Deserialize(nullptr));
 }
 
 /**

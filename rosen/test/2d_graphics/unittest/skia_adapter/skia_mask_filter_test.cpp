@@ -46,7 +46,9 @@ void SkiaMaskFilterTest::TearDown() {}
 HWTEST_F(SkiaMaskFilterTest, SkiaMaskFilter001, TestSize.Level1)
 {
     std::shared_ptr<SkiaMaskFilter> skiaMaskFilter = std::make_shared<SkiaMaskFilter>();
+    ASSERT_TRUE(skiaMaskFilter->GetMaskFilter() == nullptr);
     skiaMaskFilter->InitWithBlur(BlurType::NORMAL, 1, true); // 1: sigma
+    ASSERT_TRUE(skiaMaskFilter->GetMaskFilter() != nullptr);
     skiaMaskFilter->Serialize();
     skiaMaskFilter->Deserialize(nullptr);
     skiaMaskFilter->SetSkMaskFilter(nullptr);
