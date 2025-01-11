@@ -63,7 +63,7 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level1)
     HgmTaskHandleThread::Instance().PostTask(func);
     int64_t delayTime = 1;
     HgmTaskHandleThread::Instance().PostTask(func, delayTime);
-    EXPECT_EQ(HgmTaskHandleThread::Instance().handler_, true);
+    EXPECT_TRUE(HgmTaskHandleThread::Instance().handler_);
 }
 
 /*
