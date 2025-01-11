@@ -493,6 +493,100 @@ RSExtendImageBaseObj *RSExtendImageBaseObj::Unmarshalling(Parcel &parcel)
     return object;
 }
 
+RSExtendImageNineObject::RSExtendImageNineObject(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (pixelMap) {
+        rsImage_ = std::make_shared<RSImageBase>();
+        rsImage_->SetPixelMap(pixelMap);
+    }
+}
+
+void RSExtendImageNineObject::Playback(Drawing::Canvas& canvas, const Drawing::RectI& center,
+    const Drawing::Rect& dst, Drawing::FilterMode filterMode)
+{
+    if (rsImage_) {
+        rsImage_->DrawImageNine(canvas, center, dst, filterMode);
+    }
+}
+
+void RSExtendImageNineObject::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageNineObject::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
+    }
+}
+
+bool RSExtendImageNineObject::Marshalling(Parcel &parcel) const
+{
+    bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
+    return ret;
+}
+
+RSExtendImageNineObject *RSExtendImageNineObject::Unmarshalling(Parcel &parcel)
+{
+    auto object = new RSExtendImageNineObject();
+    bool ret = RSMarshallingHelper::Unmarshalling(parcel, object->rsImage_);
+    if (!ret) {
+        delete object;
+        return nullptr;
+    }
+    return object;
+}
+
+RSExtendImageLatticeObject::RSExtendImageLatticeObject(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (pixelMap) {
+        rsImage_ = std::make_shared<RSImageBase>();
+        rsImage_->SetPixelMap(pixelMap);
+    }
+}
+
+void RSExtendImageLatticeObject::Playback(Drawing::Canvas& canvas, const Drawing::Lattice& lattice,
+    const Drawing::Rect& dst, Drawing::FilterMode filterMode)
+{
+    if (rsImage_) {
+        rsImage_->DrawImageLattice(canvas, lattice, dst, filterMode);
+    }
+}
+
+void RSExtendImageLatticeObject::SetNodeId(NodeId id)
+{
+    if (rsImage_) {
+        rsImage_->UpdateNodeIdToPicture(id);
+    }
+}
+
+void RSExtendImageLatticeObject::Purge()
+{
+    if (rsImage_) {
+        rsImage_->Purge();
+    }
+}
+
+bool RSExtendImageLatticeObject::Marshalling(Parcel &parcel) const
+{
+    bool ret = RSMarshallingHelper::Marshalling(parcel, rsImage_);
+    return ret;
+}
+
+RSExtendImageLatticeObject *RSExtendImageLatticeObject::Unmarshalling(Parcel &parcel)
+{
+    auto object = new RSExtendImageLatticeObject();
+    bool ret = RSMarshallingHelper::Unmarshalling(parcel, object->rsImage_);
+    if (!ret) {
+        delete object;
+        return nullptr;
+    }
+    return object;
+}
+
 void RSExtendDrawFuncObj::Playback(Drawing::Canvas* canvas, const Drawing::Rect* rect)
 {
     if (drawFunc_) {
@@ -687,6 +781,122 @@ void DrawPixelMapRectOpItem::DumpItems(std::string& out) const
 {
     out += " sampling";
     sampling_.Dump(out);
+}
+
+/* DrawPixelMapNineOpItem */
+UNMARSHALLING_REGISTER(DrawPixelMapNine, DrawOpItem::PIXELMAP_NINE_OPITEM,
+    DrawPixelMapNineOpItem::Unmarshalling, sizeof(DrawPixelMapNineOpItem::ConstructorHandle));
+
+DrawPixelMapNineOpItem::DrawPixelMapNineOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapNineOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_NINE_OPITEM), center_(handle->center),
+      dst_(handle->dst), filterMode_(handle->filterMode)
+{
+    objectHandle_ = CmdListHelper::GetImageNineObjecFromCmdList(cmdList, handle->objectHandle);
+}
+
+DrawPixelMapNineOpItem::DrawPixelMapNineOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::RectI& center, const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_NINE_OPITEM), center_(center), dst_(dst), filterMode_(filterMode)
+{
+    objectHandle_ = std::make_shared<RSExtendImageNineObject>(pixelMap);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapNineOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPixelMapNineOpItem>(
+        cmdList, static_cast<DrawPixelMapNineOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapNineOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto objectHandle = CmdListHelper::AddImageNineObjecToCmdList(cmdList, objectHandle_);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, center_, dst_, filterMode_, paintHandle);
+}
+
+void DrawPixelMapNineOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapNineOpItem objectHandle is nullptr!");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    objectHandle_->Playback(*canvas, center_, dst_, filterMode_);
+}
+
+void DrawPixelMapNineOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapNineOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
+void DrawPixelMapNineOpItem::DumpItems(std::string& out) const
+{
+    out += " DrawPixelMapNineOpItem";
+}
+
+/* DrawPixelMapLatticeOpItem */
+UNMARSHALLING_REGISTER(DrawPixelMapLattice, DrawOpItem::PIXELMAP_LATTICE_OPITEM,
+    DrawPixelMapLatticeOpItem::Unmarshalling, sizeof(DrawPixelMapLatticeOpItem::ConstructorHandle));
+
+DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(
+    const DrawCmdList& cmdList, DrawPixelMapLatticeOpItem::ConstructorHandle* handle)
+    : DrawWithPaintOpItem(cmdList, handle->paintHandle, PIXELMAP_LATTICE_OPITEM),
+      dst_(handle->dst), filterMode_(handle->filterMode)
+{
+    objectHandle_ = CmdListHelper::GetImageLatticeObjecFromCmdList(cmdList, handle->objectHandle);
+    lattice_ = CmdListHelper::GetLatticeFromCmdList(cmdList, handle->latticeHandle);
+}
+
+DrawPixelMapLatticeOpItem::DrawPixelMapLatticeOpItem(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::Lattice& lattice, const Drawing::Rect& dst, Drawing::FilterMode filterMode, const Paint& paint)
+    : DrawWithPaintOpItem(paint, PIXELMAP_LATTICE_OPITEM), lattice_(lattice), dst_(dst), filterMode_(filterMode)
+{
+    objectHandle_ = std::make_shared<RSExtendImageLatticeObject>(pixelMap);
+}
+
+std::shared_ptr<DrawOpItem> DrawPixelMapLatticeOpItem::Unmarshalling(const DrawCmdList& cmdList, void* handle)
+{
+    return std::make_shared<DrawPixelMapLatticeOpItem>(
+        cmdList, static_cast<DrawPixelMapLatticeOpItem::ConstructorHandle*>(handle));
+}
+
+void DrawPixelMapLatticeOpItem::Marshalling(DrawCmdList& cmdList)
+{
+    PaintHandle paintHandle;
+    GenerateHandleFromPaint(cmdList, paint_, paintHandle);
+    auto objectHandle = CmdListHelper::AddImageLatticeObjecToCmdList(cmdList, objectHandle_);
+    auto latticeHandle = CmdListHelper::AddLatticeToCmdList(cmdList, lattice_);
+    cmdList.AddOp<ConstructorHandle>(objectHandle, latticeHandle, dst_, filterMode_, paintHandle);
+}
+
+void DrawPixelMapLatticeOpItem::Playback(Canvas* canvas, const Rect* rect)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapLatticeOpItem objectHandle is nullptr!");
+        return;
+    }
+    canvas->AttachPaint(paint_);
+    objectHandle_->Playback(*canvas, lattice_, dst_, filterMode_);
+}
+
+void DrawPixelMapLatticeOpItem::SetNodeId(NodeId id)
+{
+    if (objectHandle_ == nullptr) {
+        LOGE("DrawPixelMapLatticeOpItem objectHandle is nullptr!");
+        return;
+    }
+    objectHandle_->SetNodeId(id);
+}
+
+void DrawPixelMapLatticeOpItem::DumpItems(std::string& out) const
+{
+    out += " DrawPixelMapLatticeOpItem";
 }
 
 /* DrawFuncOpItem */

@@ -57,6 +57,14 @@ public:
         CmdList& cmdList, const std::shared_ptr<ExtendImageBaseObj>& object);
     static std::shared_ptr<ExtendImageBaseObj> GetImageBaseObjFromCmdList(
         const CmdList& cmdList, const OpDataHandle& objectHandle);
+    static OpDataHandle DRAWING_API AddImageNineObjecToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageNineObject>& object);
+    static std::shared_ptr<ExtendImageNineObject> GetImageNineObjecFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
+    static OpDataHandle DRAWING_API AddImageLatticeObjecToCmdList(
+        CmdList& cmdList, const std::shared_ptr<ExtendImageLatticeObject>& object);
+    static std::shared_ptr<ExtendImageLatticeObject> GetImageLatticeObjecFromCmdList(
+        const CmdList& cmdList, const OpDataHandle& objectHandle);
     static OpDataHandle AddPictureToCmdList(CmdList& cmdList, const Picture& picture);
     static std::shared_ptr<Picture> GetPictureFromCmdList(const CmdList& cmdList, const OpDataHandle& pictureHandle);
     static OpDataHandle AddCompressDataToCmdList(CmdList& cmdList, const std::shared_ptr<Data>& data);

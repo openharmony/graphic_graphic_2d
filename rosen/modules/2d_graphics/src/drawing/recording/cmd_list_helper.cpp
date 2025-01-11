@@ -184,6 +184,32 @@ std::shared_ptr<ExtendImageBaseObj> CmdListHelper::GetImageBaseObjFromCmdList(
     return (const_cast<CmdList&>(cmdList)).GetImageBaseObj(objectHandle.offset);
 }
 
+OpDataHandle CmdListHelper::AddImageNineObjecToCmdList(
+    CmdList& cmdList, const std::shared_ptr<ExtendImageNineObject>& object)
+{
+    auto index = cmdList.AddImageNineObject(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendImageNineObject> CmdListHelper::GetImageNineObjecFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetImageNineObject(objectHandle.offset);
+}
+
+OpDataHandle CmdListHelper::AddImageLatticeObjecToCmdList(
+    CmdList& cmdList, const std::shared_ptr<ExtendImageLatticeObject>& object)
+{
+    auto index = cmdList.AddImageLatticeObject(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendImageLatticeObject> CmdListHelper::GetImageLatticeObjecFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetImageLatticeObject(objectHandle.offset);
+}
+
 OpDataHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
 {
     auto data = picture.Serialize();

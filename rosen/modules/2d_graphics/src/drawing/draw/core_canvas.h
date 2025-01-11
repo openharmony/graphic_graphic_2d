@@ -536,6 +536,14 @@ public:
     virtual bool IsClipRect();
 
     /**
+     * @brief Returns true if clip is empty Path path, transformed by Matrix,
+     * can be quickly determined to be outside of clip.
+     * @param path Rect to compare with path
+     * @return true if path, transformed by Matrix, does not intersect clip
+     */
+    virtual bool QuickReject(const Path& path);
+
+    /**
      * @brief Returns true if clip is empty Rect rect, transformed by Matrix,
      * can be quickly determined to be outside of clip.
      * @param rect Rect to compare with clip

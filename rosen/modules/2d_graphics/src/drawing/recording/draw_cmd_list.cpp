@@ -670,7 +670,9 @@ void DrawCmdList::Purge()
         }
         auto type = op->GetType();
         if (type == DrawOpItem::PIXELMAP_RECT_OPITEM ||
-            type == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM) {
+            type == DrawOpItem::PIXELMAP_WITH_PARM_OPITEM ||
+            type == DrawOpItem::PIXELMAP_NINE_OPITEM ||
+            type == DrawOpItem::PIXELMAP_LATTICE_OPITEM) {
             op->Purge();
         }
     }
