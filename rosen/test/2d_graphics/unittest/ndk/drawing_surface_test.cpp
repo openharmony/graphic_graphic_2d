@@ -17,10 +17,14 @@
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
+#include "window.h"
+#include "core/ui/rs_surface_node.h"
+
 #include "drawing_canvas.h"
 #include "drawing_error_code.h"
 #include "drawing_gpu_context.h"
 #include "drawing_surface.h"
+#include "drawing_surface_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -28,6 +32,10 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
+
+constexpr static int32_t WIDTH = 720;
+constexpr static int32_t HEIGHT = 1280;
+
 class NativeDrawingSurfaceTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -42,6 +50,8 @@ protected:
     OH_Drawing_GpuContext* gpuContext_ = nullptr;
     OH_Drawing_Surface* surface_ = nullptr;
     OH_Drawing_Canvas* canvas_ = nullptr;
+    NativeWindow *window_ = nullptr;
+    std::shared_ptr<RSSurfaceNode> surfaceNode = nullptr;
 };
 
 void NativeDrawingSurfaceTest::SetUpTestCase() {}
@@ -74,6 +84,17 @@ void NativeDrawingSurfaceTest::SetUp()
 
     ret = eglMakeCurrent(eglDisplay_, eglSurface_, eglSurface_, eglContext_);
     EXPECT_EQ(ret, EGL_TRUE);
+
+    RSSurfaceNodeConfig config;
+    surfaceNode = RSSurfaceNode::Create(config);
+    EXPECT_NE(surfaceNode, nullptr);
+    sptr<OHOS::Surface> surf = surfaceNode->GetSurface();
+    window_ = CreateNativeWindowFromSurface(&surf);
+    EXPECT_NE(window_, nullptr);
+
+    NativeWindowHandleOpt(window_, SET_USAGE, BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA);
+    NativeWindowHandleOpt(window_, SET_BUFFER_GEOMETRY, WIDTH, HEIGHT);
+    NativeWindowHandleOpt(window_, SET_COLOR_GAMUT, GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 void NativeDrawingSurfaceTest::TearDown()
@@ -123,6 +144,38 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateFromGpuContext
 }
 
 /*
+ * @tc.name: NativeDrawingSurfaceTest_CreateOnScreen
+ * @tc.desc: test for CreateOnScreen.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_CreateOnScreen, TestSize.Level1)
+{
+    gpuContext_ = OH_Drawing_GpuContextCreate();
+    EXPECT_NE(gpuContext_, nullptr);
+
+    const int32_t width = 500;
+    const int32_t height = 500;
+    OH_Drawing_Image_Info imageInfo = {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    surface_ = OH_Drawing_SurfaceCreateOnScreen(gpuContext_, imageInfo, window_);
+    EXPECT_NE(surface_, nullptr);
+    OH_Drawing_SurfaceDestroy(surface_);
+
+    surface_ = OH_Drawing_SurfaceCreateOnScreen(nullptr, imageInfo, window_);
+    EXPECT_EQ(surface_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    surface_ = OH_Drawing_SurfaceCreateOnScreen(gpuContext_, imageInfo, nullptr);
+    EXPECT_EQ(surface_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+    surface_ = OH_Drawing_SurfaceCreateOnScreen(nullptr, imageInfo, nullptr);
+    EXPECT_EQ(surface_, nullptr);
+    EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_SurfaceDestroy(surface_);
+    OH_Drawing_GpuContextDestroy(gpuContext_);
+}
+
+/*
  * @tc.name: NativeDrawingSurfaceTest_GetCanvas
  * @tc.desc: test for GetCanvas.
  * @tc.type: FUNC
@@ -148,6 +201,49 @@ HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_GetCanvas, TestSize.
     EXPECT_EQ(OH_Drawing_ErrorCodeGet(), OH_DRAWING_ERROR_INVALID_PARAMETER);
     OH_Drawing_SurfaceDestroy(surface_);
     OH_Drawing_GpuContextDestroy(gpuContext_);
+}
+
+/*
+ * @tc.name: NativeDrawingSurfaceTest_Flush
+ * @tc.desc: test for Flush.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_Flush, TestSize.Level1)
+{
+    gpuContext_ = OH_Drawing_GpuContextCreate();
+    EXPECT_NE(gpuContext_, nullptr);
+
+    const int32_t width = 500;
+    const int32_t height = 500;
+    OH_Drawing_Image_Info imageInfo = {width, height, COLOR_FORMAT_RGBA_8888, ALPHA_FORMAT_OPAQUE};
+    surface_ = OH_Drawing_SurfaceCreateOnScreen(gpuContext_, imageInfo, window_);
+    EXPECT_NE(surface_, nullptr);
+    OH_Drawing_SurfaceDestroy(surface_);
+
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SurfaceFlush(nullptr);
+    EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INVALID_PARAMETER);
+
+    OH_Drawing_GpuContextDestroy(gpuContext_);
+}
+
+/*
+ * @tc.name: NativeDrawingSurfaceTest_Utils
+ * @tc.desc: test for Utils.
+ * @tc.type: FUNC
+ * @tc.require: AR000GTO5R
+ */
+HWTEST_F(NativeDrawingSurfaceTest, NativeDrawingSurfaceTest_Utils, TestSize.Level1)
+{
+    const int32_t width = 500;
+    const int32_t height = 500;
+    ImageInfo imageInfo(width, height, COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE);
+    std::shared_ptr<Drawing::Surface> surface = DrawingSurfaceUtils::CreateFromWindow(nullptr, imageInfo, window_);
+    EXPECT_EQ(surface_, nullptr);
+    surface = DrawingSurfaceUtils::CreateFromWindow(nullptr, imageInfo, nullptr);
+    EXPECT_EQ(surface_, nullptr);
+    bool ret = DrawingSurfaceUtils::FlushSurface(nullptr);
+    EXPECT_EQ(ret, false);
 }
 } // namespace Drawing
 } // namespace Rosen
