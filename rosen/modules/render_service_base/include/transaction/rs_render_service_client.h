@@ -360,8 +360,6 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
-    void SetScreenSwitchStatus(bool flag);
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
@@ -398,6 +396,9 @@ public:
         std::shared_ptr<SurfaceBufferCallback> callback);
 
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    void NotifyScreenSwitched(ScreenId id);
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;

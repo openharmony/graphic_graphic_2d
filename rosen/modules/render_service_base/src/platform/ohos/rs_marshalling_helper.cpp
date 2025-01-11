@@ -41,7 +41,6 @@
 #include "common/rs_common_def.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_vector4.h"
-#include "image/image.h"
 #include "modifier/rs_render_modifier.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "platform/common/rs_log.h"
@@ -59,7 +58,6 @@
 #include "render/rs_path.h"
 #include "render/rs_pixel_map_shader.h"
 #include "render/rs_shader.h"
-#include "text/hm_symbol.h"
 #include "transaction/rs_ashmem_helper.h"
 #include "rs_trace.h"
 
@@ -589,18 +587,13 @@ bool RSMarshallingHelper::SkipImage(Parcel& parcel)
 // RSShader
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSShader>& val)
 {
-    if (!val || !val->GetDrawingShader()) {
+    if (!val) {
         ROSEN_LOGD("unirender: RSMarshallingHelper::Marshalling RSShader is nullptr");
         return parcel.WriteInt32(-1);
+    } else {
+        parcel.WriteInt32(0);
     }
-    auto& shaderEffect = val->GetDrawingShader();
-    int32_t type = static_cast<int32_t>(shaderEffect->GetType());
-    std::shared_ptr<Drawing::Data> data = shaderEffect->Serialize();
-    if (!data) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Marshalling RSShader, data is nullptr");
-        return parcel.WriteInt32(-1);
-    }
-    return parcel.WriteInt32(type) && Marshalling(parcel, data);
+    return val->Marshalling(parcel);
 }
 
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader>& val)
@@ -610,22 +603,9 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSShader
         val = nullptr;
         return true;
     }
-    std::shared_ptr<Drawing::Data> data;
-    if (!Unmarshalling(parcel, data) || !data) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, data is nullptr");
-        return false;
-    }
-    Drawing::ShaderEffect::ShaderEffectType shaderEffectType = Drawing::ShaderEffect::ShaderEffectType::NO_TYPE;
-    if (type >= static_cast<int32_t>(Drawing::ShaderEffect::ShaderEffectType::COLOR_SHADER) &&
-        type <= static_cast<int32_t>(Drawing::ShaderEffect::ShaderEffectType::EXTEND_SHADER)) {
-        shaderEffectType = static_cast<Drawing::ShaderEffect::ShaderEffectType>(type);
-    }
-    auto shaderEffect = std::make_shared<Drawing::ShaderEffect>(shaderEffectType);
-    if (!shaderEffect->Deserialize(data)) {
-        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader, Deserialize failed");
-        return false;
-    }
-    val = RSShader::CreateRSShader(shaderEffect);
+    val = RSShader::CreateRSShader(parcel);
+    if (val != nullptr)
+        ROSEN_LOGE("unirender: RSMarshallingHelper::Unmarshalling RSShader succes");
     return val != nullptr;
 }
 
@@ -1667,6 +1647,42 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Draw
         }
     }
 
+    std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>> objectNineVec;
+    uint32_t objectNineSize = val->GetAllImageNineObject(objectNineVec);
+    ret &= parcel.WriteUint32(objectNineSize);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageNine");
+        return ret;
+    }
+    if (objectNineSize > 0) {
+        for (const auto& objectNine : objectNineVec) {
+            auto rsNineObject = std::static_pointer_cast<RSExtendImageNineObject>(objectNine);
+            ret &= RSMarshallingHelper::Marshalling(parcel, rsNineObject);
+            if (!ret) {
+                ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageNine");
+                return ret;
+            }
+        }
+    }
+
+    std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>> objectLatticeVec;
+    uint32_t objectLatticeSize = val->GetAllImageLatticeObject(objectLatticeVec);
+    ret &= parcel.WriteUint32(objectLatticeSize);
+    if (!ret) {
+        ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageLattice");
+        return ret;
+    }
+    if (objectLatticeSize > 0) {
+        for (const auto& objectLattice : objectLatticeVec) {
+            auto rsLatticeObject = std::static_pointer_cast<RSExtendImageLatticeObject>(objectLattice);
+            ret &= RSMarshallingHelper::Marshalling(parcel, rsLatticeObject);
+            if (!ret) {
+                ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList imageLattice");
+                return ret;
+            }
+        }
+    }
+
     ret &= MarshallingExtendObjectFromDrawCmdList(parcel, val);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
@@ -1842,6 +1858,44 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
         val->SetupBaseObj(ObjectBaseVec);
     }
 
+    uint32_t objectNineSize = parcel.ReadUint32();
+    if (objectNineSize > 0) {
+        if (objectNineSize > Drawing::MAX_OPITEMSIZE) {
+            return false;
+        }
+        std::vector<std::shared_ptr<Drawing::ExtendImageNineObject>> ObjectNineVec;
+        for (uint32_t i = 0; i < objectNineSize; i++) {
+            std::shared_ptr<RSExtendImageNineObject> objectNine;
+            ret &= RSMarshallingHelper::Unmarshalling(parcel, objectNine);
+            if (!ret) {
+                ROSEN_LOGE(
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectNine: %{public}d", i);
+                return ret;
+            }
+            ObjectNineVec.emplace_back(objectNine);
+        }
+        val->SetupImageNineObject(ObjectNineVec);
+    }
+
+    uint32_t objectLatticeSize = parcel.ReadUint32();
+    if (objectLatticeSize > 0) {
+        if (objectLatticeSize > Drawing::MAX_OPITEMSIZE) {
+            return false;
+        }
+        std::vector<std::shared_ptr<Drawing::ExtendImageLatticeObject>> ObjectLatticeVec;
+        for (uint32_t i = 0; i < objectLatticeSize; i++) {
+            std::shared_ptr<RSExtendImageLatticeObject> objectLattice;
+            ret &= RSMarshallingHelper::Unmarshalling(parcel, objectLattice);
+            if (!ret) {
+                ROSEN_LOGE(
+                    "unirender: failed RSMarshallingHelper::Unmarshalling DrawCmdList objectLattice: %{public}d", i);
+                return ret;
+            }
+            ObjectLatticeVec.emplace_back(objectLattice);
+        }
+        val->SetupImageLatticeObject(ObjectLatticeVec);
+    }
+
     ret &= UnmarshallingExtendObjectToDrawCmdList(parcel, val);
     if (!ret) {
         ROSEN_LOGE("unirender: failed RSMarshallingHelper::Marshalling Drawing::DrawCmdList ExtendObject");
@@ -1979,6 +2033,62 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtend
     val.reset(RSExtendImageBaseObj::Unmarshalling(parcel));
     if (val == nullptr) {
         ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageBaseObj");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageNineObject>& val)
+{
+    if (!val) {
+        return parcel.WriteInt32(-1);
+    }
+    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageNineObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageNineObject>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    val.reset(RSExtendImageNineObject::Unmarshalling(parcel));
+    if (val == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageNineObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSExtendImageLatticeObject>& val)
+{
+    if (!val) {
+        return parcel.WriteInt32(-1);
+    }
+    if (!(parcel.WriteInt32(1) && val->Marshalling(parcel))) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Marshalling ImageLatticeObject");
+        return false;
+    }
+
+    return true;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSExtendImageLatticeObject>& val)
+{
+    if (parcel.ReadInt32() == -1) {
+        val = nullptr;
+        return true;
+    }
+    val.reset(RSExtendImageLatticeObject::Unmarshalling(parcel));
+    if (val == nullptr) {
+        ROSEN_LOGE("failed RSMarshallingHelper::Unmarshalling ImageLatticeObject");
         return false;
     }
 

@@ -306,8 +306,6 @@ public:
 
     virtual void SetCacheEnabledForRotation(bool isEnabled) = 0;
 
-    virtual void SetScreenSwitchStatus(bool flag) = 0;
-
     virtual void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) = 0;
 
     virtual void RunOnRemoteDiedCallback() = 0;
@@ -347,6 +345,8 @@ public:
         sptr<RSISurfaceBufferCallback> callback) = 0;
 
     virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
+
+    virtual void NotifyScreenSwitched(ScreenId id) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

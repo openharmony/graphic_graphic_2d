@@ -110,6 +110,9 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
 
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height, bool isProtected = false);
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface);
 }
 } // OHOS::Rosen
 #endif

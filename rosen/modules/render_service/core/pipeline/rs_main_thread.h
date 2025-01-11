@@ -411,6 +411,8 @@ private:
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
+    void GetCurrentFrameDrawLargeAreaBlurPredictively();
+    void GetCurrentFrameDrawLargeAreaBlurPrecisely();
     void ProcessCommand();
     void UpdateSubSurfaceCnt();
     void Animate(uint64_t timestamp);
@@ -511,7 +513,6 @@ private:
     float GetCurrentSteadyTimeMsFloat() const;
     void RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex);
     void UpdateLuminance();
-    void DvsyncCheckRequestNextVsync();
 
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
@@ -613,6 +614,7 @@ private:
     std::vector<NodeId> curDrawStatusVec_;
 
     std::atomic<bool> isDirty_ = false;
+    bool prevHdrSwitchStatus_ = true;
     std::atomic<bool> screenPowerOnChanged_ = false;
     std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
@@ -780,6 +782,9 @@ private:
 #ifdef RS_ENABLE_VK
     bool needCreateVkPipeline_ = true;
 #endif
+
+    std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
+    bool predictBegin_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

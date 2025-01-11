@@ -380,6 +380,11 @@ std::shared_ptr<Blender> StaticFactory::CreateWithBlendMode(BlendMode mode)
 void StaticFactory::SetVmaCacheStatus(bool flag)
 {
 #ifdef RS_ENABLE_VK
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return;
+    }
+#endif
     if (SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
         EngineStaticFactory::SetVmaCacheStatus(flag);
     }

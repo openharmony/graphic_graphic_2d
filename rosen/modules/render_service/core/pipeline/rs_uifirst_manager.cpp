@@ -55,7 +55,8 @@ RSUifirstManager& RSUifirstManager::Instance()
 RSUifirstManager::RSUifirstManager() :
 #if defined(RS_ENABLE_VK)
     useDmaBuffer_(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN)
+        RSSystemProperties::IsPhoneType() && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR))
 #else
     useDmaBuffer_(false)
 #endif
@@ -1306,15 +1307,6 @@ void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancest
     }
     if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || node.GetHasProtectedLayer()) {
         UifirstStateChange(node, MultiThreadCacheType::NONE);
-        if (GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE) {
-            if (ancestorNodeHasAnimation && !node.isUifirstNode_) {
-                /* If window scaling behavior is interrupted by animation on pc, the tag can't be reset, so next
-                 vsync need to mark uifirst on the next frame
-                */
-                node.MarkUifirstNode(true);
-            }
-            return;
-        }
         if (!node.isUifirstNode_) {
             node.isUifirstDelay_++;
             if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
@@ -1529,7 +1521,8 @@ void RSUifirstManager::SetUseDmaBuffer(bool val)
     std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
 #if defined(RS_ENABLE_VK)
     useDmaBuffer_ = val && RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN;
+        RSSystemProperties::IsPhoneType() && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR);
 #else
     useDmaBuffer_ = false;
 #endif

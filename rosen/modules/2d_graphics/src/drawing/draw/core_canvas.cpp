@@ -418,6 +418,11 @@ bool CoreCanvas::IsClipRect()
     return impl_->IsClipRect();
 }
 
+bool CoreCanvas::QuickReject(const Path& path)
+{
+    return impl_->QuickReject(path);
+}
+
 bool CoreCanvas::QuickReject(const Rect& rect)
 {
     return impl_->QuickReject(rect);

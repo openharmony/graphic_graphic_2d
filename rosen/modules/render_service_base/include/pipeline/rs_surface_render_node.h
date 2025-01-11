@@ -605,6 +605,8 @@ public:
 
     void NeedClearBufferCache(std::set<uint32_t>& bufferCacheSet);
 
+    void NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet);
+
     const RectI& GetSrcRect() const
     {
         return srcRect_;
@@ -950,7 +952,7 @@ public:
     void ResetSurfaceContainerRegion(const RectI& screeninfo, const RectI& absRect,
         const ScreenRotation screenRotation);
     bool CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
-        const bool isFocusWindow, const Vector4<int>& cornerRadius);
+        const bool isFocusWindow, const Vector4<int>& cornerRadius) const;
     void SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect, const ScreenRotation screenRotation,
         const bool isFocusWindow, const Vector4<int>& cornerRadius);
     bool IsStartAnimationFinished() const;
@@ -1567,7 +1569,7 @@ private:
         // rrect means content region, including padding to left and top, inner radius;
         void Update(bool hasContainer, RRect rrect);
 
-        bool operator==(const ContainerConfig& config)
+        bool operator==(const ContainerConfig& config) const
         {
             return hasContainerWindow_ == config.hasContainerWindow_ &&
                 outR_ == config.outR_ &&

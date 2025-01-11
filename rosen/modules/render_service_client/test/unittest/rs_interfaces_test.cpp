@@ -2141,5 +2141,17 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Lev
     int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
     EXPECT_EQ(ret, SUCCESS);
 }
+
+/*
+ * @tc.name: NotifyScreenSwitched
+ * @tc.desc: Test NotifyScreenSwitched with id.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, NotifyScreenSwitched, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->NotifyScreenSwitched(INVALID_SCREEN_ID);
+}
 } // namespace Rosen
 } // namespace OHOS

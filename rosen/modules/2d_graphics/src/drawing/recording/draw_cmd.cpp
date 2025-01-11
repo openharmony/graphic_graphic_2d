@@ -89,6 +89,8 @@ std::unordered_map<uint32_t, std::string> typeOpDes = {
     { DrawOpItem::IMAGE_WITH_PARM_OPITEM,   "IMAGE_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_WITH_PARM_OPITEM, "PIXELMAP_WITH_PARM_OPITEM" },
     { DrawOpItem::PIXELMAP_RECT_OPITEM,     "PIXELMAP_RECT_OPITEM" },
+    { DrawOpItem::PIXELMAP_NINE_OPITEM,     "PIXELMAP_NINE_OPITEM" },
+    { DrawOpItem::PIXELMAP_LATTICE_OPITEM,  "PIXELMAP_LATTICE_OPITEM" },
     { DrawOpItem::REGION_OPITEM,            "REGION_OPITEM" },
     { DrawOpItem::PATCH_OPITEM,             "PATCH_OPITEM" },
     { DrawOpItem::EDGEAAQUAD_OPITEM,        "EDGEAAQUAD_OPITEM" },
@@ -152,6 +154,11 @@ void DrawOpItem::BrushHandleToBrush(const BrushHandle& brushHandle, const DrawCm
         brush.SetShaderEffect(shaderEffect);
     }
 
+    if (brushHandle.blenderHandle.size) {
+        auto blender = CmdListHelper::GetBlenderFromCmdList(cmdList, brushHandle.blenderHandle);
+        brush.SetBlender(blender);
+    }
+
     Filter filter;
     bool hasFilter = false;
     if (brushHandle.colorFilterHandle.size) {
@@ -210,6 +217,11 @@ void DrawOpItem::GeneratePaintFromHandle(const PaintHandle& paintHandle, const D
     if (paintHandle.shaderEffectHandle.size) {
         auto shaderEffect = CmdListHelper::GetShaderEffectFromCmdList(cmdList, paintHandle.shaderEffectHandle);
         paint.SetShaderEffect(shaderEffect);
+    }
+
+    if (paintHandle.blenderHandle.size) {
+        auto blender = CmdListHelper::GetBlenderFromCmdList(cmdList, paintHandle.blenderHandle);
+        paint.SetBlender(blender);
     }
 
     Filter filter;
@@ -277,6 +289,10 @@ void DrawOpItem::GenerateHandleFromPaint(CmdList& cmdList, const Paint& paint, P
 
     if (paint.GetShaderEffect()) {
         paintHandle.shaderEffectHandle = CmdListHelper::AddShaderEffectToCmdList(cmdList, paint.GetShaderEffect());
+    }
+
+    if (paint.GetBlender()) {
+        paintHandle.blenderHandle = CmdListHelper::AddBlenderToCmdList(cmdList, paint.GetBlender());
     }
 
     if (paint.GetLooper()) {

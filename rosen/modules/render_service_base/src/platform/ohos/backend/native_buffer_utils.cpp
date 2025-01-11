@@ -353,5 +353,74 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     backendTexture.SetTextureInfo(textureInfo);
     return backendTexture;
 }
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface)
+{
+    OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeSurface.nativeWindowBuffer);
+    if (nativeBuffer == nullptr) {
+        ROSEN_LOGE("CreateFromNativeWindowBuffer: OH_NativeBufferFromNativeWindowBuffer failed");
+        return nullptr;
+    }
+
+    auto& vkContext = RsVulkanContext::GetSingleton();
+
+    VkDevice device = vkContext.GetDevice();
+
+    VkNativeBufferFormatPropertiesOHOS nbFormatProps;
+    VkNativeBufferPropertiesOHOS nbProps;
+    if (!GetNativeBufferFormatProperties(vkContext, device, nativeBuffer, &nbFormatProps, &nbProps)) {
+        return nullptr;
+    }
+
+    VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (nbFormatProps.format != VK_FORMAT_UNDEFINED) {
+        usageFlags = usageFlags | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+            | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+    }
+
+    VkImage image;
+    if (!CreateVkImage(vkContext, &image, nbFormatProps, {imageInfo.GetWidth(), imageInfo.GetHeight(), 1},
+        usageFlags, false)) {
+        return nullptr;
+    }
+
+    VkDeviceMemory memory;
+    if (!AllocateDeviceMemory(vkContext, &memory, image, nativeBuffer, nbProps, false)) {
+        return nullptr;
+    }
+
+    if (!BindImageMemory(device, vkContext, image, memory)) {
+        return nullptr;
+    }
+
+    Drawing::TextureInfo texture_info;
+    texture_info.SetWidth(imageInfo.GetWidth());
+    texture_info.SetHeight(imageInfo.GetHeight());
+    std::shared_ptr<Drawing::VKTextureInfo> vkTextureInfo = std::make_shared<Drawing::VKTextureInfo>();
+    vkTextureInfo->vkImage = image;
+    vkTextureInfo->imageTiling = VK_IMAGE_TILING_OPTIMAL;
+    vkTextureInfo->imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    vkTextureInfo->format = nbFormatProps.format;
+    vkTextureInfo->imageUsageFlags = usageFlags;
+    vkTextureInfo->sampleCount = 1;
+    vkTextureInfo->levelCount = 1;
+    vkTextureInfo->vkProtected = false;
+    texture_info.SetVKTextureInfo(vkTextureInfo);
+
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeFromBackendTexture(
+        gpuContext,
+        texture_info,
+        Drawing::TextureOrigin::TOP_LEFT,
+        1,
+        imageInfo.GetColorType(),
+        Drawing::ColorSpace::CreateSRGB(),
+        DeleteVkImage,
+        new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
+            image, memory));
+
+    nativeSurface.image = image;
+    return surface;
+}
 } // namespace NativeBufferUtils
 } // namespace OHOS::Rosen

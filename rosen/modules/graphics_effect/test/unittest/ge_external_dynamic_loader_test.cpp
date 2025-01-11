@@ -67,17 +67,17 @@ HWTEST_F(GEExternalDynamicLoaderTest, DynamicLoaderTest001, TestSize.Level1)
     std::ifstream file(GRAPHICS_EFFECT_EXT_LIB_PATH);
     if (!file) {
         EXPECT_EQ(testLoader_->libHandle_, nullptr);
-        EXPECT_EQ(testLoader_->CreateObjectFunc_, nullptr);
+        EXPECT_EQ(testLoader_->createObjectFunc_, nullptr);
         GTEST_LOG_(INFO) << "GEExternalDynamicLoaderTest DynamicLoaderTest001 end, so not exist";
         return;
     }
 
     EXPECT_NE(testLoader_->libHandle_, nullptr);
-    EXPECT_NE(testLoader_->CreateObjectFunc_, nullptr);
+    EXPECT_NE(testLoader_->createObjectFunc_, nullptr);
 
     auto object = testLoader_->CreateGEXObjectByType(
         (uint32_t)Drawing::GEVisualEffectImpl::FilterType::NONE, 0, (void*)nullptr);
-    EXPECT_NE(object, nullptr);
+    EXPECT_EQ(object, nullptr);
 
     auto mesaBlurParam = std::make_shared<Drawing::GEMESABlurShaderFilterParams>();
     auto mesaBlurObject = testLoader_->CreateGEXObjectByType(

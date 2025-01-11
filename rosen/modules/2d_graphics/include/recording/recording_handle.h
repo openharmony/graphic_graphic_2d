@@ -100,6 +100,7 @@ struct PaintHandle {
     Filter::FilterQuality filterQuality = Filter::FilterQuality::NONE;
     OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
+    FlattenableHandle blenderHandle;
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;
@@ -115,6 +116,7 @@ struct BrushHandle {
     Filter::FilterQuality filterQuality = Filter::FilterQuality::NONE;
     OpDataHandle colorSpaceHandle;
     FlattenableHandle shaderEffectHandle;
+    FlattenableHandle blenderHandle;
     FlattenableHandle colorFilterHandle;
     FlattenableHandle imageFilterHandle;
     FlattenableHandle maskFilterHandle;

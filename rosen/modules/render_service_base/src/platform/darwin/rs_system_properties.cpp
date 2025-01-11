@@ -181,15 +181,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-void RSSystemProperties::SetScreenSwitchStatus(bool flag)
-{
-}
-
-bool RSSystemProperties::GetScreenSwitchStatus()
-{
-    return false;
-}
-
 #ifndef NEW_SKIA
 bool RSSystemProperties::GetReleaseResourceEnabled()
 {
@@ -465,6 +456,11 @@ bool RSSystemProperties::GetDiscardCanvasBeforeFilterEnabled()
 }
 
 bool RSSystemProperties::GetSubSurfaceEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
 {
     return false;
 }

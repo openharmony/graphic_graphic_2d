@@ -4385,6 +4385,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
+    stagingRenderParams_->SetAbsRotation(absRotation_);
 #endif
 }
 
@@ -4434,6 +4435,24 @@ void RSRenderNode::UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect
     srcOrClipedAbsDrawRectChangeFlag_ = (absDrawRect_ != oldAbsDrawRect_ || clipedAbsDrawRect != oldDirtyInSurface_);
 }
 
+void RSRenderNode::NodeDrawLargeAreaBlur(std::pair<bool, bool>& nodeDrawLargeAreaBlur)
+{
+    auto backgroundFilterDrawable = GetFilterDrawable(false);
+    auto compositingFilterDrawable = GetFilterDrawable(true);
+    bool flagPredict = false;
+    bool flagCurrent = false;
+    if (backgroundFilterDrawable) {
+        flagPredict = flagPredict || backgroundFilterDrawable->WouldDrawLargeAreaBlur();
+        flagCurrent = flagCurrent || backgroundFilterDrawable->WouldDrawLargeAreaBlurPrecisely();
+    }
+    if (compositingFilterDrawable) {
+        flagPredict = flagPredict || compositingFilterDrawable->WouldDrawLargeAreaBlur();
+        flagCurrent = flagCurrent || compositingFilterDrawable->WouldDrawLargeAreaBlurPrecisely();
+    }
+    nodeDrawLargeAreaBlur.first = flagPredict;
+    nodeDrawLargeAreaBlur.second = flagCurrent;
+}
+
 void RSRenderNode::OnSync()
 {
     addedToPendingSyncList_ = false;
@@ -4450,7 +4469,9 @@ void RSRenderNode::OnSync()
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
 #endif
         RS_LOGE("Drawable try to Sync when node %{public}" PRIu64 " onDraw!!!", GetId());
-        return;
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
     }
 
     if (drawCmdListNeedSync_) {

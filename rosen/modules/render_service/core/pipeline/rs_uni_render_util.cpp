@@ -850,6 +850,14 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
     return false;
 }
 
+int RSUniRenderUtil::TransferToAntiClockwiseDegrees(int angle)
+{
+    static const std::map<int, int> supportedDegrees = { { 90, 270 }, { 180, 180 }, { -90, 90 }, { -180, 180 },
+        { 270, -270 }, { -270, 270 } };
+    auto iter = supportedDegrees.find(angle);
+    return iter != supportedDegrees.end() ? iter->second : 0;
+}
+
 int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
@@ -860,9 +868,7 @@ int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.
-    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}, {-180, 180}};
-    auto iter = supportedDegrees.find(rAngle);
-    return iter != supportedDegrees.end() ? iter->second : 0;
+    return TransferToAntiClockwiseDegrees(rAngle);
 }
 
 int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
@@ -1359,8 +1365,7 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
     auto transformType = RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(
         node.GetRSSurfaceHandler()->GetConsumer(), node.GetRSSurfaceHandler()->GetBuffer()));
     int extraRotation = 0;
-    auto geoPtr = node.GetRenderProperties().GetBoundsGeometry();
-    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(geoPtr ? geoPtr->GetAbsMatrix() : Drawing::Matrix());
+    int degree = static_cast<int>(node.GetAbsRotation()) % 360;
     auto surfaceParams = node.GetStagingRenderParams() == nullptr
                              ? nullptr
                              : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
@@ -1469,15 +1474,10 @@ void RSUniRenderUtil::UpdateRealSrcRect(RSSurfaceRenderNode& node, const RectI& 
     node.SetSrcRect(newSrcRect);
 }
 
-GraphicTransformType RSUniRenderUtil::GetConsumerTransform(const RSSurfaceRenderNode& node)
+GraphicTransformType RSUniRenderUtil::GetConsumerTransform(const RSSurfaceRenderNode& node,
+    const sptr<SurfaceBuffer> buffer, const sptr<IConsumerSurface> consumer)
 {
-    auto surfaceHandler = node.GetRSSurfaceHandler();
-    if (!surfaceHandler) {
-        return GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    }
-    auto consumer = surfaceHandler->GetConsumer();
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
-    auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (consumer != nullptr && buffer != nullptr) {
         if (consumer->GetSurfaceBufferTransformType(buffer, &transformType) != GSERROR_OK) {
             RS_LOGE("RSUniRenderUtil::GetConsumerTransform GetSurfaceBufferTransformType failed");
@@ -1487,8 +1487,8 @@ GraphicTransformType RSUniRenderUtil::GetConsumerTransform(const RSSurfaceRender
     return consumerTransform;
 }
 
-RectI RSUniRenderUtil::CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
-    const GraphicTransformType consumerTransformType, RectI newSrcRect)
+Drawing::Rect RSUniRenderUtil::CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
+    const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect)
 {
     const float frameWidth = buffer.GetSurfaceBufferWidth();
     const float frameHeight = buffer.GetSurfaceBufferHeight();
@@ -1498,20 +1498,20 @@ RectI RSUniRenderUtil::CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
     int height = std::clamp<int>(newSrcRect.GetHeight(), 0, frameHeight - top);
     switch (consumerTransformType) {
         case GraphicTransformType::GRAPHIC_ROTATE_NONE: {
-            newSrcRect = RectI(left, top, width, height);
+            newSrcRect = Drawing::Rect(left, top, left + width, top + height);
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_90: {
-            newSrcRect = RectI(frameWidth - width - left, top, width, height);
+            newSrcRect = Drawing::Rect(frameWidth - width - left, top, frameWidth - left, top + height);
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_180: {
-            newSrcRect = RectI(frameWidth - width - left, frameHeight - height - top,
-                width, height);
+            newSrcRect = Drawing::Rect(frameWidth - width - left, frameHeight - height - top,
+                frameWidth - left, frameHeight - top);
             break;
         }
         case GraphicTransformType::GRAPHIC_ROTATE_270: {
-            newSrcRect = RectI(left, frameHeight - height - top, width, height);
+            newSrcRect = Drawing::Rect(left, frameHeight - height - top, left + width, frameHeight - top);
             break;
         }
         default:
@@ -1520,14 +1520,31 @@ RectI RSUniRenderUtil::CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
     return newSrcRect;
 }
 
+bool RSUniRenderUtil::IsHwcEnabledByGravity(RSSurfaceRenderNode& node, const Gravity frameGravity)
+{
+    // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
+    // we currently disable hardware composer.
+    if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
+        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
+            node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
+        node.SetHardwareForcedDisabledState(true);
+        return false;
+    }
+    return true;
+}
+
 void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo,
     const Drawing::Matrix& totalMatrix)
 {
-    auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
+    auto surfaceHandler = node.GetRSSurfaceHandler();
+    if (!surfaceHandler) {
+        return;
+    }
+    const auto buffer = surfaceHandler->GetBuffer();
+    const auto consumer = surfaceHandler->GetConsumer();
     const auto& property = node.GetRenderProperties();
     const std::shared_ptr<RSObjAbsGeometry>& hwcNodeGeo = property.GetBoundsGeometry();
-    if (!buffer || !hwcNodeGeo) {
-        RS_LOGE("hwcNode Geometry is not prepared or buffer cannot be found");
+    if (!consumer || !buffer || !hwcNodeGeo) {
         return;
     }
     float frameWidth = buffer->GetSurfaceBufferWidth();
@@ -1535,18 +1552,13 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     const float boundsWidth = property.GetBoundsWidth();
     const float boundsHeight = property.GetBoundsHeight();
     const Gravity frameGravity = property.GetFrameGravity();
-    const GraphicTransformType consumerTransformType = GetConsumerTransform(node);
+    const GraphicTransformType consumerTransformType = (node.GetFixRotationByUser()) ?
+        GetRotateTransformForRotationFixed(node, consumer) : GetConsumerTransform(node, buffer, consumer);
     CheckForceHardwareAndUpdateDstRect(node);
+    Drawing::Matrix inverseTotalMatrix;
     // We don't have to do additional works when renderfit mode is Gravity::RESIZE or frameSize == boundsSize.
-    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight))) {
-        return;
-    }
-    // When renderfit mode is not Gravity::RESIZE or Gravity::TOP_LEFT,
-    // we currently disable hardware composer.
-    if (frameGravity != Gravity::RESIZE && frameGravity != Gravity::TOP_LEFT) {
-        RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 "disabled by frameGravity[%d]",
-            node.GetName().c_str(), node.GetId(), static_cast<int>(frameGravity));
-        node.SetHardwareForcedDisabledState(true);
+    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) ||
+        !totalMatrix.Invert(inverseTotalMatrix) || !IsHwcEnabledByGravity(node, frameGravity)) {
         return;
     }
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
@@ -1562,17 +1574,72 @@ void RSUniRenderUtil::DealWithNodeGravity(RSSurfaceRenderNode& node, const Scree
     newDstRect.Intersect(absIntersectRect);
     node.SetDstRect({std::floor(newDstRect.GetLeft()), std::floor(newDstRect.GetTop()),
         std::ceil(newDstRect.GetWidth()), std::ceil(newDstRect.GetHeight())});
+    Drawing::Rect newSrcRect;
+    inverseTotalMatrix.MapRect(newSrcRect, newDstRect);
     if (consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         consumerTransformType == GraphicTransformType::GRAPHIC_ROTATE_270) {
         std::swap(localIntersectRect.left_, localIntersectRect.top_);
         std::swap(localIntersectRect.right_, localIntersectRect.bottom_);
     }
-    RectI newSrcRect(localIntersectRect.left_, localIntersectRect.top_,
-        localIntersectRect.GetWidth(), localIntersectRect.GetHeight());
-    const RectI& srcRect = node.GetSrcRect();
-    newSrcRect = newSrcRect.IntersectRect(srcRect);
     newSrcRect = CalcSrcRectByBufferRotation(*buffer, consumerTransformType, newSrcRect);
-    node.SetSrcRect(newSrcRect);
+    node.SetSrcRect({newSrcRect.GetLeft(), newSrcRect.GetTop(), newSrcRect.GetWidth(), newSrcRect.GetHeight()});
+}
+
+void RSUniRenderUtil::DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo)
+{
+    auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
+    if (!buffer) {
+        return;
+    }
+    const auto& property = node.GetRenderProperties();
+    const float frameWidth = buffer->GetSurfaceBufferWidth();
+    const float frameHeight = buffer->GetSurfaceBufferHeight();
+    const float boundsWidth = property.GetBoundsWidth();
+    const float boundsHeight = property.GetBoundsHeight();
+    const Gravity frameGravity = property.GetFrameGravity();
+
+    CheckForceHardwareAndUpdateDstRect(node);
+    // we do not need to do additional works for Gravity::RESIZE and if frameSize == boundsSize.
+    if (frameGravity == Gravity::RESIZE || (ROSEN_EQ(frameWidth, boundsWidth) && ROSEN_EQ(frameHeight, boundsHeight)) ||
+        frameGravity == Gravity::TOP_LEFT) {
+        return;
+    }
+ 
+    // get current node's translate matrix and calculate gravity matrix.
+    auto translateMatrix = Drawing::Matrix();
+    translateMatrix.Translate(node.GetTotalMatrix().Get(Drawing::Matrix::Index::TRANS_X),
+        std::ceil(node.GetTotalMatrix().Get(Drawing::Matrix::Index::TRANS_Y)));
+    Drawing::Matrix gravityMatrix;
+    (void)RSPropertiesPainter::GetGravityMatrix(frameGravity,
+        RectF {0.0f, 0.0f, boundsWidth, boundsHeight}, frameWidth, frameHeight, gravityMatrix);
+    // create a canvas to calculate new dstRect and new srcRect
+    int32_t screenWidth = screenInfo.phyWidth;
+    int32_t screenHeight = screenInfo.phyHeight;
+    const auto screenRotation = screenInfo.rotation;
+    if (screenRotation == ScreenRotation::ROTATION_90 || screenRotation == ScreenRotation::ROTATION_270) {
+        std::swap(screenWidth, screenHeight);
+    }
+ 
+    auto canvas = std::make_unique<Drawing::Canvas>(screenWidth, screenHeight);
+    canvas->ConcatMatrix(translateMatrix);
+    canvas->ConcatMatrix(gravityMatrix);
+    Drawing::Rect clipRect;
+    gravityMatrix.MapRect(clipRect, Drawing::Rect(0, 0, frameWidth, frameHeight));
+    canvas->ClipRect(Drawing::Rect(0, 0, clipRect.GetWidth(), clipRect.GetHeight()), Drawing::ClipOp::INTERSECT);
+    Drawing::RectI newDstRect = canvas->GetDeviceClipBounds();
+    auto dstRect = node.GetDstRect();
+    // we make the newDstRect as the intersection of new and old dstRect,
+    // to deal with the situation that frameSize > boundsSize.
+    newDstRect.Intersect(Drawing::RectI(
+        dstRect.left_, dstRect.top_, dstRect.width_ + dstRect.left_, dstRect.height_ + dstRect.top_));
+    auto localRect = canvas->GetLocalClipBounds();
+    int left = std::clamp<int>(localRect.GetLeft(), 0, frameWidth);
+    int top = std::clamp<int>(localRect.GetTop(), 0, frameHeight);
+    int width = std::clamp<int>(localRect.GetWidth(), 0, frameWidth - left);
+    int height = std::clamp<int>(localRect.GetHeight(), 0, frameHeight - top);
+ 
+    node.SetDstRect({newDstRect.GetLeft(), newDstRect.GetTop(), newDstRect.GetWidth(), newDstRect.GetHeight()});
+    node.SetSrcRect({left, top, width, height});
 }
 
 void RSUniRenderUtil::CheckForceHardwareAndUpdateDstRect(RSSurfaceRenderNode& node)
@@ -1628,8 +1695,9 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
                              ? nullptr
                              : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
-    int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
-        RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
+    int surfaceNodeRotation = node.GetFixRotationByUser()
+                                  ? -1 * rotationDegree
+                                  : TransferToAntiClockwiseDegrees(static_cast<int>(node.GetAbsRotation()) % 360);
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (consumer != nullptr && buffer != nullptr) {
@@ -2124,7 +2192,9 @@ void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode>
     Drawing::Matrix totalMatrix = hwcNodeGeo->GetMatrix();
     auto hwcNodeRect = hwcNodeGeo->GetAbsRect();
     bool isNodeRenderByDrawingCache = false;
-    RSUniRenderUtil::TraverseParentNodeAndReduce(hwcNode,
+    hwcNode->SetAbsRotation(hwcNode->GetRenderProperties().GetRotation());
+    RSUniRenderUtil::TraverseParentNodeAndReduce(
+        hwcNode,
         [&isNodeRenderByDrawingCache](std::shared_ptr<RSRenderNode> parent) {
             if (isNodeRenderByDrawingCache) {
                 return;
@@ -2197,8 +2267,10 @@ void RSUniRenderUtil::UpdateHwcNodeProperty(std::shared_ptr<RSSurfaceRenderNode>
                     checkIntersectWithRoundCorner(parentClipRect, maxClipRRectCornerRadiusX, maxClipRRectCornerRadiusY);
                 }
             }
-        }
-    );
+        },
+        [hwcNode](std::shared_ptr<RSRenderNode> parent) {
+            hwcNode->SetAbsRotation(hwcNode->GetAbsRotation() + parent->GetRenderProperties().GetRotation());
+        });
     if (isNodeRenderByDrawingCache) {
         RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by drawing cache",
             hwcNode->GetName().c_str(), hwcNode->GetId());

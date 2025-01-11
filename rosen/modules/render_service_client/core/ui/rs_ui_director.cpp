@@ -92,6 +92,9 @@ void RSUIDirector::Init(bool shouldCreateRenderThread)
         // force fallback animaiions send to RS if no render thread
         RSNodeMap::Instance().GetAnimationFallbackNode()->isRenderServiceNode_ = true;
     }
+    if (!cacheDir_.empty()) {
+        RSRenderThread::Instance().SetCacheDir(cacheDir_);
+    }
     if (auto rsApplicationAgent = RSApplicationAgentImpl::Instance()) {
         rsApplicationAgent->RegisterRSApplicationAgent();
     }

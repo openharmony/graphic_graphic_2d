@@ -152,7 +152,8 @@ void RSUniRenderThread::InitGrContext()
             RSUniRenderThread::Instance().PostImageReleaseTask(task);
         });
     }
-    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+    if (Drawing::SystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        Drawing::SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         if (RSSystemProperties::IsFoldScreenFlag()) {
             vmaOptimizeFlag_ = true;
         }

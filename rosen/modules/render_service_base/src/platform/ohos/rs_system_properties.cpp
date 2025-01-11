@@ -452,16 +452,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-void RSSystemProperties::SetScreenSwitchStatus(bool flag)
-{
-    isScreenSwitching_ = flag;
-}
-
-bool RSSystemProperties::GetScreenSwitchStatus()
-{
-    return isScreenSwitching_;
-}
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -768,6 +758,12 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
 {
     static bool debugEnable = system::GetIntParameter("persist.sys.graphic.uifirstDebugEnabled", 0) != 0;
     return debugEnable;
+}
+
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
+{
+    static bool lockerEnable = system::GetIntParameter("persist.sys.graphic.singleDrawableLocker.enable", 1) != 0;
+    return lockerEnable;
 }
 
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)

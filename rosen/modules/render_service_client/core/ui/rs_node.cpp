@@ -1212,6 +1212,12 @@ void RSNode::SetBackgroundShader(const std::shared_ptr<RSShader>& shader)
         RSModifierType::BACKGROUND_SHADER, shader);
 }
 
+void RSNode::SetBackgroundShaderProgress(const float& progress)
+{
+    SetProperty<RSBackgroundShaderProgressModifier, RSAnimatableProperty<float>>(
+        RSModifierType::BACKGROUND_SHADER_PROGRESS, progress);
+}
+
 // background
 void RSNode::SetBgImage(const std::shared_ptr<RSImage>& image)
 {

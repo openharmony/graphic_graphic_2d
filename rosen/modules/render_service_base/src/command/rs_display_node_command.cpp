@@ -73,7 +73,7 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSDisplayRenderNode>(id)) {
         node->SetScreenId(screenId);
-        RSSystemProperties::SetScreenSwitchStatus(false);
+        node->CheckTargetScreenSwitched(screenId);
     }
 }
 

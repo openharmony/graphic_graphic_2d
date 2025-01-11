@@ -48,6 +48,10 @@ public:
 
     virtual void DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOptions& samplingOptions,
         Drawing::SrcRectConstraint constraint = Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+    virtual void DrawImageNine(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
+    virtual void DrawImageLattice(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+        Drawing::FilterMode filterMode = Drawing::FilterMode::NEAREST);
     void SetImage(const std::shared_ptr<Drawing::Image> image);
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     void SetDmaImage(const std::shared_ptr<Drawing::Image> image);

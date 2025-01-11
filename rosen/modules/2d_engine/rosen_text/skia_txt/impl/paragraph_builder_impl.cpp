@@ -14,11 +14,13 @@
  */
 
 #include "paragraph_builder_impl.h"
+#include <string>
 
-#include "modules/skparagraph/include/ParagraphStyle.h"
-#include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
 #include "paragraph_line_fetcher_impl.h"
+#include "common_utils/string_util.h"
+#include "modules/skparagraph/include/ParagraphStyle.h"
+#include "modules/skparagraph/include/TextStyle.h"
 #include "txt/paragraph_style.h"
 #include "utils/text_log.h"
 
@@ -126,7 +128,9 @@ void ParagraphBuilderImpl::Pop()
 void ParagraphBuilderImpl::AddText(const std::u16string& text)
 {
     RecordDifferentPthreadCall(__FUNCTION__);
-    builder_->addText(text);
+    std::u16string wideText = text;
+    HandleIncompleteSurrogatePairs(wideText);
+    builder_->addText(wideText);
 }
 
 void ParagraphBuilderImpl::AddPlaceholder(PlaceholderRun& run)

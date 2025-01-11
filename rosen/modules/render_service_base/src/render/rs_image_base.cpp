@@ -129,6 +129,52 @@ void RSImageBase::DrawImage(Drawing::Canvas& canvas, const Drawing::SamplingOpti
     canvas.DrawImageRect(*image_, src, dst, samplingOptions, constraint);
 }
 
+void RSImageBase::DrawImageNine(Drawing::Canvas& canvas, const Drawing::RectI& center, const Drawing::Rect& dst,
+    Drawing::FilterMode filterMode)
+{
+#ifdef ROSEN_OHOS
+    if (pixelMap_) {
+        pixelMap_->ReMap();
+    }
+#endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        BindPixelMapToDrawingImage(canvas);
+    }
+#endif
+    if (!image_) {
+        ConvertPixelMapToDrawingImage();
+    }
+    if (image_ == nullptr) {
+        RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
+        return;
+    }
+    canvas.DrawImageNine(image_.get(), center, dst, filterMode, nullptr);
+}
+
+void RSImageBase::DrawImageLattice(Drawing::Canvas& canvas, const Drawing::Lattice& lattice, const Drawing::Rect& dst,
+    Drawing::FilterMode filterMode)
+{
+#ifdef ROSEN_OHOS
+    if (pixelMap_) {
+        pixelMap_->ReMap();
+    }
+#endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (pixelMap_ && pixelMap_->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        BindPixelMapToDrawingImage(canvas);
+    }
+#endif
+    if (!image_) {
+        ConvertPixelMapToDrawingImage();
+    }
+    if (image_ == nullptr) {
+        RS_LOGE("RSImageBase::DrawImage image_ is nullptr");
+        return;
+    }
+    canvas.DrawImageLattice(image_.get(), lattice, dst, filterMode);
+}
+
 void RSImageBase::SetImage(const std::shared_ptr<Drawing::Image> image)
 {
     isDrawn_ = false;

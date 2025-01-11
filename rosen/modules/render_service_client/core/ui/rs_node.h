@@ -263,6 +263,7 @@ public:
     void SetForegroundColor(uint32_t colorValue);
     void SetBackgroundColor(uint32_t colorValue);
     void SetBackgroundShader(const std::shared_ptr<RSShader>& shader);
+    void SetBackgroundShaderProgress(const float& process);
 
     void SetBgImage(const std::shared_ptr<RSImage>& image);
     void SetBgImageInnerRect(const Vector4f& innerRect);

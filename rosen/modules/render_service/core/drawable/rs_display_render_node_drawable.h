@@ -163,6 +163,7 @@ private:
     void PostClearMemoryTask() const;
     void SetCanvasBlack(RSProcessor& processor);
     void SetSecurityMask(RSProcessor& processor);
+    void SetScreenRotationForPointLight(RSDisplayRenderParams &params);
     // Prepare for off-screen render
     void ClearTransparentBeforeSaveLayer();
     void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable, bool useFixedSize = false);
@@ -200,7 +201,6 @@ private:
     bool castScreenEnableSkipWindow_ = false;
     bool isDisplayNodeSkip_ = false;
     bool isDisplayNodeSkipStatusChanged_ = false;
-    bool littleScreenRedraw_ = false;
     Drawing::Matrix lastMatrix_;
     Drawing::Matrix lastMirrorMatrix_;
     bool useFixedOffscreenSurfaceSize_ = false;
@@ -233,6 +233,8 @@ private:
     Drawing::RectI lastVisibleRect_;
     int32_t offscreenTranslateX_ = 0;
     int32_t offscreenTranslateY_ = 0;
+
+    bool isRenderSkipIfScreenOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

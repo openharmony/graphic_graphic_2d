@@ -140,6 +140,8 @@ public:
     bool IsSkippingFrame() const;
     bool IsAIBarFilter() const;
     bool IsAIBarCacheValid();
+    bool WouldDrawLargeAreaBlur();
+    bool WouldDrawLargeAreaBlurPrecisely();
 
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
@@ -179,6 +181,8 @@ protected:
     bool stagingIsEffectNode_ = false;
     bool stagingIntersectWithDRM_ = false;
     bool stagingIsDarkColorMode_ = false;
+    int stagingUpdateInterval_ = 0;
+    FilterCacheType stagingLastCacheType_ = FilterCacheType::NONE;
 
     // clear one of snapshot cache and filtered cache after drawing
     // All renderXXX variables should be read & written by render_thread or OnSync() function

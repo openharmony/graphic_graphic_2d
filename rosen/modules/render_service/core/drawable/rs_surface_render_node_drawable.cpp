@@ -469,7 +469,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
     if (DealWithUIFirstCache(*rscanvas, *surfaceParams, *uniParam)) {
-        SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+        if (GetDrawSkipType() == DrawSkipType::NONE) {
+            SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_SKIP);
+        }
         return;
     }
     auto cacheState = GetCacheSurfaceProcessedStatus();
@@ -482,10 +484,12 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
-        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
-        return;
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+            return;
+        }
     }
 
     std::shared_ptr<Drawing::GPUContext> gpuContext = nullptr;
@@ -882,7 +886,9 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
         RS_LOGE("RSSurfaceRenderNodeDrawable::CaptureSurface node %{public}" PRIu64 " onDraw!!!", GetId());
-        return;
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            return;
+        }
     }
 
     bool isSelfDrawingSurface = surfaceParams.GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE &&
@@ -1110,6 +1116,7 @@ bool RSSurfaceRenderNodeDrawable::DealWithUIFirstCache(
     drawCacheSuccess = useDmaBuffer ?
         DrawUIFirstCacheWithDma(canvas, surfaceParams) : DrawUIFirstCache(canvas, canSkipFirstWait);
     if (!drawCacheSuccess) {
+        SetDrawSkipType(DrawSkipType::UI_FIRST_CACHE_FAIL);
         RS_TRACE_NAME_FMT("[%s] reuse failed!", name_.c_str());
     }
     DrawForeground(canvas, bounds);

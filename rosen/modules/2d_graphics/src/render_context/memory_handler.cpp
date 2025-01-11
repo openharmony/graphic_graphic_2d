@@ -28,6 +28,7 @@ void MemoryHandler::ConfigureContext(Drawing::GPUContextOptions* context, const 
     cache.SetFilePath(cacheFilePath);
     cache.InitShaderCache(identity, size, isUni);
     context->SetPersistentCache(&cache);
+    context->SetStoreCachePath(cacheFilePath);
 }
 
 void MemoryHandler::ClearRedundantResources(Drawing::GPUContext* gpuContext)

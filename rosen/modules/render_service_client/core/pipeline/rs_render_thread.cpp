@@ -291,6 +291,9 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
         }
 #endif
 #ifdef RS_ENABLE_VK
+    if (!cacheDir_.empty()) {
+        renderContex_->SetCacheDir(cacheDir_);
+    }
     if (RSSystemProperties::IsUseVulkan()) {
         renderContext_->SetUpGpuContext(nullptr);
     }

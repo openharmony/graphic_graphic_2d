@@ -997,6 +997,17 @@ bool SkiaCanvas::IsClipRect()
     return skCanvas_->isClipRect();
 }
 
+bool SkiaCanvas::QuickReject(const Path& path)
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    const SkPath& clipPath = path.GetImpl<SkiaPath>()->GetPath();
+    DRAWING_PERFORMANCE_TEST_SKIA_RETURN(false);
+    return skCanvas_->quickReject(clipPath);
+}
+
 bool SkiaCanvas::QuickReject(const Rect& rect)
 {
     if (!skCanvas_) {

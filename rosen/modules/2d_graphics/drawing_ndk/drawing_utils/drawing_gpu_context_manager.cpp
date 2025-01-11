@@ -25,11 +25,14 @@
 namespace OHOS {
 namespace Rosen {
 
-std::shared_ptr<RenderContext> DrawingGpuContextManager::GetRenderContext()
+DrawingGpuContextManager::DrawingGpuContextManager()
 {
-    if (renderContext_ == nullptr) {
+    if (Drawing::SystemProperties::IsUseGl()) {
         renderContext_ = std::make_shared<RenderContext>();
     }
+}
+std::shared_ptr<RenderContext> DrawingGpuContextManager::GetRenderContext()
+{
     return renderContext_;
 }
 
@@ -44,9 +47,8 @@ std::shared_ptr<Drawing::GPUContext> DrawingGpuContextManager::CreateDrawingCont
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<Drawing::GPUContext> context = nullptr;
     if (Drawing::SystemProperties::IsUseGl()) {
-        GetRenderContext();
         if (renderContext_ == nullptr) {
-            LOGE("CreateDrawingContext: get renderContext failed.");
+            LOGE("CreateDrawingContext: create renderContext failed.");
             return nullptr;
         }
 
@@ -56,7 +58,7 @@ std::shared_ptr<Drawing::GPUContext> DrawingGpuContextManager::CreateDrawingCont
     }
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
-        context = RsVulkanContext::GetSingleton().GetDrawingContext();
+        context = RsVulkanContext::GetSingleton().CreateDrawingContext();
     }
 #endif
 

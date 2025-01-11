@@ -312,6 +312,74 @@ uint32_t CmdList::SetupBaseObj(const std::vector<std::shared_ptr<ExtendImageBase
     return imageBaseObjVec_.size();
 }
 
+uint32_t CmdList::AddImageNineObject(const std::shared_ptr<ExtendImageNineObject>& object)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    imageNineObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(imageNineObjectVec_.size()) - 1;
+}
+
+std::shared_ptr<ExtendImageNineObject> CmdList::GetImageNineObject(uint32_t id)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    if (id >= imageNineObjectVec_.size()) {
+        return nullptr;
+    }
+    return imageNineObjectVec_[id];
+}
+
+uint32_t CmdList::GetAllImageNineObject(std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    for (const auto &object : imageNineObjectVec_) {
+        objectList.emplace_back(object);
+    }
+    return objectList.size();
+}
+
+uint32_t CmdList::SetupImageNineObject(const std::vector<std::shared_ptr<ExtendImageNineObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageNineObjectMutex_);
+    for (const auto &object : objectList) {
+        imageNineObjectVec_.emplace_back(object);
+    }
+    return imageNineObjectVec_.size();
+}
+
+uint32_t CmdList::AddImageLatticeObject(const std::shared_ptr<ExtendImageLatticeObject>& object)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    imageLatticeObjectVec_.emplace_back(object);
+    return static_cast<uint32_t>(imageLatticeObjectVec_.size()) - 1;
+}
+
+std::shared_ptr<ExtendImageLatticeObject> CmdList::GetImageLatticeObject(uint32_t id)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    if (id >= imageLatticeObjectVec_.size()) {
+        return nullptr;
+    }
+    return imageLatticeObjectVec_[id];
+}
+
+uint32_t CmdList::GetAllImageLatticeObject(std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    for (const auto &object : imageLatticeObjectVec_) {
+        objectList.emplace_back(object);
+    }
+    return objectList.size();
+}
+
+uint32_t CmdList::SetupImageLatticeObject(const std::vector<std::shared_ptr<ExtendImageLatticeObject>>& objectList)
+{
+    std::lock_guard<std::mutex> lock(imageLatticeObjectMutex_);
+    for (const auto &object : objectList) {
+        imageLatticeObjectVec_.emplace_back(object);
+    }
+    return imageLatticeObjectVec_.size();
+}
+
 void CmdList::CopyObjectTo(CmdList& other) const
 {
 #ifdef SUPPORT_OHOS_PIXMAP

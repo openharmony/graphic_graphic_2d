@@ -514,6 +514,15 @@ public:
     {
         return hasHdrVideo_;
     }
+
+    using ScreenStatusNotifyTask = std::function<void(bool, uint64_t)>;
+
+    static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
+
+    static void SetSwitchedScreenId(uint64_t screenId);
+
+    void CheckTargetScreenSwitched(uint64_t screenId);
+
 protected:
     void OnSync() override;
 private:
@@ -603,6 +612,8 @@ private:
     // HDR Video
     HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
     bool hasHdrVideo_ = false;
+    static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
+    static inline uint64_t switchedScreenId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

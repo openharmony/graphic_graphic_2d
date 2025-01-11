@@ -24,14 +24,19 @@ namespace Rosen {
 namespace Drawing {
 Blender::Blender() noexcept : impl_(ImplFactory::CreateBlenderImpl()) {}
 
-void Blender::SetSkBlender(sk_sp<SkBlender> blender)
-{
-    GetImpl<SkiaBlender>()->SetSkBlender(blender);
-}
-
 std::shared_ptr<Blender> Blender::CreateWithBlendMode(BlendMode mode)
 {
     return StaticFactory::CreateWithBlendMode(mode);
+}
+
+std::shared_ptr<Data> Blender::Serialize() const
+{
+    return impl_->Serialize();
+}
+
+bool Blender::Deserialize(std::shared_ptr<Data> data)
+{
+    return impl_->Deserialize(data);
 }
 } // namespace Drawing
 } // namespace Rosen

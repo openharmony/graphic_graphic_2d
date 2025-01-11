@@ -73,6 +73,8 @@ constexpr int MIN_OVERLAP = 2;
 constexpr float DEFAULT_HDR_RATIO = 1.0f;
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
 constexpr float GAMMA2_2 = 2.2f;
+constexpr uint32_t API14 = 14;
+constexpr uint32_t INVALID_API_COMPATIBLE_VERSION = 0;
 
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -1027,6 +1029,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (node.IsHardwareEnabledTopSurface() && node.shared_from_this()) {
         RSUniRenderUtil::UpdateHwcNodeProperty(node.shared_from_this()->ReinterpretCastTo<RSSurfaceRenderNode>());
     }
+    CalculateOpaqueAndTransparentRegion(node);
     CheckMergeFilterDirtyByIntersectWithDirty(curSurfaceNoBelowDirtyFilter_, false);
     curAlpha_ = prevAlpha;
     prepareClipRect_ = prepareClipRect;
@@ -1116,8 +1119,19 @@ void RSUniRenderVisitor::PrepareForUIFirstNode(RSSurfaceRenderNode& node)
 
 void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
 {
+    if (!curDisplayNode_) {
+        RS_LOGE("RSUniRenderVisitor::UpdateNodeVisibleRegion curDisplayNode is nullptr");
+        return;
+    }
+    // occlusion - 0. Calculate node visible region considering accumulated opaque region of upper surface nodes.
+    if (!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) {
+        RS_LOGD("RSUniRenderVisitor::UpdateNodeVisibleRegion NodeName: %{public}s, NodeId: %{public}" PRIu64 ""
+            "not paticipate in occlusion when cross node in expand screen", node.GetName().c_str(), node.GetId());
+        return;
+    }
     Occlusion::Rect selfDrawRect = node.GetSurfaceOcclusionRect(true);
     Occlusion::Region selfDrawRegion { selfDrawRect };
+    needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged();
     if (needRecalculateOcclusion_) {
         Occlusion::Region subResult = selfDrawRegion.Sub(accumulatedOcclusionRegion_);
         node.SetVisibleRegion(subResult);
@@ -1129,41 +1143,40 @@ void RSUniRenderVisitor::UpdateNodeVisibleRegion(RSSurfaceRenderNode& node)
         node.GetName().c_str(), node.GetVisibleRegion().GetRegionInfo().c_str());
 }
 
-void RSUniRenderVisitor::CalculateOcclusion(RSSurfaceRenderNode& node)
+void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node)
 {
     if (!curDisplayNode_) {
-        RS_LOGE("RSUniRenderVisitor::CalculateOcclusion curDisplayNode is nullptr");
+        RS_LOGE("RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion curDisplayNode is nullptr");
+        return;
+    }
+    // occlusion - 1. Only non-cross-screen main window surface node participate in occlusion.
+    if ((!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) ||
+        !node.IsMainWindowType()) {
+        RS_LOGD("RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion Node: %{public}s, NodeId: %{public}" PRIu64 ""
+            "not paticipate in occlusion", node.GetName().c_str(), node.GetId());
         return;
     }
 
-    if (!curDisplayNode_->IsFirstVisitCrossNodeDisplay() && node.IsFirstLevelCrossNode()) {
-        RS_LOGD("RSUniRenderVisitor::CalculateOcclusion NodeName: %{public}s, NodeId: %{public}" PRIu64 ""
-            "not paticipate in occlusion when cross node in expand screen", node.GetName().c_str(), node.GetId());
-        return;
-    }
-
-    // CheckAndUpdateOpaqueRegion only in mainWindow
+    // occlusion - 2. Calculate opaque/transparent region based on round corner, container window, etc.
     auto parent = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetParent().lock());
     auto isFocused = node.IsFocusedNode(currentFocusedNodeId_) ||
         (parent && parent->IsLeashWindow() && parent->IsFocusedNode(focusedLeashWindowId_));
     node.CheckAndUpdateOpaqueRegion(screenRect_, curDisplayNode_->GetRotation(), isFocused);
-    if (!needRecalculateOcclusion_) {
-        needRecalculateOcclusion_ = node.CheckIfOcclusionChanged();
-    }
-    // Update node visibleRegion
+    // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSkipLayer();
-    UpdateNodeVisibleRegion(node);
     auto mainThread = RSMainThread::Instance();
     node.SetOcclusionInSpecificScenes(mainThread->GetDeviceType() == DeviceType::PC &&
         mainThread->IsPCThreeFingerScenesListScene());
-    // check current surface Participate In Occlusion
     if (node.CheckParticipateInOcclusion() && !ancestorNodeHasAnimation_ && !isAllSurfaceVisibleDebugEnabled_) {
+        RS_OPTIONAL_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
+            node.GetName().c_str(), node.GetOpaqueRegion().GetRegionInfo().c_str());
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
         const auto currentBlackList = GetCurrentBlackList();
         if (IsValidInVirtualScreen(node) && currentBlackList.find(node.GetId()) == currentBlackList.end()) {
             occlusionRegionWithoutSkipLayer_.OrSelf(node.GetOpaqueRegion());
         }
     }
+    needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged();
     node.SetOcclusionInSpecificScenes(false);
     CollectOcclusionInfoForWMS(node);
     RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(screenInfo_, node);
@@ -1387,6 +1400,14 @@ bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) c
     return IsLeashAndHasMainSubNode(node);
 }
 
+void RSUniRenderVisitor::PredictDrawLargeAreaBlur(RSRenderNode& node, std::pair<bool, bool>& predictDrawLargeAreaBlur)
+{
+    std::pair<bool, bool> nodeDrawLargeAreaBlur = {false, false};
+    node.NodeDrawLargeAreaBlur(nodeDrawLargeAreaBlur);
+    predictDrawLargeAreaBlur.first = predictDrawLargeAreaBlur.first || nodeDrawLargeAreaBlur.first;
+    predictDrawLargeAreaBlur.second = predictDrawLargeAreaBlur.second || nodeDrawLargeAreaBlur.second;
+}
+
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
 {
     MergeRemovedChildDirtyRegion(node, true);
@@ -1556,9 +1577,13 @@ bool RSUniRenderVisitor::BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
         node.SetBufferRelMatrix(RSUniRenderUtil::GetMatrixOfBufferToRelRect(node));
     }
 #ifdef RS_ENABLE_GPU
-    if (node.IsHardwareEnabledTopSurface() && node.ShouldPaint()) {
-        RSPointerWindowManager::Instance().CollectInfoForHardCursor(curDisplayNode_->GetId(),
-            node.GetRenderDrawable());
+    // 4. collect cursors and check for null
+    if (node.IsHardwareEnabledTopSurface()) {
+        auto surfaceNodeDrawable =
+            std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(node.GetRenderDrawable());
+        if (surfaceNodeDrawable) {
+            RSPointerWindowManager::Instance().CollectAllHardCursor(curDisplayNode_->GetId(), node.GetRenderDrawable());
+        }
     }
 #endif
     node.setQosCal((RSMainThread::Instance()->GetDeviceType() == DeviceType::PC) &&
@@ -1591,7 +1616,7 @@ bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node)
     }
     // 2. Update Occlusion info before children preparation
     if (node.IsMainWindowType()) {
-        CalculateOcclusion(node);
+        UpdateNodeVisibleRegion(node);
         if (node.GetFirstLevelNodeId() == node.GetId()) {
             globalSurfaceBounds_.emplace_back(node.GetAbsDrawRect());
         }
@@ -1723,7 +1748,10 @@ void RSUniRenderVisitor::UpdateHwcNodeByTransform(RSSurfaceRenderNode& node, con
         return;
     }
     node.SetInFixedRotation(displayNodeRotationChanged_ || isScreenRotationAnimating_);
-    RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_, totalMatrix);
+    const uint32_t apiCompatibleVersion = node.GetApiCompatibleVersion();
+    (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && apiCompatibleVersion <= API14) ?
+        RSUniRenderUtil::DealWithNodeGravityOldVersion(node, screenInfo_) :
+        RSUniRenderUtil::DealWithNodeGravity(node, screenInfo_, totalMatrix);
     RSUniRenderUtil::LayerRotate(node, screenInfo_);
     RSUniRenderUtil::LayerCrop(node, screenInfo_);
     RSUniRenderUtil::DealWithScalingMode(node, screenInfo_);
@@ -2162,7 +2190,8 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(std::shared_ptr<
             topLayers.emplace_back(hwcNodePtr);
             continue;
         }
-        if ((curDisplayNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty()) && !hwcNodePtr->GetProtectedLayer()) {
+        if ((curDisplayNode_->GetHasUniRenderHdrSurface() || !drmNodes_.empty() ||
+            hasFingerprint_[currentVisitDisplay_]) && !hwcNodePtr->GetProtectedLayer()) {
             RS_OPTIONAL_TRACE_NAME_FMT("hwc debug: name:%s id:%" PRIu64
                 " disabled by having UniRenderHdrSurface/DRM nodes",
                 hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
@@ -2785,6 +2814,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
                 globalFilter_.insert(*it);
             }
             filterNode->PostPrepareForBlurFilterNode(*(curDisplayNode_->GetDirtyManager()), needRequestNextVsync_);
+            PredictDrawLargeAreaBlur(*filterNode, predictDrawLargeAreaBlur_);
         }
     }
 }
@@ -3430,6 +3460,7 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     }
     if (curSurfaceNode_ && !isNodeAddedToTransparentCleanFilters) {
         node.PostPrepareForBlurFilterNode(dirtyManager, needRequestNextVsync_);
+        PredictDrawLargeAreaBlur(node, predictDrawLargeAreaBlur_);
     }
 }
 

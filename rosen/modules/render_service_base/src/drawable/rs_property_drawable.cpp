@@ -210,6 +210,50 @@ void RSFilterDrawable::OnSync()
     stagingIsEffectNode_ = false;
     stagingIsSkipFrame_ = false;
     needSync_ = false;
+    stagingUpdateInterval_ = cacheUpdateInterval_;
+    stagingLastCacheType_ = lastCacheType_;
+}
+
+bool RSFilterDrawable::WouldDrawLargeAreaBlur()
+{
+    RS_TRACE_NAME_FMT("wouldDrawLargeAreaBlur stagingIsLargeArea:%d canSkipFrame:%d"
+        " stagingUpdateInterval:%d stagingFilterInteractWithDirty:%d stagingNodeId[%llu]",
+        stagingIsLargeArea_, canSkipFrame_, stagingUpdateInterval_, stagingFilterInteractWithDirty_, stagingNodeId_);
+    if (stagingIsLargeArea_) {
+        if (!canSkipFrame_) {
+            return true;
+        }
+        return stagingUpdateInterval_ == 1 && stagingFilterInteractWithDirty_;
+    }
+    return false;
+}
+
+bool RSFilterDrawable::WouldDrawLargeAreaBlurPrecisely()
+{
+    RS_TRACE_NAME_FMT("wouldDrawLargeAreaBlurPrecisely stagingIsLargeArea:%d stagingForceClearCache:%d"
+        " canSkipFrame:%d stagingFilterHashChanged:%d stagingFilterInteractWithDirty:%d stagingFilterRegionChanged:%d"
+        " stagingUpdateInterval:%d stagingLastCacheType:%d stagingNodeId[%llu]", stagingIsLargeArea_,
+        stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_, stagingFilterInteractWithDirty_,
+        stagingFilterRegionChanged_, stagingUpdateInterval_, stagingLastCacheType_, stagingNodeId_);
+    if (!stagingIsLargeArea_) {
+        return false;
+    }
+    if (stagingForceClearCache_) {
+        return true;
+    }
+    if (!canSkipFrame_ && !stagingFilterHashChanged_) {
+        return true;
+    }
+    if (!stagingFilterInteractWithDirty_ && !stagingFilterHashChanged_ && !stagingFilterRegionChanged_) {
+        return false;
+    }
+    if (stagingUpdateInterval_ == 0) {
+        return true;
+    }
+    if (stagingLastCacheType_ == FilterCacheType::FILTERED_SNAPSHOT && stagingFilterHashChanged_) {
+        return true;
+    }
+    return false;
 }
 
 Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
@@ -219,7 +263,9 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         if (ptr->needDrawBehindWindow_) {
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu] ", ptr->renderNodeId_);
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            if (!paintFilterCanvas) {
+            if (!paintFilterCanvas || !canvas->GetSurface()) {
+                RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow canvas:[%{public}d], surface:[%{public}d]",
+                    paintFilterCanvas != nullptr, canvas->GetSurface() != nullptr);
                 return;
             }
             Drawing::AutoCanvasRestore acr(*canvas, true);

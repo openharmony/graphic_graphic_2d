@@ -42,9 +42,9 @@ public:
     bool Remove(void* key);
 
 private:
-    DrawingGpuContextManager() {}
+    DrawingGpuContextManager();
 
-    std::shared_ptr<RenderContext> renderContext_;
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::unordered_map<void*, std::shared_ptr<Drawing::GPUContext>> gpuContext_;
     std::mutex mutex_;
 };
