@@ -55,7 +55,8 @@ RSUifirstManager& RSUifirstManager::Instance()
 RSUifirstManager::RSUifirstManager() :
 #if defined(RS_ENABLE_VK)
     useDmaBuffer_(RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN)
+        RSSystemProperties::IsPhoneType() && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR))
 #else
     useDmaBuffer_(false)
 #endif
@@ -1520,7 +1521,8 @@ void RSUifirstManager::SetUseDmaBuffer(bool val)
     std::lock_guard<std::mutex> lock(useDmaBufferMutex_);
 #if defined(RS_ENABLE_VK)
     useDmaBuffer_ = val && RSSystemParameters::GetUIFirstDmaBufferEnabled() &&
-        RSSystemProperties::IsPhoneType() && RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN;
+        RSSystemProperties::IsPhoneType() && (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR);
 #else
     useDmaBuffer_ = false;
 #endif

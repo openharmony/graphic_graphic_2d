@@ -216,7 +216,8 @@ void RSExtendImageObject::PreProcessPixelMap(Drawing::Canvas& canvas, const std:
         std::shared_ptr<Drawing::Data> fileData = std::make_shared<Drawing::Data>();
         // After RS is switched to Vulkan, the judgment of GpuApiType can be deleted.
         if (pixelMap->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC &&
-            RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+            (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+            RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR)) {
             if (!nativeWindowBuffer_) {
                 sptr<SurfaceBuffer> sfBuffer(reinterpret_cast<SurfaceBuffer *>(pixelMap->GetFd()));
                 nativeWindowBuffer_ = CreateNativeWindowBufferFromSurfaceBuffer(&sfBuffer);
