@@ -233,6 +233,15 @@ void GPUContext::SuppressGpuCacheBelowCertainRatio(const std::function<bool(void
     impl_->SuppressGpuCacheBelowCertainRatio(nextFrameHasArrived);
 }
 
+void GPUContextOptions::SetStoreCachePath(const std::string& filePath)
+{
+    filePath_ = filePath;
+}
+
+std::string GPUContextOptions::GetStoreCachePath() const
+{
+    return filePath_;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
