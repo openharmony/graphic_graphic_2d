@@ -664,7 +664,7 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceConnectionProxy::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     MessageParcel data;
     MessageParcel reply;

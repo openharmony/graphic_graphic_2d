@@ -637,7 +637,7 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceConnection::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     if (!screenManager_) {
         return StatusCode::SCREEN_NOT_FOUND;

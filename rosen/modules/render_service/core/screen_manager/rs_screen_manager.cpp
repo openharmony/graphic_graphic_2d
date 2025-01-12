@@ -1169,7 +1169,7 @@ const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionLi
 }
 
 int32_t RSScreenManager::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     if (id == INVALID_SCREEN_ID) {
         RS_LOGW("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);

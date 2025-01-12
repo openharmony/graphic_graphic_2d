@@ -84,7 +84,7 @@ public:
     virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const = 0;
 
     virtual int32_t SetScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+        std::shared_ptr<Media::PixelMap> securityMask) = 0;
 
     virtual std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const = 0;
 
@@ -315,7 +315,7 @@ public:
 
     const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const override;
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask) override;
         
     std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const override;
 

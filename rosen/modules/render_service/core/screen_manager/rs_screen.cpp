@@ -1204,7 +1204,7 @@ const std::vector<uint64_t>& RSScreen::GetSecurityExemptionList() const
     return securityExemptionList_;
 }
 
-int32_t RSScreen::SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask)
+int32_t RSScreen::SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask)
 {
     if (!IsVirtual()) {
         RS_LOGW("RSScreen::SetSecurityMask not virtual screen");
