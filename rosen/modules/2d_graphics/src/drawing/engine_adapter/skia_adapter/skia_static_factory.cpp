@@ -17,6 +17,7 @@
 
 #include "skia_adapter/skia_blender.h"
 #include "skia_adapter/skia_data.h"
+#include "skia_document.h"
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
 #include "skia_adapter/skia_hm_symbol_config_ohos.h"
@@ -130,6 +131,12 @@ std::shared_ptr<Image> SkiaStaticFactory::MakeFromRaster(const Pixmap& pixmap,
     RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext)
 {
     return SkiaImage::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
+}
+
+std::shared_ptr<Document> SkiaStaticFactory::MakeMultiPictureDocument(FileWStream* fileStream,
+    SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext)
+{
+    return SkiaDocument::MakeMultiPictureDocument(fileStream, procs, serialContext);
 }
 
 std::shared_ptr<Image> SkiaStaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,

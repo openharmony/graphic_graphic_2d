@@ -18,6 +18,7 @@
 
 #include "base_impl.h"
 #include "utils/data.h"
+#include "utils/serial_procs.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -30,6 +31,8 @@ public:
     // using for recording, should to remove after using shared memory
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
+    virtual int ApproximateOpCount(bool flag) = 0;
+    virtual std::shared_ptr<Data> Serialize(SerialProcs* procs) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

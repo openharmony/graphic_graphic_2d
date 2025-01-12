@@ -214,6 +214,17 @@ std::shared_ptr<Image> StaticFactory::MakeFromRaster(const Pixmap& pixmap,
     return EngineStaticFactory::MakeFromRaster(pixmap, rasterReleaseProc, releaseContext);
 }
 
+std::shared_ptr<Document> StaticFactory::MakeMultiPictureDocument(FileWStream* fileStream,
+    SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::MakeMultiPictureDocument(fileStream, procs, serialContext);
+    }
+#endif
+    return EngineStaticFactory::MakeMultiPictureDocument(fileStream, procs, serialContext);
+}
+
 std::shared_ptr<Image> StaticFactory::MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
     size_t rowBytes)
 {

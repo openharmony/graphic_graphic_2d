@@ -29,7 +29,11 @@
 #include "text/text_blob.h"
 #include "text/typeface.h"
 #include "utils/data.h"
+#include "utils/file_w_stream.h"
+#include "utils/document.h"
 #include "utils/rect.h"
+#include "utils/serial_procs.h"
+#include "utils/sharing_serial_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +69,8 @@ public:
     static std::shared_ptr<Surface> MakeRasterN32Premul(int32_t width, int32_t height);
     static std::shared_ptr<Image> MakeFromRaster(const Pixmap& pixmap,
         RasterReleaseProc rasterReleaseProc, ReleaseContext releaseContext);
+    static std::shared_ptr<Document> MakeMultiPictureDocument(FileWStream* fileStream,
+        SerialProcs* procs, std::unique_ptr<SharingSerialContext>& serialContext);
     static std::shared_ptr<Image> MakeRasterData(const ImageInfo& info, std::shared_ptr<Data> pixels,
         size_t rowBytes);
     static std::shared_ptr<TextBlob> DeserializeTextBlob(const void* data, size_t size, void* ctx);

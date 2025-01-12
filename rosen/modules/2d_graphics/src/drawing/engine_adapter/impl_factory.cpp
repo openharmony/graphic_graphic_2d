@@ -159,6 +159,46 @@ std::unique_ptr<PictureImpl> ImplFactory::CreatePictureImpl()
     return EngineImplFactory::CreatePicture();
 }
 
+std::unique_ptr<PictureRecorderImpl> ImplFactory::CreatePictureRecorderImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreatePictureRecorder();
+    }
+#endif
+    return EngineImplFactory::CreatePictureRecorder();
+}
+
+std::unique_ptr<SerialProcsImpl> ImplFactory::CreateSerialProcsImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return nullptr; //ddgr has no serialprocs
+    }
+#endif
+    return EngineImplFactory::CreateSerialProcs();
+}
+
+std::unique_ptr<SharingSerialContextImpl> ImplFactory::CreateSharingSerialContextImpl()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return nullptr; //ddgr has no sharingserialcontext
+    }
+#endif
+    return EngineImplFactory::CreateSharingSerialContext();
+}
+
+std::unique_ptr<FileWStreamImpl> ImplFactory::CreateFileWStreamImpl(const char path[])
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRImplFactory::CreateFileWStream(path);
+    }
+#endif
+    return EngineImplFactory::CreateFileWStream(path);
+}
+
 std::unique_ptr<PathImpl> ImplFactory::CreatePathImpl()
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
