@@ -65,7 +65,7 @@ void RSDrawFrame::RenderFrame()
     Render();
     ReleaseSelfDrawingNodeBuffer();
     NotifyClearGpuCache();
-    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_END, {});
+    RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
     RSMainThread::Instance()->CallbackDrawContextStatusToWMS(true);
     RSRenderNodeGC::Instance().ReleaseDrawableMemory();
     if (RSSystemProperties::GetPurgeBetweenFramesEnabled()) {
