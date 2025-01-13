@@ -1091,6 +1091,43 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, QuickPrepare, TestSize.Level2)
 }
 
 /**
+ * @tc.name: QuickPrepare001
+ * @tc.desc: test results of QuickPrepare
+ * @tc.type:FUNC QuickPrepare
+ * @tc.require:
+ */
+HWTEST_F(RSSurfaceRenderNodeThreeTest, QuickPrepare001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
+    std::shared_ptr<RSNodeVisitor> visitor = nullptr;
+    node->QuickPrepare(visitor);
+    visitor = std::make_shared<RSTestVisitor>();
+    node->QuickPrepare(visitor);
+    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE;
+    ASSERT_TRUE(node->IsUIExtension());
+    node->QuickPrepare(visitor);
+    node->isNotifyUIBufferAvailable_ = true;
+    node->isWaitUifirstFirstFrame_ = true;
+    ASSERT_TRUE(node->IsNotifyUIBufferAvailable());
+    node->QuickPrepare(visitor);
+    node->isNotifyUIBufferAvailable_ = false;
+    ASSERT_FALSE(node->IsNotifyUIBufferAvailable());
+    node->QuickPrepare(visitor);
+    node->nodeType_ = RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
+    ASSERT_TRUE(node->IsUIExtension());
+    node->QuickPrepare(visitor);
+    node->isNotifyUIBufferAvailable_ = true;
+    node->isWaitUifirstFirstFrame_ = true;
+    ASSERT_TRUE(node->IsNotifyUIBufferAvailable());
+    node->QuickPrepare(visitor);
+    node->isNotifyUIBufferAvailable_ = false;
+    ASSERT_FALSE(node->IsNotifyUIBufferAvailable());
+    node->QuickPrepare(visitor);
+    ASSERT_TRUE(true);
+}
+
+/**
  * @tc.name: Prepare
  * @tc.desc: test results of Prepare
  * @tc.type:FUNC Prepare
