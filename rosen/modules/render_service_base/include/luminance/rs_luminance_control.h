@@ -30,6 +30,11 @@ enum HDR_TYPE : int32_t {
     MAX = 255,
 };
 
+enum CLOSEHDR_SCENEID : uint32_t {
+    MULTI_DISPLAY = 0,
+    CLOSEHDR_SCENEID_MAX
+};
+
 class RSB_EXPORT RSLuminanceControl {
 public:
     RSLuminanceControl(const RSLuminanceControl&) = delete;
@@ -57,6 +62,9 @@ public:
     RSB_EXPORT double GetHdrBrightnessRatio(ScreenId screenId, int32_t mode);
     RSB_EXPORT float CalScaler(const float& maxContentLightLevel, const float& ratio = 1.0f);
     RSB_EXPORT bool IsHdrPictureOn();
+
+    RSB_EXPORT bool IsForceCloseHdr();
+    RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
 
 private:
     RSLuminanceControl() = default;
@@ -86,6 +94,8 @@ private:
     using GetNonlinearRatioFunc = double(*)(ScreenId, int32_t);
     using CalScalerFunc = float(*)(const float&, const float&);
     using IsHdrPictureOnFunc = bool(*)();
+    using IsForceCloseHdrFunc = bool(*)();
+    using ForceCloseHdrFunc = void(*)(uint32_t, bool);
 
     SetHdrStatusFunc setHdrStatus_{nullptr};
     IsHdrOnFunc isHdrOn_{nullptr};
@@ -102,6 +112,8 @@ private:
     GetNonlinearRatioFunc getNonlinearRatio_{nullptr};
     CalScalerFunc calScaler_{nullptr};
     IsHdrPictureOnFunc isHdrPictureOn_{nullptr};
+    IsForceCloseHdrFunc isForceCloseHdr_{nullptr};
+    ForceCloseHdrFunc forceCloseHdr_{nullptr};
 #endif
 };
 

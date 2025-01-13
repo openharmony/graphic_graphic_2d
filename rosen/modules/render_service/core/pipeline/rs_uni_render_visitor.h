@@ -299,6 +299,9 @@ private:
 
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
+    // Used for closing HDR in PC multidisplay becauseof performance and open when singledisplay
+    void SetHdrWhenMultiDisplayChangeInPC();
+
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     sptr<RSScreenManager> screenManager_;
