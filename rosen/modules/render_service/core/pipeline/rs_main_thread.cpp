@@ -3898,14 +3898,9 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             if (receiver_) {
                 receiver_->GetVSyncPeriod(vsyncPeriod);
             }
-            if (vsyncPeriod <= 0){
-                RequestNextVSync();
-                return;
-            }
             lastFastComposeTimeStampDiff_ = (now - curTime_) % vsyncPeriod;
             lastFastComposeTimeStamp_ = timestamp_;
-            RS_TRACE_NAME("RSMainThread::ForceRefreshForUni record Time diff:" +
-                std::to_string(lastFastComposeTimeStampDiff_));
+            RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
             isForceRefresh_ = !needDelay;
             curTime_ = now;
             // Not triggered by vsync, so we set frameCount to 0.

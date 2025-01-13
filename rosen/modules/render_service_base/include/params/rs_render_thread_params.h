@@ -190,7 +190,7 @@ public:
         fastComposeTimeStampDiff_ = fastComposeTimeStampDiff;
     }
 
-    bool GetFastComposeTimeStampDiff() const
+    uint64_t GetFastComposeTimeStampDiff() const
     {
         return fastComposeTimeStampDiff_;
     }

@@ -624,4 +624,22 @@ HWTEST_F(RSUniRenderThreadTest, GetForceRefreshFlag, TestSize.Level1)
         EXPECT_FALSE(forceRefreshFlag);
     }
 }
+
+/**
+ * @tc.name: GetFastComposeTimeStampDiff
+ * @tc.desc: Test GetFastComposeTimeStampDiff
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, GetFastComposeTimeStampDiff, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    auto& renderThreadParams = instance.GetRSRenderThreadParams();
+    uint64_t fastComposeTimeStampDiff = instance.GetFastComposeTimeStampDiff();
+    if (renderThreadParams) {
+        EXPECT_EQ(fastComposeTimeStampDiff, renderThreadParams->GetFastComposeTimeStampDiff());
+    } else {
+        EXPECT_EQ(0);
+    }
+}
 }
