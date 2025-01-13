@@ -145,6 +145,7 @@ public:
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
     VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
     void SetHasNativeBuffer();
+    void PrintConnectionsStatus();
 
 private:
 
