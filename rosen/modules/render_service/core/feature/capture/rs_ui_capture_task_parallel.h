@@ -19,7 +19,7 @@
 #define GL_GLEXT_PROTOTYPES
 
 #include "drawable/rs_render_node_drawable.h"
-#include "pipeline/rs_surface_capture_task.h"
+#include "feature/capture/rs_surface_capture_task.h"
 #include "pixel_map.h"
 #include "system/rs_system_parameters.h"
 

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_surface_capture_task_parallel.h"
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 
 #include <memory>
 #include <sys/mman.h>
@@ -29,6 +29,7 @@
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_main_thread.h"
+#include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_render_service_connection.h"
@@ -40,7 +41,6 @@
 #include "platform/drawing/rs_surface.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
-#include "rs_base_render_engine.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
 

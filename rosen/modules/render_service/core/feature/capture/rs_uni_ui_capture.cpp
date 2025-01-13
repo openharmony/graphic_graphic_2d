@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_uni_ui_capture.h"
+#include "feature/capture/rs_uni_ui_capture.h"
 
 #include <functional>
 #include <memory>

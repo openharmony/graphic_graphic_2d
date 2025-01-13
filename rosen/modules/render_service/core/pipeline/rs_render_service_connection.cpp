@@ -31,6 +31,10 @@
 #include "command/rs_surface_node_command.h"
 #include "common/rs_background_thread.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "feature/capture/rs_uni_ui_capture.h"
+#include "feature/capture/rs_surface_capture_task.h"
+#include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "include/gpu/GrDirectContext.h"
 #include "info_collection/rs_hdr_collection.h"
 #ifdef RS_ENABLE_GPU
@@ -47,14 +51,10 @@
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_render_service_listener.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
-#include "pipeline/rs_surface_capture_task.h"
-#include "pipeline/rs_surface_capture_task_parallel.h"
-#include "pipeline/rs_ui_capture_task_parallel.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_uni_ui_capture.h"
 #include "pipeline/rs_unmarshal_thread.h"
 #include "pixel_map_from_surface.h"
 #include "platform/common/rs_log.h"
@@ -63,7 +63,7 @@
 #include "render/rs_typeface_cache.h"
 
 #ifdef TP_FEATURE_ENABLE
-#include "touch_screen/touch_screen.h"
+#include "screen_manager/touch_screen.h"
 #endif
 
 #ifdef RS_ENABLE_VK

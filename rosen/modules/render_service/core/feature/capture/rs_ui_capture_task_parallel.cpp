@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "pipeline/rs_ui_capture_task_parallel.h"
+#include "feature/capture/rs_ui_capture_task_parallel.h"
 
 #include <memory>
 #include <sys/mman.h>
@@ -24,6 +24,7 @@
 
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_base_render_node.h"
@@ -32,7 +33,6 @@
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_service_connection.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_uifirst_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_uni_render_util.h"

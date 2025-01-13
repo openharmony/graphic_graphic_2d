@@ -26,9 +26,9 @@
 #include "ipc_callbacks/surface_capture_callback.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
-#include "rs_base_render_engine.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS {

@@ -19,9 +19,9 @@
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_main_thread.h"
-#include "pipeline/rs_surface_capture_task_parallel.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pixel_map.h"
 #include "property/rs_properties_def.h"

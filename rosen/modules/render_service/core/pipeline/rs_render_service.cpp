@@ -48,7 +48,7 @@
 #include "text/font_mgr.h"
 
 #ifdef TP_FEATURE_ENABLE
-#include "touch_screen/touch_screen.h"
+#include "screen_manager/touch_screen.h"
 #endif
 
 namespace OHOS {
