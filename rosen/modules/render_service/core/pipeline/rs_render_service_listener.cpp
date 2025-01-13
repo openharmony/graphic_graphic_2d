@@ -71,9 +71,8 @@ void RSRenderServiceListener::OnBufferAvailable()
         if (supportFastCompose) {
             int64_t lastFlushedDesiredPresentTimeStamp = 0;
             consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp);
-            RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : " +
-                std::to_string(supportFastCompose) +
-                " ,bufferTimeStamp : " + std::to_string(lastFlushedDesiredPresentTimeStamp));
+            RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : %d, " \
+                "bufferTimeStamp : %" PRId64, supportFastCompose, lastFlushedDesiredPresentTimeStamp);
             RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
             return;
         }

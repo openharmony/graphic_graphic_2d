@@ -3859,9 +3859,8 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastVsyncTime = timestamp_;
     }
     lastVsyncTime = nowTime - ((nowTime - lastVsyncTime) % vsyncPeriod);
-    RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = :" + std::to_string(nowTime) +
-        " ,lastVsyncTime = :" + std::to_string(lastVsyncTime) +
-        " ,timestamp_ = :" + std::to_string(timestamp_));
+    RS_TRACE_NAME_FMT("RSMainThread::CheckFastCompose now = :%" PRIu64 "" \
+        ", lastVsyncTime = :%" PRIu64 ", timestamp_ = :%" PRIu64, nowTime, lastVsyncTime, timestamp_);
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
@@ -3869,7 +3868,8 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         lastFlushedDesiredPresentTimeStamp > lastVsyncTime - vsyncPeriod &&
         lastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
         nowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
-        RS_TRACE_NAME("RSMainThread::CheckFastCompose start fastcompose");
+        RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
+        RS_LOGD("RSMainThread:: fastcompose start, buffer late for %{public}" PRIu64, nowTime - lastVsyncTime);
         ForceRefreshForUni(true);
     } else {
         RequestNextVSync();
