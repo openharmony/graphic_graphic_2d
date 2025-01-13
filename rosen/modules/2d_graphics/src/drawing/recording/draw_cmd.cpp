@@ -1372,6 +1372,7 @@ void DrawTextBlobOpItem::DrawHighContrast(Canvas* canvas, bool offScreen) const
     canvas->DetachPen();
     canvas->AttachBrush(innerBrush);
     offScreen ? canvas->DrawTextBlob(textBlob_.get(), 0, 0) : canvas->DrawTextBlob(textBlob_.get(), x_, y_);
+    canvas->DetachBrush();
 }
 
 bool DrawTextBlobOpItem::ConstructorHandle::GenerateCachedOpItem(
