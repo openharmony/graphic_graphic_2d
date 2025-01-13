@@ -491,12 +491,10 @@ public:
 
     std::mutex childrenNodeLock_; // lock for map operation
     // key: symbolSpanID, value:nodeid and symbol animation node list
-    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap;
+    std::unordered_map<uint64_t, std::unordered_map<NodeId, SharedPtr>> canvasNodesListMap_;
 
-    // key: status : 1 appear, -1 invalid, value:symbol node animation config
-    std::unordered_map<int,
-        std::unordered_map<NodeId,
-            OHOS::Rosen::AnimationNodeConfig>> replaceNodesSwapMap;
+    // key: status : 0 invalid, 1 appear, value:symbol node animation config
+    std::array<std::vector<OHOS::Rosen::AnimationNodeConfig>, 2> replaceNodesSwapArr_;
 
     void SetInstanceId(int32_t instanceId);
     int32_t GetInstanceId() const

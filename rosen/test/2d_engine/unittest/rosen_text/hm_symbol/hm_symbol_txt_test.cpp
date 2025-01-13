@@ -83,7 +83,8 @@ HWTEST_F(OHHmSymbolTxtTest, OHHmSymbolTxtTest003, TestSize.Level1)
         animationFunc = nullptr;
     SPText::HMSymbolRun hmSymbolRun = SPText::HMSymbolRun(0, symbolTxt, textblob, animationFunc);
     auto symbolInfo = hmSymbolRun.GetSymbolLayers(glyphId, textStyle.symbol);
-    EXPECT_TRUE(symbolInfo.renderGroups.empty() && symbolInfo.layers.empty());
+    bool flag = symbolInfo.renderGroups.empty() && symbolInfo.layers.empty();
+    EXPECT_TRUE(flag);
 }
 
 /*

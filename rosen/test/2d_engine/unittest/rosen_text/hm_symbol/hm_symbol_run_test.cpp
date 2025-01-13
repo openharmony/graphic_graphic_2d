@@ -25,15 +25,8 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 static const float MIN_VALUE = 1e-6;
-class OHHmSymbolRunTest : public testing::Test {
-public:
-    static bool AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig);
-};
+class OHHmSymbolRunTest : public testing::Test {};
 
-bool OHHmSymbolRunTest::AnimationFunc(const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig)
-{
-    return true;
-}
 
 /*
  * @tc.name: DrawSymbol001
@@ -43,25 +36,34 @@ bool OHHmSymbolRunTest::AnimationFunc(const std::shared_ptr<TextEngine::SymbolAn
 HWTEST_F(OHHmSymbolRunTest, DrawSymbol001, TestSize.Level1)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
-    RSPoint paint_ = {100, 100}; // 1, 1 is the offset
-    const char* str = "A";
-    Drawing::Font font;
-    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    RSPoint paint_ = {100, 100}; // 100, 100 is the offset
     HMSymbolTxt symbolTxt;
-    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
-        animationFunc = nullptr;
-    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
-    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
-
-    // test rsCanvas is nullptr
-    hmSymbolRun.DrawSymbol(nullptr, paint_);
-
-    textblob = nullptr; // test textblob is bullptr
-    HMSymbolRun hmSymbolRun1 = HMSymbolRun(1, symbolTxt, textblob, animationFunc);
-    hmSymbolRun1.DrawSymbol(rsCanvas.get(), paint_);
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, nullptr, animationFunc);
 
     // test rsCanvas is nullptr, textblob is nullptr
+    hmSymbolRun.DrawSymbol(nullptr, paint_);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+
+    // test rsCanvas isn't nullptr, textblob is nullptr
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+
+    const char* str = "A"; // "A" is one Glyph
+    Drawing::Font font;
+    auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
+    HMSymbolRun hmSymbolRun1 = HMSymbolRun(1, symbolTxt, textblob, animationFunc);
+
+    // test rsCanvas is nullptr, textblob isn't nullptr
     hmSymbolRun1.DrawSymbol(nullptr, paint_);
+    EXPECT_FALSE(hmSymbolRun1.currentAnimationHasPlayed_);
+
+    // test rsCanvas isn't nullptr, textblob isn't nullptr
+    hmSymbolRun1.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_FALSE(hmSymbolRun1.currentAnimationHasPlayed_);
 }
 
 /*
@@ -73,14 +75,20 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol002, TestSize.Level1)
 {
     std::shared_ptr<RSCanvas> rsCanvas = std::make_shared<RSCanvas>();
     RSPoint paint_ = {100, 100}; // 100, 100 is the offset
-    const char* str = "Test multiple glyphs";
+    const char* str = "Test multiple glyphs"; // "Test multiple glyphs" is Glyphs
     Drawing::Font font;
     auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
     HMSymbolTxt symbolTxt;
-    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
-        animationFunc = nullptr;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
+
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
     hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
 }
 
 /*
@@ -96,20 +104,30 @@ HWTEST_F(OHHmSymbolRunTest, DrawSymbol003, TestSize.Level1)
     Drawing::Font font;
     auto textblob = Drawing::TextBlob::MakeFromText(str, strlen(str), font, Drawing::TextEncoding::UTF8);
     HMSymbolTxt symbolTxt;
-    symbolTxt.SetAnimationStart(true);
-    // test bounce animation
-    symbolTxt.SetSymbolEffect(RSEffectStrategy::BOUNCE);
-    std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
-        animationFunc = nullptr;
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
-    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
-    EXPECT_TRUE(symbolTxt.GetEffectStrategy() == RSEffectStrategy::BOUNCE);
+    // test bounce animation
+    hmSymbolRun.SetAnimationStart(true);
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::BOUNCE);
 
-    // test pulse aimation
-    symbolTxt.SetSymbolEffect(RSEffectStrategy::PULSE);
-    HMSymbolRun hmSymbolRun1 = HMSymbolRun(1, symbolTxt, textblob, animationFunc);
-    hmSymbolRun1.DrawSymbol(rsCanvas.get(), paint_);
-    EXPECT_TRUE(symbolTxt.GetEffectStrategy() == RSEffectStrategy::PULSE);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_TRUE(hmSymbolRun.currentAnimationHasPlayed_);
+
+    // test appear animation
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::APPEAR);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_TRUE(hmSymbolRun.currentAnimationHasPlayed_);
+
+    // test pulse aimation, this glyph not support, result is false
+    hmSymbolRun.SetSymbolEffect(RSEffectStrategy::PULSE);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
+    hmSymbolRun.DrawSymbol(rsCanvas.get(), paint_);
+    EXPECT_FALSE(hmSymbolRun.currentAnimationHasPlayed_);
 }
 
 /*
@@ -221,7 +239,7 @@ HWTEST_F(OHHmSymbolRunTest, SymbolAnimation001, TestSize.Level1)
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
     bool check = false;
     check = hmSymbolRun.SymbolAnimation(symbol, glyphId, offset);
-    EXPECT_TRUE(check == false);
+    EXPECT_FALSE(check);
 }
 
 /*
@@ -263,7 +281,7 @@ HWTEST_F(OHHmSymbolRunTest, GetAnimationGroups002, TestSize.Level1)
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
     bool flag = hmSymbolRun.GetAnimationGroups(glyphId, effectStrategy, animationOut);
-    EXPECT_TRUE(flag == false);
+    EXPECT_FALSE(flag);
 }
 
 /*
@@ -279,11 +297,11 @@ HWTEST_F(OHHmSymbolRunTest, GetSymbolLayers001, TestSize.Level1)
     HMSymbolTxt symbolTxt;
     symbolTxt.SetRenderColor(color);
     auto symbolLayer = HMSymbolRun::GetSymbolLayers(glyphId, symbolTxt);
-    EXPECT_TRUE(symbolLayer.symbolGlyphId == glyphId);
+    EXPECT_EQ(symbolLayer.symbolGlyphId, glyphId);
 
     if (!symbolLayer.renderGroups.empty()) {
         auto layerColor = symbolLayer.renderGroups[0].color;
-        EXPECT_TRUE(layerColor.r == color.r); // the default color is {1.0, 0, 0, 0}
+        EXPECT_EQ(layerColor.r, color.r); // the default color is {1.0, 0, 0, 0}
     }
 }
 
@@ -416,9 +434,9 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimationStart001, TestSize.Level1)
     std::function<bool(const std::shared_ptr<OHOS::Rosen::TextEngine::SymbolAnimationConfig>&)>
         animationFunc = nullptr;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
-    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetAnimationStart(), false);
+    EXPECT_FALSE(hmSymbolRun.symbolTxt_.GetAnimationStart());
     hmSymbolRun.SetAnimationStart(true);
-    EXPECT_EQ(hmSymbolRun.symbolTxt_.GetAnimationStart(), true);
+    EXPECT_TRUE(hmSymbolRun.symbolTxt_.GetAnimationStart());
 }
 
 
@@ -535,7 +553,12 @@ HWTEST_F(OHHmSymbolRunTest, SetAnimation001, TestSize.Level1)
     HMSymbolTxt symbolTxt;
     HMSymbolRun hmSymbolRun = HMSymbolRun(0, symbolTxt, textblob, animationFunc);
     EXPECT_EQ(hmSymbolRun.animationFunc_, nullptr);
-    hmSymbolRun.SetAnimation(AnimationFunc);
+
+    std::function<bool(const std::shared_ptr<TextEngine::SymbolAnimationConfig>&)> animationFunc1 =
+        [](const std::shared_ptr<TextEngine::SymbolAnimationConfig>& symbolAnimationConfig) {
+            return true;
+        };
+    hmSymbolRun.SetAnimation(animationFunc1);
     EXPECT_NE(hmSymbolRun.animationFunc_, nullptr);
     hmSymbolRun.SetAnimation(animationFunc);
     EXPECT_NE(hmSymbolRun.animationFunc_, nullptr);
