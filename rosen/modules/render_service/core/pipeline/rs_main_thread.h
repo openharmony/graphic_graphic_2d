@@ -372,6 +372,10 @@ public:
     }
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetCurrentVsyncTime() const
+    {
+        return curTime_;
+    }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
