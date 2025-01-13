@@ -1778,7 +1778,7 @@ HWTEST_F(RSInterfacesTest, DisablePowerOffRenderControl, Function | SmallTest | 
  * @tc.name: ForceRefreshOneFrameWithNextVSync
  * @tc.desc: Test ForceRefreshOneFrameWithNextVSync
  * @tc.type: FUNC
- * @tc.require:issue#IBCFE5
+ * @tc.require:issue#IBHG7Q
  */
 HWTEST_F(RSInterfacesTest, ForceRefreshOneFrameWithNextVSync, Function | SmallTest | Level2)
 {
