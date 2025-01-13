@@ -163,6 +163,8 @@ HWTEST_F(ParagraphTest, ParagraphTest004, TestSize.Level1)
 HWTEST_F(ParagraphTest, ParagraphTest005, TestSize.Level1)
 {
     SkCanvas skCanvas;
+    // redundancy because it has been checked in setup
+    ASSERT_NE(paragraph_, nullptr);
     paragraph_->Paint(&skCanvas, 0.0, 0.0);
     Canvas canvas;
     paragraph_->Paint(&canvas, 0.0, 0.0);
