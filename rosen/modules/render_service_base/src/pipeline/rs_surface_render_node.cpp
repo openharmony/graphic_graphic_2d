@@ -2549,8 +2549,14 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId)
 {
+    std::string uniqueIdStr = "null";
+#ifndef ROSEN_CROSS_PLATFORM
+    uniqueIdStr = GetRSSurfaceHandler() != nullptr && GetRSSurfaceHandler()->GetConsumer() != nullptr ?
+        std::to_string(GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) : "null";
+#endif
     RS_LOGI("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
-        "on tree: %{public}d, nodeType: %{public}d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
+        "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s", GetName().c_str(), GetId(), onTree,
+        static_cast<int>(nodeType_), uniqueIdStr.c_str());
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
     instanceRootNodeId = IsLeashOrMainWindow() ? GetId() : instanceRootNodeId;
