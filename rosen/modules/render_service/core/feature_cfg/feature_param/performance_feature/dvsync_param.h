@@ -24,13 +24,13 @@ public:
     DvsyncParam() = default;
     ~DvsyncParam() = default;
 
-    bool IsDvsyncEnable();
-    bool IsUiDvsyncEnable();
-    bool IsNativeDvsyncEnable();
+    bool IsDvsyncEnable() const;
+    bool IsUiDvsyncEnable() const;
+    bool IsNativeDvsyncEnable() const;
 
-    int32_t GetRsPreCount();
-    int32_t GetAppPreCount();
-    int32_t GetNativePreCount();
+    int32_t GetRsPreCount() const;
+    int32_t GetAppPreCount() const;
+    int32_t GetNativePreCount() const;
 
     void SetDvsyncEnable(bool isEnable);
     void SetUiDvsyncEnable(bool isEnable);
@@ -40,13 +40,13 @@ public:
     void SetNativePreCount(int32_t cnt);
 
 private:
-    bool isDvsyncEnable;
-    bool isUiDvsyncEnable;
-    bool isNativeDvsyncEnable;
+    bool isDvsyncEnable_;
+    bool isUiDvsyncEnable_;
+    bool isNativeDvsyncEnable_;
 
-    int32_t rsPreCnt;
-    int32_t appPreCnt;
-    int32_t nativePreCnt;
+    int32_t rsPreCnt_;
+    int32_t appPreCnt_;
+    int32_t nativePreCnt_;
 };
 } // namespace OHOS::Rosen
 #endif // DVSYNC_PARAM_H

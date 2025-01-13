@@ -46,8 +46,8 @@ void GraphicCcmFeatureParamManagerTest::TearDown() {}
 HWTEST_F(GraphicCcmFeatureParamManagerTest, Init, Function | SmallTest | Level1)
 {
     GraphicCcmFeatureParamManager::GetInstance()->Init();
-    auto parseMap = GraphicCcmFeatureParamManager::GetInstance()->featureParseMap;
-    auto paramMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap;
+    auto parseMap = GraphicCcmFeatureParamManager::GetInstance()->featureParseMap_;
+    auto paramMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap_;
     for (const auto& feature : featureSet) {
         // Check if featureParseMap is initialized correctly
         EXPECT_NE(parseMap.count(feature), 0);

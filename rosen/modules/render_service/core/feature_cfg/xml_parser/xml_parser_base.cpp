@@ -73,7 +73,7 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
         std::string featureName = ExtractPropertyValue("name", *currNode);
         HGM_LOGI("XMLParserBase featureName is: %{public}s", featureName.c_str());
 
-        auto parseMap = GraphicCcmFeatureParamManager::GetInstance()->featureParseMap;
+        auto parseMap = GraphicCcmFeatureParamManager::GetInstance()->featureParseMap_;
         auto iter = parseMap.find(featureName);
         if (iter != parseMap.end()) {
             auto featureObj = iter->second;

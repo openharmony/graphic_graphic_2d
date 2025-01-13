@@ -26,7 +26,7 @@ int32_t DvsyncParamParse::ParseFeatureParam(xmlNode &node)
         HGM_LOGD("DvsyncParamParse stop parsing, no children nodes");
         return HGM_ERROR;
     }
-    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap;
+    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap_;
     auto iter = featureMap.find("DvsyncConfig");
     if (iter != featureMap.end()) {
         dvsyncParam_ = std::static_pointer_cast<DvsyncParam>(iter->second);

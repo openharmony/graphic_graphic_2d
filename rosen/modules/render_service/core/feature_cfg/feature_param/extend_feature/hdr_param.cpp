@@ -17,24 +17,24 @@
 
 namespace OHOS::Rosen {
 
-bool HDRParam::IsHdrVideoEnable()
+bool HDRParam::IsHdrVideoEnable() const
 {
-    return hdrVideoEnable;
+    return isHdrVideoEnable_;
 }
 
-bool HDRParam::IsHdrImageEnable()
+bool HDRParam::IsHdrImageEnable() const
 {
-    return hdrImageEnable;
+    return isHdrImageEnable_;
 }
 
 void HDRParam::SetHdrVideoEnable(bool isEnable)
 {
-    hdrVideoEnable = isEnable;
+    isHdrVideoEnable_ = isEnable;
 }
 
 void HDRParam::SetHdrImageEnable(bool isEnable)
 {
-    hdrImageEnable = isEnable;
+    isHdrImageEnable_ = isEnable;
 }
 
 } // namespace OHOS::Rosen

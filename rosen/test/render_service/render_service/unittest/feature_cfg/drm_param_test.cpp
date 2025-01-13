@@ -46,9 +46,9 @@ HWTEST_F(DrmParamTest, SetDrmEnable, Function | SmallTest | Level1)
 {
     DRMParam drmParam;
     drmParam.SetDrmEnable(false);
-    EXPECT_EQ(drmParam.drmEnable, false);
+    EXPECT_EQ(drmParam.isDrmEnable_, false);
     drmParam.SetDrmEnable(true);
-    EXPECT_EQ(drmParam.drmEnable, true);
+    EXPECT_EQ(drmParam.isDrmEnable_, true);
 }
 
 /**
@@ -60,9 +60,9 @@ HWTEST_F(DrmParamTest, SetDrmEnable, Function | SmallTest | Level1)
 HWTEST_F(DrmParamTest, IsDrmEnable, Function | SmallTest | Level1)
 {
     DRMParam drmParam;
-    drmParam.drmEnable = true;
+    drmParam.isDrmEnable_ = true;
     EXPECT_TRUE(drmParam.IsDrmEnable());
-    drmParam.drmEnable = false;
+    drmParam.isDrmEnable_ = false;
     EXPECT_FALSE(drmParam.IsDrmEnable());
 }
 } // namespace Rosen

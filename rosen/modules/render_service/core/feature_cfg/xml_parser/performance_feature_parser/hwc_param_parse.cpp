@@ -26,7 +26,7 @@ int32_t HWCParamParse::ParseFeatureParam(xmlNode &node)
         HGM_LOGD("HWCParamParse stop parsing, no children nodes");
         return HGM_ERROR;
     }
-    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap;
+    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap_;
     auto iter = featureMap.find("HwcConfig");
     if (iter != featureMap.end()) {
         hwcParam_ = std::static_pointer_cast<HWCParam>(iter->second);

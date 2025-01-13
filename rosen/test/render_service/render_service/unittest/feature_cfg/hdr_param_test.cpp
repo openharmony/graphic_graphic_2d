@@ -46,9 +46,9 @@ HWTEST_F(HdrParamTest, SetHdrVideoEnable, Function | SmallTest | Level1)
 {
     HDRParam hdrParam;
     hdrParam.SetHdrVideoEnable(true);
-    EXPECT_EQ(hdrParam.hdrVideoEnable, true);
+    EXPECT_EQ(hdrParam.isHdrVideoEnable_, true);
     hdrParam.SetHdrVideoEnable(false);
-    EXPECT_EQ(hdrParam.hdrVideoEnable, false);
+    EXPECT_EQ(hdrParam.isHdrVideoEnable_, false);
 }
 
 /**
@@ -61,9 +61,9 @@ HWTEST_F(HdrParamTest, SetHdrImageEnable, Function | SmallTest | Level1)
 {
     HDRParam hdrParam;
     hdrParam.SetHdrImageEnable(true);
-    EXPECT_EQ(hdrParam.hdrImageEnable, true);
+    EXPECT_EQ(hdrParam.isHdrImageEnable_, true);
     hdrParam.SetHdrImageEnable(false);
-    EXPECT_EQ(hdrParam.hdrImageEnable, false);
+    EXPECT_EQ(hdrParam.isHdrImageEnable_, false);
 }
 
 /**
@@ -75,9 +75,9 @@ HWTEST_F(HdrParamTest, SetHdrImageEnable, Function | SmallTest | Level1)
 HWTEST_F(HdrParamTest, IsHdrVideoEnable, Function | SmallTest | Level1)
 {
     HDRParam hdrParam;
-    hdrParam.hdrVideoEnable = true;
+    hdrParam.isHdrVideoEnable_ = true;
     EXPECT_TRUE(hdrParam.IsHdrVideoEnable());
-    hdrParam.hdrVideoEnable = false;
+    hdrParam.isHdrVideoEnable_ = false;
     EXPECT_FALSE(hdrParam.IsHdrVideoEnable());
 }
 
@@ -90,9 +90,9 @@ HWTEST_F(HdrParamTest, IsHdrVideoEnable, Function | SmallTest | Level1)
 HWTEST_F(HdrParamTest, IsHdrImageEnable, Function | SmallTest | Level1)
 {
     HDRParam hdrParam;
-    hdrParam.hdrImageEnable = true;
+    hdrParam.isHdrImageEnable_ = true;
     EXPECT_TRUE(hdrParam.IsHdrImageEnable());
-    hdrParam.hdrImageEnable = false;
+    hdrParam.isHdrImageEnable_ = false;
     EXPECT_FALSE(hdrParam.IsHdrImageEnable());
 }
 } // namespace Rosen

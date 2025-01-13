@@ -24,12 +24,12 @@ public:
     DRMParam() = default;
     ~DRMParam() = default;
 
-    bool IsDrmEnable();
+    bool IsDrmEnable() const;
 
     void SetDrmEnable(bool isEnable);
 
 private:
-    bool drmEnable;
+    bool isDrmEnable_;
 
 };
 } // namespace OHOS::Rosen

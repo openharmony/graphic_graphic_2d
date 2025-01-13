@@ -17,14 +17,14 @@
 
 namespace OHOS::Rosen {
 
-bool DRMParam::IsDrmEnable()
+bool DRMParam::IsDrmEnable() const
 {
-    return drmEnable;
+    return isDrmEnable_;
 }
 
 void DRMParam::SetDrmEnable(bool isEnable)
 {
-    drmEnable = isEnable;
+    isDrmEnable_ = isEnable;
 }
 
 } // namespace OHOS::Rosen

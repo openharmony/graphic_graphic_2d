@@ -46,9 +46,9 @@ HWTEST_F(HwcParamTest, SetHwcEnable, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
     hwcParam.SetHwcEnable(true);
-    EXPECT_EQ(hwcParam.hwcEnable, true);
+    EXPECT_EQ(hwcParam.isHwcEnable_, true);
     hwcParam.SetHwcEnable(false);
-    EXPECT_EQ(hwcParam.hwcEnable, false);
+    EXPECT_EQ(hwcParam.isHwcEnable_, false);
 }
 
 /**
@@ -61,9 +61,9 @@ HWTEST_F(HwcParamTest, SetHwcMirrorEnable, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
     hwcParam.SetHwcMirrorEnable(true);
-    EXPECT_EQ(hwcParam.hwcMirrorEnable, true);
+    EXPECT_EQ(hwcParam.isHwcMirrorEnable_, true);
     hwcParam.SetHwcMirrorEnable(false);
-    EXPECT_EQ(hwcParam.hwcMirrorEnable, false);
+    EXPECT_EQ(hwcParam.isHwcMirrorEnable_, false);
 }
 
 /**
@@ -78,11 +78,11 @@ HWTEST_F(HwcParamTest, SetSourceTuningForApp, Function | SmallTest | Level1)
     std::string appName = "testApp";
     std::string val = "1";
     hwcParam.SetSourceTuningForApp(appName, val);
-    ASSERT_EQ(hwcParam.sourceTuningMap[appName], 1);
+    ASSERT_EQ(hwcParam.sourceTuningMap_[appName], 1);
     std::string invalidAppName = "invalidTestApp";
     std::string invalidVal = "invalid";
     hwcParam.SetSourceTuningForApp(invalidAppName, invalidVal);
-    ASSERT_EQ(hwcParam.sourceTuningMap[invalidAppName], 0);
+    ASSERT_EQ(hwcParam.sourceTuningMap_[invalidAppName], 0);
 }
 
 /**
@@ -97,11 +97,11 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp, Function | SmallTest | Level1)
     std::string appName = "testApp";
     std::string val = "1";
     hwcParam.SetSolidColorLayerForApp(appName, val);
-    ASSERT_EQ(hwcParam.solidColorLayerMap[appName], 1);
+    ASSERT_EQ(hwcParam.solidColorLayerMap_[appName], 1);
     std::string invalidAppName = "invalidTestApp";
     std::string invalidVal = "invalid";
     hwcParam.SetSolidColorLayerForApp(invalidAppName, invalidVal);
-    ASSERT_EQ(hwcParam.solidColorLayerMap[invalidAppName], 0);
+    ASSERT_EQ(hwcParam.solidColorLayerMap_[invalidAppName], 0);
 }
 
 /**
@@ -113,9 +113,9 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp, Function | SmallTest | Level1)
 HWTEST_F(HwcParamTest, IsHwcEnable, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
-    hwcParam.hwcEnable = true;
+    hwcParam.isHwcEnable_ = true;
     EXPECT_TRUE(hwcParam.IsHwcEnable());
-    hwcParam.hwcEnable = false;
+    hwcParam.isHwcEnable_ = false;
     EXPECT_FALSE(hwcParam.IsHwcEnable());
 }
 
@@ -128,9 +128,9 @@ HWTEST_F(HwcParamTest, IsHwcEnable, Function | SmallTest | Level1)
 HWTEST_F(HwcParamTest, IsHwcMirrorEnable, Function | SmallTest | Level1)
 {
     HWCParam hwcParam;
-    hwcParam.hwcMirrorEnable = true;
+    hwcParam.isHwcMirrorEnable_ = true;
     EXPECT_TRUE(hwcParam.IsHwcMirrorEnable());
-    hwcParam.hwcMirrorEnable = false;
+    hwcParam.isHwcMirrorEnable_ = false;
     EXPECT_FALSE(hwcParam.IsHwcMirrorEnable());
 }
 
@@ -145,7 +145,7 @@ HWTEST_F(HwcParamTest, GetSourceTuningForApp, Function | SmallTest | Level1)
     HWCParam hwcParam;
     std::string appName = "testApp";
     int expectedVal = 1;
-    hwcParam.sourceTuningMap[appName] = expectedVal;
+    hwcParam.sourceTuningMap_[appName] = expectedVal;
     int actualVal = hwcParam.GetSourceTuningForApp(appName);
     EXPECT_EQ(actualVal, expectedVal);
     // Check if not has the appName
@@ -165,7 +165,7 @@ HWTEST_F(HwcParamTest, GetSolidColorLayerForApp, Function | SmallTest | Level1)
     HWCParam hwcParam;
     std::string appName = "testApp";
     int expectedVal = 1;
-    hwcParam.solidColorLayerMap[appName] = expectedVal;
+    hwcParam.solidColorLayerMap_[appName] = expectedVal;
     int actualVal = hwcParam.GetSolidColorLayerForApp(appName);
     EXPECT_EQ(actualVal, expectedVal);
     // Check if not has the appName

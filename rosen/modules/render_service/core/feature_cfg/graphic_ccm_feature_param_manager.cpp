@@ -41,16 +41,16 @@ void GraphicCcmFeatureParamManager::Init()
 {
     HGM_LOGD("GraphicCcmFeatureParamManager %{public}s : Init feature map", __func__);
     // parse map init
-    featureParseMap["HdrConfig"] = std::make_unique<HDRParamParse>();
-    featureParseMap["DvsyncConfig"] = std::make_unique<DvsyncParamParse>();
-    featureParseMap["DrmConfig"] = std::make_unique<DRMParamParse>();
-    featureParseMap["HwcConfig"] = std::make_unique<HWCParamParse>();
+    featureParseMap_["HdrConfig"] = std::make_unique<HDRParamParse>();
+    featureParseMap_["DvsyncConfig"] = std::make_unique<DvsyncParamParse>();
+    featureParseMap_["DrmConfig"] = std::make_unique<DRMParamParse>();
+    featureParseMap_["HwcConfig"] = std::make_unique<HWCParamParse>();
 
     // param map init
-    featureParamMap["HdrConfig"] = std::make_unique<HDRParam>();
-    featureParamMap["DvsyncConfig"] = std::make_unique<DvsyncParam>();
-    featureParamMap["DrmConfig"] = std::make_unique<DRMParam>();
-    featureParamMap["HwcConfig"] = std::make_unique<HWCParam>();
+    featureParamMap_["HdrConfig"] = std::make_unique<HDRParam>();
+    featureParamMap_["DvsyncConfig"] = std::make_unique<DvsyncParam>();
+    featureParamMap_["DrmConfig"] = std::make_unique<DRMParam>();
+    featureParamMap_["HwcConfig"] = std::make_unique<HWCParam>();
 }
 
 void GraphicCcmFeatureParamManager::FeatureParamParseEntry()
@@ -73,8 +73,8 @@ std::shared_ptr<FeatureParam> GraphicCcmFeatureParamManager::GetFeatureParam(std
 {
     HGM_LOGI("GraphicCcmFeatureParamManager %{public}s : getFeatureParam %{public}s", __func__, featureName.c_str());
 
-    auto iter = featureParamMap.find(featureName);
-    if (iter == featureParamMap.end()) {
+    auto iter = featureParamMap_.find(featureName);
+    if (iter == featureParamMap_.end()) {
         HGM_LOGE("GraphicCcmFeatureParamManager %{public}s : getFeatureParam featureName: %{public}s failed", __func__, featureName.c_str());
         return nullptr;
     }

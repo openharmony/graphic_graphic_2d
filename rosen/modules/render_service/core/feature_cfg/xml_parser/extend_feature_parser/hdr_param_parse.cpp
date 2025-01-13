@@ -26,7 +26,7 @@ int32_t HDRParamParse::ParseFeatureParam(xmlNode &node)
         HGM_LOGD("HDRParamParse stop parsing, no children nodes");
         return HGM_ERROR;
     }
-    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap;
+    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap_;
     auto iter = featureMap.find("HdrConfig");
     if (iter != featureMap.end()) {
         hdrParam_ = std::static_pointer_cast<HDRParam>(iter->second);

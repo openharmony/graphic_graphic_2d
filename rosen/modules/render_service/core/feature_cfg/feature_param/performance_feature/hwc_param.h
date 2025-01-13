@@ -26,10 +26,10 @@ public:
     HWCParam() = default;
     ~HWCParam() = default;
 
-    bool IsHwcEnable();
-    bool IsHwcMirrorEnable();
-    int GetSourceTuningForApp(std::string appName);
-    int GetSolidColorLayerForApp(std::string appName);
+    bool IsHwcEnable() const;
+    bool IsHwcMirrorEnable() const;
+    int GetSourceTuningForApp(std::string appName) const;
+    int GetSolidColorLayerForApp(std::string appName) const;
 
     void SetHwcEnable(bool isEnable);
     void SetHwcMirrorEnable(bool isEnable);
@@ -37,11 +37,11 @@ public:
     void SetSolidColorLayerForApp(std::string appName, std::string val);
 
 private:
-    bool hwcEnable;
-    bool hwcMirrorEnable;
+    bool isHwcEnable_;
+    bool isHwcMirrorEnable_;
 
-    std::unordered_map<std::string, int> sourceTuningMap;
-    std::unordered_map<std::string, int> solidColorLayerMap;
+    std::unordered_map<std::string, int> sourceTuningMap_;
+    std::unordered_map<std::string, int> solidColorLayerMap_;
 };
 } // namespace OHOS::Rosen
 #endif // HWC_PARAM_H

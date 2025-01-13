@@ -26,7 +26,7 @@ int32_t DRMParamParse::ParseFeatureParam(xmlNode &node)
         HGM_LOGD("DRMParamParse stop parsing, no children nodes");
         return HGM_ERROR;
     }
-    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap;
+    auto featureMap = GraphicCcmFeatureParamManager::GetInstance()->featureParamMap_;
     auto iter = featureMap.find("DrmConfig");
     if (iter != featureMap.end()) {
         drmParam_ = std::static_pointer_cast<DRMParam>(iter->second);

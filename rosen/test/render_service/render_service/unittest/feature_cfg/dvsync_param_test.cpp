@@ -46,9 +46,9 @@ HWTEST_F(DvsyncParamTest, SetDvsyncEnable, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
     dvsyncParam.SetDvsyncEnable(true);
-    EXPECT_EQ(dvsyncParam.isDvsyncEnable, true);
+    EXPECT_EQ(dvsyncParam.isDvsyncEnable_, true);
     dvsyncParam.SetDvsyncEnable(false);
-    EXPECT_EQ(dvsyncParam.isDvsyncEnable, false);
+    EXPECT_EQ(dvsyncParam.isDvsyncEnable_, false);
 }
 
 /**
@@ -61,9 +61,9 @@ HWTEST_F(DvsyncParamTest, SetUiDvsyncEnable, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
     dvsyncParam.SetUiDvsyncEnable(true);
-    EXPECT_EQ(dvsyncParam.isUiDvsyncEnable, true);
+    EXPECT_EQ(dvsyncParam.isUiDvsyncEnable_, true);
     dvsyncParam.SetUiDvsyncEnable(false);
-    EXPECT_EQ(dvsyncParam.isUiDvsyncEnable, false);
+    EXPECT_EQ(dvsyncParam.isUiDvsyncEnable_, false);
 }
 
 /**
@@ -76,9 +76,9 @@ HWTEST_F(DvsyncParamTest, SetNativeDvsyncEnable, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
     dvsyncParam.SetNativeDvsyncEnable(true);
-    EXPECT_EQ(dvsyncParam.isNativeDvsyncEnable, true);
+    EXPECT_EQ(dvsyncParam.isNativeDvsyncEnable_, true);
     dvsyncParam.SetNativeDvsyncEnable(false);
-    EXPECT_EQ(dvsyncParam.isNativeDvsyncEnable, false);
+    EXPECT_EQ(dvsyncParam.isNativeDvsyncEnable_, false);
 }
 
 /**
@@ -92,7 +92,7 @@ HWTEST_F(DvsyncParamTest, SetRsPreCount, Function | SmallTest | Level1)
     DvsyncParam dvsyncParam;
     int32_t expCnt = 10;
     dvsyncParam.SetRsPreCount(expCnt);
-    EXPECT_EQ(dvsyncParam.rsPreCnt, expCnt);
+    EXPECT_EQ(dvsyncParam.rsPreCnt_, expCnt);
 }
 
 
@@ -107,7 +107,7 @@ HWTEST_F(DvsyncParamTest, SetAppPreCount, Function | SmallTest | Level1)
     DvsyncParam dvsyncParam;
     int32_t expCnt = 10;
     dvsyncParam.SetAppPreCount(expCnt);
-    EXPECT_EQ(dvsyncParam.appPreCnt, expCnt);
+    EXPECT_EQ(dvsyncParam.appPreCnt_, expCnt);
 }
 
 /**
@@ -121,51 +121,51 @@ HWTEST_F(DvsyncParamTest, SetNativePreCount, Function | SmallTest | Level1)
     DvsyncParam dvsyncParam;
     int32_t expCnt = 10;
     dvsyncParam.SetNativePreCount(expCnt);
-    EXPECT_EQ(dvsyncParam.nativePreCnt, expCnt);
+    EXPECT_EQ(dvsyncParam.nativePreCnt_, expCnt);
 }
 
 /**
- * @tc.name: IsDvsyncEnable
- * @tc.desc: Verify the result of IsDvsyncEnable function
+ * @tc.name: isDvsyncEnable
+ * @tc.desc: Verify the result of isDvsyncEnable function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DvsyncParamTest, IsDvsyncEnable, Function | SmallTest | Level1)
+HWTEST_F(DvsyncParamTest, isDvsyncEnable, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
-    dvsyncParam.isDvsyncEnable = true;
+    dvsyncParam.isDvsyncEnable_ = true;
     EXPECT_TRUE(dvsyncParam.IsDvsyncEnable());
-    dvsyncParam.isDvsyncEnable = false;
+    dvsyncParam.isDvsyncEnable_ = false;
     EXPECT_FALSE(dvsyncParam.IsDvsyncEnable());
 }
 
 /**
- * @tc.name: IsUiDvsyncEnable
- * @tc.desc: Verify the result of IsUiDvsyncEnable function
+ * @tc.name: isUiDvsyncEnable
+ * @tc.desc: Verify the result of isUiDvsyncEnable function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DvsyncParamTest, IsUiDvsyncEnable, Function | SmallTest | Level1)
+HWTEST_F(DvsyncParamTest, isUiDvsyncEnable, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
-    dvsyncParam.isUiDvsyncEnable = true;
+    dvsyncParam.isUiDvsyncEnable_ = true;
     EXPECT_TRUE(dvsyncParam.IsUiDvsyncEnable());
-    dvsyncParam.isUiDvsyncEnable = false;
+    dvsyncParam.isUiDvsyncEnable_ = false;
     EXPECT_FALSE(dvsyncParam.IsUiDvsyncEnable());
 }
 
 /**
- * @tc.name: IsNativeDvsyncEnable
- * @tc.desc: Verify the result of IsNativeDvsyncEnable function
+ * @tc.name: isNativeDvsyncEnable
+ * @tc.desc: Verify the result of isNativeDvsyncEnable function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(DvsyncParamTest, IsNativeDvsyncEnable, Function | SmallTest | Level1)
+HWTEST_F(DvsyncParamTest, isNativeDvsyncEnable, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
-    dvsyncParam.isNativeDvsyncEnable = true;
+    dvsyncParam.isNativeDvsyncEnable_ = true;
     EXPECT_TRUE(dvsyncParam.IsNativeDvsyncEnable());
-    dvsyncParam.isNativeDvsyncEnable = false;
+    dvsyncParam.isNativeDvsyncEnable_ = false;
     EXPECT_FALSE(dvsyncParam.IsNativeDvsyncEnable());
 }
 
@@ -178,7 +178,7 @@ HWTEST_F(DvsyncParamTest, IsNativeDvsyncEnable, Function | SmallTest | Level1)
 HWTEST_F(DvsyncParamTest, GetRsPreCount, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
-    dvsyncParam.rsPreCnt = 5;
+    dvsyncParam.rsPreCnt_ = 5;
     EXPECT_EQ(dvsyncParam.GetRsPreCount(), 5);
 }
 
@@ -191,7 +191,7 @@ HWTEST_F(DvsyncParamTest, GetRsPreCount, Function | SmallTest | Level1)
 HWTEST_F(DvsyncParamTest, GetAppPreCount, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
-    dvsyncParam.appPreCnt = 5;
+    dvsyncParam.appPreCnt_ = 5;
     EXPECT_EQ(dvsyncParam.GetAppPreCount(), 5);
 }
 
@@ -204,7 +204,7 @@ HWTEST_F(DvsyncParamTest, GetAppPreCount, Function | SmallTest | Level1)
 HWTEST_F(DvsyncParamTest, GetNativePreCount, Function | SmallTest | Level1)
 {
     DvsyncParam dvsyncParam;
-    dvsyncParam.nativePreCnt = 5;
+    dvsyncParam.nativePreCnt_ = 5;
     EXPECT_EQ(dvsyncParam.GetNativePreCount(), 5);
 }
 } // namespace Rosen

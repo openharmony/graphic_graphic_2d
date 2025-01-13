@@ -17,30 +17,30 @@
 
 namespace OHOS::Rosen {
 
-bool HWCParam::IsHwcEnable()
+bool HWCParam::IsHwcEnable() const
 {
-    return hwcEnable;
+    return isHwcEnable_;
 }
 
-bool HWCParam::IsHwcMirrorEnable()
+bool HWCParam::IsHwcMirrorEnable() const
 {
-    return hwcMirrorEnable;
+    return isHwcMirrorEnable_;
 }
 
-int HWCParam::GetSourceTuningForApp(std::string appName)
+int HWCParam::GetSourceTuningForApp(std::string appName) const
 {
-    auto iter = sourceTuningMap.find(appName);
-    if (iter != sourceTuningMap.end()) {
+    auto iter = sourceTuningMap_.find(appName);
+    if (iter != sourceTuningMap_.end()) {
         return iter->second;
     }
     HGM_LOGI("HWCParamParse parse SourceTuningForApp cannot find name %{public}s", appName.c_str());
     return -1;
 }
 
-int HWCParam::GetSolidColorLayerForApp(std::string appName)
+int HWCParam::GetSolidColorLayerForApp(std::string appName) const
 {
-    auto iter = solidColorLayerMap.find(appName);
-    if (iter != solidColorLayerMap.end()) {
+    auto iter = solidColorLayerMap_.find(appName);
+    if (iter != solidColorLayerMap_.end()) {
         return iter->second;
     }
     HGM_LOGI("HWCParamParse parse SolidColorLayerForApp cannot find name %{public}s", appName.c_str());
@@ -49,21 +49,21 @@ int HWCParam::GetSolidColorLayerForApp(std::string appName)
 
 void HWCParam::SetHwcEnable(bool isEnable)
 {
-    hwcEnable = isEnable;
+    isHwcEnable_ = isEnable;
 }
 
 void HWCParam::SetHwcMirrorEnable(bool isEnable)
 {
-    hwcMirrorEnable = isEnable;
+    isHwcMirrorEnable_ = isEnable;
 }
 
 void HWCParam::SetSourceTuningForApp(std::string appName, std::string val)
 {
-    sourceTuningMap[appName] = std::atoi(val.c_str());
+    sourceTuningMap_[appName] = std::atoi(val.c_str());
 }
 
 void HWCParam::SetSolidColorLayerForApp(std::string appName, std::string val)
 {
-    solidColorLayerMap[appName] = std::atoi(val.c_str());
+    solidColorLayerMap_[appName] = std::atoi(val.c_str());
 }
 } // namespace OHOS::Rosen

@@ -46,9 +46,9 @@ public:
     std::shared_ptr<FeatureParam> GetFeatureParam(std::string featureName);
 
     // [featureName, parseFunc]
-    std::unordered_map<std::string, std::shared_ptr<XMLParserBase>> featureParseMap;
+    std::unordered_map<std::string, std::shared_ptr<XMLParserBase>> featureParseMap_;
     // [featureName, featureParam]
-    std::unordered_map<std::string, std::shared_ptr<FeatureParam>> featureParamMap;
+    std::unordered_map<std::string, std::shared_ptr<FeatureParam>> featureParamMap_;
 
 private:
     GraphicCcmFeatureParamManager();

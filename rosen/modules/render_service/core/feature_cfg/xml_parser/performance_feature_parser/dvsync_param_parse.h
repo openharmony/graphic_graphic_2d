@@ -29,6 +29,7 @@ public:
 
 private:
     std::shared_ptr<DvsyncParam> dvsyncParam_;
+
 };
 } // namespace OHOS::Rosen
 #endif // DVSYNC_PARAM_PARSE_H

@@ -24,15 +24,15 @@ public:
     HDRParam() = default;
     ~HDRParam() = default;
 
-    bool IsHdrVideoEnable();
-    bool IsHdrImageEnable();
+    bool IsHdrVideoEnable() const;
+    bool IsHdrImageEnable() const;
 
     void SetHdrVideoEnable(bool isEnable);
     void SetHdrImageEnable(bool isEnable);
 
 private:
-    bool hdrVideoEnable;
-    bool hdrImageEnable;
+    bool isHdrVideoEnable_;
+    bool isHdrImageEnable_;
 
 };
 } // namespace OHOS::Rosen

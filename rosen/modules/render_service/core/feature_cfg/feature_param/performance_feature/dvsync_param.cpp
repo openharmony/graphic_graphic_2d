@@ -17,63 +17,63 @@
 
 namespace OHOS::Rosen {
 
-bool DvsyncParam::IsDvsyncEnable()
+bool DvsyncParam::IsDvsyncEnable() const
 {
-    return isDvsyncEnable;
+    return isDvsyncEnable_;
 }
 
-bool DvsyncParam::IsUiDvsyncEnable()
+bool DvsyncParam::IsUiDvsyncEnable() const
 {
-    return isUiDvsyncEnable;
+    return isUiDvsyncEnable_;
 }
 
-bool DvsyncParam::IsNativeDvsyncEnable()
+bool DvsyncParam::IsNativeDvsyncEnable() const
 {
-    return isNativeDvsyncEnable;
+    return isNativeDvsyncEnable_;
 }
 
-int32_t DvsyncParam::GetRsPreCount()
+int32_t DvsyncParam::GetRsPreCount() const
 {
-    return rsPreCnt;
+    return rsPreCnt_;
 }
 
-int32_t DvsyncParam::GetAppPreCount()
+int32_t DvsyncParam::GetAppPreCount() const
 {
-    return appPreCnt;
+    return appPreCnt_;
 }
 
-int32_t DvsyncParam::GetNativePreCount()
+int32_t DvsyncParam::GetNativePreCount() const
 {
-    return nativePreCnt;
+    return nativePreCnt_;
 }
 
 void DvsyncParam::SetDvsyncEnable(bool isEnable)
 {
-    isDvsyncEnable = isEnable;
+    isDvsyncEnable_ = isEnable;
 }
 
 void DvsyncParam::SetUiDvsyncEnable(bool isEnable)
 {
-    isUiDvsyncEnable = isEnable;
+    isUiDvsyncEnable_ = isEnable;
 }
 
 void DvsyncParam::SetNativeDvsyncEnable(bool isEnable)
 {
-    isNativeDvsyncEnable = isEnable;
+    isNativeDvsyncEnable_ = isEnable;
 }
 
 void DvsyncParam::SetRsPreCount(int32_t cnt)
 {
-    rsPreCnt = cnt;
+    rsPreCnt_ = cnt;
 }
 
 void DvsyncParam::SetAppPreCount(int32_t cnt)
 {
-    appPreCnt = cnt;
+    appPreCnt_ = cnt;
 }
 
 void DvsyncParam::SetNativePreCount(int32_t cnt)
 {
-    nativePreCnt = cnt;
+    nativePreCnt_ = cnt;
 }
 } // namespace OHOS::Rosen
