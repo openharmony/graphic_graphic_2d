@@ -101,9 +101,9 @@ BackendTexture Surface::GetBackendTexture(BackendAccess access) const
     return impl_->GetBackendTexture(access);
 }
 
-std::shared_ptr<Image> Surface::GetImageSnapshot(const RectI& bounds) const
+std::shared_ptr<Image> Surface::GetImageSnapshot(const RectI& bounds, bool allowRefCache) const
 {
-    return impl_->GetImageSnapshot(bounds);
+    return impl_->GetImageSnapshot(bounds, allowRefCache);
 }
 
 std::shared_ptr<Surface> Surface::MakeSurface(int width, int height) const
