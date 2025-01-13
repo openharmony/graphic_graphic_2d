@@ -620,6 +620,7 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
         canvas->GetTotalMatrix().MapRect(absRect, *rect);
         auto surface = canvas->GetSurface();
         if (!surface) {
+            ROSEN_LOGE("RSBackgroundEffectDrawable::CreateDrawFunc surface is nullptr.");
             return;
         }
         RectI deviceRect(0, 0, surface->Width(), surface->Height());
