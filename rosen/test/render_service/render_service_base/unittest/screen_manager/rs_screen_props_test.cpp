@@ -57,9 +57,10 @@ HWTEST_F(RSScreenPropsTest, Marshalling001, TestSize.Level1)
  */
 HWTEST_F(RSScreenPropsTest, Unmarshalling001, TestSize.Level1)
 {
-    RSScreenProps screenProps;
+    RSScreenProps screenProps("11", 1, 1);
     Parcel parcel;
-    std::shared_ptr<RSScreenProps>(screenProps.Unmarshalling(parcel));
+    ASSERT_TRUE(screenProps.Marshalling(parcel));
+    ASSERT_NE(std::shared_ptr<RSScreenProps>(RSScreenProps::Unmarshalling(parcel)), nullptr);
 }
 
 /**
