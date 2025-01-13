@@ -82,7 +82,7 @@ private:
     mutable std::mutex mutex_;
 
     bool savePending_ = false;
-    unsigned int saveDelaySeconds_ = 3;
+    unsigned int saveDelaySeconds_ = 900;
 
     size_t bufferSize_ = 16 * 1024;
     bool cacheDirty_ = false;
