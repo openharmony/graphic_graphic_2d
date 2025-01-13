@@ -173,7 +173,7 @@ HWTEST_F(RSFrameRateLinkerTest, IsUniRenderEnabled, TestSize.Level1)
 {
     std::shared_ptr<RSFrameRateLinker> frameRateLinker = RSFrameRateLinker::Create();
     ASSERT_NE(frameRateLinker, nullptr);
-    bool res = frameRateLinker->IsUniRenderEnabled();
+    frameRateLinker->IsUniRenderEnabled();
 }
 
 /**

@@ -1288,7 +1288,6 @@ HWTEST_F(RSSurfaceNodeTest, SetTextureExport, TestSize.Level1)
     ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetTextureExport(true);
     surfaceNode->SetTextureExport(false);
-
 }
 
 /**
@@ -1426,6 +1425,7 @@ HWTEST_F(RSSurfaceNodeTest, SetBoundsChangedCallback, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
     using BoundsChangedCallback = std::function<void(const Rosen::Vector4f&)>;
     BoundsChangedCallback callback;
     surfaceNode->SetBoundsChangedCallback(callback);
