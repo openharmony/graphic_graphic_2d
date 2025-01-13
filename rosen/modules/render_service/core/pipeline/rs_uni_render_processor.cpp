@@ -297,7 +297,10 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
         const auto& bufferDamage = params.GetBufferDamage();
         GraphicIRect dirtyRect = params.GetIsBufferFlushed() ? GraphicIRect { bufferDamage.x, bufferDamage.y,
             bufferDamage.w, bufferDamage.h } : GraphicIRect { 0, 0, 0, 0 };
-        dirtyRegions.emplace_back(RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect));
+        auto intersectRect = RSUniRenderUtil::IntersectRect(layerInfo.srcRect, dirtyRect);
+        RS_OPTIONAL_TRACE_NAME_FMT("intersectRect:[%d, %d, %d, %d]",
+            intersectRect.x, intersectRect.y, intersectRect.w, intersectRect.h);
+        dirtyRegions.emplace_back(intersectRect);
     } else {
         dirtyRegions.emplace_back(layerInfo.srcRect);
     }

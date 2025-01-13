@@ -3395,6 +3395,9 @@ void RSSurfaceRenderNode::ResetIsBufferFlushed()
         RS_LOGE("RSSurfaceRenderNode::ResetIsBufferFlushed: surfaceParams is nullptr");
         return;
     }
+    if (!surfaceParams->GetIsBufferFlushed()) {
+        return;
+    }
     surfaceParams->SetIsBufferFlushed(false);
     AddToPendingSyncList();
 }
