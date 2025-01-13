@@ -43,7 +43,7 @@ HWTEST_F(RSBackgroundThreadTest, PostTaskTest, TestSize.Level1)
 {
     std::function<void()> func = []() -> void {};
     RSBackgroundThread::Instance().PostTask(func);
-    EXPECT_TRUE(RSBackgroundThread::Instance().handler_!=nullptr);
+    EXPECT_NE(RSBackgroundThread::Instance().handler_, nullptr);
 }
 
 /**

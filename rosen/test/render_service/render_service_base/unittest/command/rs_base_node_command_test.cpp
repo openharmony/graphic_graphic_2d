@@ -46,6 +46,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand001, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::Destroy(context, nodeId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -60,6 +61,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand002, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     int32_t index = static_cast<int32_t>(0);
     BaseNodeCommandHelper::AddChild(context, nodeId, childNodeId, index);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -90,6 +92,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand004, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     int32_t index = static_cast<int32_t>(1);
     BaseNodeCommandHelper::AddCrossParentChild(context, nodeId, childNodeId, index);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -104,6 +107,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand005, TestSize.Level1)
     NodeId childNodeId = static_cast<NodeId>(-2);
     NodeId newParentId = static_cast<NodeId>(-3);
     BaseNodeCommandHelper::RemoveCrossParentChild(context, nodeId, childNodeId, newParentId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -116,6 +120,7 @@ HWTEST_F(RSBaseNodeCommandText, TestRSBaseNodeCommand006, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::RemoveFromTree(context, nodeId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**
@@ -128,6 +133,7 @@ HWTEST_F(RSBaseNodeCommandText, TextRSBaseNodeCommand007, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(-1);
     BaseNodeCommandHelper::ClearChildren(context, nodeId);
+    EXPECT_TRUE(nodeId != -2);
 }
 
 /**

@@ -679,7 +679,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipDrawTest, TestSize.Level1)
     SurfaceNodeCommandHelper::SetSkipDraw(context, 0, true);
     SurfaceNodeCommandHelper::Create(context, 1);
     SurfaceNodeCommandHelper::SetSkipDraw(context, 1, true);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1), nullptr);
 }
 
 /**

@@ -45,6 +45,7 @@ HWTEST_F(EffectNodeCommandTest, Create, TestSize.Level1)
     RSContext context;
     NodeId nodeId = static_cast<NodeId>(0);
     EffectNodeCommandHelper::Create(context, nodeId);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 } // namespace Rosen

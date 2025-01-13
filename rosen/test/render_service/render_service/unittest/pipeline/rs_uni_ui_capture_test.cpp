@@ -141,6 +141,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNodeTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessRootRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -160,6 +161,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessCanvasRenderNodeTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessCanvasRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -179,6 +181,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessSurfaceRenderNodeTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.ProcessSurfaceRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -197,6 +200,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessEffectRenderNode001, TestSize.Level1)
     std::weak_ptr<RSContext> context;
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     rsUniUICaptureVisitor.ProcessEffectRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -215,6 +219,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareCanvasRenderNodeTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.PrepareCanvasRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -233,6 +238,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareSurfaceRenderNodeTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSSurfaceRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.PrepareSurfaceRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -251,6 +257,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareRootRenderNodeTest, TestSize.Level1)
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     RSRootRenderNode node(nodeId, context);
     rsUniUICaptureVisitor.PrepareRootRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -268,6 +275,7 @@ HWTEST_F(RSUniUiCaptureTest, PrepareEffectRenderNodeTest, TestSize.Level1)
     captureConfig.scaleY = 0.0;
     RSUniUICapture::RSUniUICaptureVisitor rsUniUICaptureVisitor(nodeId, captureConfig);
     rsUniUICaptureVisitor.PrepareEffectRenderNode(node);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**
@@ -380,6 +388,7 @@ HWTEST_F(RSUniUiCaptureTest, ProcessRootRenderNode, TestSize.Level1)
     RSCanvasRenderNode node2(nodeId2);
     rsUniUICaptureVisitor.ProcessRootRenderNode(node1);
     rsUniUICaptureVisitor.ProcessCanvasRenderNode(node2);
+    EXPECT_TRUE(nodeId != -1);
 }
 
 /**

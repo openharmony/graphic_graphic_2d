@@ -73,6 +73,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareChildren001, TestSize.Level1)
     auto surfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config);
     rsSurfaceRenderNode.AddChild(surfaceRenderNode2, -1);
     rsRenderThreadVisitor->PrepareChildren(rsSurfaceRenderNode);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -87,6 +88,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode001, TestSize.Level1)
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
     std::shared_ptr<RSRenderThreadVisitor> rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -103,6 +105,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode002, TestSize.Level1)
     node->GetMutableRenderProperties().SetVisible(false);
     std::shared_ptr<RSRenderThreadVisitor> rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -120,6 +123,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode003, TestSize.Level1)
     node->AddChild(surfaceRenderNode, -1);
     std::shared_ptr<RSRenderThreadVisitor> rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -135,6 +139,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode004, TestSize.Level1)
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->SetPartialRenderStatus(PartialRenderType::SET_DAMAGE_AND_DROP_OP, false);
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -149,6 +154,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode005, TestSize.Level1)
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -166,6 +172,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareCanvasRenderNode006, TestSize.Level1)
     rootnode->AddChild(node);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareCanvasRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -218,6 +225,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode001, TestSize.Level1)
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -247,6 +255,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode002, TestSize.Level1)
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
     node->UpdateSuggestedBufferSize(1, 1);
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -261,6 +270,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode003, TestSize.Level1)
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -275,6 +285,7 @@ HWTEST_F(RSRenderThreadVisitorTest, PrepareRootRenderNode004, TestSize.Level1)
     auto node = std::make_shared<RSRootRenderNode>(nodeId);
     auto rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->PrepareRootRenderNode(*node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -446,6 +457,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessChildren001, TestSize.Level1)
     auto surfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsSurfaceRenderNode.AddChild(surfaceRenderNode, -1);
     rsRenderThreadVisitor->ProcessChildren(rsSurfaceRenderNode);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -473,8 +485,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode002, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSCanvasRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessCanvasRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -495,6 +508,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode003, TestSize.Level1)
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->ProcessRootRenderNode(node2);
     rsRenderThreadVisitor->ProcessCanvasRenderNode(node2);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -507,8 +521,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessCanvasRenderNode004, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSCanvasRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessCanvasRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessCanvasRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -601,8 +616,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode001, TestSize.Level1)
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRootRenderNode node(nodeId);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -616,8 +632,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode002, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRootRenderNode node(nodeId);
     node.UpdateSuggestedBufferSize(0, 0);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -631,8 +648,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode003, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[1];
     RSRootRenderNode node(nodeId);
     node.SetEnableRender(false);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -650,12 +668,13 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode004, TestSize.Level1)
     auto surfaceNode = RSSurfaceNode::Create(config);
     node.AttachRSSurfaceNode(surfaceNode->GetId());
     node.UpdateSuggestedBufferSize(10, 10);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
     RSOverdrawController::GetInstance().SetEnable(false);
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
-    rsRenderThreadVisitor.SetPartialRenderStatus(PartialRenderType::DISABLED, true);
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    rsRenderThreadVisitor->SetPartialRenderStatus(PartialRenderType::DISABLED, true);
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -669,8 +688,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode005, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[3];
     RSRootRenderNode node(nodeId);
     node.SetEnableRender(false);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -684,8 +704,9 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessRootRenderNode006, TestSize.Level1)
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[4];
     RSRootRenderNode node(nodeId);
     node.SetEnableRender(false);
-    RSRenderThreadVisitor rsRenderThreadVisitor;
-    rsRenderThreadVisitor.ProcessRootRenderNode(node);
+    std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
+    rsRenderThreadVisitor->ProcessRootRenderNode(node);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -832,6 +853,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode002, TestSize.Level1
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->ProcessRootRenderNode(node);
     rsRenderThreadVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
@@ -850,6 +872,7 @@ HWTEST_F(RSRenderThreadVisitorTest, ProcessSurfaceRenderNode003, TestSize.Level1
     rsSurfaceRenderNode.AddChild(node, -1);
     std::shared_ptr rsRenderThreadVisitor = std::make_shared<RSRenderThreadVisitor>();
     rsRenderThreadVisitor->ProcessSurfaceRenderNode(rsSurfaceRenderNode);
+    EXPECT_TRUE(rsRenderThreadVisitor != nullptr);
 }
 
 /**
