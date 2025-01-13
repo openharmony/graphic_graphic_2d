@@ -287,6 +287,8 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     RS_OPTIONAL_TRACE_NAME("DrawFilter " + rsFilter->GetDescription());
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "DrawFilter, filterType: %d, %s, bounds: %s",
         isForegroundFilter, rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
+    ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter filterType: %{public}d, %{public}s, bounds: %{public}s",
+        isForegroundFilter, rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
     g_blurCnt++;
 
     auto surface = canvas->GetSurface();
@@ -452,6 +454,8 @@ void RSPropertyDrawableUtils::DrawBackgroundEffect(
     auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
     RS_OPTIONAL_TRACE_NAME("RSPropertyDrawableUtils::DrawBackgroundEffect " + rsFilter->GetDescription());
     RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "EffectComponent, %s, bounds: %s",
+        rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
+    ROSEN_LOGD("RSPropertyDrawableUtils::DrawBackgroundEffect EffectComponent, %{public}s, bounds: %{public}s",
         rsFilter->GetDetailedDescription().c_str(), clipIBounds.ToString().c_str());
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     // Optional use cacheManager to draw filter
@@ -1033,6 +1037,9 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
         static_cast<float>(effectData->cachedRect_.GetTop()), Drawing::SamplingOptions());
     RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, DeviceClipBounds:%s, "
         "IdentityMatrix: %d", effectData->cachedRect_.ToString().c_str(),
+        canvas->GetDeviceClipBounds().ToString().c_str(), effectData->cachedMatrix_.IsIdentity());
+    ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%{public}s, DeviceClipBounds:%{public}s, "
+        "IdentityMatrix: %{public}d", effectData->cachedRect_.ToString().c_str(),
         canvas->GetDeviceClipBounds().ToString().c_str(), effectData->cachedMatrix_.IsIdentity());
     canvas->DetachBrush();
 }
