@@ -175,6 +175,8 @@ HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
 {
     hdiBackend_->ResetDevice();
     hdiBackend_->OnScreenHotplug(-1, true);
+    auto iter = outputs_.find(screenId);
+    EXPECT_EQ(iter,outputs_.end());
 }
 
 /*

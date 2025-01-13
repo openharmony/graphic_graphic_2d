@@ -324,7 +324,12 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
+    std::string expectedHitchsOutput = "\n window [UniRender] Id["; 
+    EXPECT_NE(result.find(expectedHitchsOutput), std::string::npos);
+
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
+    std::string expectedFpsOutput = "\n surface [UniRender] Id["; // Adjust the expected output based on actual implementation
+    EXPECT_NE(result.find(expectedFpsOutput), std::string::npos);
 }
 
 /*
