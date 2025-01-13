@@ -961,6 +961,7 @@ void RSRenderServiceConnection::ForceRefreshOneFrameWithNextVSync()
 {
     if (!mainThread_) {
         RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
+        return;
     }
 
     auto task = [weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
