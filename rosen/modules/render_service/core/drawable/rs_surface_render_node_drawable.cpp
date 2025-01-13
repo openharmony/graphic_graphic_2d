@@ -989,11 +989,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     }
 #endif
 
-    if (params.buffer == nullptr) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer params.buffer is nullptr");
-    } else {
-        RecordTimestamp(surfaceParams.GetId(), params.buffer->GetSeqNum());
-    }
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }
 
@@ -1043,6 +1038,11 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
 {
+    if (params.buffer == nullptr) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
+    } else {
+        RecordTimestamp(surfaceParams.GetId(), params.buffer->GetSeqNum());
+    }
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
     if ((surfaceParams.GetSelfDrawingNodeType() != SelfDrawingNodeType::VIDEO) &&
