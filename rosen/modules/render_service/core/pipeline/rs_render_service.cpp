@@ -44,6 +44,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "graphic_ccm_feature_param_manager.h"
 
 #include "text/font_mgr.h"
 
@@ -162,6 +163,10 @@ bool RSRenderService::Init()
     samgr->AddSystemAbility(RENDER_SERVICE, this);
 
     RS_PROFILER_INIT(this);
+
+    // CCM feature param parse
+    GraphicCcmFeatureParamManager::GetInstance()->Init();
+    GraphicCcmFeatureParamManager::GetInstance()->FeatureParamParseEntry();
 
     return true;
 }
