@@ -186,6 +186,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/RunBaseImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLine.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
+    "//third_party/skia/modules/skparagraph/src/TextLineJustify.cpp",
     "//third_party/skia/modules/skparagraph/src/TextShadow.cpp",
     "//third_party/skia/modules/skparagraph/src/TextStyle.cpp",
     "//third_party/skia/modules/skparagraph/src/TextTabAlign.cpp",
