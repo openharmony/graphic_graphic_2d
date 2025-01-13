@@ -1169,9 +1169,6 @@ void RSMainThread::RequestNextVsyncForCachedCommand(std::string& transactionFlag
 void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDataMap>& transactionDataEffective,
     std::string& transactionFlags)
 {
-    if (!effectiveTransactionDataIndexMap_.empty() && transactionDataEffective == nullptr) {
-        transactionDataEffective = std::make_shared<TransactionDataMap>();
-    }
     for (auto& rsTransactionElem: effectiveTransactionDataIndexMap_) {
         auto pid = rsTransactionElem.first;
         auto& lastIndex = rsTransactionElem.second.first;
@@ -1212,6 +1209,9 @@ void RSMainThread::CheckAndUpdateTransactionIndex(std::shared_ptr<TransactionDat
             }
         }
         if (iter != transactionVec.begin()) {
+            if (transactionDataEffective == nullptr) {
+                transactionDataEffective = std::make_shared<TransactionDataMap>();
+            }
             (*transactionDataEffective)[pid].insert((*transactionDataEffective)[pid].end(),
                 std::make_move_iterator(transactionVec.begin()), std::make_move_iterator(iter));
             transactionVec.erase(transactionVec.begin(), iter);
