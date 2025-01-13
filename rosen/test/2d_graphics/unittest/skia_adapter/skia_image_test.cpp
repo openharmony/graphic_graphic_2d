@@ -455,9 +455,9 @@ HWTEST_F(SkiaImageTest, ReadPixels001, TestSize.Level1)
 {
     std::shared_ptr<SkiaImage> skiaImage = std::make_shared<SkiaImage>();
     Pixmap pixmap;
-    skiaImage->ReadPixels(pixmap, 0, 0);
+    ASSERT_FALSE(skiaImage->ReadPixels(pixmap, 0, 0));
     ImageInfo dstInfo = ImageInfo::MakeN32Premul(100, 100); // 100: width, height
-    skiaImage->ReadPixels(dstInfo, nullptr, 100, 100, 100); // 100: dstRowBytes, srcX, srcY
+    ASSERT_FALSE(skiaImage->ReadPixels(dstInfo, nullptr, 100, 100, 100)); // 100: dstRowBytes, srcX, srcY
 }
 
 /**
