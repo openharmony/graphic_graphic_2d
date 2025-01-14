@@ -1316,7 +1316,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     if (uniParam == nullptr) {
         return;
     }
-    const auto& mirroredParams = static_cast<RSDisplayRenderParams*>(mirroredDrawable.GetRenderParams().get());
+    const auto mirroredParams = static_cast<RSDisplayRenderParams*>(mirroredDrawable.GetRenderParams().get());
     if (mirroredParams == nullptr) {
         return;
     }
@@ -1324,11 +1324,11 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
     if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
+        auto hasSecSurface = mirroredParams->GetDisplayHasSecSurface();
         if (hasSecSurface[mirroredParams->GetScreenId()] && !uniParam->GetSecExemption()) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
             RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, "
-            "set canvas to black because of security layer.");
+                "set canvas to black because of security layer.");
             return;
         }
     }
