@@ -233,6 +233,8 @@ private:
 #endif
     int64_t lastRefreshTime_ = 0;
     bool virtualDirtyRefresh_ = false;
+
+    bool isRenderSkipIfScreenOff_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
