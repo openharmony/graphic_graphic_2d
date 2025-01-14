@@ -585,7 +585,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
 
 const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetPhongShaderBuilder()
 {
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder;
+    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder;
     if (phongShaderBuilder) {
         return phongShaderBuilder;
     }
