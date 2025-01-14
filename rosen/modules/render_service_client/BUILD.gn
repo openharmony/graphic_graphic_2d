@@ -101,15 +101,15 @@ template("render_service_client_source_set") {
       "core/modifier/rs_property_modifier.cpp",
       "core/modifier/rs_showing_properties_freezer.cpp",
 
-      #jank_detector
-      "core/jank_detector/rs_jank_detector.cpp",
-
       #pipeline
       "core/pipeline/rs_divided_ui_capture.cpp",
       "core/pipeline/rs_node_map.cpp",
       "core/pipeline/rs_render_thread.cpp",
       "core/pipeline/rs_render_thread_util.cpp",
       "core/pipeline/rs_render_thread_visitor.cpp",
+
+      #jank_detector
+      "core/render_thread/jank_detector/rs_jank_detector.cpp",
 
       #transaction
       "core/transaction/rs_application_agent_impl.cpp",
