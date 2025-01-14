@@ -1320,7 +1320,7 @@ void RSBaseRenderUtil::DealWithSurfaceRotationAndGravity(GraphicTransformType tr
     int extraRotation = 0;
     if (nodeParams != nullptr && nodeParams->GetFixRotationByUser()) {
         int32_t rotationDegree = GetScreenRotationOffset(nodeParams);
-        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(nodeParams->GetLayerInfo().matrix);
+        int degree = static_cast<int>(nodeParams->GetAbsRotation()) % 360;
         extraRotation = degree - rotationDegree;
     }
     rotationTransform = static_cast<GraphicTransformType>(

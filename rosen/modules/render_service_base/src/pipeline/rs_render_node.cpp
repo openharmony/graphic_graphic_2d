@@ -4087,6 +4087,7 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetNodeType(GetType());
     stagingRenderParams_->SetEffectNodeShouldPaint(EffectNodeShouldPaint());
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
+    stagingRenderParams_->SetAbsRotation(absRotation_);
 }
 
 bool RSRenderNode::UpdateLocalDrawRect()

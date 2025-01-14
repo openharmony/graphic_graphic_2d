@@ -788,6 +788,14 @@ bool RSUniRenderUtil::HandleCaptureNode(RSRenderNode& node, RSPaintFilterCanvas&
     return false;
 }
 
+int RSUniRenderUtil::TransferToAntiClockwiseDegrees(int angle)
+{
+    static const std::map<int, int> supportedDegrees = { { 90, 270 }, { 180, 180 }, { -90, 90 }, { -180, 180 },
+        { 270, -270 }, { -270, 270 } };
+    auto iter = supportedDegrees.find(angle);
+    return iter != supportedDegrees.end() ? iter->second : 0;
+}
+
 int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
@@ -798,9 +806,7 @@ int RSUniRenderUtil::GetRotationFromMatrix(Drawing::Matrix matrix)
     // transfer the result to anti-clockwise degrees
     // only rotation with 90°, 180°, 270° are composed through hardware,
     // in which situation the transformation of the layer needs to be set.
-    static const std::map<int, int> supportedDegrees = {{90, 270}, {180, 180}, {-90, 90}, {-180, 180}};
-    auto iter = supportedDegrees.find(rAngle);
-    return iter != supportedDegrees.end() ? iter->second : 0;
+    return TransferToAntiClockwiseDegrees(rAngle);
 }
 
 int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
@@ -1294,12 +1300,11 @@ GraphicTransformType RSUniRenderUtil::GetRotateTransformForRotationFixed(RSSurfa
     auto transformType = RSBaseRenderUtil::GetRotateTransform(RSBaseRenderUtil::GetSurfaceBufferTransformType(
         node.GetRSSurfaceHandler()->GetConsumer(), node.GetRSSurfaceHandler()->GetBuffer()));
     int extraRotation = 0;
+    int degree = static_cast<int>(node.GetAbsRotation()) % 360;
     auto surfaceParams = node.GetStagingRenderParams() == nullptr
                              ? nullptr
                              : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
-    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(
-        node.GetRenderProperties().GetBoundsGeometry()->GetAbsMatrix());
     extraRotation = degree - rotationDegree;
     transformType = static_cast<GraphicTransformType>(
         (transformType + extraRotation / RS_ROTATION_90 + SCREEN_ROTATION_NUM) % SCREEN_ROTATION_NUM);
@@ -1513,8 +1518,9 @@ GraphicTransformType RSUniRenderUtil::GetLayerTransform(RSSurfaceRenderNode& nod
                              ? nullptr
                              : static_cast<RSSurfaceRenderParams*>(node.GetStagingRenderParams().get());
     int32_t rotationDegree = RSBaseRenderUtil::GetScreenRotationOffset(surfaceParams);
-    int surfaceNodeRotation = node.GetFixRotationByUser() ? -1 * rotationDegree :
-        RSUniRenderUtil::GetRotationFromMatrix(node.GetTotalMatrix());
+    int surfaceNodeRotation = node.GetFixRotationByUser()
+                                  ? -1 * rotationDegree
+                                  : TransferToAntiClockwiseDegrees(static_cast<int>(node.GetAbsRotation()) % 360);
     auto transformType = GraphicTransformType::GRAPHIC_ROTATE_NONE;
     auto buffer = node.GetRSSurfaceHandler()->GetBuffer();
     if (consumer != nullptr && buffer != nullptr) {

@@ -329,6 +329,17 @@ public:
     // canvas drawing node
     virtual bool IsNeedProcess() const { return false; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
+
+    void SetAbsRotation(float degree)
+    {
+        absRotation_ = degree;
+    }
+
+    float GetAbsRotation() const
+    {
+        return absRotation_;
+    }
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -373,6 +384,8 @@ private:
     SurfaceParam surfaceParams_;
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
+    // The angle at which the node rotates about the Z-axis
+    float absRotation_ = 0.f;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
