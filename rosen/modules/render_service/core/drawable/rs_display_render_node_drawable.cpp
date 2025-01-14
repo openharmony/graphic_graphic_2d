@@ -551,7 +551,8 @@ void RSDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         hardCursorDrawable.drawablePtr->GetRenderParams()->SetLayerCreated(false);
     }
     // if screen power off, skip on draw, needs to draw one more frame.
-    if (params && RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId())) {
+    isRenderSkipIfScreenOff_ = RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId());
+    if (isRenderSkipIfScreenOff_) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;
     }
@@ -871,8 +872,9 @@ void RSDisplayRenderNodeDrawable::DrawMirrorScreen(
     }
 
     auto hardwareDrawables = uniParam->GetHardwareEnabledTypeDrawables();
-    if (mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
-        specialLayerType_ == HAS_SPECIAL_LAYER) {
+    //if specialLayer is visible and no CacheImg
+    if ((mirroredParams->GetSecurityDisplay() != params.GetSecurityDisplay() &&
+        specialLayerType_ == HAS_SPECIAL_LAYER) || !mirroredDrawable->GetCacheImgForCapture()) {
         DrawMirror(params, virtualProcesser,
             &RSDisplayRenderNodeDrawable::OnCapture, *uniParam);
     } else {
@@ -1321,7 +1323,8 @@ void RSDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     Drawing::AutoCanvasRestore acr(canvas, true);
 
     specialLayerType_ = GetSpecialLayerType(*params);
-    if (specialLayerType_ != NO_SPECIAL_LAYER || UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
+    if (specialLayerType_ != NO_SPECIAL_LAYER || UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) ||
+        isRenderSkipIfScreenOff_) {
         RS_LOGD("RSDisplayRenderNodeDrawable::OnCapture: \
             process RSDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->GetId());
