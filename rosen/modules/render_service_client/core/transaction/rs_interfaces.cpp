@@ -115,7 +115,7 @@ int32_t RSInterfaces::SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::
 {
 #ifdef ROSEN_OHOS
     if (securityMask &&  securityMask->GetCapacity() > SECURITYMASK_PIXELMAP_SIZE_LIMIT) {
-        ROSEN_LOGE("SetScreenSecurityMask failed, securityMask[%{public}d, %{public}d] is error",
+        ROSEN_LOGE("SetScreenSecurityMask failed, securityMask %{public}d is error",
             securityMask->GetCapacity());
         return RS_CONNECTION_ERROR;
     }
