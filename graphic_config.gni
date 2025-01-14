@@ -30,7 +30,6 @@ declare_args() {
   graphic_2d_feature_enable_vulkan = false
   graphic_2d_feature_enable_flutter_vulkan = false
   graphic_2d_feature_enable_opengl = true
-  graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_sdf = false
   graphic_2d_feature_enable_opinc = false
   graphic_2d_feature_enable_filter_cache = true
@@ -69,7 +68,6 @@ if (graphic_2d_feature_product == "phone" ||
     graphic_2d_feature_product == "tablet" ||
     graphic_2d_feature_product == "wearable") {
   graphic_2d_feature_enable_vulkan = true
-  graphic_2d_feature_enable_ddgr = false
   graphic_2d_feature_enable_stack_culling = true
 }
 
@@ -93,10 +91,6 @@ if (graphic_2d_feature_ace_enable_gpu) {
       "ACE_ENABLE_VK",
       "RS_ENABLE_VK",
     ]
-    if (graphic_2d_feature_enable_ddgr) {
-      gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
-      import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
-    }
   }
   if (graphic_2d_feature_enable_opengl) {
     gpu_defines += [
@@ -199,7 +193,7 @@ check_graphic_ext_file_script = "//build/ohos/file_exists.py"
 
 check_ddgr_ext_file_args = [
   "--filename",
-  rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni"),
+  rebase_path("//foundation/graphic/graphic_2d_ext/ddgr/config.gni"),
 ]
 check_igraphics_core_file_args = [
   "--filename",
@@ -234,7 +228,14 @@ if (exec_script(check_graphic_ext_file_script,
                 check_ddgr_ext_file_args,
                 "string") == "True") {
   ddgr_ext_configs = {
-    import("//foundation/graphic/graphic_2d_ext/ddgr/ddgr_config.gni")
+    import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
+  }
+  if (graphic_2d_feature_ace_enable_gpu && graphic_2d_feature_enable_vulkan) {
+    import("//foundation/graphic/graphic_2d_ext/ddgr/config.gni")
+    if (defined(graphic_2d_ext_feature_enable_ddgr) &&
+        graphic_2d_ext_feature_enable_ddgr) {
+      gpu_defines += [ "ENABLE_DDGR_OPTIMIZE" ]
+    }
   }
 }
 if (exec_script(check_graphic_ext_file_script,

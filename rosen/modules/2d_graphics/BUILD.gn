@@ -268,13 +268,21 @@ template("graphics2d_source_set") {
         "$graphic_2d_ext_root/ddgr/tools/playbackengine:libplaybackengine",
       ]
     }
-
-    if (defined(graphic_2d_feature_enable_ddgr) &&
-        graphic_2d_feature_enable_ddgr) {
+    cflags = []
+    if (defined(graphic_2d_ext_feature_enable_ddgr) &&
+        graphic_2d_ext_feature_enable_ddgr) {
       defines += [ "ENABLE_DDGR_OPTIMIZE" ]
       sources += ddgr_adapter_opt_set.drawing_ddgr_adapter_src_set
       include_dirs += ddgr_adapter_opt_set.drawing_ddgr_adapter_include_set
-      public_deps += [ "$graphic_2d_ext_root/ddgr:libddgr" ]
+      public_external_deps += [ "graphic_2d_ext:libddgr" ]
+      cflags += [
+        "-fprofile-use=" +
+            rebase_path("${ddgr_feature_pgo_path}libddgr.profdata",
+                        root_build_dir),
+        "-Wno-error=backend-plugin",
+        "-Wno-profile-instr-out-of-date",
+        "-Wno-profile-instr-unprofiled",
+      ]
     }
 
     if (enable_text_gine) {
@@ -330,7 +338,7 @@ template("graphics2d_source_set") {
       }
     } else {
       deps = []
-      cflags = [ "-std=c++17" ]
+      cflags += [ "-std=c++17" ]
 
       deps += [ "$rosen_root/modules/platform:hilog" ]
 
