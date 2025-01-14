@@ -92,6 +92,7 @@ public:
         float dynamicLightUpRate, float dynamicLightUpDeg);
     static std::shared_ptr<Drawing::Image> DrawGreyAdjustment(
         Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image, const Vector2f& greyCoef);
+    static std::shared_ptr<Drawing::Blender> MakeLightUpEffectBlender(const float lightUpDeg);
 
     // EffectView and useEffect
     static void DrawBackgroundImageAsEffect(const RSProperties& properties, RSPaintFilterCanvas& canvas);
@@ -138,6 +139,7 @@ private:
     static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectShaderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicLightUpBlenderEffect_;
     static std::shared_ptr<Drawing::RuntimeEffect> dynamicDimShaderEffect_;
+    static std::shared_ptr<Drawing::RuntimeEffect> lightUpEffectBlender_;
     inline static int g_blurCnt = 0;
 };
 } // namespace Rosen

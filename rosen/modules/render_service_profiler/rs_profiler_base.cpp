@@ -131,13 +131,16 @@ std::shared_ptr<MessageParcel> RSProfiler::CopyParcel(const MessageParcel& parce
     }
 
     if (IsParcelMock(parcel)) {
-        auto* buffer = new uint8_t[sizeof(MessageParcel) + 1];
+        auto* buffer = new(std::nothrow) uint8_t[sizeof(MessageParcel) + 1];
+        if (!buffer) {
+            return std::make_shared<MessageParcel>();
+        }
         auto* mpPtr = new (buffer + 1) MessageParcel;
         return std::shared_ptr<MessageParcel>(mpPtr, [](MessageParcel* ptr) {
             ptr->~MessageParcel();
             auto* allocPtr = reinterpret_cast<uint8_t*>(ptr);
             allocPtr--;
-            delete allocPtr;
+            delete[] allocPtr;
         });
     }
 

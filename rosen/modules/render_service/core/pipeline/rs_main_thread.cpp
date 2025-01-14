@@ -26,7 +26,6 @@
 #include <string>
 #include <unistd.h>
 
-#include "benchmarks/file_utils.h"
 #include "delegate/rs_functional_delegate.h"
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
