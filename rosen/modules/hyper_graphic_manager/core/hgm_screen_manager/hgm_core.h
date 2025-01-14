@@ -349,7 +349,7 @@ private:
     std::atomic<int64_t> actualTimestamp_{ 0 };
     std::atomic<uint64_t> vsyncId_{ 0 };
     std::atomic<bool> isForceRefresh_{ false };
-    std::atomic<uint64_t> lastFastComposeTimeStampDiff_{ 0 };
+    std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
     bool isDelayMode_ = false;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;

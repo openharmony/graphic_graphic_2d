@@ -639,7 +639,7 @@ HWTEST_F(RSUniRenderThreadTest, GetFastComposeTimeStampDiff, TestSize.Level1)
     if (renderThreadParams) {
         EXPECT_EQ(fastComposeTimeStampDiff, renderThreadParams->GetFastComposeTimeStampDiff());
     } else {
-        EXPECT_EQ(0);
+        EXPECT_EQ(fastComposeTimeStampDiff, 0);
     }
 }
 }
