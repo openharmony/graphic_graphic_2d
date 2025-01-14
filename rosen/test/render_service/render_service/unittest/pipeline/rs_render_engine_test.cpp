@@ -167,8 +167,7 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
     LayerInfoPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     layers.emplace_back(layer3);
-    ScreenInfo screenInfo;
-    renderEngine->DrawLayers(*canvas, layers, false, screenInfo);
+    renderEngine->DrawLayers(*canvas, layers, false);
     ASSERT_NE(canvas, nullptr);
 }
 
