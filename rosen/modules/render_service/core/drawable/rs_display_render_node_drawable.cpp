@@ -1327,7 +1327,8 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
         auto hasSecSurface = mirroedDisplayParams->GetDisplayHasSecSurface();
         if (hasSecSurface[mirroredParams->GetScreenId()] && !uniParam->GetSecExemption()) {
             curCanvas_->Clear(Drawing::Color::COLOR_BLACK);
-            RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, set canvas to black because of security layer.");
+            RS_LOGI("RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw, "
+            "set canvas to black because of security layer.");
             return;
         }
     }
@@ -1345,7 +1346,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     DrawCurtainScreen();
     DrawWatermarkIfNeed(*mirroredParams, *curCanvas_);
     SwitchColorFilter(*curCanvas_, 1.f); // 1.f: wired screen not use hdr, use default value 1.f
-    
+
     uniParam->SetOpDropped(isOpDropped);
 }
 
