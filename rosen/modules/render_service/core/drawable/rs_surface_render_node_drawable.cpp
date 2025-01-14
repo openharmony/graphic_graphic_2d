@@ -476,6 +476,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     auto cacheState = GetCacheSurfaceProcessedStatus();
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, false)) {
+        SetDrawSkipType(DrawSkipType::CHECK_MATCH_AND_WAIT_NOTIFY_FAIL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
         return;
     }
@@ -858,10 +859,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         RSUniRenderThread::GetCaptureParam().isSingleSurface_ &&
         !RSUniRenderThread::GetCaptureParam().isSystemCalling_;
     if (!(surfaceParams.HasSecurityLayer() || surfaceParams.HasSkipLayer() || surfaceParams.HasSnapshotSkipLayer() ||
-        surfaceParams.HasProtectedLayer() || surfaceParams.GetHDRPresent() || hasHidePrivacyContent) &&
-        DealWithUIFirstCache(canvas, surfaceParams, *uniParams)) {
-        surfaceParams.SetHardwareEnabled(hwcEnable);
-        return;
         surfaceParams.HasProtectedLayer() || surfaceParams.GetHDRPresent() || hasHidePrivacyContent)) {
         if (drawWindowCache_.DealWithCachedWindow(this, canvas, surfaceParams, *uniParams)) {
             surfaceParams.SetHardwareEnabled(hwcEnable);
