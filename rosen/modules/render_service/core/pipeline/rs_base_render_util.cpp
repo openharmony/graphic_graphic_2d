@@ -1493,6 +1493,10 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::S
     const uint32_t maxLen = 80;
     time_t now = time(nullptr);
     tm* curr_tm = localtime(&now);
+    if (curr_tm == nullptr) {
+        RS_LOGE("WriteCacheImageRenderNodeToPng localtime returns null");
+        return false;
+    }
     char timechar[maxLen] = {0};
     (void)strftime(timechar, maxLen, "%Y%m%d%H%M%S", curr_tm);
     std::string filename = DUMP_CACHESURFACE_DIR + "/" + "CacheRenderNode_Draw_"
@@ -1534,6 +1538,10 @@ bool RSBaseRenderUtil::WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::I
     const uint32_t maxLen = 80;
     time_t now = time(nullptr);
     tm* curr_tm = localtime(&now);
+    if (curr_tm == nullptr) {
+        RS_LOGE("WriteCacheImageRenderNodeToPng localtime returns null");
+        return false;
+    }
     char timechar[maxLen] = {0};
     (void)strftime(timechar, maxLen, "%Y%m%d%H%M%S", curr_tm);
     std::string filename = DUMP_CACHESURFACE_DIR + "/" + "CacheRenderNode_Draw_"
