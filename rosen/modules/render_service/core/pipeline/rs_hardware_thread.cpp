@@ -420,8 +420,12 @@ int64_t RSHardwareThread::GetCurTimeCount()
 void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId)
 {
     RS_TRACE_NAME("RSHardwareThread::PreAllocateProtectedBuffer enter.");
-    if (!preAllocMutex_.try_lock()) {
-        return;
+    {
+        std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
+        if (!lock.owns_lock()) {
+            RS_TRACE_NAME("RSHardwareThread::PreAllocateProtectedBuffer failed, HardwareThread is redraw.");
+            return;
+        }
     }
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
@@ -444,11 +448,14 @@ void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, ui
 #ifdef RS_ENABLE_VK
     std::shared_ptr<RSSurfaceOhosVulkan> rsSurface;
     auto surfaceId = fbSurface->GetUniqueId();
-    if (frameBufferSurfaceOhosMap_.count(surfaceId)) {
-        rsSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhosMap_[surfaceId]);
-    } else {
-        rsSurface = std::make_shared<RSSurfaceOhosVulkan>(fbSurface);
-        frameBufferSurfaceOhosMap_[surfaceId] = rsSurface;
+    {
+        std::lock_guard<std::mutex> lock(frameBufferSurfaceOhosMapMutex_);
+        if (frameBufferSurfaceOhosMap_.count(surfaceId)) {
+            rsSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhosMap_[surfaceId]);
+        } else {
+            rsSurface = std::make_shared<RSSurfaceOhosVulkan>(fbSurface);
+            frameBufferSurfaceOhosMap_[surfaceId] = rsSurface;
+        }
     }
     // SetColorSpace
     rsSurface->SetColorSpace(ComputeTargetColorGamut(buffer));
@@ -734,7 +741,7 @@ void RSHardwareThread::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
 void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
 {
     RS_TRACE_NAME("RSHardwareThread::Redraw");
-    preAllocMutex_.try_lock();
+    std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         RS_LOGE("RSHardwareThread::Redraw: screenManager is null.");

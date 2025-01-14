@@ -56,6 +56,7 @@ public:
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
+        .colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
     };
 
     static inline BufferFlushConfig flushConfig = {
@@ -343,7 +344,7 @@ HWTEST_F(RSHardwareThreadTest, PreAllocateProtectedBuffer001, TestSize.Level1)
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
-    sProducer->SetQueueSize(2);
+    sProducer->SetQueueSize(1);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
@@ -351,6 +352,7 @@ HWTEST_F(RSHardwareThreadTest, PreAllocateProtectedBuffer001, TestSize.Level1)
     hardwareThread.PreAllocateProtectedBuffer(buffer, screenId_);
 }
 
+#ifdef RS_ENABLE_VK
 /*
  * Function: ComputeTargetColorGamut
  * Type: Function
@@ -397,7 +399,7 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetColorGamut002, TestSize.Level1)
     const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
     auto producer = surfaceConsumer->GetProducer();
     sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
-    sProducer->SetQueueSize(2);
+    sProducer->SetQueueSize(1);
     sptr<SurfaceBuffer> buffer;
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
     GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
@@ -418,7 +420,7 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetColorGamut002, TestSize.Level1)
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. preSetup: create bufferqueue(1 buffer)
+ * CaseDescription: 1. preSetup: create bufferqueue(3 buffer)
  *                  2. operation: change BufferRequestConfig, RequestBuffer and ComputeTargetPixelFormat
  *                  3. result: return pixelFormat which is GRAPHIC_PIXEL_FMT_RGBA_1010102
  */
@@ -450,4 +452,5 @@ HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat001, TestSize.Level1)
     pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
     EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
 }
+#endif
 } // namespace OHOS::Rosen

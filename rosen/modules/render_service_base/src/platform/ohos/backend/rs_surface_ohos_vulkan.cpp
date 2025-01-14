@@ -196,20 +196,22 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (isProtected && !protectedSurfaceBufferList_.empty()) {
-        RS_TRACE_NAME_FMT("protectedSurfaceBufferList_ size = %lu, addr = %p", protectedSurfaceBufferList_.size(),
-            this);
+    {
         std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
-        nativeWindowBuffer = protectedSurfaceBufferList_.front().first;
-        fenceFd = protectedSurfaceBufferList_.front().second;
-        mSurfaceList.emplace_back(nativeWindowBuffer);
-        protectedSurfaceBufferList_.pop_front();
-    } else {
-        if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC, isProtected) !=
-            OHOS::GSERROR_OK) {
-            return nullptr;
+        if (isProtected && !protectedSurfaceBufferList_.empty()) {
+            RS_TRACE_NAME_FMT("protectedSurfaceBufferList_ size = %lu, addr = %p", protectedSurfaceBufferList_.size(),
+                this);
+            nativeWindowBuffer = protectedSurfaceBufferList_.front().first;
+            fenceFd = protectedSurfaceBufferList_.front().second;
+            mSurfaceList.emplace_back(nativeWindowBuffer);
+            protectedSurfaceBufferList_.pop_front();
+        } else {
+            if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC, isProtected) !=
+                OHOS::GSERROR_OK) {
+                return nullptr;
+            }
+            mSurfaceList.emplace_back(nativeWindowBuffer);
         }
-        mSurfaceList.emplace_back(nativeWindowBuffer);
     }
 
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = mSurfaceMap[nativeWindowBuffer];

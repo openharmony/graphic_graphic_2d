@@ -126,6 +126,7 @@ private:
     bool isLastAdaptive_ = false;
     std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
     std::mutex preAllocMutex_;
+    std::mutex frameBufferSurfaceOhosMapMutex_;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;
