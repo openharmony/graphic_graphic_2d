@@ -107,11 +107,11 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name),
+    : RSRenderNode(config.id, context, config.isTextureExportNode),
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id))
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};

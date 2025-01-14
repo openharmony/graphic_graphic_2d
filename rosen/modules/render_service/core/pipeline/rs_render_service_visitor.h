@@ -70,21 +70,21 @@ private:
     void ResetSurfaceNodeAttrsInDisplayNode(RSDisplayRenderNode& displayNode);
 
 private:
-    std::unique_ptr<Drawing::Canvas> drawingCanvas_;
-    std::shared_ptr<RSPaintFilterCanvas> canvas_;
-    float globalZOrder_ = 0.0f;
-    int32_t offsetX_ = 0;
-    int32_t offsetY_ = 0;
     bool isSecurityDisplay_ = false;
     bool mParallelEnable = false;
     bool mForceSerial = false;
+    bool doAnimate_ = false;
+    float globalZOrder_ = 0.0f;
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
     ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, bool> displayHasSecSurface_;
+    std::unique_ptr<Drawing::Canvas> drawingCanvas_;
+    std::shared_ptr<RSPaintFilterCanvas> canvas_;
     std::shared_ptr<RSProcessor> processor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> processorRenderEngine_ = nullptr;
-    bool doAnimate_ = false;
-    std::unordered_map<NodeId, std::vector<std::function<void()>>> foregroundSurfaces_ = {};
     std::shared_ptr<RSDisplayRenderNode> curDisplayNode_;
+    std::map<ScreenId, bool> displayHasSecSurface_;
+    std::unordered_map<NodeId, std::vector<std::function<void()>>> foregroundSurfaces_ = {};
 };
 } // namespace Rosen
 } // namespace OHOS

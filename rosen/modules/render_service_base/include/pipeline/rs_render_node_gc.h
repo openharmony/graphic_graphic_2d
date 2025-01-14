@@ -88,10 +88,12 @@ public:
 private:
     GCLevel JudgeGCLevel(uint32_t remainBucketSize);
 
+    std::atomic<bool> isEnable_ = true;
+    GCLevel nodeGCLevel_ = GCLevel::IDLE;
+    GCLevel drawableGCLevel_ = GCLevel::IDLE;
     gcTask mainTask_ = nullptr;
     gcTask renderTask_ = nullptr;
 
-    std::atomic<bool> isEnable_ = true;
     std::queue<std::vector<std::shared_ptr<RSBaseRenderNode>>> offTreeBucket_;
     RSThresholdDetector<uint32_t> offTreeBucketThrDetector_ = RSThresholdDetector<uint32_t>(
         OFFTREE_BUCKET_THR_LOW, OFFTREE_BUCKET_THR_HIGH);
@@ -103,8 +105,6 @@ private:
         DRAWABLE_BUCKET_THR_LOW, DRAWABLE_BUCKET_THR_HIGH);
     std::mutex nodeMutex_;
     std::mutex drawableMutex_;
-    GCLevel nodeGCLevel_ = GCLevel::IDLE;
-    GCLevel drawableGCLevel_ = GCLevel::IDLE;
 };
 } // namespace Rosen
 } // namespace OHOS

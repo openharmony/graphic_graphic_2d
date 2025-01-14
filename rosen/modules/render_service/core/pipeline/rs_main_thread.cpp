@@ -380,8 +380,8 @@ RSMainThread* RSMainThread::Instance()
     return &instance;
 }
 
-RSMainThread::RSMainThread() : mainThreadId_(std::this_thread::get_id()),
-    rsParallelType_(RSSystemParameters::GetRsParallelType())
+RSMainThread::RSMainThread() : rsParallelType_(RSSystemParameters::GetRsParallelType()),
+    mainThreadId_(std::this_thread::get_id())
 {
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
