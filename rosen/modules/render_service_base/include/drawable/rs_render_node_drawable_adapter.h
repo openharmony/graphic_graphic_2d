@@ -99,6 +99,7 @@ enum class DrawSkipType : uint8_t {
     CHECK_MATCH_AND_WAIT_NOTIFY_FAIL = 27,
     DEAL_WITH_CACHED_WINDOW = 28,
     MULTI_ACCESS = 29,
+    UI_FIRST_CACHE_FAIL = 31,
 };
 
 class RSB_EXPORT RSRenderNodeDrawableAdapter : public std::enable_shared_from_this<RSRenderNodeDrawableAdapter> {
