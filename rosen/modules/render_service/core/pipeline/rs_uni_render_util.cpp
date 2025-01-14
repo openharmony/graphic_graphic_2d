@@ -879,6 +879,13 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
         value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI)));
 }
 
+float RSUniRenderUtil::GetFloatRotationDegreeFromMatrix(Drawing::Matrix matrix)
+{
+    Drawing::Matrix::Buffer value;
+    matrix.GetAll(value);
+    return atan2(value[Drawing::Matrix::Index::SKEW_X], value[Drawing::Matrix::Index::SCALE_X]) * (180 / PI);
+}
+
 bool RSUniRenderUtil::HasNonZRotationTransform(Drawing::Matrix matrix)
 {
     Drawing::Matrix::Buffer value;
