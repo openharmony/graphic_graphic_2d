@@ -228,13 +228,19 @@ bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> nod
 }
 
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
     if (!node) {
         ROSEN_LOGE("%{public}s node is nullptr", __func__);
         return false;
     }
-    return renderServiceClient_->SetWindowFreezeImmediately(node->GetId(), isFreeze, callback, captureConfig);
+    RSSurfaceCaptureBlurParam blurParam;
+    if (!ROSEN_EQ(blurRadius, -1.f)) {
+        blurParam.isNeedBlur = true;
+        blurParam.blurRadius = blurRadius;
+    }
+    return renderServiceClient_->SetWindowFreezeImmediately(
+        node->GetId(), isFreeze, callback, captureConfig, blurParam);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,

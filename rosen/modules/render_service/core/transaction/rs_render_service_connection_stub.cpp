@@ -1026,6 +1026,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             sptr<RSISurfaceCaptureCallback> cb;
             RSSurfaceCaptureConfig captureConfig;
+            RSSurfaceCaptureBlurParam blurParam;
             if (isFreeze) {
                 auto remoteObject = data.ReadRemoteObject();
                 if (remoteObject == nullptr) {
@@ -1044,8 +1045,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY write captureConfig failed");
                     break;
                 }
+                if (!ReadSurfaceCaptureBlurParam(blurParam, data)) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read blurParam failed");
+                    break;
+                }
             }
-            SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig);
+            SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig, blurParam);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {
