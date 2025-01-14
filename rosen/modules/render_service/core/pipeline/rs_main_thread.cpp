@@ -68,7 +68,7 @@
 #include "pipeline/rs_occlusion_config.h"
 #include "pipeline/rs_pointer_window_manager.h"
 #include "pipeline/rs_processor_factory.h"
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_engine.h"
 #include "pipeline/rs_render_service_visitor.h"
 #include "pipeline/rs_root_render_node.h"

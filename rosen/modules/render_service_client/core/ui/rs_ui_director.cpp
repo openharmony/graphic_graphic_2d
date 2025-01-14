@@ -32,7 +32,7 @@
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_transaction.h"
 #include "transaction/rs_transaction_proxy.h"
-#include "ui/rs_frame_rate_policy.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"

@@ -22,7 +22,7 @@
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "rs_trace.h"
-#include "rs_main_thread.h"
+#include "pipeline/rs_main_thread.h"
 
 namespace OHOS::Rosen {
 RSRealtimeRefreshRateManager& RSRealtimeRefreshRateManager::Instance()

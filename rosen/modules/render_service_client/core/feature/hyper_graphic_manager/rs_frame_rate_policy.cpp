@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "rs_frame_rate_policy.h"
+#include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
 
 #include "modifier/rs_modifier_type.h"
 #include "platform/common/rs_log.h"

@@ -30,7 +30,7 @@
 // fresh rate
 #include "hgm_core.h"
 
-#include "pipeline/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_uni_render_util.h"
 
 namespace OHOS::Rosen {
