@@ -46,10 +46,6 @@ config("effect_SKeffectChian_public_config") {
       "//base/hiviewdfx/hilog/interfaces/native/innerkits",
     ]
   }
-
-  if (target_os == "ios") {
-    include_dirs -= [ "../egl/include" ]
-  }
 }
 if (is_arkui_x) {
   ohos_source_set("skeffectchain") {
