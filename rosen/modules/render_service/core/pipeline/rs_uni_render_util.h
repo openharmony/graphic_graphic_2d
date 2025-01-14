@@ -85,6 +85,7 @@ public:
     static void DrawRectForDfx(RSPaintFilterCanvas& canvas, const RectI& rect, Drawing::Color color,
         float alpha, const std::string& extraInfo = "");
     static Occlusion::Region AlignedDirtyRegion(const Occlusion::Region& dirtyRegion, int32_t alignedBits = 32);
+    static int TransferToAntiClockwiseDegrees(int angle);
     static int GetRotationFromMatrix(Drawing::Matrix matrix);
     static int GetRotationDegreeFromMatrix(Drawing::Matrix matrix);
     static bool Is3DRotation(Drawing::Matrix matrix);

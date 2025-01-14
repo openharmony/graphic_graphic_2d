@@ -768,6 +768,17 @@ public:
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
     virtual void RemoveChildBlurBehindWindow(NodeId id) {}
+
+    void SetAbsRotation(float degree)
+    {
+        absRotation_ = degree;
+    }
+
+    float GetAbsRotation() const
+    {
+        return absRotation_;
+    }
+
 protected:
     virtual void OnApplyModifiers() {}
     void SetOldDirtyInSurface(RectI oldDirtyInSurface);
@@ -1097,6 +1108,8 @@ private:
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
     const bool isPurgeable_;
+    // The angle at which the node rotates about the Z-axis
+    float absRotation_ = 0.f;
 
     friend class DrawFuncOpItem;
     friend class RSAliasDrawable;
