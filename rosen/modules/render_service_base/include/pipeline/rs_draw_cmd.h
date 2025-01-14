@@ -302,7 +302,10 @@ private:
     void DrawWithVulkan(Canvas* canvas);
     void DrawWithGles(Canvas* canvas);
     bool CreateEglTextureId();
-    Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+    static Drawing::BitmapFormat CreateBitmapFormat(int32_t bufferFormat);
+#ifdef RS_ENABLE_GL
+    static GLenum GetGLTextureFormatByBitmapFormat(Drawing::ColorType colorType);
+#endif
     mutable DrawingSurfaceBufferInfo surfaceBufferInfo_;
     NodeId rootNodeId_ = INVALID_NODEID;
     sptr<SyncFence> releaseFence_ = SyncFence::INVALID_FENCE;
