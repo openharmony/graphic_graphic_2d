@@ -2963,6 +2963,22 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
 }
 
 /*
+ * Function: SetScreenHasProtectedLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create screenManager
+ *                  2. operation: SetScreenHasProtectedLayer
+ *                  3. result: screenManager is nullptr
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetScreenHasProtectedLayer(SCREEN_ID, true);
+}
+
+/*
  * @tc.name: SetVirtualScreenStatus
  * @tc.desc: Test SetVirtualScreenStatus
  * @tc.type: FUNC

@@ -1253,6 +1253,16 @@ bool RSScreen::GetDisplayPropertyForHardCursor()
 {
     return isHardCursorSupport_;
 }
+
+void RSScreen::SetHasProtectedLayer(bool hasProtectedLayer)
+{
+    hasProtectedLayer_ = hasProtectedLayer;
+}
+
+bool RSScreen::GetHasProtectedLayer()
+{
+    return hasProtectedLayer_;
+}
 } // namespace impl
 } // namespace Rosen
 } // namespace OHOS

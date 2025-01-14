@@ -1531,6 +1531,36 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             const auto& instanceNode = surfaceNode->GetInstanceRootNode();
             if (instanceNode && instanceNode->IsOnTheTree()) {
                 hasProtectedLayer_ = true;
+                auto displayLock = surfaceNode->GetAncestorDisplayNode().lock();
+                std::shared_ptr<RSDisplayRenderNode> ancestor = nullptr;
+                if (displayLock != nullptr) {
+                    ancestor = displayLock->ReinterpretCastTo<RSDisplayRenderNode>();
+                }
+                if (ancestor == nullptr) {
+                    return;
+                }
+                auto protectedLayerScreenId = ancestor->GetScreenId();
+                auto screenManager = CreateOrGetScreenManager();
+                if (screenManager == nullptr) {
+                    RS_LOGE("screenManager is NULL");
+                    return;
+                }
+
+                auto output = screenManager->GetOutput(ToScreenPhysicalId(protectedLayerScreenId));
+                if (output == nullptr) {
+                    RS_LOGE("output is NULL");
+                    return;
+                }
+                RS_TRACE_NAME_FMT("output->GetProtectedFrameBuffer: ret= %d, addr = %p.",
+                    output->GetProtectedFrameBufferState(), output.get());
+                if (output->GetProtectedFrameBufferState()) {
+                    return;
+                }
+                auto protectedBuffer = surfaceHandler->GetBuffer();
+                auto preAllocateProtectedBufferTask = [buffer = protectedBuffer, screenId = protectedLayerScreenId]() {
+                    RSHardwareThread::Instance().PreAllocateProtectedBuffer(buffer, screenId);
+                };
+                RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
             }
         }
 #endif

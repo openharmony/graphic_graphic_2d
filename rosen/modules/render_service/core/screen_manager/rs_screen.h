@@ -131,6 +131,8 @@ public:
     virtual bool GetEnableVisibleRect() const = 0;
     virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
     virtual Rect GetMainScreenVisibleRect() const = 0;
+    virtual void SetHasProtectedLayer(bool hasProtectedLayer) = 0;
+    virtual bool GetHasProtectedLayer() = 0;
 };
 
 namespace impl {
@@ -232,6 +234,8 @@ public:
     bool GetEnableVisibleRect() const override;
     void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
     Rect GetMainScreenVisibleRect() const override;
+    void SetHasProtectedLayer(bool hasProtectedLayer) override;
+    bool GetHasProtectedLayer() override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -307,6 +311,7 @@ private:
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
     mutable std::mutex skipFrameMutex_;
+    bool hasProtectedLayer_ = false;
 };
 } // namespace impl
 } // namespace Rosen

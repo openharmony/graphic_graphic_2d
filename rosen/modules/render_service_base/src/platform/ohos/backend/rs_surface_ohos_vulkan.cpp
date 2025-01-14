@@ -32,6 +32,7 @@
 namespace OHOS {
 namespace Rosen {
 
+static constexpr int64_t PROTECTEDBUFFERSIZE = 2;
 class RSTimer {
 public:
     static inline int64_t GetNanoSeconds()
@@ -161,6 +162,25 @@ int32_t RSSurfaceOhosVulkan::RequestNativeWindowBuffer(NativeWindowBuffer** nati
     return res;
 }
 
+bool RSSurfaceOhosVulkan::PreAllocateProtectedBuffer(int32_t width, int32_t height)
+{
+    if (mNativeWindow == nullptr) {
+        mNativeWindow = CreateNativeWindowFromSurface(&producer_);
+        ROSEN_LOGD("PreAllocateProtectedBuffer: create native window");
+    }
+    for (int num = 0; num < PROTECTEDBUFFERSIZE; num++) {
+        NativeWindowBuffer* nativeWindowBuffer = nullptr;
+        int fenceFd = -1;
+        if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, true, true) != OHOS::GSERROR_OK) {
+            RS_TRACE_NAME("PreAllocateProtectedBuffer failed.");
+        }
+        RS_TRACE_NAME("PreAllocateProtectedBuffer protectedSurfaceBufferList_ push back.");
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        protectedSurfaceBufferList_.emplace_back(std::make_pair(nativeWindowBuffer, fenceFd));
+    }
+    return true;
+}
+
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
     int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
@@ -176,12 +196,22 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
-    if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height,
-        fenceFd, useAFBC, isProtected) != OHOS::GSERROR_OK) {
-        return nullptr;
+    if (isProtected && !protectedSurfaceBufferList_.empty()) {
+        RS_TRACE_NAME_FMT("protectedSurfaceBufferList_ size = %lu, addr = %p", protectedSurfaceBufferList_.size(),
+            this);
+        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
+        nativeWindowBuffer = protectedSurfaceBufferList_.front().first;
+        fenceFd = protectedSurfaceBufferList_.front().second;
+        mSurfaceList.emplace_back(nativeWindowBuffer);
+        protectedSurfaceBufferList_.pop_front();
+    } else {
+        if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC, isProtected) !=
+            OHOS::GSERROR_OK) {
+            return nullptr;
+        }
+        mSurfaceList.emplace_back(nativeWindowBuffer);
     }
 
-    mSurfaceList.emplace_back(nativeWindowBuffer);
     NativeBufferUtils::NativeSurfaceInfo& nativeSurface = mSurfaceMap[nativeWindowBuffer];
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&(nativeSurface.lastPresentedCount), 0, 1);

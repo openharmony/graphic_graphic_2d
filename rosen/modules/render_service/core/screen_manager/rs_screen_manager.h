@@ -255,6 +255,8 @@ public:
 
     virtual bool IsScreenPoweringOn() const = 0;
 
+    virtual void SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedLayer) = 0;
+
     virtual void SetScreenSwitchStatus(bool flag, ScreenId id) = 0;
 
     virtual bool GetScreenSwitchStatus() const = 0;
@@ -500,6 +502,7 @@ public:
         return isScreenPoweringOn_;
     }
 
+    void SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedLayer) override;
     void SetScreenSwitchStatus(bool flag, ScreenId id) override;
 
     bool GetScreenSwitchStatus() const override;
