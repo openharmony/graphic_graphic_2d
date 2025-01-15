@@ -572,6 +572,8 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
 {
     auto context = GetContext().lock();
     if (child == nullptr || context == nullptr) {
+        ROSEN_LOGE("RSRenderNode::AddCrossScreenChild child is null? %{public}d context is null? %{public}",
+            child == nullptr, context == nullptr);
         return;
     }
 
@@ -618,6 +620,7 @@ void RSRenderNode::RecordCloneCrossNode(SharedPtr node)
 void RSRenderNode::RemoveCrossScreenChild(const SharedPtr& child)
 {
     if (child == nullptr) {
+        ROSEN_LOGE("RSRenderNode::RemoveCrossScreenChild child is null");
         return;
     }
 
