@@ -3939,6 +3939,7 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             lastFastComposeTimeStampDiff_ = (now - curTime_) % vsyncPeriod;
             lastFastComposeTimeStamp_ = timestamp_;
             RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
+            // When fast compose by buffer, pipeline still need to delay to maintain smooth rendering
             isForceRefresh_ = !needDelay;
             curTime_ = now;
             // Not triggered by vsync, so we set frameCount to 0.
