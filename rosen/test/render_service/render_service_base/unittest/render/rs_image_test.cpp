@@ -296,7 +296,6 @@ HWTEST_F(RSImageTest, DrawImageRepeatRectTest001, TestSize.Level1)
     auto image = std::make_shared<RSImage>();
     Drawing::SamplingOptions samplingOptions;
     Drawing::Canvas canvas;
-    canvas.impl_ = std::make_shared<Drawing::SkiaCanvas>();
     image->DrawImageRepeatRect(samplingOptions, canvas);
     image->pixelMap_ = std::make_shared<Media::PixelMap>();
     image->pixelMap_->SetAstc(true);
