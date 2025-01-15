@@ -156,7 +156,7 @@ void RSDirtyRectsDfx::DrawDirtyRegionInVirtual(RSPaintFilterCanvas& canvas) cons
 }
 
 bool RSDirtyRectsDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
-    ScreenRotation rotation, float translateWidth, float translateHeight)
+    ScreenRotation rotation, int translateWidth, int translateHeight)
 {
     auto screenManager = CreateOrGetScreenManager();
     if (UNLIKELY(displayParams_ == nullptr || screenManager == nullptr)) {
@@ -173,20 +173,18 @@ bool RSDirtyRectsDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
     if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(translateWidth, translateHeight);
     }
-    RS_LOGD("RotationProcess correction:%{public}d rotation:%{public}d translateWidth:%{public}d translateHeight:%{public}d",
-        static_cast<int>(screenCorrection), static_cast<int>(rotation),
-        static_cast<int>(translateWidth), static_cast<int>(translateHeight));
 
     if (rotation != ScreenRotation::ROTATION_0) {
         if (rotation == ScreenRotation::ROTATION_90) {
             canvas.Rotate(-90, 0, 0); // 90 degree for text draw
-            canvas.Translate(-translateWidth, 0);
+            canvas.Translate(-(static_cast<float>(translateWidth)), 0);
         } else if (rotation == ScreenRotation::ROTATION_180) {
-            // 180 degree for text draw 2 half of screen width 2 half of screen height
-            canvas.Rotate(-180, translateWidth / 2, translateHeight / 2);
+            // 180 degree for text draw
+            canvas.Rotate(-180, static_cast<float>(translateWidth) / 2, // 2 half of screen width
+                static_cast<float>(translateHeight) / 2);                 // 2 half of screen height
         } else if (rotation == ScreenRotation::ROTATION_270) {
             canvas.Rotate(-270, 0, 0); // 270 degree for text draw
-            canvas.Translate(0, -translateHeight);
+            canvas.Translate(0, -(static_cast<float>(translateHeight)));
         } else {
             return false;
         }
@@ -240,8 +238,7 @@ void RSDirtyRectsDfx::DrawCurrentRefreshRate(RSPaintFilterCanvas& canvas)
         screenHeight = activeRect.height_;
     }
     auto saveCount = canvas.Save();
-    if (!RefreshRateRotationProcess(
-        canvas, rotation, static_cast<float>(screenWidth), static_cast<float>(screenHeight))) {
+    if (!RefreshRateRotationProcess(canvas, rotation, screenWidth, screenHeight)) {
         return;
     }
     // 100.f:Scalar x of drawing TextBlob; 200.f:Scalar y of drawing TextBlob
