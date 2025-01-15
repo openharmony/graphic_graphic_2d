@@ -184,6 +184,8 @@ const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
 constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
+constexpr uint32_t REQUEST_VSYNC_DUMP_NUMBER = 1000;
+
 #ifdef RS_ENABLE_GL
 constexpr size_t DEFAULT_SKIA_CACHE_SIZE        = 96 * (1 << 20);
 constexpr int DEFAULT_SKIA_CACHE_COUNT          = 2 * (1 << 12);
@@ -290,6 +292,26 @@ void UpdateSurfaceNodeNit(const sptr<SurfaceBuffer>& surfaceBuffer, RSSurfaceRen
         surfaceNode.SetBrightnessRatio(std::pow(layerNits / displayNits, 1.0f / GAMMA2_2)); // gamma 2.2
     }
 }
+
+class RSEventDumper : public AppExecFwk::Dumper {
+public:
+    void Dump(const std::string &message) override
+    {
+        dumpString.append(message);
+    }
+
+    std::string GetTag() override
+    {
+        return std::string("RSEventDumper");
+    }
+
+    std::string GetOutput() const
+    {
+        return dumpString;
+    }
+private:
+    std::string dumpString = "";
+};
 
 std::string g_dumpStr = "";
 std::mutex g_dumpMutex;
@@ -2703,6 +2725,12 @@ void RSMainThread::RequestNextVSync(const std::string& fromWhom, int64_t lastVSy
         requestNextVsyncNum_++;
         if (requestNextVsyncNum_ > REQUEST_VSYNC_NUMBER_LIMIT) {
             RS_LOGD("RSMainThread::RequestNextVSync too many times:%{public}d", requestNextVsyncNum_.load());
+            if (requestNextVsyncNum_ > REQUEST_VSYNC_DUMP_NUMBER) {
+                RS_LOGW("RSMainThread::RequestNextVSync EventHandler is idle: %{public}d", handler_->IsIdle());
+                RSEventDumper dumper;
+                handler_->Dump(dumper);
+                RS_LOGW("RSMainThread::RequestNextVSync dump EventHandler %{public}s", dumper.GetOutput().c_str());
+            }
         }
         receiver_->RequestNextVSync(fcb, fromWhom, lastVSyncTS);
     }
