@@ -168,27 +168,23 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Fract_T
     }
 }
 
-GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Shader_Test)
+GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Grey_Coef_Test)
 {
     int columnCount = 2;
-    int rowCount = 2;
+    int rowCount = 3;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<std::shared_ptr<OHOS::Rosen::Drawing::ShaderEffect>> shaderEffectList = {
-        OHOS::Rosen::Drawing::ShaderEffect::CreateColorShader(Drawing::Color::COLOR_CYAN),
-        OHOS::Rosen::Drawing::ShaderEffect::CreateLinearGradient({ 10, 10 }, { 100, 100 },
-            { Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_RED }, { 0.0, 0.5, 1.0 },
-            Drawing::TileMode::MIRROR)
-    };
-    for (int i = 0; i < shaderEffectList.size(); i++) {
+    std::vector<Vector2f> greyCoefList = { { -10, -10 }, { -1, -1 }, { 0, 0 }, { 0.5, 0.5 }, { 1, 1 }, { 10, 10 } };
+
+    for (int i = 0; i < greyCoefList.size(); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround = RSCanvasNode::Create();
-        testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
-        auto currentShader = RSShader::CreateRSShader(shaderEffectList[i]);
-        testNodeBackGround->SetBackgroundShader(currentShader);
-        testNodeBackGround->SetBorderWidth(5);
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetGreyCoef(greyCoefList[i]);
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
         testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);

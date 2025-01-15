@@ -16,6 +16,8 @@
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
+#include "property/rs_properties.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -179,6 +181,28 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_MagnifierParams_Te
     testNodeBackGround2->SetMagnifierParams(magnifierParams2);
     GetRootNode()->AddChild(testNodeBackGround2);
     RegisterNode(testNodeBackGround2);
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_FrameGravity_Test)
+{
+    int columnCount = 4;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    for (int i = static_cast<int>(Gravity::CENTER); i <= static_cast<int>(Gravity::RESIZE_ASPECT_FILL_BOTTOM_RIGHT);
+         i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNodeBackGround =
+            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
+        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
+        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+        testNodeBackGround->SetFrameGravity(static_cast<Gravity>(i));
+        GetRootNode()->AddChild(testNodeBackGround);
+        RegisterNode(testNodeBackGround);
+    }
 }
 
 } // namespace OHOS::Rosen

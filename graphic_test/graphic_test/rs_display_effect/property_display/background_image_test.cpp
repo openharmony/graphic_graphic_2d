@@ -188,8 +188,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Co
     auto testNodeBackGround =
         SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, borderWidth, borderHeight });
 
-    testNodeBackGround->SetBgImagePositionX(20);
-    testNodeBackGround->SetBgImagePositionY(20);
+    testNodeBackGround->SetBgImagePosition(20, 20);
     testNodeBackGround->SetBgImageWidth(borderWidth * 0.8);
     testNodeBackGround->SetBgImageHeight(borderHeight * 0.8);
     testNodeBackGround->SetCornerRadius(sizeX * 0.2);
@@ -206,8 +205,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Background_BackgroundImage_Co
     testNodeBackGround =
         SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, borderWidth, borderHeight });
 
-    testNodeBackGround->SetBgImagePositionX(20);
-    testNodeBackGround->SetBgImagePositionY(borderHeight * 0.3);
+    testNodeBackGround->SetBgImagePosition(20, borderHeight * 0.3);
     testNodeBackGround->SetBgImageWidth(borderWidth * 0.8);
     testNodeBackGround->SetBgImageHeight(borderHeight * 0.8);
 

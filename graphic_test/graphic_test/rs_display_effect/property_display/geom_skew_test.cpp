@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 
 using namespace testing;
@@ -21,7 +20,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 
-class BackgroundTest : public RSGraphicTest {
+class GeometryTest : public RSGraphicTest {
 private:
     const int screenWidth = 1200;
     const int screenHeight = 2000;
@@ -34,27 +33,33 @@ public:
     }
 };
 
-GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Grey_Coef_Test)
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Skew_Test_1)
 {
     int columnCount = 2;
-    int rowCount = 3;
+    int rowCount = 4;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<Vector2f> greyCoefList = { { -10, -10 }, { -1, -1 }, { 0, 0 }, { 0.5, 0.5 }, { 1, 1 }, { 10, 10 } };
-
-    for (int i = 0; i < greyCoefList.size(); i++) {
+    std::vector<std::vector<float>> skewValues = { { -0.5, -0.1 }, { 0.1, 0.5 }, { 0.2, 0.3 }, { 1.5, 0.5 },
+        { 0.5, 1.5 }, { 10, 20 }, { 0.5, 0.5 }, { 1.2, 1.2 } };
+    for (int i = 0; i < skewValues.size(); ++i) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto testNodeBackGround =
-            SetUpNodeBgImage("/data/local/tmp/Images/backGroundImage.jpg", { x, y, sizeX - 10, sizeY - 10 });
-        testNodeBackGround->SetGreyCoef(greyCoefList[i]);
-        testNodeBackGround->SetBorderStyle(0, 0, 0, 0);
-        testNodeBackGround->SetBorderWidth(5, 5, 5, 5);
-        testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Red()));
-        GetRootNode()->AddChild(testNodeBackGround);
-        RegisterNode(testNodeBackGround);
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNode->SetPivot(Vector2f(0.0, 0.0));
+        // try to cover all SetSkew funcitons
+        if (i < 2) {
+            testNode->SetSkew({ skewValues[i][0], skewValues[i][1] });
+        } else if (i < 4) {
+            testNode->SetSkew(skewValues[i][0], skewValues[i][1]);
+        } else if (i < 6) {
+            testNode->SetSkewX(skewValues[i][0]);
+            testNode->SetSkewY(skewValues[i][1]);
+        } else {
+            testNode->SetSkew(skewValues[i][0]);
+        }
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
     }
 }
-
 } // namespace OHOS::Rosen
