@@ -171,7 +171,7 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask);
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
@@ -398,6 +398,8 @@ public:
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
     void NotifyScreenSwitched(ScreenId id);
+
+    void ForceRefreshOneFrameWithNextVSync();
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);

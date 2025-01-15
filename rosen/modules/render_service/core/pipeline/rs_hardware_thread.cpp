@@ -417,6 +417,94 @@ int64_t RSHardwareThread::GetCurTimeCount()
     return std::chrono::duration_cast<std::chrono::microseconds>(curTime).count();
 }
 
+void RSHardwareThread::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId)
+{
+    RS_TRACE_NAME("RSHardwareThread::PreAllocateProtectedBuffer enter.");
+    {
+        std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
+        if (!lock.owns_lock()) {
+            RS_TRACE_NAME("RSHardwareThread::PreAllocateProtectedBuffer failed, HardwareThread is redraw.");
+            return;
+        }
+    }
+    auto screenManager = CreateOrGetScreenManager();
+    if (screenManager == nullptr) {
+        RS_LOGE("screenManager is NULL");
+        return;
+    }
+    auto output = screenManager->GetOutput(ToScreenPhysicalId(screenId));
+    if (output == nullptr) {
+        RS_LOGE("output is NULL");
+        return;
+    }
+    if (output->GetProtectedFrameBufferState()) {
+        return;
+    }
+    auto fbSurface = output->GetFrameBufferSurface();
+    if (fbSurface == nullptr) {
+        RS_LOGE("fbSurface is NULL");
+        return;
+    }
+#ifdef RS_ENABLE_VK
+    std::shared_ptr<RSSurfaceOhosVulkan> rsSurface;
+    auto surfaceId = fbSurface->GetUniqueId();
+    {
+        std::lock_guard<std::mutex> lock(frameBufferSurfaceOhosMapMutex_);
+        if (frameBufferSurfaceOhosMap_.count(surfaceId)) {
+            rsSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(frameBufferSurfaceOhosMap_[surfaceId]);
+        } else {
+            rsSurface = std::make_shared<RSSurfaceOhosVulkan>(fbSurface);
+            frameBufferSurfaceOhosMap_[surfaceId] = rsSurface;
+        }
+    }
+    // SetColorSpace
+    rsSurface->SetColorSpace(ComputeTargetColorGamut(buffer));
+
+    // SetSurfacePixelFormat
+    rsSurface->SetSurfacePixelFormat(ComputeTargetPixelFormat(buffer));
+
+    // SetSurfaceBufferUsage
+    auto usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB | BUFFER_USAGE_PROTECTED |
+        BUFFER_USAGE_DRM_REDRAW;
+    rsSurface->SetSurfaceBufferUsage(usage);
+    auto screenInfo = screenManager->QueryScreenInfo(screenId);
+    auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo.phyWidth, screenInfo.phyHeight);
+    output->SetProtectedFrameBufferState(ret);
+#endif
+}
+
+GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const sptr<SurfaceBuffer> &buffer)
+{
+    GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    CM_ColorSpaceInfo colorSpaceInfo;
+    if (MetadataHelper::GetColorSpaceInfo(buffer, colorSpaceInfo) != GSERROR_OK) {
+        RS_LOGD("RSHardwareThread::PreAllocateProtectedBuffer Get color space failed");
+    }
+    if (colorSpaceInfo.primaries != COLORPRIMARIES_SRGB) {
+        RS_LOGD("RSHardwareThread::PreAllocateProtectedBuffer fail, primaries is %{public}d", colorSpaceInfo.primaries);
+        colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    }
+#endif
+    return colorGamut;
+}
+
+GraphicPixelFormat RSHardwareThread::ComputeTargetPixelFormat(const sptr<SurfaceBuffer> &buffer)
+{
+    GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888;
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto bufferPixelFormat = buffer->GetFormat();
+    if (bufferPixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102 || bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 ||
+        bufferPixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010) {
+        pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+        RS_LOGD("RSHardwareThread::PreAllocateProtectedBuffer pixelformat is set to 1010102 for 10bit buffer");
+    }
+#endif
+    return pixelFormat;
+}
+
 bool RSHardwareThread::IsInAdaptiveMode(const OutputPtr &output)
 {
     if (hdiBackend_ == nullptr) {
@@ -653,6 +741,7 @@ void RSHardwareThread::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
 void RSHardwareThread::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers, uint32_t screenId)
 {
     RS_TRACE_NAME("RSHardwareThread::Redraw");
+    std::unique_lock<std::mutex> lock(preAllocMutex_, std::try_to_lock);
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager == nullptr) {
         RS_LOGE("RSHardwareThread::Redraw: screenManager is null.");

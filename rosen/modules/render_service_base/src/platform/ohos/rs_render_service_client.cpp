@@ -438,7 +438,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -735,6 +735,17 @@ void RSRenderServiceClient::RepaintEverything()
     }
 
     renderService->RepaintEverything();
+}
+
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("ForceRefreshOneFrameWithNextVSync renderService is nullptr, return");
+        return;
+    }
+
+    renderService->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)

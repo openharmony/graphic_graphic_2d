@@ -106,7 +106,7 @@ private:
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
     int32_t SetScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap> securityMask) override;
+        std::shared_ptr<Media::PixelMap> securityMask) override;
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
 
@@ -157,6 +157,8 @@ private:
     void MarkPowerOffNeedProcessOneFrame() override;
 
     void RepaintEverything() override;
+
+    void ForceRefreshOneFrameWithNextVSync() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
 

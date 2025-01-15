@@ -637,7 +637,7 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceConnection::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     if (!screenManager_) {
         return StatusCode::SCREEN_NOT_FOUND;
@@ -953,6 +953,26 @@ void RSRenderServiceConnection::RepaintEverything()
         RS_LOGI("RepaintEverything, setDirtyflag, forceRefresh in mainThread");
         RSMainThread::Instance()->SetDirtyFlag();
         RSMainThread::Instance()->ForceRefreshForUni();
+    };
+    mainThread_->PostTask(task);
+}
+
+void RSRenderServiceConnection::ForceRefreshOneFrameWithNextVSync()
+{
+    if (!mainThread_) {
+        RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
+        return;
+    }
+
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+
+        RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
+        connection->mainThread_->SetDirtyFlag();
+        connection->mainThread_->RequestNextVSync();
     };
     mainThread_->PostTask(task);
 }

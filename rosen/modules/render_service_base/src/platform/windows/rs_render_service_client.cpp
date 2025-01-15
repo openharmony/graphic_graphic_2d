@@ -266,6 +266,10 @@ void RSRenderServiceClient::RepaintEverything()
 {
 }
 
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+}
+
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
 }
@@ -455,7 +459,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     return 0;
 }
