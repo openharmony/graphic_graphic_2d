@@ -1940,9 +1940,8 @@ HWTEST_F(RSPropertiesTest, GetBoundsRect001, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, GetFrameRect001, TestSize.Level1)
 {
     RSProperties properties;
-    RectF rect(0, 0, properties.GetFrameWidth(), properties.GetFrameHeight());
-    properties.GetFrameRect();
-    EXPECT_TRUE(true);
+    RectF rect = properties.GetFrameRect();
+    EXPECT_TRUE(rect.IsEmpty());
 }
 
 /**
