@@ -209,10 +209,10 @@ void Region::MakeBound()
             right = std::max(r.right_, right);
             bottom = std::max(r.bottom_, bottom);
         }
-        rects_[0].left_ = left;
-        rects_[0].top_ = top;
-        rects_[0].right_ = right;
-        rects_[0].bottom_ = bottom;
+        bound_.left_ = left;
+        bound_.top_ = top;
+        bound_.right_ = right;
+        bound_.bottom_ = bottom;
     }
 }
 
