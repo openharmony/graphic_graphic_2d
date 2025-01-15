@@ -1285,6 +1285,25 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, DealWithSelfDrawingNodeBufferTest001, 
 }
 
 /**
+ * @tc.name: DrawCloneNode
+ * @tc.desc: Test DrawCloneNode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, DrawCloneNode, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->isCloneNode_ = false;
+    RSRenderThreadParams uniParams;
+    auto result = surfaceDrawable_->DrawCloneNode(canvas, uniParams, *surfaceParams, false);
+    ASSERT_TRUE(result);
+}
+
+/**
  * @tc.name: CheckDrawAndCacheWindowContentTest
  * @tc.desc: Test OnGeneralProcessAndCache
  * @tc.type: FUNC

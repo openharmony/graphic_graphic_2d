@@ -566,6 +566,12 @@ public:
     void SetFingerprint(bool hasFingerprint);
     bool GetFingerprint() const;
 
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetClonedNodeRenderDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable);
+    bool IsCloneNode() const;
+    void SetClonedNodeId(NodeId id);
+    void SetIsCloned(bool isCloned);
+
     void SetForceUIFirst(bool forceUIFirst);
     bool GetForceUIFirst() const;
 
@@ -786,6 +792,8 @@ public:
 #endif
 
     void UpdateSurfaceDefaultSize(float width, float height);
+
+    void UpdateInfoForClonedNode();
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -1298,6 +1306,12 @@ public:
         return drmCornerRadiusInfo_;
     }
 
+    // [Attention] The function only used for unlocking screen for PC currently
+    NodeId GetClonedNodeId() const
+    {
+        return clonedSourceNodeId_;
+    }
+
     const std::shared_ptr<RSSurfaceHandler> GetRSSurfaceHandler() const
     {
         return surfaceHandler_;
@@ -1695,6 +1709,10 @@ private:
 
     TreeStateChangeCallback treeStateChangeCallback_;
     Drawing::Matrix bufferRelMatrix_ = Drawing::Matrix();
+
+    // [Attention] The variable only used for unlocking screen for PC currently
+    bool isCloneNode_ = false;
+    NodeId clonedSourceNodeId_ = INVALID_NODEID;
 
     std::map<NodeId, RSSurfaceRenderNode::WeakPtr> childSubSurfaceNodes_;
     std::unordered_map<std::string, bool> watermarkHandles_ = {};

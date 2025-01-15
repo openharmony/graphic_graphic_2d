@@ -100,6 +100,11 @@ bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRender
     if (!surfaceParams.GetNeedCacheSurface()) {
         return false;
     }
+
+    if (surfaceParams.IsCloneNode() && RSUniRenderThread::GetCaptureParam().isSnapshot_) {
+        return false;
+    }
+
     if (!surfaceParams.IsCrossNode()) {
         return true;
     }
@@ -385,6 +390,9 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (!surfaceParams) {
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
+        return;
+    }
+    if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, false)) {
         return;
     }
     if (surfaceParams->GetSkipDraw()) {
@@ -708,6 +716,11 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture, rscanvas us nullptr");
         return;
     }
+
+    if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, true)) {
+        return;
+    }
+
     rscanvas->SetHighContrast(RSUniRenderThread::Instance().IsHighContrastTextModeOn());
     // process white list
     auto whiteList = RSUniRenderThread::Instance().GetWhiteList();
@@ -990,6 +1003,29 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
 #endif
 
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
+}
+
+bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
+                                                RSRenderThreadParams& uniParam,
+                                                RSSurfaceRenderParams& surfaceParams, bool isCapture)
+{
+    if (!surfaceParams.IsCloneNode()) {
+        return false;
+    }
+    auto clonedNodeRenderDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        surfaceParams.GetClonedNodeRenderDrawable().lock());
+    if (clonedNodeRenderDrawable == nullptr) {
+        RS_LOGD("RSSurfaceRenderNodeDrawable::DrawCloneNode clonedNodeRenderDrawable is null");
+        return false;
+    }
+    bool isOpDropped = uniParam.IsOpDropped();
+    uniParam.SetOpDropped(false);
+    RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    canvas.MultiplyAlpha(surfaceParams.GetAlpha());
+    isCapture ? clonedNodeRenderDrawable->OnCapture(canvas) : clonedNodeRenderDrawable->OnDraw(canvas);
+    uniParam.SetOpDropped(isOpDropped);
+    clonedNodeRenderDrawable->drawWindowCache_.ClearCache();
+    return true;
 }
 
 void RSSurfaceRenderNodeDrawable::ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas,

@@ -142,6 +142,8 @@ public:
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetClonedNodeId(NodeId nodeId);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);

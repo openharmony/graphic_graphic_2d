@@ -361,4 +361,56 @@ HWTEST_F(RSSurfaceRenderParamsTest, SetIsBufferFlushed, TestSize.Level1)
     params.SetIsBufferFlushed(true);
     EXPECT_EQ(params.GetIsBufferFlushed(), true);
 }
+
+/**
+ * @tc.name: GetClonedNodeRenderDrawable
+ * @tc.desc: Test function GetClonedNodeRenderDrawable
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, GetClonedNodeRenderDrawable, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(117);
+    auto clonedNodeRenderDrawable = params.GetClonedNodeRenderDrawable();
+    EXPECT_FALSE(clonedNodeRenderDrawable.expired());
+}
+
+/**
+ * @tc.name: IsCloneNode
+ * @tc.desc: Test function IsCloneNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, IsCloneNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(118);
+    auto result = params.IsCloneNode();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ClonedSourceNode
+ * @tc.desc: Test function ClonedSourceNode
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, ClonedSourceNode, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(119);
+    auto result = params.ClonedSourceNode();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetIsCloned
+ * @tc.desc: Test function SetIsCloned
+ * @tc.type:FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSSurfaceRenderParamsTest, SetIsCloned, TestSize.Level2)
+{
+    RSSurfaceRenderParams params(120);
+    params.SetIsCloned(true);
+    EXPECT_TRUE(params.clonedSourceNode_);
+}
 } // namespace OHOS::Rosen
