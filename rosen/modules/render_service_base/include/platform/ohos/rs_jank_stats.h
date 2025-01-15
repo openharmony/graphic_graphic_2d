@@ -50,6 +50,7 @@ struct JankFrames {
     bool isFrameRateRecorded_ = false;
     bool isAnimationEnded_ = false;
     bool isDisplayAnimator_ = false;
+    bool isAnimationInterrupted_ = false;
     int64_t setTimeSteady_ = TIMESTAMP_INITIAL;
     int64_t startTime_ = TIMESTAMP_INITIAL;
     int64_t startTimeSteady_ = TIMESTAMP_INITIAL;
@@ -68,6 +69,10 @@ struct JankFrames {
     int32_t lastTotalMissedFrames_ = 0;
     int64_t maxFrameTimeSteady_ = 0;
     int64_t lastMaxFrameTimeSteady_ = 0;
+    int64_t maxTechFrameTimeSteady_ = 0;
+    int64_t lastMaxTechFrameTimeSteady_ = 0;
+    int64_t maxRealFrameTimeSteady_ = 0;
+    int64_t lastMaxRealFrameTimeSteady_ = 0;
     int32_t maxSeqMissedFrames_ = 0;
     int32_t lastMaxSeqMissedFrames_ = 0;
     int64_t totalFrameTimeSteady_ = 0;

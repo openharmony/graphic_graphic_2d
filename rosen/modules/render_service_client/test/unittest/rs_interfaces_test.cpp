@@ -2143,6 +2143,42 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_002, Function | SmallTest | Lev
 }
 
 /*
+ * @tc.name: SetScreenSecurityMask_003
+ * @tc.desc: Test SetScreenSecurityMask with too large pixelMap.
+ * @tc.type: FUNC
+ * @tc.require: issueIBCH1W
+ */
+HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    constexpr uint32_t sizeWidth = 720;
+    constexpr uint32_t sizeHeight = 1280;
+    auto csurface = IConsumerSurface::Create();
+    EXPECT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(psurface, nullptr);
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "VirtualScreenStatus0", sizeWidth, sizeHeight, psurface, INVALID_SCREEN_ID, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    constexpr uint32_t colorWidth = 3000;
+    constexpr uint32_t colorHeight = 3000;
+    uint32_t *color;
+    color = (uint32_t *)malloc(colorWidth * colorHeight * sizeof(uint32_t));
+    memset_s(color, colorWidth * colorHeight, 0xffffffff, colorWidth * colorHeight * 2);
+    uint32_t colorLength = colorWidth * colorHeight;
+    Media::InitializationOptions opts;
+    opts.size.width = colorWidth;
+    opts.size.height = colorHeight;
+    opts.pixelFormat = Media::PixelFormat::RGBA_8888;
+    opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
+    std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(color, colorLength, opts);
+    int32_t ret = rsInterfaces->SetScreenSecurityMask(virtualScreenId, std::move(pixelMap));
+    EXPECT_EQ(ret, RS_CONNECTION_ERROR);
+}
+
+/*
  * @tc.name: NotifyScreenSwitched
  * @tc.desc: Test NotifyScreenSwitched with id.
  * @tc.type: FUNC

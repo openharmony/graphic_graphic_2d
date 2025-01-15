@@ -162,10 +162,7 @@ HWTEST_F(RSUIFirstSurfaceRenderNodeDrawableTest, GetCompletedImageTest, TestSize
     result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 
-    surfaceDrawable_->cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
-    auto skiaSurface = std::make_shared<Drawing::SkiaSurface>();
-    skiaSurface->skSurface_ = SkSurface::MakeRasterN32Premul(10, 10);
-    surfaceDrawable_->cacheCompletedSurface_->impl_ = skiaSurface;
+    surfaceDrawable_->cacheCompletedSurface_ = Drawing::Surface::MakeRasterN32Premul(10, 10);
     result = surfaceDrawable_->GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
     ASSERT_EQ(result, nullptr);
 }

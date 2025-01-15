@@ -74,6 +74,10 @@ GSError HdiOutput::ClearFrameBuffer()
     if (pFrameSurface != nullptr) {
         ret = pFrameSurface->CleanCache();
     }
+    // reset HdiOutput preallocted framebuffer state
+    if (isProtectedBufferAllocated_.load()) {
+        isProtectedBufferAllocated_.store(false);
+    }
     return ret;
 }
 

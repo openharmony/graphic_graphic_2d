@@ -34,6 +34,7 @@ namespace Rosen {
 namespace {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
+constexpr uint32_t SECURITYMASK_PIXELMAP_SIZE_LIMIT = 4096 * 4096;
 }
 #endif
 RSInterfaces &RSInterfaces::GetInstance()
@@ -110,9 +111,18 @@ int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
     return renderServiceClient_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
 }
 
-int32_t RSInterfaces::SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask)
+int32_t RSInterfaces::SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask)
 {
+#ifdef ROSEN_OHOS
+    if (securityMask &&  securityMask->GetCapacity() > SECURITYMASK_PIXELMAP_SIZE_LIMIT) {
+        ROSEN_LOGE("SetScreenSecurityMask failed, securityMask %{public}d is error",
+            securityMask->GetCapacity());
+        return RS_CONNECTION_ERROR;
+    }
     return renderServiceClient_->SetScreenSecurityMask(id, std::move(securityMask));
+#else
+    return RS_CONNECTION_ERROR;
+#endif
 }
 
 int32_t RSInterfaces::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect)

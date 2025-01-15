@@ -1981,4 +1981,27 @@ HWTEST_F(RSScreenTest, GetMainScreenVisibleRect_001, testing::ext::TestSize.Leve
     ASSERT_EQ(rectSet.w, rectGet.w);
     ASSERT_EQ(rectSet.h, rectGet.h);
 }
+
+/*
+ * Function: SetHasProtectedLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create RSScreen
+ *                  2. operation: SetHasProtectedLayer and GetHasProtectedLayer
+ *                  3. result: return hasProtectedLayer
+ */
+HWTEST_F(RSScreenTest, SetHasProtectedLayer_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->SetHasProtectedLayer(true);
+    auto ret = rsScreen->GetHasProtectedLayer();
+    ASSERT_EQ(ret, true);
+    rsScreen->SetHasProtectedLayer(false);
+    ret = rsScreen->GetHasProtectedLayer();
+    ASSERT_EQ(ret, false);
+}
 } // namespace OHOS::Rosen

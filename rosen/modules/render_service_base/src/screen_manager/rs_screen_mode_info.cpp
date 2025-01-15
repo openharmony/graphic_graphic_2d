@@ -22,17 +22,28 @@ RSScreenModeInfo::RSScreenModeInfo(int32_t width, int32_t height, uint32_t refre
 {
 }
 
-RSScreenModeInfo::RSScreenModeInfo(const RSScreenModeInfo& other) : width_(other.width_),
-    height_(other.height_), refreshRate_(other.refreshRate_), modeId_(other.modeId_)
+RSScreenModeInfo::RSScreenModeInfo(const RSScreenModeInfo& other)
 {
+    int32_t width = other.width_;
+    int32_t height = other.height_;
+    uint32_t refreshRate = other.refreshRate_;
+    int32_t modeId = other.modeId_;
+    width_ = width;
+    height_ = height;
+    refreshRate_ = refreshRate;
+    modeId_ = modeId;
 }
 
 RSScreenModeInfo& RSScreenModeInfo::operator=(const RSScreenModeInfo& other)
 {
-    width_ = other.width_;
-    height_ = other.height_;
-    refreshRate_ = other.refreshRate_;
-    modeId_ = other.modeId_;
+    int32_t width = other.width_;
+    int32_t height = other.height_;
+    uint32_t refreshRate = other.refreshRate_;
+    int32_t modeId = other.modeId_;
+    width_ = width;
+    height_ = height;
+    refreshRate_ = refreshRate;
+    modeId_ = modeId;
     return *this;
 }
 

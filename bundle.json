@@ -110,7 +110,8 @@
           "libpng",
           "ffrt",
           "libxml2",
-          "skia"
+          "skia",
+          "graphic_2d_ext"
         ],
         "third_party": [
           "skia"

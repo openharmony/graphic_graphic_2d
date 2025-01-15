@@ -56,6 +56,7 @@ public:
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
+        .colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
     };
 
     static inline BufferFlushConfig flushConfig = {
@@ -328,4 +329,130 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
     hardwareThread.CalculateDelayTime(hgmCore, param, currentRate, currTime);
     EXPECT_EQ(hardwareThread.delayTime_ == 0, true);
 }
+
+/*
+ * Function: PreAllocateProtectedBuffer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(1 buffer)
+ *                  2. operation: RequestBuffer and PreallocateProtectedBuffer
+ *                  3. result: return GSERROR_OK
+ */
+HWTEST_F(RSHardwareThreadTest, PreAllocateProtectedBuffer001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    hardwareThread.PreAllocateProtectedBuffer(buffer, screenId_);
+}
+
+#ifdef RS_ENABLE_VK
+/*
+ * Function: ComputeTargetColorGamut
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(2 buffer)
+ *                  2. operation: change BufferRequestConfig, RequestBuffer and ComputeTargetColorGamut
+ *                  3. result: return colorGamut which is GRAPHIC_COLOR_GAMUT_DISPLAY_P3
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetColorGamut001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(2);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    GraphicColorGamut colorGamut = hardwareThread.ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    requestConfig.colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    colorGamut = hardwareThread.ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/*
+ * Function: ComputeTargetColorGamut
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(1 buffer)
+ *                  2. operation: RequestBuffer, SetColorSpaceInfo and ComputeTargetColorGamut
+ *                  3. result: return colorGamut which is GRAPHIC_COLOR_GAMUT_SRGB
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetColorGamut002, TestSize.Level1)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto &hardwareThread = RSHardwareThread::Instance();
+    CM_ColorSpaceInfo infoSet = {
+        .primaries = COLORPRIMARIES_SRGB,
+    };
+    auto retSet = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
+    EXPECT_EQ(retSet, GSERROR_OK);
+    GraphicColorGamut colorGamut = hardwareThread.ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/*
+ * Function: ComputeTargetPixelFormat
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(3 buffer)
+ *                  2. operation: change BufferRequestConfig, RequestBuffer and ComputeTargetPixelFormat
+ *                  3. result: return pixelFormat which is GRAPHIC_PIXEL_FMT_RGBA_1010102
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(3);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    requestConfig.format = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    GraphicPixelFormat pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+
+    requestConfig.format = GRAPHIC_PIXEL_FMT_YCBCR_P010;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+
+    requestConfig.format = GRAPHIC_PIXEL_FMT_YCRCB_P010;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+}
+#endif
 } // namespace OHOS::Rosen

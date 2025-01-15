@@ -125,12 +125,14 @@ public:
     virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
-    virtual int32_t SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+    virtual int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) = 0;
     virtual std::shared_ptr<Media::PixelMap> GetSecurityMask() const = 0;
     virtual void SetEnableVisibleRect(bool enable) = 0;
     virtual bool GetEnableVisibleRect() const = 0;
     virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
     virtual Rect GetMainScreenVisibleRect() const = 0;
+    virtual void SetHasProtectedLayer(bool hasProtectedLayer) = 0;
+    virtual bool GetHasProtectedLayer() = 0;
 };
 
 namespace impl {
@@ -226,12 +228,14 @@ public:
     void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
-    int32_t SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) override;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const override;
     void SetEnableVisibleRect(bool enable) override;
     bool GetEnableVisibleRect() const override;
     void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
     Rect GetMainScreenVisibleRect() const override;
+    void SetHasProtectedLayer(bool hasProtectedLayer) override;
+    bool GetHasProtectedLayer() override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -307,6 +311,7 @@ private:
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
     mutable std::mutex skipFrameMutex_;
+    bool hasProtectedLayer_ = false;
 };
 } // namespace impl
 } // namespace Rosen
