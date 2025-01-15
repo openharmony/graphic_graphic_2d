@@ -29,7 +29,7 @@ namespace OHOS::Rosen {
 static const std::string IS_ANIMATION_ENERGY_ASSURANCE_ENABLE = "animation_energy_assurance_enable";
 static const std::string ANIMATION_IDLE_FPS = "animation_idle_fps";
 static const std::string ANIMATION_IDLE_DURATION = "animation_idle_duration";
-static const std::unordered_map<std::string, int32_t> UI_RATE_TYPE_NAME_MAP = {
+static const std::unordered_map<std::string, uint32_t> UI_RATE_TYPE_NAME_MAP = {
     {"ui_animation", UI_ANIMATION_FRAME_RATE_TYPE },
     {"display_sync", DISPLAY_SYNC_FRAME_RATE_TYPE },
     {"ace_component", ACE_COMPONENT_FRAME_RATE_TYPE },

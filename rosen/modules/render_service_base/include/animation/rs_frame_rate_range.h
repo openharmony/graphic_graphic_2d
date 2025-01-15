@@ -21,11 +21,11 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr int32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
-constexpr int32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
-constexpr int32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
-constexpr int32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
-constexpr int32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
+constexpr uint32_t RS_ANIMATION_FRAME_RATE_TYPE = 1;
+constexpr uint32_t UI_ANIMATION_FRAME_RATE_TYPE = 2;
+constexpr uint32_t DISPLAY_SYNC_FRAME_RATE_TYPE = 3;
+constexpr uint32_t ACE_COMPONENT_FRAME_RATE_TYPE = 4;
+constexpr uint32_t DISPLAY_SOLOIST_FRAME_RATE_TYPE = 5;
 
 enum ComponentScene : int32_t {
     UNKNOWN_SCENE = 0,
@@ -39,11 +39,11 @@ public:
 
     FrameRateRange(int min, int max, int preferred) : min_(min), max_(max), preferred_(preferred) {}
 
-    FrameRateRange(int min, int max, int preferred, int type) : min_(min), max_(max),
+    FrameRateRange(int min, int max, int preferred, uint32_t type) : min_(min), max_(max),
         preferred_(preferred), type_(type) {}
 
-    FrameRateRange(int min, int max, int preferred, int type, ComponentScene componentScene) : min_(min), max_(max),
-        preferred_(preferred), type_(type), componentScene_(componentScene) {}
+    FrameRateRange(int min, int max, int preferred, uint32_t type, ComponentScene componentScene)
+        : min_(min), max_(max), preferred_(preferred), type_(type), componentScene_(componentScene) {}
 
     bool IsZero() const
     {
@@ -78,7 +78,7 @@ public:
         this->preferred_ = preferred;
     }
 
-    void Set(int min, int max, int preferred, int type)
+    void Set(int min, int max, int preferred, uint32_t type)
     {
         this->min_ = min;
         this->max_ = max;
@@ -151,7 +151,7 @@ public:
     int min_ = 0;
     int max_ = 0;
     int preferred_ = 0;
-    int type_ = 0;
+    uint32_t type_ = 0;
     bool isEnergyAssurance_ = false;
     ComponentScene componentScene_ = ComponentScene::UNKNOWN_SCENE;
 };
