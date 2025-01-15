@@ -380,7 +380,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
         // 2 period for draw and composition, pipelineOffset = 2 * period
-        frameOffset = 2 * period + vsyncOffset;
+        frameOffset = 2 * period + vsyncOffset - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     } else {
         idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
