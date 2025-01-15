@@ -51,7 +51,7 @@ private:
             { CodeEnumType::SET_REFRESH_RATE_MODE, PermissionType::UPDATE_CONFIGURATION },
             { CodeEnumType::GET_MEMORY_GRAPHICS, PermissionType::GET_RUNNING_INFO },
             { CodeEnumType::SHOW_WATERMARK, PermissionType::UPDATE_CONFIGURATION },
-            { CodeEnumType::CREATE_VIRTUAL_SCREEN, PermissionType::CAPTURE_SCREEN}
+            { CodeEnumType::CREATE_VIRTUAL_SCREEN, PermissionType::CAPTURE_SCREEN }
         };
     static inline const std::unordered_map<CodeEnumType, uint32_t>
         accessRSIRenderServiceConnectionInterfaceTimesRestrictions_ {
