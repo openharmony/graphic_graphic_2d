@@ -879,6 +879,39 @@ void RSHardwareThread::SubScribeSystemAbility()
     }
 }
 
+std::string RSHardwareThread::GetEventQueueDump() const
+{
+    std::string retString;
+
+    if (handler_ != nullptr) {
+        AppExecFwk::RSHardwareDumper dumper;
+        handler_->Dump(dumper);
+        auto dumpinfo = dumper.GetDumpInfo();
+        size_t compareStrSize = sizeof("}\n");
+
+        size_t curRunningStart = dumpinfo.find("Current Running: start");
+        if (curRunningStart != std::string::npos) {
+            size_t curRunningEnd = dumpinfo.find("}\n", curRunningStart);
+            if (curRunningEnd != std::string::npos) {
+                retString += dumpinfo.substr(curRunningStart, curRunningEnd - curRunningStart + compareStrSize);
+            }
+        }
+
+        size_t immediateStart = dumpinfo.find("Immediate priority event queue information:");
+        if (immediateStart != std::string::npos) {
+            size_t immediateEnd = dumpinfo.find("}\n", immediateStart);
+            if (immediateEnd != std::string::npos) {
+                retString += dumpinfo.substr(immediateStart, immediateEnd - immediateStart + compareStrSize);
+            }
+        }
+
+        if (retString.empty()) {
+            retString = "Current Running and Immediate priority event empty";
+        }
+    }
+    return retString;
+}
+
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 GraphicColorGamut RSHardwareThread::ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers)
 {
@@ -964,3 +997,22 @@ bool RSHardwareThread::ConvertColorGamutToSpaceType(const GraphicColorGamut& col
 }
 #endif
 }
+
+namespace OHOS {
+namespace AppExecFwk {
+void RSHardwareDumper::Dump(const std::string& message)
+{
+    dumpInfo_ += message;
+}
+
+std::string RSHardwareDumper::GetTag()
+{
+    return "RSHardwareDumper";
+}
+
+std::string RSHardwareDumper::GetDumpInfo()
+{
+    return dumpInfo_;
+}
+} // namespace AppExecFwk
+} // namespace OHOS
