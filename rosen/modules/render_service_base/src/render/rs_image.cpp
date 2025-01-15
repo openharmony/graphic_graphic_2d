@@ -137,6 +137,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
             targetColorSpace, rscanvas.GetScreenId(), DynamicRangeMode::STANDARD);
     }
     canvas.AttachPaint(paint_);
+    paint_.SetShaderEffect(nullptr);
     return true;
 #else
     return false;
