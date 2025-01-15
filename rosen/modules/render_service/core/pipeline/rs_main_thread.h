@@ -769,35 +769,7 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
-    // for statistic of jank frames
-    std::atomic_bool discardJankFrames_ = false;
-    std::atomic_bool skipJankAnimatorFrame_ = false;
-    ScreenId displayNodeScreenId_ = 0;
 
-    // partial render
-    bool isFirstFrameOfPartialRender_ = false;
-    bool isPartialRenderEnabledOfLastFrame_ = false;
-    bool isRegionDebugEnabledOfLastFrame_ = false;
-
-    bool isForceRefresh_ = false;
-
-    // record multidisplay status change
-    bool isMultiDisplayPre_ = false;
-    
-    // render start hardware task count
-    uint32_t preUnExecuteTaskNum_ = 0;
-    int64_t preIdealPeriod_ = 0;
-    int64_t preExtraReserve_ = 0;
-
-#ifdef RS_ENABLE_VK
-    bool needCreateVkPipeline_ = true;
-#endif
-
-    std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
-    bool predictBegin_ = false;
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
