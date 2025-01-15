@@ -261,11 +261,17 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
     auto ptr = std::static_pointer_cast<const RSFilterDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         if (ptr->needDrawBehindWindow_) {
-            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu] ", ptr->renderNodeId_);
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
             if (!paintFilterCanvas || !canvas->GetSurface()) {
                 RS_LOGE("RSFilterDrawable::CreateDrawFunc DrawBehindWindow canvas:[%{public}d], surface:[%{public}d]",
                     paintFilterCanvas != nullptr, canvas->GetSurface() != nullptr);
+                return;
+            }
+            RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc DrawBehindWindow node[%llu], windowFreezeCapture[%d]",
+                ptr->renderNodeId_, paintFilterCanvas->GetIsWindowFreezeCapture());
+            if (paintFilterCanvas->GetIsWindowFreezeCapture()) {
+                RS_LOGD("RSFilterDrawable::CreateDrawFunc DrawBehindWindow capture freeze surface, "
+                    "no need to drawBehindWindow");
                 return;
             }
             Drawing::AutoCanvasRestore acr(*canvas, true);

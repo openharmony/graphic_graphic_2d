@@ -557,6 +557,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         && surfaceParams->IsGpuOverDrawBufferOptimizeNode()) {
         EnableGpuOverDrawDrawBufferOptimization(*curCanvas_, surfaceParams);
     }
+    OnGeneralProcess(*curCanvas_, *surfaceParams, *uniParam, isSelfDrawingSurface);
     if (surfaceParams->GetRSFreezeFlag() && GetCacheImageByCapture()) {
         RS_TRACE_NAME("Drawing cachedImage by capture");
         DrawCachedImage(*curCanvas_, surfaceParams->GetCacheSize());
@@ -564,7 +565,6 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         if (GetCacheImageByCapture()) {
             SetCacheImageByCapture(nullptr);
         }
-        OnGeneralProcess(*curCanvas_, *surfaceParams, *uniParam, isSelfDrawingSurface);
         RS_LOGI_LIMIT(
             "RSSurfaceRenderNodeDrawable::OnDraw name:%{public}s, the number of total processedNodes: %{public}d",
             name_.c_str(), RSRenderNodeDrawable::GetTotalProcessedNodeCount());

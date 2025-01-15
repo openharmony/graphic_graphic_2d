@@ -232,6 +232,7 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY,
             true, isSystemCalling, blurParam.isNeedBlur));
+        canvas.SetIsWindowFreezeCapture(isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
         if (isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());

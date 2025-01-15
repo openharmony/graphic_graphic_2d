@@ -302,6 +302,8 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool GetIsWindowFreezeCapture() const;
+    void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
 
 protected:
     using Env = struct {
@@ -345,6 +347,7 @@ private:
     bool recordDrawable_ = false;
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
+    bool isWindowFreezeCapture_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

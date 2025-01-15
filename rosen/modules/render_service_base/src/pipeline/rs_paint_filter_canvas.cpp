@@ -1554,5 +1554,15 @@ void RSPaintFilterCanvas::SetBrightnessRatio(float brightnessRatio)
 {
     brightnessRatio_ = brightnessRatio;
 }
+
+bool RSPaintFilterCanvas::GetIsWindowFreezeCapture() const
+{
+    return isWindowFreezeCapture_;
+}
+
+void RSPaintFilterCanvas::SetIsWindowFreezeCapture(bool isWindowFreezeCapture)
+{
+    isWindowFreezeCapture_ = isWindowFreezeCapture;
+}
 } // namespace Rosen
 } // namespace OHOS
