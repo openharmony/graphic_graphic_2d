@@ -207,6 +207,13 @@ void HgmFrameRateManager::InitTouchManager()
 {
     static std::once_flag createFlag;
     std::call_once(createFlag, [this]() {
+        auto updateTouchToMultiAppStrategy = [this](TouchState newState) {
+            HgmMultiAppStrategy::TouchInfo touchInfo = {
+                .pkgName = touchManager_.GetPkgName(),
+                .touchState = newState,
+            };
+            multiAppStrategy_.HandleTouchInfo(touchInfo);
+        };
         touchManager_.RegisterEventCallback(TouchEvent::UP_TIMEOUT_EVENT, [this] (TouchEvent event) {
             SetSchedulerPreferredFps(OLED_60_HZ);
             SetIsNeedUpdateAppOffset(true);
@@ -217,30 +224,22 @@ void HgmFrameRateManager::InitTouchManager()
             touchManager_.ChangeState(TouchState::DOWN_STATE);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::DOWN_STATE,
-            [this] (TouchState lastState, TouchState newState) {
-            HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgName = touchManager_.GetPkgName(),
-                .touchState = newState,
-                .upExpectFps = OLED_120_HZ,
-            };
-            multiAppStrategy_.HandleTouchInfo(touchInfo);
+            [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
+            updateTouchToMultiAppStrategy(newState);
             startCheck_.store(false);
             voterTouchEffective_.store(true);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::IDLE_STATE,
-            [this] (TouchState lastState, TouchState newState) {
+            [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
             startCheck_.store(false);
-            HgmMultiAppStrategy::TouchInfo touchInfo = {
-                .pkgName = touchManager_.GetPkgName(),
-                .touchState = newState,
-            };
-            multiAppStrategy_.HandleTouchInfo(touchInfo);
+            updateTouchToMultiAppStrategy(newState);
             voterTouchEffective_.store(false);
         });
         touchManager_.RegisterEnterStateCallback(TouchState::UP_STATE,
-            [this] (TouchState lastState, TouchState newState) {
+            [this, updateTouchToMultiAppStrategy] (TouchState lastState, TouchState newState) {
             HgmTaskHandleThread::Instance().PostEvent(UP_TIME_OUT_TASK_ID, [this] () { startCheck_.store(true); },
                 FIRST_FRAME_TIME_OUT);
+            updateTouchToMultiAppStrategy(newState);
         });
         touchManager_.RegisterExitStateCallback(TouchState::UP_STATE,
             [this] (TouchState lastState, TouchState newState) {
@@ -281,7 +280,6 @@ void HgmFrameRateManager::InitPowerTouchManager()
 void HgmFrameRateManager::ProcessPendingRefreshRate(
     uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn)
 {
-    voterLtpoTimer_.Reset();
     std::lock_guard<std::mutex> lock(pendingMutex_);
     // ensure that vsync switching takes effect in this frame
     if (vsyncId < vsyncCountOfChangeGeneratorRate_) {
@@ -391,7 +389,6 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
         auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
-        voterLtpoTimer_.Start();
     } else {
         DeliverRefreshRateVote({.voterName = "VOTER_LTPO"}, REMOVE_VOTE);
     }
@@ -426,6 +423,11 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     }
     HgmEnergyConsumptionPolicy::Instance().PrintEnergyConsumptionLog(finalRange);
     ProcessLtpoVote(finalRange);
+    if (rsFrameRateLinker->GetExpectedRange().IsValid()) {
+        voterLtpoTimer_.Start();
+    } else {
+        voterLtpoTimer_.Stop();
+    }
 
     UpdateGuaranteedPlanVote(timestamp);
     idleDetector_.ResetAceAnimatorExpectedFrameRate();
