@@ -372,6 +372,15 @@ public:
     }
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+
+    bool GetMultiDisplayChange() const
+    {
+        return isMultiDisplayChange_;
+    }
+    bool GetMultiDisplayStatus() const
+    {
+        return isMultiDisplayPre_;
+    }
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -492,6 +501,9 @@ private:
 
     // Used for CommitAndReleaseLayers task
     void SetFrameInfo(uint64_t frameCount);
+
+    // Record change status of multi or single display
+    void MultiDisplayChange(bool isMultiDisplay);
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
@@ -728,6 +740,10 @@ private:
     bool isRegionDebugEnabledOfLastFrame_ = false;
 
     bool isForceRefresh_ = false;
+
+    // record multidisplay status change
+    bool isMultiDisplayChange_ = false;
+    bool isMultiDisplayPre_ = false;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD
