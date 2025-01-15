@@ -71,7 +71,14 @@ private:
 
 inline PointF::PointF() noexcept : x_(0.0), y_(0.0) {}
 
-inline PointF::PointF(const PointF& p) noexcept : x_(p.GetX()), y_(p.GetY()) {}
+inline PointF::PointF(const PointF& p) noexcept
+{
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    scalar x = p.GetX();
+    scalar y = p.GetY();
+    x_ = x;
+    y_ = y;
+}
 
 inline PointF::PointF(scalar x, scalar y) noexcept : x_(x), y_(y) {}
 

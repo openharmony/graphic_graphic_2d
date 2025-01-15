@@ -221,6 +221,26 @@ private:
     RectI GetHistory(unsigned int i) const;
     void AlignHistory();
 
+    bool isDfxTarget_ = false;
+    bool isDirtyRegionAlignedEnable_ = false;
+    bool isFilterCacheRectValid_ = true;
+    bool isDisplayDirtyManager_ = false;
+    bool hasOffset_ = false;
+    std::atomic<bool> isSync_ = false;
+    int historyHead_ = -1;
+    unsigned int historySize_ = 0;
+    const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
+    // may add new set function for bufferAge
+    unsigned int bufferAge_ = 0;
+    // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
+    // For example when dirtymanager is used in cachesurface when surfacenode's
+    // shadow and surfacenode are cached in a surface, dirty region's coordinate should start
+    // from shadow's left-top rather than that of displaynode.
+    // Normally, this value should be set to:
+    //      offsetX_ =  - surfacePos.x + shadowWidth
+    //      offsetY_ =  - surfacePos.y + shadowHeight
+    int offsetX_ = 0;
+    int offsetY_ = 0;
     RectI lastActiveSurfaceRect_;   // active rect of the canvas surface in the last frame
     RectI activeSurfaceRect_;       // active rect of the canvas surface
     RectI surfaceRect_;             // rect of the canvas surface
@@ -237,28 +257,7 @@ private:
     std::vector<std::map<NodeId, RectI>> dirtyCanvasNodeInfo_;
     std::vector<std::map<NodeId, RectI>> dirtySurfaceNodeInfo_;
     std::vector<bool> debugRegionEnabled_;
-    bool isDfxTarget_ = false;
     std::vector<RectI> dirtyHistory_;
-    int historyHead_ = -1;
-    unsigned int historySize_ = 0;
-    const unsigned HISTORY_QUEUE_MAX_SIZE = 10;
-    // may add new set function for bufferAge
-    unsigned int bufferAge_ = 0;
-    bool isDirtyRegionAlignedEnable_ = false;
-    bool isFilterCacheRectValid_ = true;
-    bool isDisplayDirtyManager_ = false;
-    std::atomic<bool> isSync_ = false;
-
-    // Used for coordinate switch, i.e. dirtyRegion = dirtyRegion + offset.
-    // For example when dirtymanager is used in cachesurface when surfacenode's
-    // shadow and surfacenode are cached in a surface, dirty region's coordinate should start
-    // from shadow's left-top rather than that of displaynode.
-    // Normally, this value should be set to:
-    //      offsetX_ =  - surfacePos.x + shadowWidth
-    //      offsetY_ =  - surfacePos.y + shadowHeight
-    bool hasOffset_ = false;
-    int offsetX_ = 0;
-    int offsetY_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -209,56 +209,54 @@ private:
     void Inittcache();
     void PerfForBlurIfNeeded();
 
+    bool displayNodeBufferReleased_ = false;
+    // Those variable is used to manage memory.
+    bool clearMemoryFinished_ = true;
+    bool clearMemDeeply_ = false;
+    DeviceType deviceType_ = DeviceType::PHONE;
+    bool isDefaultCleanTaskFinished_ = true;
+    bool postImageReleaseTaskFlag_ = false;
+    // vma cache
+    bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
+    // for statistic of jank frames
+    std::atomic_bool mainLooping_ = false;
+    std::atomic_bool discardJankFrames_ = false;
+    std::atomic_bool skipJankAnimatorFrame_ = false;
+    pid_t tid_ = 0;
+    ClearMemoryMoment clearMoment_;
+    int imageReleaseCount_ = 0;
+    uint32_t vmaCacheCount_ = 0;
+    ScreenId displayNodeScreenId_ = 0;
+    std::atomic<uint64_t> frameCount_ = 0;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
 
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<RSContext> context_;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> rootNodeDrawable_;
+    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     std::vector<NodeId> curDrawStatusVec_;
 
     // used for blocking renderThread before displayNode has no freed buffer to request
     mutable std::mutex displayNodeBufferReleasedMutex_;
-    bool displayNodeBufferReleased_ = false;
     // used for stalling renderThread before displayNode has no freed buffer to request
     std::condition_variable displayNodeBufferReleasedCond_;
 
-    // Those variable is used to manage memory.
-    bool clearMemoryFinished_ = true;
-    bool clearMemDeeply_ = false;
     std::unordered_set<NodeId> nodesNeedToBeClearMemory_;
-    DeviceType deviceType_ = DeviceType::PHONE;
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
-    std::atomic<uint64_t> frameCount_ = 0;
 
-    pid_t tid_ = 0;
-
-    // for statistic of jank frames
-    std::atomic_bool mainLooping_ = false;
-    std::atomic_bool discardJankFrames_ = false;
-    std::atomic_bool skipJankAnimatorFrame_ = false;
-    ScreenId displayNodeScreenId_ = 0;
     std::set<pid_t> exitedPidSet_;
-    ClearMemoryMoment clearMoment_;
-    bool isDefaultCleanTaskFinished_ = true;
 
     std::vector<Callback> imageReleaseTasks_;
     std::mutex imageReleaseMutex_;
-    bool postImageReleaseTaskFlag_ = false;
-    int imageReleaseCount_ = 0;
 
     mutable std::mutex nodeListMutex_;
     std::unordered_set<NodeId> blackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
 
-    sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
-
-    // vma cache
-    bool vmaOptimizeFlag_ = false; // enable/disable vma cache, global flag
-    uint32_t vmaCacheCount_ = 0;
     std::mutex vmaCacheCountMutex_;
 
     std::pair<int32_t, int32_t> wallpaperTranslate_ = {0, 0};

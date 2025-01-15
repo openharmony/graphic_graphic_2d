@@ -68,6 +68,7 @@ public:
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
     std::string GetEventQueueDump() const;
+    void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -103,6 +104,8 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceInfo);
 #endif
 
+    static GraphicColorGamut ComputeTargetColorGamut(const sptr<SurfaceBuffer> &buffer);
+    static GraphicPixelFormat ComputeTargetPixelFormat(const sptr<SurfaceBuffer> &buffer);
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HdiBackend *hdiBackend_ = nullptr;
@@ -123,6 +126,8 @@ private:
     int64_t intervalTimePoints_ = 0;
     bool isLastAdaptive_ = false;
     std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
+    std::mutex preAllocMutex_;
+    std::mutex frameBufferSurfaceOhosMapMutex_;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;
