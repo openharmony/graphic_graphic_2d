@@ -266,6 +266,10 @@ void RSRenderServiceClient::RepaintEverything()
 {
 }
 
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+}
+
 void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
 }

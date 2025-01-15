@@ -399,6 +399,8 @@ public:
 
     void NotifyScreenSwitched(ScreenId id);
 
+    void ForceRefreshOneFrameWithNextVSync();
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;

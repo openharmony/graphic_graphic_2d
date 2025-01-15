@@ -266,6 +266,10 @@ void RSRenderServiceClient::RepaintEverything()
 {
 }
 
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+}
+
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
 }

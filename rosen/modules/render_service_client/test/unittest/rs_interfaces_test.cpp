@@ -1775,6 +1775,18 @@ HWTEST_F(RSInterfacesTest, DisablePowerOffRenderControl, Function | SmallTest | 
 }
 
 /*
+ * @tc.name: ForceRefreshOneFrameWithNextVSync
+ * @tc.desc: Test ForceRefreshOneFrameWithNextVSync
+ * @tc.type: FUNC
+ * @tc.require:issueIBHG7Q
+ */
+HWTEST_F(RSInterfacesTest, ForceRefreshOneFrameWithNextVSync, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    rsInterfaces->ForceRefreshOneFrameWithNextVSync();
+}
+
+/*
  * @tc.name: SetCastScreenEnableSkipWindow
  * @tc.desc: Test SetCastScreenEnableSkipWindow
  * @tc.type: FUNC

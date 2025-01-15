@@ -438,6 +438,11 @@ void RSInterfaces::RepaintEverything()
     renderServiceClient_->RepaintEverything();
 }
 
+void RSInterfaces::ForceRefreshOneFrameWithNextVSync()
+{
+    renderServiceClient_->ForceRefreshOneFrameWithNextVSync();
+}
+
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
 {
     RS_LOGD("RSInterfaces::DisablePowerOffRenderControl.");

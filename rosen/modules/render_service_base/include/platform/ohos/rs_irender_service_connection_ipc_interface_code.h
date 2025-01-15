@@ -149,6 +149,7 @@ enum class RSIRenderServiceConnectionInterfaceCode : CodeUnderlyingType {
     SET_SCREEN_ACTIVE_RECT,
     SET_HIDE_PRIVACY_CONTENT,
     REPAINT_EVERYTHING,
+    FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC,
 // Special invocation. Do not change it.
     NOTIFY_LIGHT_FACTOR_STATUS = 1000,
     NOTIFY_PACKAGE_EVENT = 1001,

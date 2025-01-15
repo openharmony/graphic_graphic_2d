@@ -133,6 +133,8 @@ public:
 
     void RepaintEverything() override;
 
+    void ForceRefreshOneFrameWithNextVSync() override;
+
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;

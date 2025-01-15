@@ -336,6 +336,8 @@ public:
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
     void NotifyScreenSwitched(ScreenId id);
+
+    void ForceRefreshOneFrameWithNextVSync();
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;
