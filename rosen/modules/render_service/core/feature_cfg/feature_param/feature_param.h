@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef GRAPHIC_FEATURE_PARAM_H
-#define GRAPHIC_FEATURE_PARAM_H
+#ifndef FEATURE_PARAM_H
+#define FEATURE_PARAM_H
 
 #include <string>
 #include <unordered_map>
@@ -25,7 +25,16 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
+static std::vector<std::string> paramVec = {"HdrConfig", "DrmConfig", "HwcConfig"};
+
+enum featureParamCode {
+    HDR = 0,
+    DRM, 
+    HWC,
+};
+
 class FeatureParam {
+
 public:
     FeatureParam() = default;
     ~FeatureParam() = default;
@@ -34,4 +43,4 @@ private:
     void Init();
 };
 } // namespace OHOS::Rosen
-#endif // GRAPHIC_FEATURE_PARAM_H
+#endif // FEATURE_PARAM_H

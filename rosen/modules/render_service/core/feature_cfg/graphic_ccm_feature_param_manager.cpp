@@ -35,16 +35,14 @@ void GraphicCcmFeatureParamManager::Init()
 {
     RS_LOGD("GraphicCcmFeatureParamManager %{public}s : Init feature map", __func__);
     // parse map init
-    featureParseMap_["HdrConfig"] = std::make_unique<HDRParamParse>();
-    featureParseMap_["DvsyncConfig"] = std::make_unique<DvsyncParamParse>();
-    featureParseMap_["DrmConfig"] = std::make_unique<DRMParamParse>();
-    featureParseMap_["HwcConfig"] = std::make_unique<HWCParamParse>();
+    featureParseMap_[paramVec[featureParamCode::HDR]] = std::make_unique<HDRParamParse>();
+    featureParseMap_[paramVec[featureParamCode::DRM]] = std::make_unique<DRMParamParse>();
+    featureParseMap_[paramVec[featureParamCode::HWC]] = std::make_unique<HWCParamParse>();
 
     // param map init
-    featureParamMap_["HdrConfig"] = std::make_unique<HDRParam>();
-    featureParamMap_["DvsyncConfig"] = std::make_unique<DvsyncParam>();
-    featureParamMap_["DrmConfig"] = std::make_unique<DRMParam>();
-    featureParamMap_["HwcConfig"] = std::make_unique<HWCParam>();
+    featureParamMap_[paramVec[featureParamCode::HDR]] = std::make_unique<HDRParam>();
+    featureParamMap_[paramVec[featureParamCode::DRM]] = std::make_unique<DRMParam>();
+    featureParamMap_[paramVec[featureParamCode::HWC]] = std::make_unique<HWCParam>();
 }
 
 void GraphicCcmFeatureParamManager::FeatureParamParseEntry()

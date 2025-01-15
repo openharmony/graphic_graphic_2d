@@ -25,8 +25,6 @@
 
 #include "drm_param_parse.h"
 #include "drm_param.h"
-#include "dvsync_param_parse.h"
-#include "dvsync_param.h"
 #include "hdr_param_parse.h"
 #include "hdr_param.h"
 #include "hwc_param_parse.h"
@@ -50,7 +48,7 @@ private:
     GraphicCcmFeatureParamManager();
     ~GraphicCcmFeatureParamManager() noexcept override;
 
-    static constexpr char GRAPHIC_CCM_CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/graphic_ccm_config.xml";
+    static constexpr char GRAPHIC_CCM_CONFIG_FILE_PRODUCT[] = "/sys_prod/etc/graphic/graphic_config.xml";
 
     std::unique_ptr<XMLParserBase> featureParser_ = nullptr;
 };

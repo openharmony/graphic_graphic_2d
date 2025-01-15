@@ -72,7 +72,9 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
 
         std::string featureName = ExtractPropertyValue("name", *currNode);
         RS_LOGI("XMLParserBase featureName is: %{public}s", featureName.c_str());
-
+        if (featureName = "") {
+            return false;
+        }
         auto parseMap = GraphicCcmFeatureParamManager::GetInstance().featureParseMap_;
         auto featureMap = GraphicCcmFeatureParamManager::GetInstance().featureParamMap_;
         auto iter = parseMap.find(featureName);

@@ -18,6 +18,7 @@
 
 #include "xml_parser_base.h"
 #include "hdr_param.h"
+
 namespace OHOS::Rosen {
 class HDRParamParse : public XMLParserBase {
 public:

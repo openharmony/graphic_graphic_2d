@@ -18,6 +18,7 @@
 
 #include "xml_parser_base.h"
 #include "drm_param.h"
+
 namespace OHOS::Rosen {
 class DRMParamParse : public XMLParserBase {
 public:
