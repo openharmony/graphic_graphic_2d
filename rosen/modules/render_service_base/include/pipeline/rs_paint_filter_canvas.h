@@ -107,6 +107,7 @@ public:
     void ClipPath(const Drawing::Path& path, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
         bool doAntiAlias = false) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
+    void ResetClip() override;
 
     void SetMatrix(const Drawing::Matrix& matrix) override;
     void ResetMatrix() override;

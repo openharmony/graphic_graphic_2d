@@ -618,6 +618,21 @@ void RSPaintFilterCanvasBase::ClipRegion(const Region& region, ClipOp op)
 #endif
 }
 
+void RSPaintFilterCanvasBase::ResetClip()
+{
+#ifdef SKP_RECORDING_ENABLED
+    for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
+        if ((*iter) != nullptr) {
+            (*iter)->ResetClip();
+        }
+    }
+#else
+    if (canvas_ != nullptr) {
+        canvas_->ResetClip();
+    }
+#endif
+}
+
 void RSPaintFilterCanvasBase::SetMatrix(const Matrix& matrix)
 {
 #ifdef SKP_RECORDING_ENABLED
