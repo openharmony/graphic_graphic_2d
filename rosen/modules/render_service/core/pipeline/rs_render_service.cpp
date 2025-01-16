@@ -44,6 +44,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "graphic_feature_param_manager.h"
 
 #include "text/font_mgr.h"
 
@@ -160,6 +161,9 @@ bool RSRenderService::Init()
         return false;
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
+
+    // feature param parse
+    GraphicFeatureParamManager::GetInstance().Init();
 
     RS_PROFILER_INIT(this);
 
