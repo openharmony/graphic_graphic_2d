@@ -582,16 +582,9 @@ std::shared_ptr<Drawing::Blender> RSPropertyDrawableUtils::MakeLightUpEffectBlen
             return nullptr;
         }
     }
-    static std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder_ = nullptr;
-    if (!builder_) {
-        builder_ = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
-        if (!builder_) {
-            ROSEN_LOGE("RSPropertyDrawableUtils::MakeLightUpEffectBlender make builder fail");
-            return nullptr;
-        }
-    }
-    builder_->SetUniform("lightUpDeg", lightUpDeg);
-    return builder_->MakeBlender();
+    auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
+    builder->SetUniform("lightUpDeg", lightUpDeg);
+    return builder->MakeBlender();
 }
 
 void RSPropertyDrawableUtils::DrawDynamicDim(Drawing::Canvas* canvas, const float dynamicDimDegree)

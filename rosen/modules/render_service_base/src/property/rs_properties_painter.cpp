@@ -1748,16 +1748,9 @@ std::shared_ptr<Drawing::Blender> RSPropertiesPainter::MakeLightUpEffectBlender(
             return nullptr;
         }
     }
-    static std::shared_ptr<Drawing::RuntimeBlenderBuilder> builder_ = nullptr;
-    if (!builder_) {
-        builder_ = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
-        if (!builder_) {
-            ROSEN_LOGE("RSPropertiesPainter::MakeLightUpEffectBlender make builder fail");
-            return nullptr;
-        }
-    }
-    builder_->SetUniform("lightUpDeg", lightUpDeg);
-    return builder_->MakeBlender();
+    auto builder = std::make_shared<Drawing::RuntimeBlenderBuilder>(lightUpEffectBlender_);
+    builder->SetUniform("lightUpDeg", lightUpDeg);
+    return builder->MakeBlender();
 }
 
 void RSPropertiesPainter::DrawDynamicLightUp(const RSProperties& properties, RSPaintFilterCanvas& canvas)
