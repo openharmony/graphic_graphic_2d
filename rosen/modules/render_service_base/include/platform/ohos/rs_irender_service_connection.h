@@ -105,7 +105,7 @@ public:
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
     virtual int32_t SetScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+        std::shared_ptr<Media::PixelMap> securityMask) = 0;
 
     virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
 
@@ -157,6 +157,8 @@ public:
 
     virtual void RepaintEverything() = 0;
 
+    virtual void ForceRefreshOneFrameWithNextVSync() = 0;
+
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
@@ -166,7 +168,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) = 0;
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
 
     virtual void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) = 0;

@@ -249,6 +249,7 @@ private:
     void UpdateHwcNodeEnable();
     void UpdateHwcNodeEnableByNodeBelow();
     void PrevalidateHwcNode();
+    bool PrepareForCloneNode(RSSurfaceRenderNode& node);
     void PrepareForCrossNode(RSSurfaceRenderNode& node);
 
     // use in QuickPrepareSurfaceRenderNode, update SurfaceRenderNode's uiFirst status
@@ -448,6 +449,8 @@ private:
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
     uint32_t layerNum_ = 0;
     std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
+
+    NodeId clonedSourceNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

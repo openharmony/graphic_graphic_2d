@@ -245,6 +245,7 @@ public:
     {
         return cacheSurface_ ? true : false;
     }
+    int GetTotalProcessedSurfaceCount() const;
 
     bool HasCache() const override
     {
@@ -273,6 +274,8 @@ private:
     bool DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id);
     bool CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
         RSRenderThreadParams& uniParams) const;
+    void TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas);
+    void ClearTotalProcessedSurfaceCount();
 
     void DrawUIFirstDfx(RSPaintFilterCanvas& canvas, MultiThreadCacheType enableType,
         RSSurfaceRenderParams& surfaceParams, bool drawCacheSuccess);
@@ -286,6 +289,10 @@ private:
     void DrawDmaBufferWithGPU(RSPaintFilterCanvas& canvas);
     void DrawSelfDrawingNodeBuffer(RSPaintFilterCanvas& canvas,
         const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params);
+
+    // Draw cloneNode
+    bool DrawCloneNode(RSPaintFilterCanvas& canvas, RSRenderThreadParams& uniParam,
+        RSSurfaceRenderParams& surfaceParams, bool isCapture = false);
 
     // Watermark
     void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
@@ -357,6 +364,7 @@ private:
     RSDrawWindowCache drawWindowCache_;
     friend class OHOS::Rosen::RSDrawWindowCache;
     bool vmaCacheOff_ = false;
+    static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
 
     static inline bool isInRotationFixed_ = false;
 };

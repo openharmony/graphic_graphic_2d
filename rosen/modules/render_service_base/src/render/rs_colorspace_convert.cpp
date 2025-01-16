@@ -27,6 +27,7 @@ namespace Rosen {
 
 namespace {
 constexpr float DEFAULT_SCALER = 1000.0f / 203.0f;
+constexpr uint32_t DEFAULT_DYNAMIC_METADATA_SIZE = 50;
 }; // namespace
 
 RSColorSpaceConvert::RSColorSpaceConvert()
@@ -116,6 +117,19 @@ bool RSColorSpaceConvert::ColorSpaceConvertor(std::shared_ptr<Drawing::ShaderEff
     return true;
 }
 
+void RSColorSpaceConvert::GetHDRMetadata(const sptr<SurfaceBuffer>& surfaceBuffer,
+    std::vector<uint8_t>& hdrStaticMetadata, std::vector<uint8_t>& hdrDynamicMetadata, GSError& ret)
+{
+    ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, hdrStaticMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetHDRStaticMetadata failed with ret: %{public}u.", ret);
+    }
+    ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, hdrDynamicMetadata);
+    if (ret != GSERROR_OK) {
+        RS_LOGD("RSColorSpaceConvert::GetHDRDynamicMetadata failed with ret: %{public}u.", ret);
+    }
+}
+
 bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<SurfaceBuffer>& surfaceBuffer,
     VPEParameter& parameter, GraphicColorGamut targetColorSpace, ScreenId screenId, uint32_t dynamicRangeMode)
 {
@@ -137,10 +151,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.inputColorSpace.metadataType = hdrMetadataType;
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
-    ret = MetadataHelper::GetHDRStaticMetadata(surfaceBuffer, parameter.staticMetadata);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("bhdr GetHDRStaticMetadata failed with %{public}u.", ret);
-    }
+    GetHDRMetadata(surfaceBuffer, parameter.staticMetadata, parameter.dynamicMetadata, ret);
 
     float scaler = DEFAULT_SCALER;
     auto& rsLuminance = RSLuminanceControl::Get();
@@ -148,16 +159,12 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
         RS_LOGD("bhdr parameter.staticMetadata size is invalid");
     } else {
         const auto& data = *reinterpret_cast<HdrStaticMetadata*>(parameter.staticMetadata.data());
-        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel);
+        scaler = rsLuminance.CalScaler(data.cta861.maxContentLightLevel,
+            ret == GSERROR_OK ? parameter.dynamicMetadata.size() : DEFAULT_DYNAMIC_METADATA_SIZE);
     }
 
     if (!rsLuminance.IsHdrPictureOn() || dynamicRangeMode == DynamicRangeMode::STANDARD) {
         scaler = 1.0f;
-    }
-
-    ret = MetadataHelper::GetHDRDynamicMetadata(surfaceBuffer, parameter.dynamicMetadata);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("bhdr GetHDRDynamicMetadata failed with %{public}u.", ret);
     }
 
     float sdrNits = rsLuminance.GetSdrDisplayNits(screenId);
@@ -165,7 +172,7 @@ bool RSColorSpaceConvert::SetColorSpaceConverterDisplayParameter(const sptr<Surf
     parameter.tmoNits = std::clamp(sdrNits * scaler, sdrNits, displayNits);
     parameter.currentDisplayNits = displayNits;
     parameter.sdrNits = sdrNits;
-    RS_LOGD("bhdr TmoNits:%{public}f. DisplayNits:%{public}f. SdrNits:%{public}f. DynamicRangeMode:%{public}u",
+    RS_LOGD("bhdr TmoNits:%{public}.2f. DisplayNits:%{public}.2f. SdrNits:%{public}.2f. DynamicRangeMode:%{public}u",
         parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits, dynamicRangeMode);
     return true;
 }

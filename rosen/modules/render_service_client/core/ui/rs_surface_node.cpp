@@ -883,6 +883,19 @@ void RSSurfaceNode::SetForeground(bool isForeground)
     }
 }
 
+void RSSurfaceNode::SetClonedNodeId(NodeId nodeId)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGD("RSSurfaceNode::SetClonedNodeId transactionProxy is null");
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId);
+    transactionProxy->AddCommand(command, true);
+
+}
+
 void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
 {
     std::unique_ptr<RSCommand> command =

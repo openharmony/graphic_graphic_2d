@@ -168,17 +168,18 @@ void RSDirtyRegionManager::OnSync(std::shared_ptr<RSDirtyRegionManager> targetMa
     if (!targetManager) {
         return;
     }
-    targetManager->lastActiveSurfaceRect_ = lastActiveSurfaceRect_;
-    targetManager->activeSurfaceRect_ = activeSurfaceRect_;
-    targetManager->surfaceRect_ = surfaceRect_;
-    targetManager->dirtyRegion_ = dirtyRegion_;
-    targetManager->hwcDirtyRegion_ = hwcDirtyRegion_;
-    targetManager->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
-    targetManager->debugRect_ = debugRect_;
+    RSDirtyRegionManager *ptr = targetManager.get();
+    ptr->lastActiveSurfaceRect_ = lastActiveSurfaceRect_;
+    ptr->activeSurfaceRect_ = activeSurfaceRect_;
+    ptr->surfaceRect_ = surfaceRect_;
+    ptr->dirtyRegion_ = dirtyRegion_;
+    ptr->hwcDirtyRegion_ = hwcDirtyRegion_;
+    ptr->currentFrameDirtyRegion_ = currentFrameDirtyRegion_;
+    ptr->debugRect_ = debugRect_;
     if (RSSystemProperties::GetDirtyRegionDebugType() != DirtyRegionDebugType::DISABLED) {
-        targetManager->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
-        targetManager->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
-        targetManager->mergedDirtyRegions_ = mergedDirtyRegions_;
+        ptr->dirtySurfaceNodeInfo_ = dirtySurfaceNodeInfo_;
+        ptr->dirtyCanvasNodeInfo_ = dirtyCanvasNodeInfo_;
+        ptr->mergedDirtyRegions_ = mergedDirtyRegions_;
     }
     // To avoid the impact of the remaining surface dirty on global dirty when nodes are skipped the next frame.
     Clear();

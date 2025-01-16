@@ -1900,9 +1900,9 @@ HWTEST_F(RSModifierTest, ModifierManager001, TestSize.Level1)
 
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
     manager.AddModifier(modifier);
     manager.Draw();
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -1999,10 +1999,10 @@ HWTEST_F(RSModifierTest, ModifierManager006, TestSize.Level1)
 
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
     manager.Animate(time);
     manager.AddModifier(modifier);
     manager.Draw();
-    ASSERT_TRUE(true);
 }
 
 /**
@@ -2018,9 +2018,9 @@ HWTEST_F(RSModifierTest, ModifierManager007, TestSize.Level1)
 
     auto prop = std::make_shared<RSAnimatableProperty<float>>(floatData[0]);
     auto modifier = std::make_shared<RSAlphaModifier>(prop);
+    ASSERT_NE(modifier, nullptr);
     manager.Animate(time);
     manager.AddModifier(modifier);
     manager.Draw();
-    ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

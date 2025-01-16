@@ -99,7 +99,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     }
     // Non-CrosNode not cache for uifirst need clear cahce
     if (!surfaceParams.IsCrossNode() && surfaceParams.GetUifirstNodeEnableParam() == MultiThreadCacheType::NONE
-        && !surfaceParams.GetUifirstStartingFlag()) {
+        && !surfaceParams.GetUifirstStartingFlag() && !surfaceParams.ClonedSourceNode()) {
         ClearCache();
         return false;
     }

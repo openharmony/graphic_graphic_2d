@@ -19,6 +19,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
+#include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -187,6 +188,7 @@ void RSFilterDrawable::OnSync()
     renderIsEffectNode_ = stagingIsEffectNode_;
     renderIsSkipFrame_ = stagingIsSkipFrame_;
     renderNodeId_ = stagingNodeId_;
+    renderNodeName_ = stagingNodeName_;
     renderClearType_ = stagingClearType_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
     renderIsDarkColorMode_ = stagingIsDarkColorMode_;
@@ -299,8 +301,19 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
                     tmpFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
                 }
             }
+            int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
             RSPropertyDrawableUtils::DrawFilter(canvas, ptr->filter_,
                 ptr->cacheManager_, ptr->IsForeground(), ptr->renderClearFilteredCacheAfterDrawing_);
+            int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
+            auto filterType = ptr->filter_->GetFilterType();
+            RSPerfMonitorReporter::GetInstance().RecordBlurNode(ptr->renderNodeName_, blurDuration,
+                RSPropertyDrawableUtils::IsBlurFilterType(filterType));
+            if (rect != nullptr) {
+                RSPerfMonitorReporter::GetInstance().RecordBlurPerfEvent(ptr->renderNodeId_, ptr->renderNodeName_,
+                    static_cast<uint16_t>(filterType), RSPropertyDrawableUtils::GetBlurFilterRadius(ptr->filter_),
+                    rect->GetWidth(), rect->GetHeight(), blurDuration,
+                    RSPropertyDrawableUtils::IsBlurFilterType(filterType));
+            }
         }
     };
 }
@@ -312,16 +325,22 @@ const RectI RSFilterDrawable::GetFilterCachedRegion() const
 
 void RSFilterDrawable::MarkFilterRegionChanged()
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::BLUR_REGION_CHANGED, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingFilterRegionChanged_ = true;
 }
 
 void RSFilterDrawable::MarkFilterRegionInteractWithDirty()
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::BLUR_CONTENT_CHANGED, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingFilterInteractWithDirty_ = true;
 }
 
 void RSFilterDrawable::MarkFilterRegionIsLargeArea()
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::DIRTY_OVER_SIZE, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingIsLargeArea_ = true;
 }
 
@@ -332,21 +351,29 @@ void RSFilterDrawable::MarkFilterForceUseCache(bool forceUseCache)
 
 void RSFilterDrawable::MarkFilterForceClearCache()
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::FORCE_CLEAR_CACHE, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingForceClearCache_ = true;
 }
 
 void RSFilterDrawable::MarkRotationChanged()
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::ROTATION_CHANGED, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingRotationChanged_ = true;
 }
 
 void RSFilterDrawable::MarkNodeIsOccluded(bool isOccluded)
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::NODE_IS_OCCLUDED, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingIsOccluded_ = isOccluded;
 }
 
 void RSFilterDrawable::MarkForceClearCacheWithLastFrame()
 {
+    RSPerfMonitorReporter::GetInstance().RecordBlurCacheReason(this->renderNodeName_,
+        BLUR_CLEAR_CACHE_REASON::SKIP_FRAME_NO_VSYNC, RSPropertyDrawableUtils::IsBlurFilterType(filterType_));
     stagingForceClearCacheForLastFrame_ = true;
 }
 

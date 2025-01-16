@@ -637,7 +637,7 @@ int32_t RSRenderServiceConnection::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceConnection::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     if (!screenManager_) {
         return StatusCode::SCREEN_NOT_FOUND;
@@ -957,6 +957,26 @@ void RSRenderServiceConnection::RepaintEverything()
     mainThread_->PostTask(task);
 }
 
+void RSRenderServiceConnection::ForceRefreshOneFrameWithNextVSync()
+{
+    if (!mainThread_) {
+        RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
+        return;
+    }
+
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this)]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+
+        RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
+        connection->mainThread_->SetDirtyFlag();
+        connection->mainThread_->RequestNextVSync();
+    };
+    mainThread_->PostTask(task);
+}
+
 void RSRenderServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 {
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
@@ -1122,14 +1142,15 @@ void RSRenderServiceConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     mainThread_->PostTask(captureTask);
 }
 
-void RSRenderServiceConnection::SetWindowFreezeImmediately(
-    NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+void RSRenderServiceConnection::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCaptureBlurParam& blurParam)
 {
     if (!mainThread_) {
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
-    std::function<void()> setWindowFreezeTask = [id, isFreeze, callback, captureConfig]() -> void {
+    std::function<void()> setWindowFreezeTask = [id, isFreeze, callback, captureConfig, blurParam]() -> void {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("RSRenderServiceConnection::SetWindowFreezeImmediately failed, node is nullptr");
@@ -1144,7 +1165,7 @@ void RSRenderServiceConnection::SetWindowFreezeImmediately(
                 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
                 "::SET_WINDOW_FREEZE_IMMEDIATELY");
             RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling, isFreeze);
+            RSSurfaceCaptureTaskParallel::Capture(id, callback, captureConfig, isSystemCalling, isFreeze, blurParam);
         } else {
             RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(id);
         }

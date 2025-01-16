@@ -69,6 +69,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     if (!pkgs_.empty()) {
         touchInfo_.pkgName = std::get<0>(AnalyzePkgParam(pkgs_.front()));
     }
+    touchInfo_.upExpectFps = OLED_NULL_HZ;
     CalcVote();
 
     return EXEC_SUCCESS;

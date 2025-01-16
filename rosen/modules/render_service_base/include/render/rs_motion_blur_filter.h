@@ -58,6 +58,11 @@ public:
         disableMotionBlur_ = isDisableMotionBlur;
     }
 
+    float GetRadius() const
+    {
+        return motionBlurPara_->radius > 0 ? motionBlurPara_->radius : 0;
+    }
+
 private:
     void DrawMotionBlur(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
         const Drawing::Rect& src, const Drawing::Rect& dst) const;

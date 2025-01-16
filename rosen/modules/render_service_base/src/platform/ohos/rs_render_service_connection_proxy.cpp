@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr size_t ASHMEM_SIZE_THRESHOLD = 100 * 1024; // cannot > 500K in TF_ASYNC mode
+static constexpr size_t ASHMEM_SIZE_THRESHOLD = 200 * 1024; // cannot > 500K in TF_ASYNC mode
 static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
@@ -664,7 +664,7 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceConnectionProxy::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1287,6 +1287,25 @@ void RSRenderServiceConnectionProxy::RepaintEverything()
     }
 }
 
+void RSRenderServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+}
+
 void RSRenderServiceConnectionProxy::DisablePowerOffRenderControl(ScreenId id)
 {
     MessageParcel data;
@@ -1390,8 +1409,9 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
 }
 
-void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(
-    NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCaptureBlurParam& blurParam)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1416,6 +1436,10 @@ void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(
         }
         if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
             ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+            return;
+        }
+        if (!WriteSurfaceCaptureBlurParam(blurParam, data)) {
+            ROSEN_LOGE("%{public}s write blurParam failed", __func__);
             return;
         }
     }

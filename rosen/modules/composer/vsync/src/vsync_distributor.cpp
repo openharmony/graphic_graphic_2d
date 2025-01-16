@@ -195,10 +195,10 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     int32_t ret = socketPair->SendData(data, sizeof(data));
     if (ret == ERRNO_EAGAIN) {
         RS_TRACE_NAME("remove the earlies data and SendData again.");
-        VLOGW("vsync signal is not processed in time, please check pid:%{public}d", proxyPid_);
         int64_t receiveData[3];
         socketPair->ReceiveData(receiveData, sizeof(receiveData));
         ret = socketPair->SendData(data, sizeof(data));
+        VLOGW("vsync signal is not processed in time, please check pid:%{public}d, ret:%{public}d", proxyPid_, ret);
     }
     if (ret > -1) {
         ScopedDebugTrace successful("successful");
@@ -1545,6 +1545,17 @@ bool VSyncDistributor::DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnecti
 #else
     return false;
 #endif
+}
+
+void VSyncDistributor::PrintConnectionsStatus()
+{
+    std::unique_lock<std::mutex> locker(mutex_);
+    for (uint32_t i = 0; i < connections_.size(); i++) {
+        VLOGI("PrintConnectionsStatus, i:%{public}d, name:%{public}s, proxyPid:%{public}d"
+            ", highPriorityRate:%{public}d, rate:%{public}d, vsyncPulseFreq:%{public}u",
+            i, connections_[i]->info_.name_.c_str(), connections_[i]->proxyPid_, connections_[i]->highPriorityRate_,
+            connections_[i]->rate_, connections_[i]->vsyncPulseFreq_);
+    }
 }
 }
 }

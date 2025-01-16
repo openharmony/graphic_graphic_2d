@@ -70,7 +70,7 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask);
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
@@ -113,7 +113,8 @@ public:
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f, bool isSync = false);
 
     bool SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
-        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {},
+        float blurRadius = 1E-6);
 
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW);
 
@@ -336,6 +337,8 @@ public:
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
     void NotifyScreenSwitched(ScreenId id);
+
+    void ForceRefreshOneFrameWithNextVSync();
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

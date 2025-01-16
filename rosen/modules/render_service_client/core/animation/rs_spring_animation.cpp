@@ -99,11 +99,12 @@ void RSSpringAnimation::StartRenderAnimation(const std::shared_ptr<RSRenderSprin
 {
     auto target = GetTarget().lock();
     if (target == nullptr) {
-        ROSEN_LOGD("Failed to start spring animation, target is null!");
+        ROSEN_LOGE("Failed to start spring animation, target is null!");
         return;
     }
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
+        ROSEN_LOGE("Failed to start spring animation, transaction proxy is null!");
         return;
     }
 

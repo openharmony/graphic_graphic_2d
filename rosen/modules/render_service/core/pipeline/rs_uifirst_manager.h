@@ -216,10 +216,24 @@ private:
     CacheProcessStatus& GetUifirstCachedState(NodeId id);
     bool IsVMSurfaceName(std::string surfaceName);
 
+    bool rotationChanged_ = false;
+    bool isUiFirstOn_ = false;
+    bool hasDoneNode_ = false;
+    bool useDmaBuffer_ = false;
+    bool isFreeMultiWindowEnabled_ = false;
+    std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
+    // for recents scene
+    std::atomic<bool> isRecentTaskScene_ = false;
+    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
+    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
+    int32_t scbPid_ = 0;
+    std::atomic<int> noUifirstNodeFrameCount_ = 0;
+    NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
+    NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
+    RSMainThread* mainThread_ = nullptr;
     // only use in mainThread & RT onsync
     std::vector<NodeId> pendingForceUpdateNode_;
     std::vector<std::shared_ptr<RSRenderNode>> markForceUpdateByUifirst_;
-    bool rotationChanged_ = false;
 
     std::map<NodeId, CacheProcessStatus> uifirstCacheState_;
 
@@ -240,23 +254,14 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingPostCardNodes_;
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> pendingResetNodes_;
     std::vector<std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>> pendingPostDrawables_;
-    bool isUiFirstOn_ = false;
     std::list<NodeId> sortedSubThreadNodeIds_;
 
     std::set<NodeId> reuseNodes_;
     std::set<NodeId> collectedCardNodes_;
-    static constexpr int CLEAR_RES_THRESHOLD = 3; // 3 frames  to clear resource
-    std::atomic<int> noUifirstNodeFrameCount_ = 0;
-    bool hasDoneNode_ = false;
     // event list
     std::mutex globalFrameEventMutex_;
     std::vector<EventInfo> globalFrameEvent_; // <time, data>
     std::vector<EventInfo> currentFrameEvent_;
-    std::atomic<bool> currentFrameCanSkipFirstWait_ = false;
-    NodeId entryViewNodeId_ = INVALID_NODEID; // desktop surfaceNode ID
-    NodeId negativeScreenNodeId_ = INVALID_NODEID; // negativeScreen surfaceNode ID
-    int32_t scbPid_ = 0;
-    RSMainThread* mainThread_ = nullptr;
     // scene in scb
     const std::vector<std::string> cardCanSkipFirstWaitScene_ = {
         { "INTO_HOME_ANI" }, // unlock to desktop
@@ -284,14 +289,8 @@ private:
 
     // use in MainThread & RT & subThread
     std::mutex useDmaBufferMutex_;
-    bool useDmaBuffer_ = false;
-    // for recents scene
-    std::atomic<bool> isRecentTaskScene_ = false;
     std::vector<NodeId> capturedNodes_;
     std::vector<NodeId> currentFrameDeletedCardNodes_;
-    std::atomic<bool> isCurrentFrameHasCardNodeReCreate_ = false;
-
-    bool isFreeMultiWindowEnabled_ = false;
 };
 class RSB_EXPORT RSUiFirstProcessStateCheckerHelper {
 public:

@@ -86,6 +86,7 @@ public:
     virtual VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
     // End of DVSync
+    virtual void PrintGeneratorStatus() = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -135,6 +136,7 @@ public:
     VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
     // End of DVSync
+    void PrintGeneratorStatus() override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 

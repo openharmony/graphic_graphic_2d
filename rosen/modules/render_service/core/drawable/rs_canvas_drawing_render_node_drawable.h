@@ -75,6 +75,8 @@ private:
     bool ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas);
     bool GpuContextResetGL(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
     bool GpuContextResetVK(int width, int height, std::shared_ptr<Drawing::GPUContext>& gpuContext);
+    Drawing::TextureOrigin GetTextureOrigin();
+    void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
 #ifdef RS_ENABLE_VK
     bool ReleaseSurfaceVK(int width, int height);
 #endif

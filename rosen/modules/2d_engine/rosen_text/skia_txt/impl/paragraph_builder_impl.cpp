@@ -192,6 +192,7 @@ void ParagraphBuilderImpl::TextStyleToSKStrutStyle(skt::StrutStyle& strutStyle, 
     std::vector<SkString> strutFonts;
     std::transform(txt.strutFontFamilies.begin(), txt.strutFontFamilies.end(), std::back_inserter(strutFonts),
         [](const std::string& f) { return SkString(f.c_str()); });
+    strutStyle.setHalfLeading(txt.strutHalfLeading);
     strutStyle.setFontFamilies(strutFonts);
     strutStyle.setLeading(txt.strutLeading);
     strutStyle.setForceStrutHeight(txt.forceStrutHeight);

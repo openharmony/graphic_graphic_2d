@@ -52,6 +52,8 @@ public:
         return nullptr;
     }
 
+    float GetRadius() const;
+
 private:
     float blurScale_ {};
     float blurRadius_ {}; //kawase blur's blur radius

@@ -17,6 +17,21 @@
 
 namespace OHOS {
 namespace Rosen {
+
+std::vector<std::pair<RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType, PermissionType>>
+    RSIRenderServiceConnectionInterfaceCodeAccessVerifier::permissionRSIRenderServiceConnectionInterfaceMappings_ {
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE,
+            PermissionType::CAPTURE_SCREEN },
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE,
+            PermissionType::UPDATE_CONFIGURATION },
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS,
+            PermissionType::GET_RUNNING_INFO },
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SHOW_WATERMARK,
+            PermissionType::UPDATE_CONFIGURATION },
+        { RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::CREATE_VIRTUAL_SCREEN,
+            PermissionType::CAPTURE_SCREEN }
+};
+
 RSIRenderServiceConnectionInterfaceCodeAccessVerifier::RSIRenderServiceConnectionInterfaceCodeAccessVerifier()
 {
     CheckCodeUnderlyingTypeStandardized<CodeEnumType>(codeEnumTypeName_);
@@ -30,7 +45,8 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
     bool hasPermission = true;
     switch (code) {
         case static_cast<CodeUnderlyingType>(CodeEnumType::CREATE_VIRTUAL_SCREEN): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_VIRTUAL_SCREEN");
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::CREATE_VIRTUAL_SCREEN") &&
+                CheckPermission(code);
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::DISABLE_RENDER_CONTROL_SCREEN): {
@@ -107,6 +123,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REPAINT_EVERYTHING): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPAINT_EVERYTHING");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_OCCLUSION_CHANGE_CALLBACK): {

@@ -83,7 +83,7 @@ public:
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask) override;
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
 
@@ -133,6 +133,8 @@ public:
 
     void RepaintEverything() override;
 
+    void ForceRefreshOneFrameWithNextVSync() override;
+
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
@@ -144,7 +146,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) override;
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
 
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 

@@ -80,6 +80,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::MARK_POWER_OFF_NEED_PROCESS_ONE_FRAME),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
@@ -951,6 +952,10 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             RepaintEverything();
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
+            ForceRefreshOneFrameWithNextVSync();
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -1026,6 +1031,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             }
             sptr<RSISurfaceCaptureCallback> cb;
             RSSurfaceCaptureConfig captureConfig;
+            RSSurfaceCaptureBlurParam blurParam;
             if (isFreeze) {
                 auto remoteObject = data.ReadRemoteObject();
                 if (remoteObject == nullptr) {
@@ -1044,8 +1050,13 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
                     RS_LOGE("RSRenderServiceConnectionStub::SET_WINDOW_FREEZE_IMMEDIATELY write captureConfig failed");
                     break;
                 }
+                if (!ReadSurfaceCaptureBlurParam(blurParam, data)) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSRenderServiceConnectionStub::TakeSurfaceCapture read blurParam failed");
+                    break;
+                }
             }
-            SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig);
+            SetWindowFreezeImmediately(id, isFreeze, cb, captureConfig, blurParam);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_POSITION): {
