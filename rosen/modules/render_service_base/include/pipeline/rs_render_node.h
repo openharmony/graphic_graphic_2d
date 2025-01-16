@@ -158,10 +158,11 @@ public:
     // firstLevelNodeId: surfacenode for uiFirst to assign task; cacheNodeId: drawing cache rootnode attached to
     virtual void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
         NodeId firstLevelNodeId = INVALID_NODEID, NodeId cacheNodeId = INVALID_NODEID,
-        NodeId uifirstRootNodeId = INVALID_NODEID);
+        NodeId uifirstRootNodeId = INVALID_NODEID, NodeId displayNodeId = INVALID_NODEID);
     void SetIsOntheTreeOnlyFlag(bool flag)
     {
-        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_, uifirstRootNodeId_);
+        SetIsOnTheTree(flag, instanceRootNodeId_, firstLevelNodeId_, drawingCacheRootId_,
+            uifirstRootNodeId_, displayNodeId_);
     }
     inline bool IsOnTheTree() const
     {
@@ -748,6 +749,11 @@ public:
 
     void SetHdrNum(bool flag, NodeId instanceRootNodeId);
 
+    NodeId GetDisplayNodeId() const
+    {
+        return displayNodeId_;
+    }
+
     // temporary used for dfx/surfaceHandler/canvas drawing render node
     DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr GetRenderDrawable() const
     {
@@ -1108,6 +1114,7 @@ private:
     // for UIExtension info collection
     bool childrenHasUIExtension_ = false;
     const bool isPurgeable_;
+    NodeId displayNodeId_ = INVALID_NODEID;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;
 

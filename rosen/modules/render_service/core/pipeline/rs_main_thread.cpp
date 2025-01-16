@@ -1537,7 +1537,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 // collect hwc nodes vector, used for display node skip and direct composition cases
                 surfaceNode->SetIsLastFrameHwcEnabled(!surfaceNode->IsHardwareForcedDisabled());
                 hardwareEnabledNodes_.emplace_back(surfaceNode);
-                hardwareEnabledDrwawables_.emplace_back(surfaceNode->GetRenderDrawable());
+                hardwareEnabledDrwawables_.emplace_back(std::make_pair(surfaceNode->GetDisplayNodeId(),
+                surfaceNode->GetRenderDrawable()));
             }
 
             // set content dirty for hwc node if needed
