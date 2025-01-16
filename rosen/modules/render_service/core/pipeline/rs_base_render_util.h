@@ -149,7 +149,7 @@ public:
         uint64_t presentWhen = CONSUME_DIRECTLY, bool dropFrameByPidEnable = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
-    static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel);
+    static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
 
     static bool ConvertBufferToBitmap(sptr<SurfaceBuffer> buffer, std::vector<uint8_t>& newBuffer,
         GraphicColorGamut dstGamut, Drawing::Bitmap& bitmap, const std::vector<GraphicHDRMetaData>& metaDatas = {});

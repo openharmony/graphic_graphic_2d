@@ -412,7 +412,7 @@ void RSMainThread::TraverseCanvasDrawingNodesNotOnTree()
 void RSMainThread::Init()
 {
     mainLoop_ = [&]() {
-        RS_PROFILER_ON_FRAME_BEGIN();
+        RS_PROFILER_ON_FRAME_BEGIN(timestamp_);
         if (isUniRender_ && !renderThreadParams_) {
 #ifdef RS_ENABLE_GPU
             // fill the params, and sync to render thread later

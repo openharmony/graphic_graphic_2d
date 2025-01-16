@@ -48,9 +48,11 @@ static std::atomic<int32_t> g_renderServiceCpuId = 0;
 static std::atomic<int32_t> g_renderServiceRenderCpuId = 0;
 static RSMainThread* g_mainThread = nullptr;
 static RSContext* g_context = nullptr;
+static uint64_t g_frameSyncTimestamp = 0u;
 static uint64_t g_frameBeginTimestamp = 0u;
 static uint64_t g_frameRenderBeginTimestamp = 0u;
 static double g_dirtyRegionPercentage = 0.0;
+static std::stringstream g_dirtyRegionList;
 static bool g_rdcSent = true;
 static uint64_t g_recordMinVsync = 0;
 static uint64_t g_recordMaxVsync = 0;
@@ -92,6 +94,7 @@ static int g_nodeListPerfCalcIndex = -1;
 
 static std::string g_testDataFrame;
 static std::vector<RSRenderNode::SharedPtr> g_childOfDisplayNodes;
+static uint32_t g_recordParcelNumber = 0;
 
 #pragma pack(push, 1)
 struct AlignedMessageParcel {
@@ -120,6 +123,7 @@ void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& o
     out.SetProperty(RSCaptureData::KEY_CPU_FREQ, frequency);
     out.SetProperty(RSCaptureData::KEY_GPU_LOAD, in.gpu.frequencyLoad.load);
     out.SetProperty(RSCaptureData::KEY_GPU_FREQ, in.gpu.frequencyLoad.current);
+    out.SetProperty(RSCaptureData::KEY_CPU_ID, g_renderServiceRenderCpuId.load());
 }
 
 static pid_t GetPid(const std::shared_ptr<RSRenderNode>& node)
@@ -174,8 +178,17 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 
     auto rects = RSUniRenderUtil::ScreenIntersectDirtyRects(dirtyRegion, screenInfo);
     uint64_t dirtyRegionArea = 0;
+    g_dirtyRegionList.str("");
     for (const auto& rect : rects) {
         dirtyRegionArea += static_cast<uint64_t>(rect.GetWidth() * rect.GetHeight());
+        int32_t value = rect.GetLeft();
+        g_dirtyRegionList.write(reinterpret_cast<const char*>(&value), sizeof(value));
+        value = rect.GetTop();
+        g_dirtyRegionList.write(reinterpret_cast<const char*>(&value), sizeof(value));
+        value = rect.GetWidth();
+        g_dirtyRegionList.write(reinterpret_cast<const char*>(&value), sizeof(value));
+        value = rect.GetHeight();
+        g_dirtyRegionList.write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
 
     if (displayArea > 0) {
@@ -229,45 +242,64 @@ void RSProfiler::OnCreateConnection(pid_t pid)
     }
 }
 
-void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_t code, MessageParcel& parcel,
-    MessageParcel& /*reply*/, MessageOption& option)
+uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option)
+{
+    const double deltaTime = Now() - g_recordStartTime;
+
+    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+
+    char headerType = 1; // parcel data
+    stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
+    stream.write(reinterpret_cast<const char*>(&deltaTime), sizeof(deltaTime));
+
+    // set sending pid
+    stream.write(reinterpret_cast<const char*>(&pid), sizeof(pid));
+    stream.write(reinterpret_cast<const char*>(&code), sizeof(code));
+
+    const size_t dataSize = parcel.GetDataSize();
+    stream.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
+    stream.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
+
+    const int32_t flags = option.GetFlags();
+    stream.write(reinterpret_cast<const char*>(&flags), sizeof(flags));
+    const int32_t waitTime = option.GetWaitTime();
+    stream.write(reinterpret_cast<const char*>(&waitTime), sizeof(waitTime));
+    g_recordParcelNumber++;
+    stream.write(reinterpret_cast<const char*>(&g_recordParcelNumber), sizeof(g_recordParcelNumber));
+
+    const std::string out = stream.str();
+    constexpr size_t headerOffset = 8 + 1;
+    if (out.size() >= headerOffset) {
+        g_recordFile.WriteRSData(deltaTime, out.data() + headerOffset, out.size() - headerOffset);
+    }
+    Network::SendBinary(out.data(), out.size());
+    return g_recordParcelNumber;
+}
+
+uint64_t RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_t code,
+    MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
 {
     if (!IsEnabled()) {
-        return;
+        return 0;
     }
 
     if (IsRecording()) {
+        constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
+        if (code == static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION) &&
+            parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
+            const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
+            if (data && *data) {
+                // ashmem parcel - don't save
+                return 0;
+            }
+        }
         const pid_t pid = GetConnectionPid(connection);
         const auto& pids = g_recordFile.GetHeaderPids();
         if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
-            const double deltaTime = Now() - g_recordStartTime;
-
-            std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-
-            char headerType = 1; // parcel data
-            stream.write(reinterpret_cast<const char*>(&headerType), sizeof(headerType));
-            stream.write(reinterpret_cast<const char*>(&deltaTime), sizeof(deltaTime));
-
-            // set sending pid
-            stream.write(reinterpret_cast<const char*>(&pid), sizeof(pid));
-            stream.write(reinterpret_cast<const char*>(&code), sizeof(code));
-
-            const size_t dataSize = parcel.GetDataSize();
-            stream.write(reinterpret_cast<const char*>(&dataSize), sizeof(dataSize));
-            stream.write(reinterpret_cast<const char*>(parcel.GetData()), dataSize);
-
-            const int32_t flags = option.GetFlags();
-            stream.write(reinterpret_cast<const char*>(&flags), sizeof(flags));
-            const int32_t waitTime = option.GetWaitTime();
-            stream.write(reinterpret_cast<const char*>(&waitTime), sizeof(waitTime));
-
-            const std::string out = stream.str();
-            constexpr size_t headerOffset = 8 + 1;
-            if (out.size() >= headerOffset) {
-                g_recordFile.WriteRSData(deltaTime, out.data() + headerOffset, out.size() - headerOffset);
-            }
-            Network::SendBinary(out.data(), out.size());
+            return WriteRemoteRequest(pid, code, parcel, option);
         }
+    } else {
+        g_recordParcelNumber = 0;
     }
 
     if (IsLoadSaveFirstScreenInProgress()) {
@@ -278,6 +310,7 @@ void RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_
         SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
         SetMode(Mode::READ);
     }
+    return 0;
 }
 
 void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* data)
@@ -490,6 +523,7 @@ void RSProfiler::OnParallelRenderBegin()
 
 void RSProfiler::OnParallelRenderEnd(uint32_t frameNumber)
 {
+    g_renderServiceRenderCpuId = Utils::GetCpuId();
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameRenderBeginTimestamp;
     CalcNodeWeigthOnFrameEnd(frameLengthNanosecs);
 
@@ -522,13 +556,14 @@ bool RSProfiler::ShouldBlockHWCNode()
     return IsEnabled() && IsReadMode();
 }
 
-void RSProfiler::OnFrameBegin()
+void RSProfiler::OnFrameBegin(uint64_t syncTime)
 {
     if (!IsEnabled()) {
         return;
     }
 
     RS_TRACE_NAME("Profiler OnFrameBegin");
+    g_frameSyncTimestamp = syncTime;
     g_frameBeginTimestamp = RawNowNano();
     g_renderServiceCpuId = Utils::GetCpuId();
     g_frameNumber++;
@@ -590,8 +625,6 @@ void RSProfiler::OnFrameEnd()
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
 {
-    g_renderServiceRenderCpuId = Utils::GetCpuId();
-
     if (g_calcPerfNode == 0) {
         return;
     }
@@ -1024,17 +1057,26 @@ void RSProfiler::RecordUpdate()
 
     const double currentTime = Utils::ToSeconds(g_frameBeginTimestamp);
     const double timeSinceRecordStart = currentTime - g_recordStartTime;
+    const uint64_t recordStartTimeNano = Utils::ToNanoseconds(g_recordStartTime);
+    double timeSinceRecordStartToSync;
+    if (g_frameSyncTimestamp > recordStartTimeNano) {
+        timeSinceRecordStartToSync = Utils::ToSeconds(g_frameSyncTimestamp - recordStartTimeNano);
+    } else {
+        timeSinceRecordStartToSync = -Utils::ToSeconds(recordStartTimeNano - g_frameSyncTimestamp);
+    }
 
     if (timeSinceRecordStart > 0.0) {
         RSCaptureData captureData;
         captureData.SetTime(timeSinceRecordStart);
         captureData.SetProperty(RSCaptureData::KEY_RS_FRAME_NUMBER, g_frameNumber);
+        captureData.SetProperty(RSCaptureData::KEY_RS_SYNC_TIME, timeSinceRecordStartToSync);
         captureData.SetProperty(RSCaptureData::KEY_RS_FRAME_LEN, frameLengthNanosecs);
         captureData.SetProperty(RSCaptureData::KEY_RS_CMD_COUNT, GetCommandCount());
         captureData.SetProperty(RSCaptureData::KEY_RS_CMD_EXECUTE_COUNT, GetCommandExecuteCount());
-        captureData.SetProperty(RSCaptureData::KEY_RS_CMD_PARCEL_LIST, GetCommandParcelList(g_recordStartTime));
+        captureData.SetProperty(RSCaptureData::KEY_RS_PARCEL_CMD_LIST, GetParcelCommandList());
         captureData.SetProperty(RSCaptureData::KEY_RS_PIXEL_IMAGE_ADDED, GetImagesAdded());
         captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION, floor(g_dirtyRegionPercentage));
+        captureData.SetProperty(RSCaptureData::KEY_RS_DIRTY_REGION_LIST, g_dirtyRegionList.str());
         captureData.SetProperty(RSCaptureData::KEY_RS_CPU_ID, g_renderServiceCpuId.load());
         uint64_t vsyncId = g_mainThread ? g_mainThread->vsyncId_ : 0;
         captureData.SetProperty(RSCaptureData::KEY_RS_VSYNC_ID, vsyncId);
@@ -1715,6 +1757,7 @@ void RSProfiler::RecordStart(const ArgList& args)
     }
 
     g_recordStartTime = 0.0;
+    g_recordParcelNumber = 0;
 
     ImageCache::Reset();
     g_lastCacheImageCount = 0;
