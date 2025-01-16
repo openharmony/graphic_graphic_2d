@@ -488,6 +488,7 @@ void RSMainThread::Init()
             });
         }
 #endif
+
         RS_PROFILER_ON_FRAME_END();
     };
     static std::function<void (std::shared_ptr<Drawing::Image> image)> holdDrawingImagefunc =
@@ -2152,6 +2153,33 @@ void RSMainThread::CheckBlurEffectCountStatistics(std::shared_ptr<RSRenderNode> 
     }
 }
 
+void RSMainThread::StartGPUDraw()
+{
+    gpuDrawCount_.fetch_add(1, std::memory_order_relaxed);
+}
+
+void RSMainThread::EndGPUDraw()
+{
+    if (gpuDrawCount_.fetch_sub(1, std::memory_order_relaxed) == 1) {
+        // gpuDrawCount_ is now 0
+        ClearUnmappedCache();
+    }
+}
+
+void RSMainThread::ClearUnmappedCache()
+{
+    std::set<uint32_t> bufferIds;
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        bufferIds.swap(unmappedCacheSet_);
+    }
+    if (bufferIds.empty()) {
+        return;
+    }
+    RSUniRenderThread::Instance().ClearGPUCompositionCache(bufferIds);
+    RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(bufferIds);
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
 #ifdef RS_ENABLE_GPU
@@ -2197,7 +2225,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
             }
             WaitUntilUploadTextureTaskFinishedForGL();
             renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
-            renderThreadParams_->unmappedCacheSet_ = std::move(unmappedCacheSet_);
             renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
             renderThreadParams_->hardCursorDrawableMap_ = RSPointerWindowManager::Instance().GetHardCursorDrawableMap();
             RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_RENDER_END, {});
@@ -2231,7 +2258,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SurfaceOcclusionCallbackToWMS();
         rsVsyncRateReduceManager_.SetUniVsync();
         renderThreadParams_->selfDrawables_ = std::move(selfDrawables_);
-        renderThreadParams_->unmappedCacheSet_ = std::move(unmappedCacheSet_);
         renderThreadParams_->hardCursorDrawableMap_ = RSPointerWindowManager::Instance().GetHardCursorDrawableMap();
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
@@ -4493,7 +4519,7 @@ void RSMainThread::SetLuminanceChangingStatus(ScreenId id, bool isLuminanceChang
     std::lock_guard<std::mutex> lock(luminanceMutex_);
     displayLuminanceChanged_[id] = isLuminanceChanged;
 }
- 
+
 bool RSMainThread::ExchangeLuminanceChangingStatus(ScreenId id)
 {
     std::lock_guard<std::mutex> lock(luminanceMutex_);

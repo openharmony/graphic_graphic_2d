@@ -393,10 +393,34 @@ public:
         return curTime_;
     }
 
-    std::set<uint32_t>& GetUnmappedCacheSet()
+    void StartGPUDraw();
+
+    void EndGPUDraw();
+
+    struct GPUCompositonCacheGuard {
+        GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->StartGPUDraw();
+        }
+
+        ~GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->EndGPUDraw();
+        }
+    };
+
+    void AddToUnmappedCacheSet(uint32_t bufferId)
     {
-        return unmappedCacheSet_;
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(bufferId);
     }
+
+    void AddToUnmappedCacheSet(const std::set<uint32_t>& seqNumSet)
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
+    }
+    void ClearUnmappedCache();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -665,6 +689,15 @@ private:
      * removed from the GPU cache.
      */
     std::set<uint32_t> unmappedCacheSet_ = {};
+    std::mutex unmappedCacheSetMutex_;
+
+    /**
+     * @brief An atomic integer to keep track of the GPU draw count.
+     *
+     * This variable is used to safely increment and decrement the count of GPU draw operations
+     * across multiple threads without causing data races.
+     */
+    std::atomic<int> gpuDrawCount_ = 0;
 
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;

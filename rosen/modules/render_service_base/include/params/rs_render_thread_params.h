@@ -443,16 +443,6 @@ public:
     {
         currentVisitDisplayDrawableId_ = displayId;
     }
-
-    const std::set<uint32_t> GetUnmappedCacheSet() const
-    {
-        return unmappedCacheSet_;
-    }
-
-    void ClearUnmappedCacheSet()
-    {
-        unmappedCacheSet_.clear();
-    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -515,8 +505,6 @@ private:
 
     bool isSecurityExemption_ = false;
     ScreenInfo screenInfo_ = {};
-
-    std::set<uint32_t> unmappedCacheSet_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;
