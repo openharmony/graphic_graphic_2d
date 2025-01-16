@@ -47,7 +47,6 @@ public:
     int32_t LoadGraphicConfiguration(const char* fileDir);
     int32_t Parse();
     bool ParseFeatureSwitch(std::string val);
-    int32_t ParseFeatureSingleParam(std::string val);
     std::string ParseFeatureMultiParam(std::string type, std::string val);
 
     std::string ExtractPropertyValue(const std::string &propName, xmlNode &node);

@@ -25,7 +25,11 @@
 #include "platform/common/rs_log.h"
 
 namespace OHOS::Rosen {
-const std::vector<std::string> featureModules = {"HdrConfig", "DrmConfig", "HwcConfig"};
+const std::vector<std::string> featureModules = {
+    "HdrConfig",
+    "DrmConfig",
+    "HwcConfig"
+};
 
 enum FeatureModule {
     HDR = 0,

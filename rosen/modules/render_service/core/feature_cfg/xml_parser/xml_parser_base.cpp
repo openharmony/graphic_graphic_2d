@@ -59,7 +59,7 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
     RS_LOGI("XMLParserBase ParseInternal Start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGE("XMLParserBase stop parsing internal, no children nodes");
+        RS_LOGD("XMLParserBase stop parsing internal, no children nodes");
         return false;
     }
     currNode = currNode->xmlChildrenNode;
@@ -85,7 +85,7 @@ bool XMLParserBase::ParseInternal(xmlNode &node)
             auto featureObj = iter->second;
             parseSuccess = featureObj->ParseFeatureParam(featureMap, *currNode);
         } else {
-            RS_LOGE("XMLParserBase featureMap cannot find feature %{public}s", featureName.c_str());
+            RS_LOGD("XMLParserBase featureMap cannot find feature %{public}s", featureName.c_str());
         }
     }
     return true;
@@ -122,7 +122,7 @@ int32_t XMLParserBase::GetXmlNodeAsInt(xmlNode &node)
     if (!xmlStrcmp(node.name, reinterpret_cast<const xmlChar*>("FeatureMultiParam"))) {
         return PARSE_XML_FEATURE_MULTIPARAM;
     }
-    RS_LOGE("XMLParserBase failed to identify a xml node : %{public}s", node.name);
+    RS_LOGD("XMLParserBase failed to identify a xml node : %{public}s", node.name);
     return PARSE_XML_UNDEFINED;
 }
 
@@ -140,10 +140,5 @@ bool XMLParserBase::IsNumber(const std::string& str)
 bool XMLParserBase::ParseFeatureSwitch(std::string val)
 {
     return val == "true";
-}
-
-int32_t XMLParserBase::ParseFeatureSingleParam(std::string val)
-{
-    return std::stoi(val.c_str());
 }
 } // namespace OHOS::Rosen

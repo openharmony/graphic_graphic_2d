@@ -55,12 +55,12 @@ void GraphicFeatureParamManager::FeatureParamParseEntry()
     }
 
     if (featureParser_->LoadGraphicConfiguration(GRAPHIC_CONFIG_FILE_PRODUCT) != PARSE_EXEC_SUCCESS) {
-        RS_LOGE("GraphicFeatureParamManager failed to load prod xml configuration file");
+        RS_LOGD("GraphicFeatureParamManager failed to load prod xml configuration file");
         return;
     }
 
     if (featureParser_->Parse() != PARSE_EXEC_SUCCESS) {
-        RS_LOGE("GraphicFeatureParamManager failed to parse prod xml configuration");
+        RS_LOGD("GraphicFeatureParamManager failed to parse prod xml configuration");
     }
 }
 
@@ -70,7 +70,7 @@ std::shared_ptr<FeatureParam> GraphicFeatureParamManager::GetFeatureParam(std::s
 
     auto iter = featureParamMap_.find(featureName);
     if (iter == featureParamMap_.end()) {
-        RS_LOGE("GraphicFeatureParamManager %{public}s : %{public}s failed", __func__, featureName.c_str());
+        RS_LOGD("GraphicFeatureParamManager %{public}s : %{public}s failed", __func__, featureName.c_str());
         return nullptr;
     }
 

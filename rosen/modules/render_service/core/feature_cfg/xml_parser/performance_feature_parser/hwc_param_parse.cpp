@@ -22,7 +22,7 @@ int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
     RS_LOGI("HWCParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGE("HWCParamParse stop parsing, no children nodes");
+        RS_LOGD("HWCParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 
@@ -33,7 +33,7 @@ int32_t HWCParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
         }
 
         if (ParseHwcInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGE("HWCParamParse stop parsing, parse internal fail");
+            RS_LOGD("HWCParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
@@ -48,7 +48,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
     if (iter != featureMap.end()) {
         hwcParam_ = std::static_pointer_cast<HWCParam>(iter->second);
     } else {
-        RS_LOGE("HWCParamParse stop parsing, no initializing param map");
+        RS_LOGD("HWCParamParse stop parsing, no initializing param map");
     }
 
     // Start Parse Feature Params
@@ -66,7 +66,7 @@ int32_t HWCParamParse::ParseHwcInternal(FeatureParamMapType &featureMap, xmlNode
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParamForApp(*currNode, name) != PARSE_EXEC_SUCCESS) {
-            RS_LOGE("HWCParamParse parse MultiParam fail");
+            RS_LOGD("HWCParamParse parse MultiParam fail");
         }
     }
 
@@ -77,7 +77,7 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &
 {
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGE("HWCParamParse stop parsing, no children nodes");
+        RS_LOGD("HWCParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
     currNode = currNode->xmlChildrenNode;
@@ -88,7 +88,6 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &
         auto appName = ExtractPropertyValue("name", *currNode);
         auto val = ExtractPropertyValue("value", *currNode);
         if (!IsNumber(val)) {
-            RS_LOGE("HWCParamParse ParseFeatureMultiParam val not number");
             return PARSE_ERROR;
         }
         if (name == "SourceTuningForYuv420") {
@@ -96,7 +95,7 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode &node, std::string &
         } else if (name == "RsSolidColorLayerConfig") {
             hwcParam_->SetSolidColorLayerForApp(appName, val);
         } else {
-            RS_LOGE("HWCParamParse ParseFeatureMultiParam cannot find name");
+            RS_LOGD("HWCParamParse ParseFeatureMultiParam cannot find name");
             return PARSE_NO_PARAM;
         }
     }

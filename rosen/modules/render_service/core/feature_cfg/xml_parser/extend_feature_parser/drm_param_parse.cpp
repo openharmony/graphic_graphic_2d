@@ -22,7 +22,7 @@ int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
     RS_LOGI("DRMParamParse start");
     xmlNode *currNode = &node;
     if (currNode->xmlChildrenNode == nullptr) {
-        RS_LOGE("DRMParamParse stop parsing, no children nodes");
+        RS_LOGD("DRMParamParse stop parsing, no children nodes");
         return PARSE_GET_CHILD_FAIL;
     }
 
@@ -33,7 +33,7 @@ int32_t DRMParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xmlNod
         }
 
         if (ParseDrmInternal(featureMap, *currNode) != PARSE_EXEC_SUCCESS) {
-            RS_LOGE("DRMParamParse stop parsing, parse internal fail");
+            RS_LOGD("DRMParamParse stop parsing, parse internal fail");
             return PARSE_INTERNAL_FAIL;
         }
     }
@@ -49,7 +49,7 @@ int32_t DRMParamParse::ParseDrmInternal(FeatureParamMapType &featureMap, xmlNode
     if (iter != featureMap.end()) {
         drmParam_ = std::static_pointer_cast<DRMParam>(iter->second);
     } else {
-        RS_LOGE("DRMParamParse stop parsing, no initializing param map");
+        RS_LOGD("DRMParamParse stop parsing, no initializing param map");
         return PARSE_NO_PARAM;
     }
 
@@ -62,8 +62,6 @@ int32_t DRMParamParse::ParseDrmInternal(FeatureParamMapType &featureMap, xmlNode
         if (name == "DrmEnabled") {
             drmParam_->SetDrmEnable(isEnabled);
             RS_LOGI("DRMParamParse parse DrmEnabled %{public}d", drmParam_->IsDrmEnable());
-        } else {
-            RS_LOGE("DRMParamParse stop parsing, not related feature");
         }
     }
     return PARSE_EXEC_SUCCESS;
