@@ -13,7 +13,6 @@
 
 import("graphic_config.gni")
 
-enable_glfw_window = false
 use_mingw_win = "${current_os}_${current_cpu}" == "mingw_x86_64"
 graphic_2d_root = "//foundation/graphic/graphic_2d"
 ace_platforms = []
