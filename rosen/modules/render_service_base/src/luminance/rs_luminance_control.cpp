@@ -205,9 +205,19 @@ bool RSLuminanceControl::LoadTmoControl()
     return true;
 }
 
-bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type)
+bool RSLuminanceControl::SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus)
 {
-    return (initStatus_ && setHdrStatus_ != nullptr) ? setHdrStatus_(screenId, isHdrOn, type) : false;
+    if (!initStatus_ || setHdrStatus_ == nullptr) {
+        RS_LOGE("LumCtr::SetHdrStatus: not init or setHdrStatus_ is null!");
+        return false;
+    }
+    bool hasHdrPhoto = static_cast<bool>(hdrstatus & HdrStatus::HDR_PHOTO);
+    bool hasHdrVideo = static_cast<bool>(hdrstatus & HdrStatus::HDR_VIDEO);
+    bool hasAiHdrVideo = static_cast<bool>(hdrstatus & HdrStatus::AI_HDR_VIDEO);
+    RS_LOGD("LumCtr::SetHdrStatus: hasHdrVideo:%{public}d hasAiHdrVideo:%{public}d screenId:%{public}" PRIu64 "",
+        hasHdrVideo, hasAiHdrVideo, screenId);
+    return setHdrStatus_(screenId, hasHdrPhoto, HDR_TYPE::PHOTO) && setHdrStatus_(screenId, hasHdrVideo,
+        HDR_TYPE::VIDEO) && setHdrStatus_(screenId, hasAiHdrVideo, HDR_TYPE::AIHDR_VIDEO);
 }
 
 bool RSLuminanceControl::IsHdrOn(ScreenId screenId)

@@ -500,19 +500,18 @@ public:
     void HandleCurMainAndLeashSurfaceNodes();
 
     // HDR Video
-    void SetHdrVideo(bool hasHdrVideo, HDR_TYPE hdrVideoType) {
-        hasHdrVideo_ = hasHdrVideo;
-        hdrVideoType_ = hdrVideoType;
+    void SetHdrStatus(bool isNeedResetStatus, HdrStatus hdrStatus)
+    {
+        if (isNeedResetStatus) {
+            hasHdrStatus_ = HdrStatus::NO_HDR;
+            return;
+        }
+        hasHdrStatus_ = static_cast<HdrStatus>(hasHdrStatus_ | hdrStatus);
     }
 
-    HDR_TYPE GetHdrVideoType() const
+    HdrStatus GetHdrStatus() const
     {
-        return hdrVideoType_;
-    }
-
-    bool GetHdrVideo() const
-    {
-        return hasHdrVideo_;
+        return hasHdrStatus_;
     }
 
     using ScreenStatusNotifyTask = std::function<void(bool, uint64_t)>;
@@ -550,7 +549,6 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
-    bool hasHdrVideo_ = false;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
@@ -562,7 +560,7 @@ private:
     int32_t currentScbPid_ = -1;
     int32_t lastScbPid_ = -1;
     // HDR Video
-    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
+    HdrStatus hasHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
     // Use in MultiLayersPerf
     size_t surfaceCountForMultiLayersPerf_ = 0;
