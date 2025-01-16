@@ -1633,7 +1633,7 @@ void RSDisplayRenderNodeDrawable::ClearTransparentBeforeSaveLayer()
     RS_TRACE_NAME("ClearTransparentBeforeSaveLayer");
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
-    if(UNLIKELY(!renderParams_)) {
+    if (UNLIKELY(!renderParams_)) {
         RS_LOGE("RSDisplayRenderNodeDrawable::OnDraw renderParams is null!");
         return;
     }
