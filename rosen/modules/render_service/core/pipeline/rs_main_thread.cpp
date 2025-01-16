@@ -731,7 +731,12 @@ void RSMainThread::UpdateGpuContextCacheSize()
         * MEMUNIT_RATE * MEMUNIT_RATE; // adjust by actual Resolution
     cacheLimitsResourceSize = cacheLimitsResourceSize > MAX_GPU_CONTEXT_CACHE_SIZE ?
         MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
-    gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+    if (cacheLimitsResourceSize > maxResourcesSize) {
+        gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+    }
+    if (system::GetParameter("const.product.devicetype", "pc") == "wearable") {
+        gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+    }
 #endif
 }
 
