@@ -3881,11 +3881,12 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
     int64_t vsyncPeriod = 0;
+    VsyncError ret = VSYNC_ERROR_UNKOWN; 
     if (receiver_) {
-        receiver_->GetVSyncPeriod(vsyncPeriod);
+        ret = receiver_->GetVSyncPeriod(vsyncPeriod);
     }
-    if (static_cast<uint64_t>(vsyncPeriod) > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
-    	static_cast<uint64_t>(vsyncPeriod) < REFRESH_PERIOD - PERIOD_MAX_OFFSET) {
+    if (ret != VSYNC_ERROR_OK || static_cast<uint64_t>(vsyncPeriod) > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
+    	static_cast<uint64_t>(vsyncPeriod) < REFRESH_PERIOD - PERIOD_MAX_OFFSET || !context_) {
         RequestNextVSync();
         return;
     }
@@ -3931,11 +3932,17 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
             RS_PROFILER_PATCH_TIME(now);
-            timestamp_ = timestamp_ + (now - curTime_);
+            
             int64_t vsyncPeriod = 0;
+            VsyncError ret = VSYNC_ERROR_UNKOWN;
             if (receiver_) {
-                receiver_->GetVSyncPeriod(vsyncPeriod);
+                ret = receiver_->GetVSyncPeriod(vsyncPeriod);
             }
+            if (ret != VSYNC_ERROR_OK || vsyncPeriod == 0) {
+                RequestNextVSync();
+                return;
+            }
+            timestamp_ = timestamp_ + (now - curTime_);
             lastFastComposeTimeStampDiff_ = (now - curTime_) % vsyncPeriod;
             lastFastComposeTimeStamp_ = timestamp_;
             RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record"

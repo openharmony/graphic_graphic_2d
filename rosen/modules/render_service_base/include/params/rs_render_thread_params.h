@@ -185,7 +185,7 @@ public:
         return isForceRefresh_;
     }
 
-    void SetFastComposeTimeStampDiff(int64_t fastComposeTimeStampDiff)
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
     {
         fastComposeTimeStampDiff_ = fastComposeTimeStampDiff;
     }

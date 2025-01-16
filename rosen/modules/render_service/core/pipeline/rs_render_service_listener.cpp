@@ -67,14 +67,17 @@ void RSRenderServiceListener::OnBufferAvailable()
     }
     if (auto consumer = surfaceHandler->GetConsumer()) {
         bool supportFastCompose = false;
-        consumer->GetBufferSupportFastCompose(supportFastCompose);
-        if (supportFastCompose) {
+        GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
+        if (ret == GSERROR_OK && supportFastCompose) {
             int64_t lastFlushedDesiredPresentTimeStamp = 0;
-            consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp);
-            RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : %d, " \
+            ret = consumer->GetLastFlushedDesiredPresentTimeStamp(lastFlushedDesiredPresentTimeStamp);
+            if(ret == GSERROR_OK) {
+                RS_TRACE_NAME_FMT("RSRenderServiceListener::OnBufferAvailable SupportFastCompose : %d, " \
                 "bufferTimeStamp : %" PRId64, supportFastCompose, lastFlushedDesiredPresentTimeStamp);
-            RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
-            return;
+                RSMainThread::Instance()->CheckFastCompose(lastFlushedDesiredPresentTimeStamp);
+                return;
+            }
+            
         }
     }
     RSMainThread::Instance()->RequestNextVSync();
