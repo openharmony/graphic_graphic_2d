@@ -3864,4 +3864,22 @@ HWTEST_F(RSMainThreadTest, UpdateSubSurfaceCnt003, TestSize.Level2)
     mainThread->UpdateSubSurfaceCnt();
     ASSERT_EQ(rootNode->subSurfaceCnt_, cnt);
 }
+
+/**
+ * @tc.name: MultiDisplayChangeTest
+ * @tc.desc: test MultiDisplayChangeTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isMultiDisplayPre_ = false;
+    auto getMultiDisplayStatus = mainThread->GetMultiDisplayStatus();
+    EXPECT_FALSE(getMultiDisplayStatus);
+    mainThread->isMultiDisplayChange_ = false;
+    EXPECT_FALSE(mainThread->GetMultiDisplayChange());
+    mainThread->MultiDisplayChange(getMultiDisplayStatus);
+}
 } // namespace OHOS::Rosen

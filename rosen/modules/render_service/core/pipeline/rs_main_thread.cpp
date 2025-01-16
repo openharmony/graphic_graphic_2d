@@ -1610,6 +1610,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         return;
     }
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
+    MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
@@ -4269,6 +4270,16 @@ void RSMainThread::SetFrameInfo(uint64_t frameCount)
     auto &hgmCore = HgmCore::Instance();
     hgmCore.SetActualTimestamp(currentTimestamp);
     hgmCore.SetVsyncId(frameCount);
+}
+
+void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
+{
+    if (isMultiDisplay == isMultiDisplayPre_) {
+        isMultiDisplayChange_ = false;
+        return;
+    }
+    isMultiDisplayChange_ = true;
+    isMultiDisplayPre_ = isMultiDisplay;
 }
 } // namespace Rosen
 } // namespace OHOS

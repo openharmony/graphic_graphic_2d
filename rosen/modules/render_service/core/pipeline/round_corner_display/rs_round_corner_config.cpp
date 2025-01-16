@@ -452,6 +452,7 @@ bool RCDConfig::Load(const std::string& configFile)
     if (isLoadData) {
         return true;
     }
+    isLoadData = true;
     auto begin = high_resolution_clock::now();
     Clear();
     xmlKeepBlanksDefault(0);
@@ -483,7 +484,6 @@ bool RCDConfig::Load(const std::string& configFile)
         startPtr = startPtr->next;
     }
     CloseXML();
-    isLoadData = true;
     auto interval = std::chrono::duration_cast<microseconds>(high_resolution_clock::now() - begin);
     RS_LOGI("RoundCornerDisplay read xml time cost %{public}lld us \n", interval.count());
     return true;
@@ -513,8 +513,6 @@ void RCDConfig::CloseXML()
         xmlFreeDoc(pDoc);
         pDoc = nullptr;
     }
-    xmlCleanupParser();
-    xmlMemoryDump();
 }
 
 void RCDConfig::Clear()

@@ -1733,6 +1733,7 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest051, TestSize.Level
     OH_Drawing_TextStyleSetBackgroundRect(txtStyle, &rectStyleInfo, styleId);
     uint32_t symbol = 2; // 2 means symbol for test
     OH_Drawing_TypographyHandlerAddSymbol(handler, symbol);
+    OH_Drawing_TypographyHandlerAddSymbol(nullptr, symbol);
     const char* key1 = "宋体";
     int value1 = 1; // 1 for test
     OH_Drawing_TextStyleAddFontFeature(nullptr, key1, value1);

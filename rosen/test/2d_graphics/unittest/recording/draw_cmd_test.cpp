@@ -236,14 +236,14 @@ HWTEST_F(DrawCmdTest, GenerateCachedOpItem001, TestSize.Level1)
     auto drawCmdList = DrawCmdList::CreateFromData({ nullptr, 0 }, false);
     EXPECT_TRUE(drawCmdList != nullptr);
     GenerateCachedOpItemPlayer player{*drawCmdList, nullptr, nullptr};
-    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr, 0);
+    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, nullptr, 0));
     OpDataHandle opDataHandle;
     uint64_t globalUniqueId = 0;
     PaintHandle paintHandle;
     DrawTextBlobOpItem::ConstructorHandle handle{opDataHandle,
         globalUniqueId, 0, 0, paintHandle};
-    player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0);
-    player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0);
+    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::TEXT_BLOB_OPITEM, &handle, 0));
+    EXPECT_FALSE(player.GenerateCachedOpItem(DrawOpItem::PICTURE_OPITEM, &handle, 0));
 }
 
 /**
@@ -868,11 +868,13 @@ HWTEST_F(DrawCmdTest, MaskCmdList001, TestSize.Level1)
     maskCmdList->Playback(path, brush);
     Pen pen;
     maskCmdList->Playback(path, pen, brush);
+    EXPECT_FALSE(path->IsValid());
 
     auto maskCmdList2 = MaskCmdList::CreateFromData(listData, false);
     EXPECT_TRUE(maskCmdList2 != nullptr);
     maskCmdList2->Playback(path, brush);
     maskCmdList2->Playback(path, pen, brush);
+    EXPECT_FALSE(path->IsValid());
 }
 
 #ifdef ROSEN_OHOS
