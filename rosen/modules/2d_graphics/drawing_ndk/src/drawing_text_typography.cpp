@@ -1455,6 +1455,11 @@ OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
+    free(descriptor->path);
+    free(descriptor->postScriptName);
+    free(descriptor->fullName);
+    free(descriptor->fontFamily);
+    free(descriptor->fontSubfamily);
     delete descriptor;
 }
 
@@ -1701,7 +1706,7 @@ void OH_Drawing_SetTextShadow(
     if (!shadow || !offset) {
         return;
     }
- 
+
     auto* tailoredShadow = reinterpret_cast<TextShadow*>(shadow);
     tailoredShadow->blurRadius = blurRadius;
     tailoredShadow->color = Drawing::Color(color);
