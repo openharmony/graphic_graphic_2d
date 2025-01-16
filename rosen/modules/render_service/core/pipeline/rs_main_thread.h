@@ -618,6 +618,7 @@ private:
     // used for hardware enabled case
     bool doDirectComposition_ = true;
     bool needDrawFrame_ = true;
+    bool needPostAndWait_ = true;
     bool isLastFrameDirectComposition_ = false;
     bool isNeedResetClearMemoryTask_ = false;
     bool isHardwareEnabledBufferUpdated_ = false;
