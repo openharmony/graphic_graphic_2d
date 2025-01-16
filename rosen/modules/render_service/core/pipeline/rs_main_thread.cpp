@@ -2183,7 +2183,8 @@ void RSMainThread::OnUniRenderDraw()
         return;
     }
 
-    if (!doDirectComposition_ && needDrawFrame_) {
+    needPostAndWait_ = !doDirectComposition_ && needDrawFrame_;
+    if (needPostAndWait_) {
         renderThreadParams_->SetContext(context_);
         renderThreadParams_->SetDiscardJankFrames(GetDiscardJankFrames());
         drawFrame_.SetRenderThreadParams(renderThreadParams_);
@@ -2789,7 +2790,7 @@ const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& RSMainThr
 void RSMainThread::RSJankStatsOnVsyncEnd(int64_t onVsyncStartTime, int64_t onVsyncStartTimeSteady,
                                          float onVsyncStartTimeSteadyFloat)
 {
-    if (isUniRender_ && doDirectComposition_) {
+    if (isUniRender_ && !needPostAndWait_) {
         const JankDurationParams rsParams = { .timeStart_ = onVsyncStartTime,
                                               .timeStartSteady_ = onVsyncStartTimeSteady,
                                               .timeStartSteadyFloat_ = onVsyncStartTimeSteadyFloat,
@@ -3602,6 +3603,10 @@ void RSMainThread::ForceRefreshForUni()
 {
     if (isUniRender_) {
         PostTask([=]() {
+            const int64_t onVsyncStartTime = GetCurrentSystimeMs();
+            const int64_t onVsyncStartTimeSteady = GetCurrentSteadyTimeMs();
+            const float onVsyncStartTimeSteadyFloat = GetCurrentSteadyTimeMsFloat();
+            RSJankStatsOnVsyncStart(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
             MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
             RSUnmarshalThread::Instance().PostTask(unmarshalBarrierTask_);
             auto now = std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -3614,6 +3619,7 @@ void RSMainThread::ForceRefreshForUni()
             SetFrameInfo(0);
             RS_TRACE_NAME("RSMainThread::ForceRefreshForUni timestamp:" + std::to_string(timestamp_));
             mainLoop_();
+            RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
         });
         auto screenManager_ = CreateOrGetScreenManager();
         if (screenManager_ != nullptr) {
