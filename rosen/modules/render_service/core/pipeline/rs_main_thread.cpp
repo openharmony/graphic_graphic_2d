@@ -3884,7 +3884,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     if (receiver_) {
         receiver_->GetVSyncPeriod(vsyncPeriod);
     }
-    if (static_cast<uint64_t>(vsyncPeriod) > REFRESH_PERIOD + PERIOD_MAX_OFFSET || 
+    if (static_cast<uint64_t>(vsyncPeriod) > REFRESH_PERIOD + PERIOD_MAX_OFFSET ||
     	static_cast<uint64_t>(vsyncPeriod) < REFRESH_PERIOD - PERIOD_MAX_OFFSET) {
         RequestNextVSync();
         return;
@@ -3901,7 +3901,7 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     // ignore animation scenario and mult-window scenario
     bool isNeedSingleFrameCompose = context_->GetAnimatingNodeList().empty() &&
         context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
-    if (isNeedSingleFrameCompose && nowTime - timestamp_ > vsyncPeriod && 
+    if (isNeedSingleFrameCompose && nowTime - timestamp_ > vsyncPeriod &&
         lastFlushedDesiredPresentTimeStamp > lastVsyncTime - vsyncPeriod &&
         lastFlushedDesiredPresentTimeStamp < lastVsyncTime &&
         nowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
@@ -3938,7 +3938,8 @@ void RSMainThread::ForceRefreshForUni(bool needDelay)
             }
             lastFastComposeTimeStampDiff_ = (now - curTime_) % vsyncPeriod;
             lastFastComposeTimeStamp_ = timestamp_;
-            RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
+            RS_TRACE_NAME_FMT("RSMainThread::ForceRefreshForUni record"
+                "Time diff: %" PRIu64, lastFastComposeTimeStampDiff_);
             // When fast compose by buffer, pipeline still need to delay to maintain smooth rendering
             isForceRefresh_ = !needDelay;
             curTime_ = now;
