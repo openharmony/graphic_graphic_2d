@@ -494,8 +494,10 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     RSSurfaceNodeConfig config = { name };
+    RS_LOGI("RSSurfaceNode::Unmarshalling, Node: %{public}" PRIu64 ", Name: %{public}s", id, name.c_str());
 
     if (auto prevNode = RSNodeMap::Instance().GetNode(id)) {
+        RS_LOGW("RSSurfaceNode::Unmarshalling, the node id is already in the map");
         // if the node id is already in the map, we should not create a new node
         return prevNode->ReinterpretCastTo<RSSurfaceNode>();
     }
@@ -656,6 +658,8 @@ RSSurfaceNode::~RSSurfaceNode()
     if (transactionProxy == nullptr) {
         return;
     }
+
+    RS_LOGI("RSSurfaceNode::~RSSurfaceNode, Node: %{public}" PRIu64 ", Name: %{public}s", GetId(), GetName().c_str());
 
     // both divided and unirender need to unregister listener when surfaceNode destroy
     auto renderServiceClient =
