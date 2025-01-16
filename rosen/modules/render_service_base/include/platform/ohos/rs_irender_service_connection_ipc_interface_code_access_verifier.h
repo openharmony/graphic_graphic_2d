@@ -45,13 +45,8 @@ private:
     DISALLOW_COPY_AND_MOVE(RSIRenderServiceConnectionInterfaceCodeAccessVerifier);
 #ifdef ENABLE_IPC_SECURITY
     void AddRSIRenderServiceConnectionInterfaceCodePermission();
-    static inline const std::vector<std::pair<CodeEnumType, PermissionType>>
-        permissionRSIRenderServiceConnectionInterfaceMappings_ {
-            { CodeEnumType::TAKE_SURFACE_CAPTURE, PermissionType::CAPTURE_SCREEN },
-            { CodeEnumType::SET_REFRESH_RATE_MODE, PermissionType::UPDATE_CONFIGURATION },
-            { CodeEnumType::GET_MEMORY_GRAPHICS, PermissionType::GET_RUNNING_INFO },
-            { CodeEnumType::SHOW_WATERMARK, PermissionType::UPDATE_CONFIGURATION }
-        };
+    static std::vector<std::pair<CodeEnumType, PermissionType>>
+        permissionRSIRenderServiceConnectionInterfaceMappings_;
     static inline const std::unordered_map<CodeEnumType, uint32_t>
         accessRSIRenderServiceConnectionInterfaceTimesRestrictions_ {
             { CodeEnumType::REGISTER_APPLICATION_AGENT, 15 },
