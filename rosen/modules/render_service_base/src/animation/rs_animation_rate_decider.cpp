@@ -117,11 +117,11 @@ int32_t RSAnimationRateDecider::ProcessVector4f(const PropertyValue& property, c
     // Vector4f data include data[0], data[1], data[2], data[3]
     // data[0], data[1] indicate the speed of the position moves
     // data[2], data[3] indicate the speed of the width and height change
-    int32_t matchFpsByPosition = func(propertyUnit, sqrt(data[0] * data[0] + data[1] * data[1]), absSize_);
+    int32_t matchFpsByPosition = func(propertyUnit, sqrt(data[0] * data[0] + data[1] * data[1]), absArea_, absLength_);
     float velocityX = data[2] * nodeScaleX_;
     float velocityY = data[3] * nodeScaleY_;
     int32_t matchFpsBySize = func(RSPropertyUnit::PIXEL_SIZE,
-        sqrt(velocityX * velocityX + velocityY * velocityY), absSize_);
+        sqrt(velocityX * velocityX + velocityY * velocityY), absArea_, absLength_);
     return std::max(matchFpsByPosition, matchFpsBySize);
 }
 
@@ -141,7 +141,7 @@ int32_t RSAnimationRateDecider::ProcessVector2f(const PropertyValue& property, c
         // for other animation type such as translate
         velocity = property->ToFloat();
     }
-    return func(property->GetPropertyUnit(), velocity, absSize_);
+    return func(property->GetPropertyUnit(), velocity, absArea_, absLength_);
 }
 
 int32_t RSAnimationRateDecider::ProcessFloat(const PropertyValue& property, const FrameRateGetFunc& func)
@@ -150,13 +150,14 @@ int32_t RSAnimationRateDecider::ProcessFloat(const PropertyValue& property, cons
     float propertyValue = property->ToFloat();
     if (propertyUnit == RSPropertyUnit::ANGLE_ROTATION) {
         // get the longest from height and width, record as H.
+        float height = std::max(nodeWidth_ * nodeScaleX_, nodeHeight_ * nodeScaleY_);
         // V = W * R = W * (H / 2) = w * (2 * pi) * (H / 2) / 360 = w * pi * H / 360
         // let w = propertyValue => w *= H * FLOAT_PI / 360
         // 360 means 360 angle, relative to 2 * pi radian.
-        propertyValue *= std::max(absWidth_, absHeight_) * FLOAT_PI / 360;
+        propertyValue *= height * FLOAT_PI / 360;
         ROSEN_LOGD("%{public}s, ANGLE_ROTATION scene, propertyValue: %{public}f", __func__, propertyValue);
     }
-    return func(propertyUnit, propertyValue, absSize_);
+    return func(propertyUnit, propertyValue, absArea_, absLength_);
 }
 } // namespace Rosen
 } // namespace OHOS

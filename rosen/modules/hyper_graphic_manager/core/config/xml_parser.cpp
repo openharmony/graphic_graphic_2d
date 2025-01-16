@@ -430,12 +430,14 @@ int32_t XMLParser::ParsePowerStrategy(xmlNode& node, std::unordered_map<std::str
 
 int32_t XMLParser::ParseSmallSizeDynamicSetting(xmlNode& node, PolicyConfigData::ScreenSetting& screenSetting)
 {
-    auto smallSize = ExtractPropertyValue("smallSize", node);
-    if (IsNumber(smallSize)) {
-        screenSetting.smallSize = std::stoi(smallSize);
-        return ParseDynamicSetting(node, screenSetting.smallSizeAnimationDynamicSettings);
+    auto area = ExtractPropertyValue("area", node);
+    auto length = ExtractPropertyValue("length", node);
+    if (!IsNumber(area) || !IsNumber(length)) {
+        return HGM_ERROR;
     }
-    return HGM_ERROR;
+    screenSetting.smallSizeArea = std::stoi(area);
+    screenSetting.smallSizeLength = std::stoi(length);
+    return ParseDynamicSetting(node, screenSetting.smallSizeAnimationDynamicSettings);
 }
 
 int32_t XMLParser::ParseDynamicSetting(xmlNode &node, PolicyConfigData::DynamicSettingMap &dynamicSettingMap)

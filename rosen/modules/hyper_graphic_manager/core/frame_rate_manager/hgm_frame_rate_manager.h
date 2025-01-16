@@ -156,7 +156,7 @@ public:
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
-    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocity, int32_t animationSize) const;
+    int32_t GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx, int32_t areaPx, int32_t lengthPx) const;
     void SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
     {
         forceUpdateCallback_ = forceUpdateCallback;
@@ -202,9 +202,11 @@ private:
     void FrameRateReport();
     uint32_t CalcRefreshRate(const ScreenId id, const FrameRateRange& range) const;
     static uint32_t GetDrawingFrameRate(const uint32_t refreshRate, const FrameRateRange& range);
-    int32_t GetPreferredFps(const std::string& type, float velocity, float animationSize) const;
+    int32_t GetPreferredFps(const std::string& type, float velocityMM, float areaMM, float lengthMM) const;
     template<typename T>
-    static float PixelToMM(T pixels);
+    static float PixelToMM(T pixel);
+    template<typename T>
+    static float SqrPixelToSqrMM(T sqrPixel);
 
     void HandleIdleEvent(bool isIdle);
     void HandleSceneEvent(pid_t pid, EventInfo eventInfo);
