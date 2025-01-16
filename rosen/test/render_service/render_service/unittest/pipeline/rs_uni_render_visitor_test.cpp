@@ -1879,6 +1879,8 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode004, TestSize.Leve
     displayNode->AddChild(surfaceNode, 0);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto screenManager = CreateOrGetScreenManager();
+    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
     rsUniRenderVisitor->displayHasProtectedSurface_[rsUniRenderVisitor->currentVisitDisplay_] = true;
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
