@@ -66,13 +66,21 @@ bool RSAncoManager::AncoOptimizeCheck(bool isHebc, int nodesCnt, int sfvNodesCnt
     return false;
 }
 
+bool RSAncoManager::IsAncoOptimize(ScreenRotation rotation)
+{
+    if (!AncoDisableHebcProperty() || !RSSurfaceRenderNode::GetOriAncoForceDoDirect() ||
+        !RSSystemProperties::IsTabletType() || rotation != ScreenRotation::ROTATION_0) {
+        return false;
+    }
+    return true;
+}
+
 bool RSAncoManager::AncoOptimizeDisplayNode(std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
     std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes,
     ScreenRotation rotation, uint32_t width, uint32_t height)
 {
     SetAncoHebcStatus(AncoHebcStatus::INITIAL);
-    if (!AncoDisableHebcProperty() || !RSSurfaceRenderNode::GetOriAncoForceDoDirect() ||
-        !RSSystemProperties::IsTabletType() || rotation != ScreenRotation::ROTATION_0) {
+    if (!IsAncoOptimize(rotation)) {
         return false;
     }
 
