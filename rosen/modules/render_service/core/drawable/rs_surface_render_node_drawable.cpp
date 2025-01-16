@@ -878,9 +878,6 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
     }
     surfaceParams.SetHardwareEnabled(hwcEnable);
 
-    // cannot useNodeMatchOptimize if leash window is on draw
-    auto cacheState = GetCacheSurfaceProcessedStatus();
-    auto useNodeMatchOptimize = cacheState != CacheProcessStatus::WAITING && cacheState != CacheProcessStatus::DOING;
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, false)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
         return;
