@@ -35,6 +35,9 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #endif
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "render/rs_colorspace_convert.h"
+#endif
 #include "render/rs_drawing_filter.h"
 #include "render/rs_skia_filter.h"
 #include "metadata_helper.h"
@@ -565,14 +568,10 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.inputColorSpace.metadataType = hdrMetadataType;
     parameter.outputColorSpace.metadataType = hdrMetadataType;
 
-    ret = MetadataHelper::GetHDRStaticMetadata(params.buffer, parameter.staticMetadata);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRStaticMetadata failed with %{public}u.", ret);
-    }
-    ret = MetadataHelper::GetHDRDynamicMetadata(params.buffer, parameter.dynamicMetadata);
-    if (ret != GSERROR_OK) {
-        RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor GetHDRDynamicMetadata failed with %{public}u.", ret);
-    }
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+    RSColorSpaceConvert::Instance().GetHDRMetadata(params.buffer,
+        parameter.staticMetadata, parameter.dynamicMetadata, ret);
+#endif
 
     parameter.width = params.buffer->GetWidth();
     parameter.height = params.buffer->GetHeight();
@@ -580,10 +579,9 @@ bool RSBaseRenderEngine::SetColorSpaceConverterDisplayParameter(
     parameter.currentDisplayNits = params.displayNits;
     parameter.sdrNits = params.sdrNits;
 
-    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inputColorSpace.colorSpaceInfo.primaries = %{public}u, \
-            inputColorSpace.metadataType = %{public}u, outputColorSpace.colorSpaceInfo.primaries = %{public}u, \
-            outputColorSpace.metadataType = %{public}u, tmoNits = %{public}f, currentDisplayNits = %{public}f, \
-            sdrNits = %{public}f",
+    RS_LOGD("RSBaseRenderEngine::ColorSpaceConvertor parameter inPrimaries = %{public}u, inMetadataType = %{public}u, "
+            "outPrimaries = %{public}u, outMetadataType = %{public}u, "
+            "tmoNits = %{public}.2f, currentDisplayNits = %{public}.2f, sdrNits = %{public}.2f",
             parameter.inputColorSpace.colorSpaceInfo.primaries, parameter.inputColorSpace.metadataType,
             parameter.outputColorSpace.colorSpaceInfo.primaries, parameter.outputColorSpace.metadataType,
             parameter.tmoNits, parameter.currentDisplayNits, parameter.sdrNits);
