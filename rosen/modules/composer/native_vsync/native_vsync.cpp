@@ -15,6 +15,7 @@
 
 #include <vsync_receiver.h>
 #include "transaction/rs_interfaces.h"
+#include "ui/rs_frame_rate_linker.h"
 #include "vsync_log.h"
 #include "native_vsync.h"
 
@@ -23,6 +24,7 @@ using namespace OHOS;
 namespace {
 struct NativeVSync {
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver_;
+    std::shared_ptr<OHOS::Rosen::RSFrameRateLinker> frameRateLinker_;
 };
 }
 static NativeVSync* OH_NativeVSync_OHNativeVSyncToNativeVSync(OH_NativeVSync* ohNativeVSync)
@@ -38,12 +40,15 @@ static OH_NativeVSync* OH_NativeVSync_NativeVSyncToOHNativeVSync(NativeVSync* na
 std::shared_ptr<OHOS::Rosen::VSyncReceiver> CreateAndInitVSyncReceiver(
     const std::string& vsyncName,
     uint64_t windowID = 0,
-    bool isAssociatedWindow = false)
+    bool isAssociatedWindow = false,
+    NativeVSync* nativeVSync = nullptr)
 {
     auto& rsClient = OHOS::Rosen::RSInterfaces::GetInstance();
     std::shared_ptr<OHOS::Rosen::VSyncReceiver> receiver;
     if (isAssociatedWindow) {
-        receiver = rsClient.CreateVSyncReceiver(vsyncName, 0, nullptr, windowID, true);
+        nativeVSync->frameRateLinker_ = OHOS::Rosen::RSFrameRateLinker::Create();
+        receiver = rsClient.CreateVSyncReceiver(
+            vsyncName, nativeVSync->frameRateLinker_->GetId(), nullptr, windowID, true);
     } else {
         receiver = rsClient.CreateVSyncReceiver(vsyncName);
     }
@@ -82,12 +87,13 @@ OH_NativeVSync* OH_NativeVSync_Create_ForAssociatedWindow(uint64_t windowID, con
         return nullptr;
     }
     std::string vsyncName(name, length);
-    auto receiver = CreateAndInitVSyncReceiver(vsyncName, windowID, true);
+    NativeVSync* nativeVSync = new NativeVSync;
+    auto receiver = CreateAndInitVSyncReceiver(vsyncName, windowID, true, nativeVSync);
     if (receiver == nullptr) {
         VLOGE("receiver is nullptr, please check");
+        delete nativeVSync;
         return nullptr;
     }
-    NativeVSync* nativeVSync = new NativeVSync;
     nativeVSync->receiver_ = receiver;
     return OH_NativeVSync_NativeVSyncToOHNativeVSync(nativeVSync);
 }
