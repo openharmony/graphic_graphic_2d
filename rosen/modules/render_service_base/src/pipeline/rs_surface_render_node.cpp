@@ -2600,7 +2600,7 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 }
 
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
-    NodeId cacheNodeId, NodeId uifirstRootNodeId)
+    NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
     std::string uniqueIdStr = "null";
 #ifndef ROSEN_CROSS_PLATFORM
@@ -2619,7 +2619,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         firstLevelNodeId = GetId();
         auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetParent().lock());
         if (parentNode && parentNode->GetFirstLevelNodeId() != INVALID_NODEID) {
-            firstLevelNodeId = parentNode->GetFirstLevelNodeId ();
+            firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
     }
     if (IsSecureUIExtension()) {
@@ -2634,7 +2634,8 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     }
     // if node is marked as cacheRoot, update subtree status when update surface
     // in case prepare stage upper cacheRoot cannot specify dirty subnode
-    RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId);
+    RSBaseRenderNode::SetIsOnTheTree(onTree, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
+        INVALID_NODEID, displayNodeId);
 }
 
 CacheProcessStatus RSSurfaceRenderNode::GetCacheSurfaceProcessedStatus() const

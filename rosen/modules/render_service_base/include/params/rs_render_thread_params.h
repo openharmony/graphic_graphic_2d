@@ -52,6 +52,9 @@ struct HardCursorInfo {
 };
 class RSB_EXPORT RSRenderThreadParams {
 public:
+    using DrawablesVec = std::vector<std::pair<NodeId,
+        DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
+
     RSRenderThreadParams() = default;
     virtual ~RSRenderThreadParams() = default;
 
@@ -155,7 +158,7 @@ public:
         return selfDrawables_;
     }
 
-    const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardwareEnabledTypeDrawables() const
+    const DrawablesVec& GetHardwareEnabledTypeDrawables() const
     {
         return hardwareEnabledTypeDrawables_;
     }
@@ -440,7 +443,7 @@ private:
     bool cacheEnabledForRotation_ = false;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
-    std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardwareEnabledTypeDrawables_;
+    DrawablesVec hardwareEnabledTypeDrawables_;
     HardCursorInfo hardCursorDrawables_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
