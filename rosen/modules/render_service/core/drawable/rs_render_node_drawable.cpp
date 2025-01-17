@@ -955,7 +955,7 @@ std::string RSRenderNodeDrawable::GetUpdateCacheTimeTaken()
             result += std::to_string(it) + ",";
         }
     }
-    if (result.size() > 0 && result.back() == ",") {
+    if (result.size() > 0 && result.back() == ',') {
         result.pop_back();
     }
     return result;
