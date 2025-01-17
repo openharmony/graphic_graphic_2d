@@ -393,6 +393,10 @@ void RSUniRenderVisitor::HandleColorGamuts(RSDisplayRenderNode& node, const sptr
             return;
         }
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
+    } else if (RSMainThread::Instance()->GetDeviceType() == DeviceType::PC &&
+        RSMainThread::Instance()->HasWiredMirrorDisplay()) {
+        // wired mirror screen close P3
+        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
     } else if (node.GetScreenId() != 0) {
         if (!IsScreenSupportedWideColorGamut(node.GetScreenId(), screenManager)) {
             node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);

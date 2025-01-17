@@ -578,6 +578,14 @@ bool RSSystemProperties::GetMotionBlurEnabled()
     return enabled;
 }
 
+bool RSSystemProperties::GetSLRScaleFunctionEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.SLRScale.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetDynamicBrightnessEnabled()
 {
     // Determine whether the daynamic brightness render should be enabled. The default value is 1,

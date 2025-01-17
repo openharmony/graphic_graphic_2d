@@ -25,6 +25,7 @@
 #include "pipeline/rs_base_render_engine.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_slr_scale.h"
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_uni_render_virtual_processor.h"
 #include "screen_manager/rs_screen_manager.h"
@@ -223,6 +224,8 @@ private:
 
     static std::shared_ptr<Drawing::RuntimeEffect> brightnessAdjustmentShaderEffect_;
 
+    std::shared_ptr<RSSLRScaleFunction> scaleManager_ = nullptr;
+    bool isMirrorSLRCopy_ = false;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<IBufferConsumerListener> consumerListener_ = nullptr;
 #endif
