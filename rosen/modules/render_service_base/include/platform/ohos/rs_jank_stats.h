@@ -187,6 +187,7 @@ private:
     static constexpr uint32_t JANK_SCENE_RANGE_VERSION = 2;
     static constexpr size_t JANK_STATS_SIZE = 8;
     static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
+    static constexpr int64_t MIN_FRAME_SHOW_TIME = 16;
     static constexpr int32_t DEFAULT_INT_VALUE = 0;
     static inline const std::string DEFAULT_STRING_VALUE = "";
     const int64_t SCENE_JANK_FRAME_THRESHOLD = RSSystemProperties::GetSceneJankFrameThreshold();

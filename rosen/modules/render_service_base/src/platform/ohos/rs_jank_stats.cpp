@@ -102,7 +102,6 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     if (discardJankFrames) { ClearAllAnimation(); }
     SetRSJankStats(skipJankAnimatorFrame || discardJankFrames, dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
-    ReportSceneJankFrame(dynamicRefreshRate);
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&firstFrameAppPids_, 0, 1);
 #endif
@@ -399,8 +398,9 @@ void RSJankStats::ReportSceneJankStats(const AppInfo& appInfo)
         HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, reportName,
             OHOS::HiviewDFX::HiSysEvent::EventType::STATISTIC, "STARTTIME", static_cast<uint64_t>(lastReportTime),
             "DURATION", static_cast<uint64_t>(reportDuration), "JANK_STATS", rsSceneJankStats, "PID", appInfo.pid,
-            "BUNDLE_NAME", appInfo.bundleName,"PROCESS_NAME", appInfo.processName, "VERSION_NAME", appInfo.versionName,
-            "VERSION_CODE", appInfo.versionCode, "JANK_STATS_VER", JANK_SCENE_RANGE_VERSION);
+            "BUNDLE_NAME", appInfo.bundleName, "PROCESS_NAME", appInfo.processName,
+            "VERSION_NAME", appInfo.versionName, "VERSION_CODE", appInfo.versionCode,
+            "JANK_STATS_VER", JANK_SCENE_RANGE_VERSION);
     });
     appInfo_.startTime = 0;
     appInfo_.endTime = 0;
@@ -841,6 +841,7 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
 
 void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
 {
+    ReportSceneJankFrame(dynamicRefreshRate);
     RS_TRACE_INT(ACCUMULATED_BUFFER_COUNT_TRACE_NAME, accumulatedBufferCount_);
     if (dynamicRefreshRate == 0) {
         dynamicRefreshRate = STANDARD_REFRESH_RATE;
