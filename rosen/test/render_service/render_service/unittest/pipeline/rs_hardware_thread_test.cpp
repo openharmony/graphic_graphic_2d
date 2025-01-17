@@ -276,7 +276,8 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
         .actualTimestamp = 0,
         .vsyncId = 0,
         .constraintRelativeTime = 0,
-        .isForceRefresh = true
+        .isForceRefresh = true,
+        .fastComposeTimeStampDiff = 0
     };
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     bool hasGameScene = true;
@@ -319,7 +320,8 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
         .actualTimestamp = 0,
         .vsyncId = 0,
         .constraintRelativeTime = 0,
-        .isForceRefresh = true
+        .isForceRefresh = true,
+        .fastComposeTimeStampDiff = 0
     };
     uint32_t currentRate = 120;
     int64_t currTime = 1000000000;

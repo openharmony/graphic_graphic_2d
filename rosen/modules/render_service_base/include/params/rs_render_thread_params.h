@@ -185,6 +185,16 @@ public:
         return isForceRefresh_;
     }
 
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
+    {
+        fastComposeTimeStampDiff_ = fastComposeTimeStampDiff;
+    }
+
+    uint64_t GetFastComposeTimeStampDiff() const
+    {
+        return fastComposeTimeStampDiff_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -461,6 +471,7 @@ private:
     bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t fastComposeTimeStampDiff_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool hasDisplayHdrOn_ = false;

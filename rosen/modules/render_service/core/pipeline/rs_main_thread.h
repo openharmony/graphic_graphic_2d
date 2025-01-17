@@ -217,7 +217,8 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
-    void ForceRefreshForUni();
+    void CheckFastCompose(int64_t bufferTimeStamp);
+    void ForceRefreshForUni(bool needDelay = false);
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
     void DumpNode(std::string& result, uint64_t nodeId) const;
@@ -768,6 +769,10 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
+
+    // for record fastcompose time change
+    uint64_t lastFastComposeTimeStamp_ = 0;
+    uint64_t lastFastComposeTimeStampDiff_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

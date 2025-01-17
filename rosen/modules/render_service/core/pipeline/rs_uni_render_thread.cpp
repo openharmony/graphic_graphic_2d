@@ -469,6 +469,12 @@ uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
     return renderThreadParams ? renderThreadParams->GetPendingConstraintRelativeTime() : 0;
 }
 
+uint64_t RSUniRenderThread::GetFastComposeTimeStampDiff() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetFastComposeTimeStampDiff() : 0;
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {

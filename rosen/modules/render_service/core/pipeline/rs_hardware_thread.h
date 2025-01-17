@@ -42,6 +42,7 @@ struct RefreshRateParam {
     uint64_t vsyncId = 0;
     uint64_t constraintRelativeTime = 0;
     bool isForceRefresh = false;
+    uint64_t fastComposeTimeStampDiff = 0;
 };
 
 class RSHardwareThread {

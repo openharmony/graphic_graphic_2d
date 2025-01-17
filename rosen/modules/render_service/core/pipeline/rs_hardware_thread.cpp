@@ -380,7 +380,7 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     if (!hgmCore.GetLtpoEnabled()) {
         vsyncOffset = UNI_RENDER_VSYNC_OFFSET_DELAY_MODE;
         // 2 period for draw and composition, pipelineOffset = 2 * period
-        frameOffset = 2 * period + vsyncOffset;
+        frameOffset = 2 * period + vsyncOffset - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     } else {
         idealPipelineOffset = hgmCore.GetIdealPipelineOffset();
         pipelineOffset = hgmCore.GetPipelineOffset();
@@ -393,7 +393,8 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
         if (periodNum * idealPeriod + vsyncOffset + IDEAL_PULSE < idealPipelineOffset) {
             periodNum = periodNum + 1;
         }
-        frameOffset = periodNum * idealPeriod + vsyncOffset + static_cast<int64_t>(dvsyncOffset);
+        frameOffset = periodNum * idealPeriod + vsyncOffset +
+            static_cast<int64_t>(dvsyncOffset) - static_cast<int64_t>(param.fastComposeTimeStampDiff);
     }
     expectCommitTime = param.actualTimestamp + frameOffset - compositionTime - RESERVE_TIME;
     int64_t diffTime = expectCommitTime - currTime;
@@ -403,9 +404,10 @@ void RSHardwareThread::CalculateDelayTime(OHOS::Rosen::HgmCore& hgmCore, Refresh
     RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
-        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 "",
+        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 "",
         pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
-        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period, idealPipelineOffset);
+        frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
+        idealPipelineOffset, param.fastComposeTimeStampDiff);
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RSHardwareThread::CalculateDelayTime period:%{public}" PRId64 " delayTime:%{public}" PRId64 "", period,
         delayTime_);
@@ -556,6 +558,7 @@ RefreshRateParam RSHardwareThread::GetRefreshRateParam()
             .vsyncId = hgmCore.GetVsyncId(),
             .constraintRelativeTime = hgmCore.GetPendingConstraintRelativeTime(),
             .isForceRefresh = hgmCore.GetForceRefreshFlag(),
+            .fastComposeTimeStampDiff = hgmCore.GetFastComposeTimeStampDiff()
         };
     } else {
         param = {
@@ -565,6 +568,7 @@ RefreshRateParam RSHardwareThread::GetRefreshRateParam()
             .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
             .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
             .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
+            .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff()
         };
     }
     return param;
