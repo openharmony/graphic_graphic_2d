@@ -296,9 +296,11 @@ enum class UiFirstModeType : uint8_t {
     MULTI_WINDOW_MODE,
 };
 
+//Each command HAVE TO have UNIQUE ID in ALL HISTORY
+//If a command is not used and you want to delete it, just COMMENT it
 enum class RSUIFirstSwitch {
-    NONE,               // follow RS rules
-    MODAL_WINDOW_CLOSE, // open app with modal window animation, close uifirst
+    NONE = 0,               // follow RS rules
+    MODAL_WINDOW_CLOSE = 1, // open app with modal window animation, close uifirst
 };
 
 enum class SelfDrawingNodeType : uint8_t {

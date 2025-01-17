@@ -25,11 +25,13 @@
 namespace OHOS {
 namespace Rosen {
 
+//Each command HAVE TO have UNIQUE ID in ALL HISTORY
+//If a command is not used and you want to delete it, just COMMENT it
 enum RSCanvasNodeCommandType : uint16_t {
-    CANVAS_NODE_CREATE,
-    CANVAS_NODE_UPDATE_RECORDING,
-    CANVAS_NODE_CLEAR_RECORDING,
-    CANVAS_NODE_SET_HDR_PRESENT,
+    CANVAS_NODE_CREATE = 0,
+    CANVAS_NODE_UPDATE_RECORDING = 1,
+    CANVAS_NODE_CLEAR_RECORDING = 2,
+    CANVAS_NODE_SET_HDR_PRESENT = 3,
 };
 
 namespace Drawing {
