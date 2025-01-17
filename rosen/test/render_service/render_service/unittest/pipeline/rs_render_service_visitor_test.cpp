@@ -324,6 +324,7 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode001, TestSize.Level
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsRenderServiceVisitor.PrepareSurfaceRenderNode(rsSurfaceRenderNode);
+    ASSERT_EQ(rsRenderServiceVisitor.canvas_, nullptr);
 }
 
 /**
