@@ -521,6 +521,11 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
             }
             auto tmpImg = std::make_shared<Drawing::Image>();
             DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
+            if (colorSpace != nullptr) {
+                pixelmap->InnerSetColorSpace(colorSpace->IsSRGB() ?
+                    OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB) :
+                    OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+            }
         } else {
 #else
         {
