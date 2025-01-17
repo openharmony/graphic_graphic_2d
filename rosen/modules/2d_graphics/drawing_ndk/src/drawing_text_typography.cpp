@@ -1450,7 +1450,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    if (descriptor) {
+    if (descriptor != nullptr) {
         free(descriptor->path);
         free(descriptor->postScriptName);
         free(descriptor->fullName);
