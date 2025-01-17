@@ -18,9 +18,37 @@
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "rs_trace.h"
+#include <csignal>
 
 namespace OHOS {
 namespace Rosen {
+struct MemoryHook {
+    void* virtualPtr; // RSRenderNodeDrawableAdapter vtable
+    void* ptr; // enable_shared_from_this's __ptr__*
+    uint32_t low; // enable_shared_fromthis's __ref__* low-bits
+    uint32_t high; // enable_shared_fromthis's __ref__* high-bits
+
+    inline void Protect()
+    {
+        static const int sigNo = 42; // Report to HiViewOcean
+        static const bool isBeta = RSSystemProperties::GetVersionType() == "beta";
+        if (CheckIsNotValid()) {
+            if (isBeta) {
+                RS_LOGE("Drawable Protect %{public}u %{public}u", high, low);
+                raise(sigNo);
+            }
+            high = 0;
+            low = 0;
+        }
+    }
+
+    inline bool CheckIsNotValid()
+    {
+        static constexpr uint32_t THRESHOLD = 0x400u;
+        return low < THRESHOLD;
+    }
+};
+
 RSRenderNodeGC& RSRenderNodeGC::Instance()
 {
     static RSRenderNodeGC instance;
@@ -74,6 +102,13 @@ void RSRenderNodeGC::ReleaseNodeBucket()
     RS_TRACE_NAME_FMT("ReleaseNodeMemory %zu, remain node buckets %u", toDele.size(), remainBucketSize);
     for (auto ptr : toDele) {
         if (ptr) {
+#if defined(__aarch64__)
+            static const bool isPhone = RSSystemProperties::IsPhoneType();
+            if (isPhone) {
+                auto* hook = reinterpret_cast<MemoryHook*>(ptr);
+                hook->Protect();
+            }
+#endif
             delete ptr;
             ptr = nullptr;
         }
