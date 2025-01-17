@@ -493,7 +493,7 @@ bool RSDisplayRenderNode::IsZoomStateChange() const
 
 void RSDisplayRenderNode::AttachToWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node)
 {
-    if(windowContainer_) {
+    if (windowContainer_) {
         RS_LOGD("RSDisplayRenderNode::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}" PRIu64,
             node->GetId(), windowContainer_->GetId());
         windowContainer_->AddChild(node);
@@ -506,7 +506,7 @@ void RSDisplayRenderNode::AttachToWindowContainer(std::shared_ptr<RSSurfaceRende
 
 void RSDisplayRenderNode::DetachFromWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node)
 {
-    if(windowContainer_) {
+    if (windowContainer_) {
         RS_LOGD("RSDisplayRenderNode::AttachToWindowContainer %{public}" PRIu64 " detach from %{public}" PRIu64,
             node->GetId(), windowContainer_->GetId());
         windowContainer_->RemoveChild(node);
