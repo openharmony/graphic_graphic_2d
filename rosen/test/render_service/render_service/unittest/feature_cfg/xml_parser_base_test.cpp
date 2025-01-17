@@ -55,9 +55,9 @@ HWTEST_F(XmlParserBaseTest, LoadGraphicConfiguration, Function | SmallTest | Lev
         }
         STEP("2. check the result of configuration") {
             int32_t load = parser->LoadGraphicConfiguration(invalidConfig);
-            STEP_ASSERT_EQ(load, static_cast<int32_t>(CcmErrCode::CCM_FILE_LOAD_FAIL));
+            STEP_ASSERT_EQ(load, static_cast<int32_t>(PARSE_FILE_LOAD_FAIL));
             STEP_ASSERT_EQ(parser->xmlDocument_, nullptr);
-            STEP_ASSERT_EQ(parser->Parse(), static_cast<int32_t>(CcmErrCode::CCM_FILE_LOAD_FAIL));
+            STEP_ASSERT_EQ(parser->Parse(), static_cast<int32_t>(PARSE_FILE_LOAD_FAIL));
             load = parser->LoadGraphicConfiguration(config);
             STEP_ASSERT_GE(load, 0);
         }

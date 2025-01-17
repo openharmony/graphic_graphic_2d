@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "graphic_ccm_feature_param_manager.h"
+#include "graphic_feature_param_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -24,7 +24,7 @@ std::set<std::string> featureSet = {"HdrConfig", "DrmConfig", "DvsyncConfig", "H
 namespace OHOS {
 namespace Rosen {
 
-class GraphicCcmFeatureParamManagerTest : public testing::Test {
+class GraphicFeatureParamManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -32,22 +32,22 @@ public:
     void TearDown();
 };
 
-void GraphicCcmFeatureParamManagerTest::SetUpTestCase() {}
-void GraphicCcmFeatureParamManagerTest::TearDownTestCase() {}
-void GraphicCcmFeatureParamManagerTest::SetUp() {}
-void GraphicCcmFeatureParamManagerTest::TearDown() {}
+void GraphicFeatureParamManagerTest::SetUpTestCase() {}
+void GraphicFeatureParamManagerTest::TearDownTestCase() {}
+void GraphicFeatureParamManagerTest::SetUp() {}
+void GraphicFeatureParamManagerTest::TearDown() {}
 
 /**
  * @tc.name: Init
- * @tc.desc: Verify the GraphicCcmFeatureParamManager Init function
+ * @tc.desc: Verify the GraphicFeatureParamManager Init function
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(GraphicCcmFeatureParamManagerTest, Init, Function | SmallTest | Level1)
+HWTEST_F(GraphicFeatureParamManagerTest, Init, Function | SmallTest | Level1)
 {
-    GraphicCcmFeatureParamManager::GetInstance().Init();
-    auto parseMap = GraphicCcmFeatureParamManager::GetInstance().featureParseMap_;
-    auto paramMap = GraphicCcmFeatureParamManager::GetInstance().featureParamMap_;
+    GraphicFeatureParamManager::GetInstance().Init();
+    auto parseMap = GraphicFeatureParamManager::GetInstance().featureParseMap_;
+    auto paramMap = GraphicFeatureParamManager::GetInstance().featureParamMap_;
     for (const auto& feature : featureSet) {
         // Check if featureParseMap is initialized correctly
         EXPECT_NE(parseMap.count(feature), 0);
@@ -62,12 +62,12 @@ HWTEST_F(GraphicCcmFeatureParamManagerTest, Init, Function | SmallTest | Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(GraphicCcmFeatureParamManagerTest, FeatureParamParseEntry, Function | SmallTest | Level1)
+HWTEST_F(GraphicFeatureParamManagerTest, FeatureParamParseEntry, Function | SmallTest | Level1)
 {
-    GraphicCcmFeatureParamManager ccmManager;
-    ccmManager.featureParser_ = nullptr;
-    ccmManager.FeatureParamParseEntry();
-    ASSERT_NE(ccmManager.featureParser_, nullptr);
+    GraphicFeatureParamManager featureManager;
+    featureManager.featureParser_ = nullptr;
+    featureManager.FeatureParamParseEntry();
+    ASSERT_NE(featureManager.featureParser_, nullptr);
 }
 
 /**
@@ -76,13 +76,13 @@ HWTEST_F(GraphicCcmFeatureParamManagerTest, FeatureParamParseEntry, Function | S
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(GraphicCcmFeatureParamManagerTest, GetFeatureParam, Function | SmallTest | Level1)
+HWTEST_F(GraphicFeatureParamManagerTest, GetFeatureParam, Function | SmallTest | Level1)
 {
-    GraphicCcmFeatureParamManager::GetInstance().Init();
-    GraphicCcmFeatureParamManager::GetInstance().FeatureParamParseEntry();
+    GraphicFeatureParamManager::GetInstance().Init();
+    GraphicFeatureParamManager::GetInstance().FeatureParamParseEntry();
     std::shared_ptr<FeatureParam> featureParam = nullptr;
     for (const auto& feature : featureSet) {
-        featureParam = GraphicCcmFeatureParamManager::GetInstance().GetFeatureParam(feature);
+        featureParam = GraphicFeatureParamManager::GetInstance().GetFeatureParam(feature);
         ASSERT_NE(featureParam, nullptr);
     }
 }
