@@ -25,10 +25,6 @@ ohos_unittest("feature_cfg_test") {
     "-Dprotected=public",
   ]
 
-  if (is_ohos && is_clang && (target_cpu == "arm" || target_cpu == "arm64")) {
-    cflags += [ "-fwhole-program-vtables" ]
-  }
-
   sources = [
     "drm_param_test.cpp",
     "graphic_feature_param_manager_test.cpp",
