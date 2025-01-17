@@ -658,37 +658,13 @@ void RSHardwareThread::SubScribeSystemAbility()
     }
 }
 
-std::string RSHardwareThread::GetEventQueueDump() const
+void RSHardwareThread::DumpEventQueue()
 {
-    std::string retString;
-
     if (handler_ != nullptr) {
         AppExecFwk::RSHardwareDumper dumper;
         handler_->Dump(dumper);
-        auto dumpinfo = dumper.GetDumpInfo();
-        size_t compareStrSize = sizeof("}\n");
-
-        size_t curRunningStart = dumpinfo.find("Current Running: start");
-        if (curRunningStart != std::string::npos) {
-            size_t curRunningEnd = dumpinfo.find("}\n", curRunningStart);
-            if (curRunningEnd != std::string::npos) {
-                retString += dumpinfo.substr(curRunningStart, curRunningEnd - curRunningStart + compareStrSize);
-            }
-        }
-
-        size_t immediateStart = dumpinfo.find("Immediate priority event queue information:");
-        if (immediateStart != std::string::npos) {
-            size_t immediateEnd = dumpinfo.find("}\n", immediateStart);
-            if (immediateEnd != std::string::npos) {
-                retString += dumpinfo.substr(immediateStart, immediateEnd - immediateStart + compareStrSize);
-            }
-        }
-
-        if (retString.empty()) {
-            retString = "Current Running and Immediate priority event empty";
-        }
+        dumper.PrintDumpInfo();
     }
-    return retString;
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -787,9 +763,31 @@ std::string RSHardwareDumper::GetTag()
     return "RSHardwareDumper";
 }
 
-std::string RSHardwareDumper::GetDumpInfo()
+void RSHardwareDumper::PrintDumpInfo()
 {
-    return dumpInfo_;
+    if (dumpInfo_.empty()) {
+        return;
+    }
+    size_t compareStrSize = sizeof("}\n");
+
+    size_t curRunningStart = dumpInfo_.find("Current Running: start");
+    if (curRunningStart != std::string::npos) {
+        size_t curRunningEnd = dumpInfo_.find("}\n", curRunningStart);
+        if (curRunningEnd != std::string::npos) {
+            RS_LOGE("%{public}s",
+                dumpInfo_.substr(curRunningStart, curRunningEnd - curRunningStart + compareStrSize).c_str());
+        }
+    }
+
+    size_t immediateStart = dumpInfo_.find("Immediate priority event queue information:");
+    if (immediateStart != std::string::npos) {
+        size_t immediateEnd = dumpInfo_.find("}\n", immediateStart);
+        if (immediateEnd != std::string::npos) {
+            RS_LOGE("%{public}s",
+                dumpInfo_.substr(immediateStart, immediateEnd - immediateStart + compareStrSize).c_str());
+        }
+    }
 }
+
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -64,7 +64,7 @@ public:
     int GetHardwareTid() const;
     GSError ClearFrameBuffers(OutputPtr output);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
-    std::string GetEventQueueDump() const;
+    void DumpEventQueue();
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -124,8 +124,7 @@ class RSHardwareDumper : public Dumper {
 public:
     virtual void Dump(const std::string& message) override;
     virtual std::string GetTag() override;
-    std::string GetDumpInfo();
-
+    void PrintDumpInfo();
 private:
     std::string dumpInfo_;
 };
