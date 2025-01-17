@@ -2165,5 +2165,30 @@ void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool i
     };
     mainThread_->PostTask(task);
 }
+
+void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeId, value]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
+        if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+            auto displayNodeId = node->GetDisplayNodeId();
+            if (auto displayNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(displayNodeId)) {
+                RS_LOGI("RSRenderServiceConnection::SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
+                    nodeId, value);
+                displayNode->SetWindowContainer(value ? node : nullptr);
+            } else {
+                return;
+            }
+        }
+    };
+    mainThread_->PostTask(task);
+}
 } // namespace Rosen
 } // namespace OHOS

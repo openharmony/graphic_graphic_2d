@@ -336,5 +336,41 @@ void SurfaceNodeCommandHelper::SetApiCompatibleVersion(RSContext& context, NodeI
     }
     node->SetApiCompatibleVersion(apiCompatibleVersion);
 }
+
+void SurfaceNodeCommandHelper::AttachToWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId)
+{
+    const auto& nodeMap = context.GetNodeMap();
+    auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (surfaceRenderNode == nullptr) {
+        return;
+    }
+    nodeMap.TraverseDisplayNodes(
+        [surfaceRenderNode, screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId()!= screenId ||
+                displayRenderNode->GetBootAnimation()!= surfaceRenderNode->GetBootAnimation()) {
+                return;
+            }
+            displayRenderNode->AttachToWindowContainer(surfaceRenderNode);
+        }
+    );
+}
+
+void SurfaceNodeCommandHelper::DetachFromWindowContainer(RSContext& context, NodeId nodeId, ScreenId screenId)
+{
+    const auto& nodeMap = context.GetNodeMap();
+    auto surfaceRenderNode = nodeMap.GetRenderNode<RSSurfaceRenderNode>(nodeId);
+    if (surfaceRenderNode == nullptr) {
+        return;
+    }
+    nodeMap.TraverseDisplayNodes(
+        [surfaceRenderNode, screenId](const std::shared_ptr<RSDisplayRenderNode>& displayRenderNode) {
+            if (displayRenderNode == nullptr || displayRenderNode->GetScreenId()!= screenId ||
+                displayRenderNode->GetBootAnimation()!= surfaceRenderNode->GetBootAnimation()) {
+                return;
+            }
+            displayRenderNode->DetachFromWindowContainer(surfaceRenderNode);
+        }
+    );
+}
 } // namespace Rosen
 } // namespace OHOS

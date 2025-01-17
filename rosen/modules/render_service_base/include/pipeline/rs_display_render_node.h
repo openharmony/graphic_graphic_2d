@@ -368,6 +368,12 @@ public:
     }
 
     bool IsZoomStateChange() const;
+
+    // Window Container
+    void AttachToWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node);
+    void DetachFromWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node);
+    void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
+
 protected:
     void OnSync() override;
 private:
@@ -430,7 +436,11 @@ private:
     mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
         std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
 
+    // Window Container
+    std::shared_ptr<RSBaseRenderNode> windowContainer_;
+
     friend class DisplayNodeCommandHelper;
+
     int64_t lastRefreshTime_ = 0;
 
     bool curZoomState_ = false;
