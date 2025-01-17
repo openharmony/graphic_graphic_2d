@@ -101,6 +101,7 @@ void RSJankStats::SetEndTime(bool skipJankAnimatorFrame, bool discardJankFrames,
     if (!doDirectComposition) { UpdateEndTime(); }
     if (discardJankFrames) { ClearAllAnimation(); }
     SetRSJankStats(skipJankAnimatorFrame || discardJankFrames, dynamicRefreshRate);
+    ReportSceneJankFrame(dynamicRefreshRate);
     RecordJankFrame(dynamicRefreshRate);
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&firstFrameAppPids_, 0, 1);
@@ -429,6 +430,8 @@ void RSJankStats::ReportSceneJankFrame(uint32_t dynamicRefreshRate)
     }
     const float accumulatedTime = accumulatedBufferCount_ * S_TO_MS / dynamicRefreshRate;
 
+    RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame receive notification: reportTime " +
+                    std::to_string(GetCurrentSystimeMs()));
     const int64_t realSkipFrameTime = static_cast<int64_t>(std::max<float>(0.f, skipFrameTime - accumulatedTime));
     RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime]() {
         auto reportName = "JANK_FRAME_RS";
@@ -841,7 +844,6 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
 
 void RSJankStats::RecordJankFrame(uint32_t dynamicRefreshRate)
 {
-    ReportSceneJankFrame(dynamicRefreshRate);
     RS_TRACE_INT(ACCUMULATED_BUFFER_COUNT_TRACE_NAME, accumulatedBufferCount_);
     if (dynamicRefreshRate == 0) {
         dynamicRefreshRate = STANDARD_REFRESH_RATE;

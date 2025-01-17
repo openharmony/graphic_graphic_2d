@@ -2628,7 +2628,7 @@ bool RSRenderServiceConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessageParc
 bool RSRenderServiceConnectionStub::ReadAppInfo(AppInfo& info, MessageParcel& data)
 {
     if (!data.ReadInt64(info.startTime)) {
-            return false;
+        return false;
     }
     if (!data.ReadInt64(info.endTime)) {
         return false;
