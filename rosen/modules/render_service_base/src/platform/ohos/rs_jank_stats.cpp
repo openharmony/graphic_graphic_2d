@@ -430,8 +430,7 @@ void RSJankStats::ReportSceneJankFrame(uint32_t dynamicRefreshRate)
     }
     const float accumulatedTime = accumulatedBufferCount_ * S_TO_MS / dynamicRefreshRate;
 
-    RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame receive notification: reportTime " +
-                    std::to_string(GetCurrentSystimeMs()));
+    RS_TRACE_NAME("RSJankStats::ReportSceneJankFrame reportTime " + std::to_string(GetCurrentSystimeMs()));
     const int64_t realSkipFrameTime = static_cast<int64_t>(std::max<float>(0.f, skipFrameTime - accumulatedTime));
     RSBackgroundThread::Instance().PostTask([appInfo = appInfo_, skipFrameTime, realSkipFrameTime]() {
         auto reportName = "JANK_FRAME_RS";
