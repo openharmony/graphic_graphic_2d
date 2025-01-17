@@ -1455,12 +1455,14 @@ OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    free(descriptor->path);
-    free(descriptor->postScriptName);
-    free(descriptor->fullName);
-    free(descriptor->fontFamily);
-    free(descriptor->fontSubfamily);
-    delete descriptor;
+    if (descriptor) {
+        free(descriptor->path);
+        free(descriptor->postScriptName);
+        free(descriptor->fullName);
+        free(descriptor->fontFamily);
+        free(descriptor->fontSubfamily);
+        delete descriptor;
+    }
 }
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)
