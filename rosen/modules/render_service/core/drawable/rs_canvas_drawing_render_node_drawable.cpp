@@ -30,6 +30,7 @@
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
     constexpr int EDGE_WIDTH_LIMIT = 1000;
+    constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
 }
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;
 
@@ -129,6 +130,9 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     // 5. Ready to clear resource.
     SetDrawCmdListsVisited(true);
+
+    // Draw bounds rect for dfx.
+    DrawRegionForDfx(canvas, bounds);
 }
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
@@ -276,7 +280,7 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForGL(float width, float height, st
                 RS_LOGE("RSCanvasDrawingRenderNodeDrawable::Flush GPU context is nullptr");
                 return;
             }
-            Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+            Drawing::TextureOrigin origin = GetTextureOrigin();
             Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
             SharedTextureContext* sharedContext = new SharedTextureContext(image_); // last image
             image_ = std::make_shared<Drawing::Image>();
@@ -417,7 +421,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNodeDrawable::GetBitmap(Drawing::GPUContext
         return bitmap;
     }
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::TextureOrigin origin = GetTextureOrigin();
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     auto image = std::make_shared<Drawing::Image>();
     bool ret = image->BuildFromTexture(*grContext, backendTexture_.GetTextureInfo(), origin, info, nullptr);
@@ -552,7 +556,7 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
         canvas.DrawImage(*captureImage_, 0, 0, Drawing::SamplingOptions());
         return;
     }
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::TextureOrigin origin = GetTextureOrigin();
     Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
     SharedTextureContext* sharedContext = new SharedTextureContext(image_);
     captureImage_ = std::make_shared<Drawing::Image>();
@@ -609,7 +613,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
             isNewCreate = true;
         }
         surface_ = Drawing::Surface::MakeFromBackendTexture(gpuContext.get(), backendTexture_.GetTextureInfo(),
-            Drawing::TextureOrigin::BOTTOM_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
+            Drawing::TextureOrigin::TOP_LEFT, 1, Drawing::ColorType::COLORTYPE_RGBA_8888, nullptr,
             NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
         if (!surface_) {
             isGpuSurface_ = false;
@@ -726,7 +730,7 @@ bool RSCanvasDrawingRenderNodeDrawable::GetCurrentContextAndImage(std::shared_pt
         if (!grContext || !backendTexture_.IsValid()) {
             return false;
         }
-        Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+        Drawing::TextureOrigin origin = GetTextureOrigin();
         Drawing::BitmapFormat info = Drawing::BitmapFormat{ image_->GetColorType(), image_->GetAlphaType() };
         image = std::make_shared<Drawing::Image>();
         bool ret = image->BuildFromTexture(*grContext, backendTexture_.GetTextureInfo(), origin, info, nullptr);
@@ -763,7 +767,7 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
         return false;
     }
 
-    Drawing::TextureOrigin origin = Drawing::TextureOrigin::BOTTOM_LEFT;
+    Drawing::TextureOrigin origin = GetTextureOrigin();
     Drawing::BitmapFormat bitmapFormat = { image_->GetColorType(), image_->GetAlphaType() };
     SharedTextureContext* sharedContext = new SharedTextureContext(image_); // will move image
     auto preImageInNewContext = std::make_shared<Drawing::Image>();
@@ -799,5 +803,25 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceWithTexture(int width, int h
 }
 #endif
 
+Drawing::TextureOrigin RSCanvasDrawingRenderNodeDrawable::GetTextureOrigin()
+{
+#if defined(RS_ENABLE_GL)
+    return Drawing::TextureOrigin::BOTTOM_LEFT;
+#endif
+    return Drawing::TextureOrigin::TOP_LEFT;
+}
+
+void RSCanvasDrawingRenderNodeDrawable::DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds)
+{
+    if (!RSSystemParameters::GetCanvasDrawingNodeRegionEnabled()) {
+        return;
+    }
+    Drawing::Pen pen;
+    pen.SetWidth(DRAW_REGION_FOR_DFX_BORDER);
+    pen.SetColor(Drawing::Color::COLOR_RED);
+    canvas.AttachPen(pen);
+    canvas.DrawRect(Drawing::Rect(0, 0, bounds.GetWidth(), bounds.GetHeight()));
+    canvas.DetachPen();
+}
 
 } // namespace OHOS::Rosen::DrawableV2
