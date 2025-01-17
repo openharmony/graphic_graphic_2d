@@ -136,8 +136,8 @@ public:
     void SetReportEventResponse(const DataBaseRs& info);
     void SetReportEventComplete(const DataBaseRs& info);
     void SetReportEventJankFrame(const DataBaseRs& info, bool isReportTaskDelayed);
-    void SetReportRsSceneJankStart(AppInfo info);
-    void SetReportRsSceneJankEnd(AppInfo info);
+    void SetReportRsSceneJankStart(const AppInfo& info);
+    void SetReportRsSceneJankEnd(const AppInfo& info);
     void SetAppFirstFrame(pid_t appPid);
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd);
     void SetAccumulatedBufferCount(int accumulatedBufferCount);
@@ -187,7 +187,10 @@ private:
     static constexpr uint32_t JANK_SCENE_RANGE_VERSION = 2;
     static constexpr size_t JANK_STATS_SIZE = 8;
     static constexpr int64_t TRACE_ID_SCALE_PARAM = 10;
-    int64_t SCENE_JANK_FRAME_TIME = RSSystemProperties::GetSceneJankFrameTime();
+    static constexpr int32_t DEFAULT_INT_VALUE = 0;
+    static inline const std::string DEFAULT_STRING_VALUE = "";
+    const int64_t SCENE_JANK_FRAME_THRESHOLD = RSSystemProperties::GetSceneJankFrameThreshold();
+    static constexpr int32_t FILTER_TYPE = 0;
     static constexpr bool IS_FOLD_DISP = false;
     static constexpr bool IS_CALCULATE_PRECISE_HITCH_TIME = true;
     static inline const std::string ACCUMULATED_BUFFER_COUNT_TRACE_NAME = "ACCUMULATED_BUFFER_COUNT";
@@ -201,6 +204,7 @@ private:
     bool isFirstSetEnd_ = true;
     bool isNeedReportJankStats_ = false;
     bool isNeedReportSceneJankStats_ = false;
+    bool isLastReportSceneDone_ = true;
     bool isLastFrameDoDirectComposition_ = false;
     bool isCurrentFrameSwitchToNotDoDirectComposition_ = false;
     float rsStartTimeSteadyFloat_ = TIMESTAMP_INITIAL_FLOAT;
@@ -231,7 +235,6 @@ private:
     std::map<int64_t, TraceIdRemainderStats> traceIdRemainder_;
     std::map<std::pair<int64_t, std::string>, JankFrames> animateJankFrames_;
     std::mutex mutex_;
-    std::mutex sceneMutex_;
     Rosen::AppInfo appInfo_;
 
     enum JankRangeType : size_t {

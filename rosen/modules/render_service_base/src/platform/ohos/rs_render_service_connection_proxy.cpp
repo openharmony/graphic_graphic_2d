@@ -2965,8 +2965,8 @@ void RSRenderServiceConnectionProxy::ReportRsSceneJankStart(AppInfo info)
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    ReportAppInfo(data, reply, option, info);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SENCE_JANK_START);
+    WriteAppInfo(data, reply, option, info);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportRsSceneJankStart: Send Request err.");
@@ -2982,8 +2982,8 @@ void RSRenderServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         return;
     }
-    ReportAppInfo(data, reply, option, info);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SENCE_JANK_END);
+    WriteAppInfo(data, reply, option, info);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::ReportRsSceneJankEnd: Send Request err.");
@@ -3042,7 +3042,7 @@ void RSRenderServiceConnectionProxy::ReportDataBaseRs(
     option.SetFlags(MessageOption::TF_ASYNC);
 }
 
-void RSRenderServiceConnectionProxy::ReportAppInfo(
+void RSRenderServiceConnectionProxy::WriteAppInfo(
     MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info)
 {
     if (!data.WriteInt64(info.startTime)) {

@@ -330,7 +330,7 @@ private:
 
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
-    void ReportAppInfo(MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info);
+    void WriteAppInfo(MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info);
 
     void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
 
