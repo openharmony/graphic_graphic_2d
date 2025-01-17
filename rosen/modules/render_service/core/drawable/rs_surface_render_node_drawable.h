@@ -227,6 +227,10 @@ public:
     bool PrepareOffscreenRender();
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling);
     bool IsHardwareEnabled();
+
+    uint32_t GetUifirstPostOrder() const;
+    void SetUifirstPostOrder(uint32_t order);
+
     std::shared_ptr<RSSurfaceHandler> GetMutableRSSurfaceHandlerUiFirstOnDraw()
     {
         return surfaceHandlerUiFirst_;
@@ -365,6 +369,7 @@ private:
     friend class OHOS::Rosen::RSDrawWindowCache;
     bool vmaCacheOff_ = false;
     static inline std::atomic<int> totalProcessedSurfaceCount_ = 0;
+    uint32_t uifirstPostOrder_ = 0;
 
     static inline bool isInRotationFixed_ = false;
 };

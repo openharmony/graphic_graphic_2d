@@ -564,4 +564,14 @@ void RSSurfaceRenderNodeDrawable::ClearTotalProcessedSurfaceCount()
 {
     totalProcessedSurfaceCount_ = 0;
 }
+
+uint32_t RSSurfaceRenderNodeDrawable::GetUifirstPostOrder() const
+{
+    return uifirstPostOrder_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetUifirstPostOrder(uint32_t order)
+{
+    uifirstPostOrder_ = order;
+}
 } // namespace OHOS::Rosen
