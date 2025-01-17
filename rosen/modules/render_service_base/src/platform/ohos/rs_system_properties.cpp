@@ -84,9 +84,9 @@ int RSSystemProperties::GetDumpFrameNum()
 
 int RSSystemProperties::GetSceneJankFrameThreshold()
 {
-    static int rsJankStandard =
-        std::atoi((system::GetParameter("persist.sys.graphic.jankframeThreshold", "50")).c_str());
-    return rsJankStandard;
+    static int sceneJankFrameThreshold =
+        std::atoi((system::GetParameter("persist.sys.graphic.sceneJankFrameThreshold", "50")).c_str());
+    return sceneJankFrameThreshold;
 }
 
 int RSSystemProperties::GetRecordingEnabled()
