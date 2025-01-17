@@ -4846,17 +4846,20 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition002, TestSize.Level1)
 }
 
 /**
- * @tc.name: CloseHdrWhenMultiDisplayInPCTest
- * @tc.desc: test CloseHdrWhenMultiDisplayInPCTest
+ * @tc.name: MultiDisplayChangeTest
+ * @tc.desc: test MultiDisplayChangeTest
  * @tc.type: FUNC
  * @tc.require: issueIBF9OU
  */
-HWTEST_F(RSMainThreadTest, CloseHdrWhenMultiDisplayInPCTest, TestSize.Level2)
+HWTEST_F(RSMainThreadTest, MultiDisplayChangeTest, TestSize.Level2)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    auto isMultiDisplayPre = mainThread->isMultiDisplayPre_;
-    mainThread->CloseHdrWhenMultiDisplayInPC(isMultiDisplayPre);
-    EXPECT_EQ(isMultiDisplayPre, mainThread->isMultiDisplayPre_);
+    mainThread->isMultiDisplayPre_ = false;
+    auto getMultiDisplayStatus = mainThread->GetMultiDisplayStatus();
+    EXPECT_FALSE(getMultiDisplayStatus);
+    mainThread->isMultiDisplayChange_ = false;
+    EXPECT_FALSE(mainThread->GetMultiDisplayChange());
+    mainThread->MultiDisplayChange(getMultiDisplayStatus);
 }
 } // namespace OHOS::Rosen

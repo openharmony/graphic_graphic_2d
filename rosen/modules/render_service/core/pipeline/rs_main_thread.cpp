@@ -1746,7 +1746,7 @@ void RSMainThread::CheckIfHardwareForcedDisabled()
         return;
     }
     bool isMultiDisplay = rootNode->GetChildrenCount() > 1;
-    CloseHdrWhenMultiDisplayInPC(isMultiDisplay);
+    MultiDisplayChange(isMultiDisplay);
 
     // check all children of global root node, and only disable hardware composer
     // in case node's composite type is UNI_RENDER_EXPAND_COMPOSITE or Wired projection
@@ -4683,17 +4683,13 @@ void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool for
     RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_FRAME_DEADLINE, payload);
 }
 
-void RSMainThread::CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay)
+void RSMainThread::MultiDisplayChange(bool isMultiDisplay)
 {
-    if (deviceType_ != DeviceType::PC) {
-        return;
-    }
     if (isMultiDisplay == isMultiDisplayPre_) {
+        isMultiDisplayChange_ = false;
         return;
     }
-    RS_LOGI("RSMainThread::CloseHdrWhenMultiDisplayInPC closeHdrStatus: %{public}d.", isMultiDisplay);
-    RS_TRACE_NAME_FMT("RSMainThread::CloseHdrWhenMultiDisplayInPC closeHdrStatus: %d", isMultiDisplay);
-    RSLuminanceControl::Get().ForceCloseHdr(CLOSEHDR_SCENEID::MULTI_DISPLAY, isMultiDisplay);
+    isMultiDisplayChange_ = true;
     isMultiDisplayPre_ = isMultiDisplay;
 }
 } // namespace Rosen

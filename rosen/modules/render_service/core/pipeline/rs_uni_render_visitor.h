@@ -329,6 +329,9 @@ private:
     void CheckIsGpuOverDrawBufferOptimizeNode(RSSurfaceRenderNode& node);
     void MarkBlurIntersectWithDRM(std::shared_ptr<RSRenderNode> node) const;
 
+    // Used for closing HDR in PC multidisplay becauseof performance and open when singledisplay
+    void SetHdrWhenMultiDisplayChangeInPC();
+
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
