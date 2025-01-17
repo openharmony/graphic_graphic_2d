@@ -26,7 +26,7 @@
 #include "system/rs_system_parameters.h"
 
 #include "params/rs_render_thread_params.h"
-#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_pointer_window_manager.h"

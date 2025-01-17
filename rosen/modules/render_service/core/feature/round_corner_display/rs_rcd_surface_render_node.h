@@ -24,7 +24,7 @@
 #include "common/rs_rect.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
-#include "pipeline/round_corner_display/rs_round_corner_config.h"
+#include "feature/round_corner_display/rs_round_corner_config.h"
 #include "platform/drawing/rs_surface.h"
 #include "render_context/render_context.h"
 #include "sync_fence.h"

@@ -18,7 +18,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "platform/common/rs_system_properties.h"
-#include "pipeline/round_corner_display/rs_message_bus.h"
+#include "feature/round_corner_display/rs_message_bus.h"
 #include "rs_trace.h"
 
 namespace OHOS {

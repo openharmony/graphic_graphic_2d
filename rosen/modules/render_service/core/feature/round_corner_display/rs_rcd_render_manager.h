@@ -24,7 +24,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_processor.h"
 #include "rs_rcd_surface_render_node.h"
-#include "pipeline/round_corner_display/rs_round_corner_config.h"
+#include "feature/round_corner_display/rs_round_corner_config.h"
 
 namespace OHOS {
 namespace Rosen {
