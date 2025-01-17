@@ -78,9 +78,9 @@ std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSUifirstManager::GetSu
     return nullptr;
 }
 
-void RSUifirstManager::SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type)
+bool RSUifirstManager::SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type)
 {
-    node.SetUifirstNodeEnableParam(type); // update drawable param
+    auto ret = node.SetUifirstNodeEnableParam(type); // update drawable param
     auto isType = type == MultiThreadCacheType::LEASH_WINDOW || type == MultiThreadCacheType::NONFOCUS_WINDOW;
     if (node.IsLeashWindow() && type != MultiThreadCacheType::ARKTS_CARD) {
         for (auto& child : *(node.GetChildren())) {
@@ -97,6 +97,7 @@ void RSUifirstManager::SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, Mult
             }
         }
     }
+    return ret;
 }
 
 // unref in sub when cache done
@@ -117,7 +118,11 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
         return;
     }
     nodePtr->SetUifirstUseStarting(false);
-    SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE);
+    if (SetUifirstNodeEnableParam(*nodePtr, MultiThreadCacheType::NONE)) {
+        // enable ->disable
+        SetNodeNeedForceUpdateFlag(true);
+        pendingForceUpdateNode_.push_back(nodePtr->GetId());
+    }
     RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
     RS_OPTIONAL_TRACE_NAME_FMT("ResetUifirstNode %" PRIu64", IsOnTheTree:%d, IsNodeToBeCaptured:%d",
         nodePtr->GetId(), nodePtr->IsOnTheTree(), nodePtr->IsNodeToBeCaptured());
@@ -272,7 +277,7 @@ void RSUifirstManager::ProcessDoneNodeInner()
             drawable->CheckCacheSurface()) {
             drawable->UpdateCompletedCacheSurface();
             RenderGroupUpdate(drawable);
-            SetHasDoneNodeFlag(true);
+            SetNodeNeedForceUpdateFlag(true);
             pendingForceUpdateNode_.push_back(id);
         }
         subthreadProcessingNode_.erase(id);
@@ -284,7 +289,7 @@ void RSUifirstManager::ProcessDoneNode()
 #ifdef RS_ENABLE_PREFETCH
     __builtin_prefetch(&pendingResetNodes_, 0, 1);
 #endif
-    SetHasDoneNodeFlag(false);
+    SetNodeNeedForceUpdateFlag(false);
     ProcessDoneNodeInner();
 
     // reset node when node is not doing
@@ -323,8 +328,7 @@ void RSUifirstManager::ProcessDoneNode()
             continue;
         }
         auto cacheStatus = drawable->GetCacheSurfaceProcessedStatus();
-        if ((drawable->HasCachedTexture() && cacheStatus == CacheProcessStatus::WAITING) ||
-            cacheStatus == CacheProcessStatus::SKIPPED) {
+        if (cacheStatus == CacheProcessStatus::SKIPPED) {
             it = subthreadProcessingNode_.erase(it);
             continue;
         }

@@ -91,14 +91,14 @@ public:
         isUiFirstOn_ = uiFirstSwitch;
     }
 
-    void SetHasDoneNodeFlag(bool flag)
+    void SetNodeNeedForceUpdateFlag(bool flag)
     {
-        hasDoneNode_ = flag;
+        hasForceUpdateNode_ = flag;
     }
 
-    bool HasDoneNode()
+    bool HasForceUpdateNode()
     {
-        return hasDoneNode_;
+        return hasForceUpdateNode_;
     }
 
     void MergeOldDirty(NodeId id);
@@ -177,7 +177,7 @@ private:
     void UpdateCompletedSurface(NodeId id);
 
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetSurfaceDrawableByID(NodeId id);
-    void SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
+    bool SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, MultiThreadCacheType type);
     void RenderGroupUpdate(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> drawable);
     bool IsInLeashWindowTree(RSSurfaceRenderNode& node, NodeId instanceRootId);
 
@@ -218,7 +218,7 @@ private:
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
-    bool hasDoneNode_ = false;
+    bool hasForceUpdateNode_ = false;
     bool useDmaBuffer_ = false;
     bool isFreeMultiWindowEnabled_ = false;
     std::atomic<bool> currentFrameCanSkipFirstWait_ = false;

@@ -214,13 +214,14 @@ public:
         return isLeashWindowVisibleRegionEmpty_;
     }
 
-    void SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
+    bool SetUifirstNodeEnableParam(MultiThreadCacheType isUifirst)
     {
         if (uiFirstFlag_ == isUifirst) {
-            return;
+            return false;
         }
         uiFirstFlag_ = isUifirst;
         needSync_ = true;
+        return true;
     }
 
     MultiThreadCacheType GetUifirstNodeEnableParam() const
