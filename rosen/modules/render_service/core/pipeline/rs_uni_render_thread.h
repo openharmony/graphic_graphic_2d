@@ -121,6 +121,8 @@ public:
         return RSRenderThreadParamsManager::Instance().GetRSRenderThreadParams();
     }
 
+    void ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache);
+
     void RenderServiceTreeDump(std::string& dumpString);
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
@@ -203,7 +205,6 @@ public:
         return wallpaperTranslate_;
     }
 
-    void ClearGPUCompositionCache();
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;

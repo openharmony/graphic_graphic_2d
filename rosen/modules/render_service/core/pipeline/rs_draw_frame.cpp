@@ -52,6 +52,8 @@ void RSDrawFrame::RenderFrame()
 {
     HitracePerfScoped perfTrace(RSDrawFrame::debugTraceEnabled_, HITRACE_TAG_GRAPHIC_AGP, "OnRenderFramePerfCount");
     RS_TRACE_NAME_FMT("RenderFrame");
+    // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
+    RSMainThread::GPUCompositonCacheGuard guard;
     RsFrameReport::GetInstance().ReportSchedEvent(FrameSchedEvent::RS_UNI_RENDER_START, {});
     JankStatsRenderFrameStart();
     unirenderInstance_.IncreaseFrameCount();
@@ -89,7 +91,6 @@ void RSDrawFrame::NotifyClearGpuCache()
 void RSDrawFrame::ReleaseSelfDrawingNodeBuffer()
 {
     unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
-    unirenderInstance_.ClearGPUCompositionCache();
 }
 
 void RSDrawFrame::PostAndWait()

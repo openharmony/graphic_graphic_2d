@@ -80,7 +80,7 @@ public:
 
     std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
         const sptr<SyncFence>& acquireFence, pid_t threadIndex);
-    void UnMapVkImageFromSurfaceBuffer(int32_t seqNum);
+    void UnMapVkImageFromSurfaceBuffer(uint32_t seqNum);
     void ShrinkCachesIfNeeded();
     std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
         const sptr<SyncFence>& acquireFence);
@@ -90,8 +90,8 @@ private:
         const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex);
 
     mutable std::mutex opMutex_;
-    std::queue<int32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
-    std::unordered_map<int32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs_; // guarded by opMutex_
+    std::queue<uint32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
+    std::unordered_map<uint32_t, std::shared_ptr<NativeVkImageRes>> imageCacheSeqs_; // guarded by opMutex_
 };
 
 } // namespace Rosen
