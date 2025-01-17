@@ -1106,6 +1106,7 @@ public:
     bool GetHasSharedTransitionNode() const;
     void SetHasSharedTransitionNode(bool hasSharedTransitionNode);
     Vector2f GetGravityTranslate(float imgWidth, float imgHeight);
+    void UpdateTransparentSurface();
     bool GetHasTransparentSurface() const;
     void UpdatePartialRenderParams();
     // This function is used for extending visibleRegion by dirty blurfilter node half-obscured

@@ -2679,8 +2679,16 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
     if (!IsFirstLevelNode()) {
         return false;
     }
-    hasTransparentSurface_ = false;
-    if (IsLeashWindow()) {
+    UpdateTransparentSurface();
+    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, hasFilter: %d, "
+        "isRotation: %d", GetId(), hasTransparentSurface_, ChildHasVisibleFilter(), HasFilter(), isRotation);
+    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && !isRotation;
+}
+
+void RSSurfaceRenderNode::UpdateTransparentSurface()
+{
+    hasTransparentSurface_ = IsTransparent();
+    if (IsLeashWindow() && !hasTransparentSurface_) {
         for (auto &child : *GetSortedChildren()) {
             auto childSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
             if (childSurfaceNode && childSurfaceNode->IsTransparent()) {
@@ -2688,12 +2696,7 @@ bool RSSurfaceRenderNode::QuerySubAssignable(bool isRotation)
                 break;
             }
         }
-    } else {
-        hasTransparentSurface_ = IsTransparent();
     }
-    RS_TRACE_NAME_FMT("SubThreadAssignable node[%lld] hasTransparent: %d, childHasVisibleFilter: %d, hasFilter: %d, "
-        "isRotation: %d", GetId(), hasTransparentSurface_, ChildHasVisibleFilter(), HasFilter(), isRotation);
-    return !(hasTransparentSurface_ && ChildHasVisibleFilter()) && !HasFilter() && !isRotation;
 }
 
 bool RSSurfaceRenderNode::GetHasTransparentSurface() const
