@@ -77,6 +77,7 @@ public:
     static bool GetWiredScreenOndrawEnabled();
     static bool GetArsrPreEnabled();
     static bool GetMultimediaEnableCameraRotationCompensation();
+    static bool GetCanvasDrawingNodeRegionEnabled();
 };
 
 } // namespace Rosen
