@@ -1456,8 +1456,7 @@ void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
         free(descriptor->fullName);
         free(descriptor->fontFamily);
         free(descriptor->fontSubfamily);
-        delete ConvertToOriginalText<TextEngine::FontParser::FontDescriptor>(descriptor);
-        descriptor = nullptr;
+        delete descriptor;
     }
 }
 
