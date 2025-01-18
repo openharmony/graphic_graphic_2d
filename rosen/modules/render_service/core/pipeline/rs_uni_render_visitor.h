@@ -132,19 +132,6 @@ public:
         screenInfo_ = screenInfo;
     }
 
-    void PredictDrawLargeAreaBlur(RSRenderNode& node, std::pair<bool, bool>& predictDrawLargeAreaBlur);
-    void GetPredictDrawLargeAreaBlur(std::pair<bool, bool>& predictDrawLargeAreaBlur)
-    {
-        predictDrawLargeAreaBlur.first = predictDrawLargeAreaBlur_.first;
-        predictDrawLargeAreaBlur.second = predictDrawLargeAreaBlur_.second;
-    }
-
-    void ResetPredictDrawLargeAreaBlur()
-    {
-        predictDrawLargeAreaBlur_.first = false;
-        predictDrawLargeAreaBlur_.second = false;
-    }
-
     // Use in updating hwcnode hardware state with background alpha
     void UpdateHardwareStateByHwcNodeBackgroundAlpha(const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& hwcNodes);
 
@@ -448,7 +435,6 @@ private:
     bool ancoHasGpu_ = false;
     std::unordered_set<std::shared_ptr<RSSurfaceRenderNode>> ancoNodes_;
     uint32_t layerNum_ = 0;
-    std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
 
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
 };

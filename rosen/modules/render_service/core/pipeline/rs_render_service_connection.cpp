@@ -24,6 +24,8 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+//blur predict
+#include "rs_frame_blur_predict.h"
 #include "system/rs_system_parameters.h"
 
 #include "command/rs_command_verify_helper.h"
@@ -2205,6 +2207,11 @@ void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std:
 
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (VOTER_SCENE_BLUR == eventInfo.eventName) {
+        RsFrameBlurPredict::GetInstance().TakeEffectBlurScene(eventInfo);
+        return;
+    }
+
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfo]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {

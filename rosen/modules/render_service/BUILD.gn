@@ -129,6 +129,9 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
+  #blurPredict
+  sources += [ "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp" ]
+
   #dfx
   sources += [ "core/drawable/dfx/rs_skp_capture_dfx.cpp" ]
 
@@ -233,6 +236,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]

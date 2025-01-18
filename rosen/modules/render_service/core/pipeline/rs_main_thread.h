@@ -436,8 +436,6 @@ private:
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
-    void GetCurrentFrameDrawLargeAreaBlurPredictively();
-    void GetCurrentFrameDrawLargeAreaBlurPrecisely();
     void ProcessCommand();
     void UpdateSubSurfaceCnt();
     void Animate(uint64_t timestamp);
@@ -619,8 +617,6 @@ private:
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
-    bool predictBegin_ = false;
-    std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
     pid_t lastCleanCachePid_ = -1;
     int preHardwareTid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
