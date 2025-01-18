@@ -865,6 +865,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
     }
     // check if need report subhealth event
     if (NeedReportSubHealth(startTime)) {
+        RS_TRACE_BEGIN("SubHealthEvent Rendergroup, updateCache interval:" + std::to_string(interval.count()));
         auto reportTime = high_resolution_clock::now();
         NodeId nodeId = nodeId_;
         int updateTimes = drawingCacheUpdateTimeMap_[nodeId_];
@@ -882,6 +883,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
             std::lock_guard<std::mutex> lock(drawingCacheLastReportTimeMapMutex_);
             drawingCacheLastReportTimeMap_[nodeId_] = reportTime;
         }
+        RS_TRACE_END();
     }
     {
         std::lock_guard<std::mutex> lock(drawingCacheLastTwoTimestampMapMutex_);
