@@ -529,6 +529,8 @@ public:
 
     void NeedClearBufferCache();
 
+    void NeedClearPreBuffer();
+
     const RectI& GetSrcRect() const
     {
         return srcRect_;

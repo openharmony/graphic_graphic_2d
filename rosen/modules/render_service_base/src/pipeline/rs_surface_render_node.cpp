@@ -1151,6 +1151,25 @@ void RSSurfaceRenderNode::NeedClearBufferCache()
     surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
     AddToPendingSyncList();
 }
+
+void RSSurfaceRenderNode::NeedClearPreBuffer()
+{
+    if (!surfaceHandler_) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    std::set<int32_t> bufferCacheSet;
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
+    }
+    surfaceParams->SetBufferClearCacheSet(bufferCacheSet);
+    surfaceParams->SetPreBuffer(nullptr);
+    AddToPendingSyncList();
+}
+
 #endif
 
 #ifndef ROSEN_CROSS_PLATFORM
