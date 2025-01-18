@@ -1602,9 +1602,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
-    auto parent = GetParent().lock();
-    if (!curCloneNodeParent_.expired() && curCloneNodeParent_.lock()) {
-        parent = curCloneNodeParent_.lock();
+    auto parent = curCloneNodeParent_.lock();
+    if (parent == nullptr) {
+        parent = GetParent().lock();
     }
     if (parent && parent->GetGeoUpdateDelay()) {
         accumGeoDirty = true;
@@ -1651,9 +1651,9 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
 void RSRenderNode::UpdateDrawRect(
     bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
 {
-    auto parent = GetParent().lock();
-    if (!curCloneNodeParent_.expired() && curCloneNodeParent_.lock()) {
-        parent = curCloneNodeParent_.lock();
+    auto parent = curCloneNodeParent_.lock();
+    if (parent == nullptr) {
+        parent = GetParent().lock();
     }
     auto& properties = GetMutableRenderProperties();
     if (auto sandbox = properties.GetSandBox(); sandbox.has_value() && sharedTransitionParam_) {

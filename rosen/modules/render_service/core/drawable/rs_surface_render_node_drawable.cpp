@@ -386,17 +386,17 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw uniParam is nullptr");
         return;
     }
-    auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        renderParams_->GetCloneSourceDrawable().lock());
-    auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
-    if (cloneSourceParams) {
-        cloneSourceDrawable->OnDraw(*rscanvas);
-        return;
-    }
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
     if (!surfaceParams) {
         SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnDraw params is nullptr");
+        return;
+    }
+    auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
+        surfaceParams->GetCloneSourceDrawable().lock());
+    auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
+    if (cloneSourceParams) {
+        cloneSourceDrawable->OnDraw(*rscanvas);
         return;
     }
     if (DrawCloneNode(*rscanvas, *uniParam, *surfaceParams, false)) {
@@ -696,7 +696,7 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     auto cloneSourceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        renderParams_->GetCloneSourceDrawable().lock());
+        surfaceParams->GetCloneSourceDrawable().lock());
     auto cloneSourceParams = cloneSourceDrawable ? cloneSourceDrawable->GetRenderParams().get() : nullptr;
     if (cloneSourceParams) {
         cloneSourceDrawable->OnCapture(canvas);

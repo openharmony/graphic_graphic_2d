@@ -946,8 +946,9 @@ void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& node)
 
 bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& node)
 {
-    RSSurfaceRenderNode::SharedPtr sourceNode = node.GetSourceCrossNode().lock() ?
-        node.GetSourceCrossNode().lock()->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    auto sourceRenderNode = node.GetSourceCrossNode().lock();
+    RSSurfaceRenderNode::SharedPtr sourceNode = sourceRenderNode ?
+        sourceRenderNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
     // CloneCrossNode must have a source node.
     if (node.IsCloneCrossNode() && sourceNode == nullptr) {
         RS_LOGE("RSUniRenderVisitor::QuickPrepareSurfaceRenderNode source node of clone node %{public}"
@@ -958,12 +959,12 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
     // skip CrossNode not on first display
     if (CheckSkipCrossNode(node)) {
         // when skip cloneCrossNode prepare, we need switch to record sourceNode dirty info
-        PrepareForSkippedCrossNode(sourceNode ? *sourceNode : node);
+        PrepareForSkippedCrossNode(node.IsCloneCrossNode() ? *sourceNode : node);
         return true;
     }
 
     // when prepare CloneCrossNode on first display, we need switch to prepare sourceNode.
-    if (node.IsCloneCrossNode() && curDisplayNode_->IsFirstVisitCrossNodeDisplay()) {
+    if (node.IsCloneCrossNode()) {
         isSwitchToSourceCrossNodePrepare_ = true;
         sourceNode->SetCurCloneNodeParent(node.GetParent().lock());
         sourceNode->QuickPrepare(shared_from_this());
@@ -3169,9 +3170,9 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
         }
         auto originalMatrix = geoPtr->GetMatrix();
         auto matrix = Drawing::Matrix();
-        auto parent = hwcNodePtr->GetParent().lock();
-        if (!hwcNodePtr->GetCurCloneNodeParent().expired() && hwcNodePtr->GetCurCloneNodeParent().lock()) {
-            parent = hwcNodePtr->GetCurCloneNodeParent().lock();
+        auto parent = hwcNodePtr->GetCurCloneNodeParent().lock();
+        if (parent == nullptr) {
+            parent = hwcNodePtr->GetParent().lock();
         }
         bool findInRoot = parent ? parent->GetId() == rootNode.GetId() : false;
         while (parent && parent->GetType() != RSRenderNodeType::DISPLAY_NODE) {
@@ -3180,11 +3181,8 @@ void RSUniRenderVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& r
             } else {
                 break;
             }
-            if (parent->GetCurCloneNodeParent().expired() && parent->GetCurCloneNodeParent().lock()) {
-                parent = parent->GetCurCloneNodeParent().lock();
-            } else {
-                parent = parent->GetParent().lock();
-            }
+            auto cloneNodeParent = parent->GetCurCloneNodeParent().lock();
+            parent = cloneNodeParent ? cloneNodeParent : parent->GetParent().lock();
             if (!parent) {
                 break;
             }
