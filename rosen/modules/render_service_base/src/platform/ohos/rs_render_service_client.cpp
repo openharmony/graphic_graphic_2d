@@ -1681,7 +1681,7 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService!= nullptr) {
+    if (renderService != nullptr) {
         renderService->SetWindowContainer(nodeId, value);
     }
 }

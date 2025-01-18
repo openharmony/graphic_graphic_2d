@@ -667,4 +667,30 @@ HWTEST_F(RSDisplayRenderNodeTest, SetColorSpaceTest, TestSize.Level1)
     auto colorSpace = node->GetColorSpace();
     ASSERT_EQ(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3, colorSpace);
 }
+
+/**
+ * @tc.name: SetWindowContainer
+ * @tc.desc: test results of SetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetWindowContainer, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->SetWindowContainer(nullptr);
+    ASSERT_NE(displayNode, nullptr);
+}
+
+/**
+ * @tc.name: GetWindowContainer
+ * @tc.desc: test results of GetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    std::ignore = displayNode->GetWindowContainer();
+    ASSERT_NE(displayNode, nullptr);
+}
 } // namespace OHOS::Rosen

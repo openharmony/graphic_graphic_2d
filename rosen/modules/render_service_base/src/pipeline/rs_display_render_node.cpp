@@ -491,38 +491,36 @@ bool RSDisplayRenderNode::IsZoomStateChange() const
     return preZoomState_ != curZoomState_;
 }
 
-void RSDisplayRenderNode::AttachToWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node)
+void RSDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
 {
-    if (windowContainer_) {
-        RS_LOGD("RSDisplayRenderNode::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}" PRIu64,
-            node->GetId(), windowContainer_->GetId());
-        windowContainer_->AddChild(node);
-    } else {
-        RS_LOGD("RSDisplayRenderNode::AttachToWindowContainer %{public}" PRIu64 " attach to %{public}" PRIu64,
-            node->GetId(), GetId());
-        AddChild(node);
-    }
+    screenStatusNotifyTask_ = task;
 }
 
-void RSDisplayRenderNode::DetachFromWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node)
+void RSDisplayRenderNode::NotifyScreenNotSwitching()
 {
-    if (windowContainer_) {
-        RS_LOGD("RSDisplayRenderNode::AttachToWindowContainer %{public}" PRIu64 " detach from %{public}" PRIu64,
-            node->GetId(), windowContainer_->GetId());
-        windowContainer_->RemoveChild(node);
-    } else {
-        RS_LOGD("RSDisplayRenderNode::AttachToWindowContainer %{public}" PRIu64 " detach from %{public}" PRIu64,
-            node->GetId(), GetId());
-        RemoveChild(node);
+    if (screenStatusNotifyTask_) {
+        screenStatusNotifyTask_(false);
+        ROSEN_LOGI("RSDisplayRenderNode::NotifyScreenNotSwitching SetScreenSwitchStatus true");
+        RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
     }
 }
 
 void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)
 {
     if (auto oldContainer = std::exchange(windowContainer_, container)) {
-        RS_LOGI("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
-            ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
+        if (container) {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
+                ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
+        } else {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
+                oldContainer->GetId());
+        }
     }
+}
+
+std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
+{
+    return windowContainer_;
 }
 } // namespace Rosen
 } // namespace OHOS

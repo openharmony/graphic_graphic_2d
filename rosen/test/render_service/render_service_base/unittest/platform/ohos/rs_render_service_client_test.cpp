@@ -788,5 +788,19 @@ HWTEST_F(RSClientTest, SetLayerTop001, TestSize.Level1)
     rsClient->SetLayerTop(nodeIdStr, true);
     rsClient->SetLayerTop(nodeIdStr, false);
 }
+
+/**
+ * @tc.name: SetWindowContainer Test
+ * @tc.desc: SetWindowContainer, input true
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSClientTest, SetWindowContainer001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    NodeId nodeId = {};
+    rsClient->SetWindowContainer(nodeId, true);
+    rsClient->SetWindowContainer(nodeId, false);
+}
 } // namespace Rosen
 } // namespace OHOS

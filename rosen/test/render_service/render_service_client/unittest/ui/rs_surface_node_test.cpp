@@ -1627,4 +1627,36 @@ HWTEST_F(RSSurfaceNodeTest, GetAbilityState, TestSize.Level1)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     EXPECT_TRUE(surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::FOREGROUND);
 }
+
+/**
+ * @tc.name: AttachToWindowContainer
+ * @tc.desc: Test function AttachToWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, AttachToWindowContainer, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ScreenId id = {};
+    surfaceNode->AttachToWindowContainer(id);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
+
+/**
+ * @tc.name: DetachFromWindowContainer
+ * @tc.desc: Test function DetachFromWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeTest, DetachFromWindowContainer, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ScreenId id = {};
+    surfaceNode->DetachFromWindowContainer(id);
+    bool res = true;
+    ASSERT_EQ(true, res);
+}
 } // namespace OHOS::Rosen

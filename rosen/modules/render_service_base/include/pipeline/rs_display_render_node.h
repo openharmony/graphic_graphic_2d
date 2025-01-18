@@ -370,9 +370,8 @@ public:
     bool IsZoomStateChange() const;
 
     // Window Container
-    void AttachToWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node);
-    void DetachFromWindowContainer(std::shared_ptr<RSSurfaceRenderNode> node);
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
+    std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
 protected:
     void OnSync() override;

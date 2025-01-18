@@ -2180,12 +2180,16 @@ void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
         if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
             auto displayNodeId = node->GetDisplayNodeId();
             if (auto displayNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(displayNodeId)) {
-                RS_LOGI("RSRenderServiceConnection::SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
+                RS_LOGD("RSRenderServiceConnection::SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
                     nodeId, value);
                 displayNode->SetWindowContainer(value ? node : nullptr);
             } else {
-                return;
+                RS_LOGE("RSRenderServiceConnection::SetWindowContainer displayNode is nullptr, nodeId: %{public}"
+                    PRIu64, displayNode->GetId());
             }
+        } else {
+            RS_LOGE("RSRenderServiceConnection::SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
+                nodeId);
         }
     };
     mainThread_->PostTask(task);

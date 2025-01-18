@@ -989,5 +989,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetLayerTop, TestSize.Level1)
     proxy->SetLayerTop(nodeIdStr, false);
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: SetWindowContainer Test
+ * @tc.desc: SetWindowContainer Test
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetWindowContainer, TestSize.Level1)
+{
+    NodeId nodeId = {};
+    proxy->SetWindowContainer(nodeId, false);
+    ASSERT_TRUE(proxy);
+}
 } // namespace Rosen
 } // namespace OHOS
