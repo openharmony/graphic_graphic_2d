@@ -1275,8 +1275,18 @@ bool RSUifirstManager::IsNonFocusWindowCache(RSSurfaceRenderNode& node, bool ani
 
 bool RSUifirstManager::ForceUpdateUifirstNodes(RSSurfaceRenderNode& node)
 {
-    // surfaceNode should not assign to subThread if it contains DRM children
-    if (node.isForceFlag_ && node.IsLeashWindow() && !node.GetHasProtectedLayer()) {
+    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || node.GetHasProtectedLayer() ||
+        node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE) {
+        UifirstStateChange(node, MultiThreadCacheType::NONE);
+        if (!node.isUifirstNode_) {
+            node.isUifirstDelay_++;
+            if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
+                node.isUifirstNode_ = true;
+            }
+        }
+        return true;
+    }
+    if (node.isForceFlag_ && node.IsLeashWindow()) {
         RS_OPTIONAL_TRACE_NAME_FMT("ForceUpdateUifirstNodes: isUifirstEnable: %d", node.isUifirstEnable_);
         if (!node.isUifirstEnable_) {
             UifirstStateChange(node, MultiThreadCacheType::NONE);
@@ -1309,21 +1319,11 @@ void RSUifirstManager::UifirstFirstFrameCacheState(RSSurfaceRenderNode& node)
 void RSUifirstManager::UpdateUifirstNodes(RSSurfaceRenderNode& node, bool ancestorNodeHasAnimation)
 {
     RS_TRACE_NAME_FMT("UpdateUifirstNodes: Id[%llu] name[%s] FLId[%llu] Ani[%d] Support[%d] isUiFirstOn[%d],"
-        " isForceFlag:[%d], hasProtectedLayer:[%d]", node.GetId(), node.GetName().c_str(), node.GetFirstLevelNodeId(),
-        ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_, node.isForceFlag_,
-        node.GetHasProtectedLayer());
+        " isForceFlag:[%d], hasProtectedLayer:[%d] switch:[%d]", node.GetId(), node.GetName().c_str(),
+        node.GetFirstLevelNodeId(), ancestorNodeHasAnimation, node.GetUifirstSupportFlag(), isUiFirstOn_,
+        node.isForceFlag_, node.GetHasProtectedLayer(), node.GetUIFirstSwitch());
     if (ForceUpdateUifirstNodes(node)) {
         return;
-    }
-    if (!isUiFirstOn_ || !node.GetUifirstSupportFlag() || node.GetHasProtectedLayer()) {
-        UifirstStateChange(node, MultiThreadCacheType::NONE);
-        if (!node.isUifirstNode_) {
-            node.isUifirstDelay_++;
-            if (node.isUifirstDelay_ > EVENT_STOP_TIMEOUT) {
-                node.isUifirstNode_ = true;
-            }
-            return;
-        }
     }
     if (RSUifirstManager::IsLeashWindowCache(node, ancestorNodeHasAnimation)) {
         UifirstFirstFrameCacheState(node);
