@@ -781,4 +781,30 @@ HWTEST_F(RSDisplayRenderNodeTest, HdrStatusTest, TestSize.Level1)
     displayNode->SetHdrStatus(false, HdrStatus::AI_HDR_VIDEO);
     EXPECT_EQ(displayNode->GetHdrStatus(), HdrStatus::HDR_PHOTO | HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO);
 }
+
+/**
+ * @tc.name: SetWindowContainer
+ * @tc.desc: test results of SetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, SetWindowContainer, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    displayNode->SetWindowContainer(nullptr);
+    ASSERT_NE(displayNode, nullptr);
+}
+
+/**
+ * @tc.name: GetWindowContainer
+ * @tc.desc: test results of GetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issuesIBIK1X
+ */
+HWTEST_F(RSDisplayRenderNodeTest, GetWindowContainer, TestSize.Level1)
+{
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config, context);
+    std::ignore = displayNode->GetWindowContainer();
+    ASSERT_NE(displayNode, nullptr);
+}
 } // namespace OHOS::Rosen

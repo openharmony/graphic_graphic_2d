@@ -1031,7 +1031,7 @@ void RSSurfaceNode::AttachToWindowContainer(ScreenId screenId)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeAttachToWindowContainer>(GetId(), screenId);
     auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy!= nullptr) {
+    if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
         RS_LOGD("RSSurfaceNode::AttachToWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
             GetId(), screenId);
@@ -1043,7 +1043,7 @@ void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeDetachFromWindowContainer>(GetId(), screenId);
     auto transactionProxy = RSTransactionProxy::GetInstance();
-    if (transactionProxy!= nullptr) {
+    if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
         RS_LOGD("RSSurfaceNode::DetachFromWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
             GetId(), screenId);

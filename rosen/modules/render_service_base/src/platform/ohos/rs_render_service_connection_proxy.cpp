@@ -3710,7 +3710,7 @@ void RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool valu
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER);
     int32_t err = SendRequest(code, data, reply, option);
-    if (err!= NO_ERROR) {
+    if (err != NO_ERROR) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: Send Request err.");
         return;
     }

@@ -1079,5 +1079,18 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, SetFreeMultiWindowStatus, TestSize.
     proxy->SetFreeMultiWindowStatus(false);
     ASSERT_TRUE(proxy);
 }
+
+/**
+ * @tc.name: SetWindowContainer Test
+ * @tc.desc: SetWindowContainer Test
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSRenderServiceConnectionProxyTest, SetWindowContainer, TestSize.Level1)
+{
+    NodeId nodeId = {};
+    proxy->SetWindowContainer(nodeId, false);
+    ASSERT_TRUE(proxy);
+}
 } // namespace Rosen
 } // namespace OHOS

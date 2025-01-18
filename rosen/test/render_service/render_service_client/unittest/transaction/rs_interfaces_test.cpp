@@ -504,4 +504,19 @@ HWTEST_F(RSInterfacesTest, UnregisterSurfaceBufferCallback001, TestSize.Level1)
     bool res = instance.UnregisterSurfaceBufferCallback(1, 1);
     EXPECT_FALSE(res);
 }
+
+/**
+ * @tc.name: SetWindowContainer001
+ * @tc.desc: test results of SetWindowContainer
+ * @tc.type: FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSInterfacesTest, SetWindowContainer001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    NodeId nodeId = {};
+    instance.SetWindowContainer(nodeId, false);
+    EXPECT_TRUE(instance.renderServiceClient_ != nullptr);
+}
 } // namespace OHOS::Rosen
