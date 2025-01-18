@@ -469,7 +469,7 @@ void RSUifirstManager::PurgePendingPostNodes()
 
 void RSUifirstManager::PostSubTask(NodeId id)
 {
-    RS_TRACE_NAME("post UpdateCacheSurface");
+    RS_TRACE_NAME_FMT("post UpdateCacheSurface %" PRIu64"", id);
 
     if (subthreadProcessingNode_.find(id) != subthreadProcessingNode_.end()) { // drawable is doing, do not send
         RS_TRACE_NAME_FMT("node %" PRIu64" is doing", id);
@@ -774,7 +774,9 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
     bool isFocusNodeFound = false;
     auto isFocusId = RSMainThread::Instance()->GetFocusNodeId();
     auto isLeashId = RSMainThread::Instance()->GetFocusLeashWindowId();
+    uint32_t postOrder = 0;
     for (auto& item : pendingNode) {
+        postOrder++;
         auto const& [id, value] = item;
         if (IsPreFirstLevelNodeDoingAndTryClear(value)) {
             continue;
@@ -782,13 +784,6 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
         auto drawable = GetSurfaceDrawableByID(id);
         if (!drawable) {
             continue;
-        }
-        if (!isFocusNodeFound) {
-            if (id == isFocusId || id == isLeashId) {
-                // for resolving response latency
-                drawable->SetRenderCachePriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY);
-                isFocusNodeFound = true;
-            }
         }
         if (drawable->HasCachedTexture()) {
             drawable->SetRenderCachePriority(NodePriorityType::SUB_LOW_PRIORITY);
@@ -798,10 +793,18 @@ void RSUifirstManager::SetNodePriorty(std::list<NodeId>& result,
         if (drawable->GetCacheSurfaceProcessedStatus() == CacheProcessStatus::WAITING) {
             drawable->SetRenderCachePriority(NodePriorityType::SUB_HIGH_PRIORITY);
         }
+        if (!isFocusNodeFound) {
+            if (id == isFocusId || id == isLeashId) {
+                // for resolving response latency
+                drawable->SetRenderCachePriority(NodePriorityType::SUB_FOCUSNODE_PRIORITY);
+                isFocusNodeFound = true;
+            }
+        }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
         if (surfaceParams && surfaceParams->GetPreSubHighPriorityType()) {
             drawable->SetRenderCachePriority(NodePriorityType::SUB_VIDEO_PRIORITY);
         }
+        drawable->SetUifirstPostOrder(postOrder);
         sortedSubThreadNodeIds_.emplace_back(id);
     }
 }
@@ -831,7 +834,7 @@ void RSUifirstManager::SortSubThreadNodesPriority()
             return false;
         }
         if (drawable1->GetRenderCachePriority() == drawable2->GetRenderCachePriority()) {
-            return surfaceParams2->GetPositionZ() < surfaceParams1->GetPositionZ();
+            return drawable1->GetUifirstPostOrder() > drawable2->GetUifirstPostOrder();
         } else {
             return drawable1->GetRenderCachePriority() < drawable2->GetRenderCachePriority();
         }
