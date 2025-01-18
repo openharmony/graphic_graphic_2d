@@ -1258,20 +1258,27 @@ void RSDisplayRenderNodeDrawable::WiredScreenProjection(
         RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection mirroredDrawable is null");
         return;
     }
-    curCanvas_->Save();
-    ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
-    RSDirtyRectsDfx rsDirtyRectsDfx(*mirroredDrawable);
-    std::vector<RectI> damageRegionRects =
-        CalculateVirtualDirtyForWiredScreen(renderFrame, params, curCanvas_->GetTotalMatrix());
-    rsDirtyRectsDfx.SetVirtualDirtyRects(damageRegionRects, params.GetScreenInfo());
-    // HDR does not support wired screen
     if (!mirroredDrawable->GetRenderParams()) {
         RS_LOGE("RSDisplayRenderNodeDrawable::WiredScreenProjection mirroredDrawable GetRenderParams is null");
         return;
     }
     auto& mirroredParams = static_cast<RSDisplayRenderParams&>(*mirroredDrawable->GetRenderParams());
-    if (RSSystemParameters::GetDebugMirrorOndrawEnabled() || (RSSystemParameters::GetWiredScreenOndrawEnabled() &&
-        (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() || mirroredParams.HasSecurityLayer()))) {
+    auto isRedraw = RSSystemParameters::GetDebugMirrorOndrawEnabled() ||
+        (RSSystemParameters::GetWiredScreenOndrawEnabled() &&
+        (mirroredParams.GetHDRPresent() || !currentBlackList_.empty() || mirroredParams.HasSecurityLayer()));
+    if (isRedraw) {
+        isMirrorSLRCopy_ = false;
+    } else {
+        auto cacheImage = mirroredDrawable->GetCacheImgForCapture();
+        isMirrorSLRCopy_ = cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled() &&
+                           !enableVisibleRect_ && RSSystemProperties::GetSLRScaleFunctionEnable();
+    }
+
+    curCanvas_->Save();
+    ScaleAndRotateMirrorForWiredScreen(*mirroredDrawable);
+    RSDirtyRectsDfx rsDirtyRectsDfx(*mirroredDrawable);
+    // HDR does not support wired screen
+    if (isRedraw) {
         DrawWiredMirrorOnDraw(*mirroredDrawable, params);
         RSUniRenderThread::Instance().SetBlackList({});
     } else {
@@ -1294,9 +1301,14 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSDisplayRenderNodeDrawabl
     auto cacheImage = mirroredDrawable.GetCacheImgForCapture();
     if (cacheImage && RSSystemProperties::GetDrawMirrorCacheImageEnabled()) {
         RS_TRACE_NAME("DrawWiredMirrorCopy with cacheImage");
-        if (!enableVisibleRect_) {
+        if (isMirrorSLRCopy_) {
+            RS_TRACE_NAME("DrawWiredMirrorCopy with SLRScale");
+            scaleManager_->ProcessCacheImage(*curCanvas_, *cacheImage);
+        } else if (!enableVisibleRect_) {
+            RS_TRACE_NAME("DrawWiredMirrorCopy with SkiaScale");
             RSUniRenderUtil::ProcessCacheImage(*curCanvas_, *cacheImage);
         } else {
+            RS_TRACE_NAME("DrawWiredMirrorCopy with VisibleRect");
             RSUniRenderUtil::ProcessCacheImageRect(*curCanvas_, *cacheImage, curVisibleRect_,
                 Drawing::Rect(0, 0, curVisibleRect_.GetWidth(), curVisibleRect_.GetHeight()));
         }
@@ -1312,6 +1324,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorCopy(RSDisplayRenderNodeDrawabl
         drawParams.isMirror = true;
         renderEngine->DrawDisplayNodeWithParams(*curCanvas_,
             *mirroredDrawable.GetRSSurfaceHandlerOnDraw(), drawParams);
+        RSMainThread::Instance()->RequestNextVSync();
     }
 }
 
@@ -1326,6 +1339,7 @@ void RSDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(
     if (mirroredParams == nullptr) {
         return;
     }
+    RS_TRACE_NAME("DrawWiredMirror with Redraw");
     // for HDR
     curCanvas_->SetOnMultipleScreen(true);
     curCanvas_->SetDisableFilterCache(true);
@@ -1434,6 +1448,15 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     auto mirrorScreenInfo = nodeParams->GetScreenInfo();
     auto mirrorWidth = static_cast<float>(mirrorScreenInfo.width);
     auto mirrorHeight = static_cast<float>(mirrorScreenInfo.height);
+    if (isMirrorSLRCopy_) {
+        if (scaleManager_ == nullptr) {
+            scaleManager_ = std::make_shared<RSSLRScaleFunction>(
+                mirrorWidth, mirrorHeight, mainWidth, mainHeight);
+        } else {
+            scaleManager_->CheckOrRefreshScreen(mirrorWidth, mirrorHeight, mainWidth, mainHeight);
+        }
+        isMirrorSLRCopy_ = scaleManager_->GetIsSLRCopy();
+    }
     auto rotation = mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();
     if (screenManager) {
@@ -1453,11 +1476,16 @@ void RSDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(RSDisplayRe
     curCanvas_->Clear(SK_ColorBLACK);
     // Scale
     if (mainWidth > 0 && mainHeight > 0) {
-        auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
-        // 2 for calc X and Y
-        curCanvas_->Translate((mirrorWidth - (scaleNum * mainWidth)) / 2, (mirrorHeight - (scaleNum * mainHeight)) / 2);
-        curCanvas_->Scale(scaleNum, scaleNum);
-        curCanvas_->ClipRect(Drawing::Rect(0, 0, mainWidth, mainHeight), Drawing::ClipOp::INTERSECT, false);
+        if (isMirrorSLRCopy_) {
+            scaleManager_->CanvasScale(*curCanvas_);
+        } else {
+            auto scaleNum = std::min(mirrorWidth / mainWidth, mirrorHeight / mainHeight);
+            // 2 for calc X and Y
+            curCanvas_->Translate((mirrorWidth - (scaleNum * mainWidth)) / 2,
+                (mirrorHeight - (scaleNum * mainHeight)) / 2);
+            curCanvas_->Scale(scaleNum, scaleNum);
+            curCanvas_->ClipRect(Drawing::Rect(0, 0, mainWidth, mainHeight), Drawing::ClipOp::INTERSECT, false);
+        }
     }
     // Rotate
     RotateMirrorCanvas(rotation, static_cast<float>(mainScreenInfo.width), static_cast<float>(mainScreenInfo.height));
