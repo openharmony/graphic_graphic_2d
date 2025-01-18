@@ -142,6 +142,8 @@
 
 // cpu boost
 #include "c/ffrt_cpu_boost.h"
+// blur predict
+#include "rs_frame_blur_predict.h"
 
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
@@ -429,6 +431,7 @@ void RSMainThread::Init()
         ClearNeedDropframePidList();
         WaitUntilUnmarshallingTaskFinished();
         ProcessCommand();
+        RsFrameBlurPredict::GetInstance().AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
         UpdateSubSurfaceCnt();
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
@@ -441,6 +444,7 @@ void RSMainThread::Init()
         ffrt_cpu_boost_start(CPUBOOST_START_POINT);
         // may mark rsnotrendering
         Render(); // now render is traverse tree to prepare
+        RsFrameBlurPredict::GetInstance().UpdateCurrentFrameDrawLargeAreaBlurFrequencyPrecisely();
         // cpu boost feature end
         ffrt_cpu_boost_end(CPUBOOST_START_POINT);
         TraverseCanvasDrawingNodesNotOnTree();
@@ -877,31 +881,6 @@ void RSMainThread::Start()
     if (runner_) {
         runner_->Run();
     }
-}
-
-void RSMainThread::GetCurrentFrameDrawLargeAreaBlurPredictively()
-{
-    if (!predictBegin_) {
-        RS_TRACE_NAME("prediction invalid frame");
-        return;
-    }
-    if (predictDrawLargeAreaBlur_.first) {
-        RS_TRACE_NAME("prediction current long frame");
-    } else {
-        RS_TRACE_NAME("prediction current short frame");
-    }
-    predictDrawLargeAreaBlur_.first = false;
-}
-
-void RSMainThread::GetCurrentFrameDrawLargeAreaBlurPrecisely()
-{
-    if (predictDrawLargeAreaBlur_.second) {
-        RS_TRACE_NAME("precise current long frame");
-        predictBegin_ = true;
-    } else {
-        RS_TRACE_NAME("precise current short frame");
-    }
-    predictDrawLargeAreaBlur_.second = false;
 }
 
 void RSMainThread::ProcessCommand()
@@ -2254,8 +2233,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         rootNode->QuickPrepare(uniVisitor);
-        uniVisitor->GetPredictDrawLargeAreaBlur(predictDrawLargeAreaBlur_);
-        uniVisitor->ResetPredictDrawLargeAreaBlur();
         if (deviceType_ != DeviceType::PHONE) {
             RSUniRenderUtil::MultiLayersPerf(uniVisitor->GetLayerNum());
         }

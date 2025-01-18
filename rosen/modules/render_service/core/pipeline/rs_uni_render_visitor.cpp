@@ -63,6 +63,9 @@
 #include "rs_profiler_capture_recorder.h"
 #endif
 
+// blur predict
+#include "rs_frame_blur_predict.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -1449,14 +1452,6 @@ bool RSUniRenderVisitor::NeedPrepareChindrenInReverseOrder(RSRenderNode& node) c
         return true;
     }
     return IsLeashAndHasMainSubNode(node);
-}
-
-void RSUniRenderVisitor::PredictDrawLargeAreaBlur(RSRenderNode& node, std::pair<bool, bool>& predictDrawLargeAreaBlur)
-{
-    std::pair<bool, bool> nodeDrawLargeAreaBlur = {false, false};
-    node.NodeDrawLargeAreaBlur(nodeDrawLargeAreaBlur);
-    predictDrawLargeAreaBlur.first = predictDrawLargeAreaBlur.first || nodeDrawLargeAreaBlur.first;
-    predictDrawLargeAreaBlur.second = predictDrawLargeAreaBlur.second || nodeDrawLargeAreaBlur.second;
 }
 
 void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
@@ -2866,7 +2861,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentFilter(
                 globalFilter_.insert(*it);
             }
             filterNode->PostPrepareForBlurFilterNode(*(curDisplayNode_->GetDirtyManager()), needRequestNextVsync_);
-            PredictDrawLargeAreaBlur(*filterNode, predictDrawLargeAreaBlur_);
+            RsFrameBlurPredict::GetInstance().PredictDrawLargeAreaBlur(*filterNode);
         }
     }
 }
@@ -3512,7 +3507,7 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
     }
     if (curSurfaceNode_ && !isNodeAddedToTransparentCleanFilters) {
         node.PostPrepareForBlurFilterNode(dirtyManager, needRequestNextVsync_);
-        PredictDrawLargeAreaBlur(node, predictDrawLargeAreaBlur_);
+        RsFrameBlurPredict::GetInstance().PredictDrawLargeAreaBlur(node);
     }
 }
 
