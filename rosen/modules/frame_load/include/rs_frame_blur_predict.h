@@ -45,7 +45,6 @@ private:
     std::atomic<bool> isValidBlurFrame_{false};
     std::atomic<bool> predictBegin_{false};
     std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
-    
 };
 } // namespace Rosen
 } // namespace OHOS
