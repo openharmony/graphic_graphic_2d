@@ -23,7 +23,7 @@ namespace Rosen {
 RSXCollie::RSXCollie(const std::string& tag, uint32_t timeoutSeconds,
     std::function<void(void*)> func, void* arg, uint32_t flag)
 {
-    tag_ = "render_service:" + tag;
+    tag_ = tag;
 #ifdef ROSEN_OHOS
     id_ = HiviewDFX::XCollie::GetInstance().SetTimer(tag_, timeoutSeconds, func, arg, flag);
 #else

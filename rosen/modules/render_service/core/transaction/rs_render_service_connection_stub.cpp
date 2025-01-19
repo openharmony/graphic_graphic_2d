@@ -301,6 +301,13 @@ bool IsValidCallingPid(pid_t pid, pid_t callingPid)
     return (callingPid == getpid()) || (callingPid == pid);
 }
 
+static void TypefaceXcollieCallback(void* arg)
+{
+    if (arg) {
+        bool* isTrigger = static_cast<bool*>(arg);
+        *isTrigger = true;
+    }
+}
 }
 
 void RSRenderServiceConnectionStub::SetQos()
@@ -1800,23 +1807,31 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE): {
-            // timer: 3s
-            OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + std::to_string(callingPid), 3);
+            bool xcollieFlag = false;
             bool result = false;
-            uint64_t uniqueId = data.ReadUint64();
-            uint32_t hash = data.ReadUint32();
-            // safe check
-            if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
-                std::shared_ptr<Drawing::Typeface> typeface;
-                result = RSMarshallingHelper::Unmarshalling(data, typeface);
-                if (result && typeface) {
-                    typeface->SetHash(hash);
-                    RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
-                    RegisterTypeface(uniqueId, typeface);
+            std::shared_ptr<Drawing::Typeface> typeface = nullptr;
+            {
+                // timer: 3s
+                OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" +
+                    std::to_string(callingPid), 3, TypefaceXcollieCallback, &xcollieFlag, 0);
+                uint64_t uniqueId = data.ReadUint64();
+                uint32_t hash = data.ReadUint32();
+                // safe check
+                if (IsValidCallingPid(ExtractPid(uniqueId), callingPid)) {
+                    result = RSMarshallingHelper::Unmarshalling(data, typeface);
+                    if (result && typeface) {
+                        typeface->SetHash(hash);
+                        RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, uniqueId);
+                        RegisterTypeface(uniqueId, typeface);
+                    }
+                } else {
+                    RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
+                        "no permission REGISTER_TYPEFACE", callingPid);
                 }
-            } else {
-                RS_LOGE("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
-                    "no permission REGISTER_TYPEFACE", callingPid);
+            }
+            if (xcollieFlag && typeface) {
+                RS_LOGW("RSRenderServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] typeface[%{public}s] "
+                    "size[%{public}u], too big.", callingPid, typeface->GetFamilyName().c_str(), typeface->GetSize());
             }
             if (!reply.WriteBool(result)) {
                 ret = ERR_INVALID_REPLY;
