@@ -339,6 +339,8 @@ public:
     void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
+
+    void SetWindowContainer(NodeId nodeId, bool value);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

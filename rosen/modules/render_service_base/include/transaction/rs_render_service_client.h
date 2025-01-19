@@ -403,6 +403,8 @@ public:
 
     void ForceRefreshOneFrameWithNextVSync();
 
+    void SetWindowContainer(NodeId nodeId, bool value);
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;

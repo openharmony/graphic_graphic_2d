@@ -161,6 +161,9 @@ public:
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
     void SetApiCompatibleVersion(uint32_t version);
+
+    void AttachToWindowContainer(ScreenId screenId);
+    void DetachFromWindowContainer(ScreenId screenId);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

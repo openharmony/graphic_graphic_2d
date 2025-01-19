@@ -177,6 +177,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -2590,6 +2591,21 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
             NotifyScreenSwitched();
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER) : {
+            NodeId nodeId = {};
+            bool isEnabled = {};
+            if (!data.ReadUint64(nodeId) || !data.ReadBool(isEnabled)) {
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
+                RS_LOGW("SET_WINDOW_CONTAINER invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]", nodeId, callingPid);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            SetWindowContainer(nodeId, isEnabled);
             break;
         }
         default: {

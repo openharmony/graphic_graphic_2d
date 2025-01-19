@@ -346,6 +346,8 @@ private:
 
     void NotifyScreenSwitched() override;
 
+    void SetWindowContainer(NodeId nodeId, bool value) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

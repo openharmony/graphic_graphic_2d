@@ -599,5 +599,23 @@ void RSDisplayRenderNode::NotifyScreenNotSwitching()
         RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
     }
 }
+
+void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)
+{
+    if (auto oldContainer = std::exchange(windowContainer_, container)) {
+        if (container) {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
+                ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
+        } else {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
+                oldContainer->GetId());
+        }
+    }
+}
+
+std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
+{
+    return windowContainer_;
+}
 } // namespace Rosen
 } // namespace OHOS

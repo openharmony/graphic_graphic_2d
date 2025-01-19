@@ -914,5 +914,10 @@ void RSInterfaces::NotifyScreenSwitched()
 {
     renderServiceClient_->NotifyScreenSwitched();
 }
+
+void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
+{
+    renderServiceClient_->SetWindowContainer(nodeId, value);
+}
 } // namespace Rosen
 } // namespace OHOS
