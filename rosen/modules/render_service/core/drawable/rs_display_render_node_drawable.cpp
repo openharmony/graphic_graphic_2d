@@ -1507,8 +1507,8 @@ Drawing::Rect RSDisplayRenderNodeDrawable::GetImageRegions(float screenWidth, fl
     if (realImageWidth == 0.0f || realImageHeight == 0.0f) {
         return dstRect;
     }
-    float imageScaleWidth = screenWidth / realImageWidth;
-    float imageScaleHeight = screenHeight / realImageHeight;
+    float imageScaleWidth = screenWidth / static_cast<float>(realImageWidth);
+    float imageScaleHeight = screenHeight / static_cast<float>(realImageHeight);
     auto imageWidth = realImageWidth * imageScaleHeight;
     auto imageHeight = realImageHeight * imageScaleWidth;
     // Ensure that the security mask is located in the middle of the virtual screen.
