@@ -46,8 +46,8 @@ public:
 HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
 {
     std::vector<std::string> packageList;
-    packageList.emplace_back("com.huawei.hmos.files");
-    packageList.emplace_back("com.huawei.hmos.myhuawei");
+    packageList.emplace_back("com.test.banapp");
+    packageList.emplace_back("com.test.allowapp");
     ASSERT_NO_FATAL_FAILURE({HgmHfbcConfig::HandleHfbcConfig(packageList);});
     std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
     bool ret = hfbcStatus == "-1";
@@ -63,7 +63,7 @@ HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig01, Function | SmallTest | Level1)
 HWTEST_F(HgmHfbcConfigTest, HandleHfbcConfig02, Function | SmallTest | Level1)
 {
     std::vector<std::string> packageList;
-    packageList.emplace_back("com.huawei.hmos.myhuawei");
+    packageList.emplace_back("com.test.allowapp");
     ASSERT_NO_FATAL_FAILURE({HgmHfbcConfig::HandleHfbcConfig(packageList);});
     // hfbc can be enabled now
     std::string hfbcStatus = system::GetParameter(VDEC_HFBC_SWITCH, "0");
