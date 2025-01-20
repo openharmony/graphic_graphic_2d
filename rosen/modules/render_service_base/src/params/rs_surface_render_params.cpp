@@ -421,6 +421,16 @@ void RSSurfaceRenderParams::SetSkipDraw(bool skip)
     isSkipDraw_ = skip;
 }
 
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSSurfaceRenderParams::GetClonedNodeRenderDrawable()
+{
+    return clonedNodeRenderDrawable_;
+}
+
+bool RSSurfaceRenderParams::IsCloneNode() const
+{
+    return isCloneNode_;
+}
+
 bool RSSurfaceRenderParams::GetSkipDraw() const
 {
     return isSkipDraw_;
@@ -487,6 +497,9 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->selfDrawingType_ = selfDrawingType_;
     targetSurfaceParams->ancestorDisplayNode_ = ancestorDisplayNode_;
     targetSurfaceParams->ancestorDisplayDrawable_ = ancestorDisplayDrawable_;
+    targetSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable_;
+    targetSurfaceParams->isCloneNode_ = isCloneNode_;
+    targetSurfaceParams->clonedSourceNode_ = clonedSourceNode_;
     targetSurfaceParams->alpha_ = alpha_;
     targetSurfaceParams->isSpherizeValid_ = isSpherizeValid_;
     targetSurfaceParams->isAttractionValid_ = isAttractionValid_;

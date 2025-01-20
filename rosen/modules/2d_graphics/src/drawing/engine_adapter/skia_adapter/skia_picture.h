@@ -35,10 +35,13 @@ public:
         return AdapterType::SKIA_ADAPTER;
     }
 
+    void SetSkPicture(const sk_sp<SkPicture>& skPicture);
     const sk_sp<SkPicture> GetPicture() const;
 
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
+    int ApproximateOpCount(bool nested = false) override;
+    std::shared_ptr<Data> Serialize(SerialProcs* proc) override;
 
 private:
     sk_sp<SkPicture> skiaPicture_;

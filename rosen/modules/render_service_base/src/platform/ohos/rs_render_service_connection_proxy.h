@@ -83,7 +83,7 @@ public:
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask) override;
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) override;
 
@@ -127,11 +127,15 @@ public:
 
     std::string GetRefreshInfo(pid_t pid) override;
 
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void MarkPowerOffNeedProcessOneFrame() override;
 
     void RepaintEverything() override;
+
+    void ForceRefreshOneFrameWithNextVSync() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
 
@@ -144,7 +148,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) override;
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
 
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
@@ -280,8 +284,6 @@ public:
 
     void SetCacheEnabledForRotation(bool isEnabled) override;
 
-    void SetScreenSwitchStatus(bool flag) override;
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
     void RunOnRemoteDiedCallback() override;
@@ -317,6 +319,10 @@ public:
         sptr<RSISurfaceBufferCallback> callback) override;
 
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+
+    void NotifyScreenSwitched() override;
+
+    void SetWindowContainer(NodeId nodeId, bool value) override;
 
 private:
     bool FillParcelWithTransactionData(

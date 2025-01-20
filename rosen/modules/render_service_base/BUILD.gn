@@ -81,6 +81,7 @@ ohos_source_set("render_service_base_src") {
     "src/animation/rs_animation_fraction.cpp",
     "src/animation/rs_animation_manager.cpp",
     "src/animation/rs_animation_rate_decider.cpp",
+    "src/animation/rs_animation_report.cpp",
     "src/animation/rs_animation_timing_protocol.cpp",
     "src/animation/rs_animation_trace_utils.cpp",
     "src/animation/rs_cubic_bezier_interpolator.cpp",
@@ -237,8 +238,10 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_color_picker.cpp",
     "src/render/rs_colorful_shadow_filter.cpp",
     "src/render/rs_distortion_shader_filter.cpp",
+    "src/render/rs_dot_matrix_shader.cpp",
     "src/render/rs_drawing_filter.cpp",
     "src/render/rs_filter.cpp",
+    "src/render/rs_flow_light_sweep_shader.cpp",
     "src/render/rs_fly_out_shader_filter.cpp",
     "src/render/rs_foreground_effect_filter.cpp",
     "src/render/rs_grey_shader_filter.cpp",
@@ -280,6 +283,7 @@ ohos_source_set("render_service_base_src") {
     #gfx
     "src/gfx/fps_info/rs_surface_fps.cpp",
     "src/gfx/fps_info/rs_surface_fps_manager.cpp",
+    "src/gfx/performance/rs_perfmonitor_reporter.cpp",
 
     #screen_manager
     "src/screen_manager/rs_screen_capability.cpp",
@@ -645,6 +649,7 @@ ohos_shared_library("librender_service_base") {
 
   public_external_deps = []
   if (rosen_is_ohos) {
+    external_deps += [ "hisysevent:libhisysevent" ]
     public_external_deps += [
       "graphic_surface:sync_fence",
       "image_framework:image_native",

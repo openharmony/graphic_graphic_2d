@@ -28,6 +28,9 @@ class PixelMap;
 
 class DrawingCanvasUtils {
 public:
+    static OH_Drawing_ErrorCode DrawPixelMapNine(OHOS::Rosen::Drawing::Canvas* canvas,
+        std::shared_ptr<OHOS::Media::PixelMap> pixelMap, const OHOS::Rosen::Drawing::Rect* center,
+        const OHOS::Rosen::Drawing::Rect* dst, const OHOS::Rosen::Drawing::FilterMode mode);
     static void DrawPixelMapRect(OHOS::Rosen::Drawing::Canvas* canvas, std::shared_ptr<OHOS::Media::PixelMap> pixelMap,
         const OHOS::Rosen::Drawing::Rect* src, const OHOS::Rosen::Drawing::Rect* dst,
         const OHOS::Rosen::Drawing::SamplingOptions* sampling);

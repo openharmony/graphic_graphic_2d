@@ -95,6 +95,26 @@ HWTEST_F(RSScreenTest, SetResolution_001, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetRogResolution_001
+ * @tc.desc: SetRogResolution Test
+ * @tc.type: FUNC
+ * @tc.require: issueI8JJXW
+ */
+HWTEST_F(RSScreenTest, SetRogResolution_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = INVALID_SCREEN_ID;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+    auto width = rsScreen->Width();
+    auto height = rsScreen->Height();
+    uint32_t newWidth = 100;
+    uint32_t newHeight = 100;
+    rsScreen->SetRogResolution(newWidth, newHeight);
+    ASSERT_EQ(rsScreen->Width(), width);
+    ASSERT_EQ(rsScreen->Height(), height);
+}
+
+/*
  * @tc.name: SetPowerStatus_001
  * @tc.desc: SetPowerStatus Test
  * @tc.type: FUNC
@@ -1960,5 +1980,28 @@ HWTEST_F(RSScreenTest, GetMainScreenVisibleRect_001, testing::ext::TestSize.Leve
     ASSERT_EQ(rectSet.y, rectGet.y);
     ASSERT_EQ(rectSet.w, rectGet.w);
     ASSERT_EQ(rectSet.h, rectGet.h);
+}
+
+/*
+ * Function: SetHasProtectedLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create RSScreen
+ *                  2. operation: SetHasProtectedLayer and GetHasProtectedLayer
+ *                  3. result: return hasProtectedLayer
+ */
+HWTEST_F(RSScreenTest, SetHasProtectedLayer_001, testing::ext::TestSize.Level1)
+{
+    ScreenId id = 0;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, true, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    rsScreen->SetHasProtectedLayer(true);
+    auto ret = rsScreen->GetHasProtectedLayer();
+    ASSERT_EQ(ret, true);
+    rsScreen->SetHasProtectedLayer(false);
+    ret = rsScreen->GetHasProtectedLayer();
+    ASSERT_EQ(ret, false);
 }
 } // namespace OHOS::Rosen

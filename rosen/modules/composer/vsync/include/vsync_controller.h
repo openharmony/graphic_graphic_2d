@@ -29,6 +29,10 @@ class VSyncController : public VSyncGenerator::Callback {
 public:
     class Callback {
     public:
+        // Start of DVSync
+        virtual void OnDVSyncEvent(int64_t now, int64_t period,
+            uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) = 0;
+        // End of DVSync
         virtual void OnVSyncEvent(int64_t now, int64_t period,
             uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate) = 0;
         virtual ~Callback() = default;
@@ -43,12 +47,12 @@ public:
     VSyncController(const VSyncController &) = delete;
     VSyncController &operator=(const VSyncController &) = delete;
 
-    VsyncError SetEnable(bool enable, bool& isGeneratorEnable);
+    virtual VsyncError SetEnable(bool enable, bool& isGeneratorEnable);
     VsyncError SetCallback(Callback* cb);
     VsyncError SetPhaseOffset(int64_t offset);
 
 private:
-
+    friend class DVSyncController;
     void OnVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
     void OnPhaseOffsetChanged(int64_t phaseOffset);

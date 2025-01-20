@@ -39,6 +39,7 @@ struct ScreenInfo {
     uint32_t height = 0;
     uint32_t phyWidth = 0; // physical screen resolution
     uint32_t phyHeight = 0;
+    bool isSamplingOn = false;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;

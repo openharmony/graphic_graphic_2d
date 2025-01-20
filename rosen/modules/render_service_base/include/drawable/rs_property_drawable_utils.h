@@ -85,6 +85,10 @@ public:
 
     static std::shared_ptr<RSFilter> GenerateBehindWindowFilter(float radius, float saturation, float brightness,
         RSColor maskColor);
+
+    static bool IsBlurFilterType(const RSFilter::FilterType& filterType);
+
+    static float GetBlurFilterRadius(const std::shared_ptr<RSFilter>& rsFilter);
 private:
     static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);
     static std::shared_ptr<Drawing::RuntimeEffect> binarizationShaderEffect_;

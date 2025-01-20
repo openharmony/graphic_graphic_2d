@@ -20,7 +20,7 @@
 
 #include "drawable/rs_display_render_node_drawable.h"
 #include "params/rs_display_render_params.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_processor_factory.h"
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_processor.h"

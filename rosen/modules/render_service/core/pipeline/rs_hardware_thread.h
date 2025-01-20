@@ -42,6 +42,7 @@ struct RefreshRateParam {
     uint64_t vsyncId = 0;
     uint64_t constraintRelativeTime = 0;
     bool isForceRefresh = false;
+    uint64_t fastComposeTimeStampDiff = 0;
 };
 
 class RSHardwareThread {
@@ -67,6 +68,8 @@ public:
     GSError ClearFrameBuffers(OutputPtr output);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
+    std::string GetEventQueueDump() const;
+    void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer, uint64_t screenId);
 private:
     RSHardwareThread() = default;
     ~RSHardwareThread() = default;
@@ -102,6 +105,8 @@ private:
         HDI::Display::Graphic::Common::V1_0::CM_ColorSpaceType& colorSpaceInfo);
 #endif
 
+    static GraphicColorGamut ComputeTargetColorGamut(const sptr<SurfaceBuffer> &buffer);
+    static GraphicPixelFormat ComputeTargetPixelFormat(const sptr<SurfaceBuffer> &buffer);
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     HdiBackend *hdiBackend_ = nullptr;
@@ -122,9 +127,25 @@ private:
     int64_t intervalTimePoints_ = 0;
     bool isLastAdaptive_ = false;
     std::string GetSurfaceNameInLayers(const std::vector<LayerInfoPtr>& layers);
+    std::mutex preAllocMutex_;
+    std::mutex frameBufferSurfaceOhosMapMutex_;
 
     friend class RSUniRenderThread;
     friend class RSUifirstManager;
 };
 }
+
+namespace OHOS {
+namespace AppExecFwk {
+class RSHardwareDumper : public Dumper {
+public:
+    virtual void Dump(const std::string& message) override;
+    virtual std::string GetTag() override;
+    std::string GetDumpInfo();
+
+private:
+    std::string dumpInfo_;
+};
+} // namespace AppExecFwk
+} // namespace OHOS
 #endif // RS_HARDWARE_THREAD_H

@@ -247,7 +247,7 @@ int32_t OH_NativeImage_GetBufferMatrix(OH_NativeImage* image, float matrix[16]);
  * by <b>OH_NativeWindow_NativeObjectReference</b>.\n
  * 2) When the <b>OHNativeWindowBuffer</b> is used up, its reference count needs to be decremented
  * by <b>OH_NativeWindow_NativeObjectUnreference</b>.\n
- * This interface needs to be used in conjunction with <b>OH_NativeImage_ReleaseNativeWindowBuffer<\b>,
+ * This interface needs to be used in conjunction with <b>OH_NativeImage_ReleaseNativeWindowBuffer</b>,
  * otherwise memory leaks will occur.\n
  * When the fenceFd is used up, you need to close it.\n
  *
@@ -267,7 +267,7 @@ int32_t OH_NativeImage_AcquireNativeWindowBuffer(OH_NativeImage* image,
 /**
  * @brief Release the <b>OHNativeWindowBuffer</b> to the buffer queue through an
  * <b>OH_NativeImage</b> instance for reuse.\n
- * The fenceFd will be close by system.\n
+ * The fenceFd will be closed by system.\n
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
@@ -286,7 +286,7 @@ int32_t OH_NativeImage_ReleaseNativeWindowBuffer(OH_NativeImage* image,
 /**
  * @brief Create a <b>OH_NativeImage</b> as surface consumer. \n
  * This method can not be used at the same time with <b>OH_NativeImage_UpdateSurfaceImage</b>.\n
- * This interface needs to be used in conjunction with <b>OH_NativeImage_Destroy<\b>,
+ * This interface needs to be used in conjunction with <b>OH_NativeImage_Destroy</b>,
  * otherwise memory leaks will occur.\n
  * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
  * @return Returns the pointer to the <b>OH_NativeImage</b> instance created if the operation is successful, \n

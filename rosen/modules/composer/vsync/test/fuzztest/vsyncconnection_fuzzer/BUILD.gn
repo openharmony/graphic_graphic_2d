@@ -43,7 +43,7 @@ ohos_fuzztest("VsyncConnectionFuzzTest") {
   ]
   defines = []
   if (graphic_2d_feature_enable_dvsync) {
-    defines += [ "RS_ENABLE_DVSYNC" ]
+    defines += [ "RS_ENABLE_DVSYNC_2" ]
   }
 }
 

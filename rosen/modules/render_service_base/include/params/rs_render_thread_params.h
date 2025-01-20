@@ -185,6 +185,16 @@ public:
         return isForceRefresh_;
     }
 
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
+    {
+        fastComposeTimeStampDiff_ = fastComposeTimeStampDiff;
+    }
+
+    uint64_t GetFastComposeTimeStampDiff() const
+    {
+        return fastComposeTimeStampDiff_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -195,9 +205,9 @@ public:
         return hardwareEnabledTypeDrawables_;
     }
 
-    const HardCursorInfo& GetHardCursorDrawables() const
+    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawables() const
     {
-        return hardCursorDrawables_;
+        return hardCursorDrawableMap_;
     }
     
     void SetPendingScreenRefreshRate(uint32_t rate)
@@ -289,16 +299,6 @@ public:
     bool GetCacheEnabledForRotation() const
     {
         return cacheEnabledForRotation_;
-    }
-
-    void SetScreenSwitchStatus(bool flag)
-    {
-        isScreenSwitching_ = flag;
-    }
-
-    bool GetScreenSwitchStatus() const
-    {
-        return isScreenSwitching_;
     }
 
     void SetRequestNextVsyncFlag(bool flag)
@@ -453,16 +453,6 @@ public:
     {
         currentVisitDisplayDrawableId_ = displayId;
     }
-
-    const std::set<uint32_t> GetUnmappedCacheSet() const
-    {
-        return unmappedCacheSet_;
-    }
-
-    void ClearUnmappedCacheSet()
-    {
-        unmappedCacheSet_.clear();
-    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -471,6 +461,7 @@ private:
     bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t fastComposeTimeStampDiff_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool hasDisplayHdrOn_ = false;
@@ -494,12 +485,11 @@ private:
     bool isExpandScreenDirtyEnabled_ = false;
     bool isMirrorScreenDirty_ = false;
     bool cacheEnabledForRotation_ = false;
-    bool isScreenSwitching_ = false;
     NodeId currentVisitDisplayDrawableId_ = INVALID_NODEID;
     DirtyRegionDebugType dirtyRegionDebugType_ = DirtyRegionDebugType::DISABLED;
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
     DrawablesVec hardwareEnabledTypeDrawables_;
-    HardCursorInfo hardCursorDrawables_;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
     bool isForceCommitLayer_ = false;
     bool hasMirrorDisplay_ = false;
     // accumulatedDirtyRegion to decide whether to skip tranasparent nodes.
@@ -526,8 +516,6 @@ private:
 
     bool isSecurityExemption_ = false;
     ScreenInfo screenInfo_ = {};
-
-    std::set<uint32_t> unmappedCacheSet_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

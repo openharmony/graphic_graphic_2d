@@ -452,16 +452,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return cacheEnabledForRotation_;
 }
 
-void RSSystemProperties::SetScreenSwitchStatus(bool flag)
-{
-    isScreenSwitching_ = flag;
-}
-
-bool RSSystemProperties::GetScreenSwitchStatus()
-{
-    return isScreenSwitching_;
-}
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     static ParallelRenderingType systemPropertiePrepareType = static_cast<ParallelRenderingType>(
@@ -511,6 +501,14 @@ bool RSSystemProperties::GetHardCursorEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetDrawExpandSlrEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.slr.expand.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
 }
 
 bool RSSystemProperties::GetSkipForAlphaZeroEnabled()
@@ -586,6 +584,14 @@ bool RSSystemProperties::GetMotionBlurEnabled()
     static bool enabled =
         std::atoi((system::GetParameter("persist.sys.graphic.motionBlurEnabled", "1")).c_str()) != 0;
     return enabled;
+}
+
+bool RSSystemProperties::GetSLRScaleFunctionEnable()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.SLRScale.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 bool RSSystemProperties::GetDynamicBrightnessEnabled()
@@ -768,6 +774,12 @@ bool RSSystemProperties::GetUIFirstDebugEnabled()
 {
     static bool debugEnable = system::GetIntParameter("persist.sys.graphic.uifirstDebugEnabled", 0) != 0;
     return debugEnable;
+}
+
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
+{
+    static bool lockerEnable = system::GetIntParameter("persist.sys.graphic.singleDrawableLocker.enable", 1) != 0;
+    return lockerEnable;
 }
 
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)

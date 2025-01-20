@@ -56,6 +56,7 @@ template("skia_libtxt") {
     ]
 
     sources = [
+      "$txt_root/common_utils/string_util.cpp",
       "$txt_root/impl/drawing_painter_impl.cpp",
       "$txt_root/impl/paragraph_builder_impl.cpp",
       "$txt_root/impl/paragraph_impl.cpp",
@@ -174,6 +175,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/Decorations.cpp",
     "//third_party/skia/modules/skparagraph/src/FontArguments.cpp",
     "//third_party/skia/modules/skparagraph/src/FontCollection.cpp",
+    "//third_party/skia/modules/skparagraph/src/HyphenTrie.cpp",
     "//third_party/skia/modules/skparagraph/src/Hyphenator.cpp",
     "//third_party/skia/modules/skparagraph/src/OneLineShaper.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphBuilderImpl.cpp",
@@ -186,6 +188,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/RunBaseImpl.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLine.cpp",
     "//third_party/skia/modules/skparagraph/src/TextLineBaseImpl.cpp",
+    "//third_party/skia/modules/skparagraph/src/TextLineJustify.cpp",
     "//third_party/skia/modules/skparagraph/src/TextShadow.cpp",
     "//third_party/skia/modules/skparagraph/src/TextStyle.cpp",
     "//third_party/skia/modules/skparagraph/src/TextTabAlign.cpp",

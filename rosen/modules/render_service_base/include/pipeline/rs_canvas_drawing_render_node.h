@@ -91,27 +91,27 @@ private:
     bool ResetSurfaceWithTexture(int width, int height, RSPaintFilterCanvas& canvas);
 #endif
 
-    std::mutex imageMutex_;
-    std::shared_ptr<Drawing::Surface> surface_;
-    std::shared_ptr<Drawing::Image> image_;
-    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     bool isGpuSurface_ = true;
 #endif
-    std::unique_ptr<RSPaintFilterCanvas> canvas_;
-    ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
-    ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
-    std::mutex taskMutex_;
-    std::atomic<bool> isNeedProcess_ = false;
-    pid_t threadId_ = 0;
-    std::mutex drawCmdListsMutex_;
-    std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
     bool isNeverOnTree_ = true;
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
-
+    std::atomic<bool> isNeedProcess_ = false;
+    pid_t threadId_ = 0;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
+    std::shared_ptr<Drawing::Surface> surface_;
+    std::shared_ptr<Drawing::Image> image_;
+    std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
+    std::unique_ptr<RSPaintFilterCanvas> canvas_;
+    std::mutex imageMutex_;
+    ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
+    ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
+    std::mutex taskMutex_;
+    std::mutex drawCmdListsMutex_;
+    std::map<RSModifierType, std::list<Drawing::DrawCmdListPtr>> drawCmdLists_;
+
 
     friend class RSCanvasDrawingNodeCommandHelper;
 };

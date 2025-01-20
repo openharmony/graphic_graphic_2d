@@ -48,7 +48,8 @@ void RSSurfaceBufferCallbackManager::SetIsUniRender(bool isUniRender)
 void RSSurfaceBufferCallbackManager::SetReleaseFenceForVulkan(
     int releaseFenceFd, NodeId rootNodeId)
 {
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
     std::lock_guard<std::mutex> lock { surfaceBufferOpItemMutex_ };
@@ -268,7 +269,8 @@ void RSSurfaceBufferCallbackManager::RunSurfaceBufferCallback()
 #ifdef RS_ENABLE_VK
 void RSSurfaceBufferCallbackManager::RunSurfaceBufferSubCallbackForVulkan(NodeId rootNodeId)
 {
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN) {
+    if (RSSystemProperties::GetGpuApiType() != GpuApiType::VULKAN &&
+        RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         return;
     }
  

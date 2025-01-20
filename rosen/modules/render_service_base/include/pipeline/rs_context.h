@@ -198,24 +198,24 @@ public:
 private:
     // This function is used for initialization, should be called once after constructor.
     void Initialize();
+    // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
+    bool requestedNextVsyncAnimate_ = false;
+    PurgeType purgeType_ = PurgeType::NONE;
+    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
+    uint64_t transactionTimestamp_ = 0;
+    uint64_t currentTimestamp_ = 0;
+    // The root of render node tree, Note: this node is not the animation fallback node.
+    std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     RSRenderNodeMap nodeMap;
     std::vector<std::string> uiFrameworkTypeTable_;
     std::vector<std::weak_ptr<RSRenderNode>> uiFrameworkDirtyNodes_;
     RSRenderFrameRateLinkerMap frameRateLinkerMap;
     RSRenderInteractiveImplictAnimatorMap interactiveImplictAnimatorMap_;
-    // The root of render node tree, Note: this node is not the animation fallback node.
-    std::shared_ptr<RSBaseRenderNode> globalRootRenderNode_ = std::make_shared<RSRenderNode>(0, true);
     // The list of animating nodes in this frame.
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> animatingNodeList_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> curFrameAnimatingNodeList_;
-    // This flag indicates that a request for the next Vsync is needed when moving to the animation fallback node.
-    bool requestedNextVsyncAnimate_ = false;
     std::vector<std::pair<NodeId, AnimationId>> needSyncFinishAnimationList_;
-    PurgeType purgeType_ = PurgeType::NONE;
-    ClearMemoryMoment clearMoment_ = ClearMemoryMoment::NO_CLEAR;
 
-    uint64_t transactionTimestamp_ = 0;
-    uint64_t currentTimestamp_ = 0;
     std::function<void(const std::function<void()>&, bool)> taskRunner_;
     std::function<void(const std::function<void()>&)> rttaskRunner_;
     std::function<void()> vsyncRequestFunc_;

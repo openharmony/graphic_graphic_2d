@@ -55,8 +55,31 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_TranslationZ_Test_2)
         int y = (i / 2) * 510;
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, 500, 500 });
         testNode->SetPivot(Vector2f(0, 0));
-        testNode->SetTranslate(Vector2f(transList[i], transList[i]));
+        testNode->SetTranslateX(transList[i]);
+        testNode->SetTranslateY(transList[i]);
         testNode->SetTranslateZ(transList[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_SetPositionZ_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight / rowCount;
+
+    float transList[] = { -100, 0, 250, 500 };
+
+    for (int i = 0; i < columnCount * rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { x, y, sizeX - 10, sizeY - 10 });
+        testNode->SetPivot(Vector2f(0, 0));
+        testNode->SetPositionZ(transList[i / 2]);
+        bool flag = i % 2 == 0 ? true : false;
+        testNode->SetPositionZApplicableCamera3D(flag);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }

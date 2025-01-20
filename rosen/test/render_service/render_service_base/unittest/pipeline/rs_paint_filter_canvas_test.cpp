@@ -1680,5 +1680,20 @@ HWTEST_F(RSPaintFilterCanvasTest, BehindWindowDataTest, TestSize.Level1)
     ASSERT_NE(paintFilterCanvas_->GetBehindWindowData(), nullptr);
     EXPECT_TRUE(EnvStackClear());
 }
+
+/**
+ * @tc.name: IsWindowFreezeCaptureTest
+ * @tc.desc: GetIsWindowFreezeCapture/SetIsWindowFreezeCapture
+ * @tc.type:FUNC
+ * @tc.require:issuesIBHUQ7
+ */
+HWTEST_F(RSPaintFilterCanvasTest, IsWindowFreezeCaptureTest, TestSize.Level1)
+{
+    ASSERT_NE(paintFilterCanvas_, nullptr);
+    paintFilterCanvas_->SetIsWindowFreezeCapture(false);
+    EXPECT_EQ(paintFilterCanvas_->GetIsWindowFreezeCapture(), false);
+    paintFilterCanvas_->SetIsWindowFreezeCapture(true);
+    EXPECT_EQ(paintFilterCanvas_->GetIsWindowFreezeCapture(), true);
+}
 } // namespace Rosen
 } // namespace OHOS

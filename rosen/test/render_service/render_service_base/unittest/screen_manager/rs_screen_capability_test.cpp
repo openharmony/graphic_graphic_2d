@@ -57,9 +57,13 @@ HWTEST_F(RSScreenCapabilityTest, Marshalling001, TestSize.Level1)
  */
 HWTEST_F(RSScreenCapabilityTest, Unmarshalling001, TestSize.Level1)
 {
-    RSScreenCapability capability;
+    RSScreenProps screenProps1;
+    RSScreenProps screenProps2;
+    std::vector<RSScreenProps> props = { screenProps1, screenProps2 };
+    RSScreenCapability capability("1", ScreenInterfaceType::DISP_INTF_LCD, 2, 4, 3, 3, true, props);
     Parcel parcel;
-    std::shared_ptr<RSScreenCapability>(capability.Unmarshalling(parcel));
+    ASSERT_TRUE(capability.Marshalling(parcel));
+    ASSERT_NE(std::shared_ptr<RSScreenCapability>(RSScreenCapability::Unmarshalling(parcel)), nullptr);
 }
 
 /**

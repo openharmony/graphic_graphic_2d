@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,6 @@
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "pipeline/rs_node_map.h"
 #include "pipeline/rs_render_thread.h"
-#include "pipeline/rs_render_thread_util.h"
 #include "platform/common/rs_log.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "platform/drawing/rs_surface_converter.h"
@@ -495,8 +494,10 @@ std::shared_ptr<RSSurfaceNode> RSSurfaceNode::Unmarshalling(Parcel& parcel)
         return nullptr;
     }
     RSSurfaceNodeConfig config = { name };
+    RS_LOGI("RSSurfaceNode::Unmarshalling, Node: %{public}" PRIu64 ", Name: %{public}s", id, name.c_str());
 
     if (auto prevNode = RSNodeMap::Instance().GetNode(id)) {
+        RS_LOGW("RSSurfaceNode::Unmarshalling, the node id is already in the map");
         // if the node id is already in the map, we should not create a new node
         return prevNode->ReinterpretCastTo<RSSurfaceNode>();
     }
@@ -658,6 +659,8 @@ RSSurfaceNode::~RSSurfaceNode()
         return;
     }
 
+    RS_LOGI("RSSurfaceNode::~RSSurfaceNode, Node: %{public}" PRIu64 ", Name: %{public}s", GetId(), GetName().c_str());
+
     // both divided and unirender need to unregister listener when surfaceNode destroy
     auto renderServiceClient =
         std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
@@ -727,20 +730,6 @@ void RSSurfaceNode::SetForceHardwareAndFixRotation(bool flag)
     if (transactionProxy != nullptr) {
         transactionProxy->AddCommand(command, true);
     }
-#ifdef ROSEN_OHOS
-    std::lock_guard<std::mutex> lock(apiInitMutex_);
-    static bool apiCompatibleVersionInitialized = false;
-    if (apiCompatibleVersionInitialized) {
-        return;
-    }
-    uint32_t apiCompatibleVersion = RSRenderThreadUtil::GetApiCompatibleVersion();
-    if (apiCompatibleVersion != INVALID_API_COMPATIBLE_VERSION && transactionProxy != nullptr) {
-        std::unique_ptr<RSCommand> command =
-            std::make_unique<RSSurfaceNodeSetApiCompatibleVersion>(GetId(), apiCompatibleVersion);
-        transactionProxy->AddCommand(command, true);
-        apiCompatibleVersionInitialized = true;
-    }
-#endif
 }
 
 void RSSurfaceNode::SetBootAnimation(bool isBootAnimation)
@@ -898,6 +887,19 @@ void RSSurfaceNode::SetForeground(bool isForeground)
     }
 }
 
+void RSSurfaceNode::SetClonedNodeId(NodeId nodeId)
+{
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy == nullptr) {
+        ROSEN_LOGD("RSSurfaceNode::SetClonedNodeId transactionProxy is null");
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeSetClonedNodeId>(GetId(), nodeId);
+    transactionProxy->AddCommand(command, true);
+
+}
+
 void RSSurfaceNode::SetForceUIFirst(bool forceUIFirst)
 {
     std::unique_ptr<RSCommand> command =
@@ -1021,6 +1023,30 @@ void RSSurfaceNode::SetApiCompatibleVersion(uint32_t version)
         transactionProxy->AddCommand(command, true);
         RS_LOGD(
             "RSSurfaceNode::SetApiCompatibleVersion: Node: %{public}" PRIu64 ", version: %{public}u", GetId(), version);
+    }
+}
+
+void RSSurfaceNode::AttachToWindowContainer(ScreenId screenId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeAttachToWindowContainer>(GetId(), screenId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+        RS_LOGD("RSSurfaceNode::AttachToWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
+            GetId(), screenId);
+    }
+}
+
+void RSSurfaceNode::DetachFromWindowContainer(ScreenId screenId)
+{
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSSurfaceNodeDetachFromWindowContainer>(GetId(), screenId);
+    auto transactionProxy = RSTransactionProxy::GetInstance();
+    if (transactionProxy != nullptr) {
+        transactionProxy->AddCommand(command, true);
+        RS_LOGD("RSSurfaceNode::DetachFromWindowContainer: Node: %{public}" PRIu64 ", screenId: %{public}" PRIu64,
+            GetId(), screenId);
     }
 }
 } // namespace Rosen

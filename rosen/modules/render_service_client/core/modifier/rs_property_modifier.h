@@ -289,6 +289,15 @@ protected:
     std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
 };
 
+class RSC_EXPORT RSBackgroundShaderProgressModifier : public RSBackgroundModifier {
+public:
+    explicit RSBackgroundShaderProgressModifier(const std::shared_ptr<RSPropertyBase>& property);
+    virtual ~RSBackgroundShaderProgressModifier() = default;
+protected:
+    RSModifierType GetModifierType() const override;
+    std::shared_ptr<RSRenderModifier> CreateRenderModifier() const override;
+};
+
 class RSC_EXPORT RSBgImageModifier : public RSBackgroundModifier {
 public:
     explicit RSBgImageModifier(const std::shared_ptr<RSPropertyBase>& property);

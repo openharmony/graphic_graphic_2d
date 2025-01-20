@@ -679,7 +679,7 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetSkipDrawTest, TestSize.Level1)
     SurfaceNodeCommandHelper::SetSkipDraw(context, 0, true);
     SurfaceNodeCommandHelper::Create(context, 1);
     SurfaceNodeCommandHelper::SetSkipDraw(context, 1, true);
-    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1) != nullptr);
+    EXPECT_NE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(1), nullptr);
 }
 
 /**
@@ -709,6 +709,38 @@ HWTEST_F(RSSurfaceNodeCommandTest, SetHardwareEnableHint, TestSize.Level1)
     NodeId nodeId = 1;
     SurfaceNodeCommandHelper::Create(context, nodeId);
     SurfaceNodeCommandHelper::SetHardwareEnableHint(context, nodeId, true);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: AttachToWindowContainer
+ * @tc.desc: Verify function AttachToWindowContainer
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, AttachToWindowContainer, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    ScreenId screenId = {};
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::AttachToWindowContainer(context, nodeId, screenId);
+    EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
+}
+
+/**
+ * @tc.name: DetachFromWindowContainer
+ * @tc.desc: Verify function DetachFromWindowContainer
+ * @tc.type:FUNC
+ * @tc.require: issueIBIK1X
+ */
+HWTEST_F(RSSurfaceNodeCommandTest, DetachFromWindowContainer, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    ScreenId screenId = {};
+    SurfaceNodeCommandHelper::Create(context, nodeId);
+    SurfaceNodeCommandHelper::DetachFromWindowContainer(context, nodeId, screenId);
     EXPECT_TRUE(context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId) != nullptr);
 }
 } // namespace OHOS::Rosen

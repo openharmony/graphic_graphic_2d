@@ -126,13 +126,13 @@ std::shared_ptr<NativeVkImageRes> RSVkImageManager::NewImageCacheFromBuffer(
 void RSVkImageManager::ShrinkCachesIfNeeded()
 {
     while (cacheQueue_.size() > MAX_CACHE_SIZE) {
-        const int32_t id = cacheQueue_.front();
+        const uint32_t id = cacheQueue_.front();
         UnMapVkImageFromSurfaceBuffer(id);
         cacheQueue_.pop();
     }
 }
 
-void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(int32_t seqNum)
+void RSVkImageManager::UnMapVkImageFromSurfaceBuffer(uint32_t seqNum)
 {
     pid_t threadIndex = UNI_RENDER_THREAD_INDEX;
     {

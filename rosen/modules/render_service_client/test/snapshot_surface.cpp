@@ -22,7 +22,7 @@
 #include <sys/time.h>
 
 #include "png.h"
-#include "pipeline/rs_surface_capture_task.h"
+#include "feature/capture/rs_surface_capture_task.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace OHOS::Rosen;

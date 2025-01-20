@@ -504,6 +504,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->isFirstLevelCrossNode_ = isFirstLevelCrossNode_;
     target->cloneSourceDrawable_ = cloneSourceDrawable_;
     target->isCrossNodeOffscreenOn_ = isCrossNodeOffscreenOn_;
+    target->absRotation_ = absRotation_;
     needSync_ = false;
 }
 

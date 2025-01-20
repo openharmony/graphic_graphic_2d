@@ -518,6 +518,7 @@ HWTEST_F(NativeDrawingPenTest, NativeDrawingPenTest_PenSetShaderEffect002, TestS
     float pos[] = { 0, 0.5, 1.0 };
     OH_Drawing_ShaderEffect* effect =
         OH_Drawing_ShaderEffectCreateRadialGradient(point, 100, colors, pos, 3, OH_Drawing_TileMode::CLAMP);
+    ASSERT_FALSE(effect == nullptr);
     OH_Drawing_PenSetShaderEffect(pen, effect);
     OH_Drawing_PointDestroy(point);
     OH_Drawing_ShaderEffectDestroy(effect);

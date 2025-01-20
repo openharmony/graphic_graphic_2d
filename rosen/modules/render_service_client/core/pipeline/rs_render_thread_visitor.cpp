@@ -562,7 +562,8 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
         node.GetRSSurfaceNodeId(), uiTimestamp_);
     rsSurface->FlushFrame(surfaceFrame, uiTimestamp_);
 #ifdef RS_ENABLE_VK
-    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
+        RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         auto fenceFd = std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->DupReservedFlushFd();
         auto rootId = GetActiveSubtreeRootId();
         if (rootId != INVALID_NODEID) {

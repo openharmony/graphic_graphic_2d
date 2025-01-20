@@ -107,11 +107,11 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name),
+    : RSRenderNode(config.id, context, config.isTextureExportNode),
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id))
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -201,6 +201,15 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #else
     return false;
 #endif
+}
+
+void RSSurfaceRenderNode::UpdateInfoForClonedNode()
+{
+    if (GetId() == clonedSourceNodeId_) {
+        SetNeedCacheSurface(true);
+        SetHwcChildrenDisabledState();
+    }
+    SetIsCloned(GetId() == clonedSourceNodeId_);
 }
 
 bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
@@ -1113,6 +1122,17 @@ bool RSSurfaceRenderNode::GetFingerprint() const
     return hasFingerprint_;
 }
 
+bool RSSurfaceRenderNode::IsCloneNode() const
+{
+    return isCloneNode_;
+}
+
+void RSSurfaceRenderNode::SetClonedNodeId(NodeId id)
+{
+    isCloneNode_ = (id != INVALID_NODEID);
+    clonedSourceNodeId_ = id;
+}
+
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
 {
     if (forceUIFirst) {
@@ -1375,6 +1395,26 @@ void RSSurfaceRenderNode::NeedClearBufferCache(std::set<uint32_t>& bufferCacheSe
     }
 #endif
 }
+
+void RSSurfaceRenderNode::NeedClearPreBuffer(std::set<uint32_t>& bufferCacheSet)
+{
+#ifdef RS_ENABLE_GPU
+    if (!surfaceHandler_) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    if (auto preBuffer = surfaceHandler_->GetPreBuffer()) {
+        bufferCacheSet.insert(preBuffer->GetSeqNum());
+        RS_OPTIONAL_TRACE_NAME_FMT("NeedClearPreBuffer preBufferSeqNum:%d", preBuffer->GetSeqNum());
+    }
+    surfaceParams->SetPreBuffer(nullptr);
+    AddToPendingSyncList();
+#endif
+}
+
 #endif
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1818,11 +1858,16 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
     transparentRegion_ = Occlusion::Region{ dirtyRect };
 
     if (IsTransparent()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] transparent: OcclusionBg:[%d], alpha:[%f], IsEmpty:[%d]",
+            GetName().c_str(), static_cast<int>(GetAbilityBgAlpha()), GetGlobalAlpha(), IsEmptyAppWindow());
         opaqueRegion_ = Occlusion::Region();
     } else {
         auto maxRadius = std::max({ cornerRadius.x_, cornerRadius.y_, cornerRadius.z_, cornerRadius.w_ });
         if (IsAppWindow() && HasContainerWindow()) {
             containerConfig_.outR_ = maxRadius;
+            RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] has container: inR:[%d], outR:[%d], innerRect:[%s], "
+                "isFocus:[%d]", GetName().c_str(), containerConfig_.inR_, containerConfig_.outR_,
+                containerConfig_.innerRect_.ToString().c_str(), isFocusWindow);
             opaqueRegion_ = ResetOpaqueRegion(absRect, screenRotation, isFocusWindow);
         } else {
             if (!cornerRadius.IsZero()) {
@@ -1830,6 +1875,8 @@ void RSSurfaceRenderNode::ResetSurfaceOpaqueRegion(const RectI& screeninfo, cons
                                              (cornerRadius.y_ > 0 ? maxRadius : 0),
                                              (cornerRadius.z_ > 0 ? maxRadius : 0),
                                              (cornerRadius.w_ > 0 ? maxRadius : 0));
+                RS_OPTIONAL_TRACE_NAME_FMT("CalcOpaqueRegion [%s] with cornerRadius: [%d, %d, %d, %d]",
+                    GetName().c_str(), dstCornerRadius.x_, dstCornerRadius.y_, dstCornerRadius.z_, dstCornerRadius.w_);
                 SetCornerRadiusOpaqueRegion(absRect, dstCornerRadius);
             } else {
                 opaqueRegion_ = Occlusion::Region{absRectR};
@@ -2267,16 +2314,7 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
         RotateCorner(rotationDegree, cornerRadius);
     }
 
-    bool ret = opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
-        opaqueRegionBaseInfo_.absRect_ == absRect &&
-        opaqueRegionBaseInfo_.oldDirty_ == GetOldDirty() &&
-        opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
-        opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
-        opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
-        opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
-        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow() &&
-        opaqueRegionBaseInfo_.containerConfig_ == containerConfig_;
-    if (!ret) {
+    if (!CheckOpaqueRegionBaseInfo(screeninfo, absRect, screenRotation, isFocusWindow, cornerRadius)) {
         if (absRect.IsEmpty()) {
             RS_LOGD("%{public}s absRect is empty, dst rect: %{public}s, old dirty in surface: %{public}s",
                 GetName().c_str(), GetDstRect().ToString().c_str(), GetOldDirtyInSurface().ToString().c_str());
@@ -2289,15 +2327,26 @@ void RSSurfaceRenderNode::CheckAndUpdateOpaqueRegion(const RectI& screeninfo, co
 }
 
 bool RSSurfaceRenderNode::CheckOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,
-    const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius)
+    const ScreenRotation screenRotation, const bool isFocusWindow, const Vector4<int>& cornerRadius) const
 {
-    return opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
-        opaqueRegionBaseInfo_.absRect_ == absRect &&
+    // OpaqueRegion should be recalculate under following circumstances.
+    auto ret =
+        // 1. Screen information changed, such as screen size, screen rotation, etc.
+        opaqueRegionBaseInfo_.screenRect_ == screeninfo &&
         opaqueRegionBaseInfo_.screenRotation_ == screenRotation &&
+        // 2. Position and size of surface nodes changed.
+        opaqueRegionBaseInfo_.absRect_ == absRect &&
+        opaqueRegionBaseInfo_.oldDirty_ == GetOldDirty() &&
+        // 3. Focus/Non-focus window switching.
         opaqueRegionBaseInfo_.isFocusWindow_ == isFocusWindow &&
-        opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
+        // 4. Transparent/Non-trasparent wndow switching.
         opaqueRegionBaseInfo_.isTransparent_ == IsTransparent() &&
-        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow();
+        // 5. Round corner changed.
+        opaqueRegionBaseInfo_.cornerRadius_ == cornerRadius &&
+        // 6. Container window changed.
+        opaqueRegionBaseInfo_.hasContainerWindow_ == HasContainerWindow() &&
+        opaqueRegionBaseInfo_.containerConfig_ == containerConfig_;
+    return ret;
 }
 
 void RSSurfaceRenderNode::SetOpaqueRegionBaseInfo(const RectI& screeninfo, const RectI& absRect,
@@ -2702,9 +2751,14 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId displayNodeId)
 {
     if (strcmp(GetName().c_str(), "pointer window") != 0) {
+        std::string uniqueIdStr = "null";
+#ifndef ROSEN_CROSS_PLATFORM
+        uniqueIdStr = GetRSSurfaceHandler() != nullptr && GetRSSurfaceHandler()->GetConsumer() != nullptr ?
+                        std::to_string(GetRSSurfaceHandler()->GetConsumer()->GetUniqueId()) : "null";
+#endif
         RS_LOGI("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %{public}s, id: %{public}" PRIu64 "], "
-            "on tree: %{public}d, nodeType: %{public}d", GetName().c_str(), GetId(), onTree,
-            static_cast<int>(nodeType_));
+            "on tree: %{public}d, nodeType: %{public}d, uniqueId: %{public}s", GetName().c_str(), GetId(), onTree,
+            static_cast<int>(nodeType_), uniqueIdStr.c_str());
     }
     RS_TRACE_NAME_FMT("RSSurfaceRenderNode:SetIsOnTheTree, node:[name: %s, id: %" PRIu64 "], "
         "on tree: %d, nodeType: %d", GetName().c_str(), GetId(), onTree, static_cast<int>(nodeType_));
@@ -2957,6 +3011,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();
     surfaceParams->isAppWindow_ = IsAppWindow();
+    surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
@@ -3005,6 +3060,18 @@ void RSSurfaceRenderNode::SetNeedOffscreen(bool needOffscreen)
 #endif
 }
 
+void RSSurfaceRenderNode::SetClonedNodeRenderDrawable(
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeRenderDrawable stagingSurfaceParams is null");
+        return;
+    }
+    stagingSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable;
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -3041,15 +3108,17 @@ void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
 #endif
 }
 
-void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
+bool RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
+    bool ret = false;
 #ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstNodeEnableParam(b);
+        ret = stagingSurfaceParams->SetUifirstNodeEnableParam(b);
         AddToPendingSyncList();
     }
 #endif
+    return ret;
 }
 
 void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)
@@ -3350,6 +3419,21 @@ void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
     apiCompatibleVersion_ = apiCompatibleVersion;
 }
 
+void RSSurfaceRenderNode::SetIsCloned(bool isCloned)
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetIsCloned: stagingRenderParams_ is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetIsCloned: surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetIsCloned(isCloned);
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::ResetIsBufferFlushed()
 {
     if (stagingRenderParams_ == nullptr) {
@@ -3359,6 +3443,9 @@ void RSSurfaceRenderNode::ResetIsBufferFlushed()
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (surfaceParams == nullptr) {
         RS_LOGE("RSSurfaceRenderNode::ResetIsBufferFlushed: surfaceParams is nullptr");
+        return;
+    }
+    if (!surfaceParams->GetIsBufferFlushed()) {
         return;
     }
     surfaceParams->SetIsBufferFlushed(false);

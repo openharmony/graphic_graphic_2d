@@ -120,6 +120,7 @@ public:
     bool Deserialize(std::shared_ptr<Data> data);
     bool IsSRGB() const;
     bool Equals(const std::shared_ptr<ColorSpace>& colorSpace) const;
+    CMSMatrix3x3 ToXYZD50(bool& hasToXYZD50);
 
 private:
     ColorSpaceType type_;

@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace RDC {
-static const size_t SHADER_MAX_SIZE = 102400; // 100K
+static const std::streamsize SHADER_MAX_SIZE = 102400; // 100K
 
 xmlNodePtr XMLReader::FindChildNodeByPropName(const xmlNodePtr& src, const std::string& index)
 {
@@ -48,9 +48,13 @@ xmlNodePtr XMLReader::FindChildNodeByPropName(const xmlNodePtr& src, const std::
 
 std::string XMLReader::ReadNodeValue(const xmlNodePtr& node)
 {
+    if (node == nullptr) {
+        RS_LOGE("RDC read xml node error, node is null");
+        return "";
+    }
     xmlChar* content = xmlNodeGetContent(node);
     if (content == nullptr) {
-        RS_LOGE("RDC read xml node error: nodeName:(%{public}s)", node->name);
+        RS_LOGE("RDC read xml node error, content is null");
         return "";
     }
 
@@ -60,9 +64,9 @@ std::string XMLReader::ReadNodeValue(const xmlNodePtr& node)
     return contentStr;
 }
 
-int XMLReader::ReadNodeValueInt(const xmlNodePtr& node)
+uint32_t XMLReader::ReadNodeValueInt(const xmlNodePtr& node)
 {
-    return std::atoi(ReadNodeValue(node).c_str());
+    return static_cast<uint32_t>(std::stoul(ReadNodeValue(node).c_str()));
 }
 
 std::string XMLReader::ReadAttrStr(const xmlNodePtr& src, const std::string& attr)
@@ -89,7 +93,7 @@ std::string XMLReader::GetConfigPath(const std::string& configFileName)
     return std::string(tmpPath);
 }
 
-VkRenderPassCreateInfoModel* RDCConfig::GetRenderPassModelByResourceId(int resourceId)
+std::shared_ptr<VkRenderPassCreateInfoModel> RDCConfig::GetRenderPassModelByResourceId(uint32_t resourceId)
 {
     auto iter = std::find_if(renderPassModels.begin(), renderPassModels.end(),
         [&resourceId](auto model) { return model != nullptr && model->resourceId == resourceId; });
@@ -100,7 +104,8 @@ VkRenderPassCreateInfoModel* RDCConfig::GetRenderPassModelByResourceId(int resou
     return *iter;
 }
 
-VkDescriptorSetLayoutCreateInfoModel* RDCConfig::GetDescriptorSetLayoutModelByResourceId(int resourceId)
+std::shared_ptr<VkDescriptorSetLayoutCreateInfoModel> RDCConfig::GetDescriptorSetLayoutModelByResourceId(
+    uint32_t resourceId)
 {
     auto iter = std::find_if(descriptorSetLayoutModels.begin(), descriptorSetLayoutModels.end(),
         [&resourceId](auto model) { return model != nullptr && model->resourceId == resourceId; });
@@ -111,7 +116,7 @@ VkDescriptorSetLayoutCreateInfoModel* RDCConfig::GetDescriptorSetLayoutModelByRe
     return *iter;
 }
 
-VkPipelineLayoutCreateInfoModel* RDCConfig::GetPipelineLayoutModelByResourceId(int resourceId)
+std::shared_ptr<VkPipelineLayoutCreateInfoModel> RDCConfig::GetPipelineLayoutModelByResourceId(uint32_t resourceId)
 {
     auto iter = std::find_if(pipelineLayoutModels.begin(), pipelineLayoutModels.end(),
         [&resourceId](auto model) { return model != nullptr && model->resourceId == resourceId; });
@@ -132,7 +137,7 @@ void RDCConfig::LoadRenderPassModels(const xmlNodePtr& chunkPtr)
         RS_LOGE("RDC read createInfo fail, createInfo is null! \n");
         return;
     }
-    VkRenderPassCreateInfoModel* createInfoModel = new VkRenderPassCreateInfoModel();
+    std::shared_ptr<VkRenderPassCreateInfoModel> createInfoModel = std::make_shared<VkRenderPassCreateInfoModel>();
     if (createInfoModel->ReadXmlNode(createInfo)) {
         renderPassModels.push_back(createInfoModel);
         auto renderPassPtr = XMLReader::FindChildNodeByPropName(chunkPtr, std::string("RenderPass"));
@@ -142,8 +147,6 @@ void RDCConfig::LoadRenderPassModels(const xmlNodePtr& chunkPtr)
             createInfoModel->resourceId = XMLReader::ReadNodeValueInt(renderPassPtr);
         }
     } else {
-        delete createInfoModel;
-        createInfoModel = nullptr;
         RS_LOGE("RDC read createInfoModel fail! \n");
     }
 }
@@ -158,7 +161,8 @@ void RDCConfig::LoadDescriptorSetLayoutModels(const xmlNodePtr& chunkPtr)
         RS_LOGE("RDC read createInfo fail, createInfo is null! \n");
         return;
     }
-    VkDescriptorSetLayoutCreateInfoModel* createInfoModel = new VkDescriptorSetLayoutCreateInfoModel();
+    std::shared_ptr<VkDescriptorSetLayoutCreateInfoModel> createInfoModel =
+        std::make_shared<VkDescriptorSetLayoutCreateInfoModel>();
     if (createInfoModel->ReadXmlNode(createInfo)) {
         descriptorSetLayoutModels.push_back(createInfoModel);
         auto setLayoutPtr = XMLReader::FindChildNodeByPropName(chunkPtr, std::string("SetLayout"));
@@ -168,8 +172,6 @@ void RDCConfig::LoadDescriptorSetLayoutModels(const xmlNodePtr& chunkPtr)
             createInfoModel->resourceId = XMLReader::ReadNodeValueInt(setLayoutPtr);
         }
     } else {
-        delete createInfoModel;
-        createInfoModel = nullptr;
         RS_LOGE("RDC read createInfoModel fail! \n");
     }
 }
@@ -184,7 +186,8 @@ void RDCConfig::LoadPipelineLayoutModels(const xmlNodePtr& chunkPtr)
         RS_LOGE("RDC read createInfo fail, createInfo is null! \n");
         return;
     }
-    VkPipelineLayoutCreateInfoModel* createInfoModel = new VkPipelineLayoutCreateInfoModel();
+    std::shared_ptr<VkPipelineLayoutCreateInfoModel> createInfoModel =
+        std::make_shared<VkPipelineLayoutCreateInfoModel>();
     if (createInfoModel->ReadXmlNode(createInfo)) {
         pipelineLayoutModels.push_back(createInfoModel);
         auto pipelineLayoutPtr = XMLReader::FindChildNodeByPropName(chunkPtr, std::string("PipelineLayout"));
@@ -194,8 +197,6 @@ void RDCConfig::LoadPipelineLayoutModels(const xmlNodePtr& chunkPtr)
             createInfoModel->resourceId = XMLReader::ReadNodeValueInt(pipelineLayoutPtr);
         }
     } else {
-        delete createInfoModel;
-        createInfoModel = nullptr;
         RS_LOGE("RDC read createInfoModel fail! \n");
     }
 }
@@ -210,13 +211,12 @@ void RDCConfig::LoadGraphicsPipelineModels(const xmlNodePtr& chunkPtr)
         RS_LOGE("RDC read createInfo fail, createInfo is null! \n");
         return;
     }
-    VkGraphicsPipelineCreateInfoModel* createInfoModel = new VkGraphicsPipelineCreateInfoModel();
+    std::shared_ptr<VkGraphicsPipelineCreateInfoModel> createInfoModel =
+        std::make_shared<VkGraphicsPipelineCreateInfoModel>();
     if (createInfoModel->ReadXmlNode(createInfo)) {
         createInfoModel->chunkIndex = chunIndexStr;
         graphicsPipelineModels.push_back(createInfoModel);
     } else {
-        delete createInfoModel;
-        createInfoModel = nullptr;
         RS_LOGE("RDC read createInfoModel fail! \n");
     }
 }
@@ -224,9 +224,12 @@ void RDCConfig::LoadGraphicsPipelineModels(const xmlNodePtr& chunkPtr)
 bool RDCConfig::LoadAndAnalyze(const std::string& configFile)
 {
     RS_TRACE_FUNC();
+    if (OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface().GetDevice() == VK_NULL_HANDLE) {
+        RS_LOGE("RDC LoadAndAnalyze failed device is null. \n");
+        return false;
+    }
     auto configFilePath = XMLReader::GetConfigPath(configFile);
     std::lock_guard<std::mutex> lock(xmlMut);
-    Clear();
     xmlKeepBlanksDefault(0);
     pDoc = xmlReadFile(configFilePath.c_str(), "", XML_PARSE_RECOVER);
     if (pDoc == nullptr) {
@@ -253,7 +256,15 @@ bool RDCConfig::LoadAndAnalyze(const std::string& configFile)
         CloseXML();
         return false;
     }
-    auto chunkPtr = chunksPtr->children;
+    LoadChunks(chunksPtr->children);
+    CreatePipelines();
+    CloseXML();
+    RS_LOGI("RDC read xml finish");
+    return true;
+}
+
+void RDCConfig::LoadChunks(xmlNodePtr& chunkPtr)
+{
     while (chunkPtr != nullptr) {
         if (XMLReader::ReadAttrStr(chunkPtr, std::string("name")) == "vkCreateRenderPass") {
             LoadRenderPassModels(chunkPtr);
@@ -266,10 +277,6 @@ bool RDCConfig::LoadAndAnalyze(const std::string& configFile)
         }
         chunkPtr = chunkPtr->next;
     }
-    CreatePipelines();
-    CloseXML();
-    RS_LOGI("RDC read xml finish");
-    return true;
 }
 
 void RDCConfig::CreatePipelines()
@@ -300,6 +307,7 @@ void RDCConfig::CreatePipelines()
         auto result = vkCreatePipelineLayout(device, &(layoutModel->createInfo), nullptr, &pipelineLayout);
         if (result != VK_SUCCESS) {
             RS_LOGE("RDC [%{public}s] vkCreatePipelineLayout fail, result: %{public}d", __func__, result);
+            continue;
         }
         pipelineModel->createInfo.layout = pipelineLayout;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages(pipelineModel->createInfo.stageCount);
@@ -320,7 +328,6 @@ void RDCConfig::CreatePipelines()
         vkDestroyPipeline(device, pipeline, nullptr);
         if (result != VK_SUCCESS) {
             RS_LOGE("RDC CreatePipelines fail, result: %{public}d", result);
-            continue;
         }
     }
 }
@@ -328,8 +335,16 @@ void RDCConfig::CreatePipelines()
 void VkRenderPassCreateInfoModel::ReadAttachments(const xmlNodePtr& node, std::vector<VkAttachmentDescription>& vec)
 {
     auto pAttachmentsPtr = XMLReader::FindChildNodeByPropName(node, std::string("pAttachments"));
+    if (pAttachmentsPtr == nullptr) {
+        RS_LOGE("RDC [%{public}s] pAttachmentsPtr is nullptr.", __func__);
+        return;
+    }
     auto VkAttachmentDescriptionPtr = pAttachmentsPtr->children;
     for (size_t i = 0; i < vec.size(); i++) {
+        if (VkAttachmentDescriptionPtr == nullptr) {
+            RS_LOGE("RDC [%{public}s] VkAttachmentDescriptionPtr is nullptr.", __func__);
+            return;
+        }
         auto flagsPtr = XMLReader::FindChildNodeByPropName(VkAttachmentDescriptionPtr, std::string("flags"));
         vec[i].flags = static_cast<VkAttachmentDescriptionFlags>(XMLReader::ReadNodeValueInt(flagsPtr));
 
@@ -370,16 +385,22 @@ VkAttachmentReference* VkRenderPassCreateInfoModel::ReadColorReference(const xml
     VkAttachmentReference* colorReference = new VkAttachmentReference();
     auto pColorAttachmentsPtr = XMLReader::FindChildNodeByPropName(node, std::string("pColorAttachments"));
     if (pColorAttachmentsPtr == nullptr) {
+        delete colorReference;
+        colorReference = nullptr;
         return nullptr;
     }
     auto colorAttachmentPtr =
         XMLReader::FindChildNodeByPropName(pColorAttachmentsPtr->children, std::string("attachment"));
     if (colorAttachmentPtr == nullptr) {
+        delete colorReference;
+        colorReference = nullptr;
         return nullptr;
     }
     colorReference->attachment = XMLReader::ReadNodeValueInt(colorAttachmentPtr);
     auto colorLayoutPtr = XMLReader::FindChildNodeByPropName(pColorAttachmentsPtr->children, std::string("layout"));
     if (colorLayoutPtr == nullptr) {
+        delete colorReference;
+        colorReference = nullptr;
         return nullptr;
     }
     colorReference->layout = static_cast<VkImageLayout>(XMLReader::ReadNodeValueInt(colorLayoutPtr));
@@ -391,16 +412,22 @@ VkAttachmentReference* VkRenderPassCreateInfoModel::ReadDepthReference(const xml
     VkAttachmentReference* depthReference = new VkAttachmentReference();
     auto pDepthStencilAttachmentsPtr = XMLReader::FindChildNodeByPropName(node, std::string("pDepthStencilAttachment"));
     if (pDepthStencilAttachmentsPtr == nullptr) {
+        delete depthReference;
+        depthReference = nullptr;
         return nullptr;
     }
     auto attachmentPtr = XMLReader::FindChildNodeByPropName(pDepthStencilAttachmentsPtr, std::string("attachment"));
     if (attachmentPtr == nullptr) {
+        delete depthReference;
+        depthReference = nullptr;
         return nullptr;
     }
     depthReference->attachment = XMLReader::ReadNodeValueInt(attachmentPtr);
 
     auto layoutPtr = XMLReader::FindChildNodeByPropName(pDepthStencilAttachmentsPtr, std::string("layout"));
     if (layoutPtr == nullptr) {
+        delete depthReference;
+        depthReference = nullptr;
         return nullptr;
     }
     depthReference->layout = static_cast<VkImageLayout>(XMLReader::ReadNodeValueInt(layoutPtr));
@@ -410,8 +437,16 @@ VkAttachmentReference* VkRenderPassCreateInfoModel::ReadDepthReference(const xml
 void VkRenderPassCreateInfoModel::ReadSubPass(const xmlNodePtr& node, std::vector<VkSubpassDescription>& vec)
 {
     auto pSubpassesPtr = XMLReader::FindChildNodeByPropName(node, std::string("pSubpasses"));
+    if (pSubpassesPtr == nullptr) {
+        RS_LOGE("RDC [%{public}s] pSubpassesPtr is nullptr.", __func__);
+        return;
+    }
     auto VkSubpassDescriptionPtr = pSubpassesPtr->children;
     for (size_t i = 0; i < vec.size(); i++) {
+        if (VkSubpassDescriptionPtr == nullptr) {
+            RS_LOGE("RDC [%{public}s] VkSubpassDescriptionPtr is nullptr.", __func__);
+            return;
+        }
         auto flagsPtr = XMLReader::FindChildNodeByPropName(VkSubpassDescriptionPtr, std::string("flags"));
         vec[i].flags = static_cast<VkSubpassDescriptionFlags>(XMLReader::ReadNodeValueInt(flagsPtr));
 
@@ -503,8 +538,16 @@ bool VkDescriptorSetLayoutCreateInfoModel::ReadXmlNode(const xmlNodePtr& createI
     std::vector<VkDescriptorSetLayoutBinding> layoutBinding(descriptorLayoutCI.bindingCount);
 
     auto pBindingsPtr = XMLReader::FindChildNodeByPropName(createInfoNodePtr, std::string("pBindings"));
+    if (pBindingsPtr == nullptr) {
+        RS_LOGE("RDC [%{public}s] pBindingsPtr is nullptr.", __func__);
+        return false;
+    }
     auto VkDescriptorSetLayoutBindingPtr = pBindingsPtr->children;
     for (size_t i = 0; i < descriptorLayoutCI.bindingCount; i++) {
+        if (VkDescriptorSetLayoutBindingPtr == nullptr) {
+            RS_LOGE("RDC [%{public}s] VkDescriptorSetLayoutBindingPtr is nullptr.", __func__);
+            return false;
+        }
         auto bindingPtr = XMLReader::FindChildNodeByPropName(VkDescriptorSetLayoutBindingPtr, std::string("binding"));
         layoutBinding[i].binding = XMLReader::ReadNodeValueInt(bindingPtr);
 
@@ -553,6 +596,10 @@ bool VkPipelineLayoutCreateInfoModel::ReadXmlNode(const xmlNodePtr& createInfoNo
     RS_LOGI("RDC [%{public}s] read setLayoutCount succ: %{public}d! \n", __func__, createInfo.setLayoutCount);
 
     auto pSetLayoutsPtr = XMLReader::FindChildNodeByPropName(createInfoNodePtr, std::string("pSetLayouts"));
+    if (pSetLayoutsPtr == nullptr) {
+        RS_LOGE("RDC [%{public}s] input pSetLayoutsPtr node is null! \n", __func__);
+        return false;
+    }
     auto layoutResourceIdPtr = pSetLayoutsPtr->children;
     for (size_t i = 0; i < createInfo.setLayoutCount; i++) {
         if (layoutResourceIdPtr == nullptr) {
@@ -569,14 +616,19 @@ VkShaderModule RDCConfig::LoadSpirvShader(std::string fileName)
 {
     auto& vkContext = OHOS::Rosen::RsVulkanContext::GetSingleton().GetRsVulkanInterface();
     VkDevice device = vkContext.GetDevice();
-    size_t shaderSize;
+    std::streamsize shaderSize;
     char* shaderCode { nullptr };
 
-    std::ifstream is(fileName, std::ios::binary | std::ios::in | std::ios::ate);
+    char realPath[PATH_MAX] = { 0 };
+    if (fileName.length() == 0 || fileName.length() >= PATH_MAX || !realpath(fileName.c_str(), realPath)) {
+        RS_LOGE("RDC can not get spirv shader file.");
+        return VK_NULL_HANDLE;
+    }
+    std::ifstream is(realPath, std::ios::binary | std::ios::in | std::ios::ate);
 
     if (is.is_open()) {
         shaderSize = is.tellg();
-        if (shaderSize == 0 || shaderSize >= SHADER_MAX_SIZE) {
+        if (shaderSize <= 0 || shaderSize >= SHADER_MAX_SIZE) {
             RS_LOGE("RDC [%{public}s] fail,shaderSize is unvalid size: %{public}zu \n", __func__, shaderSize);
             is.close();
             return VK_NULL_HANDLE;
@@ -592,7 +644,7 @@ VkShaderModule RDCConfig::LoadSpirvShader(std::string fileName)
         // Create a new shader module that will be used for pipeline creation
         VkShaderModuleCreateInfo shaderModuleCI {};
         shaderModuleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        shaderModuleCI.codeSize = shaderSize;
+        shaderModuleCI.codeSize = static_cast<size_t>(shaderSize);
         shaderModuleCI.pCode = (uint32_t*)shaderCode;
 
         VkShaderModule shaderModule;
@@ -604,7 +656,7 @@ VkShaderModule RDCConfig::LoadSpirvShader(std::string fileName)
         delete[] shaderCode;
         return shaderModule;
     } else {
-        RS_LOGE("RDC [%{public}s] LoadSpirvShader fail, file: %{public}s. \n", __func__, fileName.c_str());
+        RS_LOGE("RDC [%{public}s] LoadSpirvShader fail, file: %{public}s. \n", __func__, realPath);
         return VK_NULL_HANDLE;
     }
 }
@@ -620,8 +672,16 @@ void VkGraphicsPipelineCreateInfoModel::ReadVertexInputBinding(const xmlNodePtr&
     vertexInputBinding.resize(vertexInputStateCI.vertexBindingDescriptionCount);
     auto pVertexBindingDescriptionsPtr =
         XMLReader::FindChildNodeByPropName(node, std::string("pVertexBindingDescriptions"));
+    if (pVertexBindingDescriptionsPtr == nullptr) {
+        RS_LOGE("RDC [%{public}s] pVertexBindingDescriptionsPtr is nullptr! \n", __func__);
+        return;
+    }
     auto VkVertexInputBindingDescriptionPtr = pVertexBindingDescriptionsPtr->children;
     for (size_t i = 0; i < vertexInputStateCI.vertexBindingDescriptionCount; i++) {
+        if (VkVertexInputBindingDescriptionPtr == nullptr) {
+            RS_LOGE("RDC [%{public}s] VkVertexInputBindingDescriptionPtr is nullptr.", __func__);
+            return;
+        }
         auto bindingPtr =
             XMLReader::FindChildNodeByPropName(VkVertexInputBindingDescriptionPtr, std::string("binding"));
         vertexInputBinding[i].binding = XMLReader::ReadNodeValueInt(bindingPtr);
@@ -650,8 +710,16 @@ void VkGraphicsPipelineCreateInfoModel::ReadVertexInputAttributs(const xmlNodePt
     vertexInputAttributs.resize(vertexInputStateCI.vertexAttributeDescriptionCount);
     auto pVertexAttributeDescriptionsPtr =
         XMLReader::FindChildNodeByPropName(node, std::string("pVertexAttributeDescriptions"));
+    if (pVertexAttributeDescriptionsPtr == nullptr) {
+        RS_LOGE("RDC [%{public}s] pVertexAttributeDescriptionsPtr is nullptr! \n", __func__);
+        return;
+    }
     auto VkVertexInputAttributeDescriptionPtr = pVertexAttributeDescriptionsPtr->children;
     for (size_t i = 0; i < vertexInputStateCI.vertexAttributeDescriptionCount; i++) {
+        if (VkVertexInputAttributeDescriptionPtr == nullptr) {
+            RS_LOGE("RDC [%{public}s] VkVertexInputAttributeDescriptionPtr is nullptr.", __func__);
+            return;
+        }
         auto locationPtr =
             XMLReader::FindChildNodeByPropName(VkVertexInputAttributeDescriptionPtr, std::string("location"));
         vertexInputAttributs[i].location = XMLReader::ReadNodeValueInt(locationPtr);
@@ -699,12 +767,12 @@ void VkGraphicsPipelineCreateInfoModel::ReadColorBlendState(const xmlNodePtr& no
         return;
     }
     auto pAttachmentsStatePtr = pAttachmentsPtr->children;
-    if (pAttachmentsStatePtr == nullptr) {
-        RS_LOGE("RDC [%{public}s] input pAttachmentsStatePtr is null! \n", __func__);
-        return;
-    }
     blendAttachmentState.resize(colorBlendStateCI.attachmentCount);
     for (size_t i = 0; i < colorBlendStateCI.attachmentCount; i++) {
+        if (pAttachmentsStatePtr == nullptr) {
+            RS_LOGE("RDC [%{public}s] input pAttachmentsStatePtr is null! \n", __func__);
+            return;
+        }
         auto blendEnablePtr = XMLReader::FindChildNodeByPropName(pAttachmentsStatePtr, std::string("blendEnable"));
         blendAttachmentState[i].blendEnable = static_cast<VkBool32>(XMLReader::ReadNodeValueInt(blendEnablePtr));
 
@@ -825,42 +893,8 @@ void RDCConfig::CloseXML()
         xmlFreeDoc(pDoc);
         pDoc = nullptr;
     }
-    xmlCleanupParser();
-    xmlMemoryDump();
 }
 
-void RDCConfig::Clear()
-{
-    for (auto& modelPtr : renderPassModels) {
-        if (modelPtr != nullptr) {
-            delete modelPtr;
-            modelPtr = nullptr;
-        }
-    }
-    for (auto& modelPtr : descriptorSetLayoutModels) {
-        if (modelPtr != nullptr) {
-            delete modelPtr;
-            modelPtr = nullptr;
-        }
-    }
-    for (auto& modelPtr : pipelineLayoutModels) {
-        if (modelPtr != nullptr) {
-            delete modelPtr;
-            modelPtr = nullptr;
-        }
-    }
-    for (auto& modelPtr : graphicsPipelineModels) {
-        if (modelPtr != nullptr) {
-            delete modelPtr;
-            modelPtr = nullptr;
-        }
-    }
-}
-
-RDCConfig::~RDCConfig()
-{
-    Clear();
-}
 } // namespace RDC
 } // namespace Rosen
 } // namespace OHOS

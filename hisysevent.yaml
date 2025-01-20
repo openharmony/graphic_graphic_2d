@@ -120,6 +120,8 @@ INTERACTION_RENDER_JANK:
   TOTAL_FRAMES: {type: INT32, desc: total frames}
   TOTAL_MISSED_FRAMES: {type: INT32, desc: total missed frames during the scene}
   MAX_FRAMETIME: {type: UINT64, desc: max single frame time during the scene}
+  MAX_TECH_FRAMETIME: {type: UINT64, desc: max tech single frame time during the scene}
+  MAX_REAL_FRAMETIME: {type: UINT64, desc: max real single frame time during the scene}
   MAX_FRAMETIME_SINCE_START: {type: UINT64, desc: duration from the scene start to the max frame end}
   AVERAGE_FRAMETIME: {type: FLOAT, desc: average frame time during the scene}
   MAX_SEQ_MISSED_FRAMES: {type: INT32, desc: max successive missed frames during the scene}
@@ -161,6 +163,11 @@ RS_NODE_LIMIT_EXCEEDED:
   RS_TOP2_APP_NODE: {type: UINT32, desc: number of nodes of current app with top2 rs nodes}
   RS_TOP3_APP_NAME: {type: STRING, desc: name of current app with top3 rs nodes}
   RS_TOP3_APP_NODE: {type: UINT32, desc: number of nodes of current app with top3 rs nodes}
+
+ANIMATION_CALLBACK_MISSING:
+  __BASE: {type: STATISTIC, level: MINOR, desc: animation finish callback guarantee}
+  CURVE_TYPE: {type: INT32, desc: curve type}
+  DURATION: {type: FLOAT, desc: animation duration}
 
 HGM_VOTER_INFO:
   __BASE: {type: STATISTIC, level: MINOR, desc: hgm voter info statistics}

@@ -81,6 +81,12 @@ public:
     virtual void SetFrameRateChangingStatus(bool frameRateChanging) = 0;
     virtual void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) = 0;
     virtual int64_t GetVSyncOffset() = 0;
+    // Start of DVSync
+    virtual int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate, bool followRs) = 0;
+    virtual VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
+    virtual VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) = 0;
+    // End of DVSync
+    virtual void PrintGeneratorStatus() = 0;
 };
 
 sptr<VSyncGenerator> CreateVSyncGenerator();
@@ -125,6 +131,12 @@ public:
     void SetAppDistributor(sptr<VSyncDistributor> &appVSyncDistributor) override;
     int64_t GetVSyncOffset() override;
 
+    // Start of DVSync
+    int64_t SetCurrentRefreshRate(uint32_t currRefreshRate, uint32_t lastRefreshRate, bool followRs) override;
+    VsyncError RemoveDVSyncListener(const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
+    VsyncError AddDVSyncListener(int64_t phase, const sptr<OHOS::Rosen::VSyncGenerator::Callback>& cb) override;
+    // End of DVSync
+    void PrintGeneratorStatus() override;
 private:
     friend class OHOS::Rosen::VSyncGenerator;
 
@@ -212,6 +224,16 @@ private:
     uint32_t vsyncMaxRefreshRate_ = 360; // default max TE
     int64_t vsyncOffset_ = 0;
     int64_t nextTimeStamp_ = 0;
+    // Start of DVSync
+    int64_t ComputeDVSyncListenerNextVSyncTimeStamp(const Listener &listener, int64_t now,
+        int64_t referenceTime, int64_t period);
+    int64_t CollectDVSyncListener(const Listener &listener, int64_t now, std::vector<VSyncGenerator::Listener> &ret);
+    void ComputeDVSyncListenerTimeStamp(const Listener &listener, int64_t now, int64_t &nextVSyncTime);
+    bool isLtpoNeedChange_ = false;
+    int64_t occurDvsyncReferenceTime_ = 0;
+    int64_t dvsyncPeriodRecord_ = 0;
+    Listener dvsyncListener_ = {0, nullptr, 0, 0};
+    // End of DVSync
 };
 } // impl
 } // namespace Rosen

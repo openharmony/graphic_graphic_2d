@@ -291,6 +291,8 @@ bool RSMask::MarshallingPathAndBrush(Parcel& parcel) const
             maskBrush_.GetColorSpace()),
         Drawing::CmdListHelper::AddShaderEffectToCmdList(*maskCmdList,
             maskBrush_.GetShaderEffect()),
+        Drawing::CmdListHelper::AddBlenderToCmdList(*maskCmdList,
+            maskBrush_.GetBlender()),
         Drawing::CmdListHelper::AddColorFilterToCmdList(*maskCmdList,
             filter.GetColorFilter()),
         Drawing::CmdListHelper::AddImageFilterToCmdList(*maskCmdList,

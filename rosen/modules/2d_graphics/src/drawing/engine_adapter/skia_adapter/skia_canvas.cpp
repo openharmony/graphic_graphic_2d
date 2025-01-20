@@ -38,6 +38,7 @@
 #include "utils/performanceCaculate.h"
 #include "SkOverdrawCanvas.h"
 #include "include/utils/SkNoDrawCanvas.h"
+#include "src/core/SkCanvasPriv.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -492,9 +493,16 @@ void SkiaCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4],
     std::vector<SkPoint> skiaCubics = {};
     if (cubics != nullptr) {
         skiaCubics.resize(cubicsPointCount);
-        for (size_t i = 0; i < cubicsPointCount; ++i) {
-            skiaCubics[i].fX = cubics[i].GetX();
-            skiaCubics[i].fY = cubics[i].GetY();
+        // Tell compiler there is no alias, and unroll 2 times to 128 bits to use vector instructions.
+        for (size_t i = 0; i < cubicsPointCount; i += 2) {
+            scalar fX0 = cubics[i].GetX();
+            scalar fY0 = cubics[i].GetY();
+            scalar fX1 = cubics[i + 1].GetX();
+            scalar fY1 = cubics[i + 1].GetY();
+            skiaCubics[i].fX = fX0;
+            skiaCubics[i].fY = fY0;
+            skiaCubics[i + 1].fX = fX1;
+            skiaCubics[i + 1].fY = fY1;
         }
     }
 
@@ -512,8 +520,10 @@ void SkiaCanvas::DrawPatch(const Point cubics[12], const ColorQuad colors[4],
     if (texCoords != nullptr) {
         skiaTexCoords.resize(texCoordCount);
         for (size_t i = 0; i < texCoordCount; ++i) {
-            skiaTexCoords[i].fX = texCoords[i].GetX();
-            skiaTexCoords[i].fY = texCoords[i].GetY();
+            scalar fX0 = texCoords[i].GetX();
+            scalar fY0 = texCoords[i].GetY();
+            skiaTexCoords[i].fX = fX0;
+            skiaTexCoords[i].fY = fY0;
         }
     }
 
@@ -995,6 +1005,26 @@ bool SkiaCanvas::IsClipRect()
         return false;
     }
     return skCanvas_->isClipRect();
+}
+
+void SkiaCanvas::ResetClip()
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return;
+    }
+    return SkCanvasPriv::ResetClip(skCanvas_);
+}
+
+bool SkiaCanvas::QuickReject(const Path& path)
+{
+    if (!skCanvas_) {
+        LOGD("skCanvas_ is null, return on line %{public}d", __LINE__);
+        return false;
+    }
+    const SkPath& clipPath = path.GetImpl<SkiaPath>()->GetPath();
+    DRAWING_PERFORMANCE_TEST_SKIA_RETURN(false);
+    return skCanvas_->quickReject(clipPath);
 }
 
 bool SkiaCanvas::QuickReject(const Rect& rect)

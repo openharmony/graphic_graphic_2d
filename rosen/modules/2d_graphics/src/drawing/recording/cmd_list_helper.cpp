@@ -26,6 +26,7 @@
 
 #include "draw/color.h"
 #include "draw/core_canvas.h"
+#include "effect/blender.h"
 #include "utils/log.h"
 #include "utils/rect.h"
 
@@ -181,6 +182,32 @@ std::shared_ptr<ExtendImageBaseObj> CmdListHelper::GetImageBaseObjFromCmdList(
     const CmdList& cmdList, const OpDataHandle& objectHandle)
 {
     return (const_cast<CmdList&>(cmdList)).GetImageBaseObj(objectHandle.offset);
+}
+
+OpDataHandle CmdListHelper::AddImageNineObjecToCmdList(
+    CmdList& cmdList, const std::shared_ptr<ExtendImageNineObject>& object)
+{
+    auto index = cmdList.AddImageNineObject(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendImageNineObject> CmdListHelper::GetImageNineObjecFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetImageNineObject(objectHandle.offset);
+}
+
+OpDataHandle CmdListHelper::AddImageLatticeObjecToCmdList(
+    CmdList& cmdList, const std::shared_ptr<ExtendImageLatticeObject>& object)
+{
+    auto index = cmdList.AddImageLatticeObject(object);
+    return { index };
+}
+
+std::shared_ptr<ExtendImageLatticeObject> CmdListHelper::GetImageLatticeObjecFromCmdList(
+    const CmdList& cmdList, const OpDataHandle& objectHandle)
+{
+    return (const_cast<CmdList&>(cmdList)).GetImageLatticeObject(objectHandle.offset);
 }
 
 OpDataHandle CmdListHelper::AddPictureToCmdList(CmdList& cmdList, const Picture& picture)
@@ -652,6 +679,43 @@ std::shared_ptr<ShaderEffect> CmdListHelper::GetShaderEffectFromCmdList(const Cm
     }
 
     return shaderEffect;
+}
+
+FlattenableHandle CmdListHelper::AddBlenderToCmdList(CmdList& cmdList, std::shared_ptr<Blender> blender)
+{
+    if (blender == nullptr) {
+        return { 0 };
+    }
+    auto data = blender->Serialize();
+    if (data == nullptr || data->GetSize() == 0) {
+        LOGD("blender is invalid, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return { 0 };
+    }
+    auto offset = cmdList.AddImageData(data->GetData(), data->GetSize());
+    return { offset, data->GetSize(), 0 };
+}
+
+std::shared_ptr<Blender> CmdListHelper::GetBlenderFromCmdList(const CmdList& cmdList,
+    const FlattenableHandle& blenderHandle)
+{
+    if (blenderHandle.size == 0) {
+        return nullptr;
+    }
+
+    const void *ptr = cmdList.GetImageData(blenderHandle.offset, blenderHandle.size);
+    if (ptr == nullptr) {
+        return nullptr;
+    }
+
+    auto blenderData = std::make_shared<Data>();
+    blenderData->BuildWithoutCopy(ptr, blenderHandle.size);
+    auto blender = std::make_shared<Blender>();
+    if (blender->Deserialize(blenderData) == false) {
+        LOGD("blender deserialize failed!");
+        return nullptr;
+    }
+
+    return blender;
 }
 
 FlattenableHandle CmdListHelper::AddPathEffectToCmdList(CmdList& cmdList, std::shared_ptr<PathEffect> pathEffect)

@@ -436,13 +436,10 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
     if (!text || !handler) {
         LOGE("null text");
         return;
-    } else if (!IsUtf8(text, strlen(text))) {
-        LOGE("text is not utf-8");
-        return;
     }
 
-    const std::u16string wideText =
-        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
+    const std::u16string wideText = Str8ToStr16ByIcu(text);
+
     ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
 }
 
@@ -1156,7 +1153,14 @@ OH_Drawing_FontDescriptor* OH_Drawing_CreateFontDescriptor(void)
 
 void OH_Drawing_DestroyFontDescriptor(OH_Drawing_FontDescriptor* descriptor)
 {
-    delete descriptor;
+    if (descriptor != nullptr) {
+        free(descriptor->path);
+        free(descriptor->postScriptName);
+        free(descriptor->fullName);
+        free(descriptor->fontFamily);
+        free(descriptor->fontSubfamily);
+        delete descriptor;
+    }
 }
 
 OH_Drawing_FontParser* OH_Drawing_CreateFontParser(void)

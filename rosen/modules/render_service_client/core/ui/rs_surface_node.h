@@ -142,6 +142,8 @@ public:
     void SetSurfaceTextureInitTypeCallBack(const RSSurfaceTextureInitTypeCallBack& initTypeCallback);
 #endif
     void SetForeground(bool isForeground);
+    // [Attention] The function only used for unlocking screen for PC currently
+    void SetClonedNodeId(NodeId nodeId);
     // Force enable UIFirst when set TRUE
     void SetForceUIFirst(bool forceUIFirst);
     void SetAncoFlags(uint32_t flags);
@@ -159,6 +161,9 @@ public:
     // such as transparent background.
     void SetHardwareEnableHint(bool enable);
     void SetApiCompatibleVersion(uint32_t version);
+
+    void AttachToWindowContainer(ScreenId screenId);
+    void DetachFromWindowContainer(ScreenId screenId);
 protected:
     bool NeedForcedSendToRemote() const override;
     RSSurfaceNode(const RSSurfaceNodeConfig& config, bool isRenderServiceNode);

@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "get_object.h"
-#include "skia_adapter/skia_canvas.h"
 #include "utils/matrix.h"
 #include "utils/scalar.h"
 
@@ -154,7 +153,6 @@ void MatrixFuzzTest002(const uint8_t* data, size_t size)
     }
     matrix.SetAll(buffer);
     matrix.GetAll(buffer);
-    matrix.GetImpl<SkiaMatrix>();
     scalar scaleFactors[MATH_TWO] = {xRad, yRad};
     matrix.GetMinMaxScales(scaleFactors);
 }

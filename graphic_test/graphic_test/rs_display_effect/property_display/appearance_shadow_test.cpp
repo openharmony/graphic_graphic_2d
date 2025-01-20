@@ -381,4 +381,69 @@ GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Touch_Test_
     }
 }
 
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filter_Test_1)
+{
+    int nodePos = 500;
+    int nodeSize = 20;
+
+    uint32_t colorList[] = { 0xff000000, 0xffff0000, 0xff00ff00, 0xff0000ff };
+    std::vector<Drawing::Path> drawingPath(4, Drawing::Path());
+    drawingPath[0].AddRect(0, 0, 200, 450, Drawing::PathDirection::CW_DIRECTION);
+    drawingPath[1].AddCircle(160, 260, 245);
+    std::vector<Drawing::Point> triangle = { { 50, 50 }, { 250, 50 }, { 150, 250 } };
+    drawingPath[2].AddPoly(triangle, 3, true);
+    std::vector<Drawing::Point> star = { { 50, 15 }, { 61, 39 }, { 88, 39 }, { 66, 57 }, { 74, 84 }, { 50, 69 },
+        { 26, 84 }, { 34, 57 }, { 12, 39 }, { 39, 39 } };
+    drawingPath[3].AddPoly(star, 10, true);
+    drawingPath[3].AddCircle(160, 260, 145);
+
+    for (int i = 0; i < 4; i++) {
+        auto shadowPath = RSPath::CreateRSPath(drawingPath[i]);
+        int x = (i % 2) * nodePos;
+        int y = (i / 2) * nodePos;
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({ x, y, nodeSize, nodeSize });
+        testNode->SetBackgroundColor(0xffc0c0c0);
+        testNode->SetShadowColor(colorList[i]);
+        testNode->SetShadowRadius(30);
+        testNode->SetShadowPath(shadowPath);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(AppearanceTest, CONTENT_DISPLAY_TEST, Appearance_Shadow_Filter_Test_2)
+{
+    int nodePos = 500;
+    int nodeSize = 20;
+
+    uint32_t colorList[] = { 0xff000000, 0xffff0000, 0xff00ff00, 0xff0000ff };
+    std::vector<Drawing::Path> drawingPath(4, Drawing::Path());
+    drawingPath[0].AddRect(0, 0, 200, 450, Drawing::PathDirection::CW_DIRECTION);
+    drawingPath[1].AddCircle(160, 260, 245);
+    std::vector<Drawing::Point> triangle = { { 50, 50 }, { 250, 50 }, { 150, 250 } };
+    drawingPath[2].AddPoly(triangle, 3, true);
+    std::vector<Drawing::Point> star = { { 50, 15 }, { 61, 39 }, { 88, 39 }, { 66, 57 }, { 74, 84 }, { 50, 69 },
+        { 26, 84 }, { 34, 57 }, { 12, 39 }, { 39, 39 } };
+    drawingPath[3].AddPoly(star, 10, true);
+    drawingPath[3].AddCircle(160, 260, 145);
+    std::vector<bool> filledList = { false, true, false, true };
+
+    for (int i = 0; i < 4; i++) {
+        auto shadowPath = RSPath::CreateRSPath(drawingPath[i]);
+        int x = (i % 2) * nodePos;
+        int y = (i / 2) * nodePos;
+        auto testNode = RSCanvasNode::Create();
+        testNode->SetBounds({ x, y, nodeSize, nodeSize });
+        testNode->SetBackgroundColor(0xffc0c0c0);
+        testNode->SetShadowColor(colorList[i]);
+        testNode->SetShadowElevation(30);
+        testNode->SetShadowOffset(50, 50);
+        testNode->SetShadowIsFilled(filledList[i]);
+        testNode->SetShadowPath(shadowPath);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
 } // namespace OHOS::Rosen

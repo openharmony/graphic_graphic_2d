@@ -93,9 +93,13 @@ public:
     void SetAllowPathMaskCaching(bool allowPathMaskCaching);
     bool GetAllowPathMaskCaching() const;
 
+    void SetStoreCachePath(const std::string& filename);
+    std::string GetStoreCachePath() const;
+
 private:
     PersistentCache* persistentCache_ = nullptr;
     bool allowPathMaskCaching_ = true;
+    std::string filePath_ = "";
 };
 
 class DRAWING_API GPUContext {

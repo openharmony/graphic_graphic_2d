@@ -152,6 +152,18 @@ public:
     }
 
     // called by RSMainThread
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
+    {
+        fastComposeTimeStampDiff_.store(fastComposeTimeStampDiff);
+    }
+
+    // called by RSMainThread/RSUniRenderThread
+    uint64_t GetFastComposeTimeStampDiff() const
+    {
+        return fastComposeTimeStampDiff_.load();
+    }
+
+    // called by RSMainThread
     bool SetHgmTaskFlag(bool value)
     {
         return postHgmTaskFlag_.exchange(value);
@@ -337,6 +349,7 @@ private:
     std::atomic<int64_t> actualTimestamp_{ 0 };
     std::atomic<uint64_t> vsyncId_{ 0 };
     std::atomic<bool> isForceRefresh_{ false };
+    std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
     bool isDelayMode_ = false;
     bool ltpoEnabled_ = false;
     uint32_t maxTE_ = 0;

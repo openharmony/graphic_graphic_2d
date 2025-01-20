@@ -245,8 +245,8 @@ HWTEST_F(RSUifirstManagerTest, RenderGroupUpdate002, TestSize.Level1)
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     ASSERT_NE(surfaceNode, nullptr);
     displayNode->AddChild(surfaceNode);
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
-        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    mainThread_->context_->nodeMap.RegisterRenderNode(surfaceNode);
+    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(surfaceNode->GetRenderDrawable());
     uifirstManager_.RenderGroupUpdate(surfaceDrawable);
 }
 
@@ -434,6 +434,11 @@ HWTEST_F(RSUifirstManagerTest, SyncHDRDisplayParam, TestSize.Level1)
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
     ASSERT_NE(surfaceDrawable, nullptr);
     surfaceDrawable->SetTargetColorGamut(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    NodeId id = 10;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSDisplayRenderNode>(id, config);
+    auto surfaceRenderParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->renderParams_.get());
+    surfaceRenderParams->SetAncestorDisplayNode(displayNode);
     auto colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     uifirstManager_.SyncHDRDisplayParam(surfaceDrawable, colorGamut);
 }
@@ -1552,5 +1557,41 @@ HWTEST_F(RSUifirstManagerTest, IsSubTreeNeedPrepareForSnapshot, TestSize.Level1)
     uifirstManager_.OnProcessAnimateScene(SystemAnimatedScenes::ENTER_RECENTS);
     bool isOccluded = uifirstManager_.IsSubTreeNeedPrepareForSnapshot(*surfaceNode);
     ASSERT_EQ(isOccluded, false);
+}
+
+/**
+@tc.name: UpdateUIFirstLayerInfo
+@tc.desc: Test UpdateUIFirstLayerInfo
+@tc.type: FUNC
+@tc.require: #IBHZJA
+*/
+HWTEST_F(RSUifirstManagerTest, UpdateUIFirstLayerInfo, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    ScreenInfo screenInfo;
+    float zOrder = 1;
+    ASSERT_NE(uifirstManager_.pendingPostNodes_.size(), 0);
+    uifirstManager_.UpdateUIFirstLayerInfo(screenInfo, zOrder);
+}
+
+/**
+@tc.name: CheckAndWaitPreFirstLevelDrawableNotify
+@tc.desc: Test CheckAndWaitPreFirstLevelDrawableNotify
+@tc.type: FUNC
+@tc.require: #IBHZJA
+*/
+HWTEST_F(RSUifirstManagerTest, CheckAndWaitPreFirstLevelDrawableNotify, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto renderParams = surfaceNode->GetRenderParams().get();
+    bool res = RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify(*renderParams);
+    ASSERT_TRUE(res);
+
+    auto leashSurfaceNode = RSTestUtil::CreateSurfaceNode();
+    renderParams->SetUiFirstRootNode(leashSurfaceNode->GetId());
+    res = RSUiFirstProcessStateCheckerHelper::CheckAndWaitPreFirstLevelDrawableNotify(*renderParams);
+    ASSERT_TRUE(res);
 }
 }

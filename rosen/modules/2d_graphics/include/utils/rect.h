@@ -123,8 +123,17 @@ public:
 inline RectI::RectI() noexcept : left_(0), top_(0), right_(0), bottom_(0) {}
 
 inline RectI::RectI(const RectI& r) noexcept
-    : left_(r.GetLeft()), top_(r.GetTop()), right_(r.GetRight()), bottom_(r.GetBottom())
-{}
+{
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    int32_t left = r.GetLeft();
+    int32_t top = r.GetTop();
+    int32_t right = r.GetRight();
+    int32_t bottom = r.GetBottom();
+    left_ = left;
+    top_ = top;
+    right_ = right;
+    bottom_ = bottom;
+}
 
 inline RectI::RectI(const int l, const int t, const int r, const int b) noexcept
     : left_(l), top_(t), right_(r), bottom_(b)
@@ -329,12 +338,30 @@ public:
 inline RectF::RectF() noexcept : left_(0.0), top_(0.0), right_(0.0), bottom_(0.0) {}
 
 inline RectF::RectF(const RectF& r) noexcept
-    : left_(r.GetLeft()), top_(r.GetTop()), right_(r.GetRight()), bottom_(r.GetBottom())
-{}
+{
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    scalar left = r.GetLeft();
+    scalar top = r.GetTop();
+    scalar right = r.GetRight();
+    scalar bottom = r.GetBottom();
+    left_ = left;
+    top_ = top;
+    right_ = right;
+    bottom_ = bottom;
+}
 
 inline RectF::RectF(const RectI& r) noexcept
-    : left_(r.GetLeft()), top_(r.GetTop()), right_(r.GetRight()), bottom_(r.GetBottom())
-{}
+{
+    // Tell the compiler there is no alias and to select wider load/store instructions.
+    scalar left = r.GetLeft();
+    scalar top = r.GetTop();
+    scalar right = r.GetRight();
+    scalar bottom = r.GetBottom();
+    left_ = left;
+    top_ = top;
+    right_ = right;
+    bottom_ = bottom;
+}
 
 inline RectF::RectF(const scalar l, const scalar t, const scalar r, const scalar b) noexcept
     : left_(l), top_(t), right_(r), bottom_(b)

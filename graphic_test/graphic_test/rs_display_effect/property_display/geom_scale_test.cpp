@@ -49,4 +49,34 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_1)
     }
 }
 
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_2)
+{
+    float zList[] = { 1, 0.5, 2 };
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            auto testNode =
+                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetScale(zList[i], zList[j]);
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+        }
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Scale_Test_3)
+{
+    float zList[] = { 1, 0.5, 2 };
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            auto testNode =
+                SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { j * 420 + 110, i * 420 + 110, 200, 200 });
+            testNode->SetPivot(Vector2f(0.5, 0.5));
+            testNode->SetScale({ zList[i], zList[j] });
+            GetRootNode()->AddChild(testNode);
+            RegisterNode(testNode);
+        }
+    }
+}
+
 } // namespace OHOS::Rosen

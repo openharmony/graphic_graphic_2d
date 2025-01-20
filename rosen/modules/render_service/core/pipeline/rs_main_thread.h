@@ -217,7 +217,8 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
-    void ForceRefreshForUni();
+    void CheckFastCompose(int64_t bufferTimeStamp);
+    void ForceRefreshForUni(bool needDelay = false);
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
     void DumpNode(std::string& result, uint64_t nodeId) const;
@@ -384,6 +385,15 @@ public:
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
+    bool GetMultiDisplayChange() const
+    {
+        return isMultiDisplayChange_;
+    }
+    bool GetMultiDisplayStatus() const
+    {
+        return isMultiDisplayPre_;
+    }
+
     bool HasWiredMirrorDisplay()
     {
         return hasWiredMirrorDisplay_;
@@ -393,10 +403,34 @@ public:
         return curTime_;
     }
 
-    std::set<uint32_t>& GetUnmappedCacheSet()
+    void StartGPUDraw();
+
+    void EndGPUDraw();
+
+    struct GPUCompositonCacheGuard {
+        GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->StartGPUDraw();
+        }
+
+        ~GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->EndGPUDraw();
+        }
+    };
+
+    void AddToUnmappedCacheSet(uint32_t bufferId)
     {
-        return unmappedCacheSet_;
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(bufferId);
     }
+
+    void AddToUnmappedCacheSet(const std::set<uint32_t>& seqNumSet)
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
+    }
+    void ClearUnmappedCache();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -511,7 +545,6 @@ private:
     float GetCurrentSteadyTimeMsFloat() const;
     void RequestNextVsyncForCachedCommand(std::string& transactionFlags, pid_t pid, uint64_t curIndex);
     void UpdateLuminance();
-    void DvsyncCheckRequestNextVsync();
 
     void PrepareUiCaptureTasks(std::shared_ptr<RSUniRenderVisitor> uniVisitor);
     void UIExtensionNodesTraverseAndCallback();
@@ -525,13 +558,121 @@ private:
 
     void ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
 
-    // Used for closing HDR in PC multidisplay becauseof performance
-    void CloseHdrWhenMultiDisplayInPC(bool isMultiDisplay);
+    // Record change status of multi or single display
+    void MultiDisplayChange(bool isMultiDisplay);
 
+    bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
+    bool needWaitUnmarshalFinished_ = true;
+    bool clearMemoryFinished_ = true;
+    bool clearMemDeeply_ = false;
+    // Used to refresh the whole display when AccessibilityConfig is changed
+    bool isAccessibilityConfigChanged_ = false;
+    // Used to refresh the whole display when curtain screen status is changed
+    bool isCurtainScreenUsingStatusChanged_ = false;
+
+    const uint8_t opacity_ = 255;
+    bool vsyncControlEnabled_ = true;
+    bool systemAnimatedScenesEnabled_ = false;
+    bool isFoldScreenDevice_ = false;
+    mutable bool hasWiredMirrorDisplay_ = false;
+    // used for hardware enabled case
+    bool doDirectComposition_ = true;
+#ifdef RS_ENABLE_GPU
+    bool needDrawFrame_ = true;
+    bool needPostAndWait_ = true;
+#endif
+    bool isLastFrameDirectComposition_ = false;
+    bool isNeedResetClearMemoryTask_ = false;
+    bool isHardwareEnabledBufferUpdated_ = false;
+    bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
+    bool watermarkFlag_ = false;
+    bool lastWatermarkFlag_ = false;
+    bool hasProtectedLayer_ = false;
+    DeviceType deviceType_ = DeviceType::PHONE;
+    bool isCachedSurfaceUpdated_ = false;
+    bool isUiFirstOn_ = false;
+    // used for informing hgm the bundle name of SurfaceRenderNodes
+    bool forceUpdateUniRenderFlag_ = false;
+    bool idleTimerExpiredFlag_ = false;
+    // for drawing cache dfx
+    bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
+    bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
+    // for dvsync (animate requestNextVSync after mark rsnotrendering)
+    bool needRequestNextVsyncAnimate_ = false;
+    bool forceUIFirstChanged_ = false;
+    bool lastFrameUIExtensionDataEmpty_ = false;
+    // overDraw
+    bool isOverDrawEnabledOfCurFrame_ = false;
+    bool isOverDrawEnabledOfLastFrame_ = false;
+#if defined(RS_ENABLE_CHIPSET_VSYNC)
+    bool initVsyncServiceFlag_ = true;
+#endif
+    bool isCurtainScreenOn_ = false;
+    // partial render
+    bool isFirstFrameOfPartialRender_ = false;
+    bool isPartialRenderEnabledOfLastFrame_ = false;
+    bool isRegionDebugEnabledOfLastFrame_ = false;
+    bool isForceRefresh_ = false;
+    // record multidisplay status change
+    bool isMultiDisplayPre_ = false;
+    bool isMultiDisplayChange_ = false;
+#ifdef RS_ENABLE_VK
+    bool needCreateVkPipeline_ = true;
+#endif
+    std::atomic<bool> isDirty_ = false;
+    bool prevHdrSwitchStatus_ = true;
+    std::atomic<bool> screenPowerOnChanged_ = false;
+    std::atomic_bool doWindowAnimate_ = false;
+    std::atomic<bool> isGlobalDarkColorMode_ = false;
+    // for statistic of jank frames
+    std::atomic_bool discardJankFrames_ = false;
+    std::atomic_bool skipJankAnimatorFrame_ = false;
+    pid_t lastCleanCachePid_ = -1;
+    int preHardwareTid_ = -1;
+    int32_t unmarshalFinishedCount_ = 0;
+    uint32_t appWindowNum_ = 0;
+    pid_t desktopPidForRotationScene_ = 0;
+    int32_t subscribeFailCount_ = 0;
+    SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
+    uint32_t leashWindowCount_ = 0;
+    pid_t exitedPid_ = -1;
+    RsParallelType rsParallelType_;
+    // render start hardware task count
+    uint32_t preUnExecuteTaskNum_ = 0;
+    std::atomic<int32_t> focusAppPid_ = -1;
+    std::atomic<int32_t> focusAppUid_ = -1;
+    std::atomic<uint32_t> requestNextVsyncNum_ = 0;
+    uint64_t curTime_ = 0;
+    uint64_t timestamp_ = 0;
+    uint64_t vsyncId_ = 0;
+    uint64_t lastAnimateTimestamp_ = 0;
+    uint64_t prePerfTimestamp_ = 0;
+    uint64_t lastCleanCacheTimestamp_ = 0;
+    uint64_t focusLeashWindowId_ = 0;
+    uint64_t lastFocusNodeId_ = 0;
+    int64_t preIdealPeriod_ = 0;
+    int64_t preExtraReserve_ = 0;
+    ScreenId displayNodeScreenId_ = 0;
+    std::atomic<uint64_t> focusNodeId_ = 0;
+    std::atomic<uint64_t> frameCount_ = 0;
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
-    RSTaskMessage::RSTask mainLoop_;
+    std::shared_ptr<RSContext> context_;
+    std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
+    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+    std::shared_ptr<RSBaseRenderEngine> renderEngine_;
+    std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
+#if defined(ACCESSIBILITY_ENABLE)
+    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
+#endif
+    std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
+    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
+    std::shared_ptr<RSAppStateListener> rsAppStateListener_;
+#ifdef RES_SCHED_ENABLE
+    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
+#endif
     std::unique_ptr<RSVsyncClient> vsyncClient_ = nullptr;
+    RSTaskMessage::RSTask mainLoop_;
     std::unordered_map<NodeId, uint64_t> dividedRenderbufferTimestamps_;
 
     std::mutex transitionDataMutex_;
@@ -555,31 +696,26 @@ private:
      * removed from the GPU cache.
      */
     std::set<uint32_t> unmappedCacheSet_ = {};
+    std::mutex unmappedCacheSetMutex_;
 
-    uint64_t curTime_ = 0;
-    uint64_t timestamp_ = 0;
-    uint64_t vsyncId_ = 0;
-    uint64_t lastAnimateTimestamp_ = 0;
-    uint64_t prePerfTimestamp_ = 0;
-    uint64_t lastCleanCacheTimestamp_ = 0;
-    pid_t lastCleanCachePid_ = -1;
-    int preHardwareTid_ = -1;
+    /**
+     * @brief An atomic integer to keep track of the GPU draw count.
+     *
+     * This variable is used to safely increment and decrement the count of GPU draw operations
+     * across multiple threads without causing data races.
+     */
+    std::atomic<int> gpuDrawCount_ = 0;
+
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
 
-    std::shared_ptr<RSContext> context_;
     std::thread::id mainThreadId_;
-    std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
     std::map<pid_t, sptr<RSIOcclusionChangeCallback>> occlusionListeners_;
     std::mutex occlusionMutex_;
 
-    bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     RSTaskMessage::RSTask unmarshalBarrierTask_;
     std::condition_variable unmarshalTaskCond_;
     std::mutex unmarshalMutex_;
-    int32_t unmarshalFinishedCount_ = 0;
-    bool needWaitUnmarshalFinished_ = true;
-    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
 
 #if defined(RS_ENABLE_PARALLEL_UPLOAD) && defined(RS_ENABLE_GL)
     RSTaskMessage::RSTask uploadTextureBarrierTask_;
@@ -590,15 +726,6 @@ private:
 #endif
 
     mutable std::mutex uniRenderMutex_;
-
-    bool clearMemoryFinished_ = true;
-    bool clearMemDeeply_ = false;
-
-    // Used to refresh the whole display when AccessibilityConfig is changed
-    bool isAccessibilityConfigChanged_ = false;
-
-    // Used to refresh the whole display when curtain screen status is changed
-    bool isCurtainScreenUsingStatusChanged_ = false;
 
     // Used to refresh the whole display when luminance is changed
     std::unordered_map<ScreenId, bool> displayLuminanceChanged_;
@@ -611,50 +738,17 @@ private:
     VisibleData lastVisVec_;
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
-
-    std::atomic<bool> isDirty_ = false;
-    std::atomic<bool> screenPowerOnChanged_ = false;
-    std::atomic_bool doWindowAnimate_ = false;
     std::vector<NodeId> lastSurfaceIds_;
-    std::atomic<int32_t> focusAppPid_ = -1;
-    std::atomic<int32_t> focusAppUid_ = -1;
-    const uint8_t opacity_ = 255;
     std::string focusAppBundleName_ = "";
     std::string focusAppAbilityName_ = "";
-    std::atomic<uint64_t> focusNodeId_ = 0;
-    uint64_t focusLeashWindowId_ = 0;
-    uint64_t lastFocusNodeId_ = 0;
-    uint32_t appWindowNum_ = 0;
-    std::atomic<uint32_t> requestNextVsyncNum_ = 0;
-    bool vsyncControlEnabled_ = true;
-    bool systemAnimatedScenesEnabled_ = false;
-    bool isFoldScreenDevice_ = false;
-    std::atomic<bool> isGlobalDarkColorMode_ = false;
 
-    mutable bool hasWiredMirrorDisplay_ = false;
-
-    std::shared_ptr<RSBaseRenderEngine> renderEngine_;
-    std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     RSEventManager rsEventManager_;
-#if defined(ACCESSIBILITY_ENABLE)
-    std::shared_ptr<AccessibilityObserver> accessibilityObserver_;
-#endif
 
-    // used for hardware enabled case
-    bool doDirectComposition_ = true;
-#ifdef RS_ENABLE_GPU
-    bool needDrawFrame_ = true;
-    bool needPostAndWait_ = true;
-#endif
-    bool isLastFrameDirectComposition_ = false;
-    bool isNeedResetClearMemoryTask_ = false;
-    bool isHardwareEnabledBufferUpdated_ = false;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> selfDrawingNodes_;
 #ifdef RS_ENABLE_GPU
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> selfDrawables_;
 #endif
-    bool isHardwareForcedDisabled_ = false; // if app node has shadow or filter, disable hardware composer for all
     DrawablesVec hardwareEnabledDrwawables_;
 
     // for client node tree dump
@@ -669,30 +763,13 @@ private:
 
     std::unordered_map<std::string, std::shared_ptr<Media::PixelMap>> surfaceNodeWatermarks_;
 
-    // used for watermark
-    std::mutex watermarkMutex_;
-    std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
-    bool watermarkFlag_ = false;
-    bool lastWatermarkFlag_ = false;
-    bool hasProtectedLayer_ = false;
-
-    std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr; // modify by HgmThread
-    pid_t desktopPidForRotationScene_ = 0;
     FrameRateRange rsCurrRange_;
 
     // UIFirst
     std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
     std::unordered_map<NodeId, bool> cacheCmdSkippedNodes_;
     std::unordered_map<pid_t, std::pair<std::vector<NodeId>, bool>> cacheCmdSkippedInfo_;
-    std::atomic<uint64_t> frameCount_ = 0;
     std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
-    DeviceType deviceType_ = DeviceType::PHONE;
-    bool isCachedSurfaceUpdated_ = false;
-    bool isUiFirstOn_ = false;
-
-    // used for informing hgm the bundle name of SurfaceRenderNodes
-    bool forceUpdateUniRenderFlag_ = false;
-    bool idleTimerExpiredFlag_ = false;
     // for ui first
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
@@ -709,77 +786,32 @@ private:
     std::unordered_map<NodeId, // map<node ID, <surface node, app window node>>
         std::pair<std::shared_ptr<RSSurfaceRenderNode>, std::shared_ptr<RSSurfaceRenderNode>>> savedAppWindowNode_;
 
-    std::shared_ptr<RSAppStateListener> rsAppStateListener_;
-    int32_t subscribeFailCount_ = 0;
-    SystemAnimatedScenes systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
-    uint32_t leashWindowCount_ = 0;
-
-    // for drawing cache dfx
-    bool isDrawingCacheDfxEnabledOfCurFrame_ = false;
-    bool isDrawingCacheDfxEnabledOfLastFrame_ = false;
+    // used for watermark
+    std::mutex watermarkMutex_;
 
     // for ui captures
     std::vector<std::tuple<NodeId, std::function<void()>>> pendingUiCaptureTasks_;
     std::queue<std::tuple<NodeId, std::function<void()>>> uiCaptureTasks_;
-
-    // for dvsync (animate requestNextVSync after mark rsnotrendering)
-    bool needRequestNextVsyncAnimate_ = false;
-
-    bool forceUIFirstChanged_ = false;
-
     // uiextension
     std::mutex uiExtensionMutex_;
     UIExtensionCallbackData uiExtensionCallbackData_;
-    bool lastFrameUIExtensionDataEmpty_ = false;
     // <pid, <uid, callback>>
     std::map<pid_t, std::pair<uint64_t, sptr<RSIUIExtensionCallback>>> uiExtensionListenners_ = {};
-
-    // overDraw
-    bool isOverDrawEnabledOfCurFrame_ = false;
-    bool isOverDrawEnabledOfLastFrame_ = false;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
-#if defined(RS_ENABLE_CHIPSET_VSYNC)
-    bool initVsyncServiceFlag_ = true;
-#endif
-    pid_t exitedPid_ = -1;
     std::set<pid_t> exitedPidSet_;
 #ifdef RS_ENABLE_GPU
     RSDrawFrame drawFrame_;
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
-    RsParallelType rsParallelType_;
-    bool isCurtainScreenOn_ = false;
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
-#ifdef RES_SCHED_ENABLE
-    sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
-#endif
-    // for statistic of jank frames
-    std::atomic_bool discardJankFrames_ = false;
-    std::atomic_bool skipJankAnimatorFrame_ = false;
-    ScreenId displayNodeScreenId_ = 0;
 
-    // partial render
-    bool isFirstFrameOfPartialRender_ = false;
-    bool isPartialRenderEnabledOfLastFrame_ = false;
-    bool isRegionDebugEnabledOfLastFrame_ = false;
-
-    bool isForceRefresh_ = false;
-
-    // record multidisplay status change
-    bool isMultiDisplayPre_ = false;
-    
-    // render start hardware task count
-    uint32_t preUnExecuteTaskNum_ = 0;
-    int64_t preIdealPeriod_ = 0;
-    int64_t preExtraReserve_ = 0;
-
-#ifdef RS_ENABLE_VK
-    bool needCreateVkPipeline_ = true;
-#endif
+    // for record fastcompose time change
+    uint64_t lastFastComposeTimeStamp_ = 0;
+    uint64_t lastFastComposeTimeStampDiff_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

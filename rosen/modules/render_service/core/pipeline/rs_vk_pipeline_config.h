@@ -36,13 +36,13 @@ struct XMLReader {
     static std::string ReadAttrStr(const xmlNodePtr& src, const std::string& attr);
     static xmlNodePtr FindChildNodeByPropName(const xmlNodePtr& src, const std::string& index);
     static std::string ReadNodeValue(const xmlNodePtr& node);
-    static int ReadNodeValueInt(const xmlNodePtr& node);
+    static uint32_t ReadNodeValueInt(const xmlNodePtr& node);
     static std::string GetConfigPath(const std::string& configFileName);
 };
 
 struct VkRenderPassCreateInfoModel {
     bool ReadXmlNode(const xmlNodePtr& createInfoNodePtr);
-    int resourceId;
+    uint32_t resourceId;
     VkRenderPass renderPass;
 
 private:
@@ -55,21 +55,21 @@ private:
 struct VkDescriptorSetLayoutCreateInfoModel {
     bool ReadXmlNode(const xmlNodePtr& createInfoNodePtr);
     VkDescriptorSetLayout descriptorSetLayout;
-    int resourceId;
+    uint32_t resourceId;
 };
 
 struct VkPipelineLayoutCreateInfoModel {
     bool ReadXmlNode(const xmlNodePtr& createInfoNodePtr);
     VkPipelineLayoutCreateInfo createInfo;
-    int resourceId;
-    std::vector<int> setLayoutResourceIds;
+    uint32_t resourceId;
+    std::vector<uint32_t> setLayoutResourceIds;
 };
 
 struct VkGraphicsPipelineCreateInfoModel {
     bool ReadXmlNode(const xmlNodePtr& createInfoNodePtr);
     VkGraphicsPipelineCreateInfo createInfo;
-    int renderPassResourceId;
-    int layoutResourceId;
+    uint32_t renderPassResourceId;
+    uint32_t layoutResourceId;
     std::string chunkIndex;
     std::string vertexShaderFilePath;
     std::string fragShaderFilePath;
@@ -93,30 +93,30 @@ private:
 
 struct RDCConfig {
     RDCConfig() {}
-    virtual ~RDCConfig();
+    virtual ~RDCConfig() = default;
     bool LoadAndAnalyze(const std::string& configFile);
+
+private:
+    void LoadChunks(xmlNodePtr& chunkPtr);
     void LoadRenderPassModels(const xmlNodePtr& chunksPtr);
     void LoadDescriptorSetLayoutModels(const xmlNodePtr& chunksPtr);
     void LoadPipelineLayoutModels(const xmlNodePtr& chunksPtr);
     void LoadGraphicsPipelineModels(const xmlNodePtr& chunksPtr);
     void CreatePipelines();
     VkShaderModule LoadSpirvShader(std::string fileName);
-    VkRenderPassCreateInfoModel* GetRenderPassModelByResourceId(int resourceId);
-    VkDescriptorSetLayoutCreateInfoModel* GetDescriptorSetLayoutModelByResourceId(int resourceId);
-    VkPipelineLayoutCreateInfoModel* GetPipelineLayoutModelByResourceId(int resourceId);
-    std::vector<VkRenderPassCreateInfoModel*> renderPassModels;
-    std::vector<VkDescriptorSetLayoutCreateInfoModel*> descriptorSetLayoutModels;
-    std::vector<VkPipelineLayoutCreateInfoModel*> pipelineLayoutModels;
-    std::vector<VkGraphicsPipelineCreateInfoModel*> graphicsPipelineModels;
-
-private:
+    std::shared_ptr<VkRenderPassCreateInfoModel> GetRenderPassModelByResourceId(uint32_t resourceId);
+    std::shared_ptr<VkDescriptorSetLayoutCreateInfoModel> GetDescriptorSetLayoutModelByResourceId(uint32_t resourceId);
+    std::shared_ptr<VkPipelineLayoutCreateInfoModel> GetPipelineLayoutModelByResourceId(uint32_t resourceId);
+    std::vector<std::shared_ptr<VkRenderPassCreateInfoModel>> renderPassModels;
+    std::vector<std::shared_ptr<VkDescriptorSetLayoutCreateInfoModel>> descriptorSetLayoutModels;
+    std::vector<std::shared_ptr<VkPipelineLayoutCreateInfoModel>> pipelineLayoutModels;
+    std::vector<std::shared_ptr<VkGraphicsPipelineCreateInfoModel>> graphicsPipelineModels;
     void CloseXML();
-    void Clear();
     xmlDocPtr pDoc = nullptr;
     xmlNodePtr pRoot = nullptr;
     std::mutex xmlMut;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline pipeline;
+    VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+    VkPipeline pipeline = VK_NULL_HANDLE;
 };
 } // namespace RDC
 } // namespace Rosen

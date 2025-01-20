@@ -16,10 +16,14 @@
 #ifndef GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
 #define GRAPHIC_GRAPHIC_2D_STRING_UTIL_H
 
+#include <string>
+
 namespace OHOS {
 namespace Rosen {
 
 bool IsUtf8(const char* text, int len);
+
+std::u16string Str8ToStr16ByIcu(const std::string& str);
 
 }
 } // namespace OHOS

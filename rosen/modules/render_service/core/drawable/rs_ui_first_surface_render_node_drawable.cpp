@@ -250,12 +250,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
-    Drawing::MipmapMode mipmapMode = Drawing::MipmapMode::NONE;
-    // do not use linear on pc to avoid effecting the load and memory.
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        mipmapMode = Drawing::MipmapMode::LINEAR;
-    }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, mipmapMode);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
     canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
@@ -476,7 +471,9 @@ void RSSurfaceRenderNodeDrawable::SubDraw(Drawing::Canvas& canvas)
     auto parentSurfaceMatrix = RSRenderParams::GetParentSurfaceMatrix();
     RSRenderParams::SetParentSurfaceMatrix(IDENTITY_MATRIX);
 
+    ClearTotalProcessedSurfaceCount();
     RSRenderNodeDrawable::DrawUifirstContentChildren(*rscanvas, bounds);
+    RS_TRACE_NAME_FMT("SubDraw the number of total ProcessedSurface: %d", GetTotalProcessedSurfaceCount());
     RSRenderParams::SetParentSurfaceMatrix(parentSurfaceMatrix);
 }
 
@@ -517,22 +514,29 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCache(RSPaintFilterCanvas& rscanvas
 bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanvas& rscanvas, NodeId id)
 {
     RS_TRACE_NAME_FMT("DrawUIFirstCacheWithStarting %d, nodeID:%" PRIu64 "", HasCachedTexture(), id);
+    bool ret = true;
+    auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
+    if (drawable) {
+        const auto& startingParams = drawable->GetRenderParams();
+        if (!HasCachedTexture() && startingParams && !ROSEN_EQ(startingParams->GetAlpha(), 1.0f)) {
+            ret = DrawUIFirstCache(rscanvas, false);
+            RS_TRACE_NAME_FMT("wait and drawStarting, GetAlpha:%f, GetGlobalAlpha:%f",
+                startingParams->GetAlpha(), startingParams->GetGlobalAlpha());
+            drawable->Draw(rscanvas);
+            return ret;
+        }
+    }
     const auto& params = GetRenderParams();
     if (!params) {
         RS_LOGE("RSUniRenderUtil::HandleSubThreadNodeDrawable params is nullptr");
         return false;
     }
-    bool ret = true;
     // draw surface content&&childrensss
     if (HasCachedTexture()) {
         ret = DrawCacheSurface(rscanvas, params->GetCacheSize(), UNI_MAIN_THREAD_INDEX, true);
     }
     // draw starting window
-    {
-        auto drawable = RSRenderNodeDrawableAdapter::GetDrawableById(id);
-        if (!drawable) {
-            return false;
-        }
+    if (drawable) {
         RS_TRACE_NAME_FMT("drawStarting");
         drawable->Draw(rscanvas);
     }
@@ -542,5 +546,32 @@ bool RSSurfaceRenderNodeDrawable::DrawUIFirstCacheWithStarting(RSPaintFilterCanv
 void RSSurfaceRenderNodeDrawable::SetSubThreadSkip(bool isSubThreadSkip)
 {
     isSubThreadSkip_ = isSubThreadSkip;
+}
+
+int RSSurfaceRenderNodeDrawable::GetTotalProcessedSurfaceCount() const
+{
+    return totalProcessedSurfaceCount_;
+}
+
+void RSSurfaceRenderNodeDrawable::TotalProcessedSurfaceCountInc(RSPaintFilterCanvas& canvas)
+{
+    if (canvas.GetIsParallelCanvas()) {
+        ++totalProcessedSurfaceCount_;
+    }
+}
+
+void RSSurfaceRenderNodeDrawable::ClearTotalProcessedSurfaceCount()
+{
+    totalProcessedSurfaceCount_ = 0;
+}
+
+uint32_t RSSurfaceRenderNodeDrawable::GetUifirstPostOrder() const
+{
+    return uifirstPostOrder_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetUifirstPostOrder(uint32_t order)
+{
+    uifirstPostOrder_ = order;
 }
 } // namespace OHOS::Rosen

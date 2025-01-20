@@ -19,6 +19,7 @@
 #include "property/rs_filter_cache_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_filter.h"
+#include "render/rs_kawase_blur_shader_filter.h"
 #include "render/rs_magnifier_shader_filter.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_canvas.h"
@@ -169,6 +170,37 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterWithoutSnapshotTest, TestSize.Level
 }
 
 /**
+ * @tc.name: DrawFilterWithoutSnapshotTest002
+ * @tc.desc: test results of DrawFilterWithoutSnapshot
+ * @tc.type: FUNC
+ * @tc.require: issueIBE049
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawFilterWithoutSnapshotTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    
+    float blurRadius = 10.0f;
+    auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(blurRadius);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(kawaseBlurShaderFilter);
+    drawingFilter->SetFilterType(RSFilter::MATERIAL);
+
+    Drawing::RectI srcRect{ 0, 0, 100, 100 };
+    Drawing::RectI dstRect{ 0, 0, 100, 100 };
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    filterCanvas.surface_ = surface.get();
+    EXPECT_NE(filterCanvas.GetSurface(), nullptr);
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, drawingFilter, srcRect);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_->cachedImage_, nullptr);
+    EXPECT_TRUE(rsFilterCacheManager->DrawFilterWithoutSnapshot(filterCanvas, drawingFilter, srcRect, dstRect, true));
+}
+
+/**
  * @tc.name: DrawFilterTest
  * @tc.desc: test results of DrawFilter
  * @tc.type: FUNC
@@ -190,6 +222,38 @@ HWTEST_F(RSFilterCacheManagerTest, DrawFilterTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawFilterTest002
+ * @tc.desc: test results of DrawFilter
+ * @tc.type: FUNC
+ * @tc.require: issueIBE049
+ */
+HWTEST_F(RSFilterCacheManagerTest, DrawFilterTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    float blurRadius = 10.0f;
+    auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(blurRadius);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(kawaseBlurShaderFilter);
+    drawingFilter->SetFilterType(RSFilter::MATERIAL);
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    RSPaintFilterCanvas filterCanvas(surface.get());
+    EXPECT_FALSE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+    bool shouldClearFilteredCache = false;
+    rsFilterCacheManager->DrawFilter(filterCanvas, drawingFilter, shouldClearFilteredCache, srcRect, dstRect);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    rsFilterCacheManager->CompactFilterCache(shouldClearFilteredCache);
+    shouldClearFilteredCache = true;
+    rsFilterCacheManager->CompactFilterCache(shouldClearFilteredCache);
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+}
+
+/**
  * @tc.name: GeneratedCachedEffectDataTest
  * @tc.desc: test results of GeneratedCachedEffectData
  * @tc.type: FUNC
@@ -207,6 +271,37 @@ HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataTest, TestSize.Level
     std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
     rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, filter, srcRect, dstRect);
     EXPECT_TRUE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+}
+
+/**
+ * @tc.name: GeneratedCachedEffectDataTest002
+ * @tc.desc: test results of GeneratedCachedEffectData
+ * @tc.type: FUNC
+ * @tc.require: issueIBE049
+ */
+HWTEST_F(RSFilterCacheManagerTest, GeneratedCachedEffectDataTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    float blurRadius = 10.0f;
+    auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(blurRadius);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(kawaseBlurShaderFilter);
+    drawingFilter->SetFilterType(RSFilter::MATERIAL);
+    std::optional<Drawing::RectI> srcRect(Drawing::RectI { 0, 0, 100, 100 });
+    std::optional<Drawing::RectI> dstRect(Drawing::RectI { 0, 0, 100, 100 });
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    RSPaintFilterCanvas filterCanvas(surface.get());
+    EXPECT_FALSE(filterCanvas.GetDeviceClipBounds().IsEmpty());
+    const auto& [src, dst] = rsFilterCacheManager->ValidateParams(filterCanvas, srcRect, dstRect);
+    EXPECT_FALSE(src.IsEmpty() || dst.IsEmpty());
+    EXPECT_EQ(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    EXPECT_EQ(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
+    auto cachedFilteredSnapshot =
+        rsFilterCacheManager->GeneratedCachedEffectData(filterCanvas, drawingFilter, srcRect, dstRect);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    EXPECT_NE(cachedFilteredSnapshot, nullptr);
 }
 
 /**
@@ -234,6 +329,33 @@ HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest, TestSize.Level1)
     filter = std::make_shared<RSDrawingFilter>(rsMagnifierShaderFilter);
     rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
     EXPECT_NE(filter->GetShaderFilterWithType(RSShaderFilter::MAGNIFIER), nullptr);
+}
+
+/**
+ * @tc.name: TakeSnapshotTest002
+ * @tc.desc: test results of TakeSnapshot
+ * @tc.type: FUNC
+ * @tc.require: issueIBE049
+ */
+HWTEST_F(RSFilterCacheManagerTest, TakeSnapshotTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    auto shaderFilter = std::make_shared<RSShaderFilter>();
+    auto filter = std::make_shared<RSDrawingFilter>(shaderFilter);
+
+    Drawing::RectI srcRect(0, 0, 100, 100);
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    filterCanvas.surface_ = surface.get();
+    EXPECT_NE(filterCanvas.GetSurface(), nullptr);
+    std::shared_ptr<Drawing::Image> snapShot = filterCanvas.GetSurface()->GetImageSnapshot(srcRect);
+    EXPECT_NE(snapShot, nullptr);
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, filter, srcRect);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
 }
 
 /**
@@ -268,6 +390,39 @@ HWTEST_F(RSFilterCacheManagerTest, GenerateFilteredSnapshotTest, TestSize.Level1
     manager->cachedSnapshot_->cachedImage_ = std::make_shared<Drawing::Image>();
     manager->GenerateFilteredSnapshot(canvas, filter, dstRect);
     EXPECT_TRUE(manager->cachedSnapshot_->cachedImage_ != nullptr);
+}
+
+/**
+ * @tc.name: GenerateFilteredSnapshotTest002
+ * @tc.desc: test results of GenerateFilteredSnapshot
+ * @tc.type: FUNC
+ * @tc.require: issueIBE049
+ */
+HWTEST_F(RSFilterCacheManagerTest, GenerateFilteredSnapshotTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    Drawing::Canvas canvas;
+    RSPaintFilterCanvas filterCanvas(&canvas);
+    
+    float blurRadius = 10.0f;
+    auto kawaseBlurShaderFilter = std::make_shared<RSKawaseBlurShaderFilter>(blurRadius);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>(kawaseBlurShaderFilter);
+    drawingFilter->SetFilterType(RSFilter::MATERIAL);
+
+    Drawing::RectI srcRect{ 0, 0, 100, 100 };
+    Drawing::RectI dstRect{ 0, 0, 100, 100 };
+    int width = 100;
+    int height = 100;
+    Drawing::ImageInfo imageInfo{ width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    filterCanvas.surface_ = surface.get();
+    EXPECT_NE(filterCanvas.GetSurface(), nullptr);
+    auto offscreenSurface = filterCanvas.GetSurface()->MakeSurface(dstRect.GetWidth(), dstRect.GetHeight());
+    EXPECT_NE(offscreenSurface, nullptr);
+    rsFilterCacheManager->TakeSnapshot(filterCanvas, drawingFilter, srcRect);
+    EXPECT_NE(rsFilterCacheManager->cachedSnapshot_, nullptr);
+    rsFilterCacheManager->GenerateFilteredSnapshot(filterCanvas, drawingFilter, dstRect);
+    EXPECT_NE(rsFilterCacheManager->cachedFilteredSnapshot_, nullptr);
 }
 
 /**

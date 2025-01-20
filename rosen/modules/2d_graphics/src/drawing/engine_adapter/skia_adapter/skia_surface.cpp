@@ -78,7 +78,10 @@ void SkiaSurface::PostSkSurfaceToTargetThread()
     }
     auto func = SkiaGPUContext::GetPostFunc(grctx);
     if (func) {
-        func([skSurface = std::move(skSurface_), skImage = std::move(skImage_)]() {});
+        func([surface = skSurface_.release(), image = skImage_.release()]() {
+            SkSafeUnref(surface);
+            SkSafeUnref(image);
+        });
     }
 #endif
 }

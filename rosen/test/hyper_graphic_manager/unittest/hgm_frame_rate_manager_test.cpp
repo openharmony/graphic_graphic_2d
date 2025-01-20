@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <test_header.h>
+#include <climits>
 
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
@@ -64,6 +65,18 @@ namespace {
         .y = 0,
         .w = 2232,
         .h = 3184,
+    };
+    const GraphicIRect rectNeg {
+        .x = -1,
+        .y = -1,
+        .w = -1,
+        .h = -1,
+    };
+    const GraphicIRect rectMax {
+        .x = INT_MAX,
+        .y = INT_MAX,
+        .w = INT_MAX,
+        .h = INT_MAX,
     };
 }
 class HgmFrameRateMgrTest : public testing::Test {
@@ -309,6 +322,8 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level1)
             frameRateMgr.HandleScreenRectFrameRate(i, rectF);
             frameRateMgr.HandleScreenRectFrameRate(i, rectM);
             frameRateMgr.HandleScreenRectFrameRate(i, rectG);
+            frameRateMgr.HandleScreenRectFrameRate(i, rectNeg);
+            frameRateMgr.HandleScreenRectFrameRate(i, rectMax);
         }
     });
     sleep(1); // wait for handler task finished

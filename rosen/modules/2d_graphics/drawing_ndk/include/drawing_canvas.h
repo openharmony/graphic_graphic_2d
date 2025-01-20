@@ -38,6 +38,7 @@
  */
 
 #include "drawing_error_code.h"
+#include "drawing_sampling_options.h"
 #include "drawing_types.h"
 
 #ifdef __cplusplus
@@ -218,6 +219,27 @@ void OH_Drawing_CanvasDrawLine(OH_Drawing_Canvas*, float x1, float y1, float x2,
 void OH_Drawing_CanvasDrawPath(OH_Drawing_Canvas*, const OH_Drawing_Path*);
 
 /**
+ * @brief Divides the pixelmap into a grid with nine sections: four sides, four corners, and the center.
+ * Draws the specified section of the pixelmap onto the canvas, corners are unmodified or scaled down if they exceed
+ * the destination rectangle, center and four sides are scaled to fit remaining space.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param pixelMap Indicates the pointer to an <b>OH_Drawing_PixelMap</b> object.
+ * @param center Divides the pixelmap into nine sections: four sides, four corners, and the center.
+ * @param dst The area of destination canvas.
+ * @param mode Filter mode.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, pixelMap
+ *                 and dst is nullptr.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* canvas, OH_Drawing_PixelMap* pixelMap,
+    const OH_Drawing_Rect* center, const OH_Drawing_Rect* dst, OH_Drawing_FilterMode mode);
+
+/**
  * @brief Draw the specified area of the Media::PixelMap to the specified area of the canvas.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -396,6 +418,25 @@ void OH_Drawing_CanvasDrawOval(OH_Drawing_Canvas*, const OH_Drawing_Rect*);
 void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas*, const OH_Drawing_Rect*, float startAngle, float sweepAngle);
 
 /**
+ * @brief Draws an arc with use center.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param startAngle Indicates the startAngle of the arc.
+ * @param sweepAngle Indicates the sweepAngle of the arc.
+ * @param useCenter If true, include the center of the oval in the arc, and close it if it is being stroked.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas or rect is nullptr.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawArcWithCenter(OH_Drawing_Canvas* canvas, const OH_Drawing_Rect* rect,
+    float startAngle, float sweepAngle, bool useCenter);
+
+
+/**
  * @brief Draws a roundrect.
  *
  * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
@@ -405,6 +446,23 @@ void OH_Drawing_CanvasDrawArc(OH_Drawing_Canvas*, const OH_Drawing_Rect*, float 
  * @version 1.0
  */
 void OH_Drawing_CanvasDrawRoundRect(OH_Drawing_Canvas*, const OH_Drawing_RoundRect*);
+
+/**
+ * @brief Draw two nested rounded rectangles.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param outer Rounded rectangle object, representing the outer rounded rectangle boundary.
+ * @param inner Rounded rectangle object, representing the internal rounded rectangle boundary.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if any of canvas, outer
+ *                 and inner is nullptr.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawNestedRoundRect(OH_Drawing_Canvas* canvas, const OH_Drawing_RoundRect* outer,
+    const OH_Drawing_RoundRect* inner);
 
 /**
  * @brief Draws a single character.
@@ -838,6 +896,40 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasGetImageInfo(OH_Drawing_Canvas* canvas, OH
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_CanvasDrawRecordCmd(OH_Drawing_Canvas* canvas, OH_Drawing_RecordCmd* recordCmd);
+
+/**
+ * @brief Checks if the path has been cut off.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param path Indicates the pointer to an <b>OH_Drawing_Paht</b> object.
+ * @param quickReject Indicates if the path has been cut off.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas or path is nullptr,
+ *                  or quickReject is nullptr.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasQuickRejectPath(OH_Drawing_Canvas* canvas, const OH_Drawing_Path* path,
+    bool* quickReject);
+
+/**
+ * @brief Checks if the rect has been cut off.
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeDrawing
+ * @param canvas Indicates the pointer to an <b>OH_Drawing_Canvas</b> object.
+ * @param rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @param quickReject Indicates if the rect has been cut off.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INVALID_PARAMETER} if canvas or rect is nullptr,
+ *                  or quickReject is nullptr.
+ * @since 16
+ * @version 1.0
+ */
+OH_Drawing_ErrorCode OH_Drawing_CanvasQuickRejectRect(OH_Drawing_Canvas* canvas, const OH_Drawing_Rect* rect,
+    bool* quickReject);
 #ifdef __cplusplus
 }
 #endif

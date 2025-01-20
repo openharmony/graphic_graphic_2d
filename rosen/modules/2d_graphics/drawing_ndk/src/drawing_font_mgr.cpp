@@ -180,9 +180,6 @@ OH_Drawing_Typeface* OH_Drawing_FontMgrMatchFamilyStyleCharacter(OH_Drawing_Font
     const char* familyName, OH_Drawing_FontStyleStruct fontStyle, const char* bcp47[], int bcp47Count,
     int32_t character)
 {
-    if (bcp47 == nullptr || bcp47Count <= 0) {
-        return nullptr;
-    }
     FontMgr* fontMgr = CastToFontMgr(drawingFontMgr);
     if (fontMgr == nullptr) {
         return nullptr;

@@ -62,11 +62,20 @@ public:
         return hardCursorDrawables_;
     }
 
+    void CollectAllHardCursor(NodeId id, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr cursorDrawable)
+    {
+        hardCursorDrawableMap_.emplace(id, cursorDrawable);
+    }
+
+    const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetHardCursorDrawableMap() const
+    {
+        return hardCursorDrawableMap_;
+    }
+
     void ResetHardCursorDrawables()
     {
-        hardCursorDrawables_.id = INVALID_NODEID;
-        hardCursorDrawables_.drawablePtr = nullptr;
-        hardCursorNodes_ = nullptr;
+        hardCursorDrawableMap_.clear();
+        hardCursorNodeMap_.clear();
     }
 
     bool GetIsPointerEnableHwc() const
@@ -138,7 +147,7 @@ public:
     void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
     void SetHardCursorNodeInfo(std::shared_ptr<RSSurfaceRenderNode> hardCursorNode);
-    const std::shared_ptr<RSSurfaceRenderNode>& GetHardCursorNode() const;
+    const std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>& GetHardCursorNode() const;
 
     void HardCursorCreateLayerForDirect(std::shared_ptr<RSProcessor> processor);
 
@@ -148,7 +157,9 @@ public:
 private:
     bool isNeedForceCommitByPointer_{ false };
     HardCursorInfo hardCursorDrawables_;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> hardCursorDrawableMap_;
     std::shared_ptr<RSSurfaceRenderNode> hardCursorNodes_;
+    std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> hardCursorNodeMap_;
     std::mutex mtx_;
     std::atomic<bool> isPointerEnableHwc_ = true;
     std::atomic<bool> isPointerCanSkipFrame_ = false;

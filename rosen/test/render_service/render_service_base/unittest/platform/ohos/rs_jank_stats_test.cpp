@@ -568,7 +568,7 @@ HWTEST_F(RSJankStatsTest, CheckAnimationTraceTimeoutTest008, TestSize.Level1)
     rsJankStats->CheckAnimationTraceTimeout();
     EXPECT_EQ(rsJankStats->animationTraceCheckCnt_, 0);
 
-    rsJankStats->rtEndTimeSteady_ = 5000;
+    rsJankStats->rtEndTimeSteady_ = 10000;
     rsJankStats->animationTraceCheckCnt_ = 20;
     rsJankStats->explicitAnimationTotal_ = 1;
     rsJankStats->implicitAnimationTotal_ = 1;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -274,30 +274,6 @@ TextureExportBufferDrawParam RSRenderThreadUtil::CreateTextureExportBufferDrawPa
         SrcRectScaleFit(params, localBounds);
     }
     return params;
-}
-
-uint32_t RSRenderThreadUtil::GetApiCompatibleVersion()
-{
-    uint32_t apiCompatibleVersion = INVALID_API_COMPATIBLE_VERSION;
-    OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
-        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    OHOS::sptr<OHOS::IRemoteObject> remoteObject =
-        systemAbilityManager->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    sptr<AppExecFwk::IBundleMgr> iBundleMgr = OHOS::iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
-    if (iBundleMgr == nullptr) {
-        RS_LOGE("RSRenderThreadUtil::GetApiCompatibleVersion iBundleMgr is nullptr");
-        return apiCompatibleVersion;
-    }
-    AppExecFwk::BundleInfo bundleInfo;
-    if (iBundleMgr->GetBundleInfoForSelf(0, bundleInfo) == ERR_OK) {
-        apiCompatibleVersion = bundleInfo.targetVersion % API_VERSION_MOD;
-        RS_LOGD("RSRenderThreadUtil::GetApiCompatibleVersion targetVersion: [%{public}u], apiCompatibleVersion: "
-                "[%{public}u]",
-            bundleInfo.targetVersion, apiCompatibleVersion);
-    } else {
-        RS_LOGE("RSRenderThreadUtil::GetApiCompatibleVersion failed");
-    }
-    return apiCompatibleVersion;
 }
 #endif
 } // namespace Rosen

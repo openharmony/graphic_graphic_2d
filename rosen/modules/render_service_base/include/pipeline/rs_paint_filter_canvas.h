@@ -107,6 +107,7 @@ public:
     void ClipPath(const Drawing::Path& path, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
         bool doAntiAlias = false) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
+    void ResetClip() override;
 
     void SetMatrix(const Drawing::Matrix& matrix) override;
     void ResetMatrix() override;
@@ -302,6 +303,8 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool GetIsWindowFreezeCapture() const;
+    void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
 
 protected:
     using Env = struct {
@@ -339,7 +342,23 @@ protected:
     }
 
 private:
+    bool isParallelCanvas_ = false;
+    bool disableFilterCache_ = false;
+    bool recordingState_ = false;
+    bool recordDrawable_ = false;
+    bool multipleScreen_ = false;
+    bool isHdrOn_ = false;
+    bool isWindowFreezeCapture_ = false;
+    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
+    std::atomic_bool isHighContrastEnabled_ { false };
+    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
+    ScreenId screenId_ = INVALID_SCREEN_ID;
+    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
     Drawing::Surface* surface_ = nullptr;
+    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
+    Drawing::Rect visibleRect_ = Drawing::Rect();
+
     std::stack<float> alphaStack_;
     std::stack<Env> envStack_;
 
@@ -354,23 +373,6 @@ private:
     std::stack<OffscreenData> offscreenDataList_; // store offscreen canvas & surface
     std::stack<Drawing::Surface*> storeMainScreenSurface_; // store surface_
     std::stack<Drawing::Canvas*> storeMainScreenCanvas_; // store canvas_
-    Drawing::Canvas* storeMainCanvas_ = nullptr; // store main canvas
-
-    std::atomic_bool isHighContrastEnabled_ { false };
-    CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
-    Drawing::Rect visibleRect_ = Drawing::Rect();
-
-    GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    float brightnessRatio_ = 1.0f; // Default 1.0f means no discount
-    ScreenId screenId_ = INVALID_SCREEN_ID;
-
-    uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX; // default
-    bool isParallelCanvas_ = false;
-    bool disableFilterCache_ = false;
-    bool recordingState_ = false;
-    bool recordDrawable_ = false;
-    bool multipleScreen_ = false;
-    bool isHdrOn_ = false;
 };
 
 // Helper class similar to SkAutoCanvasRestore, but also restores alpha and/or env

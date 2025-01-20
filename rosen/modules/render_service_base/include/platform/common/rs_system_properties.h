@@ -179,15 +179,14 @@ public:
     static bool GetDrawTextAsBitmap();
     static void SetCacheEnabledForRotation(bool flag);
     static bool GetCacheEnabledForRotation();
-    static void SetScreenSwitchStatus(bool flag);
-    static bool GetScreenSwitchStatus();
     static ParallelRenderingType GetPrepareParallelRenderingEnabled();
     static ParallelRenderingType GetParallelRenderingEnabled();
     static HgmRefreshRates GetHgmRefreshRatesEnabled();
     static void SetHgmRefreshRateModesEnabled(std::string param);
     static HgmRefreshRateModes GetHgmRefreshRateModesEnabled();
     static bool GetHardCursorEnabled();
-
+    static bool GetDrawExpandSlrEnabled();
+    static bool GetSLRScaleFunctionEnable();
     static float GetAnimationScale();
     static bool GetProxyNodeDebugEnabled();
     static bool GetFilterCacheEnabled();
@@ -229,6 +228,7 @@ public:
     static int WatchSystemProperty(const char* name, OnSystemPropertyChanged func, void* context);
     static bool GetCacheOptimizeRotateEnable();
     static CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus();
+    static bool GetSingleDrawableLockerEnabled();
     static bool GetUIFirstEnabled();
     static bool GetUIFirstDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
@@ -304,7 +304,6 @@ private:
     static inline bool isUniRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static bool cacheEnabledForRotation_ = false;
-    inline static bool isScreenSwitching_ = false;
     static inline bool forceHpsBlurDisabled_ = false;
     static const GpuApiType systemGpuApiType_;
     static const DdgrOpincType ddgrOpincType_;

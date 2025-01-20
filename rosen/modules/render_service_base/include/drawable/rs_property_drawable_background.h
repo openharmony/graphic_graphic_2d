@@ -51,22 +51,22 @@ public:
 
 private:
     bool needSync_ = false;
-    Drawing::Path path_;
-    Drawing::Path stagingPath_;
-    Color color_;
-    Color stagingColor_;
+    bool isFilled_ = false;
+    bool stagingIsFilled_ = false;
     float offsetX_ = 0.0f;
     float stagingOffsetX_ = 0.0f;
     float offsetY_ = 0.0f;
     float stagingOffsetY_ = 0.0f;
     float elevation_ = 0.0f;
     float stagingElevation_ = 0.0f;
-    bool isFilled_ = false;
-    bool stagingIsFilled_ = false;
     float radius_ = 0.0f;
     float stagingRadius_ = 0.0f;
     int colorStrategy_ = 0;
     int stagingColorStrategy_ = 0;
+    Drawing::Path path_;
+    Drawing::Path stagingPath_;
+    Color color_;
+    Color stagingColor_;
 };
 
 class RSMaskDrawable : public RSPropertyDrawable {

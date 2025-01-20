@@ -19,7 +19,7 @@
 #include "pipeline/rs_uni_render_engine.h"
 #include "pipeline/rs_uni_render_util.h"
 #ifdef RS_ENABLE_GPU
-#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"

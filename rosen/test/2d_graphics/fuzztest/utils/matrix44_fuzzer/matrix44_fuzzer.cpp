@@ -20,7 +20,7 @@
 #include <securec.h>
 
 #include "get_object.h"
-#include "skia_adapter/skia_canvas.h"
+#include "utils/matrix.h"
 #include "utils/matrix44.h"
 
 namespace OHOS {
@@ -72,7 +72,6 @@ void Martix44FuzzTest001(const uint8_t* data, size_t size)
 
     matrix.SetMatrix44ColMajor(buffer);
     matrix.SetMatrix44RowMajor(buffer);
-    matrix.GetImpl<SkiaMatrix>();
     Matrix44 matrix2 = matrix * matrix1;
     Matrix mat = static_cast<Matrix>(matrix1);
 }

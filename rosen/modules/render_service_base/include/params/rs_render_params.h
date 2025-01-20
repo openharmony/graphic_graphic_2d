@@ -339,7 +339,6 @@ public:
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
     CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
     {
@@ -349,6 +348,17 @@ public:
     {
         isCrossNodeOffscreenOn_ = isCrossNodeOffScreenOn;
     }
+
+    void SetAbsRotation(float degree)
+    {
+        absRotation_ = degree;
+    }
+
+    float GetAbsRotation() const
+    {
+        return absRotation_;
+    }
+
 protected:
     bool needSync_ = false;
     std::bitset<RSRenderParamsDirtyType::MAX_DIRTY_TYPE> dirtyType_;
@@ -396,7 +406,10 @@ private:
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     bool isFirstLevelCrossNode_ = false;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
+    // The angle at which the node rotates about the Z-axis
+    float absRotation_ = 0.f;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H

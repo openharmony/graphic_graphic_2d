@@ -57,9 +57,15 @@ HWTEST_F(RSScreenDataTest, Marshalling001, TestSize.Level1)
  */
 HWTEST_F(RSScreenDataTest, Unmarshalling001, TestSize.Level1)
 {
-    RSScreenData screenData;
+    RSScreenModeInfo screenModeInfo1;
+    RSScreenModeInfo screenModeInfo2;
+    std::vector<RSScreenModeInfo> supportModeInfo = { screenModeInfo1, screenModeInfo2 };
+    RSScreenCapability capability;
+    RSScreenModeInfo activityModeInfo;
+    RSScreenData screenData(capability, activityModeInfo, supportModeInfo, ScreenPowerStatus::POWER_STATUS_OFF);
     Parcel parcel;
-    std::shared_ptr<RSScreenData>(screenData.Unmarshalling(parcel));
+    ASSERT_TRUE(screenData.Marshalling(parcel));
+    ASSERT_NE(std::shared_ptr<RSScreenData>(RSScreenData::Unmarshalling(parcel)), nullptr);
 }
 
 /**

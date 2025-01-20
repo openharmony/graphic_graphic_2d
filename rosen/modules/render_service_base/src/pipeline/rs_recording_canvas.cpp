@@ -194,5 +194,35 @@ void ExtendRecordingCanvas::DrawImageNineWithPixelMap(const std::shared_ptr<Medi
     auto image = RSPixelMapUtil::ExtractDrawingImage(pixelmap);
     Drawing::RecordingCanvas::DrawImageNine(image.get(), center, dst, filter, brush);
 }
+
+void ExtendRecordingCanvas::DrawPixelMapNine(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::RectI& center, const Drawing::Rect& dst, Drawing::FilterMode filterMode)
+{
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<Drawing::DrawPixelMapNineOpItem>(pixelMap, center, dst, filterMode);
+        return;
+    }
+    auto object = std::make_shared<RSExtendImageNineObject>(pixelMap);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
+    auto objectHandle =
+        Drawing::CmdListHelper::AddImageNineObjecToCmdList(*drawCallList, object);
+    AddDrawOpImmediate<Drawing::DrawPixelMapNineOpItem::ConstructorHandle>(objectHandle, center, dst, filterMode);
+}
+
+void ExtendRecordingCanvas::DrawPixelMapLattice(const std::shared_ptr<Media::PixelMap>& pixelMap,
+    const Drawing::Lattice& lattice, const Drawing::Rect& dst, Drawing::FilterMode filterMode)
+{
+    if (!addDrawOpImmediate_) {
+        AddDrawOpDeferred<Drawing::DrawPixelMapLatticeOpItem>(pixelMap, lattice, dst, filterMode);
+        return;
+    }
+    auto object = std::make_shared<RSExtendImageLatticeObject>(pixelMap);
+    auto drawCallList = Drawing::RecordingCanvas::GetDrawCmdList();
+    auto imageLatticeHandle =
+        Drawing::CmdListHelper::AddImageLatticeObjecToCmdList(*drawCallList, object);
+    auto latticeHandle = Drawing::CmdListHelper::AddLatticeToCmdList(*drawCallList, lattice);
+    AddDrawOpImmediate<Drawing::DrawPixelMapLatticeOpItem::ConstructorHandle>(imageLatticeHandle,
+        latticeHandle, dst, filterMode);
+}
 } // namespace Rosen
 } // namespace OHOS

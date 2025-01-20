@@ -187,15 +187,6 @@ bool RSSystemProperties::GetCacheEnabledForRotation()
     return {};
 }
 
-void RSSystemProperties::SetScreenSwitchStatus(bool flag)
-{
-}
-
-bool RSSystemProperties::GetScreenSwitchStatus()
-{
-    return false;
-}
-
 ParallelRenderingType RSSystemProperties::GetPrepareParallelRenderingEnabled()
 {
     return {};
@@ -222,6 +213,11 @@ HgmRefreshRateModes RSSystemProperties::GetHgmRefreshRateModesEnabled()
 }
 
 bool RSSystemProperties::GetHardCursorEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDrawExpandSlrEnabled()
 {
     return false;
 }
@@ -515,6 +511,11 @@ bool RSSystemProperties::GetPixelmapDfxEnabled()
 SubTreePrepareCheckType RSSystemProperties::GetSubTreePrepareCheckType()
 {
     return SubTreePrepareCheckType::ENABLED;
+}
+
+bool RSSystemProperties::GetSingleDrawableLockerEnabled()
+{
+    return true;
 }
 
 bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames)

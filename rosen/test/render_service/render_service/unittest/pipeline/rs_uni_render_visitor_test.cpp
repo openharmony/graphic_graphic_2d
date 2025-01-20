@@ -40,8 +40,8 @@
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
 #include "pipeline/rs_uni_render_visitor.h"
-#include "pipeline/round_corner_display/rs_round_corner_display.h"
-#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1223,6 +1223,22 @@ HWTEST_F(RSUniRenderVisitorTest, CheckColorSpace001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: PrepareForCloneNode
+ * @tc.desc: Test PrepareForCloneNode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH7WD
+ */
+HWTEST_F(RSUniRenderVisitorTest, PrepareForCloneNode, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceRenderNode = RSSurfaceRenderNode(1);
+
+    auto result = rsUniRenderVisitor->PrepareForCloneNode(surfaceRenderNode);
+    ASSERT_FALSE(result);
+}
+
+/**
  * @tc.name: PrepareForCrossNodeTest
  * @tc.desc: Test PrepareForCrossNode
  * @tc.type: FUNC
@@ -1863,6 +1879,8 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareSurfaceRenderNode004, TestSize.Leve
     displayNode->AddChild(surfaceNode, 0);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto screenManager = CreateOrGetScreenManager();
+    rsUniRenderVisitor->screenManager_ = screenManager;
     rsUniRenderVisitor->curDisplayNode_ = displayNode;
     rsUniRenderVisitor->displayHasProtectedSurface_[rsUniRenderVisitor->currentVisitDisplay_] = true;
     rsUniRenderVisitor->QuickPrepareSurfaceRenderNode(*surfaceNode);
@@ -2544,12 +2562,12 @@ HWTEST_F(RSUniRenderVisitorTest, IsLeashAndHasMainSubNode001, TestSize.Level2)
 }
 
 /**
- * @tc.name: CalculateOcclusion001
- * @tc.desc: Test CalculateOcclusion with empty node
+ * @tc.name: CalculateOpaqueAndTransparentRegion001
+ * @tc.desc: Test CalculateOpaqueAndTransparentRegion with empty node
  * @tc.type: FUNC
- * @tc.require: issueI9RR2Y
+ * @tc.require: issueIBCR0E
  */
-HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion001, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion001, TestSize.Level2)
 {
     auto rsContext = std::make_shared<RSContext>();
     RSSurfaceRenderNodeConfig config;
@@ -2563,7 +2581,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion001, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     rsUniRenderVisitor->InitDisplayInfo(*rsDisplayRenderNode);
 
-    rsUniRenderVisitor->CalculateOcclusion(*rsSurfaceRenderNode);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
     ASSERT_FALSE(rsUniRenderVisitor->needRecalculateOcclusion_);
 }
 
@@ -4784,27 +4802,27 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateHwcNodeDirtyRegionForApp002, TestSize.Lev
 }
 
 /**
- * @tc.name: CalculateOcclusion
- * @tc.desc: Test CalculateOcclusion002, curDisplayNode_ = nullptr
+ * @tc.name: CalculateOpaqueAndTransparentRegion
+ * @tc.desc: Test CalculateOpaqueAndTransparentRegion002, curDisplayNode_ = nullptr
  * @tc.type: FUNC
- * @tc.require: issueIAJSIS
+ * @tc.require: issueIBCR0E
  */
-HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion002, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion002, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->curDisplayNode_ = nullptr;
-    rsUniRenderVisitor->CalculateOcclusion(*node);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*node);
 }
 
 /**
- * @tc.name: CalculateOcclusion
- * @tc.desc: Test CalculateOcclusion003, isAllSurfaceVisibleDebugEnabled_ = true
+ * @tc.name: CalculateOpaqueAndTransparentRegion
+ * @tc.desc: Test CalculateOpaqueAndTransparentRegion003, isAllSurfaceVisibleDebugEnabled_ = true
  * @tc.type: FUNC
- * @tc.require: issueIAJSIS
+ * @tc.require: issueIBCR0E
  */
-HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion003, TestSize.Level1)
+HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion003, TestSize.Level1)
 {
     auto node = RSTestUtil::CreateSurfaceNode();
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
@@ -4813,7 +4831,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion003, TestSize.Level1)
     RSDisplayNodeConfig config;
     rsUniRenderVisitor->curDisplayNode_ = std::make_shared<RSDisplayRenderNode>(displayNodeId, config);
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = true;
-    rsUniRenderVisitor->CalculateOcclusion(*node);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*node);
 }
 
 /**
@@ -5056,37 +5074,34 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateNodeVisibleRegion001, TestSize.Level2)
 }
 
 /**
- * @tc.name: CalculateOcclusion004
- * @tc.desc: Test CalculateOcclusion with multi-rsSurfaceRenderNode
+ * @tc.name: CalculateOpaqueAndTransparentRegion004
+ * @tc.desc: Test CalculateOpaqueAndTransparentRegion with multi-rsSurfaceRenderNode
  * @tc.type: FUNC
- * @tc.require: issueIASE3Z
+ * @tc.require: issueIBCR0E
  */
-HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion004, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion004, TestSize.Level2)
 {
-    std::shared_ptr<RSSurfaceRenderNode> rsSurfaceRenderNode = nullptr;
-    ASSERT_EQ(rsSurfaceRenderNode, nullptr);
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
-    rsUniRenderVisitor->CalculateOcclusion(*rsSurfaceRenderNode);
 
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
     RSSurfaceRenderNodeConfig config;
     config.id = 1;
-    rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
     rsUniRenderVisitor->needRecalculateOcclusion_ = true;
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = true;
-    rsUniRenderVisitor->CalculateOcclusion(*rsSurfaceRenderNode);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
 }
 
 /**
- * @tc.name: CalculateOcclusion005
- * @tc.desc: Test CalculateOcclusion if need skip in expand screen
+ * @tc.name: CalculateOpaqueAndTransparentRegion005
+ * @tc.desc: Test CalculateOpaqueAndTransparentRegion if need skip in expand screen
  * @tc.type: FUNC
- * @tc.require: issueIB35IS
+ * @tc.require: issueIBCR0E
  */
-HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion005, TestSize.Level2)
+HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion005, TestSize.Level2)
 {
     auto rsContext = std::make_shared<RSContext>();
     ASSERT_NE(rsContext, nullptr);
@@ -5105,14 +5120,14 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOcclusion005, TestSize.Level2)
     rsUniRenderVisitor->InitDisplayInfo(*rsDisplayRenderNode);
     ASSERT_NE(rsUniRenderVisitor->curDisplayNode_, nullptr);
     rsUniRenderVisitor->curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(true);
-    rsUniRenderVisitor->CalculateOcclusion(*rsSurfaceRenderNode);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
 
     rsUniRenderVisitor->curDisplayNode_->SetIsFirstVisitCrossNodeDisplay(false);
-    rsUniRenderVisitor->CalculateOcclusion(*rsSurfaceRenderNode);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
 
     rsSurfaceRenderNode->isCrossNode_ = true;
     rsSurfaceRenderNode->firstLevelNodeId_ = config.id;
-    rsUniRenderVisitor->CalculateOcclusion(*rsSurfaceRenderNode);
+    rsUniRenderVisitor->CalculateOpaqueAndTransparentRegion(*rsSurfaceRenderNode);
 }
 
 /**
@@ -5559,5 +5574,26 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     RSDirtyRegionManager dirtyManager;
     rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+}
+
+/*
+ * @tc.name: SetHdrWhenMultiDisplayChangeInPCTest
+ * @tc.desc: Test SetHdrWhenMultiDisplayChangeInPCTest
+ * @tc.type: FUNC
+ * @tc.require: issueIBF9OU
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetHdrWhenMultiDisplayChangeInPCTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    bool isForceCloseHdr = RSLuminanceControl::Get().IsForceCloseHdr();
+    auto mainThread = RSMainThread::Instance();
+    auto isMultiDisplay = mainThread->GetMultiDisplayStatus();
+    rsUniRenderVisitor->SetHdrWhenMultiDisplayChangeInPC();
+    if (mainThread->GetDeviceType() != DeviceType::PC) {
+        EXPECT_EQ(isForceCloseHdr, RSLuminanceControl::Get().IsForceCloseHdr());
+    } else {
+        EXPECT_EQ(isMultiDisplay, RSLuminanceControl::Get().IsForceCloseHdr());
+    }
 }
 } // OHOS::Rosen

@@ -16,7 +16,6 @@
 #define DFXSTRING_H
 #include <stdarg.h>
 #include <string>
-#include <cstdio>
 #include <securec.h>
 
 namespace OHOS::Rosen {

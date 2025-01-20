@@ -26,6 +26,7 @@
 
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
+#include "common/rs_xcollie.h"
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/screen_change_callback_stub.h"
@@ -281,7 +282,8 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 }
 
 bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCaptureBlurParam& blurParam)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -289,7 +291,7 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
         return false;
     }
     if (!isFreeze) {
-        renderService->SetWindowFreezeImmediately(id, isFreeze, nullptr, captureConfig);
+        renderService->SetWindowFreezeImmediately(id, isFreeze, nullptr, captureConfig, blurParam);
         return true;
     }
     if (callback == nullptr) {
@@ -311,7 +313,7 @@ bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     if (surfaceCaptureCbDirector_ == nullptr) {
         surfaceCaptureCbDirector_ = new SurfaceCaptureCallbackDirector(this);
     }
-    renderService->SetWindowFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig);
+    renderService->SetWindowFreezeImmediately(id, isFreeze, surfaceCaptureCbDirector_, captureConfig, blurParam);
     return true;
 }
 
@@ -438,7 +440,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService == nullptr) {
@@ -695,6 +697,17 @@ void RSRenderServiceClient::SetShowRefreshRateEnabled(bool enable)
     return renderService->SetShowRefreshRateEnabled(enable);
 }
 
+int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("%{public}s: render service is null", __func__);
+        return RENDER_SERVICE_NULL;
+    }
+
+    return renderService->SetPhysicalScreenResolution(id, width, height);
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -735,6 +748,17 @@ void RSRenderServiceClient::RepaintEverything()
     }
 
     renderService->RepaintEverything();
+}
+
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService == nullptr) {
+        ROSEN_LOGE("ForceRefreshOneFrameWithNextVSync renderService is nullptr, return");
+        return;
+    }
+
+    renderService->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
@@ -1143,6 +1167,8 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     uint64_t globalUniqueId = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     ROSEN_LOGD("RSRenderServiceClient::RegisterTypeface: pid[%{public}d] register typface[%{public}u]",
         RSTypefaceCache::GetTypefacePid(globalUniqueId), RSTypefaceCache::GetTypefaceId(globalUniqueId));
+    // timer: 3s
+    OHOS::Rosen::RSXCollie registerTypefaceXCollie("registerTypefaceXCollie_" + typeface->GetFamilyName(), 3);
     return renderService->RegisterTypeface(globalUniqueId, typeface);
 }
 
@@ -1543,14 +1569,6 @@ void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
     }
 }
 
-void RSRenderServiceClient::SetScreenSwitchStatus(bool flag)
-{
-    auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    if (renderService != nullptr) {
-        renderService->SetScreenSwitchStatus(flag);
-    }
-}
-
 void RSRenderServiceClient::SetCacheEnabledForRotation(bool isEnabled)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
@@ -1816,6 +1834,22 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
     if (renderService != nullptr) {
         renderService->SetLayerTop(nodeIdStr, isTop);
+    }
+}
+
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->NotifyScreenSwitched();
+    }
+}
+
+void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService();
+    if (renderService != nullptr) {
+        renderService->SetWindowContainer(nodeId, value);
     }
 }
 } // namespace Rosen

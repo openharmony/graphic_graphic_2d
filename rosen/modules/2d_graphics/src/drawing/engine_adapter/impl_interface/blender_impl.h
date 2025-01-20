@@ -20,6 +20,8 @@
 
 #include "base_impl.h"
 
+#include "utils/data.h"
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -27,6 +29,8 @@ class BlenderImpl : public BaseImpl {
 public:
     BlenderImpl() noexcept {}
     ~BlenderImpl() override {}
+    virtual std::shared_ptr<Data> Serialize() const = 0;
+    virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

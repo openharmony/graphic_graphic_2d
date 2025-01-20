@@ -60,18 +60,21 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
     const Drawing::Rect& bounds = effectParams->GetFrameRect();
     
+    RSRenderNodeSingleDrawableLocker singleLocker(this);
+    if (UNLIKELY(!singleLocker.IsLocked())) {
+        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
+        RS_LOGE("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
+        if (RSSystemProperties::GetSingleDrawableLockerEnabled()) {
+            SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
+            return;
+        }
+    }
+
     if (!GenerateEffectDataOnDemand(effectParams, canvas, bounds, paintFilterCanvas)) {
         SetDrawSkipType(DrawSkipType::GENERATE_EFFECT_DATA_ON_DEMAND_FAIL);
         return;
     }
 
-    RSRenderNodeSingleDrawableLocker singleLocker(this);
-    if (UNLIKELY(!singleLocker.IsLocked())) {
-        SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
-        singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
-        RS_LOGE("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " onDraw!!!", GetId());
-        return;
-    }
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
 #endif
 }

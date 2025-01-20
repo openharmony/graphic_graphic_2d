@@ -62,11 +62,6 @@ enum CleanPidCallbackType : uint32_t {
     GAMES,
 };
 
-struct DvsyncInfo {
-    bool isRsDvsyncOn = false;
-    bool isUiDvsyncOn = false;
-};
-
 struct VoteInfo {
     std::string voterName = "";
     uint32_t min = OLED_NULL_HZ;
@@ -166,7 +161,7 @@ public:
         sptr<VSyncController> appController, sptr<VSyncGenerator> vsyncGenerator);
     void InitTouchManager();
     // called by RSMainThread
-    void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, const DvsyncInfo& dvsyncInfo);
+    void ProcessPendingRefreshRate(uint64_t timestamp, int64_t vsyncId, uint32_t rsRate, bool isUiDvsyncOn);
     HgmMultiAppStrategy& GetMultiAppStrategy() { return multiAppStrategy_; }
     HgmTouchManager& GetTouchManager() { return touchManager_; }
     HgmIdleDetector& GetIdleDetector() { return idleDetector_; }
