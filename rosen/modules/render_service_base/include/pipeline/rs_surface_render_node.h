@@ -1098,6 +1098,13 @@ public:
         return surfaceCacheContentStatic_;
     }
 
+    bool GetUifirstContentDirty()
+    {
+        bool uifirstContentDirty = uifirstContentDirty_;
+        uifirstContentDirty_ = false;
+        return uifirstContentDirty;
+    }
+
     void UpdateSurfaceCacheContentStatic();
 
     void UpdateSurfaceCacheContentStatic(
@@ -1519,6 +1526,7 @@ private:
     bool lastFrameShouldPaint_ = true;
     // node only have translate and scale changes
     bool surfaceCacheContentStatic_ = false;
+    bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
     bool isLastHardCursor_ = false;

@@ -376,6 +376,41 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
 #endif
 }
 
+bool RSUifirstManager::CurSurfaceHasVisibleDirtyRegion(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    auto visibleRegion = node->GetVisibleRegion();
+    if (visibleRegion.IsEmpty()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("curSurface name:%s id:%" PRIu64" visibleRegion is IsEmpty",
+        node->GetName().c_str(), node->GetId());
+        return false;
+    }
+    auto drawable = node->GetRenderDrawable();
+    if (!drawable) {
+        RS_TRACE_NAME_FMT("node id:%" PRIu64" drawable is nullptr", node->GetId());
+        return true;
+    }
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    if (!surfaceDrawable) {
+        RS_TRACE_NAME_FMT("node id:%" PRIu64" surfaceDrawable is nullptr", node->GetId());
+        return true;
+    }
+    auto surfaceDirtyManager = surfaceDrawable->GetSyncDirtyManager();
+    if (!surfaceDirtyManager) {
+        RS_TRACE_NAME_FMT("node id:%" PRIu64" surfaceDirtyManager is nullptr", node->GetId());
+        return true;
+    }
+    auto surfaceDirtyRect = surfaceDirtyManager->GetCurrentFrameDirtyRegion();
+    Occlusion::Region surfaceDirtyRegion { { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
+        surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() } };
+    Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
+    if (surfaceVisibleDirtyRegion.IsEmpty()) {
+        RS_OPTIONAL_TRACE_NAME_FMT("curSurface name:%s id:%" PRIu64" visibleDirtyRegion is IsEmpty",
+            node->GetName().c_str(), node->GetId());
+        return false;
+    }
+    return true;
+}
+
 bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSurfaceRenderNode>& node)
 {
     if (GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE) {
@@ -387,32 +422,24 @@ bool RSUifirstManager::CheckVisibleDirtyRegionIsEmpty(const std::shared_ptr<RSSu
         RS_TRACE_NAME_FMT("Doing LOCKSCREEN_TO_LAUNCHER, fullTransparent node[%s] skips", node->GetName().c_str());
         return true;
     }
-    for (auto& child : *node->GetSortedChildren()) {
-        if (std::shared_ptr<RSSurfaceRenderNode> surfaceNode =
-                RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            auto visibleRegion = surfaceNode->GetVisibleRegion();
-            if (visibleRegion.IsEmpty()) {
-                surfaceNode->SetUIFirstIsPurge(false);
-                return true;
-            }
-            auto drawable = surfaceNode->GetRenderDrawable();
-            if (!drawable) {
-                continue;
-            }
-            auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-            auto surfaceDirtyRect = surfaceDrawable->GetSyncDirtyManager()->GetCurrentFrameDirtyRegion();
-            Occlusion::Region surfaceDirtyRegion { { surfaceDirtyRect.left_, surfaceDirtyRect.top_,
-                surfaceDirtyRect.GetRight(), surfaceDirtyRect.GetBottom() } };
-            Occlusion::Region surfaceVisibleDirtyRegion = surfaceDirtyRegion.And(visibleRegion);
-            if (surfaceVisibleDirtyRegion.IsEmpty()) {
-                surfaceNode->SetUIFirstIsPurge(false);
-                return true;
-            }
-            if (!surfaceNode->GetUIFirstIsPurge()) {
-                surfaceNode->SetUIFirstIsPurge(true);
-                return false;
-            }
+    if (node->GetUifirstContentDirty()) {
+        return false;
+    }
+    bool hasSurfaceVisibleDirtyRegion = CurSurfaceHasVisibleDirtyRegion(node);
+    std::vector<std::pair<NodeId, std::weak_ptr<RSSurfaceRenderNode>>> allSubSurfaceNodes;
+    node->GetAllSubSurfaceNodes(allSubSurfaceNodes);
+    for (auto& [id, subSurfaceNode] : allSubSurfaceNodes) {
+        auto subSurfaceNodePtr = subSurfaceNode.lock();
+        if (!subSurfaceNodePtr) {
+            continue;
         }
+        hasSurfaceVisibleDirtyRegion =
+            hasSurfaceVisibleDirtyRegion || CurSurfaceHasVisibleDirtyRegion(subSurfaceNodePtr);
+    }
+    RS_TRACE_NAME_FMT("allSurface name:%s id:%" PRIu64" hasSurfaceVisibleDirtyRegion:%d",
+        node->GetName().c_str(), node->GetId(), hasSurfaceVisibleDirtyRegion);
+    if (!hasSurfaceVisibleDirtyRegion) {
+        return true;
     }
     return false;
 }
@@ -442,6 +469,8 @@ void RSUifirstManager::DoPurgePendingPostNodes(std::unordered_map<NodeId,
         }
 
         bool staticContent = drawable->IsCurFrameStatic(deviceType);
+        RS_TRACE_NAME_FMT("Purge node name: %s, HasCachedTexture:%d, staticContent: %d",
+            surfaceParams->GetName().c_str(), drawable->HasCachedTexture(), staticContent);
         if (drawable->HasCachedTexture() && (staticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
             (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end()) &&
             !drawable->IsSubThreadSkip()) {
