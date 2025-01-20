@@ -26,13 +26,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-enum RSTransitionEffectType : uint16_t {
-    FADE = 1,
-    SCALE,
-    TRANSLATE,
-    ROTATE,
-    UNDEFINED,
-};
 constexpr int PID_SHIFT = 32;
 
 PropertyId GenerateTransitionPropertyId()
@@ -51,104 +44,12 @@ PropertyId GenerateTransitionPropertyId()
 }
 } // namespace
 
-RSRenderTransitionEffect* RSRenderTransitionEffect::Unmarshalling(Parcel& parcel)
-{
-    uint16_t transitionType = 0;
-    if (!parcel.ReadUint16(transitionType)) {
-        ROSEN_LOGE("RSRenderTransitionEffect::Unmarshalling, ParseParam Failed");
-        return nullptr;
-    }
-    switch (transitionType) {
-        case RSTransitionEffectType::FADE:
-            return RSTransitionFade::Unmarshalling(parcel);
-        case RSTransitionEffectType::SCALE:
-            return RSTransitionScale::Unmarshalling(parcel);
-        case RSTransitionEffectType::TRANSLATE:
-            return RSTransitionTranslate::Unmarshalling(parcel);
-        case RSTransitionEffectType::ROTATE:
-            return RSTransitionRotate::Unmarshalling(parcel);
-        default:
-            return nullptr;
-    }
-}
-
 const std::shared_ptr<RSRenderModifier>& RSRenderTransitionEffect::GetModifier()
 {
     if (modifier_ == nullptr) {
         modifier_ = CreateModifier();
     }
     return modifier_;
-}
-
-bool RSTransitionFade::Marshalling(Parcel& parcel) const
-{
-    return parcel.WriteUint16(RSTransitionEffectType::FADE) && parcel.WriteFloat(alpha_);
-}
-
-RSRenderTransitionEffect* RSTransitionFade::Unmarshalling(Parcel& parcel)
-{
-    float alpha;
-    if (!RSMarshallingHelper::Unmarshalling(parcel, alpha)) {
-        ROSEN_LOGE("RSTransitionFade::Unmarshalling, unmarshalling alpha failed");
-        return nullptr;
-    }
-    return new RSTransitionFade(alpha);
-}
-
-bool RSTransitionScale::Marshalling(Parcel& parcel) const
-{
-    return parcel.WriteUint16(RSTransitionEffectType::SCALE) && parcel.WriteFloat(scaleX_) &&
-           parcel.WriteFloat(scaleY_) && parcel.WriteFloat(scaleZ_);
-}
-
-RSRenderTransitionEffect* RSTransitionScale::Unmarshalling(Parcel& parcel)
-{
-    float scaleX = 0.0;
-    float scaleY = 0.0;
-    float scaleZ = 0.0;
-    if (!parcel.ReadFloat(scaleX) || !parcel.ReadFloat(scaleY) || !parcel.ReadFloat(scaleZ)) {
-        ROSEN_LOGE("RSTransitionScale::Unmarshalling, unmarshalling failed");
-        return nullptr;
-    }
-    return new RSTransitionScale(scaleX, scaleY, scaleZ);
-}
-
-bool RSTransitionTranslate::Marshalling(Parcel& parcel) const
-{
-    return parcel.WriteUint16(RSTransitionEffectType::TRANSLATE) && parcel.WriteFloat(translateX_) &&
-           parcel.WriteFloat(translateY_) && parcel.WriteFloat(translateZ_);
-}
-
-RSRenderTransitionEffect* RSTransitionTranslate::Unmarshalling(Parcel& parcel)
-{
-    float translateX;
-    float translateY;
-    float translateZ;
-    if (!parcel.ReadFloat(translateX) || !parcel.ReadFloat(translateY) || !parcel.ReadFloat(translateZ)) {
-        ROSEN_LOGE("RSTransitionTranslate::Unmarshalling, unmarshalling failed");
-        return nullptr;
-    }
-    return new RSTransitionTranslate(translateX, translateY, translateZ);
-}
-
-bool RSTransitionRotate::Marshalling(Parcel& parcel) const
-{
-    return parcel.WriteUint16(RSTransitionEffectType::ROTATE) && parcel.WriteFloat(dx_) && parcel.WriteFloat(dy_) &&
-           parcel.WriteFloat(dz_) && parcel.WriteFloat(radian_);
-}
-
-RSRenderTransitionEffect* RSTransitionRotate::Unmarshalling(Parcel& parcel)
-{
-    Quaternion quaternion;
-    float dx;
-    float dy;
-    float dz;
-    float radian;
-    if (!parcel.ReadFloat(dx) || !parcel.ReadFloat(dy) || !parcel.ReadFloat(dz) || !parcel.ReadFloat(radian)) {
-        ROSEN_LOGE("RSTransitionRotate::Unmarshalling, unmarshalling failed");
-        return nullptr;
-    }
-    return new RSTransitionRotate(dx, dy, dz, radian);
 }
 
 const std::shared_ptr<RSRenderModifier> RSTransitionFade::CreateModifier()

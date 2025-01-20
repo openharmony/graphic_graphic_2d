@@ -381,6 +381,36 @@ HWTEST_F(RSInterpolatorTest, Unmarshalling002, TestSize.Level1)
     Parcel parcel;
     std::shared_ptr<RSInterpolator> interpolator(RSInterpolator::Unmarshalling(parcel));
     EXPECT_EQ(interpolator, nullptr);
+
+    Parcel parcel1;
+    parcel1.WriteUint16(InterpolatorType::LINEAR);
+    std::shared_ptr<RSInterpolator> interpolator1(RSInterpolator::UnmarshallingFromParcel(parcel1));
+    EXPECT_EQ(interpolator1, nullptr);
+
+    Parcel parcel2;
+    parcel2.WriteUint16(InterpolatorType::CUSTOM);
+    std::shared_ptr<RSInterpolator> interpolator2(RSInterpolator::UnmarshallingFromParcel(parcel2));
+    EXPECT_TRUE(interpolator2 != nullptr);
+
+    Parcel parcel3;
+    parcel3.WriteUint16(InterpolatorType::CUBIC_BEZIER);
+    std::shared_ptr<RSInterpolator> interpolator3(RSInterpolator::UnmarshallingFromParcel(parcel3));
+    EXPECT_EQ(interpolator3, nullptr);
+
+    Parcel parcel4;
+    parcel4.WriteUint16(InterpolatorType::SPRING);
+    std::shared_ptr<RSInterpolator> interpolator4(RSInterpolator::UnmarshallingFromParcel(parcel4));
+    EXPECT_EQ(interpolator4, nullptr);
+
+    Parcel parcel5;
+    parcel5.WriteUint16(InterpolatorType::STEPS);
+    std::shared_ptr<RSInterpolator> interpolator5(RSInterpolator::UnmarshallingFromParcel(parcel5));
+    EXPECT_EQ(interpolator5, nullptr);
+
+    Parcel parcel6;
+    std::shared_ptr<RSInterpolator> interpolator6(RSInterpolator::UnmarshallingFromParcel(parcel6));
+    EXPECT_EQ(interpolator6, nullptr);
+
     GTEST_LOG_(INFO) << "RSInterpolatorTest Unmarshalling002 end";
 }
 } // namespace Rosen

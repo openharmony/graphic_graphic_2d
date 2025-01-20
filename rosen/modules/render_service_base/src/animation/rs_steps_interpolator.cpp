@@ -30,35 +30,6 @@ RSStepsInterpolator::RSStepsInterpolator(uint64_t id, int32_t steps, StepsCurveP
     : RSInterpolator(id), steps_(steps <= 0 ? 1 : steps), position_(position)
 {}
 
-bool RSStepsInterpolator::Marshalling(Parcel& parcel) const
-{
-    if (!parcel.WriteUint16(InterpolatorType::STEPS)) {
-        ROSEN_LOGE("StepsInterpolator marshalling write type failed.");
-        return false;
-    }
-    if (!parcel.WriteUint64(id_)) {
-        ROSEN_LOGE("StepsInterpolator marshalling write id failed.");
-        return false;
-    }
-    if (!(parcel.WriteInt32(steps_) && parcel.WriteInt32(static_cast<int32_t>(position_)))) {
-        ROSEN_LOGE("StepsInterpolator marshalling write value failed.");
-        return false;
-    }
-    return true;
-}
-
-RSStepsInterpolator* RSStepsInterpolator::Unmarshalling(Parcel& parcel)
-{
-    uint64_t id = parcel.ReadUint64();
-    int32_t steps = 0;
-    int32_t position = 0;
-    if (!(parcel.ReadInt32(steps) && parcel.ReadInt32(position))) {
-        ROSEN_LOGE("StepsInterpolator unmarshalling failed.");
-        return nullptr;
-    }
-    return new RSStepsInterpolator(id, steps, static_cast<StepsCurvePosition>(position));
-}
-
 float RSStepsInterpolator::InterpolateImpl(float fraction) const
 {
     if (fraction < fractionMin || fraction > fractionMax) {
