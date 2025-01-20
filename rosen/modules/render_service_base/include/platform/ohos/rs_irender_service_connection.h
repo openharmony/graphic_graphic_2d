@@ -105,7 +105,7 @@ public:
         ScreenId id, const std::vector<NodeId>& securityExemptionList) = 0;
 
     virtual int32_t SetScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+        std::shared_ptr<Media::PixelMap> securityMask) = 0;
 
     virtual int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect) = 0;
 
@@ -151,11 +151,15 @@ public:
 
     virtual std::string GetRefreshInfo(pid_t pid) = 0;
 
+    virtual int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual void MarkPowerOffNeedProcessOneFrame() = 0;
 
     virtual void RepaintEverything() = 0;
+
+    virtual void ForceRefreshOneFrameWithNextVSync() = 0;
 
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
@@ -166,7 +170,7 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) = 0;
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {}) = 0;
 
     virtual void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) = 0;
@@ -346,7 +350,9 @@ public:
 
     virtual void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) = 0;
 
-    virtual void NotifyScreenSwitched(ScreenId id) = 0;
+    virtual void NotifyScreenSwitched() = 0;
+
+    virtual void SetWindowContainer(NodeId nodeId, bool value) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

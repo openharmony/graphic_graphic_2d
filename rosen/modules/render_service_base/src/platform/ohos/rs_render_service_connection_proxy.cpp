@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-static constexpr size_t ASHMEM_SIZE_THRESHOLD = 100 * 1024; // cannot > 500K in TF_ASYNC mode
+static constexpr size_t ASHMEM_SIZE_THRESHOLD = 200 * 1024; // cannot > 500K in TF_ASYNC mode
 static constexpr int MAX_RETRY_COUNT = 20;
 static constexpr int RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
 static constexpr int MAX_SECURITY_EXEMPTION_LIST_NUMBER = 1024; // securityExemptionList size not exceed 1024
@@ -664,7 +664,7 @@ int32_t RSRenderServiceConnectionProxy::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceConnectionProxy::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1219,6 +1219,33 @@ std::string RSRenderServiceConnectionProxy::GetRefreshInfo(pid_t pid)
     return enable;
 }
 
+int32_t RSRenderServiceConnectionProxy::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: WriteInterfaceToken error.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(id)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(width)) {
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint32(height)) {
+        return WRITE_PARCEL_ERR;
+    }
+    auto code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
+    if (SendRequest(code, data, reply, option) != ERR_NONE) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetPhysicalScreenResolution: SendRequest error.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t status = reply.ReadInt32();
+    return status;
+}
+
 int32_t RSRenderServiceConnectionProxy::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     MessageParcel data;
@@ -1281,6 +1308,25 @@ void RSRenderServiceConnectionProxy::RepaintEverything()
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPAINT_EVERYTHING);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return;
+    }
+}
+
+void RSRenderServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return;
@@ -1390,8 +1436,9 @@ void RSRenderServiceConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurfa
     }
 }
 
-void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(
-    NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
+    sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCaptureBlurParam& blurParam)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -1416,6 +1463,10 @@ void RSRenderServiceConnectionProxy::SetWindowFreezeImmediately(
         }
         if (!WriteSurfaceCaptureConfig(captureConfig, data)) {
             ROSEN_LOGE("%{public}s write captureConfig failed", __func__);
+            return;
+        }
+        if (!WriteSurfaceCaptureBlurParam(blurParam, data)) {
+            ROSEN_LOGE("%{public}s write blurParam failed", __func__);
             return;
         }
     }
@@ -3666,6 +3717,32 @@ void RSRenderServiceConnectionProxy::SetLayerTop(const std::string &nodeIdStr, b
     }
 }
 
+void RSRenderServiceConnectionProxy::SetWindowContainer(NodeId nodeId, bool value)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: write token err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint64(nodeId)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: write Uint64 val err.");
+        return;
+    }
+    if (!data.WriteBool(value)) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: write Bool val err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceConnectionProxy::SetWindowContainer: Send Request err.");
+        return;
+    }
+}
+
 int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
@@ -3675,17 +3752,13 @@ int32_t RSRenderServiceConnectionProxy::SendRequest(uint32_t code, MessageParcel
     return Remote()->SendRequest(code, data, reply, option);
 }
 
-void RSRenderServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
+void RSRenderServiceConnectionProxy::NotifyScreenSwitched()
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
-        return;
-    }
-    if (!data.WriteUint64(id)) {
-        ROSEN_LOGE("%{public}s: write Uint64 val err.", __func__);
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

@@ -117,8 +117,8 @@ private:
     void DumpAjdust(const AdjustSet &adjustSet) const;
     void DumpFontFileMap() const;
     struct FontJson {
-        uint32_t type = 0;
-        uint32_t weight = 0;
+        int type = 0;
+        int weight = 0;
         std::string alias;
         std::string family;
         std::string lang;

@@ -134,7 +134,8 @@ bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfac
 }
 
 bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    const RSSurfaceCaptureBlurParam& blurParam)
 {
     return false;
 }
@@ -248,6 +249,11 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
     return "";
 }
 
+int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return {};
@@ -263,6 +269,10 @@ void RSRenderServiceClient::MarkPowerOffNeedProcessOneFrame()
 }
 
 void RSRenderServiceClient::RepaintEverything()
+{
+}
+
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
 {
 }
 
@@ -455,7 +465,7 @@ int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
 }
 
 int32_t RSRenderServiceClient::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     return 0;
 }
@@ -683,7 +693,11 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
-void RSRenderServiceClient::NotifyScreenSwitched(ScreenId id)
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+}
+
+void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 } // namespace Rosen

@@ -55,17 +55,25 @@ public:
     }
     RectT(Vector4<T> vector)
     {
-        data_[0] = vector[0];
-        data_[1] = vector[1];
-        data_[2] = vector[2];
-        data_[3] = vector[3];
+        T data0 = vector[0];
+        T data1 = vector[1];
+        T data2 = vector[2];
+        T data3 = vector[3];
+        data_[0] = data0;
+        data_[1] = data1;
+        data_[2] = data2;
+        data_[3] = data3;
     }
     explicit RectT(const T* v)
     {
-        data_[0] = v[0];
-        data_[1] = v[1];
-        data_[2] = v[2];
-        data_[3] = v[3];
+        T data0 = v[0];
+        T data1 = v[1];
+        T data2 = v[2];
+        T data3 = v[3];
+        data_[0] = data0;
+        data_[1] = data1;
+        data_[2] = data2;
+        data_[3] = data3;
     }
     ~RectT() = default;
 
@@ -89,10 +97,14 @@ public:
     inline RectT& operator=(const RectT& other)
     {
         const T* oData = other.data_;
-        data_[0] = oData[0];
-        data_[1] = oData[1];
-        data_[2] = oData[2];
-        data_[3] = oData[3];
+        T data0 = oData[0];
+        T data1 = oData[1];
+        T data2 = oData[2];
+        T data3 = oData[3];
+        data_[0] = data0;
+        data_[1] = data1;
+        data_[2] = data2;
+        data_[3] = data3;
         return *this;
     }
     void SetAll(T left, T top, T width, T height)

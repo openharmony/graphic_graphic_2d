@@ -107,11 +107,11 @@ bool IsFirstFrameReadyToDraw(RSSurfaceRenderNode& node)
 
 RSSurfaceRenderNode::RSSurfaceRenderNode(
     const RSSurfaceRenderNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(config.id, context, config.isTextureExportNode), name_(config.name),
+    : RSRenderNode(config.id, context, config.isTextureExportNode),
       nodeType_(config.nodeType), surfaceWindowType_(config.surfaceWindowType),
       dirtyManager_(std::make_shared<RSDirtyRegionManager>()),
       cacheSurfaceDirtyManager_(std::make_shared<RSDirtyRegionManager>()),
-      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id))
+      surfaceHandler_(std::make_shared<RSSurfaceHandler>(config.id)), name_(config.name)
 {
 #ifndef ROSEN_ARKUI_X
     MemoryInfo info = {sizeof(*this), ExtractPid(config.id), config.id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -201,6 +201,15 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #else
     return false;
 #endif
+}
+
+void RSSurfaceRenderNode::UpdateInfoForClonedNode()
+{
+    if (GetId() == clonedSourceNodeId_) {
+        SetNeedCacheSurface(true);
+        SetHwcChildrenDisabledState();
+    }
+    SetIsCloned(GetId() == clonedSourceNodeId_);
 }
 
 bool RSSurfaceRenderNode::ShouldPrepareSubnodes()
@@ -1111,6 +1120,17 @@ void RSSurfaceRenderNode::SetFingerprint(bool hasFingerprint)
 bool RSSurfaceRenderNode::GetFingerprint() const
 {
     return hasFingerprint_;
+}
+
+bool RSSurfaceRenderNode::IsCloneNode() const
+{
+    return isCloneNode_;
+}
+
+void RSSurfaceRenderNode::SetClonedNodeId(NodeId id)
+{
+    isCloneNode_ = (id != INVALID_NODEID);
+    clonedSourceNodeId_ = id;
 }
 
 void RSSurfaceRenderNode::SetForceUIFirst(bool forceUIFirst)
@@ -2991,6 +3011,7 @@ void RSSurfaceRenderNode::UpdateRenderParams()
     surfaceParams->isMainWindowType_ = IsMainWindowType();
     surfaceParams->isLeashWindow_ = IsLeashWindow();
     surfaceParams->isAppWindow_ = IsAppWindow();
+    surfaceParams->isCloneNode_ = isCloneNode_;
     surfaceParams->SetAncestorDisplayNode(ancestorDisplayNode_);
     surfaceParams->isSecurityLayer_ = isSecurityLayer_;
     surfaceParams->isSkipLayer_ = isSkipLayer_;
@@ -3039,6 +3060,18 @@ void RSSurfaceRenderNode::SetNeedOffscreen(bool needOffscreen)
 #endif
 }
 
+void RSSurfaceRenderNode::SetClonedNodeRenderDrawable(
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr clonedNodeRenderDrawable)
+{
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (stagingSurfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeRenderDrawable stagingSurfaceParams is null");
+        return;
+    }
+    stagingSurfaceParams->clonedNodeRenderDrawable_ = clonedNodeRenderDrawable;
+    AddToPendingSyncList();
+}
+
 void RSSurfaceRenderNode::UpdateAncestorDisplayNodeInRenderParams()
 {
 #ifdef RS_ENABLE_GPU
@@ -3075,15 +3108,17 @@ void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
 #endif
 }
 
-void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
+bool RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
+    bool ret = false;
 #ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstNodeEnableParam(b);
+        ret = stagingSurfaceParams->SetUifirstNodeEnableParam(b);
         AddToPendingSyncList();
     }
 #endif
+    return ret;
 }
 
 void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)
@@ -3382,6 +3417,21 @@ void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
     AddToPendingSyncList();
 
     apiCompatibleVersion_ = apiCompatibleVersion;
+}
+
+void RSSurfaceRenderNode::SetIsCloned(bool isCloned)
+{
+    if (stagingRenderParams_ == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetIsCloned: stagingRenderParams_ is nullptr");
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        RS_LOGE("RSSurfaceRenderNode::SetIsCloned: surfaceParams is nullptr");
+        return;
+    }
+    surfaceParams->SetIsCloned(isCloned);
+    AddToPendingSyncList();
 }
 
 void RSSurfaceRenderNode::ResetIsBufferFlushed()

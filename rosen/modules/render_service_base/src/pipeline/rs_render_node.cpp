@@ -241,13 +241,13 @@ static inline bool IsPurgeAble()
 }
 
 RSRenderNode::RSRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isTextureExportNode_(isTextureExportNode), context_(context), id_(id), isPurgeable_(IsPurgeAble())
+    : isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()), id_(id), context_(context)
 {}
 
 RSRenderNode::RSRenderNode(
     NodeId id, bool isOnTheTree, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
-    : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), context_(context), id_(id),
-      isPurgeable_(IsPurgeAble())
+    : isOnTheTree_(isOnTheTree), isTextureExportNode_(isTextureExportNode), isPurgeable_(IsPurgeAble()),
+      id_(id), context_(context)
 {}
 
 void RSRenderNode::AddChild(SharedPtr child, int index)
@@ -437,12 +437,12 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            INVALID_NODEID, displayNodeId);
+            uifirstRootNodeId, displayNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            INVALID_NODEID, displayNodeId);
+            uifirstRootNodeId, displayNodeId);
     }
 #endif
 }
@@ -482,14 +482,31 @@ void RSRenderNode::UpdateSubTreeInfo(const RectI& clipRect)
     oldAbsMatrix_ = geoPtr->GetAbsMatrix();
 }
 
+void RSRenderNode::ClearCloneCrossNode()
+{
+    if (cloneCrossNodeVec_.size() == 0) {
+        return;
+    }
+
+    for (auto it = cloneCrossNodeVec_.begin(); it != cloneCrossNodeVec_.end(); ++it) {
+        if (auto parent = (*it)->GetParent().lock()) {
+            parent->RemoveChild(*it, true);
+        }
+    }
+    cloneCrossNodeVec_.clear();
+}
+
 void RSRenderNode::SetIsCrossNode(bool isCrossNode)
 {
+    if (!isCrossNode) {
+        ClearCloneCrossNode();
+    }
     isCrossNode_ = isCrossNode;
 }
 
 bool RSRenderNode::IsCrossNode() const
 {
-    return isCrossNode_;
+    return isCrossNode_ || isCloneCrossNode_;
 }
 
 void RSRenderNode::AddCrossParentChild(const SharedPtr& child, int32_t index)
@@ -555,6 +572,8 @@ void RSRenderNode::AddCrossScreenChild(const SharedPtr& child, NodeId cloneNodeI
 {
     auto context = GetContext().lock();
     if (child == nullptr || context == nullptr) {
+        ROSEN_LOGE("RSRenderNode::AddCrossScreenChild child is null? %{public}d context is null? %{public}d",
+            child == nullptr, context == nullptr);
         return;
     }
 
@@ -601,6 +620,7 @@ void RSRenderNode::RecordCloneCrossNode(SharedPtr node)
 void RSRenderNode::RemoveCrossScreenChild(const SharedPtr& child)
 {
     if (child == nullptr) {
+        ROSEN_LOGE("RSRenderNode::RemoveCrossScreenChild child is null");
         return;
     }
 
@@ -1569,6 +1589,12 @@ void RSRenderNode::UpdateAbsDirtyRegion(RSDirtyRegionManager& dirtyManager, cons
 bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManager, bool accumGeoDirty,
     const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
 {
+    auto& properties = GetMutableRenderProperties();
+#ifdef RS_ENABLE_PREFETCH
+    // The 2 is the cache level.
+    __builtin_prefetch(&(properties.boundsGeo_), 0, 2);
+    __builtin_prefetch(&(properties.frameGeo_), 0, 2);
+#endif
     // 1. update self drawrect if dirty
     bool selfDrawRectChanged = IsDirty() ? UpdateSelfDrawRect() : false;
     if (selfDrawRectChanged) {
@@ -1576,13 +1602,15 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
     }
     // 2. update geoMatrix by parent for dirty collection
     // update geoMatrix and accumGeoDirty if needed
-    auto parent = GetParent().lock();
+    auto parent = curCloneNodeParent_.lock();
+    if (parent == nullptr) {
+        parent = GetParent().lock();
+    }
     if (parent && parent->GetGeoUpdateDelay()) {
         accumGeoDirty = true;
         // Set geometry update delay flag recursively to update node's old dirty in subTree
         SetGeoUpdateDelay(true);
     }
-    auto& properties = GetMutableRenderProperties();
     if (accumGeoDirty || properties.NeedClip() || properties.geoDirty_ || (dirtyStatus_ != NodeDirty::CLEAN)) {
         UpdateDrawRect(accumGeoDirty, clipRect, parentSurfaceMatrix);
         // planning: double check if it would be covered by updateself without geo update
@@ -1623,7 +1651,10 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
 void RSRenderNode::UpdateDrawRect(
     bool& accumGeoDirty, const RectI& clipRect, const Drawing::Matrix& parentSurfaceMatrix)
 {
-    auto parent = GetParent().lock();
+    auto parent = curCloneNodeParent_.lock();
+    if (parent == nullptr) {
+        parent = GetParent().lock();
+    }
     auto& properties = GetMutableRenderProperties();
     if (auto sandbox = properties.GetSandBox(); sandbox.has_value() && sharedTransitionParam_) {
         // case a. use parent sur_face matrix with sandbox
@@ -4386,6 +4417,10 @@ void RSRenderNode::UpdateRenderParams()
     stagingRenderParams_->SetHasGlobalCorner(!globalCornerRadius_.IsZero());
     stagingRenderParams_->SetFirstLevelCrossNode(isFirstLevelCrossNode_);
     stagingRenderParams_->SetAbsRotation(absRotation_);
+    auto cloneSourceNode = GetSourceCrossNode().lock();
+    if (cloneSourceNode) {
+        stagingRenderParams_->SetCloneSourceDrawable(cloneSourceNode->GetRenderDrawable());
+    }
 #endif
 }
 

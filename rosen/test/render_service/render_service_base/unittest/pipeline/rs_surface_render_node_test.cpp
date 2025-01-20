@@ -1343,25 +1343,19 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetContextAlphaTest, TestSize.Level1)
 
 /**
  * @tc.name: HdrVideoTest
- * @tc.desc: test results of SetHdrVideo, GetHdrVideo and GetHdrVideoType
+ * @tc.desc: test results of SetHdrVideo, GetHdrVideo
  * @tc.type: FUNC
  * @tc.require: issuesIBANP9
  */
 HWTEST_F(RSSurfaceRenderNodeTest, HdrVideoTest, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    testNode->SetHdrVideo(true, HDR_TYPE::VIDEO);
-    EXPECT_EQ(testNode->GetHdrVideo(), true);
-    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
-    testNode->SetHdrVideo(false, HDR_TYPE::VIDEO);
-    EXPECT_EQ(testNode->GetHdrVideo(), false);
-    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::VIDEO);
-    testNode->SetHdrVideo(true, HDR_TYPE::AIHDR_VIDEO);
-    EXPECT_EQ(testNode->GetHdrVideo(), true);
-    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
-    testNode->SetHdrVideo(false, HDR_TYPE::AIHDR_VIDEO);
-    EXPECT_EQ(testNode->GetHdrVideo(), false);
-    EXPECT_EQ(testNode->GetHdrVideoType(), HDR_TYPE::AIHDR_VIDEO);
+    testNode->SetHdrVideo(HdrStatus::HDR_VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), HdrStatus::HDR_VIDEO);
+    testNode->SetHdrVideo(HdrStatus::NO_HDR);
+    EXPECT_EQ(testNode->GetHdrVideo(), HdrStatus::NO_HDR);
+    testNode->SetHdrVideo(HdrStatus::AI_HDR_VIDEO);
+    EXPECT_EQ(testNode->GetHdrVideo(), HdrStatus::AI_HDR_VIDEO);
 }
 
 /**

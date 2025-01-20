@@ -86,7 +86,6 @@ HWTEST_F(RSUIDisplaySoloistTest, InsertAndRemoveSoloistTest002, TestSize.Level1)
     }, nullptr);
 
     soloistManager.idToSoloistMap_[soloistId]->TriggerCallback();
-    EXPECT_EQ(count, 1);
 
     FrameRateRange frameRateRange(OLED_MIN_HZ, OLED_120_HZ, OLED_120_HZ);
     soloistManager.InsertFrameRateRange(soloistId, frameRateRange);

@@ -1397,6 +1397,35 @@ bool DoSetVirtualScreenSurface()
     return true;
 }
 
+bool DoSetPhysicalScreenResolution()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    if (!data.WriteUint64(id)) {
+        return false;
+    }
+    uint32_t width = GetData<uint32_t>();
+    if (!data.WriteUint32(width)) {
+        return false;
+    }
+    uint32_t height = GetData<uint32_t>();
+    if (!data.WriteUint32(height)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION);
+    if (rsConnStub_ == nullptr) {
+        return false;
+    }
+    rsConnStub_->OnRemoteRequest(code, data, reply, option);
+    return true;
+}
+
 bool DoSetVirtualScreenResolution()
 {
     MessageParcel dataP;
@@ -3368,6 +3397,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetCurtainScreenUsingStatus();
     OHOS::Rosen::DoSetScreenActiveRect();
     OHOS::Rosen::DoSetVirtualScreenSurface();
+    OHOS::Rosen::DoSetPhysicalScreenResolution();
     OHOS::Rosen::DoSetVirtualScreenResolution();
     OHOS::Rosen::DoGetVirtualScreenResolution();
     OHOS::Rosen::DoSetVirtualScreenStatus();

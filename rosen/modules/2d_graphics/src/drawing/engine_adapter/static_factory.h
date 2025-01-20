@@ -31,6 +31,7 @@
 #include "utils/data.h"
 #include "utils/file_w_stream.h"
 #include "utils/document.h"
+#include "utils/perfevent.h"
 #include "utils/rect.h"
 #include "utils/serial_procs.h"
 #include "utils/sharing_serial_context.h"
@@ -92,6 +93,15 @@ public:
         DrawingCommonSubType commonSubType = DrawingCommonSubType::DOWN);
     static std::shared_ptr<Blender> CreateWithBlendMode(BlendMode mode);
     static void SetVmaCacheStatus(bool flag);
+    static void ResetStatsData();
+    static void ResetPerfEventData();
+    static std::map<std::string, std::vector<uint16_t>> GetBlurStatsData();
+    static std::map<std::string, RsBlurEvent> GetBlurPerfEventData();
+    static std::map<std::string, std::vector<uint16_t>> GetTextureStatsData();
+    static std::map<std::string, RsTextureEvent> GetTexturePerfEventData();
+    static int16_t GetSplitRange(int64_t duration);
+    static bool IsOpenPerf();
+    static int64_t GetCurrentTime();
 };
 } // namespace Drawing
 } // namespace Rosen

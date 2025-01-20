@@ -102,12 +102,11 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest004, TestSi
     fontFamily = strdup("HarmonyOS Sans Condensed");
     desc->fontFamily = fontFamily;
     descArr = OH_Drawing_MatchFontDescriptors(desc, &num);
-    OH_Drawing_DestroyFontDescriptor(desc);
     ASSERT_NE(descArr, nullptr);
     EXPECT_EQ(num, 1);
     EXPECT_STREQ(descArr[0].fontFamily, fontFamily);
     OH_Drawing_DestroyFontDescriptors(descArr, num);
-    free(fontFamily);
+    OH_Drawing_DestroyFontDescriptor(desc);
 }
 
 /*
@@ -124,13 +123,12 @@ HWTEST_F(OH_Drawing_FontDescriptorTest, OH_Drawing_FontDescriptorTest005, TestSi
 
     size_t num = 0;
     OH_Drawing_FontDescriptor* descArr = OH_Drawing_MatchFontDescriptors(desc, &num);
-    OH_Drawing_DestroyFontDescriptor(desc);
     ASSERT_NE(descArr, nullptr);
     EXPECT_LE(1, num);
     EXPECT_STREQ(descArr[0].fontFamily, fontFamily);
     EXPECT_EQ(descArr[0].weight, 400);
     OH_Drawing_DestroyFontDescriptors(descArr, num);
-    free(fontFamily);
+    OH_Drawing_DestroyFontDescriptor(desc);
 }
 
 /*

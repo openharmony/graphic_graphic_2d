@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SPTEXT_STRING_UTIL
-#define SPTEXT_STRING_UTIL
+#ifndef SPTEXT_STRING_UTIL_H
+#define SPTEXT_STRING_UTIL_H
 
 #include <string>
 
@@ -22,13 +22,14 @@ namespace OHOS {
 namespace Rosen {
 namespace SPText {
 
-bool IsUTF16LowSurrogate(uint16_t ch);
-
-bool IsUTF16HighSurrogate(uint16_t ch);
-
-void HandleIncompleteSurrogatePairs(std::u16string& str);
+class Utf16Utils {
+public:
+    static bool IsUTF16LowSurrogate(uint16_t ch);
+    static bool IsUTF16HighSurrogate(uint16_t ch);
+    static void HandleIncompleteSurrogatePairs(std::u16string& str);
+};
 }
 }
-}
+} // namespace OHOS
 
 #endif // SPTEXT_STRING_UTIL

@@ -101,6 +101,7 @@ void RSInterpolatingSpringAnimation::StartRenderAnimation(
     }
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
+        ROSEN_LOGE("Failed to start interpolating spring animation, transaction proxy is null!");
         return;
     }
 

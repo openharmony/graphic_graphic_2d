@@ -105,7 +105,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix001, TestSize.Level1)
     rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
     rsObjAbsGeometry->SetContextMatrix(contextMatrix);
     rsObjAbsGeometry->UpdateMatrix(parent, std::nullopt);
-    EXPECT_NE(rsObjAbsGeometry, nullptr);
+    EXPECT_TRUE(rsObjAbsGeometry != nullptr);
 }
 
 /**
@@ -137,7 +137,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateMatrix002, TestSize.Level1)
     h = 1.5f;
     rsObjAbsGeometry->SetRect(x, y, w, h);
     rsObjAbsGeometry->UpdateMatrix(parent, offset);
-    EXPECT_NE(rsObjAbsGeometry, nullptr);
+    EXPECT_TRUE(rsObjAbsGeometry != nullptr);
 }
 
 /**
@@ -172,7 +172,7 @@ HWTEST_F(RSObjAbsGeometryTest, UpdateByMatrixFromSelf001, TestSize.Level1)
     rsObjAbsGeometry->UpdateByMatrixFromSelf();
     rsObjAbsGeometry->SetContextMatrix(contextMatrix);
     rsObjAbsGeometry->UpdateByMatrixFromSelf();
-    EXPECT_NE(rsObjAbsGeometry, nullptr);
+    EXPECT_TRUE(rsObjAbsGeometry != nullptr);
 }
 
 /**

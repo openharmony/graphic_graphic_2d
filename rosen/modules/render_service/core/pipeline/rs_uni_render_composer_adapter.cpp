@@ -33,7 +33,7 @@
 #include "surface_type.h"
 #include "third_party/libdrm/include/drm/drm.h"
 
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 
 namespace OHOS {
 namespace Rosen {

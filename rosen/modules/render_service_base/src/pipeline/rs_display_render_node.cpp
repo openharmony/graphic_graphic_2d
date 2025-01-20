@@ -30,8 +30,8 @@ constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 
 RSDisplayRenderNode::RSDisplayRenderNode(
     NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context)
-    : RSRenderNode(id, context), screenId_(config.screenId), offsetX_(0), offsetY_(0),
-      isMirroredDisplay_(config.isMirrored), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
+    : RSRenderNode(id, context), isMirroredDisplay_(config.isMirrored), offsetX_(0), offsetY_(0),
+      screenId_(config.screenId), dirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {
     RS_LOGI("RSScreen RSDisplayRenderNode ctor id:%{public}" PRIu64 ", screenid:%{public}" PRIu64, id, screenId_);
     MemoryInfo info = {sizeof(*this), ExtractPid(id), id, MEMORY_TYPE::MEM_RENDER_NODE};
@@ -391,7 +391,7 @@ void RSDisplayRenderNode::UpdateRotation()
     lastRotation_ = boundsGeoPtr->GetRotation();
     preRotationStatus_ = curRotationStatus_;
     curRotationStatus_ = IsRotationChanged();
-    displayParams->SetRotationChanged(curRotationStatus_);
+    displayParams->SetRotationChanged(lastRotationChanged_);
 #endif
 }
 
@@ -591,19 +591,31 @@ void RSDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
     screenStatusNotifyTask_ = task;
 }
 
-void RSDisplayRenderNode::SetSwitchedScreenId(uint64_t screenId)
-{
-    switchedScreenId_ = screenId;
-}
-
-void RSDisplayRenderNode::CheckTargetScreenSwitched(uint64_t screenId)
+void RSDisplayRenderNode::NotifyScreenNotSwitching()
 {
     if (screenStatusNotifyTask_) {
-        screenStatusNotifyTask_(switchedScreenId_ != screenId, switchedScreenId_);
-        RS_TRACE_NAME_FMT("ScreenId: %" PRIu64 ", SwitchedScreenId: %" PRIu64, screenId, switchedScreenId_);
-        ROSEN_LOGI("DisplayNodeCommandHelper::SetScreenId screenId:[%{public}" PRIu64 "],"
-            "switchedId:[%{public}" PRIu64 "]", screenId, switchedScreenId_);
+        screenStatusNotifyTask_(false);
+        ROSEN_LOGI("RSDisplayRenderNode::NotifyScreenNotSwitching SetScreenSwitchStatus true");
+        RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
     }
+}
+
+void RSDisplayRenderNode::SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container)
+{
+    if (auto oldContainer = std::exchange(windowContainer_, container)) {
+        if (container) {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64
+                ", newContainer: %{public}" PRIu64, oldContainer->GetId(), container->GetId());
+        } else {
+            RS_LOGD("RSDisplayRenderNode::SetWindowContainer oldContainer: %{public}" PRIu64,
+                oldContainer->GetId());
+        }
+    }
+}
+
+std::shared_ptr<RSBaseRenderNode> RSDisplayRenderNode::GetWindowContainer() const
+{
+    return windowContainer_;
 }
 } // namespace Rosen
 } // namespace OHOS

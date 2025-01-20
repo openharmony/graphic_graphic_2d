@@ -83,7 +83,8 @@ ohos_shared_library("librender_service") {
   }
 
   sources = [
-    "core/pipeline/rs_anco_manager.cpp",
+    "core/feature/anco_manager/rs_anco_manager.cpp",
+    "core/feature/capture/rs_surface_capture_task.cpp",
     "core/pipeline/rs_base_render_engine.cpp",
     "core/pipeline/rs_base_render_util.cpp",
     "core/pipeline/rs_composer_adapter.cpp",
@@ -100,7 +101,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_render_service_connection.cpp",
     "core/pipeline/rs_render_service_listener.cpp",
     "core/pipeline/rs_render_service_visitor.cpp",
-    "core/pipeline/rs_surface_capture_task.cpp",
+    "core/pipeline/rs_slr_scale.cpp",
     "core/pipeline/rs_unmarshal_task_manager.cpp",
     "core/pipeline/rs_unmarshal_thread.cpp",
     "core/pipeline/rs_vblank_idle_corrector.cpp",
@@ -115,6 +116,22 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_render_service_security_utils.cpp",
     "core/transaction/rs_render_service_stub.cpp",
   ]
+
+  #feature_cfg
+  sources += [
+    "core/feature_cfg/feature_param/extend_feature/drm_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/hdr_param.cpp",
+    "core/feature_cfg/feature_param/feature_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/hwc_param.cpp",
+    "core/feature_cfg/graphic_feature_param_manager.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/drm_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/hdr_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/hwc_param_parse.cpp",
+    "core/feature_cfg/xml_parser/xml_parser_base.cpp",
+  ]
+
+  #blurPredict
+  sources += [ "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp" ]
 
   #dfx
   sources += [ "core/drawable/dfx/rs_skp_capture_dfx.cpp" ]
@@ -139,18 +156,19 @@ ohos_shared_library("librender_service") {
       "core/drawable/rs_root_render_node_drawable.cpp",
       "core/drawable/rs_surface_render_node_drawable.cpp",
       "core/drawable/rs_ui_first_surface_render_node_drawable.cpp",
+      "core/feature/capture/rs_surface_capture_task_parallel.cpp",
+      "core/feature/capture/rs_ui_capture_task_parallel.cpp",
+      "core/feature/capture/rs_uni_ui_capture.cpp",
+      "core/feature/round_corner_display/rs_rcd_render_listener.cpp",
+      "core/feature/round_corner_display/rs_rcd_render_manager.cpp",
+      "core/feature/round_corner_display/rs_rcd_render_visitor.cpp",
+      "core/feature/round_corner_display/rs_rcd_surface_render_node.cpp",
+      "core/feature/round_corner_display/rs_round_corner_config.cpp",
+      "core/feature/round_corner_display/rs_round_corner_display.cpp",
+      "core/feature/round_corner_display/rs_round_corner_display_manager.cpp",
       "core/memory/rs_memory_manager.cpp",
-      "core/pipeline/round_corner_display/rs_rcd_render_listener.cpp",
-      "core/pipeline/round_corner_display/rs_rcd_render_manager.cpp",
-      "core/pipeline/round_corner_display/rs_rcd_render_visitor.cpp",
-      "core/pipeline/round_corner_display/rs_rcd_surface_render_node.cpp",
-      "core/pipeline/round_corner_display/rs_round_corner_config.cpp",
-      "core/pipeline/round_corner_display/rs_round_corner_display.cpp",
-      "core/pipeline/round_corner_display/rs_round_corner_display_manager.cpp",
       "core/pipeline/rs_draw_frame.cpp",
       "core/pipeline/rs_hardware_thread.cpp",
-      "core/pipeline/rs_surface_capture_task_parallel.cpp",
-      "core/pipeline/rs_ui_capture_task_parallel.cpp",
       "core/pipeline/rs_uifirst_manager.cpp",
       "core/pipeline/rs_uni_hwc_prevalidate_util.cpp",
       "core/pipeline/rs_uni_render_composer_adapter.cpp",
@@ -161,7 +179,6 @@ ohos_shared_library("librender_service") {
       "core/pipeline/rs_uni_render_util.cpp",
       "core/pipeline/rs_uni_render_virtual_processor.cpp",
       "core/pipeline/rs_uni_render_visitor.cpp",
-      "core/pipeline/rs_uni_ui_capture.cpp",
     ]
   }
 
@@ -190,11 +207,18 @@ ohos_shared_library("librender_service") {
   }
 
   if (tp_feature_enable) {
-    sources += [ "core/touch_screen/touch_screen.cpp" ]
+    sources += [ "core/screen_manager/touch_screen.cpp" ]
   }
 
   include_dirs = [
     "core",
+    "core/feature_cfg",
+    "core/feature_cfg/feature_param",
+    "core/feature_cfg/feature_param/extend_feature",
+    "core/feature_cfg/feature_param/performance_feature",
+    "core/feature_cfg/xml_parser",
+    "core/feature_cfg/xml_parser/extend_feature_parser",
+    "core/feature_cfg/xml_parser/performance_feature_parser",
     "core/round_corner_display",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
@@ -213,6 +237,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
     "$graphic_2d_root/rosen/modules/create_pixelmap_surface/include",
     "$graphic_2d_root/rosen/modules/graphics_effect/include",
+    "$graphic_2d_root/rosen/modules/frame_load/include",
   ]
   if (use_video_processing_engine) {
     include_dirs += [ "$video_processing_engine_root/interfaces/inner_api" ]

@@ -48,6 +48,7 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand001, TestSize.Level1)
     RootNodeCommandHelper::AttachRSSurfaceNode(context, id, surfaceNodeId);
     RootNodeCommandHelper::Create(context, id);
     RootNodeCommandHelper::AttachRSSurfaceNode(context, id, surfaceNodeId);
+    EXPECT_TRUE(id != -2);
 }
 
 /**
@@ -63,6 +64,7 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand002, TestSize.Level1)
     RootNodeCommandHelper::SetEnableRender(context, id, flag);
     RootNodeCommandHelper::Create(context, id);
     RootNodeCommandHelper::SetEnableRender(context, id, flag);
+    EXPECT_TRUE(id != -2);
 }
 
 /**
@@ -79,6 +81,7 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand003, TestSize.Level1)
     RootNodeCommandHelper::Create(context, id);
     SurfaceNodeCommandHelper::Create(context, surfaceNodeId);
     RootNodeCommandHelper::AttachToUniSurfaceNode(context, id, surfaceNodeId);
+    EXPECT_TRUE(id != -2);
 }
 
 /**
@@ -95,6 +98,7 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand004, TestSize.Level1)
     RootNodeCommandHelper::UpdateSuggestedBufferSize(context, id, width, height);
     RootNodeCommandHelper::Create(context, id);
     RootNodeCommandHelper::UpdateSuggestedBufferSize(context, id, width, height);
+    EXPECT_TRUE(id != -2);
 }
 
 /**
@@ -106,6 +110,8 @@ HWTEST_F(RSRootNodeCommandTest, TestRSRootNodeCommand004, TestSize.Level1)
 HWTEST_F(RSRootNodeCommandTest, CreateTest, TestSize.Level1)
 {
     RSContext context;
-    RootNodeCommandHelper::Create(context, 1, false);
+    NodeId id = static_cast<NodeId>(1);
+    RootNodeCommandHelper::Create(context, id, false);
+    EXPECT_TRUE(id != -2);
 }
 } // namespace OHOS::Rosen

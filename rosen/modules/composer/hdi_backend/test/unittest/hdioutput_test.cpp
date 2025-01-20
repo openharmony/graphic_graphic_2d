@@ -324,6 +324,7 @@ HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->SetLayerInfo(layerInfos);
     std::string ret = "";
     HdiOutputTest::hdiOutput_->DumpHitchs(ret, "UniRender");
+    EXPECT_EQ(ret, "\n");
     HdiOutputTest::hdiOutput_->DumpFps(ret, "UniRender");
 }
 
@@ -644,6 +645,23 @@ HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer001, Function | MediumTest | Level1)
     layer->layerInfo_->cSurface_ = nullptr;
     hdiOutput->ReleaseSurfaceBuffer(releaseFence);
     EXPECT_EQ(releaseFence, nullptr);
+}
+
+/*
+ * Function: SetProtectedFrameBufferState
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: get hdiOutput
+ *                  2. operation: SetProtectedFrameBufferState and GetProtectedFrameBufferState
+ *                  3. result: return ProtectedFrameBufferState
+ */
+HWTEST_F(HdiOutputTest, SetProtectedFrameBufferState_001, testing::ext::TestSize.Level1)
+{
+    auto hdiOutput = HdiOutputTest::hdiOutput_;
+    EXPECT_EQ(hdiOutput->GetProtectedFrameBufferState(), false);
+    hdiOutput->SetProtectedFrameBufferState(true);
+    EXPECT_EQ(hdiOutput->GetProtectedFrameBufferState(), true);
 }
 } // namespace
 } // namespace Rosen

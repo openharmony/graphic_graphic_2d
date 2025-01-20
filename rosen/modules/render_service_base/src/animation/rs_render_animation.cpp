@@ -24,31 +24,6 @@
 namespace OHOS {
 namespace Rosen {
 RSRenderAnimation::RSRenderAnimation(AnimationId id) : id_(id) {}
-bool RSRenderAnimation::Marshalling(Parcel& parcel) const
-{
-    // animationId, targetId
-    if (!(parcel.WriteUint64(id_))) {
-        ROSEN_LOGE("RSRenderAnimation::Marshalling, write id failed");
-        return false;
-    }
-    // RSAnimationTimingProtocol
-    if (!(parcel.WriteInt32(animationFraction_.GetDuration()) &&
-        parcel.WriteInt32(animationFraction_.GetStartDelay()) &&
-        parcel.WriteFloat(animationFraction_.GetSpeed()) &&
-        parcel.WriteInt32(animationFraction_.GetRepeatCount()) &&
-        parcel.WriteBool(animationFraction_.GetAutoReverse()) &&
-        parcel.WriteBool(animationFraction_.GetDirection()) &&
-        parcel.WriteInt32(static_cast<std::underlying_type<FillMode>::type>(animationFraction_.GetFillMode())) &&
-        parcel.WriteBool(animationFraction_.GetRepeatCallbackEnable()) &&
-        parcel.WriteInt32(animationFraction_.GetFrameRateRange().min_) &&
-        parcel.WriteInt32(animationFraction_.GetFrameRateRange().max_) &&
-        parcel.WriteInt32(animationFraction_.GetFrameRateRange().preferred_) &&
-        parcel.WriteInt32(static_cast<int32_t>(animationFraction_.GetFrameRateRange().componentScene_)))) {
-        ROSEN_LOGE("RSRenderAnimation::Marshalling, write param failed");
-        return false;
-    }
-    return true;
-}
 
 void RSRenderAnimation::DumpAnimation(std::string& out) const
 {
@@ -78,40 +53,6 @@ void RSRenderAnimation::DumpAnimationInfo(std::string& out) const
     out += "Type:Unknown";
 }
 
-bool RSRenderAnimation::ParseParam(Parcel& parcel)
-{
-    int32_t duration = 0;
-    int32_t startDelay = 0;
-    int32_t repeatCount = 0;
-    int32_t fillMode = 0;
-    float speed = 0.0;
-    bool autoReverse = false;
-    bool direction = false;
-    bool isRepeatCallbackEnable = false;
-    int fpsMin = 0;
-    int fpsMax = 0;
-    int fpsPreferred = 0;
-    int componentScene = 0;
-    if (!(parcel.ReadUint64(id_) && parcel.ReadInt32(duration) && parcel.ReadInt32(startDelay) &&
-            parcel.ReadFloat(speed) && parcel.ReadInt32(repeatCount) && parcel.ReadBool(autoReverse) &&
-            parcel.ReadBool(direction) && parcel.ReadInt32(fillMode) && parcel.ReadBool(isRepeatCallbackEnable) &&
-            parcel.ReadInt32(fpsMin) && parcel.ReadInt32(fpsMax) && parcel.ReadInt32(fpsPreferred) &&
-            parcel.ReadInt32(componentScene))) {
-        ROSEN_LOGE("RSRenderAnimation::ParseParam, read param failed");
-        return false;
-    }
-    RS_PROFILER_PATCH_NODE_ID(parcel, id_);
-    SetDuration(duration);
-    SetStartDelay(startDelay);
-    SetRepeatCount(repeatCount);
-    SetAutoReverse(autoReverse);
-    SetSpeed(speed);
-    SetDirection(direction);
-    SetFillMode(static_cast<FillMode>(fillMode));
-    SetRepeatCallbackEnable(isRepeatCallbackEnable);
-    SetFrameRateRange({fpsMin, fpsMax, fpsPreferred, 0, static_cast<ComponentScene>(componentScene)});
-    return true;
-}
 AnimationId RSRenderAnimation::GetAnimationId() const
 {
     return id_;

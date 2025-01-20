@@ -520,6 +520,7 @@ RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
+    stagingNodeName_ = node.GetNodeName();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter != nullptr) {
         RecordFilterInfos(rsFilter);
@@ -594,6 +595,7 @@ void RSBackgroundFilterDrawable::RemovePixelStretch()
 bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
+    stagingNodeName_ = node.GetNodeName();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -685,6 +687,12 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         }
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         if (paintFilterCanvas == nullptr) {
+            return;
+        }
+        if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW && paintFilterCanvas->GetIsWindowFreezeCapture()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow in surface capturing");
+            RS_LOGD("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow in surface capturing");
+            paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             return;
         }
         const auto& effectData = paintFilterCanvas->GetEffectData();

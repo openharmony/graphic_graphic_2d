@@ -56,6 +56,7 @@ public:
     virtual uint32_t Height() const = 0;
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
+    virtual bool IsSamplingOn() const = 0;
     virtual RectI GetActiveRect() const = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
@@ -125,12 +126,14 @@ public:
     virtual void SetDisplayPropertyForHardCursor() = 0;
     virtual void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) = 0;
     virtual const std::vector<uint64_t>& GetSecurityExemptionList() const = 0;
-    virtual int32_t SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+    virtual int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) = 0;
     virtual std::shared_ptr<Media::PixelMap> GetSecurityMask() const = 0;
     virtual void SetEnableVisibleRect(bool enable) = 0;
     virtual bool GetEnableVisibleRect() const = 0;
     virtual void SetMainScreenVisibleRect(const Rect& mainScreenRect) = 0;
     virtual Rect GetMainScreenVisibleRect() const = 0;
+    virtual void SetHasProtectedLayer(bool hasProtectedLayer) = 0;
+    virtual bool GetHasProtectedLayer() = 0;
 };
 
 namespace impl {
@@ -157,6 +160,7 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
+    bool IsSamplingOn() const override;
     RectI GetActiveRect() const override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
@@ -226,12 +230,14 @@ public:
     void SetDisplayPropertyForHardCursor() override;
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList) override;
     const std::vector<uint64_t>& GetSecurityExemptionList() const override;
-    int32_t SetSecurityMask(const std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask) override;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const override;
     void SetEnableVisibleRect(bool enable) override;
     bool GetEnableVisibleRect() const override;
     void SetMainScreenVisibleRect(const Rect& mainScreenRect) override;
     Rect GetMainScreenVisibleRect() const override;
+    void SetHasProtectedLayer(bool hasProtectedLayer) override;
+    bool GetHasProtectedLayer() override;
 
 private:
     // create hdiScreen and get some information from drivers.
@@ -258,6 +264,7 @@ private:
     uint32_t height_ = 0;
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
+    bool isSamplingOn_ = false;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
     RectI activeRect_;
@@ -276,7 +283,8 @@ private:
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,
         COLOR_GAMUT_DCI_P3,
-        COLOR_GAMUT_ADOBE_RGB };
+        COLOR_GAMUT_ADOBE_RGB,
+        COLOR_GAMUT_DISPLAY_P3 };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     int32_t currentVirtualColorGamutIdx_ = 0;
     int32_t currentPhysicalColorGamutIdx_ = 0;
@@ -307,6 +315,7 @@ private:
     std::atomic<bool> skipWindow_ = false;
     bool isHardCursorSupport_ = false;
     mutable std::mutex skipFrameMutex_;
+    bool hasProtectedLayer_ = false;
 };
 } // namespace impl
 } // namespace Rosen

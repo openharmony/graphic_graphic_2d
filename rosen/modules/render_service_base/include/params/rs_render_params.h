@@ -339,7 +339,6 @@ public:
     virtual bool IsNeedProcess() const { return true; }
     virtual void SetNeedProcess(bool isNeedProcess) {}
     virtual bool IsFirstLevelCrossNode() const { return isFirstLevelCrossNode_; }
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     virtual void SetFirstLevelCrossNode(bool firstLevelCrossNode) { isFirstLevelCrossNode_ = firstLevelCrossNode; }
     CrossNodeOffScreenRenderDebugType GetCrossNodeOffScreenStatus() const
     {
@@ -407,6 +406,7 @@ private:
     NodeId firstLevelNodeId_ = INVALID_NODEID;
     NodeId uifirstRootNodeId_ = INVALID_NODEID;
     bool isFirstLevelCrossNode_ = false;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr cloneSourceDrawable_;
     CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn_ = CrossNodeOffScreenRenderDebugType::ENABLE;
     // The angle at which the node rotates about the Z-axis
     float absRotation_ = 0.f;

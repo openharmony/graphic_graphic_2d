@@ -20,7 +20,7 @@
 namespace OHOS {
 bool BootAnimationUtils::GetBootAnimationSoundEnabled()
 {
-    static bool soundEnabled =
+    bool soundEnabled =
         std::atoi((system::GetParameter("persist.graphic.bootsound.enabled", "1")).c_str()) != 0;
     LOGI("BootAnimationUtils::GetBootAnimationSoundEnabled is %{public}d", soundEnabled);
     return soundEnabled;

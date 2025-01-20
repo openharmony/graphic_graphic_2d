@@ -198,13 +198,21 @@ void Region::UpdateRects(Rects& r, std::vector<Range>& ranges, std::vector<int>&
 void Region::MakeBound()
 {
     if (rects_.size()) {
-        bound_ = rects_[0];
+        // Tell compiler there is no alias.
+        int left = rects_[0].left_;
+        int top = rects_[0].top_;
+        int right = rects_[0].right_;
+        int bottom = rects_[0].bottom_;
         for (const auto& r : rects_) {
-            bound_.left_ = std::min(r.left_, bound_.left_);
-            bound_.top_ = std::min(r.top_, bound_.top_);
-            bound_.right_ = std::max(r.right_, bound_.right_);
-            bound_.bottom_ = std::max(r.bottom_, bound_.bottom_);
+            left = std::min(r.left_, left);
+            top = std::min(r.top_, top);
+            right = std::max(r.right_, right);
+            bottom = std::max(r.bottom_, bottom);
         }
+        bound_.left_ = left;
+        bound_.top_ = top;
+        bound_.right_ = right;
+        bound_.bottom_ = bottom;
     }
 }
 

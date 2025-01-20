@@ -360,9 +360,7 @@ void OHDrawingTypographyTest(const uint8_t* data, size_t size)
     OH_Drawing_Canvas* canvas = CreateCanvas(bitmap);
     OH_Drawing_CanvasDestroy(CreateCanvas(nullptr));
     OH_Drawing_Path* path = OH_Drawing_PathCreate();
-    OH_Drawing_PathArcTo(path, GetObject<uint32_t>() % DATA_MAX_RANDOM, GetObject<uint32_t>() % DATA_MAX_RANDOM,
-        GetObject<uint32_t>() % DATA_MAX_RANDOM, GetObject<float>(), GetObject<uint32_t>() % DATA_MAX_RANDOM,
-        GetObject<uint32_t>() % DATA_MAX_RANDOM);
+    OH_Drawing_PathArcTo(path, DATA_PATH_SIZE, DATA_PATH_SIZE, DATA_PATH_SIZE, DATA_PATH_SIZE, 0, 0);
     OH_Drawing_TypographyPaintOnPath(
         typography, canvas, path, GetObject<uint32_t>() % DATA_MAX_RANDOM, GetObject<uint32_t>() % DATA_MAX_RANDOM);
     OH_Drawing_TypographyPaintOnPath(

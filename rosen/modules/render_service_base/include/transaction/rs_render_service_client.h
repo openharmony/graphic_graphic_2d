@@ -142,7 +142,7 @@ public:
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
     bool SetWindowFreezeImmediately(NodeId id, bool isFreeze, std::shared_ptr<SurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig);
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam = {});
 
     bool SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW);
@@ -171,7 +171,7 @@ public:
 
     int32_t SetVirtualScreenSecurityExemptionList(ScreenId id, const std::vector<NodeId>& securityExemptionList);
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask);
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask);
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect);
 
@@ -218,6 +218,8 @@ public:
     std::string GetRefreshInfo(pid_t pid);
 
 #ifndef ROSEN_ARKUI_X
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
@@ -397,7 +399,11 @@ public:
 
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
-    void NotifyScreenSwitched(ScreenId id);
+    void NotifyScreenSwitched();
+
+    void ForceRefreshOneFrameWithNextVSync();
+
+    void SetWindowContainer(NodeId nodeId, bool value);
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);

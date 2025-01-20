@@ -47,6 +47,11 @@ std::string RSForegroundEffectFilter::GetDescription()
         ", dirtyExtension: " + std::to_string(GetDirtyExtension());
 }
 
+float RSForegroundEffectFilter::GetRadius() const
+{
+    return blurRadius_;
+}
+
 bool RSForegroundEffectFilter::IsValid() const
 {
     constexpr float epsilon = 0.999f; // if blur radius less than 1, do not need to draw

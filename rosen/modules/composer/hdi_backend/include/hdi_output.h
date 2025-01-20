@@ -93,6 +93,14 @@ public:
     int32_t GetBufferCacheSize();
     void SetVsyncSamplerEnabled(bool enabled);
     bool GetVsyncSamplerEnabled();
+    void SetProtectedFrameBufferState(bool state)
+    {
+        isProtectedBufferAllocated_.store(state);
+    }
+    bool GetProtectedFrameBufferState()
+    {
+        return isProtectedBufferAllocated_.load();
+    }
 
 private:
     HdiDevice *device_ = nullptr;
@@ -127,6 +135,8 @@ private:
     bool arsrPreEnabled_ = false;
     bool arsrPreEnabledForVm_ = false;
     std::string vmArsrWhiteList_ = "";
+    // Protected framebuffer is allocated in advance
+    std::atomic<bool> isProtectedBufferAllocated_ = false;
 
     int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
     void DeletePrevLayersLocked();

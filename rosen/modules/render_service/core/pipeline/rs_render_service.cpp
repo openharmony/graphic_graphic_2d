@@ -34,21 +34,22 @@
 #include "rs_trace.h"
 
 #include "common/rs_singleton.h"
-#include "pipeline/round_corner_display/rs_message_bus.h"
+#include "feature/round_corner_display/rs_message_bus.h"
 #ifdef RS_ENABLE_GPU
-#include "pipeline/round_corner_display/rs_rcd_render_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "graphic_feature_param_manager.h"
 
 #include "text/font_mgr.h"
 
 #ifdef TP_FEATURE_ENABLE
-#include "touch_screen/touch_screen.h"
+#include "screen_manager/touch_screen.h"
 #endif
 
 namespace OHOS {
@@ -160,6 +161,9 @@ bool RSRenderService::Init()
         return false;
     }
     samgr->AddSystemAbility(RENDER_SERVICE, this);
+
+    // feature param parse
+    GraphicFeatureParamManager::GetInstance().Init();
 
     RS_PROFILER_INIT(this);
 

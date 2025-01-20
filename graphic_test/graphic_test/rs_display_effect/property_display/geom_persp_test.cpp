@@ -56,8 +56,34 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_2)
         auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, (i - 1) * 680 + 40, 600, 600 });
         testNode->SetPivot(Vector2f(0.5, 0.5));
         testNode->SetRotation(45.0, 0, 45.0);
-        testNode->SetPerspX(xList[i]);
-        testNode->SetPerspY(yList[i]);
+        testNode->SetPersp(xList[i], yList[i]);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_3)
+{
+    float xList[] = { -1.0, 0.0, 1 };
+    float yList[] = { -1.0, 0.0, 0 };
+    for (int i = 1; i < 3; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, (i - 1) * 680 + 40, 600, 600 });
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(45.0, 0, 45.0);
+        testNode->SetPersp({ xList[i], yList[i] });
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_Persp_Test_4)
+{
+    float persp[] = { 0.8, 1.0 };
+    for (int i = 0; i < 2; i++) {
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/geom_test.jpg", { 380, i * 880 + 200, 600, 600 });
+        testNode->SetPivot(Vector2f(0.5, 0.5));
+        testNode->SetRotation(0.0, 0, 45.0);
+        testNode->SetPersp(persp[i]);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }

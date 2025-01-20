@@ -27,6 +27,7 @@ namespace {
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+const uint32_t usleepTime = 1500 * 1000;
 } // namespace
 
 template<class T>
@@ -64,6 +65,7 @@ bool DoVideoFrameRateVote(const uint8_t* data, size_t size)
     extraData->ExtraSet("VIDEO_RATE", rate);
     buffer->SetExtraData(extraData);
     DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(id, type, buffer);
+    usleep(usleepTime);
     return true;
 }
 } // namespace Rosen

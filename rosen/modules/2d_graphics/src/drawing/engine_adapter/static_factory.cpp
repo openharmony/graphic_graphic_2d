@@ -401,6 +401,96 @@ void StaticFactory::SetVmaCacheStatus(bool flag)
     }
 #endif
 }
+
+void StaticFactory::ResetStatsData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        DDGRStaticFactory::ResetStatsData();
+    }
+#endif
+    EngineStaticFactory::ResetStatsData();
+}
+
+void StaticFactory::ResetPerfEventData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        DDGRStaticFactory::ResetPerfEventData();
+    }
+#endif
+    EngineStaticFactory::ResetPerfEventData();
+}
+
+std::map<std::string, std::vector<uint16_t>> StaticFactory::GetBlurStatsData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetBlurStatsData();
+    }
+#endif
+    return EngineStaticFactory::GetBlurStatsData();
+}
+
+std::map<std::string, RsBlurEvent> StaticFactory::GetBlurPerfEventData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetBlurPerfEventData();
+    }
+#endif
+    return EngineStaticFactory::GetBlurPerfEventData();
+}
+
+std::map<std::string, std::vector<uint16_t>> StaticFactory::GetTextureStatsData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetTextureStatsData();
+    }
+#endif
+    return EngineStaticFactory::GetTextureStatsData();
+}
+
+std::map<std::string, RsTextureEvent> StaticFactory::GetTexturePerfEventData()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetTexturePerfEventData();
+    }
+#endif
+    return EngineStaticFactory::GetTexturePerfEventData();
+}
+
+int16_t StaticFactory::GetSplitRange(int64_t duration)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetSplitRange(duration);
+    }
+#endif
+    return EngineStaticFactory::GetSplitRange(duration);
+}
+
+bool StaticFactory::IsOpenPerf()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::IsOpenPerf();
+    }
+#endif
+    return EngineStaticFactory::IsOpenPerf();
+}
+
+int64_t StaticFactory::GetCurrentTime()
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GetCurrentTime();
+    }
+#endif
+    return EngineStaticFactory::GetCurrentTime();
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -289,6 +289,27 @@ HWTEST_F(RSScreenManagerTest, SetVirtualScreenSurface_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetPhysicalScreenResolution_001
+ * @tc.desc: Test SetPhysicalScreenResolution
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, SetPhysicalScreenResolution_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    ScreenId id = mockScreenId_;
+    auto rsScreen = std::make_unique<impl::RSScreen>(id, false, HdiOutput::CreateHdiOutput(id), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+
+    uint32_t width = 1920;
+    uint32_t height = 1080;
+    auto result = screenManager->SetPhysicalScreenResolution(id, width, height);
+    ASSERT_EQ(result, SCREEN_NOT_FOUND);
+}
+
+/*
  * @tc.name: SetVirtualScreenResolution_001
  * @tc.desc: Test SetVirtualScreenResolution
  * @tc.type: FUNC
@@ -2960,6 +2981,22 @@ HWTEST_F(RSScreenManagerTest, ReleaseScreenDmaBufferTest_001, TestSize.Level1)
     screenManagerImpl.screens_[SCREEN_ID] = std::make_unique<impl::RSScreen>(SCREEN_ID, false, nullptr, nullptr);
     impl::RSScreenManager::ReleaseScreenDmaBuffer(screenId);
     ASSERT_EQ(screenManagerImpl.GetOutput(screenId), nullptr);
+}
+
+/*
+ * Function: SetScreenHasProtectedLayer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create screenManager
+ *                  2. operation: SetScreenHasProtectedLayer
+ *                  3. result: screenManager is nullptr
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenHasProtectedLayer001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    screenManager->SetScreenHasProtectedLayer(SCREEN_ID, true);
 }
 
 /*

@@ -1169,7 +1169,7 @@ const std::vector<uint64_t> RSScreenManager::GetVirtualScreenSecurityExemptionLi
 }
 
 int32_t RSScreenManager::SetScreenSecurityMask(ScreenId id,
-    const std::shared_ptr<Media::PixelMap> securityMask)
+    std::shared_ptr<Media::PixelMap> securityMask)
 {
     if (id == INVALID_SCREEN_ID) {
         RS_LOGW("RSScreenManager %{public}s: INVALID_SCREEN_ID.", __func__);
@@ -1410,6 +1410,19 @@ uint32_t RSScreenManager::SetScreenActiveRect(ScreenId id, const GraphicIRect& a
         return SCREEN_NOT_FOUND;
     }
     return screensIt->second->SetScreenActiveRect(activeRect);
+}
+
+int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    screensIt->second->SetResolution(width, height);
+    return SUCCESS;
 }
 
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -1697,6 +1710,7 @@ ScreenInfo RSScreenManager::QueryScreenInfoLocked(ScreenId id) const
     info.height = screen->Height();
     info.phyWidth = screen->PhyWidth() ? screen->PhyWidth() : screen->Width();
     info.phyHeight = screen->PhyHeight() ? screen->PhyHeight() : screen->Height();
+    info.isSamplingOn = screen->IsSamplingOn();
     auto ret = screen->GetScreenColorGamut(info.colorGamut);
     if (ret != StatusCode::SUCCESS) {
         info.colorGamut = COLOR_GAMUT_SRGB;
@@ -1877,6 +1891,10 @@ void RSScreenManager::ClearFrameBufferIfNeed()
         for (const auto& [id, screen] : screens_) {
             if (!screen || !screen->GetOutput()) {
                 RS_LOGE("RSScreenManager %{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
+                continue;
+            }
+            if (screen->GetHasProtectedLayer()) {
+                RS_TRACE_NAME_FMT("screen Id:%lu has protected layer.", id);
                 continue;
             }
             if (screen->GetOutput()->GetBufferCacheSize() > 0) {
@@ -2384,15 +2402,23 @@ bool RSScreenManager::GetDisplayPropertyForHardCursor(uint32_t screenId)
     return screensIt->second->GetDisplayPropertyForHardCursor();
 }
 
-void RSScreenManager::SetScreenSwitchStatus(bool flag, ScreenId id)
+void RSScreenManager::SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedLayer)
 {
-    isScreenSwitching_ = flag;
-    if (isScreenSwitching_) {
-        RSDisplayRenderNode::SetSwitchedScreenId(id);
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto screensIt = screens_.find(id);
+    if (screensIt == screens_.end() || screensIt->second == nullptr) {
+        RS_LOGW("RSScreenManager %{public}s: There is no screen for id %{public}" PRIu64 ".", __func__, id);
+        return;
     }
+    screensIt->second->SetHasProtectedLayer(hasProtectedLayer);
 }
 
-bool RSScreenManager::GetScreenSwitchStatus() const
+void RSScreenManager::SetScreenSwitchStatus(bool flag)
+{
+    isScreenSwitching_ = flag;
+}
+
+bool RSScreenManager::IsScreenSwitching() const
 {
     return isScreenSwitching_;
 }

@@ -350,6 +350,7 @@ HWTEST_F(RSRenderNodeDrawableTest, AfterDrawCache, TestSize.Level1)
 HWTEST_F(RSRenderNodeDrawableTest, DrawAutoCache, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    ASSERT_NE(drawable, nullptr);
 
     Drawing::Canvas canvas;
     RSPaintFilterCanvas paintFilterCanvas(&canvas);

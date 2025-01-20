@@ -212,6 +212,7 @@ RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node
 bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
+    stagingNodeName_ = node.GetNodeName();
     auto& rsFilter = node.GetRenderProperties().GetFilter();
     if (rsFilter == nullptr) {
         return false;
@@ -585,7 +586,7 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
 
 const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetPhongShaderBuilder()
 {
-    static std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder;
+    thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> phongShaderBuilder;
     if (phongShaderBuilder) {
         return phongShaderBuilder;
     }

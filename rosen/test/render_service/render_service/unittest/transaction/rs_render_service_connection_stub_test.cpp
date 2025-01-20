@@ -188,7 +188,7 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub002
 HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub003, TestSize.Level1)
 {
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN)), ERR_INVALID_DATA);
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN)), ERR_INVALID_STATE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
@@ -489,6 +489,8 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub012
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)), ERR_INVALID_STATE);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT)), ERR_NONE);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER)), ERR_INVALID_DATA);
 }
 
 /**
@@ -502,12 +504,10 @@ HWTEST_F(RSRenderServiceConnectionStubTest, TestRSRenderServiceConnectionStub012
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    ScreenId id{INVALID_SCREEN_ID};
     data.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
-    data.WriteUint64(id);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_NONE);
+    ASSERT_EQ(res, NO_ERROR);
 }
 
 } // namespace OHOS::Rosen

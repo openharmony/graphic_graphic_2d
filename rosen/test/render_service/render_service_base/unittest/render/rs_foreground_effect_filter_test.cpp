@@ -703,12 +703,11 @@ HWTEST_F(RSForegroundEffectFilterTest, DrawImageRectTest, TestSize.Level1)
 {
     auto rsForegroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(1.0f);
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
-    std::shared_ptr<Drawing::Image> originImage = image;
     Drawing::Canvas canvas;
     Drawing::Rect src;
     Drawing::Rect dst;
     rsForegroundEffectFilter->DrawImageRect(canvas, image, src, dst);
-    EXPECT_EQ(image, originImage);
+    EXPECT_NE(rsForegroundEffectFilter->blurEffect_, nullptr);
 }
 
 /**

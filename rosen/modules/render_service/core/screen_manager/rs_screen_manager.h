@@ -84,7 +84,7 @@ public:
     virtual const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const = 0;
 
     virtual int32_t SetScreenSecurityMask(ScreenId id,
-        const std::shared_ptr<Media::PixelMap> securityMask) = 0;
+        std::shared_ptr<Media::PixelMap> securityMask) = 0;
 
     virtual std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const = 0;
 
@@ -107,6 +107,8 @@ public:
     virtual uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect) = 0;
 
     virtual int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
+
+    virtual int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
     virtual int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) = 0;
 
@@ -255,9 +257,11 @@ public:
 
     virtual bool IsScreenPoweringOn() const = 0;
 
-    virtual void SetScreenSwitchStatus(bool flag, ScreenId id) = 0;
+    virtual void SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedLayer) = 0;
 
-    virtual bool GetScreenSwitchStatus() const = 0;
+    virtual void SetScreenSwitchStatus(bool flag) = 0;
+
+    virtual bool IsScreenSwitching() const = 0;
 };
 
 sptr<RSScreenManager> CreateOrGetScreenManager();
@@ -315,7 +319,7 @@ public:
 
     const std::vector<uint64_t> GetVirtualScreenSecurityExemptionList(ScreenId id) const override;
 
-    int32_t SetScreenSecurityMask(ScreenId id, const std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask) override;
         
     std::shared_ptr<Media::PixelMap> GetScreenSecurityMask(ScreenId id) const override;
 
@@ -338,6 +342,8 @@ public:
     uint32_t SetScreenActiveRect(ScreenId id, const GraphicIRect& activeRect) override;
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
@@ -500,9 +506,11 @@ public:
         return isScreenPoweringOn_;
     }
 
-    void SetScreenSwitchStatus(bool flag, ScreenId id) override;
+    void SetScreenHasProtectedLayer(ScreenId id, bool hasProtectedLayer) override;
 
-    bool GetScreenSwitchStatus() const override;
+    void SetScreenSwitchStatus(bool flag) override;
+
+    bool IsScreenSwitching() const override;
 
 private:
     RSScreenManager();

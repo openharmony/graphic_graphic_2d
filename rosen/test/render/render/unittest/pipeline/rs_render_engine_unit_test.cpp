@@ -14,10 +14,10 @@
  */
 
 #include "gtest/gtest.h"
+#include "feature/capture/rs_surface_capture_task.h"
 #include "pipeline/rs_divided_render_util.h"
 #include "pipeline/rs_render_engine.h"
 #include "rs_test_util.h"
-#include "pipeline/rs_surface_capture_task.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "recording/recording_canvas.h"
 #include "pipeline/rs_uni_render_engine.h"

@@ -57,6 +57,7 @@ public:
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
         .timeout = 0,
+        .colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
     };
 
     static inline BufferFlushConfig flushConfig = {
@@ -276,7 +277,8 @@ HWTEST_F(RSHardwareThreadTest, IsDelayRequired001, TestSize.Level1)
         .actualTimestamp = 0,
         .vsyncId = 0,
         .constraintRelativeTime = 0,
-        .isForceRefresh = true
+        .isForceRefresh = true,
+        .fastComposeTimeStampDiff = 0
     };
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     bool hasGameScene = true;
@@ -319,7 +321,8 @@ HWTEST_F(RSHardwareThreadTest, CalculateDelayTime001, TestSize.Level1)
         .actualTimestamp = 0,
         .vsyncId = 0,
         .constraintRelativeTime = 0,
-        .isForceRefresh = true
+        .isForceRefresh = true,
+        .fastComposeTimeStampDiff = 0
     };
     uint32_t currentRate = 120;
     int64_t currTime = 1000000000;
@@ -364,4 +367,236 @@ HWTEST_F(RSHardwareThreadTest, RecordTimestamp, TestSize.Level1)
     hardwareThread.RecordTimestamp(layers);
     surfaceFpsManager.UnregisterSurfaceFps(layer1->GetNodeId());
 }
+
+ * @tc.name: ExecuteSwitchRefreshRate
+ * @tc.desc: Test RSHardwareThreadTest.ExecuteSwitchRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, ExecuteSwitchRefreshRate, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(output, nullptr);
+    auto &hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    ASSERT_NE(frameRateMgr, nullptr);
+    hgmCore.hgmFrameRateMgr_ = nullptr;
+    hardwareThread.ExecuteSwitchRefreshRate(output, 0);
+
+    hgmCore.hgmFrameRateMgr_ = frameRateMgr;
+    hardwareThread.ExecuteSwitchRefreshRate(output, 0);
+
+    //  设置屏幕尺寸为1080p，物理屏尺寸包含1080p即可
+    ScreenSize sSize = {720, 1080, 685, 1218};
+    hgmCore.AddScreen(screenId_, 0, sSize);
+    auto screen = hgmCore.GetScreen(screenId_);
+    screen->SetSelfOwnedScreenFlag(true);
+    hgmCore.SetScreenRefreshRateImme(1);
+    hardwareThread.ExecuteSwitchRefreshRate(output, 0);
+
+    int32_t status = hgmCore.SetScreenRefreshRate(0, screenId_, 0);
+    ASSERT_TRUE(status < EXEC_SUCCESS);
+}
+
+/**
+ * @tc.name: PerformSetActiveMode
+ * @tc.desc: Test RSHardwareThreadTest.PerformSetActiveMode
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, PerformSetActiveMode, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
+    ASSERT_NE(output, nullptr);
+
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    OHOS::Rosen::impl::RSScreenManager::instance_ = nullptr;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+
+    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManager;
+    hardwareThread.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+
+    auto &hgmCore = HgmCore::Instance();
+    hgmCore.modeListToApply_ = std::make_unique<std::unordered_map<ScreenId, int32_t>>();
+    int32_t rate = 3;
+    hgmCore.modeListToApply_->insert({screenId_, rate});
+    hardwareThread.PerformSetActiveMode(output, 0, 0);
+
+    auto supportedModes = screenManager->GetScreenSupportedModes(screenId_);
+    ASSERT_EQ(supportedModes.size(), 0);
+}
+
+/**
+ * @tc.name: OnPrepareComplete
+ * @tc.desc: Test RSHardwareThreadTest.OnPrepareComplete
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, OnPrepareComplete, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    PrepareCompleteParam para;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    hardwareThread.OnPrepareComplete(psurface, para, nullptr);
+
+    para.needFlushFramebuffer = true;
+    hardwareThread.OnPrepareComplete(psurface, para, nullptr);
+
+    ASSERT_TRUE(hardwareThread.redrawCb_ != nullptr);
+}
+
+/**
+ * @tc.name: CreateFrameBufferSurfaceOhos
+ * @tc.desc: Test RSHardwareThreadTest.CreateFrameBufferSurfaceOhos
+ * @tc.type: FUNC
+ * @tc.require: issueIBH6WN
+ */
+HWTEST_F(RSHardwareThreadTest, CreateFrameBufferSurfaceOhos, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto rsSurfaceOhosPtr = hardwareThread.CreateFrameBufferSurfaceOhos(psurface);
+    ASSERT_NE(rsSurfaceOhosPtr, nullptr);
+}
+/*
+ * Function: PreAllocateProtectedBuffer
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(1 buffer)
+ *                  2. operation: RequestBuffer and PreallocateProtectedBuffer
+ *                  3. result: return GSERROR_OK
+ */
+HWTEST_F(RSHardwareThreadTest, PreAllocateProtectedBuffer001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    hardwareThread.PreAllocateProtectedBuffer(buffer, screenId_);
+}
+
+#ifdef RS_ENABLE_VK
+/*
+ * Function: ComputeTargetColorGamut
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(2 buffer)
+ *                  2. operation: change BufferRequestConfig, RequestBuffer and ComputeTargetColorGamut
+ *                  3. result: return colorGamut which is GRAPHIC_COLOR_GAMUT_DISPLAY_P3
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetColorGamut001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(2);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    GraphicColorGamut colorGamut = hardwareThread.ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    requestConfig.colorGamut = GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    colorGamut = hardwareThread.ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+}
+
+/*
+ * Function: ComputeTargetColorGamut
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(1 buffer)
+ *                  2. operation: RequestBuffer, SetColorSpaceInfo and ComputeTargetColorGamut
+ *                  3. result: return colorGamut which is GRAPHIC_COLOR_GAMUT_SRGB
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetColorGamut002, TestSize.Level1)
+{
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(1);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    using namespace HDI::Display::Graphic::Common::V1_0;
+    auto &hardwareThread = RSHardwareThread::Instance();
+    CM_ColorSpaceInfo infoSet = {
+        .primaries = COLORPRIMARIES_SRGB,
+    };
+    auto retSet = MetadataHelper::SetColorSpaceInfo(buffer, infoSet);
+    EXPECT_EQ(retSet, GSERROR_OK);
+    GraphicColorGamut colorGamut = hardwareThread.ComputeTargetColorGamut(buffer);
+    EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+/*
+ * Function: ComputeTargetPixelFormat
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. preSetup: create bufferqueue(3 buffer)
+ *                  2. operation: change BufferRequestConfig, RequestBuffer and ComputeTargetPixelFormat
+ *                  3. result: return pixelFormat which is GRAPHIC_PIXEL_FMT_RGBA_1010102
+ */
+HWTEST_F(RSHardwareThreadTest, ComputeTargetPixelFormat001, TestSize.Level1)
+{
+    auto &hardwareThread = RSHardwareThread::Instance();
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    auto producer = surfaceConsumer->GetProducer();
+    sptr<Surface> sProducer = Surface::CreateSurfaceAsProducer(producer);
+    sProducer->SetQueueSize(3);
+    sptr<SurfaceBuffer> buffer;
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    requestConfig.format = GRAPHIC_PIXEL_FMT_RGBA_1010102;
+    GSError ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    GraphicPixelFormat pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+
+    requestConfig.format = GRAPHIC_PIXEL_FMT_YCBCR_P010;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+
+    requestConfig.format = GRAPHIC_PIXEL_FMT_YCRCB_P010;
+    ret = sProducer->RequestBuffer(buffer, requestFence, requestConfig);
+    EXPECT_EQ(ret, GSERROR_OK);
+    pixelFormat = hardwareThread.ComputeTargetPixelFormat(buffer);
+    EXPECT_EQ(pixelFormat, GRAPHIC_PIXEL_FMT_RGBA_1010102);
+}
+#endif
 } // namespace OHOS::Rosen

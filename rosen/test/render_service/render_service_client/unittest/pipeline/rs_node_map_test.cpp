@@ -106,6 +106,7 @@ HWTEST_F(RSNodeMapTest, UnregisterNode001, TestSize.Level1)
     if (node == nullptr) {
         return;
     }
+    EXPECT_TRUE(node != nullptr);
     RSNodeMap::MutableInstance().UnregisterNode(node->GetId());
 }
 

@@ -760,6 +760,20 @@ HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Le
 }
 
 /**
+ * @tc.name: SetFastComposeTimeStampDiff
+ * @tc.desc: Verify the result of SetFastComposeTimeStampDiff function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallTest | Level2)
+{
+    auto &hgmCore = HgmCore::Instance();
+    bool fastComposeTimeStampDiff = false;
+    hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
+    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff() == fastComposeTimeStampDiff, true);
+}
+
+/**
  * @tc.name: SetIdealPipelineOffset
  * @tc.desc: Verify the result of SetIdealPipelineOffset function
  * @tc.type: FUNC

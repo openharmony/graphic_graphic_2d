@@ -536,6 +536,12 @@ public:
     virtual bool IsClipRect();
 
     /**
+     * @deprecated this interface will be remove in furture and SHOULD NOT be used anymore.
+     * @brief Reset Clip States.
+     */
+    virtual void ResetClip();
+
+    /**
      * @brief Returns true if clip is empty Path path, transformed by Matrix,
      * can be quickly determined to be outside of clip.
      * @param path Rect to compare with path

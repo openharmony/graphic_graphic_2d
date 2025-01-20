@@ -500,28 +500,29 @@ public:
     void HandleCurMainAndLeashSurfaceNodes();
 
     // HDR Video
-    void SetHdrVideo(bool hasHdrVideo, HDR_TYPE hdrVideoType) {
-        hasHdrVideo_ = hasHdrVideo;
-        hdrVideoType_ = hdrVideoType;
-    }
-
-    HDR_TYPE GetHdrVideoType() const
+    void SetHdrStatus(bool isNeedResetStatus, HdrStatus hdrStatus)
     {
-        return hdrVideoType_;
+        if (isNeedResetStatus) {
+            hasHdrStatus_ = HdrStatus::NO_HDR;
+            return;
+        }
+        hasHdrStatus_ = static_cast<HdrStatus>(hasHdrStatus_ | hdrStatus);
     }
 
-    bool GetHdrVideo() const
+    HdrStatus GetHdrStatus() const
     {
-        return hasHdrVideo_;
+        return hasHdrStatus_;
     }
 
-    using ScreenStatusNotifyTask = std::function<void(bool, uint64_t)>;
+    using ScreenStatusNotifyTask = std::function<void(bool)>;
 
     static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
 
-    static void SetSwitchedScreenId(uint64_t screenId);
+    void NotifyScreenNotSwitching();
 
-    void CheckTargetScreenSwitched(uint64_t screenId);
+    // Window Container
+    void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
+    std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
 protected:
     void OnSync() override;
@@ -529,16 +530,7 @@ private:
     explicit RSDisplayRenderNode(
         NodeId id, const RSDisplayNodeConfig& config, const std::weak_ptr<RSContext>& context = {});
     void InitRenderParams() override;
-    // vector of sufacenodes will records dirtyregions by itself
-    std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
-    CompositeType compositeType_ { HARDWARE_COMPOSITE };
-    ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
-    ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
-    uint64_t screenId_ = 0;
-    int32_t offsetX_ = 0;
-    int32_t offsetY_ = 0;
-    uint32_t rogWidth_ = 0;
-    uint32_t rogHeight_ = 0;
+
     bool hasChildCrossNode_ = false;
     bool isMirrorScreen_ = false;
     bool isFirstVisitCrossNodeDisplay_ = false;
@@ -546,14 +538,45 @@ private:
     bool isMirroredDisplay_ = false;
     bool isSecurityDisplay_ = false;
     bool hasUniRenderHdrSurface_ = false;
-    WeakPtr mirrorSource_;
-    float lastRotation_ = 0.f;
     bool preRotationStatus_ = false;
     bool curRotationStatus_ = false;
     bool lastRotationChanged_ = false;
-    Drawing::Matrix initMatrix_;
     bool isFirstTimeToProcessor_ = true;
     bool hasFingerprint_ = false;
+    bool isSecurityExemption_ = false;
+    bool hasSecLayerInVisibleRect_ = false;
+    bool hasSecLayerInVisibleRectChanged_ = false;
+    // Use in vulkan parallel rendering
+    bool isParallelDisplayNode_ = false;
+    mutable bool isNeedWaitNewScbPid_ = false;
+    bool curZoomState_ = false;
+    bool preZoomState_ = false;
+    CompositeType compositeType_ { HARDWARE_COMPOSITE };
+    ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
+    ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
+    int32_t offsetX_ = 0;
+    int32_t offsetY_ = 0;
+    uint32_t rogWidth_ = 0;
+    uint32_t rogHeight_ = 0;
+    float lastRotation_ = 0.f;
+    int32_t currentScbPid_ = -1;
+    int32_t lastScbPid_ = -1;
+    // HDR Video
+    HdrStatus hasHdrStatus_ = HdrStatus::NO_HDR;
+    uint64_t screenId_ = 0;
+    // Use in MultiLayersPerf
+    size_t surfaceCountForMultiLayersPerf_ = 0;
+    int64_t lastRefreshTime_ = 0;
+    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
+    std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
+    // Use in screen recording optimization
+    std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
+    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
+        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
+    WeakPtr mirrorSource_;
+    // vector of sufacenodes will records dirtyregions by itself
+    std::vector<RSBaseRenderNode::SharedPtr> curMainAndLeashSurfaceNodes_;
+    Drawing::Matrix initMatrix_;
     GraphicPixelFormat pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 
@@ -561,34 +584,21 @@ private:
     std::map<NodeId, RectI> currentFrameSurfacePos_;
     std::vector<std::pair<NodeId, RectI>> lastFrameSurfacesByDescZOrder_;
     std::vector<std::pair<NodeId, RectI>> currentFrameSurfacesByDescZOrder_;
-    std::shared_ptr<RSDirtyRegionManager> dirtyManager_ = nullptr;
     std::vector<std::string> windowsName_;
 
     // Use in virtual screen security exemption
     std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
-    bool isSecurityExemption_ = false;
 
     // Use in mirror screen visible rect projection
     std::vector<NodeId> securityVisibleLayerList_;  // surface node id
-    bool hasSecLayerInVisibleRect_ = false;
-    bool hasSecLayerInVisibleRectChanged_ = false;
 
     std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces_;
     std::vector<RSBaseRenderNode::SharedPtr> curAllFirstLevelSurfaces_;
     std::mutex mtx_;
 
-    // Use in screen recording optimization
-    std::shared_ptr<Drawing::Image> offScreenCacheImgForCapture_ = nullptr;
-
-    // Use in vulkan parallel rendering
-    bool isParallelDisplayNode_ = false;
-
-    // Use in MultiLayersPerf
-    size_t surfaceCountForMultiLayersPerf_ = 0;
-
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> dirtySurfaceNodeMap_;
 
-	// support multiscreen
+    // support multiscreen
     std::map<NodeId, RectI> surfaceSrcRects_;
     std::map<NodeId, RectI> surfaceDstRects_;
     std::map<NodeId, Drawing::Matrix> surfaceTotalMatrix_;
@@ -596,24 +606,12 @@ private:
     std::vector<NodeId> lastSurfaceIds_;
 
     std::vector<int32_t> oldScbPids_ {};
-    int32_t currentScbPid_ = -1;
-    int32_t lastScbPid_ = -1;
-    mutable bool isNeedWaitNewScbPid_ = false;
-    mutable std::shared_ptr<std::vector<std::shared_ptr<RSRenderNode>>> currentChildrenList_ =
-        std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>();
 
     friend class DisplayNodeCommandHelper;
-    int64_t lastRefreshTime_ = 0;
-
-    bool curZoomState_ = false;
-    bool preZoomState_ = false;
-    static ReleaseDmaBufferTask releaseScreenDmaBufferTask_;
-
-    // HDR Video
-    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
-    bool hasHdrVideo_ = false;
     static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
-    static inline uint64_t switchedScreenId_ = 0;
+
+    // Window Container
+    std::shared_ptr<RSBaseRenderNode> windowContainer_;
 };
 } // namespace Rosen
 } // namespace OHOS

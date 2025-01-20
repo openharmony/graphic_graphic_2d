@@ -181,7 +181,7 @@ void ParseVideoExtraPath(cJSON* data, BootAnimationConfig& config)
     int size = cJSON_GetArraySize(data);
     for (int index = 0; index < size; index++) {
         cJSON* extraPath = cJSON_GetArrayItem(data, index);
-        if (extraPath != nullptr && strlen(extraPath->string) != 0) {
+        if (extraPath != nullptr && strlen(extraPath->string) != 0 && strlen(extraPath->valuestring) != 0) {
             LOGI("%{public}s : %{public}s", extraPath->string, extraPath->valuestring);
             config.videoExtPath.emplace(extraPath->string, extraPath->valuestring);
         }
@@ -359,9 +359,18 @@ int32_t TransalteVp2Pixel(const int32_t sideLen, const int32_t vp)
 
 std::string ReadFile(const std::string &filePath)
 {
-    std::ifstream infile;
     std::string content;
-    infile.open(filePath);
+    if (filePath.empty() || filePath.length() > PATH_MAX) {
+        LOGE("filepath check failed.");
+        return content;
+    }
+    char tmpPath[PATH_MAX] = {0};
+    if (realpath(filePath.c_str(), tmpPath) == nullptr) {
+        LOGE("filepath check failed! %{public}s %{public}d %{public}s", filePath.c_str(), errno, ::strerror(errno));
+        return content;
+    }
+    std::ifstream infile;
+    infile.open(tmpPath);
     if (!infile.is_open()) {
         LOGE("failed to open file");
         return content;

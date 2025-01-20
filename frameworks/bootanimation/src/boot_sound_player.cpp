@@ -66,7 +66,17 @@ void BootSoundPlayer::Play()
 
     std::string path = GetResPath(TYPE_SOUND);
     LOGI("sound res path: %{public}s", path.c_str());
-    mediaPlayer_->SetSource(path);
+    int ret = mediaPlayer_->SetSource(path);
+    if (ret != 0) {
+        LOGE("PlaySound SetSource fail, errorCode: %{public}d", ret);
+        return;
+    }
+
+    ret = mediaPlayer_->SetParameter(buildMediaFormat());
+    if (ret != 0) {
+        LOGE("PlaySound SetParameter fail, errorCode:%{public}d", ret);
+        return;
+    }
     mediaPlayer_->SetLooping(false);
     mediaPlayer_->PrepareAsync();
     mediaPlayer_->Play();
