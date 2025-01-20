@@ -706,6 +706,15 @@ void RSRenderService::RSGfxDumpInit()
         return;
     }
 
+    RegisterRSGfxFuncs();
+    RegisterRSTreeFuncs();
+    RegisterMemFuncs();
+    RegisterFpsFuncs();
+    RegisterGpuFuncs();
+}
+
+void RSRenderService::RegisterRSGfxFuncs()
+{
     // screen info
     RSDumpFunc screenInfoFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
                                               std::string &dumpString) -> void {
@@ -715,7 +724,7 @@ void RSRenderService::RSGfxDumpInit()
             RSHardwareThread::Instance()
                 .ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); })
                 .wait();
-#endif        
+#endif
         } else {
             mainThread_->ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
         }
@@ -756,11 +765,6 @@ void RSRenderService::RSGfxDumpInit()
         { RSDumpID::RS_FLUSH_JANK_STATS, flushJankStatsRsFunc },
     };
     rsDumpManager_->Register(handers);
-
-    RegisterRSTreeFuncs();
-    RegisterMemFuncs();
-    RegisterFpsFuncs();
-    RegisterGpuFuncs();
 }
 
 void RSRenderService::RegisterRSTreeFuncs()
@@ -857,7 +861,7 @@ void RSRenderService::RegisterMemFuncs()
     };
 
     std::vector<RSDumpHander> handers = {
-        { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HWC_THREAD_NAME },
+        { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_NAME },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
         { RSDumpID::TRIM_MEM_INFO, trimMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },

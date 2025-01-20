@@ -75,8 +75,9 @@ private:
     void RemoveConnection(sptr<IRemoteObject> token);
     void RegisterRcdMsg();
 
-    // RS Gfx register dump point 
+    // RS dump init
     void RSGfxDumpInit();
+    void RegisterRSGfxFuncs();
     void RegisterRSTreeFuncs();
     void RegisterMemFuncs();
     void RegisterFpsFuncs();

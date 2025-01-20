@@ -27,7 +27,7 @@ namespace OHOS::Rosen {
 static const std::string RS_CLIENT_NAME = "RenderServiceClient";
 static const std::string RS_MAIN_THREAD_NAME = "RenderServiceMainThread";
 static const std::string RS_UNI_THREAD_NAME = "RenderServiceUniThread";
-static const std::string RS_HWC_THREAD_NAME = "RenderServiceHWCThread";
+static const std::string RS_HW_THREAD_NAME = "RenderServiceHwThread";
 
 // Define different dump points
 enum class RSDumpID : int8_t {
