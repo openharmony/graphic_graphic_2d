@@ -118,8 +118,8 @@ public:
     // dfx
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
-	
-	virtual bool HasCache() const
+
+    virtual bool HasCache() const
     {
         return false;
     }
