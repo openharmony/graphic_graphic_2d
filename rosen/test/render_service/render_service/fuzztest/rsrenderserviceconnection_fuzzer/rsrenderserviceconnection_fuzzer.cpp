@@ -237,6 +237,16 @@ bool DoSetScreenSkipFrameInterval()
     return true;
 }
 
+bool DoSetPhysicalScreenResolution()
+{
+    if (rsConn_ == nullptr) {
+        return false;
+    }
+    ScreenId id = GetData<uint64_t>();
+    rsConn_->SetPhysicalScreenResolution(id, SCREEN_WIDTH, SCREEN_HEIGHT);
+    return true;
+}
+
 bool DoSetVirtualScreenResolution()
 {
     if (rsConn_ == nullptr) {
@@ -1261,6 +1271,7 @@ void DoFuzzerTest1()
     DoGetScreenType();
     DoRegisterBufferAvailableListener();
     DoSetScreenSkipFrameInterval();
+    DoSetPhysicalScreenResolution();
     DoSetVirtualScreenResolution();
     DoGetScreenSupportedColorGamuts();
     DoGetScreenSupportedModes();

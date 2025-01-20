@@ -1467,7 +1467,7 @@ HWTEST_F(RSSurfaceRenderNodeUniTest, UpdateSurfaceDefaultSizeTest001, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueIBF44R
  */
-HWTEST_F(RSSurfaceRenderNodeUnitTest, NeedClearBufferCacheTest001, TestSize.Level1)
+HWTEST_F(RSSurfaceRenderNodeUniTest, NeedClearBufferCacheTest001, TestSize.Level1)
 {
     auto testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
     ASSERT_NE(testNode, nullptr);

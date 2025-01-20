@@ -259,6 +259,11 @@ uint32_t RSScreen::PhyHeight() const
     return phyHeight_;
 }
 
+bool RSScreen::IsSamplingOn() const
+{
+    return isSamplingOn_;
+}
+
 RectI RSScreen::GetActiveRect() const
 {
     return activeRect_;
@@ -375,16 +380,14 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 	    __func__, id_, width_, height_, phyWidth_, phyHeight_);
 }
 
-
 void RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
-    if (!IsVirtual()) {
-        RS_LOGW("RSScreen %{public}s: physical screen not support SetResolution.", __func__);
-        return;
-    }
-    RS_LOGD_IF(DEBUG_SCREEN, "RSScreen set resolution, w * h: [%{public}u * %{public}u]", width, height);
+    RS_LOGI("RSScreen set resolution [%{public}u * %{public}u]", width, height);
     width_ = width;
     height_ = height;
+    if (!IsVirtual()) {
+        isSamplingOn_ = width_ > phyWidth_ || height_ > phyHeight_;
+    }
 }
 
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const

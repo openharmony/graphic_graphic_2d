@@ -3108,15 +3108,17 @@ void RSSurfaceRenderNode::SetLeashWindowVisibleRegionEmptyParam()
 #endif
 }
 
-void RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
+bool RSSurfaceRenderNode::SetUifirstNodeEnableParam(MultiThreadCacheType b)
 {
+    bool ret = false;
 #ifdef RS_ENABLE_GPU
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
     if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetUifirstNodeEnableParam(b);
+        ret = stagingSurfaceParams->SetUifirstNodeEnableParam(b);
         AddToPendingSyncList();
     }
 #endif
+    return ret;
 }
 
 void RSSurfaceRenderNode::SetUifirstStartingFlag(bool flag)

@@ -217,7 +217,8 @@ public:
     bool GetScreenPowerOnChanged() const;
     bool IsAccessibilityConfigChanged() const;
     bool IsCurtainScreenUsingStatusChanged() const;
-    void ForceRefreshForUni();
+    void CheckFastCompose(int64_t bufferTimeStamp);
+    void ForceRefreshForUni(bool needDelay = false);
     void TrimMem(std::unordered_set<std::u16string>& argSets, std::string& result);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type, pid_t pid = 0);
     void DumpNode(std::string& result, uint64_t nodeId) const;
@@ -393,10 +394,34 @@ public:
         return curTime_;
     }
 
-    std::set<uint32_t>& GetUnmappedCacheSet()
+    void StartGPUDraw();
+
+    void EndGPUDraw();
+
+    struct GPUCompositonCacheGuard {
+        GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->StartGPUDraw();
+        }
+
+        ~GPUCompositonCacheGuard()
+        {
+            RSMainThread::Instance()->EndGPUDraw();
+        }
+    };
+
+    void AddToUnmappedCacheSet(uint32_t bufferId)
     {
-        return unmappedCacheSet_;
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(bufferId);
     }
+
+    void AddToUnmappedCacheSet(const std::set<uint32_t>& seqNumSet)
+    {
+        std::lock_guard<std::mutex> lock(unmappedCacheSetMutex_);
+        unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
+    }
+    void ClearUnmappedCache();
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -411,8 +436,6 @@ private:
     RSMainThread& operator=(const RSMainThread&&) = delete;
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
-    void GetCurrentFrameDrawLargeAreaBlurPredictively();
-    void GetCurrentFrameDrawLargeAreaBlurPrecisely();
     void ProcessCommand();
     void UpdateSubSurfaceCnt();
     void Animate(uint64_t timestamp);
@@ -594,8 +617,6 @@ private:
     // for statistic of jank frames
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
-    bool predictBegin_ = false;
-    std::pair<bool, bool> predictDrawLargeAreaBlur_ = {false, false};
     pid_t lastCleanCachePid_ = -1;
     int preHardwareTid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;
@@ -665,6 +686,15 @@ private:
      * removed from the GPU cache.
      */
     std::set<uint32_t> unmappedCacheSet_ = {};
+    std::mutex unmappedCacheSetMutex_;
+
+    /**
+     * @brief An atomic integer to keep track of the GPU draw count.
+     *
+     * This variable is used to safely increment and decrement the count of GPU draw operations
+     * across multiple threads without causing data races.
+     */
+    std::atomic<int> gpuDrawCount_ = 0;
 
     std::string transactionFlags_ = "";
     std::unordered_map<uint32_t, sptr<IApplicationAgent>> applicationAgentMap_;
@@ -768,6 +798,10 @@ private:
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
     RSVsyncRateReduceManager rsVsyncRateReduceManager_;
+
+    // for record fastcompose time change
+    uint64_t lastFastComposeTimeStamp_ = 0;
+    uint64_t lastFastComposeTimeStampDiff_ = 0;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

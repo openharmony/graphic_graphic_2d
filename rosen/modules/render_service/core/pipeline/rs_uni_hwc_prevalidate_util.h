@@ -23,7 +23,7 @@
 
 #include "screen_manager/screen_types.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "pipeline/round_corner_display/rs_rcd_surface_render_node.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 

@@ -717,6 +717,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
+    RSMainThread::GPUCompositonCacheGuard guard;
     VideoInfo videoInfo;
     auto image = CreateImageFromBuffer(canvas, params, videoInfo);
     if (image == nullptr) {
@@ -850,9 +851,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this, isForUniRedraw](int32_t bufferId) {
-            if (vkImageManager_) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
-            }
+            RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
         };
         if (consumer == nullptr ||
             (consumer->RegisterDeleteBufferListener(regUnMapVkImageFunc, isForUniRedraw) != GSERROR_OK)) {
@@ -864,11 +863,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(const sptr<IConsumerSurfac
 
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     auto regUnMapEglImageFunc = [this, isForUniRedraw](int32_t bufferId) {
-        if (isForUniRedraw) {
-            eglImageManager_->UnMapEglImageFromSurfaceBufferForUniRedraw(bufferId);
-        } else {
-            eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
-        }
+        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
     };
     if (consumer == nullptr ||
         (consumer->RegisterDeleteBufferListener(regUnMapEglImageFunc, isForUniRedraw) != GSERROR_OK)) {
@@ -882,9 +877,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
         auto regUnMapVkImageFunc = [this](int32_t bufferId) {
-            if (vkImageManager_) {
-                vkImageManager_->UnMapVkImageFromSurfaceBuffer(bufferId);
-            }
+            RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
         };
         handler.RegisterDeleteBufferListener(regUnMapVkImageFunc);
         return;
@@ -893,7 +886,7 @@ void RSBaseRenderEngine::RegisterDeleteBufferListener(RSSurfaceHandler& handler)
 
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU))
     auto regUnMapEglImageFunc = [this](int32_t bufferId) {
-        eglImageManager_->UnMapEglImageFromSurfaceBuffer(bufferId);
+        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
     };
     handler.RegisterDeleteBufferListener(regUnMapEglImageFunc);
 #endif // #ifdef RS_ENABLE_EGLIMAGE

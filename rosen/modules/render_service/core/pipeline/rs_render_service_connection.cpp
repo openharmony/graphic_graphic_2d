@@ -24,6 +24,8 @@
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "rs_main_thread.h"
 #include "rs_trace.h"
+//blur predict
+#include "rs_frame_blur_predict.h"
 #include "system/rs_system_parameters.h"
 
 #include "command/rs_command_verify_helper.h"
@@ -903,6 +905,22 @@ int32_t RSRenderServiceConnection::GetCurrentRefreshRateMode()
     return HgmTaskHandleThread::Instance().ScheduleTask([] () -> int32_t {
         return OHOS::Rosen::HgmCore::Instance().GetCurrentRefreshRateMode();
     }).get();
+}
+
+int32_t RSRenderServiceConnection::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    if (!screenManager_) {
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    if (RSUniRenderJudgement::IsUniRender()) {
+        return RSHardwareThread::Instance().ScheduleTask(
+            [=]() { return screenManager_->SetPhysicalScreenResolution(id, width, height); }).get();
+    }
+    if (mainThread_ != nullptr) {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetPhysicalScreenResolution(id, width, height); }).get();
+    }
+    return StatusCode::SCREEN_NOT_FOUND;
 }
 
 int32_t RSRenderServiceConnection::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -2205,6 +2223,11 @@ void RSRenderServiceConnection::NotifyPackageEvent(uint32_t listSize, const std:
 
 void RSRenderServiceConnection::NotifyRefreshRateEvent(const EventInfo& eventInfo)
 {
+    if (VOTER_SCENE_BLUR == eventInfo.eventName) {
+        RsFrameBlurPredict::GetInstance().TakeEffectBlurScene(eventInfo);
+        return;
+    }
+
     HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, eventInfo]() {
         auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
         if (frameRateMgr != nullptr) {
@@ -2551,16 +2574,45 @@ void RSRenderServiceConnection::SetLayerTop(const std::string &nodeIdStr, bool i
     mainThread_->PostTask(task);
 }
 
-void RSRenderServiceConnection::NotifyScreenSwitched(ScreenId id)
+void RSRenderServiceConnection::NotifyScreenSwitched()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManager_) {
         RS_LOGE("RSRenderServiceConnection::NotifyScreenSwitched screenManager_ is nullptr");
         return;
     }
-    RS_LOGD("RSRenderServiceConnection::NotifyScreenSwitched ScreenId: %{public}" PRIu64, id);
-    RS_TRACE_NAME_FMT("NotifyScreenSwitched, ScreenId: %" PRIu64, id);
-    screenManager_->SetScreenSwitchStatus(true, id);
+    RS_LOGI("RSRenderServiceConnection::NotifyScreenSwitched SetScreenSwitchStatus true");
+    RS_TRACE_NAME_FMT("NotifyScreenSwitched");
+    screenManager_->SetScreenSwitchStatus(true);
+}
+
+void RSRenderServiceConnection::SetWindowContainer(NodeId nodeId, bool value)
+{
+    if (!mainThread_) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSRenderServiceConnection>(this), nodeId, value]() -> void {
+        sptr<RSRenderServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
+        if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+            auto displayNodeId = node->GetDisplayNodeId();
+            if (auto displayNode = nodeMap.GetRenderNode<RSDisplayRenderNode>(displayNodeId)) {
+                RS_LOGD("RSRenderServiceConnection::SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
+                    nodeId, value);
+                displayNode->SetWindowContainer(value ? node : nullptr);
+            } else {
+                RS_LOGE("RSRenderServiceConnection::SetWindowContainer displayNode is nullptr, nodeId: %{public}"
+                    PRIu64, displayNode->GetId());
+            }
+        } else {
+            RS_LOGE("RSRenderServiceConnection::SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
+                nodeId);
+        }
+    };
+    mainThread_->PostTask(task);
 }
 } // namespace Rosen
 } // namespace OHOS

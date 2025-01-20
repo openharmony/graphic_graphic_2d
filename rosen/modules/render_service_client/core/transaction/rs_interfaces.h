@@ -130,6 +130,8 @@ public:
     bool GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
 
 #ifndef ROSEN_ARKUI_X
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 #endif // !ROSEN_ARKUI_X
 
@@ -294,8 +296,6 @@ public:
 
     void DisableCacheForRotation();
 
-    void SetScreenSwitching(bool flag);
-
     void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback);
 
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
@@ -336,9 +336,11 @@ public:
     // Make this node(nodeIdStr) should do DSS composition and set the layer to top. otherwise do GPU composition.
     void SetLayerTop(const std::string &nodeIdStr, bool isTop);
 
-    void NotifyScreenSwitched(ScreenId id);
+    void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
+
+    void SetWindowContainer(NodeId nodeId, bool value);
 private:
     RSInterfaces();
     ~RSInterfaces() noexcept;

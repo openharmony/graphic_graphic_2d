@@ -1174,7 +1174,7 @@ public:
         ancestorDisplayNode_ = ancestorDisplayNode;
     }
 
-    void SetUifirstNodeEnableParam(MultiThreadCacheType b);
+    bool SetUifirstNodeEnableParam(MultiThreadCacheType b);
 
     void SetIsParentUifirstNodeEnableParam(bool b);
 
@@ -1378,20 +1378,14 @@ public:
     {
         crossNodeSkippedDisplayOffsets_.clear();
     }
-    bool GetHdrVideo() const
+    HdrStatus GetHdrVideo() const
     {
-        return hasHdrVideoSurface_;
+        return hdrVideoSurface_;
     }
 
-    HDR_TYPE GetHdrVideoType() const
+    void SetHdrVideo(HdrStatus hasHdrVideoSurface)
     {
-        return hdrVideoType_;
-    }
-
-    void SetHdrVideo(bool hasHdrVideoSurface, HDR_TYPE hdrVideoType)
-    {
-        hasHdrVideoSurface_ = hasHdrVideoSurface;
-        hdrVideoType_ = hdrVideoType;
+        hdrVideoSurface_ = hasHdrVideoSurface;
     }
 
     void SetApiCompatibleVersion(uint32_t apiCompatibleVersion);
@@ -1451,7 +1445,7 @@ private:
     bool isGlobalPositionEnabled_ = false;
     bool hasFingerprint_ = false;
     // hdr video
-    bool hasHdrVideoSurface_ = false;
+    HdrStatus hdrVideoSurface_ = HdrStatus::NO_HDR;
     bool zOrderChanged_ = false;
     bool qosPidCal_ = false;
     RSSurfaceNodeAbilityState abilityState_ = RSSurfaceNodeAbilityState::FOREGROUND;
@@ -1554,7 +1548,6 @@ private:
     float contextAlpha_ = 1.0f;
     // Count the number of hdr pictures. If hdrNum_ > 0, it means there are hdr pictures
     int hdrNum_ = 0;
-    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float positionZ_ = 0.0f;

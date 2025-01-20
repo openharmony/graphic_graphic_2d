@@ -107,6 +107,7 @@ public:
     void ClipPath(const Drawing::Path& path, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT,
         bool doAntiAlias = false) override;
     void ClipRegion(const Drawing::Region& region, Drawing::ClipOp op = Drawing::ClipOp::INTERSECT) override;
+    void ResetClip() override;
 
     void SetMatrix(const Drawing::Matrix& matrix) override;
     void ResetMatrix() override;
@@ -302,6 +303,8 @@ public:
     void CopyHDRConfiguration(const RSPaintFilterCanvas& other);
     bool GetHdrOn() const;
     void SetHdrOn(bool isHdrOn);
+    bool GetIsWindowFreezeCapture() const;
+    void SetIsWindowFreezeCapture(bool isWindowFreezeCapture);
 
 protected:
     using Env = struct {
@@ -345,6 +348,7 @@ private:
     bool recordDrawable_ = false;
     bool multipleScreen_ = false;
     bool isHdrOn_ = false;
+    bool isWindowFreezeCapture_ = false;
     CacheType cacheType_ { RSPaintFilterCanvas::CacheType::UNDEFINED };
     std::atomic_bool isHighContrastEnabled_ { false };
     GraphicColorGamut targetColorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

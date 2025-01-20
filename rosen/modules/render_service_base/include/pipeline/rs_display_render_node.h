@@ -500,28 +500,29 @@ public:
     void HandleCurMainAndLeashSurfaceNodes();
 
     // HDR Video
-    void SetHdrVideo(bool hasHdrVideo, HDR_TYPE hdrVideoType) {
-        hasHdrVideo_ = hasHdrVideo;
-        hdrVideoType_ = hdrVideoType;
-    }
-
-    HDR_TYPE GetHdrVideoType() const
+    void SetHdrStatus(bool isNeedResetStatus, HdrStatus hdrStatus)
     {
-        return hdrVideoType_;
+        if (isNeedResetStatus) {
+            hasHdrStatus_ = HdrStatus::NO_HDR;
+            return;
+        }
+        hasHdrStatus_ = static_cast<HdrStatus>(hasHdrStatus_ | hdrStatus);
     }
 
-    bool GetHdrVideo() const
+    HdrStatus GetHdrStatus() const
     {
-        return hasHdrVideo_;
+        return hasHdrStatus_;
     }
 
-    using ScreenStatusNotifyTask = std::function<void(bool, uint64_t)>;
+    using ScreenStatusNotifyTask = std::function<void(bool)>;
 
     static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
 
-    static void SetSwitchedScreenId(uint64_t screenId);
+    void NotifyScreenNotSwitching();
 
-    void CheckTargetScreenSwitched(uint64_t screenId);
+    // Window Container
+    void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
+    std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
 protected:
     void OnSync() override;
@@ -550,7 +551,6 @@ private:
     mutable bool isNeedWaitNewScbPid_ = false;
     bool curZoomState_ = false;
     bool preZoomState_ = false;
-    bool hasHdrVideo_ = false;
     CompositeType compositeType_ { HARDWARE_COMPOSITE };
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation originScreenRotation_ = ScreenRotation::ROTATION_0;
@@ -562,7 +562,7 @@ private:
     int32_t currentScbPid_ = -1;
     int32_t lastScbPid_ = -1;
     // HDR Video
-    HDR_TYPE hdrVideoType_ = HDR_TYPE::VIDEO;
+    HdrStatus hasHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
     // Use in MultiLayersPerf
     size_t surfaceCountForMultiLayersPerf_ = 0;
@@ -609,7 +609,9 @@ private:
 
     friend class DisplayNodeCommandHelper;
     static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
-    static inline uint64_t switchedScreenId_ = 0;
+
+    // Window Container
+    std::shared_ptr<RSBaseRenderNode> windowContainer_;
 };
 } // namespace Rosen
 } // namespace OHOS

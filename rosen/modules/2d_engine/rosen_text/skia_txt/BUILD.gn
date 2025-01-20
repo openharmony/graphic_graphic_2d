@@ -175,6 +175,7 @@ ohos_source_set("skia_paragraph") {
     "//third_party/skia/modules/skparagraph/src/Decorations.cpp",
     "//third_party/skia/modules/skparagraph/src/FontArguments.cpp",
     "//third_party/skia/modules/skparagraph/src/FontCollection.cpp",
+    "//third_party/skia/modules/skparagraph/src/HyphenTrie.cpp",
     "//third_party/skia/modules/skparagraph/src/Hyphenator.cpp",
     "//third_party/skia/modules/skparagraph/src/OneLineShaper.cpp",
     "//third_party/skia/modules/skparagraph/src/ParagraphBuilderImpl.cpp",

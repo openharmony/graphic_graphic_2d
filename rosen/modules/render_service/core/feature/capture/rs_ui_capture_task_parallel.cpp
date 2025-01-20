@@ -205,11 +205,6 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback)
     }
     canvas.SetMatrix(relativeMatrix);
 
-    // make sure the previous uifirst task is completed.
-    if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*nodeParams, false)) {
-        RS_LOGE("RSUiCaptureTaskParallel::Run: CheckMatchAndWaitNotify fail");
-        return false;
-    }
     RSUiFirstProcessStateCheckerHelper stateCheckerHepler(
         nodeParams->GetFirstLevelNodeId(), nodeParams->GetUifirstRootNodeId());
     RSUniRenderThread::SetCaptureParam(

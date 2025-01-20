@@ -32,7 +32,7 @@
 #include "params/rs_display_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/parallel_render/rs_sub_thread_manager.h"
-#include "pipeline/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "pipeline/rs_hardware_thread.h"
 #include "pipeline/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -469,6 +469,12 @@ uint64_t RSUniRenderThread::GetPendingConstraintRelativeTime() const
     return renderThreadParams ? renderThreadParams->GetPendingConstraintRelativeTime() : 0;
 }
 
+uint64_t RSUniRenderThread::GetFastComposeTimeStampDiff() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetFastComposeTimeStampDiff() : 0;
+}
+
 #ifdef RES_SCHED_ENABLE
 void RSUniRenderThread::SubScribeSystemAbility()
 {
@@ -774,19 +780,16 @@ void RSUniRenderThread::DumpMem(DfxString& log)
     });
 }
 
-void RSUniRenderThread::ClearGPUCompositionCache()
+void RSUniRenderThread::ClearGPUCompositionCache(const std::set<uint32_t>& unmappedCache)
 {
-    if (!uniRenderEngine_) {
-        return;
-    }
-    auto& unmappedCacheSet = GetRSRenderThreadParams()->GetUnmappedCacheSet();
-    if (!unmappedCacheSet.empty()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("Clear GPU composition cache, %zu buffers need to be deleted",
-            unmappedCacheSet.size());
-        uniRenderEngine_->ClearCacheSet(unmappedCacheSet);
-        RSHardwareThread::Instance().ClearRedrawGPUCompositionCache(unmappedCacheSet);
-        GetRSRenderThreadParams()->ClearUnmappedCacheSet();
-    }
+    std::weak_ptr<RSBaseRenderEngine> weakUniRenderEngine = uniRenderEngine_;
+    auto task = [weakUniRenderEngine, unmappedCache]() {
+        if (auto uniRenderEngine = weakUniRenderEngine.lock()) {
+            uniRenderEngine->ClearCacheSet(unmappedCache);
+        }
+    };
+    PostTask(task);
+    RSSubThreadManager::Instance()->ClearGPUCompositionCache(task);
 }
 
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)

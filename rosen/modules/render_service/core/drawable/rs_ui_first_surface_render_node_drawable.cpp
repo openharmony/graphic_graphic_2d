@@ -250,12 +250,7 @@ bool RSSurfaceRenderNodeDrawable::DrawCacheSurface(RSPaintFilterCanvas& canvas, 
     }
     Drawing::Brush brush;
     canvas.AttachBrush(brush);
-    Drawing::MipmapMode mipmapMode = Drawing::MipmapMode::NONE;
-    // do not use linear on pc to avoid effecting the load and memory.
-    if (RSMainThread::Instance()->GetDeviceType() != DeviceType::PC) {
-        mipmapMode = Drawing::MipmapMode::LINEAR;
-    }
-    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, mipmapMode);
+    auto samplingOptions = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     auto translateX = gravityMatrix.Get(Drawing::Matrix::TRANS_X);
     auto translateY = gravityMatrix.Get(Drawing::Matrix::TRANS_Y);
     canvas.DrawImage(*cacheImage, translateX, translateY, samplingOptions);
@@ -568,5 +563,15 @@ void RSSurfaceRenderNodeDrawable::TotalProcessedSurfaceCountInc(RSPaintFilterCan
 void RSSurfaceRenderNodeDrawable::ClearTotalProcessedSurfaceCount()
 {
     totalProcessedSurfaceCount_ = 0;
+}
+
+uint32_t RSSurfaceRenderNodeDrawable::GetUifirstPostOrder() const
+{
+    return uifirstPostOrder_;
+}
+
+void RSSurfaceRenderNodeDrawable::SetUifirstPostOrder(uint32_t order)
+{
+    uifirstPostOrder_ = order;
 }
 } // namespace OHOS::Rosen

@@ -127,6 +127,8 @@ public:
 
     std::string GetRefreshInfo(pid_t pid) override;
 
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void MarkPowerOffNeedProcessOneFrame() override;
@@ -318,7 +320,9 @@ public:
 
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void NotifyScreenSwitched(ScreenId id) override;
+    void NotifyScreenSwitched() override;
+
+    void SetWindowContainer(NodeId nodeId, bool value) override;
 
 private:
     bool FillParcelWithTransactionData(

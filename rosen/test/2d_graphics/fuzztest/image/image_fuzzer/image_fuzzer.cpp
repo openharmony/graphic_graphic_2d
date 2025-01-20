@@ -26,7 +26,6 @@
 #include "image/image.h"
 #include "utils/rect.h"
 #include "pixel_map.h"
-#include "drawing/engine_adapter/skia_adapter/skia_image.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -111,13 +110,8 @@ bool ImageFuzzTest002(const uint8_t* data, size_t size)
     if (!buildBitmap) {
         return false;
     }
-    std::shared_ptr<ImageImpl> imageImpl = std::make_shared<SkiaImage>();
-    bool buildSkiaImage = imageImpl->BuildFromBitmap(bitmap);
-    if (!buildSkiaImage) {
-        return false;
-    }
-    Image image = Image(imageImpl);
-    return true;
+    auto image = std::make_shared<Image>();
+    return image->BuildFromBitmap(bitmap);
 }
 
 bool ImageFuzzTest003(const uint8_t* data, size_t size)

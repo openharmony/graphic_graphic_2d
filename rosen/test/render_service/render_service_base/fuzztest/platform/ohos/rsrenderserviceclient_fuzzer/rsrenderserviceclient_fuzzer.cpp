@@ -769,6 +769,25 @@ bool DoSetShowRefreshRateEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
+bool DoSetPhysicalScreenResolution(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    // initialize
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
+    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    uint32_t width = GetData<uint32_t>();
+    uint32_t height = GetData<uint32_t>();
+    client->SetPhysicalScreenResolution(id, width, height);
+    return true;
+}
+
 bool DoSetVirtualScreenResolution(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -2360,6 +2379,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoGetShowRefreshRateEnabled(data, size);
     OHOS::Rosen::DoGetRefreshInfo(data, size);
     OHOS::Rosen::DoSetShowRefreshRateEnabled(data, size);
+    OHOS::Rosen::DoSetPhysicalScreenResolution(data, size);
     OHOS::Rosen::DoSetVirtualScreenResolution(data, size);
     OHOS::Rosen::DoGetVirtualScreenResolution(data, size);
     OHOS::Rosen::DoMarkPowerOffNeedProcessOneFrame(data, size);

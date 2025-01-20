@@ -222,16 +222,11 @@ bool RSSurfaceCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback,
     canvas.SetOnMultipleScreen(true);
     if (surfaceNodeDrawable_) {
         curNodeParams = static_cast<RSSurfaceRenderParams*>(surfaceNodeDrawable_->GetRenderParams().get());
-        // make sure the previous uifirst task is completed.
-        if (!surfaceNodeDrawable_->HasCache() &&
-            !RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(*curNodeParams, false)) {
-            RS_LOGE("RSSurfaceCaptureTaskParallel::Run: CheckMatchAndWaitNotify failed");
-            return false;
-        }
         RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
             curNodeParams->GetFirstLevelNodeId(), curNodeParams->GetUifirstRootNodeId());
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, captureConfig_.scaleX, captureConfig_.scaleY,
             true, isSystemCalling, blurParam.isNeedBlur));
+        canvas.SetIsWindowFreezeCapture(isFreeze);
         surfaceNodeDrawable_->OnCapture(canvas);
         if (isFreeze) {
             surfaceNodeDrawable_->SetCacheImageByCapture(surface->GetImageSnapshot());
@@ -520,6 +515,11 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
             }
             auto tmpImg = std::make_shared<Drawing::Image>();
             DrawCapturedImg(*tmpImg, *surface, backendTexture, textureOrigin, bitmapFormat);
+            if (colorSpace != nullptr) {
+                pixelmap->InnerSetColorSpace(colorSpace->IsSRGB() ?
+                    OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::SRGB) :
+                    OHOS::ColorManager::ColorSpace(OHOS::ColorManager::ColorSpaceName::DISPLAY_P3));
+            }
         } else {
 #else
         {

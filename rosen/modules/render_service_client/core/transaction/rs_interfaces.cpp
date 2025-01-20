@@ -413,11 +413,17 @@ bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 }
 
 #ifndef ROSEN_ARKUI_X
+int32_t RSInterfaces::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return renderServiceClient_->SetPhysicalScreenResolution(id, width, height);
+}
+
 int32_t RSInterfaces::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return renderServiceClient_->SetVirtualScreenResolution(id, width, height);
 }
 #endif // !ROSEN_ARKUI_X
+
 bool RSInterfaces::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     return renderServiceClient_->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
@@ -788,12 +794,6 @@ void RSInterfaces::DisableCacheForRotation()
     renderServiceClient_->SetCacheEnabledForRotation(false);
 }
 
-void RSInterfaces::SetScreenSwitching(bool flag)
-{
-    ScreenId id{INVALID_SCREEN_ID};
-    renderServiceClient_->NotifyScreenSwitched(id);
-}
-
 void RSInterfaces::SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback)
 {
     renderServiceClient_->SetOnRemoteDiedCallback(callback);
@@ -910,9 +910,14 @@ void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
     renderServiceClient_->SetLayerTop(nodeIdStr, isTop);
 }
 
-void RSInterfaces::NotifyScreenSwitched(ScreenId id)
+void RSInterfaces::NotifyScreenSwitched()
 {
-    renderServiceClient_->NotifyScreenSwitched(id);
+    renderServiceClient_->NotifyScreenSwitched();
+}
+
+void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
+{
+    renderServiceClient_->SetWindowContainer(nodeId, value);
 }
 } // namespace Rosen
 } // namespace OHOS

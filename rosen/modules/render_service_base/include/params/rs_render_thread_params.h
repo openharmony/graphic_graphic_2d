@@ -185,6 +185,16 @@ public:
         return isForceRefresh_;
     }
 
+    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
+    {
+        fastComposeTimeStampDiff_ = fastComposeTimeStampDiff;
+    }
+
+    uint64_t GetFastComposeTimeStampDiff() const
+    {
+        return fastComposeTimeStampDiff_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -443,16 +453,6 @@ public:
     {
         currentVisitDisplayDrawableId_ = displayId;
     }
-
-    const std::set<uint32_t> GetUnmappedCacheSet() const
-    {
-        return unmappedCacheSet_;
-    }
-
-    void ClearUnmappedCacheSet()
-    {
-        unmappedCacheSet_.clear();
-    }
 private:
     // Used by hardware thred
     uint64_t timestamp_ = 0;
@@ -461,6 +461,7 @@ private:
     bool isForceRefresh_ = false;
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
+    uint64_t fastComposeTimeStampDiff_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool hasDisplayHdrOn_ = false;
@@ -515,8 +516,6 @@ private:
 
     bool isSecurityExemption_ = false;
     ScreenInfo screenInfo_ = {};
-
-    std::set<uint32_t> unmappedCacheSet_ = {};
 
     friend class RSMainThread;
     friend class RSUniRenderVisitor;

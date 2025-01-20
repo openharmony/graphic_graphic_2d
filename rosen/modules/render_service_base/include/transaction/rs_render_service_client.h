@@ -218,6 +218,8 @@ public:
     std::string GetRefreshInfo(pid_t pid);
 
 #ifndef ROSEN_ARKUI_X
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id);
@@ -397,9 +399,11 @@ public:
 
     bool UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
 
-    void NotifyScreenSwitched(ScreenId id);
+    void NotifyScreenSwitched();
 
     void ForceRefreshOneFrameWithNextVSync();
+
+    void SetWindowContainer(NodeId nodeId, bool value);
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap);

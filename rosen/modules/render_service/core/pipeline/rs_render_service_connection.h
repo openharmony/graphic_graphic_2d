@@ -152,6 +152,8 @@ private:
 
     std::string GetRefreshInfo(pid_t pid) override;
 
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     void MarkPowerOffNeedProcessOneFrame() override;
@@ -342,7 +344,9 @@ private:
         sptr<RSISurfaceBufferCallback> callback) override;
     void UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
 
-    void NotifyScreenSwitched(ScreenId id) override;
+    void NotifyScreenSwitched() override;
+
+    void SetWindowContainer(NodeId nodeId, bool value) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
@@ -381,6 +385,7 @@ private:
 
     mutable std::mutex mutex_;
     bool cleanDone_ = false;
+    const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
 
     // save all virtual screenIds created by this connection.
     std::unordered_set<ScreenId> virtualScreenIds_;

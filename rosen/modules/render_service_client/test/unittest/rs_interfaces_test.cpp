@@ -2192,14 +2192,14 @@ HWTEST_F(RSInterfacesTest, SetScreenSecurityMask_003, Function | SmallTest | Lev
 
 /*
  * @tc.name: NotifyScreenSwitched
- * @tc.desc: Test NotifyScreenSwitched with id.
+ * @tc.desc: Test NotifyScreenSwitched.
  * @tc.type: FUNC
- * @tc.require:
+ * @tc.require: issueIBH4PQ
  */
 HWTEST_F(RSInterfacesTest, NotifyScreenSwitched, Function | SmallTest | Level2)
 {
     ASSERT_NE(rsInterfaces, nullptr);
-    rsInterfaces->NotifyScreenSwitched(INVALID_SCREEN_ID);
+    rsInterfaces->NotifyScreenSwitched();
 }
 } // namespace Rosen
 } // namespace OHOS

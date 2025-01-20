@@ -36,6 +36,13 @@ enum CLOSEHDR_SCENEID : uint32_t {
     CLOSEHDR_SCENEID_MAX
 };
 
+enum HdrStatus : uint32_t {
+    NO_HDR = 0,
+    HDR_VIDEO,
+    AI_HDR_VIDEO,
+    HDR_PHOTO = 0x0100,
+};
+
 class RSB_EXPORT RSLuminanceControl {
 public:
     RSLuminanceControl(const RSLuminanceControl&) = delete;
@@ -46,7 +53,7 @@ public:
     RSB_EXPORT static RSLuminanceControl& Get();
     RSB_EXPORT void Init();
 
-    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, bool isHdrOn, int32_t type = HDR_TYPE::PHOTO);
+    RSB_EXPORT bool SetHdrStatus(ScreenId screenId, HdrStatus hdrstatus);
     RSB_EXPORT bool IsHdrOn(ScreenId screenId);
     RSB_EXPORT bool IsDimmingOn(ScreenId screenId);
     RSB_EXPORT void DimmingIncrease(ScreenId screenId);

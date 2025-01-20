@@ -99,6 +99,10 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
     auto imageShader = Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::DECAL,
         Drawing::TileMode::DECAL, Drawing::SamplingOptions(Drawing::FilterMode::LINEAR), inputMatrix);
     auto builder = MakeMotionBlurShader(imageShader, scaleAnchorCoord, scaleSize, rectOffset, motionBlurPara_->radius);
+    if (builder == nullptr) {
+        ROSEN_LOGE("RSMotionBlurFilter::DrawMotionBlur shader builder is nullptr");
+        return;
+    }
 
     auto originImageInfo = image->GetImageInfo();
     auto scaledInfo = Drawing::ImageInfo(std::ceil(image->GetWidth() * FLOAT_IMAGE_SCALE),
@@ -106,12 +110,14 @@ void RSMotionBlurFilter::DrawMotionBlur(Drawing::Canvas& canvas, const std::shar
         originImageInfo.GetAlphaType(), originImageInfo.GetColorSpace());
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
 #ifdef RS_ENABLE_GPU
-    std::shared_ptr<Drawing::Image> tmpBlur(builder->MakeImage(
-        canvas.GetGPUContext().get(), nullptr, scaledInfo, false));
+    auto tmpBlur = builder->MakeImage(canvas.GetGPUContext().get(), nullptr, scaledInfo, false);
 #else
-    std::shared_ptr<Drawing::Image> tmpBlur(builder->MakeImage(
-        nullptr, nullptr, scaledInfo, false));
+    auto tmpBlur = builder->MakeImage(nullptr, nullptr, scaledInfo, false);
 #endif
+    if (tmpBlur == nullptr) {
+        ROSEN_LOGE("RSMotionBlurFilter::DrawMotionBlur blur image is nullptr");
+        return;
+    }
 
     float invBlurScale = 1.0f / FLOAT_IMAGE_SCALE;
     Drawing::Matrix invBlurMatrix;

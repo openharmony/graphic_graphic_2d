@@ -19,8 +19,6 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "skia_adapter/skia_surface.h"
-#include "skia_adapter/skia_canvas.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -323,9 +321,7 @@ HWTEST_F(RSRenderMiscDrawableTest, RSEnvFGColorStrategyDrawable002, TestSize.Lev
 {
     auto drawable = std::make_shared<DrawableV2::RSEnvFGColorStrategyDrawable>();
     auto surface = std::make_shared<Drawing::Surface>();
-    surface->impl_ = std::make_shared<Drawing::SkiaSurface>();
     auto canvas = std::make_shared<Drawing::Canvas>();
-    canvas->impl_ = std::make_shared<Drawing::SkiaCanvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     filterCanvas->surface_ = surface.get();
     auto rect = std::make_shared<Drawing::Rect>(0, 0, 10, 10);

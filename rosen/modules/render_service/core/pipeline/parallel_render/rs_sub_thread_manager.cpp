@@ -326,6 +326,19 @@ void RSSubThreadManager::ReleaseSurface(uint32_t threadIndex) const
     });
 }
 
+void RSSubThreadManager::ClearGPUCompositionCache(const std::function<void()>& task)
+{
+    if (threadList_.empty()) {
+        return;
+    }
+    for (auto& subThread : threadList_) {
+        if (!subThread) {
+            continue;
+        }
+        subThread->PostTask(task);
+    }
+}
+
 void RSSubThreadManager::AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex)
 {
     if (threadList_.size() <= threadIndex) {
@@ -421,6 +434,9 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
             RS_LOGE("RSSubThreadManager::ScheduleRenderNodeDrawable subThread param is nullptr");
             return;
         }
+
+        // The destructor of GPUCompositonCacheGuard, a memory release check will be performed
+        RSMainThread::GPUCompositonCacheGuard guard;
         std::unique_ptr<RSRenderThreadParams> uniParamUnique(uniParam);
         /* Task run in SubThread, the uniParamUnique which is copyed from uniRenderThread will sync to SubTread */
         RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::move(uniParamUnique));

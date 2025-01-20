@@ -56,6 +56,7 @@ public:
     virtual uint32_t Height() const = 0;
     virtual uint32_t PhyWidth() const = 0;
     virtual uint32_t PhyHeight() const = 0;
+    virtual bool IsSamplingOn() const = 0;
     virtual RectI GetActiveRect() const = 0;
     virtual bool IsEnable() const = 0;
     virtual bool IsVirtual() const = 0;
@@ -159,6 +160,7 @@ public:
     // physical screen resolution
     uint32_t PhyWidth() const override;
     uint32_t PhyHeight() const override;
+    bool IsSamplingOn() const override;
     RectI GetActiveRect() const override;
     bool IsEnable() const override;
     bool IsVirtual() const override;
@@ -262,6 +264,7 @@ private:
     uint32_t height_ = 0;
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
+    bool isSamplingOn_ = false;
     int32_t screenBacklightLevel_ = INVALID_BACKLIGHT_VALUE;
     VirtualScreenStatus screenStatus_ = VIRTUAL_SCREEN_PLAY;
     RectI activeRect_;
@@ -280,7 +283,8 @@ private:
     std::vector<ScreenColorGamut> supportedVirtualColorGamuts_ = {
         COLOR_GAMUT_SRGB,
         COLOR_GAMUT_DCI_P3,
-        COLOR_GAMUT_ADOBE_RGB };
+        COLOR_GAMUT_ADOBE_RGB,
+        COLOR_GAMUT_DISPLAY_P3 };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     int32_t currentVirtualColorGamutIdx_ = 0;
     int32_t currentPhysicalColorGamutIdx_ = 0;

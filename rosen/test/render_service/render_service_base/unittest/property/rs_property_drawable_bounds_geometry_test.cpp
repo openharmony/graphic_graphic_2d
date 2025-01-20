@@ -1355,11 +1355,7 @@ HWTEST_F(RSForegroundFilterDrawableTest, Draw001, TestSize.Level1)
     RSPaintFilterCanvas filterCanvas(&canvas);
     drawable.Draw(content, filterCanvas);
     EXPECT_EQ(filterCanvas.GetSurface(), nullptr);
-    std::shared_ptr<Drawing::SkiaSurface> skiaSurface = std::make_shared<Drawing::SkiaSurface>();
-    sk_sp<SkSurface> skSurface = SkSurface::MakeRasterN32Premul(1, 1);
-    auto surface = std::make_shared<Drawing::Surface>();
-    skiaSurface->skSurface_ = skSurface;
-    surface->impl_ = skiaSurface;
+    auto surface = Drawing::Surface::MakeRasterN32Premul(1, 1);
     filterCanvas.surface_ = surface.get();
     drawable.Draw(content, filterCanvas);
     EXPECT_NE(filterCanvas.GetSurface(), nullptr);

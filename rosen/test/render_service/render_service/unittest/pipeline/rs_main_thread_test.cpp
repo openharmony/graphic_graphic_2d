@@ -2777,6 +2777,23 @@ HWTEST_F(RSMainThreadTest, ForceRefreshForUni002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ForceRefreshForUni003
+ * @tc.desc: ForceRefreshForUni Test, with fastcompose
+ * @tc.type: FUNC
+ * @tc.require: issueIBGV2W
+ */
+HWTEST_F(RSMainThreadTest, ForceRefreshForUni003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    auto isUniRender = mainThread->isUniRender_;
+    mainThread->isUniRender_ = true;
+    mainThread->ForceRefreshForUni(true);
+    ASSERT_EQ(mainThread->isForceRefresh_, false);
+    mainThread->isUniRender_ = isUniRender;
+}
+
+/**
  * @tc.name: PerfForBlurIfNeeded
  * @tc.desc: PerfForBlurIfNeeded Test
  * @tc.type: FUNC
@@ -4858,5 +4875,25 @@ HWTEST_F(RSMainThreadTest, CloseHdrWhenMultiDisplayInPCTest, TestSize.Level2)
     auto isMultiDisplayPre = mainThread->isMultiDisplayPre_;
     mainThread->CloseHdrWhenMultiDisplayInPC(isMultiDisplayPre);
     EXPECT_EQ(isMultiDisplayPre, mainThread->isMultiDisplayPre_);
+}
+
+/**
+ * @tc.name: CheckFastCompose
+ * @tc.desc: test CheckFastCompose
+ * @tc.type: FUNC
+ * @tc.require: issueIBGV2W
+ */
+HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<VSyncConnection> conn = new VSyncConnection(mainThread->rsVSyncDistributor_, "rs");
+    mainThread->receiver_->init_ = false;
+    mainThread->CheckFastCompose(0);
+    mainThread->receiver_->init_ = true;
+    mainThread->lastFastComposeTimeStamp_ = 0;
+    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    mainThread->lastFastComposeTimeStamp_ = mainThread->timestamp_;
+    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
 }
 } // namespace OHOS::Rosen

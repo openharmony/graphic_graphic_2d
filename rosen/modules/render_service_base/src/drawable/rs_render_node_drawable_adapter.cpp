@@ -18,7 +18,6 @@
 #include <sstream>
 
 #include "skia_adapter/skia_canvas.h"
-#include "src/core/SkCanvasPriv.h"
 
 #include "common/rs_background_thread.h"
 #include "common/rs_optional_trace.h"
@@ -439,9 +438,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 RS_OPTIONAL_TRACE_NAME_FMT("ClipHoleForBlur shadowRect:[%.2f, %.2f, %.2f, %.2f]", shadowRect.GetLeft(),
                     shadowRect.GetTop(), shadowRect.GetWidth(), shadowRect.GetHeight());
                 Drawing::AutoCanvasRestore arc(*curCanvas, true);
-                auto coreCanvas = curCanvas->GetCanvasData();
-                auto skiaCanvas = static_cast<Drawing::SkiaCanvas*>(coreCanvas.get());
-                SkCanvasPriv::ResetClip(skiaCanvas->ExportSkCanvas());
+                curCanvas->ResetClip();
                 curCanvas->ClipRect(shadowRect);
                 curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
                 UpdateFilterInfoForNodeGroup(curCanvas);

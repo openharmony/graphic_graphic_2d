@@ -249,6 +249,11 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
     return "";
 }
 
+int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return 0;
+}
+
 int32_t RSRenderServiceClient::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     return {};
@@ -688,7 +693,11 @@ void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop
 {
 }
 
-void RSRenderServiceClient::NotifyScreenSwitched(ScreenId id)
+void RSRenderServiceClient::NotifyScreenSwitched()
+{
+}
+
+void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 } // namespace Rosen
