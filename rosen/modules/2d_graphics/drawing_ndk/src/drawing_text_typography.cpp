@@ -26,6 +26,7 @@
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
+#include "txt/text_bundle_config_parser.h"
 #include "rosen_text/font_collection.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -438,7 +439,17 @@ void OH_Drawing_TypographyHandlerAddText(OH_Drawing_TypographyCreate* handler, c
         return;
     }
 
-    const std::u16string wideText = Str8ToStr16ByIcu(text);
+    std::u16string wideText;
+    if (OHOS::Rosen::SPText::TextBundleConfigParser::GetInstance()
+        .IsTargetApiVersion(OHOS::Rosen::SPText::SINCE_API16_VERSION)) {
+        wideText = Str8ToStr16ByIcu(text);
+    } else {
+        if (!IsUtf8(text, strlen(text))) {
+            LOGE("text is not utf-8");
+            return;
+        }
+        wideText = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.from_bytes(text);
+    }
 
     ConvertToOriginalText<TypographyCreate>(handler)->AppendText(wideText);
 }

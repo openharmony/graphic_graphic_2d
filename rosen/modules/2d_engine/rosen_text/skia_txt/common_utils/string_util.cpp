@@ -26,17 +26,17 @@ static constexpr uint16_t HIGHT_SURROGATE_MIN = 0xD800;
 static constexpr uint16_t HIGHT_SURROGATE_MAX = 0xDBFF;
 static constexpr uint16_t UTF16_REPLACEMENT_CHARACTER = 0xFFFD;
  
-bool IsUTF16LowSurrogate(uint16_t ch)
+bool Utf16Utils::IsUTF16LowSurrogate(uint16_t ch)
 {
     return ch >= LOW_SURROGATE_MIN && ch <= LOW_SURROGATE_MAX;
 }
  
-bool IsUTF16HighSurrogate(uint16_t ch)
+bool Utf16Utils::IsUTF16HighSurrogate(uint16_t ch)
 {
     return ch >= HIGHT_SURROGATE_MIN && ch <= HIGHT_SURROGATE_MAX;
 }
  
-void HandleIncompleteSurrogatePairs(std::u16string& str)
+void Utf16Utils::HandleIncompleteSurrogatePairs(std::u16string& str)
 {
     size_t i = 0;
     size_t length = str.size();

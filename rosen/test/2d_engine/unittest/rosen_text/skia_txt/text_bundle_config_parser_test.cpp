@@ -13,14 +13,16 @@
  * limitations under the License.
  */
 
-#include "text_bundle_config_parser.h"
+#define private public
+#ifndef OHOS_TEXT_ENABLE
+#define OHOS_TEXT_ENABLE
+#endif
+#include "txt/text_bundle_config_parser.h"
+#undef private
 #include "gtest/gtest.h"
-
-#ifdef OHOS_TEXT_ENABLE
 #include "application_info.h"
 #include "bundle_info.h"
 #include "hap_module_info.h"
-#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -49,7 +51,7 @@ void TextBundleConfigParserTest::TearDownTestCase() {}
  */
 HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
 {
-    EXPECT_FALSE(TextBundleConfigParser::IsAdapterTextHeightEnabled());
+    EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsAdapterTextHeightEnabled());
 }
 
 #ifdef OHOS_TEXT_ENABLE
@@ -60,7 +62,7 @@ HWTEST_F(TextBundleConfigParserTest, BundleManagerTest001, TestSize.Level1)
  */
 HWTEST_F(TextBundleConfigParserTest, GetSystemAbilityManagerTest001, TestSize.Level1)
 {
-    EXPECT_EQ(TextBundleConfigParser::GetSystemAbilityManager(), nullptr);
+    EXPECT_EQ(TextBundleConfigParser::GetInstance().GetSystemAbilityManager(), nullptr);
 }
 
 /*
@@ -70,8 +72,21 @@ HWTEST_F(TextBundleConfigParserTest, GetSystemAbilityManagerTest001, TestSize.Le
  */
 HWTEST_F(TextBundleConfigParserTest, IsMetaDataExistInModuleTest001, TestSize.Level1)
 {
-    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInModule(metaData));
-    EXPECT_FALSE(TextBundleConfigParser::IsMetaDataExistInModule(""));
+    EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsMetaDataExistInModule(metaData));
+    EXPECT_FALSE(TextBundleConfigParser::GetInstance().IsMetaDataExistInModule(""));
+}
+
+/*
+ * @tc.name: IsTargetApiVersionText001
+ * @tc.desc: test for IsTargetApiVersion
+ * @tc.type: FUNC
+ */
+HWTEST_F(TextBundleConfigParserTest, IsTargetApiVersionText001, TestSize.Level1)
+{
+    TextBundleConfigParser::GetInstance().initStatus_ = true;
+    TextBundleConfigParser::GetInstance().targetApiVersionResult_ = SINCE_API16_VERSION;
+    ASSERT_TRUE(TextBundleConfigParser::GetInstance().IsTargetApiVersion(SINCE_API16_VERSION));
+    TextBundleConfigParser::GetInstance().initStatus_ = false;
 }
 #endif
 } // namespace SPText
