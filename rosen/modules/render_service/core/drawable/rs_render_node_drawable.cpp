@@ -17,19 +17,19 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
+#include "common/rs_background_thread.h"
+#include "gfx/performance/rs_perfmonitor_reporter.h"
+#include "hisysevent.h"
 #include "luminance/rs_luminance_control.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_util.h"
-#include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "system/rs_system_parameters.h"
 #include "pipeline/rs_main_thread.h"
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
-#include "hisysevent.h"
-#include "common/rs_background_thread.h"
 
 namespace OHOS::Rosen::DrawableV2 {
 #ifdef RS_ENABLE_VK
@@ -882,6 +882,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
                 "BUNDLE_NAME", bundleName,
                 "CONTINUOUS_UPDATE_CACHE_TIMES", updateTimes,
                 "UPDATE_CACHE_TIME_TAKEN", timeTaken);
+            RS_LOGW("Rendergroup Subhealth report bundleName[%{public}s] nodeId[%{public}ld] ret[%{public}d]",
+                bundleName.c_str(), nodeId, ret);
         });
         {
             std::lock_guard<std::mutex> lock(drawingCacheLastReportTimeMapMutex_);
