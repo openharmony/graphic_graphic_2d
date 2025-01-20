@@ -882,7 +882,7 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
                 "BUNDLE_NAME", bundleName,
                 "CONTINUOUS_UPDATE_CACHE_TIMES", updateTimes,
                 "UPDATE_CACHE_TIME_TAKEN", timeTaken);
-            RS_LOGW("Rendergroup Subhealth report bundleName[%{public}s] nodeId[%{public}ld] ret[%{public}d]",
+            RS_LOGW("Rendergroup Subhealth report bundleName[%{public}s] nodeId[%{public}llu] ret[%{public}d]",
                 bundleName.c_str(), nodeId, ret);
         });
         {

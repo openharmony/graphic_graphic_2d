@@ -26,6 +26,7 @@ const int32_t COUNTER_SIZE = 4;
 const int32_t REASON_SIZE = 7;
 const char* CPU_ONDRAW = "CPU_ONDRAW";
 const char* CPU_FLUSH = "CPU_FLUSH";
+// for rendergroup subhealth
 #endif
 
 RSPerfMonitorReporter& RSPerfMonitorReporter::GetInstance()
