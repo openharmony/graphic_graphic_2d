@@ -32,10 +32,10 @@ public:
     ~RSUiCaptureTaskParallel() = default;
 
     static void Capture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig);
+        const RSSurfaceCaptureConfig& captureConfig, const Drawing::Rect& specifiedAreaRect);
 
-    bool CreateResources();
-    bool Run(sptr<RSISurfaceCaptureCallback> callback);
+    bool CreateResources(const Drawing::Rect& specifiedAreaRect);
+    bool Run(sptr<RSISurfaceCaptureCallback> callback, const Drawing::Rect& specifiedAreaRect);
 
     static void ProcessUiCaptureCallback(
         sptr<RSISurfaceCaptureCallback> callback, NodeId id, Media::PixelMap* pixelmap);
@@ -51,9 +51,10 @@ public:
     }
 
 private:
+    static bool IsRectValid(NodeId nodeId, const Drawing::Rect& specifiedAreaRect);
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap) const;
     std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
-
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByRect(const Drawing::Rect& specifiedAreaRect) const;
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
     NodeId nodeId_ = INVALID_NODEID;

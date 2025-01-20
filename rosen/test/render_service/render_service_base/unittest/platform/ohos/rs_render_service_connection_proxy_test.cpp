@@ -494,13 +494,14 @@ HWTEST_F(RSRenderServiceConnectionProxyTest, TakeSurfaceCapture, TestSize.Level1
     RSSurfaceCaptureBlurParam blurParam;
     blurParam.isNeedBlur = true;
     blurParam.blurRadius = 10;
-    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     ASSERT_NE(samgr, nullptr);
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
-    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam);
+    proxy->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
