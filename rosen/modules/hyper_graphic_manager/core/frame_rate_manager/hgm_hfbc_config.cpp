@@ -12,13 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "hgm_hfbc_config.h"
- 
+
 namespace OHOS {
 namespace Rosen {
- 
+
 void HgmHfbcConfig::HandleHfbcConfig(const std::vector<std::string>& packageList) { }
- 
+
 } // namespace Rosen
 } // namespace OHOS
