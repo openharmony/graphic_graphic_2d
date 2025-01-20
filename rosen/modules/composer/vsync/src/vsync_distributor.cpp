@@ -1258,7 +1258,7 @@ void VSyncDistributor::OnDVSyncEvent(int64_t now, int64_t period,
     {
         bool waitForVsync = false;
         std::lock_guard<std::mutex> locker(mutex_);
-        DVSync::Instance().RecordVsync(this, now, period, refreshRate, true);
+        DVSync::Instance().RecordVSync(this, now, period, refreshRate, true);
         vsyncCount = DVSync::Instance().GetVsyncCount(event_.vsyncCount);
         if (refreshRate > 0) {
             event_.vsyncPulseCount += static_cast<int64_t>(vsyncMaxRefreshRate / refreshRate);
@@ -1503,7 +1503,7 @@ void VSyncDistributor::DVSyncDisableVSync()
 void VSyncDistributor::DVSyncRecordVSync(int64_t now, int64_t period, uint32_t refreshRate, bool isDvsyncController)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    DVSync::Instance().RecordVsync(this, now, period, refreshRate, false);
+    DVSync::Instance().RecordVSync(this, now, period, refreshRate, false);
 #endif
 }
 
@@ -1543,9 +1543,9 @@ bool VSyncDistributor::DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnecti
     int64_t &period, int64_t &vsyncCount)
 {
 #if defined(RS_ENABLE_DVSYNC_2)
-    bool NeedPreexecute = DVSync::Instance().NeedPreexecuteAndUpdateTs(connection, timestamp);
+    bool NeedPreexecute = DVSync::Instance().NeedPreexecuteAndUpdateTs(connection, timestamp, period);
     if (NeedPreexecute) {
-        period = event_.period;
+        RS_TRACE_NAME_FMT("DVSync::DVSyncCheckPreexecuteAndUpdateTs timestamp:%ld, period:%ld", timestamp, period);
         event_.vsyncCount++;
         vsyncCount = event_.vsyncCount;
         if (connection->rate_ < 0) {
