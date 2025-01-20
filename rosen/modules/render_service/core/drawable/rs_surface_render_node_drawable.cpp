@@ -1022,6 +1022,14 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }
 
+bool RSSurfaceRenderNodeDrawable::RecordTimestamp(NodeId id, uint32_t seqNum)
+{
+    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    return surfaceFpsManager.RecordPresentTime(id, currentTime, seqNum);
+}
+
 bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
                                                 RSRenderThreadParams& uniParam,
                                                 RSSurfaceRenderParams& surfaceParams, bool isCapture)
@@ -1083,13 +1091,10 @@ void RSSurfaceRenderNodeDrawable::DrawBufferForRotationFixed(RSPaintFilterCanvas
 void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams, BufferDrawParam& params)
 {
-    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     if (params.buffer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
     } else {
-        surfaceFpsManager.RecordPresentTime(surfaceParams.GetId(), currentTime, params.buffer->GetSeqNum());
+        RecordTimestamp(surfaceParams.GetId(), params.buffer->GetSeqNum());
     }
     auto bgColor = surfaceParams.GetBackgroundColor();
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();

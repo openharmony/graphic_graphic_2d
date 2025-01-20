@@ -301,6 +301,8 @@ private:
     // Watermark
     void DrawWatermark(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
+    bool RecordTimestamp(NodeId id, uint32_t seqNum);
+
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
     void DrawBufferForRotationFixed(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);
 

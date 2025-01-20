@@ -330,7 +330,7 @@ void RSHardwareThread::RecordTimestamp(const std::vector<LayerInfoPtr>& layers)
                 continue;
             }
             uint64_t id = layer->GetNodeId();
-            const auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+            auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
             surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
     }
 }
