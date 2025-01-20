@@ -4738,7 +4738,7 @@ void RSMainThread::ReportRSFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool for
     drawingTime = (forceRefreshFlag) ? idealPeriod : idealPeriod + extraReserve;
     preIdealPeriod_ = idealPeriod;
     preExtraReserve_ = extraReserve;
-    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: " PRId64 ", reservedDrawingTime:" PRId64 "",
+    RS_TRACE_NAME_FMT("currentRate: %u, vsyncOffset: %" PRId64 ", reservedDrawingTime: %" PRId64 "",
         currentRate, vsyncOffset, drawingTime);
 
     std::unordered_map<std::string, std::string> payload = {};
