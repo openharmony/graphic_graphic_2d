@@ -372,6 +372,10 @@ public:
     }
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
+    uint64_t GetCurrentVsyncTime() const
+    {
+        return curTime_;
+    }
 
     bool GetMultiDisplayChange() const
     {
