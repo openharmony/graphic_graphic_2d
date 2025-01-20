@@ -118,6 +118,11 @@ public:
     // dfx
     static void InitDfxForCacheInfo();
     static void DrawDfxForCacheInfo(RSPaintFilterCanvas& canvas);
+	
+	virtual bool HasCache() const
+    {
+        return false;
+    }
 
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
