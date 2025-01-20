@@ -341,7 +341,8 @@ void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strate
 {
     HGM_LOGD("lightFactorStatus:%{public}d, isFactor:%{public}u, lowAmbientStatus:%{public}u",
         lightFactorStatus_.load(), strategyRes.isFactor, lowAmbientStatus_);
-    if (isLtpo_ && lightFactorStatus_.load() == LightFactorStatus::NORMAL_LOW && strategyRes.isFactor && lowAmbientStatus_) {
+    if (isLtpo_ && lightFactorStatus_.load() == LightFactorStatus::NORMAL_LOW &&
+        strategyRes.isFactor && lowAmbientStatus_) {
         return;
     }
     if (!isLtpo_ && lowAmbientStatus_ && lightFactorStatus_.load() == LightFactorStatus::LOW_LEVEL) {
