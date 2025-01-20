@@ -870,7 +870,7 @@ void RSUniRenderVisitor::QuickPrepareDisplayRenderNode(RSDisplayRenderNode& node
     screenRenderParams.hasCaptureWindow = std::move(hasCaptureWindow_);
     curDisplayNode_->SetFingerprint(hasFingerprint_[currentVisitDisplay_]);
     curDisplayNode_->UpdateScreenRenderParams(screenRenderParams);
-    curDisplayNode_->UpdateOffscreenRenderParams(curDisplayNode_->IsRotationChanged());
+    curDisplayNode_->UpdateOffscreenRenderParams(displayNodeRotationChanged_);
     UpdateColorSpaceAfterHwcCalc(node);
     UpdatePixelFormatAfterHwcCalc(node);
     HandleColorGamuts(node, screenManager_);
