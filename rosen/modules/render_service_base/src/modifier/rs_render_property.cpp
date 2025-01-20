@@ -309,7 +309,11 @@ std::shared_ptr<RSRenderPropertyBase> operator+(
         return {};
     }
 
-    return a->Clone()->Add(b);
+    auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Add(b);
 }
 
 std::shared_ptr<RSRenderPropertyBase> operator-(
@@ -319,7 +323,11 @@ std::shared_ptr<RSRenderPropertyBase> operator-(
         return {};
     }
 
-    return a->Clone()->Minus(b);
+    auto clone = a->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+    return clone->Minus(b);
 }
 
 std::shared_ptr<RSRenderPropertyBase> operator*(
@@ -329,7 +337,12 @@ std::shared_ptr<RSRenderPropertyBase> operator*(
         return {};
     }
 
-    return value->Clone()->Multiply(scale);
+    auto clone = value->Clone();
+    if (clone == nullptr) {
+        return {};
+    }
+
+    return clone->Multiply(scale);
 }
 
 bool operator==(
