@@ -853,7 +853,8 @@ void RSRenderNodeDrawable::UpdateCacheSurface(Drawing::Canvas& canvas, const RSR
         RS_TRACE_BEGIN("SubHealthEvent Rendergroup, updateCache interval:" + std::to_string(interval.count()));
     }
 	int updateTimes = drawingCacheUpdateTimeMap_[nodeId_];
-    RSPerfMonitorReporter::GetInstance().ProcessRendergroupSubhealth(nodeId_, updateTimes, interval.count(), startTime);    
+    RSPerfMonitorReporter::GetInstance().ProcessRendergroupSubhealth(nodeId_, updateTimes, interval.count(),
+        startTime);
 	if (needTrace) {
         RS_TRACE_END();
     }
