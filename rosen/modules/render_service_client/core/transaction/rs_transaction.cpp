@@ -82,7 +82,7 @@ void RSTransaction::Commit()
     if (transactionProxy != nullptr) {
         RS_TRACE_NAME_FMT(
             "CommitSyncTransaction syncId: %lu syncCount: %d parentPid: %d", syncId_, transactionCount_, parentPid_);
-        ROSEN_LOGI("CloseSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d parentPid: %{public}d",
+        ROSEN_LOGI("CommitSyncTransaction syncId: %{public}" PRIu64 " syncCount: %{public}d parentPid: %{public}d",
             syncId_, transactionCount_, parentPid_);
         transactionProxy->SetSyncTransactionNum(transactionCount_);
         transactionProxy->SetSyncId(syncId_);

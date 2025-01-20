@@ -194,7 +194,7 @@ int32_t RSInteractiveImplictAnimator::StartAnimation()
 
     auto transactionProxy = RSTransactionProxy::GetInstance();
     if (transactionProxy == nullptr) {
-        ROSEN_LOGE("RSTransactionProxy is nullptr");
+        ROSEN_LOGE("Failed to start interactive animation, transaction proxy is null!");
         return static_cast<int32_t>(StartAnimationErrorCode::INVALID_PROXY);
     }
     std::unique_ptr<RSCommand> command = std::make_unique<RSInteractiveAnimatorCreate>(id_, renderAnimations, true);
