@@ -312,7 +312,8 @@ std::string RSInterfaces::GetRefreshInfo(pid_t pid)
 }
 
 bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
-    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
+    std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
+    bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
     if (!node) {
         ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
@@ -334,7 +335,7 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         if (isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
     } else {
         return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
     }

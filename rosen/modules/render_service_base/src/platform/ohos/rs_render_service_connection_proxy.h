@@ -141,6 +141,7 @@ public:
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     void SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
@@ -149,6 +150,8 @@ public:
     bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
 
     bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
+
+    bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
 
     void SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
