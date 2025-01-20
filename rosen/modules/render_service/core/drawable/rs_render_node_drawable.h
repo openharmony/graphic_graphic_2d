@@ -16,10 +16,10 @@
 #ifndef RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
 #define RENDER_SERVICE_DRAWABLE_RS_RENDER_NODE_DRAWABLE_H
 
-#include <memory>
-#include <vector>
-#include <queue>
 #include <chrono>
+#include <memory>
+#include <queue>
+#include <vector>
 
 #include "common/rs_common_def.h"
 #include "draw/canvas.h"
