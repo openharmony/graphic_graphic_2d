@@ -213,7 +213,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
         }
         if (!surfaceParams->IsAppWindow() || surfaceParams->GetDstRect().IsEmpty() ||
             surfaceParams->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos ||
-            surfaceParams->GetIsSkipLayer()) {
+            surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP)) {
             continue;
         }
         auto surfaceDirtyManager = surfaceNodeDrawable->GetSyncDirtyManager();

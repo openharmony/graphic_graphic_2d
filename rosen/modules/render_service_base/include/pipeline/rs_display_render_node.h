@@ -29,6 +29,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
+#include "common/rs_special_layer_manager.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
@@ -47,10 +48,6 @@ public:
     struct ScreenRenderParams
     {
         ScreenInfo screenInfo;
-        std::map<ScreenId, bool> displayHasSecSurface;
-        std::map<ScreenId, bool> displayHasSkipSurface;
-        std::map<ScreenId, bool> displayHasSnapshotSkipSurface;
-        std::map<ScreenId, bool> displayHasProtectedSurface;
         std::map<ScreenId, bool> displaySpecailSurfaceChanged;
         std::map<ScreenId, bool> hasCaptureWindow;
     };
@@ -246,6 +243,16 @@ public:
     const std::vector<NodeId>& GetSecurityLayerList()
     {
         return securityLayerList_;
+    }
+
+    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
+    {
+        return specialLayerManager_;
+    }
+
+    const RSSpecialLayerManager& GetSpecialLayerMgr() const
+    {
+        return specialLayerManager_;
     }
 
     void SetSecurityExemption(bool isSecurityExemption)
@@ -588,6 +595,7 @@ private:
 
     // Use in virtual screen security exemption
     std::vector<NodeId> securityLayerList_;  // leashPersistentId and surface node id
+    RSSpecialLayerManager specialLayerManager_;
 
     // Use in mirror screen visible rect projection
     std::vector<NodeId> securityVisibleLayerList_;  // surface node id

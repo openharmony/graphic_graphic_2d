@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "common/rs_macros.h"
+#include "common/rs_special_layer_manager.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_display_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -85,21 +86,13 @@ public:
     {
         return hasChildCrossNode_;
     }
-    const std::map<ScreenId, bool>& GetDisplayHasSecSurface() const
+    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
     {
-        return displayHasSecSurface_;
+        return specialLayerManager_;
     }
-    const std::map<ScreenId, bool>& GetDisplayHasSkipSurface() const
+    const RSSpecialLayerManager& GetSpecialLayerMgr() const
     {
-        return displayHasSkipSurface_;
-    }
-    const std::map<ScreenId, bool>& GetDisplayHasSnapshotSkipSurface() const
-    {
-        return displayHasSnapshotSkipSurface_;
-    }
-    const std::map<ScreenId, bool>& GetDisplayHasProtectedSurface() const
-    {
-        return displayHasProtectedSurface_;
+        return specialLayerManager_;
     }
     const std::map<ScreenId, bool>& GethasCaptureWindow() const
     {
@@ -125,10 +118,6 @@ public:
     float GetGlobalZOrder() const;
     void SetMainAndLeashSurfaceDirty(bool isDirty);
     bool GetMainAndLeashSurfaceDirty() const;
-    bool HasSecurityLayer() const;
-    bool HasSkipLayer() const;
-    bool HasSnapshotSkipLayer() const;
-    bool HasProtectedLayer() const;
     bool HasCaptureWindow() const;
     void SetNeedOffscreen(bool needOffscreen);
     bool GetNeedOffscreen() const;
@@ -179,10 +168,7 @@ public:
 
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetMirrorSourceDrawable() override;
 private:
-    std::map<ScreenId, bool> displayHasSecSurface_;
-    std::map<ScreenId, bool> displayHasSkipSurface_;
-    std::map<ScreenId, bool> displayHasSnapshotSkipSurface_;
-    std::map<ScreenId, bool> displayHasProtectedSurface_;
+    RSSpecialLayerManager specialLayerManager_;
     std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::vector<RSBaseRenderNode::SharedPtr> allMainAndLeashSurfaces_;

@@ -26,6 +26,7 @@
 
 #include "common/rs_macros.h"
 #include "common/rs_occlusion_region.h"
+#include "common/rs_special_layer_manager.h"
 #include "common/rs_vector4.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
@@ -308,7 +309,7 @@ public:
 
     bool IsHardwareNeedMakeImage() const
     {
-        if (isProtectedLayer_) {
+        if (specialLayerManager_.Find(SpecialLayerType::PROTECTED)) {
             return false;
         }
         return hardwareNeedMakeImage_;
@@ -338,7 +339,7 @@ public:
     {
         // a protected node not on the tree need to release buffer when producer produce buffers
         // release buffer in ReleaseSelfDrawingNodeBuffer function
-        if (isProtectedLayer_ && IsOnTheTree()) {
+        if (specialLayerManager_.Find(SpecialLayerType::PROTECTED) && IsOnTheTree()) {
             constexpr float DRM_MIN_ALPHA = 0.1f;
             return GetGlobalAlpha() < DRM_MIN_ALPHA; // if alpha less than 0.1, drm layer display black background.
         }
@@ -529,10 +530,6 @@ public:
     void SetProtectedLayer(bool isProtectedLayer);
 
     // get whether it is a security/skip layer itself
-    bool GetSecurityLayer() const;
-    bool GetSkipLayer() const;
-    bool GetSnapshotSkipLayer() const;
-    bool GetProtectedLayer() const;
     LeashPersistentId GetLeashPersistentId() const;
 
     // set ability state that surfaceNode belongs to as foreground or background
@@ -540,10 +537,6 @@ public:
     RSSurfaceNodeAbilityState GetAbilityState() const override;
 
     // get whether it and it's subtree contain security layer
-    bool GetHasSecurityLayer() const;
-    bool GetHasSkipLayer() const;
-    bool GetHasSnapshotSkipLayer() const;
-    bool GetHasProtectedLayer() const;
     bool GetHasPrivacyContentLayer() const;
 
     void ResetSpecialLayerChangedFlag()
@@ -556,11 +549,8 @@ public:
         return specialLayerChanged_;
     }
 
-    void SyncSecurityInfoToFirstLevelNode();
-    void SyncSkipInfoToFirstLevelNode();
-    void SyncOnTheTreeInfoToFirstLevelNode();
-    void SyncSnapshotSkipInfoToFirstLevelNode();
-    void SyncProtectedInfoToFirstLevelNode();
+    void UpdateSpecialLayerInfoByTypeChange(uint32_t type, bool isSpecialLayer);
+    void UpdateSpecialLayerInfoByOnTreeStateChange();
     void SyncPrivacyContentInfoToFirstLevelNode();
 
     void SetFingerprint(bool hasFingerprint);
@@ -1359,6 +1349,15 @@ public:
     {
         subThreadAssignable_ = subThreadAssignable;
     }
+    RSSpecialLayerManager& GetMultableSpecialLayerMgr()
+    {
+        return specialLayerManager_;
+    }
+
+    const RSSpecialLayerManager& GetSpecialLayerMgr() const
+    {
+        return specialLayerManager_;
+    }
 
     bool NeedUpdateDrawableBehindWindow() const override;
     void SetOldNeedDrawBehindWindow(bool val);
@@ -1437,10 +1436,7 @@ private:
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
     bool IsCurFrameSwitchToPaint();
 
-    bool isSecurityLayer_ = false;
-    bool isSkipLayer_ = false;
-    bool isSnapshotSkipLayer_ = false;
-    bool isProtectedLayer_ = false;
+    RSSpecialLayerManager specialLayerManager_;
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
     bool hasFingerprint_ = false;

@@ -367,31 +367,31 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface001, TestSize.Level1)
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
     ASSERT_TRUE(!surfaceParams->IsAttractionValid());
 
-    surfaceParams->protectedLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::PROTECTED, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->skipLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::SKIP, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->snapshotSkipLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::SNAPSHOT_SKIP, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->securityLayerIds_.insert(1);
+    surfaceParams->GetMultableSpecialLayerMgr().AddIds(SpecialLayerType::SECURITY, 1);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    ASSERT_TRUE(surfaceParams->HasSkipLayer());
-    ASSERT_TRUE(surfaceParams->HasSnapshotSkipLayer());
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SKIP));
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SNAPSHOT_SKIP));
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 
-    surfaceParams->isProtectedLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSkipLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSnapshotSkipLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SNAPSHOT_SKIP, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSecurityLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
     CaptureParam param;
     param.isSingleSurface_ = true;
     RSUniRenderThread::SetCaptureParam(param);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    ASSERT_TRUE(surfaceParams->GetIsSecurityLayer());
+    ASSERT_TRUE(surfaceParams->GetSpecialLayerMgr().Find(SpecialLayerType::SECURITY));
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
@@ -421,10 +421,10 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface002, TestSize.Level1)
     ASSERT_NE(surfaceDrawable_, nullptr);
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
-    surfaceParams->isSecurityLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
-    surfaceParams->isSecurityLayer_ = false;
-    surfaceParams->isProtectedLayer_ = true;
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, false);
+    surfaceParams->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 }
 

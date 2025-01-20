@@ -220,7 +220,7 @@ void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRe
 
 bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
 {
-    if (params.GetIsProtectedLayer() == false) {
+    if (params.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED) == false) {
         return false;
     }
     if (params.GetAnimateState() == true ||

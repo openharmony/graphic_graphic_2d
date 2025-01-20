@@ -340,8 +340,8 @@ HWTEST_F(RSRenderServiceVisitorTest, PrepareSurfaceRenderNode002, TestSize.Level
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
     rsRenderServiceVisitor->isSecurityDisplay_ = true;
-    rsSurfaceRenderNode.SetSkipLayer(true);
-    ASSERT_EQ(true, rsSurfaceRenderNode.GetSkipLayer());
+    rsSurfaceRenderNode.GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+    ASSERT_EQ(true, rsSurfaceRenderNode.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     rsRenderServiceVisitor->PrepareSurfaceRenderNode(rsSurfaceRenderNode);
 }
 
@@ -856,8 +856,8 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessSurfaceRenderNode005, TestSize.Level
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config);
     rsRenderServiceVisitor->processor_ =
         RSProcessorFactory::CreateProcessor(RSDisplayRenderNode::CompositeType::HARDWARE_COMPOSITE);
-    rsSurfaceRenderNode->SetSkipLayer(true);
-    ASSERT_EQ(true, rsSurfaceRenderNode->GetSkipLayer());
+    rsSurfaceRenderNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SKIP, true);
+    ASSERT_EQ(true, rsSurfaceRenderNode->GetSpecialLayerMgr().Find(SpecialLayerType::SKIP));
     rsRenderServiceVisitor->ProcessSurfaceRenderNode(*rsSurfaceRenderNode);
 }
 

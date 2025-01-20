@@ -25,6 +25,7 @@
 #include "rs_base_render_engine.h"
 #include "system/rs_system_parameters.h"
 
+#include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -284,7 +285,7 @@ private:
     void HandlePixelFormat(RSDisplayRenderNode& node, const sptr<RSScreenManager>& screenManager);
 
     bool IsHardwareComposerEnabled();
-    void UpdateSecuritySkipAndProtectedLayersRecord(RSSurfaceRenderNode& node);
+    void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSDisplayRenderNode& node);
 
     bool ForcePrepareSubTree()
@@ -293,8 +294,10 @@ private:
     }
     bool IsValidInVirtualScreen(RSSurfaceRenderNode& node) const
     {
-        return !node.GetSkipLayer() && !node.GetSecurityLayer() && (screenInfo_.whiteList.empty() ||
-            screenInfo_.whiteList.find(node.GetId()) != screenInfo_.whiteList.end());
+        const auto& specialLayerMgr = node.GetSpecialLayerMgr();
+        return !specialLayerMgr.Find(SpecialLayerType::SKIP) &&
+            !specialLayerMgr.Find(SpecialLayerType::SECURITY) &&
+            (screenInfo_.whiteList.empty() || screenInfo_.whiteList.find(node.GetId()) != screenInfo_.whiteList.end());
     }
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
@@ -335,10 +338,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curDisplayDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
     ScreenId currentVisitDisplay_ = INVALID_SCREEN_ID;
-    std::map<ScreenId, bool> displayHasSecSurface_;
-    std::map<ScreenId, bool> displayHasSkipSurface_;
-    std::map<ScreenId, bool> displayHasSnapshotSkipSurface_;
-    std::map<ScreenId, bool> displayHasProtectedSurface_;
+    RSSpecialLayerManager specialLayerManager_;
     std::map<ScreenId, bool> displaySpecailSurfaceChanged_;
     std::map<ScreenId, bool> hasCaptureWindow_;
     std::map<ScreenId, bool> hasFingerprint_;
