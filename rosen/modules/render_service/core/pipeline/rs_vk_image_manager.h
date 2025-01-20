@@ -79,7 +79,7 @@ public:
     ~RSVkImageManager() noexcept = default;
 
     std::shared_ptr<NativeVkImageRes> MapVkImageFromSurfaceBuffer(const sptr<OHOS::SurfaceBuffer>& buffer,
-        const sptr<SyncFence>& acquireFence, pid_t threadIndex, bool isProtectedCondition);
+        const sptr<SyncFence>& acquireFence, pid_t threadIndex);
     void UnMapVkImageFromSurfaceBuffer(uint32_t seqNum);
     void ShrinkCachesIfNeeded();
     std::shared_ptr<NativeVkImageRes> CreateImageCacheFromBuffer(sptr<OHOS::SurfaceBuffer> buffer,
@@ -87,7 +87,7 @@ public:
 
 private:
     std::shared_ptr<NativeVkImageRes> NewImageCacheFromBuffer(
-        const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex);
+        const sptr<OHOS::SurfaceBuffer>& buffer, pid_t threadIndex, bool isProtectedCondition);
 
     mutable std::mutex opMutex_;
     std::queue<uint32_t> cacheQueue_; // fifo, size restricted by MAX_CACHE_SIZE
