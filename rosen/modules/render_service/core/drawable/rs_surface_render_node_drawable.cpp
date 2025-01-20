@@ -230,7 +230,7 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(RSRende
     }
 
     auto visibleRegion = surfaceParams.GetVisibleRegion();
-    if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty()) {
+    if (uniParam.IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
     // The region is dirty region of this SurfaceNode (including sub-surface node in its subtree).
@@ -1234,12 +1234,7 @@ void RSSurfaceRenderNodeDrawable::SetAlignedVisibleDirtyRegion(const Occlusion::
 
 void RSSurfaceRenderNodeDrawable::SetGlobalDirtyRegion(Occlusion::Region region)
 {
-    if (!GetRenderParams()) {
-        return;
-    }
-    auto visibleRegion = GetRenderParams()->GetVisibleRegion();
-    globalDirtyRegion_ = visibleRegion.And(region);
-    globalDirtyRegionIsEmpty_ = globalDirtyRegion_.IsEmpty();
+    globalDirtyRegion_ = region;
 }
 
 const Occlusion::Region& RSSurfaceRenderNodeDrawable::GetGlobalDirtyRegion() const
