@@ -709,8 +709,8 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
     bool stylusFlag = (stylusMode_ == STYLUS_LINK_WRITE && !stylusVec_.empty());
-    if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_)
-        (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ == LightFactorStatus::HIGH_LEVEL)) {
+    if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
+        (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         supportRefreshRateVec = lowBrightVec_;
     } else if (stylusFlag) {
         supportRefreshRateVec = stylusVec_;
