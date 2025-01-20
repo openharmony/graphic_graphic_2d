@@ -2494,11 +2494,7 @@ int RSRenderServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
-            bool flag{false};
-            if (!data.ReadBool(flag)) {
-                ret = ERR_INVALID_DATA;
-                break;
-            }
+            bool flag = data.ReadBool();
             SetVmaCacheStatus(flag);
             break;
         }
