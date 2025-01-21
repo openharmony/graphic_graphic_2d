@@ -34,12 +34,12 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
 {
     std::unique_lock<std::mutex> threadLock(threadMutex_);
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    if (frameRateMgr == nullptr || 
+    if (frameRateMgr == nullptr ||
         type <= static_cast<int32_t>(RealtimeRefreshRateType::START) ||
         type >= static_cast<int32_t>(RealtimeRefreshRateType::END)) {
         return;
     }
-    
+
     RealtimeRefreshRateType enumType = static_cast<RealtimeRefreshRateType>(type);
     if (enumType == RealtimeRefreshRateType::SHOW) {
         if (showEnabled_ == enabled) {
