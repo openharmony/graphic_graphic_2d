@@ -156,7 +156,7 @@ private:
     void SetScreenRotationForPointLight(RSDisplayRenderParams &params);
     void SetSecurityMask(RSProcessor& processor);
     Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
-    float realImageWidth, float realImageHeight);
+        float realImageWidth, float realImageHeight);
     // Prepare for off-screen render
     void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
     void PrepareOffscreenRender(const RSDisplayRenderNodeDrawable& displayDrawable,
