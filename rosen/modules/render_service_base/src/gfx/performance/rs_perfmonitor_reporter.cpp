@@ -26,7 +26,6 @@ const int32_t COUNTER_SIZE = 4;
 const int32_t REASON_SIZE = 7;
 const char* CPU_ONDRAW = "CPU_ONDRAW";
 const char* CPU_FLUSH = "CPU_FLUSH";
-#endif
 //for rendergroup subhealth
 constexpr int32_t DRAWING_CACHE_UPDATE_TIME_THRESHOLD = 3;
 constexpr int32_t INTERVAL_THRESHOLD = 1000000;
@@ -34,6 +33,7 @@ constexpr int32_t DRAWING_CACHE_DURATION_TIMEOUT_THRESHOLD = 1000;
 constexpr int32_t REPORT_INTERVAL = 120000000;
 constexpr int32_t DRAWING_CACHE_MAX_CONTINUOUS_UPDATE_TIME = 7;
 constexpr int32_t STORED_TIMESTAMP_COUNT = DRAWING_CACHE_UPDATE_TIME_THRESHOLD - 1;
+#endif
 
 RSPerfMonitorReporter& RSPerfMonitorReporter::GetInstance()
 {
@@ -268,13 +268,16 @@ bool RSPerfMonitorReporter::IsOpenPerf()
 
 void RSPerfMonitorReporter::ClearRendergroupDataMap(NodeId& nodeId)
 {
+#ifdef ROSEN_OHOS
     drawingCacheTimeTakenMap_.erase(nodeId);
     drawingCacheLastTwoTimestampMap_.erase(nodeId);
+#endif
 }
 
 void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, int updateTimes, int interval,
     std::chrono::time_point<high_resolution_clock>& startTime)
 {
+#ifdef ROSEN_OHOS
     {
         std::lock_guard<std::mutex> lock(drawingCacheTimeTakenMapMutex_);
         drawingCacheTimeTakenMap_[nodeId].emplace_back(interval);
@@ -307,11 +310,13 @@ void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, int upda
             drawingCacheLastTwoTimestampMap_[nodeId].pop();
         }
     }
+#endif
 }
 
 bool RSPerfMonitorReporter::NeedReportSubHealth(NodeId& nodeId, int updateTimes,
     std::chrono::time_point<high_resolution_clock>& startTime)
 {
+#ifdef ROSEN_OHOS
     if (!MeetReportFrequencyControl(nodeId, startTime)) {
         return false;
     }
@@ -334,10 +339,12 @@ bool RSPerfMonitorReporter::NeedReportSubHealth(NodeId& nodeId, int updateTimes,
         return true;
     }
     return false;
+#endif
 }
 
 bool RSPerfMonitorReporter::CheckAllDrawingCacheDurationTimeout(NodeId& nodeId)
 {
+#ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> lock(drawingCacheTimeTakenMapMutex_);
     for (auto& it: drawingCacheTimeTakenMap_[nodeId]) {
         if (it < DRAWING_CACHE_DURATION_TIMEOUT_THRESHOLD) {
@@ -345,11 +352,13 @@ bool RSPerfMonitorReporter::CheckAllDrawingCacheDurationTimeout(NodeId& nodeId)
         }
     }
     return true;
+#endif
 }
 
 bool RSPerfMonitorReporter::MeetReportFrequencyControl(NodeId& nodeId,
     std::chrono::time_point<high_resolution_clock>& startTime)
 {
+#ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> lock(drawingCacheLastReportTimeMapMutex_);
     if (drawingCacheLastReportTimeMap_.find(nodeId) == drawingCacheLastReportTimeMap_.end()) {
         return true;
@@ -360,10 +369,12 @@ bool RSPerfMonitorReporter::MeetReportFrequencyControl(NodeId& nodeId,
         }
     }
     return false;
+#endif
 }
 
 std::string RSPerfMonitorReporter::GetUpdateCacheTimeTaken(NodeId& nodeId)
 {
+#ifdef ROSEN_OHOS
     std::lock_guard<std::mutex> lock(drawingCacheTimeTakenMapMutex_);
     std::string result;
     if (drawingCacheTimeTakenMap_.find(nodeId) != drawingCacheTimeTakenMap_.end()) {
@@ -375,6 +386,7 @@ std::string RSPerfMonitorReporter::GetUpdateCacheTimeTaken(NodeId& nodeId)
         result.pop_back();
     }
     return result;
+#endif
 }
 
 } // namespace Rosen
