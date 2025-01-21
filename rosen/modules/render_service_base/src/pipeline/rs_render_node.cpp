@@ -403,12 +403,12 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
             AddPreFirstLevelNodeIdSet(child->GetPreFirstLevelNodeIdSet());
         }
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            INVALID_NODEID, displayNodeId);
+            uifirstRootNodeId, displayNodeId);
     }
 
     for (auto& [child, _] : disappearingChildren_) {
         child->SetIsOnTheTree(flag, instanceRootNodeId, firstLevelNodeId, cacheNodeId,
-            INVALID_NODEID, displayNodeId);
+            uifirstRootNodeId, displayNodeId);
     }
 }
 
